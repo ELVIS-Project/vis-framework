@@ -1,0 +1,4 @@
+Here's what's in the test corpus!
+
+bwv77.mxl : from the music21 corpus, the file 'bach/bwv7.7.mxl'
+Kyrie.krn : Kyrie from Palestrina's "Missa Pro Defunctis," eventually available somewhere on http://elvis.music.mcgill.ca/ 
