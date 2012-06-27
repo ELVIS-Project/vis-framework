@@ -501,65 +501,65 @@ class TestVisTheseParts( unittest.TestCase ):
       self.stats = VerticalIntervalStatistics()
       self.settings = visSettings()
 
-   #def test_theFirst( self ):
-      ## BWV 7.7 (a chorale)
-      ## MusicXML
-      ## Soprano and Bass
-      ## Measures 1 through 4
+   def test_theFirst( self ):
+      # BWV 7.7 (a chorale)
+      # MusicXML
+      # Soprano and Bass
+      # Measures 1 through 4
 
-      ## Process the excerpt
-      #filename = 'test_corpus/bwv77.mxl'
-      #thePiece = converter.parse( filename )
-      ## offset 13.0 is the fourth measure
-      #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
-      #lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      # Process the excerpt
+      filename = 'test_corpus/bwv77.mxl'
+      thePiece = converter.parse( filename )
+      # offset 13.0 is the fourth measure
+      higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
+      lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
+      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      ## Prepare the findings
-      #expectedCompoundIntervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
-            #'m13':1, 'm17':1, 'M13':1, 'm10':4 }
-      #expectedNoQuality2Grams = { '8 1 9':1, '10 -2 12':1, '10 -4 12':1, \
-            #'13 -2 17':1, '17 +6 12':1, '9 1 10':1, '12 +4 10':1, '12 -2 13':1, \
-            #'12 -3 13':1, '13 +2 12':1, '12 +4 8':1, '8 -4 10':1, \
-            #'10 +4 10':1, '10 -2 10':3 }
+      # Prepare the findings
+      expectedCompoundIntervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
+            'm13':1, 'm17':1, 'M13':1, 'm10':4 }
+      expectedNoQuality2Grams = { '8 1 9':1, '10 -2 12':1, '10 -4 12':1, \
+            '13 -2 17':1, '17 +6 12':1, '9 1 10':1, '12 +4 10':1, '12 -2 13':1, \
+            '12 -3 13':1, '13 +2 12':1, '12 +4 8':1, '8 -4 10':1, \
+            '10 +4 10':1, '10 -2 10':3 }
 
-      ## Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      # Verify the findings
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
 
-   #def test_theSecond( self ):
-      ## Kyrie from "Missa Pro Defunctis" by Palestrina
-      ## **kern
-      ## Spines 4 and 3 (the highest two of five staves)
-      ## Measures 1 through 5
+   def test_theSecond( self ):
+      # Kyrie from "Missa Pro Defunctis" by Palestrina
+      # **kern
+      # Spines 4 and 3 (the highest two of five staves)
+      # Measures 1 through 5
 
-      ## Process the excerpt
-      #filename = 'test_corpus/Kyrie.krn'
-      #thePiece = converter.parse( filename )
-      ## offset 40.0 is the sixth measure
-      #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 39.9 )
-      #lowerPart = thePiece.parts[1].getElementsByOffset( 0.0, 39.9 )
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      # Process the excerpt
+      filename = 'test_corpus/Kyrie.krn'
+      thePiece = converter.parse( filename )
+      # offset 40.0 is the sixth measure
+      higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 39.9 )
+      lowerPart = thePiece.parts[1].getElementsByOffset( 0.0, 39.9 )
+      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      ## Prepare the findings
-      #expectedCompoundIntervals = { 'm3':3, 'M3':2, 'P4':1, 'd5':2, 'm6':2, \
-            #'M6':2, 'M2':1, 'P5':1 }
-      #expectedNoQuality2Grams = { '3 +2 3':2, '3 1 4':1, '4 -2 5':1, '5 -2 6':2, \
-            #'6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }
+      # Prepare the findings
+      expectedCompoundIntervals = { 'm3':3, 'M3':2, 'P4':1, 'd5':2, 'm6':2, \
+            'M6':2, 'M2':1, 'P5':1 }
+      expectedNoQuality2Grams = { '3 +2 3':2, '3 1 4':1, '4 -2 5':1, '5 -2 6':2, \
+            '6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }
 
-      ## Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      # Verify the findings
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
 
    def test_theThird( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
       # MusicXML
       # Alto and Quinto
-      # Measures 6 through downbeat of 12
+      # Measures 6 through end of 11
       ## NB: Kind of a regular test, just that it doesn't start at the
       ## beginning. Plus, it ends on a unison and before that is a rest.
 
@@ -568,16 +568,15 @@ class TestVisTheseParts( unittest.TestCase ):
       thePiece = converter.parse( filename )
       # offset 20.0 is the 6th measure
       # offset 44.0 is the 12th measure
-      higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 44.1 )
-      lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 44.1 )
+      higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 43.9 )
+      lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 43.9 )
       visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      pprint.pprint( self.stats._compoundIntervalDict )
+      #pprint.pprint( self.stats._compoundIntervalDict )
       #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
 
       # Prepare the findings
-      expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':1, 'P1':1, \
-            'm3':2 }
+      expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':2 }
       expectedNoQuality2Grams = { '8 +2 6':1, '4 1 3':1, '4 -3 3':1, \
             '6 +2 4':1, '3 1 4':2, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1}#, \
             #'1 +2 2':1, '4 -2 3':1, '2 -2 1':1, '2 +2 1':1, '5 +3 3':1, \
@@ -586,8 +585,8 @@ class TestVisTheseParts( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
       self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
 
    #def test_theFourth( self ):
       ## Monteverdi's "Cruda amarilli" (a madrigal)

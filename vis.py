@@ -491,7 +491,7 @@ def intervalSorter( x, y ):
 
 #------------------------------------------------------------------------------
 def visTheseParts( theseParts, theSettings, theStatistics ):
-   # NB: I broke this int a function so I can use a unit test on it.
+   # NB: I broke this into a function so I can use a unit test on it.
    '''
    Given a list of two :class:`music21.stream.Part` objects, an visSettings
    object, and a VerticalIntervalStatistics object, calculate the n-grams
@@ -501,6 +501,22 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    Note that the parts must be specified so the higher part has index 0, and
    the lower part has index 1.
    '''
+
+   # Is 'thing' a Note?
+   def isNote( thing ):
+      if isinstance( thing, note.Note ):
+         return True
+      else:
+         return False
+   #
+
+   # Is 'thing' a Rest?
+   def isRest( thing ):
+      if isinstance( thing, note.Rest ):
+         return True
+      else:
+         return False
+   #
 
    # Is 'thing' a Note, Rest, or neither?
    def noteOrRest( thing ):
@@ -547,7 +563,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    # This will make sure my beginning-of-loop increment doesn't make us miss
    # the first things in the Stream.
    currentOffset -= offsetInterval
-
+   
    # The most important part!
    while currentOffset <= highestOffset:
       # First, increment the Interval. I'm doing this first so I can use a
@@ -580,10 +596,10 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
             mostRecentLow = lfnGEBO
             # Indicate that other part must update and that we already did.
             highMustUpdate, lowUpdated = True, True
-         # If the most recent object was a Rest and this is a Note, we must add
-         # it to the list of stuff.
-         elif isinstance( mostRecentLow, note.Rest ) and \
-               isinstance( lfnGEBO, note.Note ):
+         # If the most recent object is the other of Note/Rest than this, we
+         # should add it on.
+         elif isRest( mostRecentLow ) and isNote( lfnGEBO ) or \
+              isNote( mostRecentLow ) and isRest( lfnGEBO ):
             # Add the most (now ex-)most recent object to the list of previous
             # objects, then assign lfnGEBO as the most recent object.
             previousLows.append( mostRecentLow )
@@ -594,7 +610,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          # doesn't have the same pitch as this note. If it doesn't, we must add
          # it to the list of stuff. By this point, we know mostRecentLow is
          # a Note.
-         elif isinstance( lfnGEBO, note.Note ):
+         elif isNote( lfnGEBO ):
             if ( lfnGEBO.pitch != mostRecentLow.pitch ):
                # Add the most (now ex-)most recent object to the list of previous
                # objects, then assign lfnGEBO as the most recent object.
@@ -613,12 +629,12 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          if None == mostRecentHigh:
             mostRecentHigh = hfnGEBO
             lowMustUpdate, highUpdated = True, True
-         elif isinstance( mostRecentHigh, note.Rest ) and \
-               isinstance( hfnGEBO, note.Note ):
+         elif isRest( mostRecentHigh ) and isNote( hfnGEBO ) or \
+              isNote( mostRecentHigh ) and isRest( hfnGEBO ):
             previousHighs.append( mostRecentHigh )
             mostRecentHigh = hfnGEBO
             lowMustUpdate, highUpdated = True, True
-         elif isinstance( hfnGEBO, note.Note ):
+         elif isNote( hfnGEBO ):
             if ( hfnGEBO.pitch != mostRecentHigh.pitch ):
                previousHighs.append( mostRecentHigh )
                mostRecentHigh = hfnGEBO
@@ -641,10 +657,9 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
       # If one of the voices was updated, we haven't yet counted this
       # vertical interval.
       if lowUpdated or highUpdated:
-         # If neither the current high nor low Note is a Rest, we can count it
-         # as an Interval.
-         if not isinstance( mostRecentLow, note.Rest ) and \
-            not isinstance( mostRecentHigh, note.Rest ):
+         # If the mostRecent high and low objects are both Notes, we can count
+         # them as an Interval, and potentially into an NGram.
+         if isNote( mostRecentLow ) and isNote( mostRecentHigh ):
             # count this Interval
             thisInterval = interval.Interval( mostRecentLow, mostRecentHigh )
             theStatistics.addInterval( thisInterval )
@@ -656,8 +671,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
 
             # Make sure those previous objects are Note and not Rest objects.
             # TODO: make this work for n != 2
-            if isinstance( previousLows[-1], note.Rest ) or \
-               isinstance( previousHighs[-1], note.Rest ):
+            if isRest( previousLows[-1] ) or isRest( previousHighs[-1] ):
                   continue
 
             # If we're still going, then make an NGram and add it to the
