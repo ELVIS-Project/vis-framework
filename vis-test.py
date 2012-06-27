@@ -654,23 +654,25 @@ class TestVisTheseParts( unittest.TestCase ):
       # Joseph Haydn's String Quartet, Op.76/4, Movement 1
       # MIDI
       # Violin I and 'Cello
-      # Measures 112 through 119
-      ## NB: These parts cross many times.
+      # Measures 113 through 120
+      ## NB: 
       
       ## Process the excerpt
       filename = 'test_corpus/sqOp76-4-i.midi'
       thePiece = converter.parse( filename )
-      # offset 20.0 is the 6th measure
-      # offset 44.0 is the 12th measure
-      higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 43.9 )
-      lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 43.9 )
+      # measure 113 is offset 448.0
+      # measure 120 is offset 480.0
+      higherPart = thePiece.parts[0].getElementsByOffset( 448.0, 479.9 )
+      lowerPart = thePiece.parts[3].getElementsByOffset( 448.0, 479.9 )
       visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      ##pprint.pprint( self.stats._compoundIntervalDict )
+      #pprint.pprint( self.stats._compoundIntervalDict )
       ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
 
       ## Prepare the findings
-      #expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':2 }
+      expectedCompoundIntervals = { 'P15':7, 'm14':1, 'A11':1, 'd14':4, \
+            'A18':1, 'd18':2, 'A12':1, 'd19':1, 'A16':2, 'm13':3, 'm21':1, \
+            'P22':4, 'm24':3, 'P26':5, 'm28':1, 'M24':1, 'M17':1 }
       #expectedNoQuality2Grams = { '8 +2 6':1, '4 1 3':1, '4 -3 3':1, \
             #'6 +2 4':1, '3 1 4':2, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1}#, \
             ##'1 +2 2':1, '4 -2 3':1, '2 -2 1':1, '2 +2 1':1, '5 +3 3':1, \
@@ -678,7 +680,7 @@ class TestVisTheseParts( unittest.TestCase ):
 
       ## Verify the findings
       #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
       #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
       #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
 
