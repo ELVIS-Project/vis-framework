@@ -73,3 +73,27 @@ botPartz.append( Rest(quarterLength=1.0) )
 botPartz.append( Rest(quarterLength=0.125) )
 
 theSecondPiece = Score( [topPartz,botPartz] )
+
+#------------------------------------------------------------------------------
+
+topPartx = Part()
+topPartx.append( Note('F3',quarterLength=0.125) )
+topPartx.append( Rest(quarterLength=0.875) )
+topPartx.append( Note('G3',quarterLength=0.125) )
+topPartx.append( Rest(quarterLength=0.375) )
+topPartx.append( Note('A3',quarterLength=0.125) )
+topPartx.append( Rest(quarterLength=0.375) )
+topPartx.append( Note('C4',quarterLength=0.5) )
+topPartx.append( Rest(quarterLength=0.5) )
+topPartx.append( Note('D4',quarterLength=0.5) )
+topPartx.append( Rest(quarterLength=0.5) )
+
+botPartx = Part()
+botPartx.append( Note('C5',quarterLength=0.875) )
+botPartx.append( Rest(quarterLength=1.0) )
+botPartx.append( Rest(quarterLength=0.125) )
+botPartx.append( Note('D5',quarterLength=0.875) )
+botPartx.append( Rest(quarterLength=1.0) )
+botPartx.append( Rest(quarterLength=0.125) )
+
+theThirdPiece = Score( [botPartx,topPartx] )
