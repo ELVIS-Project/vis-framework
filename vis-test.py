@@ -651,7 +651,7 @@ class TestVisTheseParts( unittest.TestCase ):
       #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
    
    
-   #def test_theSixthA( self ):
+   def test_theSixthA( self ):
       # Two targeted testing excerpts.
       # A music21 Original
       # Just 2 arbitrary parts
@@ -659,23 +659,23 @@ class TestVisTheseParts( unittest.TestCase ):
       ## part has alternating notes and rests in a time when the other part has
       ## a note followed by a bunch of rests.
       
-      #from test_theSixth import theFirstPiece
-      #higherPart = theFirstPiece.parts[0]
-      #lowerPart = theFirstPiece.parts[1]
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      from test_theSixth import theFirstPiece
+      higherPart = theFirstPiece.parts[0]
+      lowerPart = theFirstPiece.parts[1]
+      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      ##pprint.pprint( self.stats._compoundIntervalDict )
-      ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      #pprint.pprint( self.stats._compoundIntervalDict )
+      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
 
-      ### Prepare the findings
-      #expectedCompoundIntervals = { 'P11':1, 'm14':1 }
-      #expectedNoQuality2Grams = {}
+      ## Prepare the findings
+      expectedCompoundIntervals = { 'P11':1, 'm14':1 }
+      expectedNoQuality2Grams = {}
 
-      ### Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      ## Verify the findings
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
    
    def test_theSixthB( self ):
       # Two targeted testing excerpts.
@@ -696,7 +696,7 @@ class TestVisTheseParts( unittest.TestCase ):
       lowerPart = theSecondPiece.parts[1]
       visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      pprint.pprint( self.stats._compoundIntervalDict )
+      #pprint.pprint( self.stats._compoundIntervalDict )
       #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
 
       ## Prepare the findings
@@ -704,10 +704,35 @@ class TestVisTheseParts( unittest.TestCase ):
       expectedNoQuality2Grams = {}
 
       ## Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+   
+   def test_theSixthC( self ):
+      # Two targeted testing excerpts.
+      # A music21 Original
+      # Just 2 arbitrary parts
+      ## NB: This test reverses theSixthB, so the bottom voice woudl cause the
+      ## problem caused by the top voice in the previous test.
+      
+      from test_theSixth import theThirdPiece
+      higherPart = theThirdPiece.parts[0]
+      lowerPart = theThirdPiece.parts[1]
+      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+
+      #pprint.pprint( self.stats._compoundIntervalDict )
+      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+
+      ## Prepare the findings
+      expectedCompoundIntervals = { 'P12':1, 'M9':1 }
+      expectedNoQuality2Grams = {}
+
+      ## Verify the findings
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
    
    #def test_theSeventh( self ):
       ## Joseph Haydn's String Quartet, Op.76/4, Movement 1
