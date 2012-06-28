@@ -549,7 +549,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    # How much to increment the offset. With quarterLength==1.0 and offsetInterval
    # of 0.5, this means we're counting by eighth notes.
    # TODO: get this from settings
-   offsetInterval = 0.5
+   offsetInterval = 1.0
    # Initialize. These hold the most recent Note/Rest in their respective
    # voice. We can't say "current" because it implies the offset of
    # mostRecentHigh == currentOffset, which may not be true if, for example
@@ -564,12 +564,20 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    # the first things in the Stream.
    currentOffset -= offsetInterval
    
+   # DEBUGGING
+   print( '\ninitial and final offsets: ' + str(currentOffset+offsetInterval) + '; ' + str(highestOffset) )
+   # END DEBUGGING
+   
    # The most important part!
    while currentOffset <= highestOffset:
       # First, increment the Interval. I'm doing this first so I can use a
       # 'continue' statement later.
       currentOffset += offsetInterval
-
+      
+      # DEBUGGING
+      print( str(currentOffset) )
+      # END DEBUGGING
+      
       # For a situation like a melisma, we need to cause the static
       # voice to update its record of previous positions, or else
       # it will seem as though every n-gram has the moving voice
@@ -662,6 +670,9 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          if isNote( mostRecentLow ) and isNote( mostRecentHigh ):
             # count this Interval
             thisInterval = interval.Interval( mostRecentLow, mostRecentHigh )
+            # DEBUGGING
+            print( '--> ' + thisInterval.name + ' at offset ' + str(mostRecentLow.offset) + ' (a ' + mostRecentLow.name + str(mostRecentLow.octave) + ') and ' + str(mostRecentHigh.offset) ) + ' (a ' + mostRecentHigh.name + str(mostRecentHigh.octave) + ')'
+            # END DEBUGGING
             theStatistics.addInterval( thisInterval )
 
             # Make sure there are enough previous objects to make an n-gram.
