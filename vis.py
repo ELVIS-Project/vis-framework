@@ -549,7 +549,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    # How much to increment the offset. With quarterLength==1.0 and offsetInterval
    # of 0.5, this means we're counting by eighth notes.
    # TODO: get this from settings
-   offsetInterval = 1.0
+   offsetInterval = 0.5
    # Initialize. These hold the most recent Note/Rest in their respective
    # voice. We can't say "current" because it implies the offset of
    # mostRecentHigh == currentOffset, which may not be true if, for example
@@ -565,7 +565,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    currentOffset -= offsetInterval
    
    # DEBUGGING
-   print( '\ninitial and final offsets: ' + str(currentOffset+offsetInterval) + '; ' + str(highestOffset) )
+   #print( '\ninitial and final offsets: ' + str(currentOffset+offsetInterval) + '; ' + str(highestOffset) )
    # END DEBUGGING
    
    # The most important part!
@@ -575,7 +575,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
       currentOffset += offsetInterval
       
       # DEBUGGING
-      print( str(currentOffset) )
+      #print( str(currentOffset) )
       # END DEBUGGING
       
       # For a situation like a melisma, we need to cause the static
@@ -661,34 +661,78 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
       if highMustUpdate and not highUpdated:
          previousHighs.append( mostRecentHigh )
          highUpdated = True
-
+      
       # If one of the voices was updated, we haven't yet counted this
       # vertical interval.
       if lowUpdated or highUpdated:
+         # DEBUGGING
+         #print( 'mostRecent offsets: ' + str(mostRecentLow.offset) + ', ' + str(mostRecentHigh.offset) )
+         #try:
+            #print( 'mostRecent-1 offsets: ' + str(previousLows[-1].offset) + ', ' + str(previousHighs[-1].offset) )
+         #except:
+            #pass
+         # END DEBUGGING
+         
          # If the mostRecent high and low objects are both Notes, we can count
          # them as an Interval, and potentially into an NGram.
          if isNote( mostRecentLow ) and isNote( mostRecentHigh ):
-            # count this Interval
-            thisInterval = interval.Interval( mostRecentLow, mostRecentHigh )
-            # DEBUGGING
-            print( '--> ' + thisInterval.name + ' at offset ' + str(mostRecentLow.offset) + ' (a ' + mostRecentLow.name + str(mostRecentLow.octave) + ') and ' + str(mostRecentHigh.offset) ) + ' (a ' + mostRecentHigh.name + str(mostRecentHigh.octave) + ')'
-            # END DEBUGGING
-            theStatistics.addInterval( thisInterval )
+            abort = False
+            # If one of the objects doesn't have the same offset, there's a
+            # possibility we missed a rest that continues through this offset.
+            # Eventually I should make this work more efficiently (deduplicate).
+            if mostRecentLow.offset < mostRecentHigh.offset:
+               # Check all the offsets between mostRecentLow and mostRecentHigh,
+               # to see if there is a Rest. If there is, see if it's long enough
+               # to continue through mostRecentHigh. If it is, then we should
+               # not count this vertical interval.
+               for checkThisOffset in xrange( int(mostRecentLow.offset*1000+1), int(mostRecentHigh.offset*1000-1) ):
+                  z = lfn.getElementsByOffset( float(checkThisOffset)/1000 )
+                  if len(z) > 0:
+                     #print( '!!! ' + str(z[0]) + ' at offset ' + str(float(checkThisOffset)/1000) )
+                     #print( '      ' + str(mostRecentHigh.offset*1000 - checkThisOffset) )
+                     if z[0].quarterLength*1000 > (mostRecentHigh.offset*1000 - checkThisOffset):
+                        #print( '!!!!!! ' + str(z[0].quarterLength) )
+                        abort = True
+                        previousLows.append( mostRecentLow )
+                        mostRecentLow = z[0]
+                     #else:
+                        #print( '@@@@@@ ' + str(z[0].quarterLength) )
+            if mostRecentHigh.offset < mostRecentLow.offset:
+               for checkThisOffset in xrange( int(mostRecentHigh.offset*1000+1), int(mostRecentLow.offset*1000-1) ):
+                  z = hfn.getElementsByOffset( float(checkThisOffset)/1000 )
+                  if len(z) > 0:
+                     #print( '!!! ' + str(z[0]) + ' at offset ' + str(float(checkThisOffset)/1000) )
+                     #print( '      ' + str(mostRecentHigh.offset*1000 - checkThisOffset) )
+                     if z[0].quarterLength*1000 > (mostRecentLow.offset*1000 - checkThisOffset):
+                        #print( '!!!!!! ' + str(z[0].quarterLength) )
+                        abort = True
+                        previousHighs.append( mostRecentHigh)
+                        mostRecentHigh = z[0]
+                     #else:
+                        #print( '@@@@@@ ' + str(z[0].quarterLength) )
+            
+            if not abort:
+               # count this Interval
+               thisInterval = interval.Interval( mostRecentLow, mostRecentHigh )
+               # DEBUGGING
+               #print( '--> ' + thisInterval.name + ' at offset ' + str(mostRecentLow.offset) + ' (a ' + mostRecentLow.name + str(mostRecentLow.octave) + ') and ' + str(mostRecentHigh.offset) ) + ' (a ' + mostRecentHigh.name + str(mostRecentHigh.octave) + ')'
+               # END DEBUGGING
+               theStatistics.addInterval( thisInterval )
 
-            # Make sure there are enough previous objects to make an n-gram.
-            # TODO: make this work for n != 2
-            if len(previousLows) < (n-1) or len(previousHighs) < (n-1):
-               continue
-
-            # Make sure those previous objects are Note and not Rest objects.
-            # TODO: make this work for n != 2
-            if isRest( previousLows[-1] ) or isRest( previousHighs[-1] ):
+               # Make sure there are enough previous objects to make an n-gram.
+               # TODO: make this work for n != 2
+               if len(previousLows) < (n-1) or len(previousHighs) < (n-1):
                   continue
 
-            # If we're still going, then make an NGram and add it to the
-            # statistics!
-            thisNGram = NGram( [interval.Interval( previousLows[-1], previousHighs[-1] ), thisInterval] )
-            theStatistics.addNGram( thisNGram )
+               # Make sure those previous objects are Note and not Rest objects.
+               # TODO: make this work for n != 2
+               if isRest( previousLows[-1] ) or isRest( previousHighs[-1] ):
+                     continue
+
+               # If we're still going, then make an NGram and add it to the
+               # statistics!
+               thisNGram = NGram( [interval.Interval( previousLows[-1], previousHighs[-1] ), thisInterval] )
+               theStatistics.addNGram( thisNGram )
 # End visTheseParts() -------------------------------------------------------
 
 
