@@ -924,7 +924,6 @@ class visSettings:
 
 
 # "main" function --------------------------------------------------------------
-# TODO: implemenet the commands specified at the end of the GPL
 if __name__ == '__main__':
    print( "vis" )
    print( "===" )
@@ -1014,6 +1013,22 @@ if __name__ == '__main__':
                print( "Just type the filename. TODO: Say something useful about this." )
             else:
                print( "I don't have any help about " + userSays[userSays.find(' ')+1:] + " yet." )
+         elif 'show w' == userSays:
+            print( "\nvis is distributed in the hope that it will be useful," )
+            print( "but WITHOUT ANY WARRANTY; without even the implied warranty of" )
+            print( "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" )
+            print( "GNU General Public License for more details.\n" )
+            print( "A copy of the licence is included in the vis directory in the" )
+            print( "file called 'GPL.txt'\n" )
+         elif 'show c' == userSays:
+            print( "\nvis is free software: you can redistribute it and/or modify" )
+            print( "it under the terms of the GNU General Public License as published by" )
+            print( "the Free Software Foundation, either version 3 of the License, or" )
+            print( "(at your option) any later version.\n" )
+            print( "A copy of the licence is included in the vis directory in the" )
+            print( "file called 'GPL.txt'\n" )
+         else:
+            print( "Unrecognized command or file name (" + userSays + ")" )
       else:
          if pathExists( userSays ):
             print( "Loading " + userSays + " for analysis." )
