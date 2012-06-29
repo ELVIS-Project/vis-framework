@@ -80,7 +80,7 @@ class NGram( object ):
       >>> s = visSettings()
       >>> a = interval.Interval( note.Note('C4'), note.Note('E4') )
       >>> b = interval.Interval( note.Note('D4'), note.Note('E4') )
-      >>> ng = NGram( [a,b], s.parsePropertyGet( 'heedQuality' ) )
+      >>> ng = NGram( [a,b], s.propertyGet( 'heedQuality' ) )
       NGram( [music21.interval.Interval( music21.note.Note('C4'), music21.note.Note('E4') ),music21.interval.Interval( music21.note.Note('D4'), music21.note.Note('E4') )], False )
       '''
       self._heedQuality = heedQuality
@@ -548,8 +548,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    currentOffset = min(lfn.lowestOffset, hfn.lowestOffset)
    # How much to increment the offset. With quarterLength==1.0 and offsetInterval
    # of 0.5, this means we're counting by eighth notes.
-   # TODO: get this from settings
-   offsetInterval = 0.5
+   offsetInterval = theSettings.propertyGet( 'offsetBetweenInterval' )
    # Initialize. These hold the most recent Note/Rest in their respective
    # voice. We can't say "current" because it implies the offset of
    # mostRecentHigh == currentOffset, which may not be true if, for example
@@ -557,26 +556,18 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    mostRecentHigh, mostRecentLow = None, None
    # These will hold all the previous Note/Rest objects in their respective
    # voices. It's how we build n-grams, with mostRecentX and objects from
-   # these lists. TODO: remove things once we don't need them any more.
+   # these lists.
    previousHighs, previousLows = [], []
 
    # This will make sure my beginning-of-loop increment doesn't make us miss
    # the first things in the Stream.
    currentOffset -= offsetInterval
    
-   # DEBUGGING
-   #print( '\ninitial and final offsets: ' + str(currentOffset+offsetInterval) + '; ' + str(highestOffset) )
-   # END DEBUGGING
-   
    # The most important part!
    while currentOffset <= highestOffset:
       # First, increment the Interval. I'm doing this first so I can use a
       # 'continue' statement later.
       currentOffset += offsetInterval
-      
-      # DEBUGGING
-      #print( str(currentOffset) )
-      # END DEBUGGING
       
       # For a situation like a melisma, we need to cause the static
       # voice to update its record of previous positions, or else
@@ -665,14 +656,6 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
       # If one of the voices was updated, we haven't yet counted this
       # vertical interval.
       if lowUpdated or highUpdated:
-         # DEBUGGING
-         #print( 'mostRecent offsets: ' + str(mostRecentLow.offset) + ', ' + str(mostRecentHigh.offset) )
-         #try:
-            #print( 'mostRecent-1 offsets: ' + str(previousLows[-1].offset) + ', ' + str(previousHighs[-1].offset) )
-         #except:
-            #pass
-         # END DEBUGGING
-         
          # If the mostRecent high and low objects are both Notes, we can count
          # them as an Interval, and potentially into an NGram.
          if isNote( mostRecentLow ) and isNote( mostRecentHigh ):
@@ -714,9 +697,6 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
             if not abort:
                # count this Interval
                thisInterval = interval.Interval( mostRecentLow, mostRecentHigh )
-               # DEBUGGING
-               #print( '--> ' + thisInterval.name + ' at offset ' + str(mostRecentLow.offset) + ' (a ' + mostRecentLow.name + str(mostRecentLow.octave) + ') and ' + str(mostRecentHigh.offset) ) + ' (a ' + mostRecentHigh.name + str(mostRecentHigh.octave) + ')'
-               # END DEBUGGING
                theStatistics.addInterval( thisInterval )
 
                # Make sure there are enough previous objects to make an n-gram.
@@ -811,7 +791,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    #pprint.pprint( theStats._compoundQualityNGramsDict )
    pprint.pprint( theStats._compoundNoQualityNGramsDict )
 
-   if theSettings.parsePropertyGet( 'produceLabeledScore' ):
+   if theSettings.propertyGet( 'produceLabeledScore' ):
       print( "-----------------------------" )
       print( "Processing score for display." )
       theChords.show()
@@ -837,15 +817,17 @@ class visSettings:
       self._secretSettingsHash['produceLabeledScore'] = False
       self._secretSettingsHash['heedQuality'] = False
       self._secretSettingsHash['lookForTheseNs'] = [2]
-
-   def parsePropertySet( self, propertyStr ):
+      self._secretSettingsHash['offsetBetweenInterval'] = 0.5
+   
+   def propertySet( self, propertyStr ):
+      # TODO: rename this method "propertySet()"
       # Parses 'propertyStr' and sets the specified property to the specified
       # value. Might later raise an exception if the property doesn't exist or
       # if the value is invalid.
       #
       # Examples:
-      # a.parsePropertySet( 'chordLabelVerbosity concise' )
-      # a.parsePropertySet( 'set chordLabelVerbosity concise' )
+      # a.propertySet( 'chordLabelVerbosity concise' )
+      # a.propertySet( 'set chordLabelVerbosity concise' )
 
       # just tests whether a str is 'true' or 'True' or 'false' or 'False
       def isTorF( s ):
@@ -884,13 +866,14 @@ class visSettings:
       else:
          raise NonsensicalInputError( "Unrecognized property: " + propertyStr[:spaceIndex])
 
-   def parsePropertyGet( self, propertyStr ):
+   def propertyGet( self, propertyStr ):
+      # TODO: rename this method "propertyGet()"
       # Parses 'propertyStr' and returns the value of the specified property.
       # Might later raise an exception if the property doesn't exist.
       #
       # Examples:
-      # a.parsePropertyGet( 'chordLabelVerbosity' )
-      # a.parsePropertyGet( 'get chordLabelVerbosity' )
+      # a.propertyGet( 'chordLabelVerbosity' )
+      # a.propertyGet( 'get chordLabelVerbosity' )
 
       # if the str starts with "get " then remove that
       if len(propertyStr) < 4:
@@ -953,7 +936,7 @@ if __name__ == '__main__':
                print( 'TODO: print set help' )
             else:
                try:
-                  mySettings.parsePropertySet( userSays )
+                  mySettings.propertySet( userSays )
                except NonsensicalInputError as e:
                   print( "Error: " + str(e) )
          elif 'get' == userSays[:userSays.find(' ')]:
@@ -961,7 +944,7 @@ if __name__ == '__main__':
                print( 'TODO: print get help' )
             else:
                try:
-                  val = mySettings.parsePropertyGet( userSays )
+                  val = mySettings.propertyGet( userSays )
                   print( val )
                except NonsensiclaInputError as e:
                   print( "Error: " + str(e) )
