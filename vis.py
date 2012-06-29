@@ -947,6 +947,10 @@ if __name__ == '__main__':
          print( "- 'exit' or 'quit' to exit or quit the program" )
          print( "- 'set' to set an option (see 'set help' for more information)" )
          print( "- 'get' to get the setting of an option (see 'get help')" )
+         print( "- 'help settings' for a list of available settings" )
+         print( "- a filename to analyze" )
+         print( "- 'help filename' for help with file names" )
+         print( "\n** Note: You can type 'help' at any user prompt for more information." )
          print( "" )
       elif 'exit' == userSays or 'quit' == userSays:
          print( "" )
@@ -955,7 +959,17 @@ if __name__ == '__main__':
       elif 0 < userSays.find(' '):
          if 'set' == userSays[:userSays.find(' ')]:
             if 'set help' == userSays:
-               print( 'TODO: print set help' )
+               print( "You can change any of the settings described in the \'help settings\' command.\n" )
+               print( "Just write 'set' followed by a space, the name of the property, and" )
+               print( "the value you wish to set. If you mis-type a property or value name," )
+               print( "vis will tell you, rather than failing with no feedback.\n" )
+               print( "For example:\nset produceLabeledScore true" )
+               print( "... but...\nset orderPizza true" )
+               try:
+                  mySettings.propertySet( 'orderPizza true' )
+               except NonsensicalInputError as err:
+                  print( 'Error: ' + str(err) )
+               #print( "Unrecognized property: parduceLabeledScore" )
             else:
                try:
                   mySettings.propertySet( userSays )
@@ -963,13 +977,43 @@ if __name__ == '__main__':
                   print( "Error: " + str(e) )
          elif 'get' == userSays[:userSays.find(' ')]:
             if 'get help' == userSays:
-               print( 'TODO: print get help' )
+               print( "You can view any of the settings described in the \'help settings\' command.\n" )
+               print( "Just write 'get' followed by a space and the name of the property. If" )
+               print( "you mis-type a property name, vis may either guess at which property" )
+               print( "meant, or tell you that it couldn't find a corresponding propety.\n" )
+               print( "For example:\nget produceLabeledScore" )
+               print( mySettings.propertyGet( 'produceLabeledScore' ) )
             else:
                try:
                   val = mySettings.propertyGet( userSays )
                   print( val )
                except NonsensiclaInputError as e:
                   print( "Error: " + str(e) )
+         elif 'help' == userSays[:userSays.find(' ')]:
+            if 'help settings' == userSays:
+               print( "List of Settings:" )
+               print( "=================" )
+               print( "- produceLabeledScore: whether to produce a LilyPond score with n-gram diagrams." )
+               print( "- heedQuality: whether to pay attention to the quality of an interval (major, minor)," )
+               print( "        or just the size (5th, 6th)." )
+               print( "- lookForTheseNs: a list of integers that are the values of 'n' (as in n-gram) that" )
+               print( "        you want to look for. Type 'help settings lookForTheseNs' to see how to " )
+               print( "        write the list of integers." )
+               print( "- offsetBetweenInterval: a decimal number representing the 'granularity' with which" )
+               print( "        to search for n-grams. Type 'help settings offsetBetweenInterval' for more." )
+            elif 'help settings offsetBetweenInterval' == userSays:
+               print( "This should be the value of music21's 'quarterLength' corresponding to the" )
+               print( "   \"every ____ note\" you want to look for. For example, to check on \"every" )
+               print( "   eighth note,\" you use 0.5, because that is the quarterLength value that" )
+               print( "   means eighth note in music21.\n" )
+               print( "   1.0 quarterLength means \"one quarter note,\" which explains why an eighth" )
+               print( "   note has a quarterLength of 0.5." )
+            elif 'help settings lookForTheseNs' == userSays:
+               print( "Surprise--this setting doesn't actually work yet. When it does, you'll know." )
+            elif 'help filename' == userSays:
+               print( "Just type the filename. TODO: Say something useful about this." )
+            else:
+               print( "I don't have any help about " + userSays[userSays.find(' ')+1:] + " yet." )
       else:
          if pathExists( userSays ):
             print( "Loading " + userSays + " for analysis." )
