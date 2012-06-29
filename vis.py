@@ -659,44 +659,66 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          # If the mostRecent high and low objects are both Notes, we can count
          # them as an Interval, and potentially into an NGram.
          if isNote( mostRecentLow ) and isNote( mostRecentHigh ):
+            # This keeps track of whether we're about to discover that we
+            # shouldn't add the interval because it's invalid. See further
+            # comments below.
             abort = False
+            
             # If one of the objects doesn't have the same offset, there's a
             # possibility we missed a rest that continues through this offset.
-            # Eventually I should make this work more efficiently (deduplicate).
+            # 
+            # TODO: Deduplicate this, somehow knowing which is "the behind one"
+            # and which is "the one at currentOffset."
             if mostRecentLow.offset < mostRecentHigh.offset:
+               # To make the offsets work with xrange() they have to be an int,
+               # so I'm multiplying and dividing by 1000.
+               fromHere = int(mostRecentLow.offset*1000+1) 
+               toHere = int(mostRecentHigh.offset*1000-1)
+               
                # Check all the offsets between mostRecentLow and mostRecentHigh,
                # to see if there is a Rest. If there is, see if it's long enough
                # to continue through mostRecentHigh. If it is, then we should
                # not count this vertical interval.
-               for checkThisOffset in xrange( int(mostRecentLow.offset*1000+1), int(mostRecentHigh.offset*1000-1) ):
+               for checkThisOffset in xrange( fromHere, toHere ):
                   z = lfn.getElementsByOffset( float(checkThisOffset)/1000 )
-                  if len(z) > 0:
+                  if len(z) > 0 and isRest( z[0] ):
+                     # DEBUGGING
                      #print( '!!! ' + str(z[0]) + ' at offset ' + str(float(checkThisOffset)/1000) )
                      #print( '      ' + str(mostRecentHigh.offset*1000 - checkThisOffset) )
                      if z[0].quarterLength*1000 > (mostRecentHigh.offset*1000 - checkThisOffset):
+                        # DEBUGGING
                         #print( '!!!!!! ' + str(z[0].quarterLength) )
                         abort = True
                         previousLows.append( mostRecentLow )
                         mostRecentLow = z[0]
-                     #else:
+                     else:
+                        # DEBUGGING
                         #print( '@@@@@@ ' + str(z[0].quarterLength) )
+                        pass
             if mostRecentHigh.offset < mostRecentLow.offset:
                for checkThisOffset in xrange( int(mostRecentHigh.offset*1000+1), int(mostRecentLow.offset*1000-1) ):
                   z = hfn.getElementsByOffset( float(checkThisOffset)/1000 )
-                  if len(z) > 0:
+                  if len(z) > 0 and isRest( z[0] ):
+                     # DEBUGGING
                      #print( '!!! ' + str(z[0]) + ' at offset ' + str(float(checkThisOffset)/1000) )
                      #print( '      ' + str(mostRecentHigh.offset*1000 - checkThisOffset) )
                      if z[0].quarterLength*1000 > (mostRecentLow.offset*1000 - checkThisOffset):
+                        # DEBUGGING
                         #print( '!!!!!! ' + str(z[0].quarterLength) )
                         abort = True
                         previousHighs.append( mostRecentHigh)
                         mostRecentHigh = z[0]
-                     #else:
+                     else:
+                        # DEBUGGING
                         #print( '@@@@@@ ' + str(z[0].quarterLength) )
+                        pass
             
             if not abort:
                # count this Interval
                thisInterval = interval.Interval( mostRecentLow, mostRecentHigh )
+               # DEBUGGING
+               #print( '--> adding ' + thisInterval.name + ' at offset ' + str(mostRecentLow.offset) + ' or ' + str(mostRecentHigh.offset) )
+               # END DEBUGGING
                theStatistics.addInterval( thisInterval )
 
                # Make sure there are enough previous objects to make an n-gram.
