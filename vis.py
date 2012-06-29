@@ -925,13 +925,11 @@ class visSettings:
 
 # "main" function --------------------------------------------------------------
 if __name__ == '__main__':
-   print( "vis" )
-   print( "===" )
-   print( "vis Copyright (C) 2012 Christopher Antila" )
-   print( "This program comes with ABSOLUTELY NO WARRANTY; for details type `show w'." )
-   print( "This is free software, and you are welcome to redistribute it" )
-   print( "under certain conditions; type `show c' for details.\n" )
-   print( "For a list of commands, type \"help\"." )
+   print( "vis (Prerelease)\n" )
+   print( "Copyright (C) 2012 Christopher Antila" )
+   print( "This program comes with ABSOLUTELY NO WARRANTY; for details type 'show w'." )
+   print( "This is free software; type 'show c' for details.\n" )
+   print( "For a list of commands, type \'help\'." )
 
    mySettings = visSettings()
    exitProgram = False
@@ -1035,9 +1033,9 @@ if __name__ == '__main__':
             try:
                analyzeThis( userSays, mySettings )
             except ConverterException as e:
-               print( "--> musc21 Error: " + str(e) )
+               print( "--> music21 Error: " + str(e) )
             except ConverterFileException as e:
-               print( "--> musc21 Error: " + str(e) )
+               print( "--> music21 Error: " + str(e) )
             except NonsensicalInputError as e:
                print( "--> Error from analyzeThis(): " + str(e) )
          else:
