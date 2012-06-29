@@ -35,6 +35,7 @@ from os.path import exists as pathExists # confirmed requirement
 from music21.converter import ConverterException # confirmed requirement
 from music21.converter import ConverterFileException # confirmed requirement
 from music21 import note # confirmed requirement
+from music21.instrument import Instrument # confirmed requirement
 
 #-------------------------------------------------------------------------------
 class NonsensicalInputError( Exception ):
@@ -569,6 +570,11 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
       # 'continue' statement later.
       currentOffset += offsetInterval
       
+      # DEBUGGING
+      if currentOffset % 100 == 0:
+         print( 'currentOffset: ' + str(currentOffset) )
+      # END DEBUGGING
+      
       # For a situation like a melisma, we need to cause the static
       # voice to update its record of previous positions, or else
       # it will seem as though every n-gram has the moving voice
@@ -759,7 +765,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    # See what input we have
    if isinstance( pathname, str ):
       ## get the score
-      print( "Importing score to music21." )
+      print( "Importing score to music21.\n" )
       try:
          theScore = converter.parse( pathname )
       except ConverterException:
@@ -775,11 +781,21 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    numberOfParts = len(theScore.parts)
    lookAtParts = [numberOfParts+5,numberOfParts+5]
    while lookAtParts[0] == lookAtParts[1] or lookAtParts[0] >= numberOfParts or lookAtParts[1] >= numberOfParts:
-      print( "Please input the part numbers to investigate. Possibilities include:" )
+      print( "Please input the part numbers to investigate." )
+      print( "From highest to lowest, these are the possibilities:" )
       # print something like "1 for Soprano"
       for i in xrange(numberOfParts):
-         print( str(i) + " for " + theScore.parts[i][0].bestName() )
-      theirSpecification = raw_input( "Specify with higher part first, (e.g.) like this: 1 and 3\n--> " )
+         # Try to get a part name... there may not be an Instrument object. If
+         # we don't find something, this will be what appears.
+         partName = '(no part name)'
+         for j in xrange(10):
+            if isinstance( theScore.parts[i][0], Instrument ):
+               partName = theScore.parts[i][0].bestName()
+         #
+         print( str(i) + " for " + partName )
+      theirSpecification = raw_input( "Specify with higher part first.\n--> " )
+      if 'help' == theirSpecification:
+         print( "Just put in the two numbers with a space between them! // TODO: write more useful help here" )
       try:
          lookAtParts[0] = int(theirSpecification[0])
          lookAtParts[1] = int(theirSpecification[-1])
@@ -789,7 +805,8 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
 
    # must have taken the numbers!
    higher, lower = theScore.parts[lookAtParts[0]], theScore.parts[lookAtParts[1]]
-   print( "We'll use " + higher[0].bestName() + ' and ' + lower[0].bestName() + ', okay!\n' )
+   # This sometimes doesn't work, and it's a little silly anyway in a real program.
+   #print( "We'll use " + higher[0].bestName() + ' and ' + lower[0].bestName() + ', okay!\n' )
 
    # find out what or which 'n' to look for
    print( "In the future, we'll ask which 'n' values to look for... for now it's just 2-grams.\n" )
