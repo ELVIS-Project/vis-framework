@@ -43,33 +43,34 @@ class TestSettings( unittest.TestCase ):
       self.assertEqual( self.s._secretSettingsHash['produceLabeledScore'], False )
       self.assertEqual( self.s._secretSettingsHash['heedQuality'], False )
       self.assertEqual( self.s._secretSettingsHash['lookForTheseNs'], [2] )
+      self.assertEqual( self.s._secretSettingsHash['offsetBetweenInterval'], 0.5 )
 
    def test_set_some_things( self ):
       # Setting something to a new, valid value is done properly.
-      self.s.parsePropertySet( 'set produceLabelledScore True' )
+      self.s.propertySet( 'set produceLabelledScore True' )
       self.assertEqual( self.s._secretSettingsHash['produceLabeledScore'], 'True' )
-      self.s.parsePropertySet( 'produceLabelledScore False' )
+      self.s.propertySet( 'produceLabelledScore False' )
       self.assertEqual( self.s._secretSettingsHash['produceLabeledScore'], 'False' )
 
    def test_get_some_things( self ):
-      self.assertEqual( self.s.parsePropertyGet( 'produceLabeledScore' ), False )
+      self.assertEqual( self.s.propertyGet( 'produceLabeledScore' ), False )
       self.s._secretSettingsHash['produceLabeledScore'] = 'True'
-      self.assertEqual( self.s.parsePropertyGet( 'produceLabeledScore' ), True )
-      self.assertEqual( self.s.parsePropertyGet( 'produceLabelledScore' ), True )
+      self.assertEqual( self.s.propertyGet( 'produceLabeledScore' ), True )
+      self.assertEqual( self.s.propertyGet( 'produceLabelledScore' ), True )
 
    def test_get_invalid_setting( self ):
-      self.assertRaises( NonsensicalInputError, self.s.parsePropertyGet, 'four score and five score' )
-      self.assertRaises( NonsensicalInputError, self.s.parsePropertyGet, 'four' )
-      self.assertRaises( NonsensicalInputError, self.s.parsePropertyGet, '' )
+      self.assertRaises( NonsensicalInputError, self.s.propertyGet, 'four score and five score' )
+      self.assertRaises( NonsensicalInputError, self.s.propertyGet, 'four' )
+      self.assertRaises( NonsensicalInputError, self.s.propertyGet, '' )
 
    def test_set_invalid_setting( self ):
-      self.assertRaises( NonsensicalInputError, self.s.parsePropertySet, 'four score and five score' )
-      self.assertRaises( NonsensicalInputError, self.s.parsePropertySet, 'fourscoreandfivescore' )
-      self.assertRaises( NonsensicalInputError, self.s.parsePropertySet, '' )
+      self.assertRaises( NonsensicalInputError, self.s.propertySet, 'four score and five score' )
+      self.assertRaises( NonsensicalInputError, self.s.propertySet, 'fourscoreandfivescore' )
+      self.assertRaises( NonsensicalInputError, self.s.propertySet, '' )
 
    def test_set_to_invalid_value( self ):
-      self.assertRaises( NonsensicalInputError, self.s.parsePropertySet, 'set produceLabeledScore five score' )
-      self.assertRaises( NonsensicalInputError, self.s.parsePropertySet, 'produceLabeledScore five score' )
+      self.assertRaises( NonsensicalInputError, self.s.propertySet, 'set produceLabeledScore five score' )
+      self.assertRaises( NonsensicalInputError, self.s.propertySet, 'produceLabeledScore five score' )
 
 #-------------------------------------------------------------------------------
 
@@ -529,31 +530,31 @@ class TestVisTheseParts( unittest.TestCase ):
       #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
       #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
 
-   #def test_theSecond( self ):
-      ## Kyrie from "Missa Pro Defunctis" by Palestrina
-      ## **kern
-      ## Spines 4 and 3 (the highest two of five staves)
-      ## Measures 1 through 5
+   def test_theSecond( self ):
+      # Kyrie from "Missa Pro Defunctis" by Palestrina
+      # **kern
+      # Spines 4 and 3 (the highest two of five staves)
+      # Measures 1 through 5
 
-      ## Process the excerpt
-      #filename = 'test_corpus/Kyrie.krn'
-      #thePiece = converter.parse( filename )
-      ## offset 40.0 is the sixth measure
-      #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 39.9 )
-      #lowerPart = thePiece.parts[1].getElementsByOffset( 0.0, 39.9 )
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      # Process the excerpt
+      filename = 'test_corpus/Kyrie.krn'
+      thePiece = converter.parse( filename )
+      # offset 40.0 is the sixth measure
+      higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 39.9 )
+      lowerPart = thePiece.parts[1].getElementsByOffset( 0.0, 39.9 )
+      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      ## Prepare the findings
-      #expectedCompoundIntervals = { 'm3':3, 'M3':2, 'P4':1, 'd5':2, 'm6':2, \
-            #'M6':2, 'M2':1, 'P5':1 }
-      #expectedNoQuality2Grams = { '3 +2 3':2, '3 1 4':1, '4 -2 5':1, '5 -2 6':2, \
-            #'6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }
+      # Prepare the findings
+      expectedCompoundIntervals = { 'm3':3, 'M3':2, 'P4':1, 'd5':2, 'm6':2, \
+            'M6':2, 'M2':1, 'P5':1 }
+      expectedNoQuality2Grams = { '3 +2 3':2, '3 1 4':1, '4 -2 5':1, '5 -2 6':2, \
+            '6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }
 
-      ## Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      # Verify the findings
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
 
    #def test_theThird( self ):
       ## Monteverdi's "Cruda amarilli" (a madrigal)
@@ -651,88 +652,88 @@ class TestVisTheseParts( unittest.TestCase ):
       #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
    
    
-   def test_theSixthA( self ):
-      # Two targeted testing excerpts.
-      # A music21 Original
-      # Just 2 arbitrary parts
-      ## NB: This is designed to test an error that used to happen when one
-      ## part has alternating notes and rests in a time when the other part has
-      ## a note followed by a bunch of rests.
+   #def test_theSixthA( self ):
+      ## Two targeted testing excerpts.
+      ## A music21 Original
+      ## Just 2 arbitrary parts
+      ### NB: This is designed to test an error that used to happen when one
+      ### part has alternating notes and rests in a time when the other part has
+      ### a note followed by a bunch of rests.
       
-      from test_theSixth import theFirstPiece
-      higherPart = theFirstPiece.parts[0]
-      lowerPart = theFirstPiece.parts[1]
-      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #from test_theSixth import theFirstPiece
+      #higherPart = theFirstPiece.parts[0]
+      #lowerPart = theFirstPiece.parts[1]
+      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      ##pprint.pprint( self.stats._compoundIntervalDict )
+      ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
 
-      ## Prepare the findings
-      expectedCompoundIntervals = { 'P11':1, 'm14':1 }
-      expectedNoQuality2Grams = {}
+      ### Prepare the findings
+      #expectedCompoundIntervals = { 'P11':1, 'm14':1 }
+      #expectedNoQuality2Grams = {}
 
-      ## Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      ### Verify the findings
+      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
    
-   def test_theSixthB( self ):
-      # Two targeted testing excerpts.
-      # A music21 Original
-      # Just 2 arbitrary parts
-      ## NB: This is designed to test an error that used to happen when one
-      ## part has alternating notes and rests in a time when the other part has
-      ## a note followed by a bunch of rests. Unlike "SixthA," this test has a
-      ## quantization quirk from the MIDI file that inspired this test, which
-      ## is what caused the failure in the first place.
-      ## 
-      ## The problem is this: even though one part has a rest, the rest doesn't
-      ## start on one of the offsets we're checking, so the program thinks the
-      ## part still has a note sounding.
+   #def test_theSixthB( self ):
+      ## Two targeted testing excerpts.
+      ## A music21 Original
+      ## Just 2 arbitrary parts
+      ### NB: This is designed to test an error that used to happen when one
+      ### part has alternating notes and rests in a time when the other part has
+      ### a note followed by a bunch of rests. Unlike "SixthA," this test has a
+      ### quantization quirk from the MIDI file that inspired this test, which
+      ### is what caused the failure in the first place.
+      ### 
+      ### The problem is this: even though one part has a rest, the rest doesn't
+      ### start on one of the offsets we're checking, so the program thinks the
+      ### part still has a note sounding.
       
-      from test_theSixth import theSecondPiece
-      higherPart = theSecondPiece.parts[0]
-      lowerPart = theSecondPiece.parts[1]
-      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #from test_theSixth import theSecondPiece
+      #higherPart = theSecondPiece.parts[0]
+      #lowerPart = theSecondPiece.parts[1]
+      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      ##pprint.pprint( self.stats._compoundIntervalDict )
+      ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
 
-      ## Prepare the findings
-      expectedCompoundIntervals = { 'P11':1, 'm14':1 }
-      expectedNoQuality2Grams = {}
+      ### Prepare the findings
+      #expectedCompoundIntervals = { 'P11':1, 'm14':1 }
+      #expectedNoQuality2Grams = {}
 
-      ## Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      ### Verify the findings
+      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
    
-   def test_theSixthC( self ):
-      # Two targeted testing excerpts.
-      # A music21 Original
-      # Just 2 arbitrary parts
-      ## NB: This test reverses theSixthB, so the bottom voice woudl cause the
-      ## problem caused by the top voice in the previous test.
+   #def test_theSixthC( self ):
+      ## Two targeted testing excerpts.
+      ## A music21 Original
+      ## Just 2 arbitrary parts
+      ### NB: This test reverses theSixthB, so the bottom voice woudl cause the
+      ### problem caused by the top voice in the previous test.
       
-      from test_theSixth import theThirdPiece
-      higherPart = theThirdPiece.parts[0]
-      lowerPart = theThirdPiece.parts[1]
-      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #from test_theSixth import theThirdPiece
+      #higherPart = theThirdPiece.parts[0]
+      #lowerPart = theThirdPiece.parts[1]
+      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
 
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      ##pprint.pprint( self.stats._compoundIntervalDict )
+      ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
 
-      ## Prepare the findings
-      expectedCompoundIntervals = { 'P12':1, 'M9':1 }
-      expectedNoQuality2Grams = {}
+      ### Prepare the findings
+      #expectedCompoundIntervals = { 'P12':1, 'M9':1 }
+      #expectedNoQuality2Grams = {}
 
-      ## Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      ### Verify the findings
+      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
    
    #def test_theSeventh( self ):
       ## Joseph Haydn's String Quartet, Op.76/4, Movement 1
