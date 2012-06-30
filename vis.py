@@ -36,6 +36,7 @@ from music21.converter import ConverterException # confirmed requirement
 from music21.converter import ConverterFileException # confirmed requirement
 from music21 import note # confirmed requirement
 from music21.instrument import Instrument # confirmed requirement
+from datetime import datetime, timedelta # confirmed requirement
 
 #-------------------------------------------------------------------------------
 class NonsensicalInputError( Exception ):
@@ -501,8 +502,13 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
 
    Note that the parts must be specified so the higher part has index 0, and
    the lower part has index 1.
+   
+   Returns the number of seconds the analysis took.
    '''
-
+   
+   # Note the starting time of the analysis
+   analysisStartingTime = datetime.now()
+   
    # Is 'thing' a Note?
    def isNote( thing ):
       if isinstance( thing, note.Note ):
@@ -571,8 +577,8 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
       currentOffset += offsetInterval
       
       # DEBUGGING
-      if currentOffset % 100 == 0:
-         print( 'currentOffset: ' + str(currentOffset) )
+      #if currentOffset % 100 == 0:
+         #print( 'currentOffset: ' + str(currentOffset) )
       # END DEBUGGING
       
       # For a situation like a melisma, we need to cause the static
@@ -740,7 +746,16 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
                # If we're still going, then make an NGram and add it to the
                # statistics!
                thisNGram = NGram( [interval.Interval( previousLows[-1], previousHighs[-1] ), thisInterval] )
+               # DEBUGGING
+               #if '3 -4 5' == str(thisNGram):
+                  #print( '--> 3 -4 5 is at offset ' + str(currentOffset) )
+               # END DEBUGGING
                theStatistics.addNGram( thisNGram )
+   #
+   
+   # Note the ending time of the analysis
+   durationTime = datetime.now() - analysisStartingTime
+   return durationTime.seconds
 # End visTheseParts() -------------------------------------------------------
 
 
@@ -813,7 +828,8 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    n = 2
 
    print( "Processing...\n" )
-   visTheseParts( [higher,lower], theSettings, theStats )
+   itTook = visTheseParts( [higher,lower], theSettings, theStats )
+   print( ' --> the analysis took ' + str(itTook) + ' seconds' )
 
    print( '-----------------------' )
    print( "Here are the intervals!" )
