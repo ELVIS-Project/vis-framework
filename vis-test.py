@@ -514,7 +514,8 @@ class TestVisTheseParts( unittest.TestCase ):
       # offset 13.0 is the fourth measure
       higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
       lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       # Prepare the findings
       expectedCompoundIntervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
@@ -542,7 +543,8 @@ class TestVisTheseParts( unittest.TestCase ):
       # offset 40.0 is the sixth measure
       higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 39.9 )
       lowerPart = thePiece.parts[1].getElementsByOffset( 0.0, 39.9 )
-      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       # Prepare the findings
       expectedCompoundIntervals = { 'm3':3, 'M3':2, 'P4':1, 'd5':2, 'm6':2, \
@@ -571,7 +573,8 @@ class TestVisTheseParts( unittest.TestCase ):
       # offset 44.0 is the 12th measure
       higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 43.9 )
       lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 43.9 )
-      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       #pprint.pprint( self.stats._compoundIntervalDict )
       #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
@@ -605,7 +608,8 @@ class TestVisTheseParts( unittest.TestCase ):
       ## offset 64.0 is the 15th measure
       #higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 63.9 )
       #lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 63.9 )
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       #pprint.pprint( self.stats._compoundIntervalDict )
       ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
@@ -639,7 +643,8 @@ class TestVisTheseParts( unittest.TestCase ):
       ## offset 64.0 is the 15th measure
       #higherPart = thePiece.parts[1].getElementsByOffset( 0.0, 63.9 )
       #lowerPart = thePiece.parts[2].getElementsByOffset( 0.0, 63.9 )
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       ## Prepare the findings
       #expectedCompoundIntervals = {}
@@ -662,7 +667,8 @@ class TestVisTheseParts( unittest.TestCase ):
       #from test_theSixth import theFirstPiece
       #higherPart = theFirstPiece.parts[0]
       #lowerPart = theFirstPiece.parts[1]
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       ##pprint.pprint( self.stats._compoundIntervalDict )
       ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
@@ -694,7 +700,8 @@ class TestVisTheseParts( unittest.TestCase ):
       #from test_theSixth import theSecondPiece
       #higherPart = theSecondPiece.parts[0]
       #lowerPart = theSecondPiece.parts[1]
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       ##pprint.pprint( self.stats._compoundIntervalDict )
       ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
@@ -719,7 +726,8 @@ class TestVisTheseParts( unittest.TestCase ):
       #from test_theSixth import theThirdPiece
       #higherPart = theThirdPiece.parts[0]
       #lowerPart = theThirdPiece.parts[1]
-      #visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       ##pprint.pprint( self.stats._compoundIntervalDict )
       ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
@@ -748,7 +756,8 @@ class TestVisTheseParts( unittest.TestCase ):
       # measure 120 is offset 480.0
       higherPart = thePiece.parts[0].getElementsByOffset( 448.0, 479.9 )
       lowerPart = thePiece.parts[3].getElementsByOffset( 448.0, 479.9 )
-      visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       #pprint.pprint( self.stats._compoundIntervalDict )
       ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
@@ -796,6 +805,102 @@ class TestVisTheseParts( unittest.TestCase ):
 
 
 #-------------------------------------------------------------------------------
+class TestVisThesePartsLong( unittest.TestCase ):
+   # visTheseParts( theseParts, theSettings, theStatistics )
+   #
+   # This test suite expands on the TestVisTheseParts() by using longer
+   # excerpts, which increases the chances for errors and also allows me to see
+   # how long longer excerpts take.
+   
+   def setUp( self ):
+      self.stats = VerticalIntervalStatistics()
+      self.settings = visSettings()
+
+   def test_Messiah( self ):
+      # Title: "Sinfony" from "Messiah" by Handel
+      # Format: MuseData
+      # Voices: ??
+      # Measures: ??
+
+      # Process the excerpt
+      filename = 'test_corpus/sinfony.md'
+      thePiece = converter.parse( filename )
+      # offset ??? is ???
+      higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
+      lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
+      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      print( '--> analysis took ' + str(itTook) + ' seconds' )
+
+      # Prepare the findings
+      expectedCompoundIntervals = {}
+      expectedNoQuality2Grams = {}
+
+      # Verify the findings
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+   
+   #def test_La_Plus_des_Plus( self ):
+      ## Title: "La Plus des Plus" by Josquin
+      ## Format ABC
+      ## Voices: ??
+      ## Measures ??
+
+      ## Process the excerpt
+      #filename = 'test_corpus/laPlusDesPlus.abc'
+      #thePiece = converter.parse( filename )
+      ## offset ??? is ???
+      #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
+      #lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
+      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+
+      ## Prepare the findings
+      #expectedCompoundIntervals = {}
+      #expectedNoQuality2Grams = {}
+
+      ## Verify the findings
+      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+   
+   #def test_Ave_Maris_Stella( self ):
+      ## Title: "Ave maris stella" by Josquin
+      ## Format: **kern and MEI
+      ## Voices: ??
+      ## Measures: ??
+
+      ## Process the excerpt
+      #filenameA = 'test_corpus/Jos2308.krn'
+      #filenameB = 'test_corpus/Jos2308.mei'
+      #thePiece = converter.parse( filename )
+      ## offset ??? is ???
+      #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
+      #lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
+      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+
+      ## Prepare the findings
+      #expectedCompoundIntervals = {}
+      #expectedNoQuality2Grams = {}
+
+      ## Verify the findings
+      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+
+
+# End TestVisThesePartsLong ---------------------------------------------------
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
 # "Main" Function
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
@@ -809,14 +914,16 @@ if __name__ == '__main__':
    nGramSuite = unittest.TestLoader().loadTestsFromTestCase( TestNGram )
    verticalIntervalStatisticsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVerticalIntervalStatistics )
    visThesePartsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisTheseParts )
+   visThesePartsLongSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisThesePartsLong )
 
    # run test suites
-   unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      # TODO: some sort of testing for the 'lookForTheseNs' settting
-   unittest.TextTestRunner( verbosity = 2 ).run( intervalSorterSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
+      ## TODO: some sort of testing for the 'lookForTheseNs' settting
+   #unittest.TextTestRunner( verbosity = 2 ).run( intervalSorterSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
 
    #unittest.main()
 
