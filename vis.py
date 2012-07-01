@@ -537,17 +537,29 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    # TODO: Make it so that, if we get a List of integers from settings, we
    # can process the whole list.
 
-   # Now we'll take just the notes and rests.
+   # Now we'll take just the notes and rests. I don't want to use 
+   # .notesAndRests because then I get chords and None and other garbage.
+   #hfn = theseParts[0].notesAndRests
+   #lfn = theseParts[1].notesAndRests
    hfn, lfn = stream.Stream(), stream.Stream()
    for thing in theseParts[0].flat:
       if noteOrRest( thing ):
          hfn.append( thing )
+      ## DEBUGGING
+      #else:
+         #print( "Not a note or rest, not in hfn: " + str(type(thing)) )
+      ## END DEBUGGING
    #
    for thing in theseParts[1].flat:
       if noteOrRest( thing ):
          lfn.append( thing )
+      ## DEBUGGING
+      #else:
+         #print( "Not a note or rest, not in hfn: " + str(type(thing)) )
+      ## END DEBUGGING
    #
-
+   
+   # Initialize -----------------------
    # Prepare to compare the intervals.
    # We need to know when we get to the end
    highestOffset = max(lfn.highestOffset, hfn.highestOffset)
@@ -556,7 +568,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    # How much to increment the offset. With quarterLength==1.0 and offsetInterval
    # of 0.5, this means we're counting by eighth notes.
    offsetInterval = theSettings.propertyGet( 'offsetBetweenInterval' )
-   # Initialize. These hold the most recent Note/Rest in their respective
+   # These hold the most recent Note/Rest in their respective
    # voice. We can't say "current" because it implies the offset of
    # mostRecentHigh == currentOffset, which may not be true if, for example
    # there is a very long Note/Rest.
@@ -565,16 +577,23 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    # voices. It's how we build n-grams, with mostRecentX and objects from
    # these lists.
    previousHighs, previousLows = [], []
-
-   # This will make sure my beginning-of-loop increment doesn't make us miss
-   # the first things in the Stream.
-   currentOffset -= offsetInterval
+   # First offset to check is 0.0 !
+   nextLowEvent, nextHighEvent = 0.0, 0.0
+   currentOffset = 0.0 - offsetInterval
    
+   # Loop -----------------------------
    # The most important part!
    while currentOffset <= highestOffset:
-      # First, increment the Interval. I'm doing this first so I can use a
-      # 'continue' statement later.
+      # Increment at the beginning so we can use 'continue' later.
       currentOffset += offsetInterval
+      
+      # Check to see if we expect any events at this offset.
+      if nextLowEvent > currentOffset and nextHighEvent > currentOffset:
+         # DEBUGGING
+         #print( '*** nLE is ' + str(nextLowEvent) + ', nHE is ' + str(nextHighEvent) + ' and cO is ' + str(currentOffset) )
+         # END DEBUGGING
+         currentOffset = min(nextLowEvent,nextHighEvent) - offsetInterval
+         continue
       
       # DEBUGGING
       #if currentOffset % 100 == 0:
@@ -590,17 +609,18 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
       # But we also need to make sure that we're not updating a part that was
       # already updated.
       lowUpdated = highUpdated = False
-
+      
       # If currentOffset has a Note associated, assign it. But we shouldn't
       # bother with it if these Note objects actually have the same pitch
       # as the previous Note objects.
-
+      
       # If currentOffset has a Note/Rest in the lower part, accept it as the
       # mostRecentLow object. This should be the same as just below.
-      if len(lfn.getElementsByOffset( currentOffset )) > 0:
+      lfnGEBO = lfn.getElementsByOffset( currentOffset )
+      if len(lfnGEBO) > 0:
          # Hold the Note/Rest at this offset.
-         lfnGEBO = lfn.getElementsByOffset( currentOffset )[0]
-
+         lfnGEBO = lfnGEBO[0]
+      
          # If this is the first thing in the piece, mostRecentLow will be empty
          # and we must put something there.
          if None == mostRecentLow:
@@ -609,49 +629,72 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
             highMustUpdate, lowUpdated = True, True
          # If the most recent object is the other of Note/Rest than this, we
          # should add it on.
-         elif isRest( mostRecentLow ) and isNote( lfnGEBO ) or \
-              isNote( mostRecentLow ) and isRest( lfnGEBO ):
+         elif type(mostRecentLow) != type(lfnGEBO):
+         #elif isRest( mostRecentLow ) and isNote( lfnGEBO ) or \
+              #isNote( mostRecentLow ) and isRest( lfnGEBO ):
             # Add the most (now ex-)most recent object to the list of previous
             # objects, then assign lfnGEBO as the most recent object.
             previousLows.append( mostRecentLow )
             mostRecentLow = lfnGEBO
             # Indicate that other part must update and that we already did.
             highMustUpdate, lowUpdated = True, True
-         # If the most recent object was a Note, then we need to check that it
-         # doesn't have the same pitch as this note. If it doesn't, we must add
-         # it to the list of stuff. By this point, we know mostRecentLow is
-         # a Note.
+         # If the current and most recent objects are Note objects.
          elif isNote( lfnGEBO ):
+            # If the current and most recent objects both have the same pitch,
+            # we can just add the current to the list.
             if ( lfnGEBO.pitch != mostRecentLow.pitch ):
+               # DEBUGGING
+               #print( 'different pitches in l, so adding at offset ' + str(currentOffset) )
+               # END DEBUGGING
                # Add the most (now ex-)most recent object to the list of previous
                # objects, then assign lfnGEBO as the most recent object.
                previousLows.append( mostRecentLow )
                mostRecentLow = lfnGEBO
                # Indicate that other part must update and that we already did.
                highMustUpdate, lowUpdated = True, True
+            # But if lfnGEBO and mostRecentLow do in fact have the same pitch,
+            # we need to put lfnGEBO into mostRecentLow because it is in fact
+            # the most recent. This helps when we calculate the next offset
+            # we expect something to happen. Only difference is we won't update
+            # previousLows.
+            else:
+               # DEBUGGING
+               #print( 'same pitches in l, so updating at offset ' + str(currentOffset) )
+               # END DEBUGGING
+               mostRecentLow = lfnGEBO
       #--------
-
+      
       # If currentOffset has a Note/Rest in the higher part, accept it as the
       # mostRecentHigh object. This should be the same as just above,
       # except with 'high' parts substituted for 'low', so I'm removing the
       # comments here, to emphasize this.
-      if len(hfn.getElementsByOffset( currentOffset )) > 0:
-         hfnGEBO = hfn.getElementsByOffset( currentOffset )[0]
+      hfnGEBO = hfn.getElementsByOffset( currentOffset )
+      if len(hfnGEBO) > 0:
+         hfnGEBO = hfnGEBO[0]
          if None == mostRecentHigh:
             mostRecentHigh = hfnGEBO
             lowMustUpdate, highUpdated = True, True
-         elif isRest( mostRecentHigh ) and isNote( hfnGEBO ) or \
-              isNote( mostRecentHigh ) and isRest( hfnGEBO ):
+         elif type(mostRecentHigh) != type(hfnGEBO):
+         #elif isRest( mostRecentHigh ) and isNote( hfnGEBO ) or \
+              #isNote( mostRecentHigh ) and isRest( hfnGEBO ):
             previousHighs.append( mostRecentHigh )
             mostRecentHigh = hfnGEBO
             lowMustUpdate, highUpdated = True, True
          elif isNote( hfnGEBO ):
             if ( hfnGEBO.pitch != mostRecentHigh.pitch ):
+               # DEBUGGING
+               #print( 'different pitches in h, so adding at offset ' + str(currentOffset) )
+               # END DEBUGGING
                previousHighs.append( mostRecentHigh )
                mostRecentHigh = hfnGEBO
                lowMustUpdate, highUpdated = True, True
+            else:
+               # DEBUGGING
+               #print( 'same pitches in h, so updating at offset ' + str(currentOffset) )
+               # END DEBUGGING
+               mostRecentHigh = hfnGEBO
       #--------
-
+      
       # If one part was updated, but the other was not, as in a melisma, we
       # need to copy the most recent object in the not-updated part into our
       # list of previously-happened stuff. This has the effect of keeping the
@@ -665,93 +708,53 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          previousHighs.append( mostRecentHigh )
          highUpdated = True
       
+      # What are the next notes in each voice? It's tempting to do this at the
+      # end of the loop, but if we do, we can't easily use the next bit to avoid
+      # counting things that don't fall on an offsetInterval boundary.
+      # Note: I *think* that a nextXxxxEvent less than currentOffset is not a
+      # big deal, so I won't put a sanity check here.
+      nextLowEvent = mostRecentLow.offset + mostRecentLow.quarterLength
+      nextHighEvent = mostRecentHigh.offset + mostRecentHigh.quarterLength
+      
+      # If something doesn't fall on a division of our offsetInterval, we 
+      # shouldn't count it, so we should detect that and skip now!
+      if 0 != currentOffset % offsetInterval:
+         # DEBUGGING
+         #print( '*** Skipping out because we don\'t count this offset: ' + str(currentOffset) )
+         # END DEBUGGING
+         continue
+      
       # If one of the voices was updated, we haven't yet counted this
       # vertical interval.
       if lowUpdated or highUpdated:
          # If the mostRecent high and low objects are both Notes, we can count
          # them as an Interval, and potentially into an NGram.
          if isNote( mostRecentLow ) and isNote( mostRecentHigh ):
-            # This keeps track of whether we're about to discover that we
-            # shouldn't add the interval because it's invalid. See further
-            # comments below.
-            abort = False
+            # count this Interval
+            thisInterval = interval.Interval( mostRecentLow, mostRecentHigh )
+            # DEBUGGING
+            #print( '--> adding ' + thisInterval.name + ' at offset ' + str(max(mostRecentLow.offset,mostRecentHigh.offset)) )
+            # END DEBUGGING
+            theStatistics.addInterval( thisInterval )
             
-            # If one of the objects doesn't have the same offset, there's a
-            # possibility we missed a rest that continues through this offset.
-            # 
-            # TODO: Deduplicate this, somehow knowing which is "the behind one"
-            # and which is "the one at currentOffset."
-            if mostRecentLow.offset < mostRecentHigh.offset:
-               # To make the offsets work with xrange() they have to be an int,
-               # so I'm multiplying and dividing by 1000.
-               fromHere = int(mostRecentLow.offset*1000+1) 
-               toHere = int(mostRecentHigh.offset*1000-1)
-               
-               # Check all the offsets between mostRecentLow and mostRecentHigh,
-               # to see if there is a Rest. If there is, see if it's long enough
-               # to continue through mostRecentHigh. If it is, then we should
-               # not count this vertical interval.
-               for checkThisOffset in xrange( fromHere, toHere ):
-                  z = lfn.getElementsByOffset( float(checkThisOffset)/1000 )
-                  if len(z) > 0 and isRest( z[0] ):
-                     # DEBUGGING
-                     #print( '!!! ' + str(z[0]) + ' at offset ' + str(float(checkThisOffset)/1000) )
-                     #print( '      ' + str(mostRecentHigh.offset*1000 - checkThisOffset) )
-                     if z[0].quarterLength*1000 > (mostRecentHigh.offset*1000 - checkThisOffset):
-                        # DEBUGGING
-                        #print( '!!!!!! ' + str(z[0].quarterLength) )
-                        abort = True
-                        previousLows.append( mostRecentLow )
-                        mostRecentLow = z[0]
-                     else:
-                        # DEBUGGING
-                        #print( '@@@@@@ ' + str(z[0].quarterLength) )
-                        pass
-            if mostRecentHigh.offset < mostRecentLow.offset:
-               for checkThisOffset in xrange( int(mostRecentHigh.offset*1000+1), int(mostRecentLow.offset*1000-1) ):
-                  z = hfn.getElementsByOffset( float(checkThisOffset)/1000 )
-                  if len(z) > 0 and isRest( z[0] ):
-                     # DEBUGGING
-                     #print( '!!! ' + str(z[0]) + ' at offset ' + str(float(checkThisOffset)/1000) )
-                     #print( '      ' + str(mostRecentHigh.offset*1000 - checkThisOffset) )
-                     if z[0].quarterLength*1000 > (mostRecentLow.offset*1000 - checkThisOffset):
-                        # DEBUGGING
-                        #print( '!!!!!! ' + str(z[0].quarterLength) )
-                        abort = True
-                        previousHighs.append( mostRecentHigh)
-                        mostRecentHigh = z[0]
-                     else:
-                        # DEBUGGING
-                        #print( '@@@@@@ ' + str(z[0].quarterLength) )
-                        pass
-            
-            if not abort:
-               # count this Interval
-               thisInterval = interval.Interval( mostRecentLow, mostRecentHigh )
-               # DEBUGGING
-               #print( '--> adding ' + thisInterval.name + ' at offset ' + str(mostRecentLow.offset) + ' or ' + str(mostRecentHigh.offset) )
-               # END DEBUGGING
-               theStatistics.addInterval( thisInterval )
-
-               # Make sure there are enough previous objects to make an n-gram.
-               # TODO: make this work for n != 2
-               if len(previousLows) < (n-1) or len(previousHighs) < (n-1):
-                  continue
-
-               # Make sure those previous objects are Note and not Rest objects.
-               # TODO: make this work for n != 2
-               if isRest( previousLows[-1] ) or isRest( previousHighs[-1] ):
-                     continue
-
-               # If we're still going, then make an NGram and add it to the
-               # statistics!
+            # Make sure there are enough previous objects to make an n-gram.
+            # TODO: make this work for n != 2
+            if len(previousLows) < (n-1) or len(previousHighs) < (n-1):
+               pass
+            # Make sure those previous objects are Note and not Rest objects.
+            # TODO: make this work for n != 2
+            elif isRest( previousLows[-1] ) or isRest( previousHighs[-1] ):
+               pass
+            # If we're still going, then make an NGram and add it to the
+            # statistics!
+            else:
                thisNGram = NGram( [interval.Interval( previousLows[-1], previousHighs[-1] ), thisInterval] )
-               # DEBUGGING
-               #if '3 -4 5' == str(thisNGram):
-                  #print( '--> 3 -4 5 is at offset ' + str(currentOffset) )
-               # END DEBUGGING
                theStatistics.addNGram( thisNGram )
-   #
+      # DEBUGGING
+      #else:
+         #print( 'Neither low nor high was flagged as updated; skipping offset: ' + str(currentOffset) )
+      # END DEBUGGING
+   # End of the "while" loop.
    
    # Note the ending time of the analysis
    durationTime = datetime.now() - analysisStartingTime
