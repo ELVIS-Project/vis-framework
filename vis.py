@@ -37,6 +37,7 @@ from music21.converter import ConverterFileException # confirmed requirement
 from music21 import note # confirmed requirement
 from music21.instrument import Instrument # confirmed requirement
 from datetime import datetime, timedelta # confirmed requirement
+from outputLilyPond import processScore # confirmed requirement
 
 #-------------------------------------------------------------------------------
 class NonsensicalInputError( Exception ):
@@ -697,12 +698,6 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
                #print( '***!!! mRL is offset ' + str(lfnGEBO.offset) + ' and qL ' + str(lfnGEBO.quarterLength) )
          else:
             pass
-         
-         
-         
-         
-         
-         
       #--------
       
       # If currentOffset has a Note/Rest in the higher part, accept it as the
@@ -819,6 +814,18 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
             else:
                thisNGram = NGram( [interval.Interval( previousLows[-1], previousHighs[-1] ), thisInterval] )
                theStatistics.addNGram( thisNGram )
+               
+               # Add the interval's name to the lower note, for lilypond
+               if isNote( lfnGEBO ):
+                  sng = str(thisNGram)
+                  firstSpace = sng.find(' ')
+                  secondSpace = firstSpace + sng[firstSpace+1:].find(' ') + 1
+                  lfnGEBO.visLilyMarkup = \
+                  '_\markup{\combine \concat{\\teeny{"' + sng[:firstSpace] + \
+                  ' " \lower #2 "' + sng[firstSpace+1:secondSpace] + \
+                  '" " ' + sng[secondSpace+1:] + \
+                  '"}} \path #0.1 #\'((moveto -1 1.25) (lineto 1.65 -2.25) (lineto 4.3 1.25) (closepath))}'
+               
                # DEBUGGING
                #print( '--> adding ' + str(thisNGram) + ' at ' + str(currentOffset) )
                # END DEBUGGING
@@ -909,7 +916,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    print( '-----------------------' )
    print( "Here are the intervals!" )
    print( "Compound Intervals:" )
-   pprint.pprint( theStats._compoundIntervalDict )
+   #pprint.pprint( theStats._compoundIntervalDict )
    #pprint.pprint( sorted( theStats._compoundIntervalDict.items(), cmp=intervalSorter ) )
    #print( '-----------------------' )
    #print( "Those as Simple Intervals:" )
@@ -919,12 +926,13 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    print( "---------------------" )
    print( "Here are the n-grams!" )
    #pprint.pprint( theStats._compoundQualityNGramsDict )
-   pprint.pprint( theStats._compoundNoQualityNGramsDict )
+   #pprint.pprint( theStats._compoundNoQualityNGramsDict )
 
    if theSettings.propertyGet( 'produceLabeledScore' ):
       print( "-----------------------------" )
       print( "Processing score for display." )
-      theChords.show()
+      #theScore.show()
+      print( processScore( theScore ) )
    else:
       print( "------------------------------" )
       print( "Not producing annotated score." )

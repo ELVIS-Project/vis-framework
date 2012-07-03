@@ -1,6 +1,7 @@
 *~
 */.directory
 .directory
+test_output/*
 
 *.py[co]
 
