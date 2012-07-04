@@ -21,16 +21,16 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-# just for testing
+## To help find reasons for errors.
 from pprint import pprint
 
-
+# Confirmed Requirements:
 import unittest
 from vis import *
 from music21 import interval
 from music21 import note
+from music21 import converter
 
-## Import required libraries (this list is from the module)
 
 
 #-------------------------------------------------------------------------------
@@ -298,21 +298,21 @@ class TestNGram( unittest.TestCase ):
       self.assertEqual( NGram(self.g,False).stringVersion(heedQuality=False,simpleOrCompound='simple'), '3 +4 2 -6 5 -2 3' )
 
    def test_repr( self ):
-      self.assertEqual( NGram(self.a,True).__repr__(), '<vis.NGram m3 P1 m3>' )
-      self.assertEqual( NGram(self.b,True).__repr__(), '<vis.NGram m3 P1 M3>' )
-      self.assertEqual( NGram(self.c,True).__repr__(), '<vis.NGram m3 +P4 m3>' )
-      self.assertEqual( NGram(self.d,True).__repr__(), '<vis.NGram m3 +P4 M3>' )
-      self.assertEqual( NGram(self.e,True).__repr__(), '<vis.NGram m3 -P4 m3>' )
-      self.assertEqual( NGram(self.f,True).__repr__(), '<vis.NGram m3 -P4 M3>' )
-      self.assertEqual( NGram(self.g,True).__repr__(), '<vis.NGram m3 +P4 M2 -m6 P5 -m2 M10>' )
+      self.assertEqual( NGram(self.a,True).__repr__(), '<NGram m3 P1 m3>' )
+      self.assertEqual( NGram(self.b,True).__repr__(), '<NGram m3 P1 M3>' )
+      self.assertEqual( NGram(self.c,True).__repr__(), '<NGram m3 +P4 m3>' )
+      self.assertEqual( NGram(self.d,True).__repr__(), '<NGram m3 +P4 M3>' )
+      self.assertEqual( NGram(self.e,True).__repr__(), '<NGram m3 -P4 m3>' )
+      self.assertEqual( NGram(self.f,True).__repr__(), '<NGram m3 -P4 M3>' )
+      self.assertEqual( NGram(self.g,True).__repr__(), '<NGram m3 +P4 M2 -m6 P5 -m2 M10>' )
       #
-      self.assertEqual( NGram(self.a,False).__repr__(), '<vis.NGram 3 1 3>' )
-      self.assertEqual( NGram(self.b,False).__repr__(), '<vis.NGram 3 1 3>' )
-      self.assertEqual( NGram(self.c,False).__repr__(), '<vis.NGram 3 +4 3>' )
-      self.assertEqual( NGram(self.d,False).__repr__(), '<vis.NGram 3 +4 3>' )
-      self.assertEqual( NGram(self.e,False).__repr__(), '<vis.NGram 3 -4 3>' )
-      self.assertEqual( NGram(self.f,False).__repr__(), '<vis.NGram 3 -4 3>' )
-      self.assertEqual( NGram(self.g,False).__repr__(), '<vis.NGram 3 +4 2 -6 5 -2 10>' )
+      self.assertEqual( NGram(self.a,False).__repr__(), '<NGram 3 1 3>' )
+      self.assertEqual( NGram(self.b,False).__repr__(), '<NGram 3 1 3>' )
+      self.assertEqual( NGram(self.c,False).__repr__(), '<NGram 3 +4 3>' )
+      self.assertEqual( NGram(self.d,False).__repr__(), '<NGram 3 +4 3>' )
+      self.assertEqual( NGram(self.e,False).__repr__(), '<NGram 3 -4 3>' )
+      self.assertEqual( NGram(self.f,False).__repr__(), '<NGram 3 -4 3>' )
+      self.assertEqual( NGram(self.g,False).__repr__(), '<NGram 3 +4 2 -6 5 -2 10>' )
 #------------------------------------------------------------------------------
 
 
@@ -1031,14 +1031,16 @@ if __name__ == '__main__':
    visThesePartsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisTheseParts )
    visThesePartsLongSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisThesePartsLong )
 
-   # run test suites
+   # Run test suites for interface/background components
    #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      ## TODO: some sort of testing for the 'lookForTheseNs' settting
+      # TODO: some sort of testing for the 'lookForTheseNs' settting
    #unittest.TextTestRunner( verbosity = 2 ).run( intervalSorterSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   
+   ## Run test suites for analytic engine
    unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
 
    #unittest.main()
 

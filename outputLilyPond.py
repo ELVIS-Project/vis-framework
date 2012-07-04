@@ -20,7 +20,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-## Import required libraries
+## Import:
+# python standard library
+import os # needed for writing the output file
+from string import letters as stringLetters
+from random import choice as randomChoice
+# music21
 from music21 import note
 from music21 import clef
 from music21 import meter
@@ -31,11 +36,9 @@ from music21 import metadata
 from music21 import layout
 from music21 import bar
 
-import os # needed for writing the output file TODO: be more specific
+#------------------------------------------------------------------------------
 
-from string import letters as stringLetters
-from random import choice as randomChoice
-
+# TODO: must be replaced with instance variable
 # this holds the names of all the parts in this score
 _partsInThisScore = []
 
@@ -262,7 +265,10 @@ def processMeasure( theMeas ):
       # Key Signature
       elif isinstance( obj, key.KeySignature ):
          pm = obj.pitchAndMode
-         post += "\\key " + pitchToLilyPitch( pm[0], includeOctave='no' ) + " \\" + pm[1] + "\n   "
+         if 2 == len(pm):
+            post += "\\key " + pitchToLilyPitch( pm[0], includeOctave='no' ) + " \\" + pm[1] + "\n   "
+         else:
+            post += "\\key " + pitchToLilyPitch( pm[0], includeOctave='no' ) + "\n   "
       # Barline
       elif isinstance( obj, bar.Barline ):
          post += barlineToLily( obj ) + " "
@@ -390,7 +396,7 @@ class LilyPondSettings:
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-def outputTheFile( contents, filename='output_thing.ly' ):
+def outputTheFile( contents, filename='test_output/output_thing.ly' ):
    # If the file already exists, delete it.
    if os.access( filename, os.W_OK ):
       try:
