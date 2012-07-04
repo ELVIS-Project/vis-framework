@@ -2,6 +2,7 @@
 */.directory
 .directory
 test_output/*
+extra_trials/*
 
 *.py[co]
 

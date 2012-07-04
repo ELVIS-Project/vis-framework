@@ -120,9 +120,9 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
 
    print( '-----------------------' )
    print( "Here are the intervals!" )
-   print( "Compound Intervals:" )
-   #pprint.pprint( theStats._compoundIntervalDict )
-   #pprint.pprint( sorted( theStats._compoundIntervalDict.items(), cmp=intervalSorter ) )
+   #print( "Compound Intervals:" )
+   pprint.pprint( theStats._compoundIntervalDict )
+   pprint.pprint( sorted( theStats._compoundIntervalDict.items(), cmp=intervalSorter ) )
    #print( '-----------------------' )
    #print( "Those as Simple Intervals:" )
    #pprint.pprint( theStats._simpleIntervalDict )
@@ -130,14 +130,14 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
 
    print( "---------------------" )
    print( "Here are the n-grams!" )
-   #pprint.pprint( theStats._compoundQualityNGramsDict )
-   #pprint.pprint( theStats._compoundNoQualityNGramsDict )
+   pprint.pprint( theStats._compoundQualityNGramsDict )
+   pprint.pprint( theStats._compoundNoQualityNGramsDict )
 
    if theSettings.propertyGet( 'produceLabeledScore' ):
       print( "-----------------------------" )
       print( "Processing score for display." )
-      #theScore.show()
-      print( processScore( theScore ) )
+      # Use the built-in outputLilyPond.py module
+      processScore( theScore )
    else:
       print( "----------------------------" )
       print( "Not producing labeled score." )
