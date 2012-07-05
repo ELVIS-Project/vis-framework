@@ -44,6 +44,7 @@ class TestSettings( unittest.TestCase ):
       self.assertEqual( self.s._secretSettingsHash['heedQuality'], False )
       self.assertEqual( self.s._secretSettingsHash['lookForTheseNs'], [2] )
       self.assertEqual( self.s._secretSettingsHash['offsetBetweenInterval'], 0.5 )
+      self.assertEqual( self.s._secretSettingsHash['outputResultsToFile'], '' )
 
    def test_set_some_things( self ):
       # Setting something to a new, valid value is done properly.
@@ -77,12 +78,12 @@ class TestSettings( unittest.TestCase ):
 
 
 #-------------------------------------------------------------------------------
-class TestIntervalSorter( unittest.TestCase ):
-   def test_simple_cases( self ):
+class TestSorting( unittest.TestCase ):
+   def test_interval_simple_cases( self ):
       self.assertEqual( intervalSorter( 'M3', 'P5' ), -1 )
       self.assertEqual( intervalSorter( 'm7', 'd4' ), 1 )
 
-   def test_depends_on_quality( self ):
+   def test_interval_depends_on_quality( self ):
       self.assertEqual( intervalSorter( 'm3', 'M3' ), -1 )
       self.assertEqual( intervalSorter( 'M3', 'm3' ), 1 )
       self.assertEqual( intervalSorter( 'd3', 'm3' ), -1 )
@@ -92,11 +93,29 @@ class TestIntervalSorter( unittest.TestCase ):
       self.assertEqual( intervalSorter( 'P4', 'A4' ), -1 )
       self.assertEqual( intervalSorter( 'A4', 'P4' ), 1 )
 
-   def test_all_quality_equalities( self ):
+   def test_interval_all_quality_equalities( self ):
       self.assertEqual( intervalSorter( 'M3', 'M3' ), 0 )
       self.assertEqual( intervalSorter( 'm3', 'm3' ), 0 )
       self.assertEqual( intervalSorter( 'd3', 'd3' ), 0 )
       self.assertEqual( intervalSorter( 'A3', 'A3' ), 0 )
+   
+   def test_interval_no_qualities( self ):
+      self.assertEqual( intervalSorter( '3', '3' ), 0 )
+      self.assertEqual( intervalSorter( '3', '4' ), -1 )
+      self.assertEqual( intervalSorter( '3', '2' ), 1 )
+   
+   def test_interval_with_directions( self ):
+      self.assertEqual( intervalSorter( '+3', '-3' ), 0 )
+      self.assertEqual( intervalSorter( '+3', '-4' ), -1 )
+      self.assertEqual( intervalSorter( '+3', '-2' ), 1 )
+   
+   def test_ngram_doctests( self ):
+      self.assertEqual( ngramSorter( '3 +4 7', '5 +2 4' ), -1 )
+      self.assertEqual( ngramSorter( '3 +5 6', '3 +4 6' ), 1 )
+      self.assertEqual( ngramSorter( 'M3 1 m2', 'M3 1 M2' ), -1 )
+      self.assertEqual( ngramSorter( '9 -2 -3', '9 -2 -3' ), 0 )
+      self.assertEqual( ngramSorter( '3 -2 3 -2 3', '6 +2 6' ), -1 )
+      self.assertEqual( ngramSorter( '3 -2 3 -2 3', '3 -2 3' ), 1 )
 #-------------------------------------------------------------------------------
 
 
@@ -1025,7 +1044,7 @@ if __name__ == '__main__':
    print( "" )
    # define test suites
    settingsSuite = unittest.TestLoader().loadTestsFromTestCase( TestSettings )
-   intervalSorterSuite = unittest.TestLoader().loadTestsFromTestCase( TestIntervalSorter )
+   sortingSuite = unittest.TestLoader().loadTestsFromTestCase( TestSorting )
    nGramSuite = unittest.TestLoader().loadTestsFromTestCase( TestNGram )
    verticalIntervalStatisticsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVerticalIntervalStatistics )
    visThesePartsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisTheseParts )
@@ -1034,30 +1053,12 @@ if __name__ == '__main__':
    # Run test suites for interface/background components
    #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
       # TODO: some sort of testing for the 'lookForTheseNs' settting
-   #unittest.TextTestRunner( verbosity = 2 ).run( intervalSorterSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    
    ## Run test suites for analytic engine
-   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
 
    #unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

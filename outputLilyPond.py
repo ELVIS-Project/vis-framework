@@ -35,6 +35,8 @@ from music21 import instrument
 from music21 import metadata
 from music21 import layout
 from music21 import bar
+# vis
+from dealsWithFiles import fileOutputter
 
 #------------------------------------------------------------------------------
 
@@ -397,36 +399,8 @@ class LilyPondSettings:
 
 #------------------------------------------------------------------------------
 def outputTheFile( contents, filename='test_output/output_thing.ly' ):
-   # If the file already exists, delete it.
-   if os.access( filename, os.W_OK ):
-      try:
-         os.remove( filename )
-      except Exception as exc:
-         print( 'EE: ' + str(exc) )
-   
-   # Make the file anew
-   #try:
-      #os.mkdir( filename )
-   #except Exception as exc:
-      #print( 'EE: ' + str(exc) )
-   
-   # Open the file for writing
-   try:
-      outputFile = open( filename, 'w' )
-   except Exception as exc:
-      print( 'EE: ' + str(exc) )
-   
-   # Write the file.
-   try:
-      outputFile.write( contents )
-   except Exception as exc:
-      print( 'EE: ' + str(exc) )
-   
-   # Close the file.
-   try:
-      outputFile.close()
-   except Exception as exc:
-      print( 'EE: ' + str(exc) )
+   # TODO: a better job on this
+   fileOutputter( contents, filename )
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -434,49 +408,3 @@ def processScore( scoreToProcess ):
    scoreToWrite = processStream( scoreToProcess )
    outputTheFile( scoreToWrite )
 #------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   
-   

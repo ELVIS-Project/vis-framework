@@ -39,11 +39,13 @@ from music21 import converter
 from music21.converter import ConverterException
 from music21.converter import ConverterFileException
 # vis
-from outputLilyPond import processScore
-from VerticalIntervalStatistics import VerticalIntervalStatistics, intervalSorter
+from outputLilyPond import processScore, outputTheFile
+# ngramSorter only needed for the unit tests?
+from VerticalIntervalStatistics import VerticalIntervalStatistics, intervalSorter, ngramSorter
 from analyticEngine import visTheseParts
 from NGram import NGram
 from problems import NonsensicalInputError
+from dealsWithFiles import fileOutputter
 
 
 
@@ -57,13 +59,25 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    'concise' or 'verbose', which will be passed to `labelThisChord()`, to
    display either verbose or concise labels.
    '''
-
+   
+   #-------------------------------------------------------
+   def calculateAllCombis( upto ):
+      # Calculate all combinations of integers, up to a given integer.
+      # 
+      # Includes a 0th item... the argument should be len(whatevs) - 1.
+      post = []
+      for left in xrange(upto):
+         for right in xrange(left+1,upto+1):
+            post.append( [left,right] )
+      return post
+   #-------------------------------------------------------
+   
    if None == theSettings:
       theSettings = visSettings()
-
+   
    theStats = VerticalIntervalStatistics()
    theScore = None
-
+   
    # See what input we have
    if isinstance( pathname, str ):
       ## get the score
@@ -78,7 +92,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
       theScore = pathname
    else:
       raise NonsensicalInputError( "analyzeThis(): input must be str or stream.Score; received " + str(type(pathname)) )
-
+   
    # find out which 2 parts to investigate
    numberOfParts = len(theScore.parts)
    lookAtParts = [numberOfParts+5,numberOfParts+5]
@@ -97,42 +111,53 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
          print( str(i) + " for " + partName )
       theirSpecification = raw_input( "Specify with higher part first.\n--> " )
       if 'help' == theirSpecification:
-         print( "Just put in the two numbers with a space between them! // TODO: write more useful help here" )
+         print( "Input the two numbers with a space between them, or type 'all'" )
+      elif 'all' == theirSpecification:
+         print( 'Comparing all voices!' )
+         lookAtParts = 'all'
+         break
       try:
          lookAtParts[0] = int(theirSpecification[0])
          lookAtParts[1] = int(theirSpecification[-1])
       except ValueError as valErr:
          # if something didn't work out with int()
          lookAtParts = [numberOfParts+5,numberOfParts+5]
-
-   # must have taken the numbers!
-   higher, lower = theScore.parts[lookAtParts[0]], theScore.parts[lookAtParts[1]]
-   # This sometimes doesn't work, and it's a little silly anyway in a real program.
-   #print( "We'll use " + higher[0].bestName() + ' and ' + lower[0].bestName() + ', okay!\n' )
-
+   
    # find out what or which 'n' to look for
    print( "In the future, we'll ask which 'n' values to look for... for now it's just 2-grams.\n" )
    n = 2
-
+   
    print( "Processing...\n" )
-   itTook = visTheseParts( [higher,lower], theSettings, theStats )
+   itTook = 0
+   if 'all' == lookAtParts:
+      partsToExamine = calculateAllCombis( numberOfParts - 1 )
+      for setOfParts in partsToExamine:
+         higher, lower = theScore.parts[setOfParts[0]], theScore.parts[setOfParts[1]]
+         itTook += visTheseParts( [higher,lower], theSettings, theStats )
+   else:
+      higher, lower = theScore.parts[lookAtParts[0]], theScore.parts[lookAtParts[1]]
+      itTook = visTheseParts( [higher,lower], theSettings, theStats )
+   #
    print( ' --> the analysis took ' + str(itTook) + ' seconds' )
-
-   print( '-----------------------' )
-   print( "Here are the intervals!" )
-   #print( "Compound Intervals:" )
-   pprint.pprint( theStats._compoundIntervalDict )
-   pprint.pprint( sorted( theStats._compoundIntervalDict.items(), cmp=intervalSorter ) )
-   #print( '-----------------------' )
-   #print( "Those as Simple Intervals:" )
-   #pprint.pprint( theStats._simpleIntervalDict )
-   #pprint.pprint( sorted( theStats._simpleIntervalDict.items(), cmp=intervalSorter ) )
-
-   print( "---------------------" )
-   print( "Here are the n-grams!" )
-   pprint.pprint( theStats._compoundQualityNGramsDict )
-   pprint.pprint( theStats._compoundNoQualityNGramsDict )
-
+   
+   #-------------------------------------------------------
+   # Prepare and Output Our Results
+   #-------------------------------------------------------
+   
+   # Parse what we'll output
+   parsedOutput = theStats.getFormattedIntervals( theSettings ) + \
+                  theStats.getFormattedNGrams( theSettings )
+   # If this has anything, we'll assume it's a filename to use for output.
+   possibleFile = theSettings.propertyGet( 'outputResultsToFile' )
+   if len(possibleFile) > 0:
+      print( '----------------------' )
+      print( 'Outputting results to ' + possibleFile )
+      fileOutputter( parsedOutput, possibleFile )
+   else:
+      print( '---------------------' )
+      print( 'Here are the results!' )
+      print( parsedOutput )
+   
    if theSettings.propertyGet( 'produceLabeledScore' ):
       print( "-----------------------------" )
       print( "Processing score for display." )
@@ -141,6 +166,9 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    else:
       print( "----------------------------" )
       print( "Not producing labeled score." )
+   
+   #
+   print( '' )
 # End function analyzeThis() ---------------------------------------------------
 
 
@@ -161,6 +189,7 @@ class visSettings:
       self._secretSettingsHash['heedQuality'] = False
       self._secretSettingsHash['lookForTheseNs'] = [2]
       self._secretSettingsHash['offsetBetweenInterval'] = 0.5
+      self._secretSettingsHash['outputResultsToFile'] = ''
    
    def propertySet( self, propertyStr ):
       # TODO: rename this method "propertySet()"
@@ -319,6 +348,7 @@ if __name__ == '__main__':
                print( "        write the list of integers." )
                print( "- offsetBetweenInterval: a decimal number representing the 'granularity' with which" )
                print( "        to search for n-grams. Type 'help settings offsetBetweenInterval' for more." )
+               print( "- outputResultsToFile: the filename to output to, or nothing to disable output to a file." )
             elif 'help settings offsetBetweenInterval' == userSays:
                print( "This should be the value of music21's 'quarterLength' corresponding to the" )
                print( "   \"every ____ note\" you want to look for. For example, to check on \"every" )
