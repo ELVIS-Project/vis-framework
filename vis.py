@@ -192,7 +192,6 @@ class visSettings:
       self._secretSettingsHash['outputResultsToFile'] = ''
    
    def propertySet( self, propertyStr ):
-      # TODO: rename this method "propertySet()"
       # Parses 'propertyStr' and sets the specified property to the specified
       # value. Might later raise an exception if the property doesn't exist or
       # if the value is invalid.
@@ -200,7 +199,7 @@ class visSettings:
       # Examples:
       # a.propertySet( 'chordLabelVerbosity concise' )
       # a.propertySet( 'set chordLabelVerbosity concise' )
-
+      
       # just tests whether a str is 'true' or 'True' or 'false' or 'False
       def isTorF( s ):
          if 'true' == s or 'True' == s or 'false' == s or 'False' == s:
@@ -208,27 +207,25 @@ class visSettings:
          else:
             return False
       ####
-
+      
       # if the str starts with "set " then remove that
       if len(propertyStr) < 4:
          pass # panic
       elif 'set ' == propertyStr[:4]:
          propertyStr = propertyStr[4:]
-
+      
       # check to make sure there's a property and a value
       spaceIndex = propertyStr.find(' ')
       if -1 == spaceIndex:
          pass #panic
-
+      
       # make sure we have a proper 'true' or 'false' str if we need one
       if 'heedQuality' == propertyStr[:spaceIndex] or \
          'produceLabeledScore' == propertyStr[:spaceIndex] or \
          'produceLabelledScore' == propertyStr[:spaceIndex]:
             if not isTorF( propertyStr[spaceIndex+1:] ):
                raise NonsensicalInputError( "Value must be either True or False, but we got " + str(propertyStr[spaceIndex+1:]) )
-
-      # TODO: some sort of parsing to allow us to set 'lookForTheseNs'
-
+      
       # now match the property
       if propertyStr[:spaceIndex] in self._secretSettingsHash:
          self._secretSettingsHash[propertyStr[:spaceIndex]] = propertyStr[spaceIndex+1:]
@@ -237,16 +234,15 @@ class visSettings:
       # unrecognized property
       else:
          raise NonsensicalInputError( "Unrecognized property: " + propertyStr[:spaceIndex])
-
+   
    def propertyGet( self, propertyStr ):
-      # TODO: rename this method "propertyGet()"
       # Parses 'propertyStr' and returns the value of the specified property.
       # Might later raise an exception if the property doesn't exist.
       #
       # Examples:
       # a.propertyGet( 'chordLabelVerbosity' )
       # a.propertyGet( 'get chordLabelVerbosity' )
-
+      
       # if the str starts with "get " then remove that
       if len(propertyStr) < 4:
          pass # panic
