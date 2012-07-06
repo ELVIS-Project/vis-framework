@@ -109,7 +109,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    currentOffset = min(lfn.lowestOffset, hfn.lowestOffset)
    # How much to increment the offset. With quarterLength==1.0 and offsetInterval
    # of 0.5, this means we're counting by eighth notes.
-   offsetInterval = theSettings.propertyGet( 'offsetBetweenInterval' )
+   offsetInterval = theSettings.get_property( 'offsetBetweenInterval' )
    # These hold the most recent Note/Rest in their respective
    # voice. We can't say "current" because it implies the offset of
    # mostRecentHigh == currentOffset, which may not be true if, for example

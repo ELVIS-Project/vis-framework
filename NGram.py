@@ -62,7 +62,7 @@ class NGram( object ):
       >>> s = visSettings()
       >>> a = interval.Interval( note.Note('C4'), note.Note('E4') )
       >>> b = interval.Interval( note.Note('D4'), note.Note('E4') )
-      >>> ng = NGram( [a,b], s.propertyGet( 'heedQuality' ) )
+      >>> ng = NGram( [a,b], s.get_property( 'heedQuality' ) )
       NGram( [music21.interval.Interval( music21.note.Note('C4'), music21.note.Note('E4') ),music21.interval.Interval( music21.note.Note('D4'), music21.note.Note('E4') )], False )
       '''
       self._heedQuality = heedQuality

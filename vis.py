@@ -148,7 +148,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    parsedOutput = theStats.getFormattedIntervals( theSettings ) + \
                   theStats.getFormattedNGrams( theSettings )
    # If this has anything, we'll assume it's a filename to use for output.
-   possibleFile = theSettings.propertyGet( 'outputResultsToFile' )
+   possibleFile = theSettings.get_property( 'outputResultsToFile' )
    if len(possibleFile) > 0:
       print( '----------------------' )
       print( 'Outputting results to ' + possibleFile )
@@ -158,7 +158,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
       print( 'Here are the results!' )
       print( parsedOutput )
    
-   if theSettings.propertyGet( 'produceLabeledScore' ):
+   if theSettings.get_property( 'produceLabeledScore' ):
       print( "-----------------------------" )
       print( "Processing score for display." )
       # Use the built-in outputLilyPond.py module
@@ -191,14 +191,14 @@ class visSettings:
       self._secretSettingsHash['offsetBetweenInterval'] = 0.5
       self._secretSettingsHash['outputResultsToFile'] = ''
    
-   def propertySet( self, propertyStr ):
+   def set_property( self, propertyStr ):
       # Parses 'propertyStr' and sets the specified property to the specified
       # value. Might later raise an exception if the property doesn't exist or
       # if the value is invalid.
       #
       # Examples:
-      # a.propertySet( 'chordLabelVerbosity concise' )
-      # a.propertySet( 'set chordLabelVerbosity concise' )
+      # a.set_property( 'chordLabelVerbosity concise' )
+      # a.set_property( 'set chordLabelVerbosity concise' )
       
       # just tests whether a str is 'true' or 'True' or 'false' or 'False
       def isTorF( s ):
@@ -235,13 +235,13 @@ class visSettings:
       else:
          raise NonsensicalInputError( "Unrecognized property: " + propertyStr[:spaceIndex])
    
-   def propertyGet( self, propertyStr ):
+   def get_property( self, propertyStr ):
       # Parses 'propertyStr' and returns the value of the specified property.
       # Might later raise an exception if the property doesn't exist.
       #
       # Examples:
-      # a.propertyGet( 'chordLabelVerbosity' )
-      # a.propertyGet( 'get chordLabelVerbosity' )
+      # a.get_property( 'chordLabelVerbosity' )
+      # a.get_property( 'get chordLabelVerbosity' )
       
       # if the str starts with "get " then remove that
       if len(propertyStr) < 4:
@@ -309,13 +309,13 @@ if __name__ == '__main__':
                print( "For example:\nset produceLabeledScore true" )
                print( "... but...\nset orderPizza true" )
                try:
-                  mySettings.propertySet( 'orderPizza true' )
+                  mySettings.set_property( 'orderPizza true' )
                except NonsensicalInputError as err:
                   print( 'Error: ' + str(err) )
                #print( "Unrecognized property: parduceLabeledScore" )
             else:
                try:
-                  mySettings.propertySet( userSays )
+                  mySettings.set_property( userSays )
                except NonsensicalInputError as e:
                   print( "Error: " + str(e) )
          elif 'get' == userSays[:userSays.find(' ')]:
@@ -325,10 +325,10 @@ if __name__ == '__main__':
                print( "you mis-type a property name, vis may either guess at which property" )
                print( "meant, or tell you that it couldn't find a corresponding propety.\n" )
                print( "For example:\nget produceLabeledScore" )
-               print( mySettings.propertyGet( 'produceLabeledScore' ) )
+               print( mySettings.get_property( 'produceLabeledScore' ) )
             else:
                try:
-                  val = mySettings.propertyGet( userSays )
+                  val = mySettings.get_property( userSays )
                   print( val )
                except NonsensiclaInputError as e:
                   print( "Error: " + str(e) )

@@ -48,16 +48,16 @@ class TestSettings( unittest.TestCase ):
 
    def test_set_some_things( self ):
       # Setting something to a new, valid value is done properly.
-      self.s.propertySet( 'set produceLabelledScore True' )
+      self.s.set_property( 'set produceLabelledScore True' )
       self.assertEqual( self.s._secretSettingsHash['produceLabeledScore'], 'True' )
-      self.s.propertySet( 'produceLabelledScore False' )
+      self.s.set_property( 'produceLabelledScore False' )
       self.assertEqual( self.s._secretSettingsHash['produceLabeledScore'], 'False' )
 
    def test_get_some_things( self ):
-      self.assertEqual( self.s.propertyGet( 'produceLabeledScore' ), False )
+      self.assertEqual( self.s.get_property( 'produceLabeledScore' ), False )
       self.s._secretSettingsHash['produceLabeledScore'] = 'True'
-      self.assertEqual( self.s.propertyGet( 'produceLabeledScore' ), True )
-      self.assertEqual( self.s.propertyGet( 'produceLabelledScore' ), True )
+      self.assertEqual( self.s.get_property( 'produceLabeledScore' ), True )
+      self.assertEqual( self.s.get_property( 'produceLabelledScore' ), True )
 
    def test_get_invalid_setting( self ):
       self.assertRaises( NonsensicalInputError, self.s.propertyGet, 'four score and five score' )
