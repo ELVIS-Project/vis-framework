@@ -72,7 +72,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
       return post
    #-------------------------------------------------------
    
-   if None == theSettings:
+   if theSettings is None:
       theSettings = visSettings()
    
    theStats = VerticalIntervalStatistics()

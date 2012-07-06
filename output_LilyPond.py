@@ -109,7 +109,7 @@ def pitchToLilyPitch( p, includeOctave = 'yes' ):
    
    if 'yes' == includeOctave:
       o = p.octave
-      if None == o:
+      if o is None:
          post += octaveNumberToLilySymbol( p.implicitOctave )
       else:
          post += octaveNumberToLilySymbol( o )

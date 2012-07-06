@@ -130,7 +130,7 @@ class NGram( object ):
       str(vis.NGram) == NGram.stringVersion()
       '''
       # If we weren't given something, we'll take the default for this NGram.
-      if None == heedQuality:
+      if heedQuality is None:
          heedQuality = self._heedQuality
 
       post = ''

@@ -193,7 +193,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          if countingThisOffset or quarterLengthIsLong:
             # If this is the first thing in the piece, mostRecentLow will be empty
             # and we must put something there.
-            if None == mostRecentLow:
+            if mostRecentLow is None:
                mostRecentLow = lfnGEBO
                # Indicate that other part must update and that we already did.
                highMustUpdate, lowUpdated = True, True
@@ -263,7 +263,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          # NOTE: End of the weird, inefficient part.
          
          if countingThisOffset or quarterLengthIsLong:
-            if None == mostRecentHigh:
+            if mostRecentHigh is None:
                mostRecentHigh = hfnGEBO
                lowMustUpdate, highUpdated = True, True
             elif type(mostRecentHigh) != type(hfnGEBO):
