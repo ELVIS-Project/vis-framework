@@ -75,9 +75,8 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          return False
    #
 
-   n = 2 # TODO: get this from settings
-   # TODO: Make it so that, if we get a List of integers from settings, we
-   # can process the whole list.
+   #n = theSettings.get_property('n')
+   n = 2
 
    # Now we'll take just the notes and rests. I don't want to use 
    # .notesAndRests because then I get chords and None and other garbage.

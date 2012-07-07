@@ -124,9 +124,10 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
          lookAtParts = [numberOfParts+5,numberOfParts+5]
    
    # find out what or which 'n' to look for
-   print( "In the future, we'll ask which 'n' values to look for... for now it's just 2-grams.\n" )
-   n = 2
-   
+   n_list = raw_input( "Please input the desired values of n (as in n-gram). Default is n=2.\n--> ").split()
+   if n_list is not '':
+      theSettings.set_property( 'n', n_list )
+
    print( "Processing...\n" )
    itTook = 0
    if 'all' == lookAtParts:
@@ -184,15 +185,16 @@ class visSettings:
    # NOTE: When you add a property, remember to test its default setting in
    # the unit test file.
    def __init__( self ):
-      self._secretSettingsHash = {}
-      self._secretSettingsHash['produceLabeledScore'] = False
-      self._secretSettingsHash['heedQuality'] = False
-      self._secretSettingsHash['lookForTheseNs'] = [2]
-      self._secretSettingsHash['offsetBetweenInterval'] = 0.5
-      self._secretSettingsHash['outputResultsToFile'] = ''
+      self._secret_settings_hash = {}
+      self._secret_settings_hash['produceLabeledScore'] = False
+      self._secret_settings_hash['heedQuality'] = False
+      self._secret_settings_hash['lookForTheseNs'] = [2]
+      self._secret_settings_hash['offsetBetweenInterval'] = 0.5
+      self._secret_settings_hash['outputResultsToFile'] = ''
+      self._secret_settings_hash['n'] = [2] 
    
-   def set_property( self, propertyStr ):
-      # Parses 'propertyStr' and sets the specified property to the specified
+   def set_property( self, property_str, prop_value = None ):
+      # Parses 'property_str' and sets the specified property to the specified
       # value. Might later raise an exception if the property doesn't exist or
       # if the value is invalid.
       #
@@ -207,36 +209,41 @@ class visSettings:
          else:
             return False
       ####
+      if prop_value is None:
+         # if the str starts with "set " then remove that
+         if len(property_str) < 4:
+            pass # panic
+         elif 'set ' == property_str[:4]:
+            property_str = property_str[4:]
+               # check to make sure there's a property and a value
+         spaceIndex = property_str.find(' ')
+         if -1 == spaceIndex:
+            pass #panic
+     
+         # make sure we have a proper 'true' or 'false' str if we need one
+         if 'heedQuality' == property_str[:spaceIndex] or \
+            'produceLabeledScore' == property_str[:spaceIndex] or \
+            'produceLabelledScore' == property_str[:spaceIndex]:
+               if not isTorF( property_str[spaceIndex+1:] ):
+                  raise NonsensicalInputError( "Value must be either True or False, but we got " + str(property_str[spaceIndex+1:]) )
       
-      # if the str starts with "set " then remove that
-      if len(propertyStr) < 4:
-         pass # panic
-      elif 'set ' == propertyStr[:4]:
-         propertyStr = propertyStr[4:]
-      
-      # check to make sure there's a property and a value
-      spaceIndex = propertyStr.find(' ')
-      if -1 == spaceIndex:
-         pass #panic
-      
-      # make sure we have a proper 'true' or 'false' str if we need one
-      if 'heedQuality' == propertyStr[:spaceIndex] or \
-         'produceLabeledScore' == propertyStr[:spaceIndex] or \
-         'produceLabelledScore' == propertyStr[:spaceIndex]:
-            if not isTorF( propertyStr[spaceIndex+1:] ):
-               raise NonsensicalInputError( "Value must be either True or False, but we got " + str(propertyStr[spaceIndex+1:]) )
-      
-      # now match the property
-      if propertyStr[:spaceIndex] in self._secretSettingsHash:
-         self._secretSettingsHash[propertyStr[:spaceIndex]] = propertyStr[spaceIndex+1:]
-      elif 'produceLabelledScore' == propertyStr[:spaceIndex]:
-         self._secretSettingsHash['produceLabeledScore'] = propertyStr[spaceIndex+1:]
-      # unrecognized property
+         # now match the property
+         if property_str[:spaceIndex] in self._secret_settings_hash:
+            self._secret_settings_hash[property_str[:spaceIndex]] = property_str[spaceIndex+1:]
+         elif 'produceLabelledScore' == property_str[:spaceIndex]:
+            self._secret_settings_hash['produceLabeledScore'] = property_str[spaceIndex+1:]
+         # unrecognized property
+         else:
+            raise NonsensicalInputError( "Unrecognized property: " + property_str[:spaceIndex])
+      # So that we have a conventional setter as well, and we don't have to cast from string to list, etc
       else:
-         raise NonsensicalInputError( "Unrecognized property: " + propertyStr[:spaceIndex])
+         if property_str in self._secret_settings_hash:
+	        self._secret_settings_hash[property_str] = prop_value
+         else:
+	        raise NonsensicalInputError("Unrecognized property: " + property_str)
    
-   def get_property( self, propertyStr ):
-      # Parses 'propertyStr' and returns the value of the specified property.
+   def get_property( self, property_str ):
+      # Parses 'property_str' and returns the value of the specified property.
       # Might later raise an exception if the property doesn't exist.
       #
       # Examples:
@@ -244,20 +251,20 @@ class visSettings:
       # a.get_property( 'get chordLabelVerbosity' )
       
       # if the str starts with "get " then remove that
-      if len(propertyStr) < 4:
+      if len(property_str) < 4:
          pass # panic
-      elif 'get ' == propertyStr[:4]:
-         propertyStr = propertyStr[4:]
+      elif 'get ' == property_str[:4]:
+         property_str = property_str[4:]
 
       # now match the property
       post = None
-      if propertyStr in self._secretSettingsHash:
-         post = self._secretSettingsHash[propertyStr]
-      elif 'produceLabelledScore' == propertyStr:
-         post = self._secretSettingsHash['produceLabeledScore']
+      if property_str in self._secret_settings_hash:
+         post = self._secret_settings_hash[property_str]
+      elif 'produceLabelledScore' == property_str:
+         post = self._secret_settings_hash['produceLabeledScore']
       # unrecognized property
       else:
-         raise NonsensicalInputError( "Unrecognized property: " + propertyStr )
+         raise NonsensicalInputError( "Unrecognized property: " + property_str )
 
       if 'True' == post or 'true' == post:
          return True
