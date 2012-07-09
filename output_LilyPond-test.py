@@ -171,8 +171,7 @@ class Test_Process_Stream_Part( unittest.TestCase ):
       the_score = converter.parse( 'test_corpus/bwv77.mxl' )
       actual = process_stream( the_score[1][:3], the_settings )
       actual = actual[8:] # remove the randomized part name
-      expected = \
-""" =
+      expected = """ =
 {
    %% Soprano
    \partial 4
@@ -192,8 +191,7 @@ class Test_Process_Stream_Part( unittest.TestCase ):
       the_score = converter.parse( 'test_corpus/Jos2308.krn' )
       actual = process_stream( the_score[0][:10], the_settings )
       actual = actual[8:] # remove the randomized part name
-      expected = \
-""" =
+      expected = """ =
 {
    \clef treble
    \key f \major
@@ -227,9 +225,9 @@ if __name__ == '__main__':
    process_stream_part_suite = unittest.TestLoader().loadTestsFromTestCase( Test_Process_Stream_Part )
 
    # Run test suites
-   #unittest.TextTestRunner( verbosity = 2 ).run( simple_conversions_suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( simple_conversions_suite )
    #unittest.TextTestRunner( verbosity = 2 ).run( process_measure_suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( process_stream_part_suite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( process_stream_part_suite )
 
 
 

@@ -27,16 +27,9 @@ from subprocess import Popen, PIPE # for running bash things
 from string import letters as string_letters
 from random import choice as random_choice
 # music21
-from music21 import note
-from music21 import clef
-from music21 import meter
-from music21 import key
-from music21 import stream
-from music21 import instrument
-from music21 import metadata
-from music21 import layout
-from music21 import bar
-from music21 import humdrum
+from music21 import note, clef, meter, key, stream, instrument, \
+   metadata, layout, bar, humdrum, duration
+from music21.duration import DurationException
 # vis
 from file_output import file_outputter
 
@@ -102,10 +95,6 @@ def pitch_to_lily( p, include_octave = 'yes' ):
    if 'yes' == include_octave:
       if p.octave is None:
          post += octave_num_to_lily( p.implicitOctave )
-   #if 'yes' == includeOctave:
-      #o = p.octave
-      #if o is None:
-         #post += octaveNumberToLilySymbol( p.implicitOctave )
       else:
          post += octave_num_to_lily( p.octave )
    
@@ -142,15 +131,22 @@ def duration_to_lily( dur ): # "dur" means "duration"
          if (dur_qL - d) > 0.0:
             post += dictionary_of_durations[d]
             break
-      else:
-         raise UnidentifiedObjectError( 'A-Duration appears to be invalid (' + str(dur.quarterLength) + ')' )
       #
       try:
          for i in xrange(dur.dots):
             post += "."
       except TypeError as err:
-         print( "Didn't work " + str(dur.quarterLength) )
-         #raise UnidentifiedObjectError( 'B-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(err) )
+         # As a last-ditch effort, we'll see if we were given something silly
+         # like 7.992729172438 as a single durational unit. If so, we can try
+         # to fix it with round(). NOTE: I'm not sure this will work with
+         # other silly quarterLength values.
+         try:
+            return duration_to_lily( duration.Duration( round( dur.quarterLength, 2 ) ) )
+         except UnidentifiedObjectError as uoerr:
+            raise uoerr
+            #raise UnidentifiedObjectError( 'A-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(err) )
+      except DurationException as durexc:
+         raise UnidentifiedObjectError( 'B-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(durexc) )
       #
       return post
 #------------------------------------------------------------------------------
@@ -167,6 +163,9 @@ def note_to_lily( lily_this ):
    
    if len(lily_this.duration.components) > 1:
       the_pitch = pitch_to_lily( lily_this.pitch )
+      # DEBUG
+      print( '--> have durational components! ' + str(lily_this.duration.components) )
+      # END DEBUG
       for durational_component in lily_this.duration.components:
          post += the_pitch + duration_to_lily( durational_component ) + '~ '
       post = post[:-2]
