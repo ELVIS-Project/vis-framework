@@ -1051,14 +1051,12 @@ if __name__ == '__main__':
    visThesePartsLongSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisThesePartsLong )
 
    # Run test suites for interface/background components
-   #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      # TODO: some sort of testing for the 'lookForTheseNs' settting
+   unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
+      #TODO: some sort of testing for the 'lookForTheseNs' settting
    unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    
-   ## Run test suites for analytic engine
-   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
-
-   #unittest.main()
+   # Run test suites for analytic engine
+   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
