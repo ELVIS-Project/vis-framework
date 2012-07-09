@@ -99,16 +99,13 @@ def pitch_to_lily( p, include_octave = 'yes' ):
       elif '#' == accidental:
          post += 'is'
    
-<<<<<<< HEAD
    if 'yes' == include_octave:
       if p.octave is None:
          post += octave_num_to_lily( p.implicitOctave )
-=======
-   if 'yes' == includeOctave:
-      o = p.octave
-      if o is None:
-         post += octaveNumberToLilySymbol( p.implicitOctave )
->>>>>>> 1f3f76895f706c45085e4b64055ff8ab612af62d
+   #if 'yes' == includeOctave:
+      #o = p.octave
+      #if o is None:
+         #post += octaveNumberToLilySymbol( p.implicitOctave )
       else:
          post += octave_num_to_lily( p.octave )
    

@@ -39,11 +39,7 @@ from music21 import converter
 from music21.converter import ConverterException
 from music21.converter import ConverterFileException
 # vis
-<<<<<<< HEAD
 from output_LilyPond import process_score
-=======
-from output_LilyPond import processScore, outputTheFile
->>>>>>> 1f3f76895f706c45085e4b64055ff8ab612af62d
 # ngramSorter only needed for the unit tests?
 from VerticalIntervalStatistics import VerticalIntervalStatistics, intervalSorter, ngramSorter
 from analyticEngine import visTheseParts

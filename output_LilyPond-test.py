@@ -174,6 +174,7 @@ class Test_Process_Stream_Part( unittest.TestCase ):
       expected = \
 """ =
 {
+   %% Soprano
    \partial 4
    \clef treble
    \key b \minor
