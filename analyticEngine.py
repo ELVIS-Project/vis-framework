@@ -75,9 +75,8 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          return False
    #
 
-   n = 2 # TODO: get this from settings
-   # TODO: Make it so that, if we get a List of integers from settings, we
-   # can process the whole list.
+   #n = theSettings.get_property('n')
+   n = 2
 
    # Now we'll take just the notes and rests. I don't want to use 
    # .notesAndRests because then I get chords and None and other garbage.
@@ -109,7 +108,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
    currentOffset = min(lfn.lowestOffset, hfn.lowestOffset)
    # How much to increment the offset. With quarterLength==1.0 and offsetInterval
    # of 0.5, this means we're counting by eighth notes.
-   offsetInterval = theSettings.propertyGet( 'offsetBetweenInterval' )
+   offsetInterval = theSettings.get_property( 'offsetBetweenInterval' )
    # These hold the most recent Note/Rest in their respective
    # voice. We can't say "current" because it implies the offset of
    # mostRecentHigh == currentOffset, which may not be true if, for example
@@ -193,7 +192,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          if countingThisOffset or quarterLengthIsLong:
             # If this is the first thing in the piece, mostRecentLow will be empty
             # and we must put something there.
-            if None == mostRecentLow:
+            if mostRecentLow is None:
                mostRecentLow = lfnGEBO
                # Indicate that other part must update and that we already did.
                highMustUpdate, lowUpdated = True, True
@@ -263,7 +262,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
          # NOTE: End of the weird, inefficient part.
          
          if countingThisOffset or quarterLengthIsLong:
-            if None == mostRecentHigh:
+            if mostRecentHigh is None:
                mostRecentHigh = hfnGEBO
                lowMustUpdate, highUpdated = True, True
             elif type(mostRecentHigh) != type(hfnGEBO):
