@@ -80,12 +80,14 @@ class Test_Simple_Conversions( unittest.TestCase ):
       self.assertEqual( duration_to_lily( duration.Duration( 3.5 ) ), '2..' )
       self.assertEqual( duration_to_lily( duration.Duration( 3.75 ) ), '2...' )
       self.assertEqual( duration_to_lily( duration.Duration( 0.12109375 ) ), '64....' )
+      # This should be rounded to qL==8.0
+      self.assertEqual( duration_to_lily( duration.Duration( 7.99609375 ) ), '\\breve' )
       # These take multiple Note objects, and as such cannot be portrayed by
       # the output from a single call to duration_to_lily()
       self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 16.1 ) )
       self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 25.0 ) )
       self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 0.000001268128 ) )
-      self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 7.99609375 ) )
+      
    
    def test_note_to_lily( self ):
       self.assertEqual( note_to_lily( note.Note( 'C4', quarterLength=1.0 ) ), "c'4" )

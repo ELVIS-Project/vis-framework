@@ -77,7 +77,7 @@ def octave_num_to_lily( num ):
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-def pitch_to_lily( p, include_octave = 'yes' ):
+def pitch_to_lily( p, include_octave = True ):
    '''
    Returns a str that is the LilyPond pitch name for the pitch.Pitch
    
@@ -92,7 +92,7 @@ def pitch_to_lily( p, include_octave = 'yes' ):
       elif '#' == accidental:
          post += 'is'
    
-   if 'yes' == include_octave:
+   if include_octave:
       if p.octave is None:
          post += octave_num_to_lily( p.implicitOctave )
       else:
@@ -141,10 +141,13 @@ def duration_to_lily( dur ): # "dur" means "duration"
          # to fix it with round(). NOTE: I'm not sure this will work with
          # other silly quarterLength values.
          try:
-            return duration_to_lily( duration.Duration( round( dur.quarterLength, 2 ) ) )
+            possible_new_qL = round( dur.quarterLength, 2 )
+            if possible_new_qL != dur.quarterLength:
+               return duration_to_lily( duration.Duration( round( dur.quarterLength, 2 ) ) )
+            else:
+               raise UnidentifiedObjectError( 'A-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(err) )   
          except UnidentifiedObjectError as uoerr:
             raise uoerr
-            #raise UnidentifiedObjectError( 'A-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(err) )
       except DurationException as durexc:
          raise UnidentifiedObjectError( 'B-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(durexc) )
       #
@@ -164,7 +167,7 @@ def note_to_lily( lily_this ):
    if len(lily_this.duration.components) > 1:
       the_pitch = pitch_to_lily( lily_this.pitch )
       # DEBUG
-      print( '--> have durational components! ' + str(lily_this.duration.components) )
+      #print( '--> have durational components! ' + str(lily_this.duration.components) )
       # END DEBUG
       for durational_component in lily_this.duration.components:
          post += the_pitch + duration_to_lily( durational_component ) + '~ '
@@ -245,10 +248,10 @@ def process_measure( the_meas ):
       elif isinstance( obj, key.KeySignature ):
          pm = obj.pitchAndMode
          if 2 == len(pm) and pm[1] is not None:
-            post += "\\key " + pitch_to_lily( pm[0], include_octave='no' ) + " \\" + pm[1] + "\n   "
+            post += "\\key " + pitch_to_lily( pm[0], include_octave=False ) + " \\" + pm[1] + "\n   "
          else:
             # We'll have to assume it's \major, because music21 does that.
-            post += "\\key " + pitch_to_lily( pm[0], include_octave='no' ) + " \\major\n   "
+            post += "\\key " + pitch_to_lily( pm[0], include_octave=False ) + " \\major\n   "
       # Barline
       elif isinstance( obj, bar.Barline ):
          # There's no need to write down a regular barline, because they tend
