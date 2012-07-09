@@ -361,7 +361,7 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
                   sng = str(thisNGram)
                   firstSpace = sng.find(' ')
                   secondSpace = firstSpace + sng[firstSpace+1:].find(' ') + 1
-                  lfnGEBO.visLilyMarkup = \
+                  lfnGEBO.lily_markup = \
                   '_\markup{\combine \concat{\\teeny{"' + sng[:firstSpace] + \
                   ' " \lower #2 "' + sng[firstSpace+1:secondSpace] + \
                   '" " ' + sng[secondSpace+1:] + \

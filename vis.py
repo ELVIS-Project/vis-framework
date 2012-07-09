@@ -39,13 +39,13 @@ from music21 import converter
 from music21.converter import ConverterException
 from music21.converter import ConverterFileException
 # vis
-from outputLilyPond import processScore, outputTheFile
+from output_LilyPond import process_score
 # ngramSorter only needed for the unit tests?
 from VerticalIntervalStatistics import VerticalIntervalStatistics, intervalSorter, ngramSorter
 from analyticEngine import visTheseParts
 from NGram import NGram
 from problems import NonsensicalInputError
-from dealsWithFiles import fileOutputter
+from file_output import file_outputter
 
 
 
@@ -162,7 +162,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
       print( "-----------------------------" )
       print( "Processing score for display." )
       # Use the built-in outputLilyPond.py module
-      processScore( theScore )
+      process_score( theScore )
    else:
       print( "----------------------------" )
       print( "Not producing labeled score." )
@@ -282,19 +282,27 @@ if __name__ == '__main__':
 
    # See which command they wanted
    while False == exitProgram:
-      userSays = raw_input( "vis @: " )
+      try:
+         userSays = raw_input( "vis @: " )
+      except EOFError as eof:
+         # Fine, we'll just quit
+         userSays = 'quit'
+      except KeyboardInterrupt as kbi:
+         # Fine, we'll just exit
+         userSays = 'exit'
       # help
       if 'help' == userSays:
-         print( "\nList of Commands:" )
-         print( "-------------------" )
-         print( "- 'exit' or 'quit' to exit or quit the program" )
-         print( "- 'set' to set an option (see 'set help' for more information)" )
-         print( "- 'get' to get the setting of an option (see 'get help')" )
-         print( "- 'help settings' for a list of available settings" )
-         print( "- a filename to analyze" )
-         print( "- 'help filename' for help with file names" )
-         print( "\n** Note: You can type 'help' at any user prompt for more information." )
-         print( "" )
+         print( """\nList of Commands:
+-------------------
+- 'exit' or 'quit' to exit or quit the program
+- 'set' to set an option (see 'set help' for more information)
+- 'get' to get the setting of an option (see 'get help')
+- 'help settings' for a list of available settings
+- a filename to analyze
+- 'help filename' for help with file names
+
+** Note: You can type 'help' at any user prompt for more information.
+""" )
       elif 'exit' == userSays or 'quit' == userSays:
          print( "" )
          exitProgram = True
@@ -302,17 +310,23 @@ if __name__ == '__main__':
       elif 0 < userSays.find(' '):
          if 'set' == userSays[:userSays.find(' ')]:
             if 'set help' == userSays:
-               print( "You can change any of the settings described in the \'help settings\' command.\n" )
-               print( "Just write 'set' followed by a space, the name of the property, and" )
-               print( "the value you wish to set. If you mis-type a property or value name," )
-               print( "vis will tell you, rather than failing with no feedback.\n" )
-               print( "For example:\nset produceLabeledScore true" )
-               print( "... but...\nset orderPizza true" )
+               print( """
+You can change any of the settings described in the \'help settings\' command.
+
+Just write 'set' followed by a space, the name of the property, and
+the value you wish to set. If you mis-type a property or value name,
+vis will tell you, rather than failing with no feedback.
+
+For example:
+set produceLabeledScore true
+
+... but...
+set orderPizza true
+""" )
                try:
                   mySettings.propertySet( 'orderPizza true' )
                except NonsensicalInputError as err:
-                  print( 'Error: ' + str(err) )
-               #print( "Unrecognized property: parduceLabeledScore" )
+                  print( 'Error: ' + str(err) + "\n" )
             else:
                try:
                   mySettings.propertySet( userSays )
