@@ -1,8 +1,8 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# Name:         outputLilypond.py
-# Purpose:      Outputs music21 Objects into LilyPond Format
+# Name:         file_output.py
+# Purpose:      Outputs files for vis and output_LilyPond
 # 
 # Copyright (C) 2012 Christopher Antila
 # 
@@ -28,7 +28,7 @@ from os import access, W_OK
 
 
 #------------------------------------------------------------------------------
-def fileOutputter( contents, filename ):
+def file_outputter( contents, filename, extension='' ):
    '''
    Outputs the first argument, which should be a str, into a file whose name is
    specified as the second argument.
@@ -39,7 +39,7 @@ def fileOutputter( contents, filename ):
    if not isinstance( filename, str ):
       filename = str(filename)
    # File mustn't already exist
-   while exists( filename ):
+   while exists( filename + extension ):
       filename += '-0'
    # Output must must be a str.
    if not isinstance( contents, str ):
@@ -47,19 +47,22 @@ def fileOutputter( contents, filename ):
    
    # Open the file for writing
    try:
-      outputFile = open( filename, 'w' )
+      output_file = open( filename+extension, 'w' )
    except Exception as exc:
       print( 'Error: ' + str(exc) )
    
    # Write the file.
    try:
-      outputFile.write( contents )
+      output_file.write( contents )
    except Exception as exc:
       print( 'Error: ' + str(exc) )
    
    # Close the file.
    try:
-      outputFile.close()
+      output_file.close()
    except Exception as exc:
       print( 'Error: ' + str(exc) )
+   
+   # Return the filename we actually used.
+   return filename
 #------------------------------------------------------------------------------
