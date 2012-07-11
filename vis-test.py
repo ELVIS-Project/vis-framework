@@ -41,7 +41,7 @@ class TestSettings( unittest.TestCase ):
    def test_default_init( self ):
       # Ensure all the settings are initialized to the proper default value.
       self.assertEqual( self.s._secretSettingsHash['produceLabeledScore'], False )
-      self.assertEqual( self.s._secretSettingsHash['heedQuality'], False )
+      self.assertEqual( self.s._secretSettingsHash['heed_quality'], False )
       self.assertEqual( self.s._secretSettingsHash['lookForTheseNs'], [2] )
       self.assertEqual( self.s._secretSettingsHash['offsetBetweenInterval'], 0.5 )
       self.assertEqual( self.s._secretSettingsHash['outputResultsToFile'], '' )
@@ -126,35 +126,35 @@ class TestNGram( unittest.TestCase ):
       # m3 u m3
       self.a = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('A4'),note.Note('C5'))]
-      self.aDistance = [interval.Interval(note.Note('A4'),note.Note('A4'))]
+      self.a_distance = [interval.Interval(note.Note('A4'),note.Note('A4'))]
       # m3 u M3
       self.b = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('A4'),note.Note('C#5'))]
-      self.bDistance = [interval.Interval(note.Note('A4'),note.Note('A4'))]
+      self.b_distance = [interval.Interval(note.Note('A4'),note.Note('A4'))]
       # m3 +P4 m3
       self.c = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('D5'),note.Note('F5'))]
-      self.cDistance = [interval.Interval(note.Note('A4'),note.Note('D5'))]
+      self.c_distance = [interval.Interval(note.Note('A4'),note.Note('D5'))]
       # m-3 +P4 M3
       self.d = [interval.Interval(note.Note('C5'),note.Note('A4')), \
                 interval.Interval(note.Note('D5'),note.Note('F#5'))]
-      self.dDistance = [interval.Interval(note.Note('A4'),note.Note('D5'))]
+      self.d_distance = [interval.Interval(note.Note('C5'),note.Note('D5'))]
       # m3 -P4 m3
       self.e = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('E4'),note.Note('G4'))]
-      self.eDistance = [interval.Interval(note.Note('A4'),note.Note('E4'))]
+      self.e_distance = [interval.Interval(note.Note('A4'),note.Note('E4'))]
       # m3 -P4 M-3
       self.f = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('G#4'),note.Note('E4'))]
-      self.fDistance = [interval.Interval(note.Note('A4'),note.Note('E4'))]
+      self.f_distance = [interval.Interval(note.Note('A4'),note.Note('G#4'))]
       # m3 +P4 M2 -m6 P5 -m2 M-10
       self.g = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('D5'),note.Note('E5')), \
                 interval.Interval(note.Note('F#4'),note.Note('C#5')), \
                 interval.Interval(note.Note('G##5'),note.Note('E#4'))]
-      self.gDistance = [interval.Interval(note.Note('A4'),note.Note('D5')), \
+      self.g_distance = [interval.Interval(note.Note('A4'),note.Note('D5')), \
                         interval.Interval(note.Note('D5'),note.Note('F#4')), \
-                        interval.Interval(note.Note('F#4'),note.Note('E#4'))]
+                        interval.Interval(note.Note('F#4'),note.Note('G##5'))]
    # end set_up()
 
    def test_calculating_n( self ):
@@ -167,38 +167,48 @@ class TestNGram( unittest.TestCase ):
 
    def test_constructor_assignment( self ):
       x = NGram( self.a )
-      self.assertEqual( x._listOfIntervals, self.a )
+      self.assertEqual( x._list_of_intervals, self.a )
       #self.assertEqual( x.getIntervals(), self.a )
       y = NGram( self.g )
-      self.assertEqual( y._listOfIntervals, self.g )
+      self.assertEqual( y._list_of_intervals, self.g )
       #self.assertEqual( y.getIntervals(), self.g )
 
    def test_distance_calculations( self ):
-      self.assertEqual( NGram( self.a )._listOfMovements, self.aDistance )
-      self.assertEqual( NGram( self.b )._listOfMovements, self.bDistance )
-      self.assertEqual( NGram( self.c )._listOfMovements, self.cDistance )
-      self.assertEqual( NGram( self.d )._listOfMovements, self.dDistance )
-      self.assertEqual( NGram( self.e )._listOfMovements, self.eDistance )
-      self.assertEqual( NGram( self.f )._listOfMovements, self.fDistance )
-      self.assertEqual( NGram( self.g )._listOfMovements, self.gDistance )
+      self.assertEqual( NGram( self.a )._list_of_movements, self.a_distance )
+      self.assertEqual( NGram( self.b )._list_of_movements, self.b_distance )
+      self.assertEqual( NGram( self.c )._list_of_movements, self.c_distance )
+      self.assertEqual( NGram( self.d )._list_of_movements, self.d_distance )
+      self.assertEqual( NGram( self.e )._list_of_movements, self.e_distance )
+      self.assertEqual( NGram( self.f )._list_of_movements, self.f_distance )
+      self.assertEqual( NGram( self.g )._list_of_movements, self.g_distance )
 
    def test_distance_calc_exception( self ):
-      self.a = [interval.Interval(note.Note('A4'),note.Note('C5')), \
+      self.temp = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval('m3')]
-      self.assertRaises( NonsensicalInputError, NGram, self.a )
+      self.assertRaises( NonsensicalInputError, NGram, self.temp )
+      # Note that if we do this with
+      # >>> self.g[2].noteEnd = None
+      # then everything is okay because we only use the .noteStart to calculate
+      # movement of the lower voice.
       try:
          self.g[2].noteEnd = None
+      except AttributeError as e:
+         pass
+      self.assertEqual( NGram( self.g )._list_of_movements, self.g_distance )
+      # But this should fail
+      try:
+         self.g[2].noteStart = None
       except AttributeError as e:
          pass
       self.assertRaises( NonsensicalInputError, NGram, self.g )
 
    def test_equality( self ):
-      # if they have different heedQuality settings, they're not the same
+      # if they have different heed_quality settings, they're not the same
       self.assertFalse( NGram( self.a ) == NGram( self.a, True ) )
       # if they aren't of the same "n," they're not the same
       self.assertFalse( NGram( self.a, False ) == NGram( self.g, False ) )
       self.assertFalse( NGram( self.a, True ) == NGram( self.g, True ) )
-      # they're all equal to themselves if heedQuality
+      # they're all equal to themselves if heed_quality
       self.assertTrue( NGram( self.a, True ) == NGram( self.a, True ) )
       self.assertTrue( NGram( self.b, True ) == NGram( self.b, True ) )
       self.assertTrue( NGram( self.c, True ) == NGram( self.c, True ) )
@@ -206,7 +216,7 @@ class TestNGram( unittest.TestCase ):
       self.assertTrue( NGram( self.e, True ) == NGram( self.e, True ) )
       self.assertTrue( NGram( self.f, True ) == NGram( self.f, True ) )
       self.assertTrue( NGram( self.g, True ) == NGram( self.g, True ) )
-      # they're all not equal to the next ones if heedQuality
+      # they're all not equal to the next ones if heed_quality
       self.assertFalse( NGram( self.a, True ) == NGram( self.b, True ) )
       self.assertFalse( NGram( self.b, True ) == NGram( self.c, True ) )
       self.assertFalse( NGram( self.c, True ) == NGram( self.d, True ) )
@@ -214,7 +224,7 @@ class TestNGram( unittest.TestCase ):
       self.assertFalse( NGram( self.e, True ) == NGram( self.f, True ) )
       self.assertFalse( NGram( self.f, True ) == NGram( self.g, True ) )
       self.assertFalse( NGram( self.g, True ) == NGram( self.a, True ) )
-      # they're all equal to themselves if NOT heedQuality
+      # they're all equal to themselves if NOT heed_quality
       self.assertTrue( NGram( self.a, False ) == NGram( self.a, False ) )
       self.assertTrue( NGram( self.b, False ) == NGram( self.b, False ) )
       self.assertTrue( NGram( self.c, False ) == NGram( self.c, False ) )
@@ -222,18 +232,18 @@ class TestNGram( unittest.TestCase ):
       self.assertTrue( NGram( self.e, False ) == NGram( self.e, False ) )
       self.assertTrue( NGram( self.f, False ) == NGram( self.f, False ) )
       self.assertTrue( NGram( self.g, False ) == NGram( self.g, False ) )
-      # these are additionally equal if NOT heedQuality
+      # these are additionally equal if NOT heed_quality
       self.assertTrue( NGram( self.a, False ) == NGram( self.b, False ) )
-      self.assertTrue( NGram( self.c, False ) == NGram( self.d, False ) )
-      self.assertTrue( NGram( self.e, False ) == NGram( self.f, False ) )
+      #self.assertTrue( NGram( self.c, False ) == NGram( self.d, False ) )
+      #self.assertTrue( NGram( self.e, False ) == NGram( self.f, False ) )
 
    def test_inequality( self ):
-      # if they have different heedQuality settings, they're not the same
+      # if they have different heed_quality settings, they're not the same
       self.assertTrue( NGram( self.a, False ) != NGram( self.a, True ) )
       # if they aren't of the same "n," they're not the same
       self.assertTrue( NGram( self.a, False ) != NGram( self.g, False ) )
       self.assertTrue( NGram( self.a, True ) != NGram( self.g, True ) )
-      # they're all equal to themselves if heedQuality
+      # they're all equal to themselves if heed_quality
       self.assertFalse( NGram( self.a, True ) != NGram( self.a, True ) )
       self.assertFalse( NGram( self.b, True ) != NGram( self.b, True ) )
       self.assertFalse( NGram( self.c, True ) != NGram( self.c, True ) )
@@ -241,7 +251,7 @@ class TestNGram( unittest.TestCase ):
       self.assertFalse( NGram( self.e, True ) != NGram( self.e, True ) )
       self.assertFalse( NGram( self.f, True ) != NGram( self.f, True ) )
       self.assertFalse( NGram( self.g, True ) != NGram( self.g, True ) )
-      # they're all equal to themselves if NOT heedQuality
+      # they're all equal to themselves if NOT heed_quality
       self.assertFalse( NGram( self.a, False ) != NGram( self.a, False ) )
       self.assertFalse( NGram( self.b, False ) != NGram( self.b, False ) )
       self.assertFalse( NGram( self.c, False ) != NGram( self.c, False ) )
@@ -249,89 +259,89 @@ class TestNGram( unittest.TestCase ):
       self.assertFalse( NGram( self.e, False ) != NGram( self.e, False ) )
       self.assertFalse( NGram( self.f, False ) != NGram( self.f, False ) )
       self.assertFalse( NGram( self.g, False ) != NGram( self.g, False ) )
-      # these are additionally equal if NOT heedQuality
+      # these are additionally equal if NOT heed_quality
       self.assertFalse( NGram( self.a, False ) != NGram( self.b, False ) )
-      self.assertFalse( NGram( self.c, False ) != NGram( self.d, False ) )
-      self.assertFalse( NGram( self.e, False ) != NGram( self.f, False ) )
+      #self.assertFalse( NGram( self.c, False ) != NGram( self.d, False ) )
+      #self.assertFalse( NGram( self.e, False ) != NGram( self.f, False ) )
 
    def test_str( self ):
       self.assertEqual( str(NGram(self.a,True)), 'm3 P1 m3' )
       self.assertEqual( str(NGram(self.b,True)), 'm3 P1 M3' )
       self.assertEqual( str(NGram(self.c,True)), 'm3 +P4 m3' )
-      self.assertEqual( str(NGram(self.d,True)), 'm3 +P4 M3' )
+      self.assertEqual( str(NGram(self.d,True)), 'm-3 +M2 M3' )
       self.assertEqual( str(NGram(self.e,True)), 'm3 -P4 m3' )
-      self.assertEqual( str(NGram(self.f,True)), 'm3 -P4 M3' )
-      self.assertEqual( str(NGram(self.g,True)), 'm3 +P4 M2 -m6 P5 -m2 M10' )
+      self.assertEqual( str(NGram(self.f,True)), 'm3 -m2 M-3' )
+      self.assertEqual( str(NGram(self.g,True)), 'm3 +P4 M2 -m6 P5 +A9 M-10' )
       #
       self.assertEqual( str(NGram(self.a,False)), '3 1 3' )
       self.assertEqual( str(NGram(self.b,False)), '3 1 3' )
       self.assertEqual( str(NGram(self.c,False)), '3 +4 3' )
-      self.assertEqual( str(NGram(self.d,False)), '3 +4 3' )
+      self.assertEqual( str(NGram(self.d,False)), '-3 +2 3' )
       self.assertEqual( str(NGram(self.e,False)), '3 -4 3' )
-      self.assertEqual( str(NGram(self.f,False)), '3 -4 3' )
-      self.assertEqual( str(NGram(self.g,False)), '3 +4 2 -6 5 -2 10' )
+      self.assertEqual( str(NGram(self.f,False)), '3 -2 -3' )
+      self.assertEqual( str(NGram(self.g,False)), '3 +4 2 -6 5 +9 -10' )
 
    def test_stringVersion( self ):
-      self.assertEqual( NGram(self.a,True).stringVersion(heedQuality=True), 'm3 P1 m3' )
-      self.assertEqual( NGram(self.b,True).stringVersion(heedQuality=True), 'm3 P1 M3' )
-      self.assertEqual( NGram(self.c,True).stringVersion(heedQuality=True), 'm3 +P4 m3' )
-      self.assertEqual( NGram(self.d,True).stringVersion(heedQuality=True), 'm3 +P4 M3' )
-      self.assertEqual( NGram(self.e,True).stringVersion(heedQuality=True), 'm3 -P4 m3' )
-      self.assertEqual( NGram(self.f,True).stringVersion(heedQuality=True), 'm3 -P4 M3' )
-      self.assertEqual( NGram(self.g,True).stringVersion(heedQuality=True), 'm3 +P4 M2 -m6 P5 -m2 M10' )
+      self.assertEqual( NGram(self.a,True).get_string_version(True,'compound'), 'm3 P1 m3' )
+      self.assertEqual( NGram(self.b,True).get_string_version(True,'compound'), 'm3 P1 M3' )
+      self.assertEqual( NGram(self.c,True).get_string_version(True,'compound'), 'm3 +P4 m3' )
+      self.assertEqual( NGram(self.d,True).get_string_version(True,'compound'), 'm-3 +M2 M3' )
+      self.assertEqual( NGram(self.e,True).get_string_version(True,'compound'), 'm3 -P4 m3' )
+      self.assertEqual( NGram(self.f,True).get_string_version(True,'compound'), 'm3 -m2 M-3' )
+      self.assertEqual( NGram(self.g,True).get_string_version(True,'compound'), 'm3 +P4 M2 -m6 P5 +A9 M-10' )
       #
-      self.assertEqual( NGram(self.a,False).stringVersion(heedQuality=True), 'm3 P1 m3' )
-      self.assertEqual( NGram(self.b,False).stringVersion(heedQuality=True), 'm3 P1 M3' )
-      self.assertEqual( NGram(self.c,False).stringVersion(heedQuality=True), 'm3 +P4 m3' )
-      self.assertEqual( NGram(self.d,False).stringVersion(heedQuality=True), 'm3 +P4 M3' )
-      self.assertEqual( NGram(self.e,False).stringVersion(heedQuality=True), 'm3 -P4 m3' )
-      self.assertEqual( NGram(self.f,False).stringVersion(heedQuality=True), 'm3 -P4 M3' )
-      self.assertEqual( NGram(self.g,False).stringVersion(heedQuality=True), 'm3 +P4 M2 -m6 P5 -m2 M10' )
+      self.assertEqual( NGram(self.a,False).get_string_version(True,'compound'), 'm3 P1 m3' )
+      self.assertEqual( NGram(self.b,False).get_string_version(True,'compound'), 'm3 P1 M3' )
+      self.assertEqual( NGram(self.c,False).get_string_version(True,'compound'), 'm3 +P4 m3' )
+      self.assertEqual( NGram(self.d,False).get_string_version(True,'compound'), 'm-3 +M2 M3' )
+      self.assertEqual( NGram(self.e,False).get_string_version(True,'compound'), 'm3 -P4 m3' )
+      self.assertEqual( NGram(self.f,False).get_string_version(True,'compound'), 'm3 -m2 M-3' )
+      self.assertEqual( NGram(self.g,False).get_string_version(True,'compound'), 'm3 +P4 M2 -m6 P5 +A9 M-10' )
       #
-      self.assertEqual( NGram(self.a,True).stringVersion(heedQuality=False), '3 1 3' )
-      self.assertEqual( NGram(self.b,True).stringVersion(heedQuality=False), '3 1 3' )
-      self.assertEqual( NGram(self.c,True).stringVersion(heedQuality=False), '3 +4 3' )
-      self.assertEqual( NGram(self.d,True).stringVersion(heedQuality=False), '3 +4 3' )
-      self.assertEqual( NGram(self.e,True).stringVersion(heedQuality=False), '3 -4 3' )
-      self.assertEqual( NGram(self.f,True).stringVersion(heedQuality=False), '3 -4 3' )
-      self.assertEqual( NGram(self.g,True).stringVersion(heedQuality=False), '3 +4 2 -6 5 -2 10' )
+      self.assertEqual( NGram(self.a,True).get_string_version(False,'compound'), '3 1 3' )
+      self.assertEqual( NGram(self.b,True).get_string_version(False,'compound'), '3 1 3' )
+      self.assertEqual( NGram(self.c,True).get_string_version(False,'compound'), '3 +4 3' )
+      self.assertEqual( NGram(self.d,True).get_string_version(False,'compound'), '-3 +2 3' )
+      self.assertEqual( NGram(self.e,True).get_string_version(False,'compound'), '3 -4 3' )
+      self.assertEqual( NGram(self.f,True).get_string_version(False,'compound'), '3 -2 -3' )
+      self.assertEqual( NGram(self.g,True).get_string_version(False,'compound'), '3 +4 2 -6 5 +9 -10' )
       #
-      self.assertEqual( NGram(self.a,False).stringVersion(heedQuality=False), '3 1 3' )
-      self.assertEqual( NGram(self.b,False).stringVersion(heedQuality=False), '3 1 3' )
-      self.assertEqual( NGram(self.c,False).stringVersion(heedQuality=False), '3 +4 3' )
-      self.assertEqual( NGram(self.d,False).stringVersion(heedQuality=False), '3 +4 3' )
-      self.assertEqual( NGram(self.e,False).stringVersion(heedQuality=False), '3 -4 3' )
-      self.assertEqual( NGram(self.f,False).stringVersion(heedQuality=False), '3 -4 3' )
-      self.assertEqual( NGram(self.g,False).stringVersion(heedQuality=False), '3 +4 2 -6 5 -2 10' )
+      self.assertEqual( NGram(self.a,False).get_string_version(False,'compound'), '3 1 3' )
+      self.assertEqual( NGram(self.b,False).get_string_version(False,'compound'), '3 1 3' )
+      self.assertEqual( NGram(self.c,False).get_string_version(False,'compound'), '3 +4 3' )
+      self.assertEqual( NGram(self.d,False).get_string_version(False,'compound'), '-3 +2 3' )
+      self.assertEqual( NGram(self.e,False).get_string_version(False,'compound'), '3 -4 3' )
+      self.assertEqual( NGram(self.f,False).get_string_version(False,'compound'), '3 -2 -3' )
+      self.assertEqual( NGram(self.g,False).get_string_version(False,'compound'), '3 +4 2 -6 5 +9 -10' )
       ####
-      self.assertEqual( NGram(self.f,True).stringVersion(heedQuality=True,simpleOrCompound='simple'), 'm3 -P4 M3' )
-      self.assertEqual( NGram(self.g,True).stringVersion(heedQuality=True,simpleOrCompound='simple'), 'm3 +P4 M2 -m6 P5 -m2 M3' )
+      self.assertEqual( NGram(self.f,True).get_string_version(True,'simple'), 'm3 -m2 M-3' )
+      self.assertEqual( NGram(self.g,True).get_string_version(True,'simple'), 'm3 +P4 M2 -m6 P5 +A2 M-3' )
       #
-      self.assertEqual( NGram(self.f,False).stringVersion(heedQuality=True,simpleOrCompound='simple'), 'm3 -P4 M3' )
-      self.assertEqual( NGram(self.g,False).stringVersion(heedQuality=True,simpleOrCompound='simple'), 'm3 +P4 M2 -m6 P5 -m2 M3' )
+      self.assertEqual( NGram(self.f,False).get_string_version(True,'simple'), 'm3 -m2 M-3' )
+      self.assertEqual( NGram(self.g,False).get_string_version(True,'simple'), 'm3 +P4 M2 -m6 P5 +A2 M-3' )
       #
-      self.assertEqual( NGram(self.f,True).stringVersion(heedQuality=False,simpleOrCompound='simple'), '3 -4 3' )
-      self.assertEqual( NGram(self.g,True).stringVersion(heedQuality=False,simpleOrCompound='simple'), '3 +4 2 -6 5 -2 3' )
+      self.assertEqual( NGram(self.f,True).get_string_version(False,'simple'), '3 -2 -3' )
+      self.assertEqual( NGram(self.g,True).get_string_version(False,'simple'), '3 +4 2 -6 5 +2 -3' )
       #
-      self.assertEqual( NGram(self.f,False).stringVersion(heedQuality=False,simpleOrCompound='simple'), '3 -4 3' )
-      self.assertEqual( NGram(self.g,False).stringVersion(heedQuality=False,simpleOrCompound='simple'), '3 +4 2 -6 5 -2 3' )
+      self.assertEqual( NGram(self.f,False).get_string_version(False,'simple'), '3 -2 -3' )
+      self.assertEqual( NGram(self.g,False).get_string_version(False,'simple'), '3 +4 2 -6 5 +2 -3' )
 
    def test_repr( self ):
       self.assertEqual( NGram(self.a,True).__repr__(), '<NGram m3 P1 m3>' )
       self.assertEqual( NGram(self.b,True).__repr__(), '<NGram m3 P1 M3>' )
       self.assertEqual( NGram(self.c,True).__repr__(), '<NGram m3 +P4 m3>' )
-      self.assertEqual( NGram(self.d,True).__repr__(), '<NGram m3 +P4 M3>' )
+      self.assertEqual( NGram(self.d,True).__repr__(), '<NGram m-3 +M2 M3>' )
       self.assertEqual( NGram(self.e,True).__repr__(), '<NGram m3 -P4 m3>' )
-      self.assertEqual( NGram(self.f,True).__repr__(), '<NGram m3 -P4 M3>' )
-      self.assertEqual( NGram(self.g,True).__repr__(), '<NGram m3 +P4 M2 -m6 P5 -m2 M10>' )
+      self.assertEqual( NGram(self.f,True).__repr__(), '<NGram m3 -m2 M-3>' )
+      self.assertEqual( NGram(self.g,True).__repr__(), '<NGram m3 +P4 M2 -m6 P5 +A9 M-10>' )
       #
       self.assertEqual( NGram(self.a,False).__repr__(), '<NGram 3 1 3>' )
       self.assertEqual( NGram(self.b,False).__repr__(), '<NGram 3 1 3>' )
       self.assertEqual( NGram(self.c,False).__repr__(), '<NGram 3 +4 3>' )
-      self.assertEqual( NGram(self.d,False).__repr__(), '<NGram 3 +4 3>' )
+      self.assertEqual( NGram(self.d,False).__repr__(), '<NGram -3 +2 3>' )
       self.assertEqual( NGram(self.e,False).__repr__(), '<NGram 3 -4 3>' )
-      self.assertEqual( NGram(self.f,False).__repr__(), '<NGram 3 -4 3>' )
-      self.assertEqual( NGram(self.g,False).__repr__(), '<NGram 3 +4 2 -6 5 -2 10>' )
+      self.assertEqual( NGram(self.f,False).__repr__(), '<NGram 3 -2 -3>' )
+      self.assertEqual( NGram(self.g,False).__repr__(), '<NGram 3 +4 2 -6 5 +9 -10>' )
 #------------------------------------------------------------------------------
 
 
@@ -385,7 +395,7 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis._simpleIntervalDict['M3'], 1 )
       self.assertEqual( self.vis._compoundIntervalDict['M3'], 1 )
 
-   def test_getIntervalOccurrences_heedQuality( self ):
+   def test_getIntervalOccurrences_heed_quality( self ):
       self.vis.addInterval( self.m3 )
       self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'simple' ), 1 )
       self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'simple' ), 0 )
@@ -1051,12 +1061,12 @@ if __name__ == '__main__':
    visThesePartsLongSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisThesePartsLong )
 
    # Run test suites for interface/background components
-   unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
       #TODO: some sort of testing for the 'lookForTheseNs' settting
-   unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
    unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    
    # Run test suites for analytic engine
-   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
