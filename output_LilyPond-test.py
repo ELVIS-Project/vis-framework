@@ -80,14 +80,28 @@ class Test_Simple_Conversions( unittest.TestCase ):
       self.assertEqual( duration_to_lily( duration.Duration( 3.5 ) ), '2..' )
       self.assertEqual( duration_to_lily( duration.Duration( 3.75 ) ), '2...' )
       self.assertEqual( duration_to_lily( duration.Duration( 0.12109375 ) ), '64....' )
-      # This should be rounded to qL==8.0
-      self.assertEqual( duration_to_lily( duration.Duration( 7.99609375 ) ), '\\breve' )
+      # Same as above, but with known_tuplet==True... all results should be the same.
+      self.assertEqual( duration_to_lily( duration.Duration( 1.0 ) ), '4', True )
+      self.assertEqual( duration_to_lily( duration.Duration( 16.0 ) ), '\longa', True )
+      self.assertEqual( duration_to_lily( duration.Duration( 0.0625 ) ), '64', True )
+      self.assertEqual( duration_to_lily( duration.Duration( 3.0 ) ), '2.', True )
+      self.assertEqual( duration_to_lily( duration.Duration( 0.1875 ) ), '32.', True )
+      self.assertEqual( duration_to_lily( duration.Duration( 3.5 ) ), '2..', True )
+      self.assertEqual( duration_to_lily( duration.Duration( 3.75 ) ), '2...', True )
+      self.assertEqual( duration_to_lily( duration.Duration( 0.12109375 ) ), '64....', True )
+      # This should be rounded to qL==8.0 ... but I don't know how to make a
+      # single-component duration with this qL, so I can't run this test as it
+      # gets rounded, only as it produces an error.
+      #self.assertEqual( duration_to_lily( duration.Duration( 7.99609375 ) ), '\\breve' )
+      self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 7.99609375 ) )
       # These take multiple Note objects, and as such cannot be portrayed by
       # the output from a single call to duration_to_lily()
       self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 16.1 ) )
       self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 25.0 ) )
-      self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 0.000001268128 ) )
-      
+      self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 0.01268128 ) )
+      # This is a tuplet, so it should only work when I say I know I have one
+      self.assertRaises( UnidentifiedObjectError, duration_to_lily, duration.Duration( 0.16666666 ) )
+      self.assertEqual( duration_to_lily( duration.Duration( 0.16666666 ), True ), '16' )
    
    def test_note_to_lily( self ):
       self.assertEqual( note_to_lily( note.Note( 'C4', quarterLength=1.0 ) ), "c'4" )
@@ -133,6 +147,7 @@ class Test_Process_Measure( unittest.TestCase ):
       self.assertEqual( process_measure( bass_part[4] ), measure_3 )
    
    def test_ave_maris_stella( self ):
+      # "ams" is "ave maris stella"... what were you thinking?
       ams = converter.parse( 'test_corpus/Jos2308.krn' )
       # First four measures, second highest part
       first_test = """   \clef treble
@@ -149,16 +164,34 @@ class Test_Process_Measure( unittest.TestCase ):
       # Measures 125-7, lowest part
       second_test = """   g\\breve~ |
    g\\breve \\bar "||" |
-   r\\breve |
+   R\\breve |
 """
       result = process_measure( ams[3][131] ) + process_measure( ams[3][132] ) + \
          process_measure( ams[3][133] )
       self.assertEqual( result, second_test )
+      # Measure 107, second-lowest part (tuplets)
+      third_test = "   \\times 2/3 { e'1 c'1 d'1 } |\n"
+      #print( str(ams[2][113].duration.quarterLength) + ' andza ' + str(ams[2][113].barDuration.quarterLength) )
+      result = process_measure( ams[2][113] )
+      self.assertEqual( result, third_test )
    
    def test_modeless_key_signature( self ):
       meas = stream.Measure()
       meas.append( key.KeySignature( -3 ) )
       self.assertEqual( process_measure( meas ), '   \key ees \major\n   |\n' )
+   
+   def test_some_tuplets( self ):
+      test_in1 = stream.Measure()
+      test_in1.timeSignature = meter.TimeSignature( '4/4' )
+      test_in1.append( note.Note('C4',quarterLength=0.16666))
+      test_in1.append( note.Note('D4',quarterLength=0.16666))
+      test_in1.append( note.Note('E4',quarterLength=0.16666))
+      expect1 = """   \partial 8
+   \\time 4/4
+   \\times 2/3 { c'16 d'16 e'16 } |
+"""
+      self.assertEqual( process_measure( test_in1 ), expect1 )
+
 #-------------------------------------------------------------------------------
 
 
@@ -176,6 +209,8 @@ class Test_Process_Stream_Part( unittest.TestCase ):
       expected = """ =
 {
    %% Soprano
+   \set Staff.instrumentName = \markup{ "Soprano" }
+   \set Staff.shortInstrumentName = \markup{ "Sop." }
    \partial 4
    \clef treble
    \key b \minor
@@ -228,8 +263,8 @@ if __name__ == '__main__':
 
    # Run test suites
    unittest.TextTestRunner( verbosity = 2 ).run( simple_conversions_suite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( process_measure_suite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( process_stream_part_suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( process_measure_suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( process_stream_part_suite )
 
 
 

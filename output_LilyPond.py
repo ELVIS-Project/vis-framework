@@ -102,12 +102,32 @@ def pitch_to_lily( p, include_octave = True ):
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-def duration_to_lily( dur ): # "dur" means "duration"
-   # TODO: Figure out what this quarterLength is, and make it work: 7.99609375
+def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
    '''
    Returns a LilyPond length integer (like '4' for quarter note) corresponding
    to the Duration passed in.
    '''
+   
+   # First of all, we can't deal with tuplets or multiple-component durations
+   # in this method. We need process_measure() to help.
+   if dur.tuplets is not ():
+      # We know either there are multiple components or we have part of a
+      # tuplet, we we need to find out which.
+      if len(dur.components) > 1:
+         # We have multiple components
+         raise UnidentifiedObjectError( 'Cannot process durations with ' + \
+            'multiple components (received ' + str(dur.components) + \
+            ' for quartereLength of ' + str(dur.quarterLength) + ')' )
+      elif known_tuplet:
+         # We have part of a tuple. This isn't necessarily a problem; we'll
+         # assume we are given this by process_measure() and that it knows
+         # what's going on. But, in tuplets, the quarterLength doesn't match
+         # the type of written note, so we'll make a new Duration with an
+         # adjusted quarterLength
+         dur = duration.Duration( dur.type )
+      else:
+         # TODO: this error doesn't really describe what's going on here
+         raise UnidentifiedObjectError( 'duration_to_lily(): Cannot process tuplet components' )
    
    # We need both a list of our potential durations and a dictionary of what
    # they mean in LilyPond terms.
@@ -132,6 +152,7 @@ def duration_to_lily( dur ): # "dur" means "duration"
             post += dictionary_of_durations[d]
             break
       #
+      # TODO: see if we can remove some of these errors to clean up the method
       try:
          for i in xrange(dur.dots):
             post += "."
@@ -155,27 +176,27 @@ def duration_to_lily( dur ): # "dur" means "duration"
 #------------------------------------------------------------------------------
    
 #------------------------------------------------------------------------------
-def note_to_lily( lily_this ):
+def note_to_lily( lily_this, known_tuplet = False ):
    '''
    Returns a str that is a LilyPond representation of the inputted note.Note.
    
    Additionally appends any value in the Note object's "lily_markup" property.
+   
+   The second argument, known_tuplet, is not used by note_to_lily() but passed
+   on to duration_to_lily().
    '''
    
    post = ''
    
    if len(lily_this.duration.components) > 1:
       the_pitch = pitch_to_lily( lily_this.pitch )
-      # DEBUG
-      #print( '--> have durational components! ' + str(lily_this.duration.components) )
-      # END DEBUG
       for durational_component in lily_this.duration.components:
-         post += the_pitch + duration_to_lily( durational_component ) + '~ '
+         post += the_pitch + duration_to_lily( durational_component, known_tuplet ) + '~ '
       post = post[:-2]
    elif lily_this.isRest:
-      post += "r" + duration_to_lily( lily_this.duration )
+      post += "r" + duration_to_lily( lily_this.duration, known_tuplet )
    else:
-      post += pitch_to_lily( lily_this.pitch ) + duration_to_lily( lily_this.duration )
+      post += pitch_to_lily( lily_this.pitch ) + duration_to_lily( lily_this.duration, known_tuplet )
    
    if lily_this.tie is not None:
       if lily_this.tie.type is 'start':
@@ -221,14 +242,60 @@ def process_measure( the_meas ):
    post = "   "
    
    # first check if it's a partial (pick-up) measure
-   if 0.0 <the_meas.duration.quarterLength < the_meas.barDuration.quarterLength:
-      post += "\\partial " + duration_to_lily( the_meas.duration ) + "\n   "
+   if 0.0 < the_meas.duration.quarterLength < the_meas.barDuration.quarterLength:
+      #print( str(the_meas.duration.quarterLength) + ' andza ' + str(the_meas.barDuration.quarterLength) )
+      # NOTE: This next check could have been done in the first place, but it's
+      # a work-around for what I think is a bug, so I didn't.
+      if round( the_meas.duration.quarterLength, 2 ) < the_meas.barDuration.quarterLength:
+         # But still, we may get something stupid...
+         try:
+            post += "\\partial " + duration_to_lily( the_meas.duration ) + "\n   "
+         except UnidentifiedObjectError as uoe:
+            # ... so if it doesn't work the first time, it may in fact be a
+            # partial measure; we'll try rounding and see what we can get.
+            rounded_duration = duration.Duration( round( the_meas.duration.quarterLength, 2 ) )
+            post += "\\partial " + duration_to_lily( rounded_duration ) + "\n   "
+   
+   # Make the_meas an iterable, so we can pull in multiple elements when we
+   # need to deal with tuplets.
+   the_meas = iter( the_meas )
    
    # now fill in all the stuff
    for obj in the_meas:
       # Note or Rest
       if isinstance( obj, note.Note ) or isinstance( obj, note.Rest ):
-         post += note_to_lily( obj ) + " "
+         # TODO: is there a situation where I'll ever need to deal with 
+         # multiple-component durations for a single Note/Rest?
+         # Is it a full-measure rest?
+         if isinstance( obj, note.Rest) and \
+            the_meas.srcStream.barDuration.quarterLength == obj.quarterLength:
+            post += 'R' + duration_to_lily( obj.duration ) + ' '
+         # Is it the start of a tuplet?
+         elif obj.duration.tuplets is not None and len(obj.duration.tuplets) > 0:
+            #print( str( obj.duration.tuplets) )
+            #if obj.duration.tuplets != ():
+            #if len(obj.duration.tuplets) > 0:
+               number_of_tuplet_components = obj.duration.tuplets[0].numberNotesActual
+               in_the_space_of = obj.duration.tuplets[0].numberNotesNormal
+               post += '\\times ' + str(in_the_space_of) + '/' + \
+                  str(number_of_tuplet_components) + ' { ' + note_to_lily( obj, True ) + " "
+               for tuplet_component in xrange( number_of_tuplet_components - 1 ):
+                  post += note_to_lily( next(the_meas), True ) + " "
+               post += '} '
+         # It's just a regular note or rest
+         else:
+            post += note_to_lily( obj ) + " "
+      
+      #if isinstance( obj, note.Note ):
+         #post += note_to_lily( obj ) + " "
+      #elif isinstance( obj, note.Rest ):
+         ## If it's a full-measure rest, we'll use the upper-case symbol so
+         ## the rest is placed in the middle of the bar. This is something
+         ## note_to_lily() couldn't pick up without access to the_meas
+         #if the_meas.barDuration.quarterLength == obj.quarterLength:
+            #post += 'R' + duration_to_lily( obj.duration ) + ' '
+         #else:
+            #post += note_to_lily( obj ) + " "
       # Clef
       elif isinstance( obj, clef.Clef ):
          if isinstance( obj, clef.TrebleClef ):
@@ -335,23 +402,35 @@ def process_stream( s, the_settings ):
       post += '   }\n}\n'
    # Part
    elif isinstance( s, stream.Part ):
-      # TODO: some metadata thing
-      # TODO: some LilyPond formatting things
-      
       # Start the Part
       # We used to use some of the part's .bestName, but many scores (like
       # for **kern) don't have this.
       callThisPart = string_of_n_letters( 8 )
       the_settings._partsInThisScore.append( callThisPart )
       post +=  callThisPart + " =\n" + "{\n"
+      # If the part has a .bestName property set, we'll use it to generate
+      # both the .instrumentName and .shortInstrumentName for LilyPond.
+      instr_name = s.getInstrument().partName
+      if instr_name is not None and len(instr_name) > 0:
+         post += '   %% ' + instr_name + '\n'
+         post += '   \set Staff.instrumentName = \markup{ "' + \
+            instr_name + '" }\n'
+         if len(instr_name) > 3:
+            post += '   \set Staff.shortInstrumentName = \markup{ "' + \
+               instr_name[:3] + '." }\n'
+         else:
+            post += '   \set Staff.shortInstrumentName = \markup{ "' + \
+               instr_name + '" }\n'
+      #----
       
       # Deal with the measures
       for thing in s:
          if isinstance( thing, stream.Measure ):
             post += process_measure( thing )
          elif isinstance( thing, instrument.Instrument ):
-            # TODO: we'll have to deal with this better, in the future
-            post += '   %% ' + thing.bestName() + '\n'
+            # We can safely ignore this (for now?) because we've already dealt
+            # with the part name earlier.
+            pass
          # **kern importer garbage... well, it's only garbage to us
          elif isinstance( thing, humdrum.spineParser.MiscTandam ):
             # http://mit.edu/music21/doc/html/moduleHumdrumSpineParser.html
