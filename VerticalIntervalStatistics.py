@@ -161,13 +161,13 @@ class VerticalIntervalStatistics( object ):
          self._compoundNoQualityNGramsDict.append( {} )
          
       # self._compoundQualityNGramsDict
-      zzz = theNGram.stringVersion( 'compound', True )
+      zzz = theNGram.get_string_version( True, 'compound' )
       if zzz in self._compoundQualityNGramsDict[theNGram._n]:
          self._compoundQualityNGramsDict[theNGram._n][zzz] += 1
       else:
          self._compoundQualityNGramsDict[theNGram._n][zzz] = 1
       # self._compoundNoQualityNGramsDict
-      zzz = theNGram.stringVersion( 'compound', False )
+      zzz = theNGram.get_string_version( False, 'compound' )
       if zzz in self._compoundNoQualityNGramsDict[theNGram._n]:
          self._compoundNoQualityNGramsDict[theNGram._n][zzz] += 1
       else:

@@ -363,9 +363,9 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       # m3 +P4 m3
       self.ngc = NGram([interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('D5'),note.Note('F5'))])
-      # m-3 +P4 M3
-      self.ngd = NGram([interval.Interval(note.Note('C5'),note.Note('A4')), \
-                interval.Interval(note.Note('D5'),note.Note('F#5'))])
+      # m3 +d4 M3
+      self.ngd = NGram([interval.Interval(note.Note('A4'),note.Note('C5')), \
+                interval.Interval(note.Note('D-5'),note.Note('F5'))])
       # m3 -P4 m3
       self.nge = NGram([interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('E4'),note.Note('G4'))])
@@ -464,16 +464,16 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 2} )
       self.assertEqual( self.vis._compoundNoQualityNGramsDict[2], {'3 +4 3': 2} )
       # add one of a similar 2-gram
-      self.vis.addNGram( self.ngd ) # m-3 +P4 M3
-      self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 2, 'm3 +P4 M3': 1} )
+      self.vis.addNGram( self.ngd ) # m3 +d4 M3
+      self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
       self.assertEqual( self.vis._compoundNoQualityNGramsDict[2], {'3 +4 3': 3} )
       # add a 4-gram, 16 times
       for i in xrange(16):
          self.vis.addNGram( self.ngg ) # m3 +P4 M2 -m6 P5 -m2 M-10
-      self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 2, 'm3 +P4 M3': 1} )
-      self.assertEqual( self.vis._compoundQualityNGramsDict[4], {'m3 +P4 M2 -m6 P5 -m2 M10': 16} )
+      self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
+      self.assertEqual( self.vis._compoundQualityNGramsDict[4], {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
       self.assertEqual( self.vis._compoundNoQualityNGramsDict[2], {'3 +4 3': 3} )
-      self.assertEqual( self.vis._compoundNoQualityNGramsDict[4], {'3 +4 2 -6 5 -2 10': 16} )
+      self.assertEqual( self.vis._compoundNoQualityNGramsDict[4], {'3 +4 2 -6 5 +9 -10': 16} )
 
    def test_getNGramOccurrences( self ):
       # getNGramOccurrences( self, whichNGram, n )
@@ -491,7 +491,7 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
          self.vis.addNGram( self.ngd )
       for i in xrange(8):
          self.vis.addNGram( self.nge )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M3', n=2 ), 12 )
+      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +d4 M3', n=2 ), 12 )
       self.assertEqual( self.vis.getNGramOccurrences( '3 +4 3', n=2 ), 12 )
       self.assertEqual( self.vis.getNGramOccurrences( 'm3 -P4 m3', n=2 ), 8 )
       self.assertEqual( self.vis.getNGramOccurrences( '3 -4 3', n=2 ), 8 )
@@ -501,17 +501,17 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.vis = VerticalIntervalStatistics()
       for i in xrange(10):
          self.vis.addNGram( self.ngg )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 -m2 M10', n=4 ), 10 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 -2 10', n=4 ), 10 )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 -m2 M3', n=4 ), 0 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 -2 3', n=4 ), 0 )
+      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
+      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
+      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 0 )
+      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 +9 -3', n=4 ), 0 )
       # self.ngh  m3 +P4 M2 -m6 P5 -m2 M3
       for i in xrange(7):
          self.vis.addNGram( self.ngh )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 -m2 M10', n=4 ), 10 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 -2 10', n=4 ), 10 )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 -m2 M3', n=4 ), 7 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 -2 3', n=4 ), 7 )
+      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
+      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
+      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 7 )
+      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 +2 -3', n=4 ), 7 )
 # End TestVerticalIntervalStatistics ------------------------------------------
 
 
@@ -925,65 +925,31 @@ class TestVisThesePartsLong( unittest.TestCase ):
             'P4':17, 'A4':1, 'd5':4, 'P5':15, 'm6':25, 'M6':14, \
             'm7':4, 'P8':7, 'm9':1, 'M9':4, 'm10':7, 'M10':2, 'P11':3, 'P12':1 }
       
-      # If voice crossing means perceived lowest voice.
-      expectedNoQuality2Grams = { '1 -2 6':1, '1 1 2':2, '1 -3 6':1, \
-            '1 1 5':1, '1 -2 2':2, '1 1 4':2, '1 -2 3':2, '2 1 3':2, \
-            '2 +2 1':1, '2 1 1':3, '2 -2 6':1, '2 1 5':1, '3 +2 3':1, \
-            '3 1 2':2, '3 1 1':1, '3 -3 6':1, '3 -4 5':1, '3 +2 1':1, \
-            '3 -2 5':1, '3 1 4':6, '3 -3 5':1, '3 1 6':2, '3 1 5':1, \
-            '3 -6 6':1, '3 -7 8':1, '3 -2 4':1, '3 -3 12':1, '3 -4 6':1, \
-            '4 -3 5':1, '4 -2 5':1, '4 1 3':3, '4 -2 4':3, '4 -5 5':1, \
-            '4 +2 3':2, '4 -3 3':1, '4 1 5':1, '4 -2 3':1, '4 1 1':1, \
-            '4 1 2':1, '4 +2 1':2, '4 -8 10':1, '4 +2 4':2, '4 -5 6':1, \
-            '5 -3 7':1, '5 1 6':7, '5 -2 5':1, '5 -3 6':2, '5 -2 6':2, \
-            '5 1 3':1, '5 -8 10':1, '5 +2 3':1, '5 +4 5':1, '6 -2 7':2, \
-            '6 +2 4':1, '6 +4 3':1, '6 +2 5':2, '6 -3 3':1, '6 +4 4':3, \
-            '6 1 5':4, '6 -2 6':8, '6 +3 4':1, '6 +5 3':1, '6 +2 3':2, \
-            '6 +4 2':1, '6 +3 3':2, '6 1 9':1, '6 +2 6':4, '6 -6 8':1, \
-            '6 -3 6':1, '6 -5 8':1, '7 -2 8':2, '7 -5 10':1, '7 +4 4':1, \
-            '8 +2 7':1, '8 -2 10':1, '8 -2 9':1, '8 +6 6':2, '8 +4 6':1, \
-            '9 +5 6':1, '9 1 8':2, '9 -2 10':1, '9 -3 10':1, '10 1 9':2, \
-            '10 1 6':1, '10 1 11':3, '11 +7 3':1 }
-      
       # If voice crossing means negative intervals.
-      #expectedNoQuality2Grams = { '1 -2 6':1, '1 1 2':2, '1 -3 6':1, \
-            #'1 +2 -3':1, '1 1 5':1, '1 -2 2':1, '1 1 4':2, '1 1 -2':1, \
-            #'1 -2 3':1, '2 1 3':2, '2 +2 1':1, '2 1 1':3, '2 -2 6':1, \
-            #'2 1 5':1, '3 +2 3':1, '3 1 2':2, '3 1 1':1, '3 -3 6':1, \
-            #'3 -6 5':1, '3 +2 1':1, '-3 +2 -5':1, '3 1 4':6, '3 -3 5':1, \
-            #'3 1 6':2, '3 +5 -5':1, '3 -6 6':1, '3 -7 8':1, '-3 -3 3':1, \
-            #'3 -2 4':1, '3 10 -12':1, '3 -4 6':1, '4 -3 5':1, '4 -2 5':1, \
-            #'4 1 3':3, '4 -2 4':3, '4 1 -5':1, '4 +2 3':2, '4 -3 3':1, \
-            #'4 1 5':1, '4 -2 3':1, '4 1 1':1, '4 1 2':1, '4 +2 1':2, \
-            #'4 -8 10':1, '4 +2 4':2, '4 -5 6':1, '5 -3 7':1, '5 1 6':7, \
-            #'-5 -2 5':2, '5 -3 6':2, '-5 -2 -6':1, '5 1 3':1, '5 -8 10':1, \
-            #'5 +2 3':1, '6 -2 7':2, '6 +2 4':1, '6 +4 3':1, '6 +2 5':2, \
-            #'6 1 -3':1, '6 +4 4':3, '6 1 5':4, '6 -2 6':8, '6 +3 4':1, \
-            #'-6 -2 3':1, '6 +2 3':2, '6 +4 2':1, '6 +3 3':2, '6 1 9':1, \
-            #'6 +2 6':4, '6 -6 8':1, '6 -3 6':1, '6 -5 8':1, '7 -2 8':2, \
-            #'7 -5 10':1, '7 +4 4':1, '8 +2 7':1, '8 -2 10':1, '8 -2 9':1, \
-            #'8 +6 6':2, '8 +4 6':1, '9 +5 6':1, '9 1 8':2, '9 -2 10':1, \
-            #'9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }
-      
-      for thing in self.stats._compoundNoQualityNGramsDict[2].iterkeys():
-         if thing in expectedNoQuality2Grams:
-            if self.stats._compoundNoQualityNGramsDict[2][thing] != expectedNoQuality2Grams[thing]:
-               print( 'for ' + thing + ', actual ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
-         else:
-            print( 'actual ' + thing + ' isn\'t expected' )
-
-      for thing in expectedNoQuality2Grams.iterkeys():
-         if thing in self.stats._compoundNoQualityNGramsDict[2]:
-            if self.stats._compoundNoQualityNGramsDict[2][thing] != expectedNoQuality2Grams[thing]:
-               print( 'for ' + thing + ', actual ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
-         else:
-            print( 'expected ' + thing + ' isn\'t expected' )
+      expectedNoQuality2Grams = { '1 -2 6':1, '1 1 2':2, '1 -3 6':1, \
+            '1 +2 -3':1, '1 1 5':1, '1 -2 2':1, '1 1 4':2, '1 1 -2':1, \
+            '1 -2 3':1, '2 1 3':2, '2 +2 1':1, '2 1 1':3, '2 -2 6':1, \
+            '2 1 5':1, '3 +2 3':1, '3 1 2':2, '3 1 1':1, '3 -3 6':1, \
+            '-3 -6 5':1, '3 +2 1':1, '-3 +2 -5':1, '3 1 4':6, '3 -3 5':1, \
+            '3 1 6':2, '3 +5 -5':1, '3 -6 6':1, '3 -7 8':1, '-3 -3 3':1, \
+            '3 -2 4':1, '3 +10 -12':1, '3 -4 6':1, '4 -3 5':1, '4 -2 5':1, \
+            '4 1 3':3, '4 -2 4':3, '4 1 -5':1, '4 +2 3':2, '4 -3 3':1, \
+            '4 1 5':1, '4 -2 3':1, '4 1 1':1, '4 1 2':1, '4 +2 1':2, \
+            '4 -8 10':1, '4 +2 4':2, '4 -5 6':1, '5 -3 7':1, '-5 1 -6':1, '5 1 6':7, \
+            '5 -2 5':1, '-5 -2 5':1, '5 -3 6':2, '5 -2 6':1, '5 1 3':1, '5 -8 10':1, \
+            '5 +2 3':1, '6 -2 7':2, '6 +2 4':1, '6 +4 3':1, '6 +2 5':2, \
+            '6 1 -3':1, '6 +4 4':3, '6 1 5':4, '6 -2 6':8, '6 +3 4':1, \
+            '-6 -2 3':1, '6 +2 3':2, '6 +4 2':1, '6 +3 3':2, '6 1 9':1, \
+            '6 +2 6':4, '6 -6 8':1, '6 -3 6':1, '6 -5 8':1, '7 -2 8':2, \
+            '7 -5 10':1, '7 +4 4':1, '8 +2 7':1, '8 -2 10':1, '8 -2 9':1, \
+            '8 +6 6':2, '8 +4 6':1, '9 +5 6':1, '9 1 8':2, '9 -2 10':1, \
+            '9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }
       
       # Verify the findings
       self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
       self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
    
    #def test_La_Plus_des_Plus( self ):
       ## Title: "La Plus des Plus" by Josquin
@@ -1065,8 +1031,8 @@ if __name__ == '__main__':
       #TODO: some sort of testing for the 'lookForTheseNs' settting
    #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
    unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    
    # Run test suites for analytic engine
    #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
