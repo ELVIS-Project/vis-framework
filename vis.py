@@ -184,6 +184,10 @@ class visSettings:
    #
    # NOTE: When you add a property, remember to test its default setting in
    # the unit test file.
+   # 
+   # NOTE: I'm going to keep the setting names in camel case because this is
+   # the music21 convention, and it's probably a good idea for our users to
+   # think consistently.
    def __init__( self ):
       self._secret_settings_hash = {}
       self._secret_settings_hash['produceLabeledScore'] = False
