@@ -574,7 +574,11 @@ def process_score( the_score, the_settings=None ):
       the_settings = LilyPond_Settings()
    
    score_to_write = process_stream( the_score, the_settings )
-   run_lilypond( output_the_file( score_to_write ), the_settings )
+   output_result = output_the_file( score_to_write )
+   if output_result[1] is not None:
+      print( 'Failed to output LilyPond file... \n' + output_result[1] )
+   else:
+      run_lilypond( output_result[0], the_settings )
 #------------------------------------------------------------------------------
 
 if __name__ == '__main__':

@@ -96,7 +96,8 @@ class NGram( object ):
             post.append( interval.Interval( self._list_of_intervals[i].noteStart, \
                                             self._list_of_intervals[i+1].noteStart ) )
          except AttributeError as attrerr:
-            raise NonsensicalInputError( 'NGram: Received an AttributeError; this probably means one of the intervals is missing a note.Note' )
+            raise AttributeError( 'NGram: Received an AttributeError; this probably means one of the intervals is missing a note.Note' )
+            #raise NonsensicalInputError( 'NGram: Received an AttributeError; this probably means one of the intervals is missing a note.Note' )
          
       self._list_of_movements = post
    #-------------------------------------------------------

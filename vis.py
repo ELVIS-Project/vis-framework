@@ -153,7 +153,10 @@ def analyzeThis( pathname, the_settings = None ):#, verbosity = 'concise' ):
    if len(possible_file) > 0:
       print( '----------------------' )
       print( 'Outputting results to ' + possible_file )
-      file_outputter( parsed_output, possible_file )
+      output_feedback = file_outputter( parsed_output, possible_file )
+      if output_feedback[1] is not None:
+         print( 'Encountered an error while attempting to write results to a file.\n' + \
+               output_feedback[1] )
    else:
       print( '---------------------' )
       print( 'Here are the results!' )
@@ -162,7 +165,7 @@ def analyzeThis( pathname, the_settings = None ):#, verbosity = 'concise' ):
    if the_settings.get_property( 'produceLabeledScore' ):
       print( "-----------------------------" )
       print( "Processing score for display." )
-      # Use the built-in outputLilyPond.py module
+      # Use the built-in output_LilyPond.py module
       process_score( the_score )
    else:
       print( "----------------------------" )
