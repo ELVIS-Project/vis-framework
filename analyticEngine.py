@@ -375,7 +375,8 @@ def visTheseParts( theseParts, theSettings, theStatistics ):
       # END DEBUGGING
    # End of the "while" loop.
    
-   # Note the ending time of the analysis
+   # Note the ending time of the analysis...
+   # $10 says there's a better way to do this but I'm too lazy to look it up right now
    durationTime = datetime.now() - analysisStartingTime
-   return durationTime.seconds
+   return float( str(durationTime.seconds) + '.' + str(durationTime.microseconds) )
 # End visTheseParts() -------------------------------------------------------
