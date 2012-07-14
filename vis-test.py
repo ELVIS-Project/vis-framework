@@ -680,26 +680,26 @@ class TestVisTheseParts( unittest.TestCase ):
 
       # Process the excerpt
       filename = 'test_corpus/bwv77.mxl'
-      thePiece = converter.parse( filename )
+      the_piece = converter.parse( filename )
       # offset 13.0 is the fourth measure
-      higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
-      lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 12.9 )
+      lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       # Prepare the findings
-      expectedCompoundIntervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
+      expected_compound_intervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
             'm13':1, 'm17':1, 'M13':1, 'm10':4 }
-      expectedNoQuality2Grams = { '8 1 9':1, '10 -2 12':1, '10 -4 12':1, \
+      expected_no_quality2grams = { '8 1 9':1, '10 -2 12':1, '10 -4 12':1, \
             '13 -2 17':1, '17 +6 12':1, '9 1 10':1, '12 +4 10':1, '12 -2 13':1, \
             '12 -3 13':1, '13 +2 12':1, '12 +4 8':1, '8 -4 10':1, \
             '10 +4 10':1, '10 -2 10':3 }
 
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
    def test_theSecond( self ):
       # Kyrie from "Missa Pro Defunctis" by Palestrina
@@ -709,24 +709,24 @@ class TestVisTheseParts( unittest.TestCase ):
 
       # Process the excerpt
       filename = 'test_corpus/Kyrie.krn'
-      thePiece = converter.parse( filename )
+      the_piece = converter.parse( filename )
       # offset 40.0 is the sixth measure
-      higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 39.9 )
-      lowerPart = thePiece.parts[1].getElementsByOffset( 0.0, 39.9 )
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 39.9 )
+      lower_part = the_piece.parts[1].getElementsByOffset( 0.0, 39.9 )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       # Prepare the findings
-      expectedCompoundIntervals = { 'm3':3, 'M3':2, 'P4':1, 'd5':2, 'm6':2, \
+      expected_compound_intervals = { 'm3':3, 'M3':2, 'P4':1, 'd5':2, 'm6':2, \
             'M6':2, 'M2':1, 'P5':1 }
-      expectedNoQuality2Grams = { '3 +2 3':2, '3 1 4':1, '4 -2 5':1, '5 -2 6':2, \
+      expected_no_quality2grams = { '3 +2 3':2, '3 1 4':1, '4 -2 5':1, '5 -2 6':2, \
             '6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }
 
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
 
    def test_theThird( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
@@ -738,29 +738,29 @@ class TestVisTheseParts( unittest.TestCase ):
 
       # Process the excerpt
       filename = 'test_corpus/madrigal51.mxl'
-      thePiece = converter.parse( filename )
+      the_piece = converter.parse( filename )
       # offset 20.0 is the 6th measure
       # offset 44.0 is the 12th measure
-      higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 43.9 )
-      lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 43.9 )
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      higher_part = the_piece.parts[1].getElementsByOffset( 20.0, 43.9 )
+      lower_part = the_piece.parts[3].getElementsByOffset( 20.0, 43.9 )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats._compound_interval_dict )
       #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
 
       # Prepare the findings
-      expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':2 }
-      expectedNoQuality2Grams = { '8 +2 6':1, '4 1 3':1, '4 -3 3':1, \
+      expected_compound_intervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':2 }
+      expected_no_quality2grams = { '8 +2 6':1, '4 1 3':1, '4 -3 3':1, \
             '6 +2 4':1, '3 1 4':2, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1}#, \
             #'1 +2 2':1, '4 -2 3':1, '2 -2 1':1, '2 +2 1':1, '5 +3 3':1, \
             #'2 +2 3':1, '3 -2 2':1, '1 -2 2':1, '1 -2 5':1 }
 
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
       
    def test_theSixthA( self ):
       # Two targeted testing excerpts.
@@ -770,24 +770,24 @@ class TestVisTheseParts( unittest.TestCase ):
       ## part has alternating notes and rests in a time when the other part has
       ## a note followed by a bunch of rests.
       
-      from test_theSixth import theFirstPiece
-      higherPart = theFirstPiece.parts[0]
-      lowerPart = theFirstPiece.parts[1]
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      from test_corpus.test_theSixth import the_first_piece
+      higher_part = the_first_piece.parts[0]
+      lower_part = the_first_piece.parts[1]
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats._compound_interval_dict )
       #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
 
       ## Prepare the findings
-      expectedCompoundIntervals = { 'P11':1, 'm14':1 }
-      expectedNoQuality2Grams = {}
+      expected_compound_intervals = { 'P11':1, 'm14':1 }
+      expected_no_quality2grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
    def test_theSixthB( self ):
       # Two targeted testing excerpts.
@@ -803,24 +803,24 @@ class TestVisTheseParts( unittest.TestCase ):
       ## start on one of the offsets we're checking, so the program thinks the
       ## part still has a note sounding.
       
-      from test_theSixth import theSecondPiece
-      higherPart = theSecondPiece.parts[0]
-      lowerPart = theSecondPiece.parts[1]
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      from test_corpus.test_theSixth import the_second_piece
+      higher_part = the_second_piece.parts[0]
+      lower_part = the_second_piece.parts[1]
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats._compound_interval_dict )
       #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
 
       ## Prepare the findings
-      expectedCompoundIntervals = { 'P11':1, 'm14':1 }
-      expectedNoQuality2Grams = {}
+      expected_compound_intervals = { 'P11':1, 'm14':1 }
+      expected_no_quality2grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
    def test_theSixthC( self ):
       # Two targeted testing excerpts.
@@ -829,24 +829,24 @@ class TestVisTheseParts( unittest.TestCase ):
       ## NB: This test reverses theSixthB, so the bottom voice woudl cause the
       ## problem caused by the top voice in the previous test.
       
-      from test_theSixth import theThirdPiece
-      higherPart = theThirdPiece.parts[0]
-      lowerPart = theThirdPiece.parts[1]
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      from test_corpus.test_theSixth import the_third_piece
+      higher_part = the_third_piece.parts[0]
+      lower_part = the_third_piece.parts[1]
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats._compound_interval_dict )
       #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
 
       ## Prepare the findings
-      expectedCompoundIntervals = { 'P12':1, 'M9':1 }
-      expectedNoQuality2Grams = {}
+      expected_compound_intervals = { 'P12':1, 'M9':1 }
+      expected_no_quality2grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
    def test_theSeventh( self ):
       # Joseph Haydn's String Quartet, Op.76/4, Movement 1
@@ -857,22 +857,22 @@ class TestVisTheseParts( unittest.TestCase ):
       
       ## Process the excerpt
       filename = 'test_corpus/sqOp76-4-i.midi'
-      thePiece = converter.parse( filename )
+      the_piece = converter.parse( filename )
       # measure 113 is offset 448.0
       # measure 120 is offset 480.0
-      higherPart = thePiece.parts[0].getElementsByOffset( 448.0, 479.9 )
-      lowerPart = thePiece.parts[3].getElementsByOffset( 448.0, 479.9 )
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      higher_part = the_piece.parts[0].getElementsByOffset( 448.0, 479.9 )
+      lower_part = the_piece.parts[3].getElementsByOffset( 448.0, 479.9 )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
       #pprint.pprint( self.stats._compound_interval_dict )
       ##pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
       
       ## Prepare the findings
-      expectedCompoundIntervals = { 'P15':7, 'A11':1, 'M13':2, \
+      expected_compound_intervals = { 'P15':7, 'A11':1, 'M13':2, \
             'd14':5, 'A18':1, 'd18':2, 'A12':1, 'd19':1, 'A16':4, 'm13':1, \
             'm21':1, 'P22':4, 'm24':3, 'P26':5, 'm28':1, 'M24':1, 'M17':1, }
-      expectedNoQuality2Grams = { '16 +2 15':3, '16 -4 18':1, '15 +1 14':3, \
+      expected_no_quality2grams = { '16 +2 15':3, '16 -4 18':1, '15 +1 14':3, \
             '15 -2 16':2, '15 +2 12':1, '15 -3 18':1, '14 +3 11':1, \
             '14 -1 15':2, '14 -1 13':2, '11 -3 14':1, '18 +1 18':1, \
             '18 +3 15':1, '18 -3 19':1, '12 -2 15':1, '19 +2 16':1, \
@@ -881,24 +881,10 @@ class TestVisTheseParts( unittest.TestCase ):
             '26 1 24':1, '28 1 26':1, '13 -9 21':1 }
       
       ## Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
-      
-      for thing in self.stats._compound_no_quality_ngrams_dict[2].iterkeys():
-         if thing in expectedNoQuality2Grams:
-            if self.stats._compound_no_quality_ngrams_dict[2][thing] != expectedNoQuality2Grams[thing]:
-               print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
-         else:
-            print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ')' )
-      
-      for thing in expectedNoQuality2Grams.iterkeys():
-         if thing in self.stats._compound_no_quality_ngrams_dict[2]:
-            if self.stats._compound_no_quality_ngrams_dict[2][thing] != expectedNoQuality2Grams[thing]:
-               print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
-         else:
-            print( 'expected ' + thing + ' isn\'t present' )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
    def test_theFourth( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
@@ -910,37 +896,37 @@ class TestVisTheseParts( unittest.TestCase ):
       
       # Process the excerpt
       filename = 'test_corpus/madrigal51.mxl'
-      thePiece = converter.parse( filename )
+      the_piece = converter.parse( filename )
       # offset 20.0 is the 6th measure
       # offset 64.0 is the 15th measure
-      higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 63.9 )
-      lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 63.9 )
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      higher_part = the_piece.parts[1].getElementsByOffset( 20.0, 63.9 )
+      lower_part = the_piece.parts[3].getElementsByOffset( 20.0, 63.9 )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
       #pprint.pprint( self.stats._compound_interval_dict )
       #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
       
       # Prepare the findings
-      expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':3, \
+      expected_compound_intervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':3, \
             'P1':2, 'M-2':1, 'm-3':2, 'P-4':1, 'P5':1 }
-      expectedNoQuality2Grams = { '8 +2 6':1, '6 +2 4':1, '4 1 3':1, '3 1 4':2, \
+      expected_no_quality2grams = { '8 +2 6':1, '6 +2 4':1, '4 1 3':1, '3 1 4':2, \
             '4 -3 3':1, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1, '1 +2 -2':1, \
             '-2 +2 -3':1, '-4 -2 -3':1, '-3 -3 1':1, '1 -2 5':1, '5 +3 3':1, \
             '-3 1 -4':1 }
-      expectedQuality2Grams = { 'P8 +m2 M6':1, 'M6 +M2 P4':1, 'P4 P1 M3':1, \
+      expected_quality2Grams = { 'P8 +m2 M6':1, 'M6 +M2 P4':1, 'P4 P1 M3':1, \
             'M3 P1 P4':1, 'P4 -m3 m3':1, 'm3 P1 P4':1, 'P4 +m3 M3':1, \
             'M3 +M2 m3':1, 'm3 -P5 M6':1, 'P1 +M2 M-2':1, 'M-2 +m2 m-3':1, \
             'P-4 -M2 m-3':1, 'm-3 -m3 P1':1, 'P1 -M2 P5':1, 'P5 +M3 m3':1, \
             'm-3 P1 P-4':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
-      self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expectedQuality2Grams) )
-      self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expectedQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
+      self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expected_quality2Grams) )
+      self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expected_quality2Grams )
    
    def test_theFifth( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
@@ -951,77 +937,77 @@ class TestVisTheseParts( unittest.TestCase ):
 
       # Process the excerpt
       filename = 'test_corpus/madrigal51.mxl'
-      thePiece = converter.parse( filename )
+      the_piece = converter.parse( filename )
       # offset 0.0 is the 6th measure
       # offset 64.0 is the 15th measure
-      higherPart = thePiece.parts[1].getElementsByOffset( 0.0, 63.9 )
-      lowerPart = thePiece.parts[2].getElementsByOffset( 0.0, 63.9 )
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      higher_part = the_piece.parts[1].getElementsByOffset( 0.0, 63.9 )
+      lower_part = the_piece.parts[2].getElementsByOffset( 0.0, 63.9 )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       # Prepare the findings
-      expectedCompoundIntervals = { 'M6':5, 'M10':2, 'M9':2, 'P8':4, 'm6':1, \
+      expected_compound_intervals = { 'M6':5, 'M10':2, 'M9':2, 'P8':4, 'm6':1, \
             'P5':2, 'P4':2, 'M3':1, 'm-3':1, 'm-2':1, 'M2':2, 'm3':2 }
-      expectedQuality2Grams = { 'M6 -P5 M10':2, 'M10 P1 M9':2, 'M9 P1 P8':2, \
+      expected_quality2Grams = { 'M6 -P5 M10':2, 'M10 P1 M9':2, 'M9 P1 P8':2, \
             'P8 +M2 M6':2, 'M6 -M2 P8':2, 'M6 +M2 m6':1, 'm6 -M3 P5':1, \
             'P5 +M2 P4':1, 'P4 +M2 P4':1, 'P4 -M2 M6':1, 'P8 +P5 M3':1, \
             'm-3 -M2 m-2':1, 'm-2 -m3 M2':1, 'M2 -m3 m3':1, 'm3 +m2 M2':1, \
             'M2 -m2 m3':1, 'm3 +m2 P5':1 }
-      expectedNoQuality2Grams = { '6 -5 10':2, '10 1 9':2, '9 1 8':2, '8 +2 6':2, \
+      expected_no_quality2grams = { '6 -5 10':2, '10 1 9':2, '9 1 8':2, '8 +2 6':2, \
             '6 -2 8':2, '6 +2 6':1, '6 -3 5':1, '5 +2 4':1, '4 +2 4':1, \
             '4 -2 6':1, '8 +5 3':1, '-3 -2 -2':1, '-2 -3 2':1, '2 -3 3':1, \
             '3 +2 2':1, '2 -2 3':1, '3 +2 5':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
-      self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expectedQuality2Grams) )
-      self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expectedQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
+      self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expected_quality2Grams) )
+      self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expected_quality2Grams )
    
 # NOTE: compare NoQuality 2-gram dictionaries
 #for thing in self.stats._compound_no_quality_ngrams_dict[2].iterkeys():
-   #if thing in expectedNoQuality2Grams:
-      #if self.stats._compound_no_quality_ngrams_dict[2][thing] != expectedNoQuality2Grams[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
+   #if thing in expected_no_quality2grams:
+      #if self.stats._compound_no_quality_ngrams_dict[2][thing] != expected_no_quality2grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expected_no_quality2grams[thing]) )
    #else:
       #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ')' )
 
-#for thing in expectedNoQuality2Grams.iterkeys():
+#for thing in expected_no_quality2grams.iterkeys():
    #if thing in self.stats._compound_no_quality_ngrams_dict[2]:
-      #if self.stats._compound_no_quality_ngrams_dict[2][thing] != expectedNoQuality2Grams[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
+      #if self.stats._compound_no_quality_ngrams_dict[2][thing] != expected_no_quality2grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expected_no_quality2grams[thing]) )
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
 # NOTE: compare interval dictionaries
 #for thing in self.stats._compound_interval_dict.iterkeys():
-   #if thing in expectedCompoundIntervals:
-      #if self.stats._compound_interval_dict[thing] != expectedCompoundIntervals[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expectedCompoundIntervals[thing]) )
+   #if thing in expected_compound_intervals:
+      #if self.stats._compound_interval_dict[thing] != expected_compound_intervals[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
    #else:
-      #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(expectedCompoundIntervals[thing]) + ')' )
+      #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(expected_compound_intervals[thing]) + ')' )
 
-#for thing in expectedCompoundIntervals.iterkeys():
+#for thing in expected_compound_intervals.iterkeys():
    #if thing in self.stats._compound_interval_dict:
-      #if self.stats._compound_interval_dict[thing] != expectedCompoundIntervals[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expectedCompoundIntervals[thing]) )
+      #if self.stats._compound_interval_dict[thing] != expected_compound_intervals[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
 # NOTE: compare 2-gram Quality dictionaries
 #for thing in self.stats._compound_quality_ngrams_dict[2].iterkeys():
-   #if thing in expectedQuality2Grams:
-      #if self.stats._compound_quality_ngrams_dict[2][thing] != expectedQuality2Grams[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedQuality2Grams[thing]) )
+   #if thing in expected_quality2Grams:
+      #if self.stats._compound_quality_ngrams_dict[2][thing] != expected_quality2Grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expected_quality2Grams[thing]) )
    #else:
       #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compound_quality_ngrams_dict[2][thing]) + ')' )
 
-#for thing in expectedQuality2Grams.iterkeys():
+#for thing in expected_quality2Grams.iterkeys():
    #if thing in self.stats._compound_quality_ngrams_dict[2]:
-      #if self.stats._compound_quality_ngrams_dict[2][thing] != expectedQuality2Grams[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedQuality2Grams[thing]) )
+      #if self.stats._compound_quality_ngrams_dict[2][thing] != expected_quality2Grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expected_quality2Grams[thing]) )
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
@@ -1049,22 +1035,22 @@ class TestVisThesePartsLong( unittest.TestCase ):
 
       # Process the excerpt
       filename = 'test_corpus/sinfony.md'
-      thePiece = converter.parse( filename )
+      the_piece = converter.parse( filename )
       # offset 52.0 is m.14
       # offset 200.0 is m.51
-      higherPart = thePiece.parts[0].getElementsByOffset( 52.0, 199.9 )
-      lowerPart = thePiece.parts[1].getElementsByOffset( 52.0, 199.9 )
-      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      higher_part = the_piece.parts[0].getElementsByOffset( 52.0, 199.9 )
+      lower_part = the_piece.parts[1].getElementsByOffset( 52.0, 199.9 )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       # Prepare the findings
-      expectedCompoundIntervals = { 'P1':12, 'M6':14, 'm7':4, 'P8':7, 'm10':7, \
+      expected_compound_intervals = { 'P1':12, 'M6':14, 'm7':4, 'P8':7, 'm10':7, \
             'm9':1, 'd4':5, 'm3':12, 'm6':24, 'M2':8, 'P5':13, 'P4':17, \
             'A4':1, 'M3':10, 'M-3':2, 'P-5':2, 'd5':3, 'd-5':1, 'm-6':1, \
             'M10':2, 'M9':4, 'P11':3, 'M-2':1, 'm-3':1, 'P-12':1 }
       
       # If voice crossing means negative intervals.
-      expectedNoQuality2Grams = { '1 -2 6':1, '1 1 2':2, '1 -3 6':1, \
+      expected_no_quality2grams = { '1 -2 6':1, '1 1 2':2, '1 -3 6':1, \
             '1 +2 -3':1, '1 1 5':1, '1 -2 2':1, '1 1 4':2, '1 1 -2':1, \
             '1 -2 3':1, '2 1 3':2, '2 +2 1':1, '2 1 1':3, '2 -2 6':1, \
             '2 1 5':1, '3 +2 3':1, '3 1 2':2, '3 1 1':1, '3 -3 6':1, \
@@ -1084,10 +1070,10 @@ class TestVisThesePartsLong( unittest.TestCase ):
             '9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
    #def test_La_Plus_des_Plus( self ):
       ## Title: "La Plus des Plus" by Josquin
@@ -1097,22 +1083,22 @@ class TestVisThesePartsLong( unittest.TestCase ):
 
       ## Process the excerpt
       #filename = 'test_corpus/laPlusDesPlus.abc'
-      #thePiece = converter.parse( filename )
+      #the_piece = converter.parse( filename )
       ## offset ??? is ???
-      #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
-      #lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      #itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      #higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 12.9 )
+      #lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
+      #analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       ## Prepare the findings
-      #expectedCompoundIntervals = {}
-      #expectedNoQuality2Grams = {}
+      #expected_compound_intervals = {}
+      #expected_no_quality2grams = {}
 
       ## Verify the findings
-      #self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      #self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
    #def test_Ave_Maris_Stella( self ):
       ## Title: "Ave maris stella" by Josquin
@@ -1123,22 +1109,22 @@ class TestVisThesePartsLong( unittest.TestCase ):
       ## Process the excerpt
       #filenameA = 'test_corpus/Jos2308.krn'
       #filenameB = 'test_corpus/Jos2308.mei'
-      #thePiece = converter.parse( filename )
+      #the_piece = converter.parse( filename )
       ## offset ??? is ???
-      #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
-      #lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      #itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
+      #higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 12.9 )
+      #lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
+      #analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       ## Prepare the findings
-      #expectedCompoundIntervals = {}
-      #expectedNoQuality2Grams = {}
+      #expected_compound_intervals = {}
+      #expected_no_quality2grams = {}
 
       ## Verify the findings
-      #self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      #self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
 
 
 # End TestVisThesePartsLong ---------------------------------------------------
