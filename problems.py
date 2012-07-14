@@ -26,8 +26,53 @@
 #-------------------------------------------------------------------------------
 class NonsensicalInputError( Exception ):
    '''
-   The error that I'm using for vis. This should potentially be
-   replaced with more useful errors.
+   VIS uses this error for situations where a user-provided value does not
+   make sense, and the only recourse is to stop execution.
+   
+   For example: if we are setting accepting a user's preferred value for whether
+   or not to pay attention to interval quality, and they tell us 'cheese'.
+   '''
+   
+   # NB: This class has a name in camel case so it fits in with the built-in
+   # Python exceptions and errors.
+   
+   def __init__( self, val ):
+      self.value = val
+   def __str__( self ):
+      return repr( self.value )
+#-------------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------------
+class NonsensicalInputWarning( Exception ):
+   '''
+   VIS uses this error for situations where an argument does not make sense,
+   but we can somehow continue execution.
+   
+   For example: TODO
+   '''
+   
+   # NB: This class has a name in camel case so it fits in with the built-in
+   # Python exceptions and errors.
+   
+   def __init__( self, val ):
+      self.value = val
+   def __str__( self ):
+      return repr( self.value )
+#-------------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------------
+class MissingInformationError( Exception ):
+   '''
+   VIS uses this error when there is insufficient information to continue
+   processing, and execution must be stopped.
+   
+   For example: if we are to find the interval between the lower notes of two
+   Interval objects, but the Interval objects do not have Note objects
+   associated, and therefore could be any distance apart.
    '''
    
    # NB: This class has a name in camel case so it fits in with the built-in
