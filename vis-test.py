@@ -354,6 +354,11 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.M3 = interval.Interval( 'M3' )
       self.m10 = interval.Interval( 'm10' )
       self.M10 = interval.Interval( 'M10' )
+      # Descending versions
+      self.d_m3 = interval.Interval( 'm-3' )
+      self.d_M3 = interval.Interval( 'M-3' )
+      self.d_m10 = interval.Interval( 'm-10' )
+      self.d_M10 = interval.Interval( 'M-10' )
       # m3 u m3
       self.nga = NGram([interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('A4'),note.Note('C5'))])
@@ -383,7 +388,7 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
                 interval.Interval(note.Note('F#4'),note.Note('C#5')), \
                 interval.Interval(note.Note('G##4'),note.Note('E#4'))])
 
-   def test_addInterval( self ):
+   def test_addUpInterval( self ):
       self.vis.addInterval( self.m3 )
       self.assertEqual( self.vis._simpleIntervalDict['m3'], 1 )
       self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
@@ -394,66 +399,202 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.vis.addInterval( self.M3 )
       self.assertEqual( self.vis._simpleIntervalDict['M3'], 1 )
       self.assertEqual( self.vis._compoundIntervalDict['M3'], 1 )
-
-   def test_getIntervalOccurrences_heed_quality( self ):
+      self.vis.addInterval( self.d_m3 )
+      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
+      self.vis.addInterval( self.d_m10 )
+      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m10'], 1 )
+   
+   def test_addDownInterval( self ):
+      self.vis.addInterval( self.d_m3 )
+      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
+      self.vis.addInterval( self.d_m10 )
+      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-10'], 1 )
+      self.vis.addInterval( self.d_M3 )
+      self.assertEqual( self.vis._simpleIntervalDict['M-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['M-3'], 1 )
       self.vis.addInterval( self.m3 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'simple' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'simple' ), 0 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'compound' ), 0 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm10', 'compound' ), 0 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M10', 'compound' ), 0 )
+      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
       self.vis.addInterval( self.m10 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'simple' ), 2 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'simple' ), 0 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'compound' ), 0 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm10', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M10', 'compound' ), 0 )
-      self.vis.addInterval( self.M3 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'simple' ), 2 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'simple' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm10', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M10', 'compound' ), 0 )
-      self.vis.addInterval( self.M10 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'simple' ), 2 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'simple' ), 2 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm3', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M3', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'm10', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'M10', 'compound' ), 1 )
-
-   def test_getIntervalOccurrences_noHeedQuality( self ):
+      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-10'], 1 )
+   
+   def test_addUpDownIntervals( self ):
       self.vis.addInterval( self.m3 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '3', 'simple' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '3', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '10', 'compound' ), 0 )
+      self.vis.addInterval( self.d_m3 )
+      self.assertEqual( self.vis._simpleIntervalDict['m3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
+      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
       self.vis.addInterval( self.m10 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '3', 'simple' ), 2 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '3', 'compound' ), 1 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '10', 'compound' ), 1 )
+      self.vis.addInterval( self.d_m10 )
+      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m10'], 1 )
+      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-10'], 1 )
       self.vis.addInterval( self.M3 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '3', 'simple' ), 3 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '3', 'compound' ), 2 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '10', 'compound' ), 1 )
+      self.vis.addInterval( self.d_M3 )
+      self.assertEqual( self.vis._simpleIntervalDict['M3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['M3'], 1 )
+      self.assertEqual( self.vis._simpleIntervalDict['M-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['M-3'], 1 )
       self.vis.addInterval( self.M10 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '3', 'simple' ), 4 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '3', 'compound' ), 2 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '10', 'compound' ), 2 )
+      self.vis.addInterval( self.d_M10 )
+      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m10'], 1 )
+      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['m-10'], 1 )
+      self.assertEqual( self.vis._simpleIntervalDict['M3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['M3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['M10'], 1 )
+      self.assertEqual( self.vis._simpleIntervalDict['M-3'], 2 )
+      self.assertEqual( self.vis._compoundIntervalDict['M-3'], 1 )
+      self.assertEqual( self.vis._compoundIntervalDict['M-10'], 1 )
 
-   def test_getIntervalOccurrences_errors_and_zero( self ):
-      self.assertEqual( self.vis.getIntervalOccurrences( 'P4', 'simple' ), 0 )
-      self.assertEqual( self.vis.getIntervalOccurrences( 'P4', 'compound' ), 0 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '6', 'simple' ), 0 )
-      self.assertEqual( self.vis.getIntervalOccurrences( '6', 'compound' ), 0 )
-      self.assertRaises( NonsensicalInputError, self.vis.getIntervalOccurrences, 'P4', 'wrong3343' )
-      self.assertRaises( NonsensicalInputError, self.vis.getIntervalOccurrences, 'P4', '' )
-      self.assertRaises( NonsensicalInputError, self.vis.getIntervalOccurrences, 'P4', 5 )
-      self.assertRaises( NonsensicalInputError, self.vis.getIntervalOccurrences, 'P4', False )
-      self.assertRaises( NonsensicalInputError, self.vis.getIntervalOccurrences, 'P4', self.m3 )
-
+   def test_get_interval_occurrences_heed_quality_Up( self ):
+      self.vis.addInterval( self.m3 )
+      self.vis.addInterval( self.m10 )
+      self.vis.addInterval( self.M3 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'simple' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 0 )
+      self.vis.addInterval( self.M10 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 1 )
+   
+   def test_get_interval_occurrences_heed_quality_Down( self ):
+      self.vis.addInterval( self.d_m3 )
+      self.vis.addInterval( self.d_m10 )
+      self.vis.addInterval( self.d_M3 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-10', 'compound' ), 0 )
+      self.vis.addInterval( self.d_M10 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-10', 'compound' ), 1 )
+   
+   def test_get_interval_occurrences_heed_quality_Both( self ):
+      self.vis.addInterval( self.d_m3 )
+      self.vis.addInterval( self.d_m10 )
+      self.vis.addInterval( self.d_M3 )
+      self.vis.addInterval( self.d_M10 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'simple' ), 0 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'simple' ), 0 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'compound' ), 0 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'compound' ), 0 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm10', 'compound' ), 0 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 0 )
+      self.vis.addInterval( self.m3 )
+      self.vis.addInterval( self.m10 )
+      self.vis.addInterval( self.M3 )
+      self.vis.addInterval( self.M10 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm-10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M-10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'm10', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 1 )
+   
+   def test_get_interval_occurrences_noHeedQuality_Up( self ):
+      self.vis.addInterval( self.m3 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 0 )
+      self.vis.addInterval( self.m10 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 1 )
+      self.vis.addInterval( self.M3 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 3 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 1 )
+      self.vis.addInterval( self.M10 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 4 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 2 )
+   
+   def test_get_interval_occurrences_noHeedQuality_Down( self ):
+      self.vis.addInterval( self.d_m3 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 0 )
+      self.vis.addInterval( self.d_m10 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 1 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 1 )
+      self.vis.addInterval( self.d_M3 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 3 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 1 )
+      self.vis.addInterval( self.d_M10 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 4 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 2 )
+   
+   def test_get_interval_occurrences_noHeedQuality_Both( self ):
+      self.vis.addInterval( self.m3 )
+      self.vis.addInterval( self.m10 )
+      self.vis.addInterval( self.M3 )
+      self.vis.addInterval( self.M10 )
+      self.vis.addInterval( self.d_m3 )
+      self.vis.addInterval( self.d_m10 )
+      self.vis.addInterval( self.d_M3 )
+      self.vis.addInterval( self.d_M10 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 4 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 4 )
+      self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 2 )
+      self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 2 )
+   
+   def test_get_interval_occurrences_errors_and_zero( self ):
+      self.assertEqual( self.vis.get_interval_occurrences( 'P4', 'simple' ), 0 )
+      self.assertEqual( self.vis.get_interval_occurrences( 'P4', 'compound' ), 0 )
+      self.assertEqual( self.vis.get_interval_occurrences( '6', 'simple' ), 0 )
+      self.assertEqual( self.vis.get_interval_occurrences( '6', 'compound' ), 0 )
+      self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', 'wrong3343' )
+      self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', '' )
+      self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', 5 )
+      self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', False )
+      self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', self.m3 )
+   
    def test_addNGram( self ):
       # basic 2-gram
       self.vis.addNGram( self.ngc ) # m3 +P4 m3
@@ -474,7 +615,7 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis._compoundQualityNGramsDict[4], {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
       self.assertEqual( self.vis._compoundNoQualityNGramsDict[2], {'3 +4 3': 3} )
       self.assertEqual( self.vis._compoundNoQualityNGramsDict[4], {'3 +4 2 -6 5 +9 -10': 16} )
-
+   
    def test_getNGramOccurrences( self ):
       # getNGramOccurrences( self, whichNGram, n )
       # test that non-existant n values are dealt with properly
@@ -482,7 +623,7 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis.getNGramOccurrences( '3 +4 3', n=64 ), 0 )
       self.assertEqual( self.vis.getNGramOccurrences( '', n=2 ), 0 )
       self.assertEqual( self.vis.getNGramOccurrences( '', n=128 ), 0 )
-
+      
       # test 2 n-grams
       # self.ngd:  m-3 +P4 M3
       # self.nge:  m3 -P4 m3
@@ -495,7 +636,7 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis.getNGramOccurrences( '3 +4 3', n=2 ), 12 )
       self.assertEqual( self.vis.getNGramOccurrences( 'm3 -P4 m3', n=2 ), 8 )
       self.assertEqual( self.vis.getNGramOccurrences( '3 -4 3', n=2 ), 8 )
-
+      
       # test distinct 4-grams with identical simple-interval representations
       # self.ngg  m3 +P4 M2 -m6 P5 -m2 M10
       self.vis = VerticalIntervalStatistics()
@@ -723,10 +864,10 @@ class TestVisTheseParts( unittest.TestCase ):
       lowerPart = thePiece.parts[3].getElementsByOffset( 448.0, 479.9 )
       itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
-
+      
       #pprint.pprint( self.stats._compoundIntervalDict )
       ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
-
+      
       ## Prepare the findings
       expectedCompoundIntervals = { 'P15':7, 'A11':1, 'M13':2, \
             'd14':5, 'A18':1, 'd18':2, 'A12':1, 'd19':1, 'A16':4, 'm13':1, \
@@ -738,7 +879,7 @@ class TestVisTheseParts( unittest.TestCase ):
             '13 +1 14':1, '13 +2 13':1, '21 -1 22':1, '22 -2 24':2, \
             '22 +4 17':1, '24 -2 26':3, '24 1 22':1, '26 -2 28':1, \
             '26 1 24':1, '28 1 26':1, '13 -9 21':1 }
-
+      
       ## Verify the findings
       self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
       self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
@@ -751,7 +892,7 @@ class TestVisTheseParts( unittest.TestCase ):
                print( 'for ' + thing + ', actual ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
          else:
             print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ')' )
-
+      
       for thing in expectedNoQuality2Grams.iterkeys():
          if thing in self.stats._compoundNoQualityNGramsDict[2]:
             if self.stats._compoundNoQualityNGramsDict[2][thing] != expectedNoQuality2Grams[thing]:
@@ -759,104 +900,87 @@ class TestVisTheseParts( unittest.TestCase ):
          else:
             print( 'expected ' + thing + ' isn\'t present' )
    
-   #def test_theFourth( self ):
-   # TODO: make it work; depends on what to do with voice crossing
-      ## Monteverdi's "Cruda amarilli" (a madrigal)
-      ## MusicXML
-      ## Alto and Quinto
-      ## Measures 6 through downbeat of 12
-      ### NB: Starts out the same as the previous test, but this excerpt is a
-      ### little longer and ends with some voice crossing.
-
-      ## Process the excerpt
-      #filename = 'test_corpus/madrigal51.mxl'
-      #thePiece = converter.parse( filename )
-      ## offset 20.0 is the 6th measure
-      ## offset 64.0 is the 15th measure
-      #higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 63.9 )
-      #lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 63.9 )
-      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+   def test_theFourth( self ):
+      # Monteverdi's "Cruda amarilli" (a madrigal)
+      # MusicXML
+      # Alto and Quinto
+      # Measures 6 through 16
+      ## NB: Starts out the same as the previous test, but this excerpt is a
+      ## little longer and ends with some voice crossing.
+      
+      # Process the excerpt
+      filename = 'test_corpus/madrigal51.mxl'
+      thePiece = converter.parse( filename )
+      # offset 20.0 is the 6th measure
+      # offset 64.0 is the 15th measure
+      higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 63.9 )
+      lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 63.9 )
+      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
-
+      
       #pprint.pprint( self.stats._compoundIntervalDict )
-      ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
-
-      ## Prepare the findings
-      #expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':2, 'M3':2, 'P1':3, \
-            #'M2':1, 'P5':1, 'P-4':1, 'm3':3, 'M-2':2, 'm-3': 2 }
-      #expectedNoQuality2Grams = { '8 +2 6':1, '4 1 3':1, '4 -3 3':1, \
-            #'6 +2 4':1, '3 1 4':3, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1, \
-            #'1 +2 2':1, '4 -2 3':1, '2 -2 1':1, '2 +2 1':1, '5 +3 3':1, \
-            #'2 +2 3':1, '3 -2 2':1, '1 -2 2':1, '1 -2 5':1 }
-
-      ## Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      ##self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      ##self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      
+      # Prepare the findings
+      expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':3, \
+            'P1':2, 'M-2':1, 'm-3':2, 'P-4':1, 'P5':1 }
+      expectedNoQuality2Grams = { '8 +2 6':1, '6 +2 4':1, '4 1 3':1, '3 1 4':2, \
+            '4 -3 3':1, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1, '1 +2 -2':1, \
+            '-2 +2 -3':1, '-4 -2 -3':1, '-3 -3 1':1, '1 -2 5':1, '5 +3 3':1, \
+            '-3 1 -4':1 }
+      expectedQuality2Grams = { 'P8 +m2 M6':1, 'M6 +M2 P4':1, 'P4 P1 M3':1, \
+            'M3 P1 P4':1, 'P4 -m3 m3':1, 'm3 P1 P4':1, 'P4 +m3 M3':1, \
+            'M3 +M2 m3':1, 'm3 -P5 M6':1, 'P1 +M2 M-2':1, 'M-2 +m2 m-3':1, \
+            'P-4 -M2 m-3':1, 'm-3 -m3 P1':1, 'P1 -M2 P5':1, 'P5 +M3 m3':1, \
+            'm-3 P1 P-4':1 }
+      
+      # Verify the findings
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compoundQualityNGramsDict[2]), len(expectedQuality2Grams) )
+      self.assertEqual( self.stats._compoundQualityNGramsDict[2], expectedQuality2Grams )
    
-   #def test_theFifth( self ):
-   # TODO: make it work; depends on what to do with voice crossing
-      ## Monteverdi's "Cruda amarilli" (a madrigal)
-      ## MusicXML
-      ## Alto and Tenor
-      ## Measures 1 through 15
-      ### NB: These parts cross many times.
+   def test_theFifth( self ):
+      # Monteverdi's "Cruda amarilli" (a madrigal)
+      # MusicXML
+      # Alto and Tenor
+      # Measures 1 through 16
+      ## NB: These parts cross many times.
 
-      ## Process the excerpt
-      #filename = 'test_corpus/madrigal51.mxl'
-      #thePiece = converter.parse( filename )
-      ## offset 0.0 is the 6th measure
-      ## offset 64.0 is the 15th measure
-      #higherPart = thePiece.parts[1].getElementsByOffset( 0.0, 63.9 )
-      #lowerPart = thePiece.parts[2].getElementsByOffset( 0.0, 63.9 )
-      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      # Process the excerpt
+      filename = 'test_corpus/madrigal51.mxl'
+      thePiece = converter.parse( filename )
+      # offset 0.0 is the 6th measure
+      # offset 64.0 is the 15th measure
+      higherPart = thePiece.parts[1].getElementsByOffset( 0.0, 63.9 )
+      lowerPart = thePiece.parts[2].getElementsByOffset( 0.0, 63.9 )
+      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
-      ## Prepare the findings
-      #expectedCompoundIntervals = {}
-      #expectedNoQuality2Grams = {}
-
-      ## Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      # Prepare the findings
+      expectedCompoundIntervals = { 'M6':5, 'M10':2, 'M9':2, 'P8':4, 'm6':1, \
+            'P5':2, 'P4':2, 'M3':1, 'm-3':1, 'm-2':1, 'M2':2, 'm3':2 }
+      expectedQuality2Grams = { 'M6 -P5 M10':2, 'M10 P1 M9':2, 'M9 P1 P8':2, \
+            'P8 +M2 M6':2, 'M6 -M2 P8':2, 'M6 +M2 m6':1, 'm6 -M3 P5':1, \
+            'P5 +M2 P4':1, 'P4 +M2 P4':1, 'P4 -M2 M6':1, 'P8 +P5 M3':1, \
+            'm-3 -M2 m-2':1, 'm-2 -m3 M2':1, 'M2 -m3 m3':1, 'm3 +m2 M2':1, \
+            'M2 -m2 m3':1, 'm3 +m2 P5':1 }
+      expectedNoQuality2Grams = { '6 -5 10':2, '10 1 9':2, '9 1 8':2, '8 +2 6':2, \
+            '6 -2 8':2, '6 +2 6':1, '6 -3 5':1, '5 +2 4':1, '4 +2 4':1, \
+            '4 -2 6':1, '8 +5 3':1, '-3 -2 -2':1, '-2 -3 2':1, '2 -3 3':1, \
+            '3 +2 2':1, '2 -2 3':1, '3 +2 5':1 }
+      
+      # Verify the findings
+      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compoundQualityNGramsDict[2]), len(expectedQuality2Grams) )
+      self.assertEqual( self.stats._compoundQualityNGramsDict[2], expectedQuality2Grams )
    
-   #def test_theEighth( self ):
-      ## TODO: Write this test.
-      
-      ## Targeted, purpose-built excerpt to deal with a bug where vis thinks a
-      ## voice exchange is a new interval, yielding, for example:
-      ## M3 P1 M3
-      
-      ### Process the excerpt
-      #filename = 'test_corpus/sqOp76-4-i.midi'
-      #thePiece = converter.parse( filename )
-      #higherPart = thePiece.parts[0]
-      #lowerPart = thePiece.parts[1]
-      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
-      #print( '--> analysis took ' + str(itTook) + ' seconds' )
-
-      ##pprint.pprint( self.stats._compoundIntervalDict )
-      ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
-
-      ### Prepare the findings
-      #expectedCompoundIntervals = {}
-      #expectedNoQuality2Grams = {}
-
-      ### Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
-
-
-
-
-# NOTE: The following snippet compares n-gram dictionaries, printing whatever isn't
-# the same about them.
-# 
+# NOTE: compare NoQuality 2-gram dictionaries
 #for thing in self.stats._compoundNoQualityNGramsDict[2].iterkeys():
    #if thing in expectedNoQuality2Grams:
       #if self.stats._compoundNoQualityNGramsDict[2][thing] != expectedNoQuality2Grams[thing]:
@@ -871,9 +995,7 @@ class TestVisTheseParts( unittest.TestCase ):
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
-# NOTE: The following snippet compares interval dictionaries, printing whatever isn't
-# the same about them.
-# 
+# NOTE: compare interval dictionaries
 #for thing in self.stats._compoundIntervalDict.iterkeys():
    #if thing in expectedCompoundIntervals:
       #if self.stats._compoundIntervalDict[thing] != expectedCompoundIntervals[thing]:
@@ -884,7 +1006,22 @@ class TestVisTheseParts( unittest.TestCase ):
 #for thing in expectedCompoundIntervals.iterkeys():
    #if thing in self.stats._compoundIntervalDict:
       #if self.stats._compoundIntervalDict[thing] != expectedCompoundIntervals[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundIntervalsDict[thing]) + ' != expected ' + str(expectedCompoundIntervals[thing]) )
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundIntervalDict[thing]) + ' != expected ' + str(expectedCompoundIntervals[thing]) )
+   #else:
+      #print( 'expected ' + thing + ' isn\'t present' )
+
+# NOTE: compare 2-gram Quality dictionaries
+#for thing in self.stats._compoundQualityNGramsDict[2].iterkeys():
+   #if thing in expectedQuality2Grams:
+      #if self.stats._compoundQualityNGramsDict[2][thing] != expectedQuality2Grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedQuality2Grams[thing]) )
+   #else:
+      #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compoundQualityNGramsDict[2][thing]) + ')' )
+
+#for thing in expectedQuality2Grams.iterkeys():
+   #if thing in self.stats._compoundQualityNGramsDict[2]:
+      #if self.stats._compoundQualityNGramsDict[2][thing] != expectedQuality2Grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedQuality2Grams[thing]) )
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
@@ -921,9 +1058,10 @@ class TestVisThesePartsLong( unittest.TestCase ):
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       # Prepare the findings
-      expectedCompoundIntervals = { 'P1':12, 'M2':9, 'm3':13, 'M3':12, 'd4':5, \
-            'P4':17, 'A4':1, 'd5':4, 'P5':15, 'm6':25, 'M6':14, \
-            'm7':4, 'P8':7, 'm9':1, 'M9':4, 'm10':7, 'M10':2, 'P11':3, 'P12':1 }
+      expectedCompoundIntervals = { 'P1':12, 'M6':14, 'm7':4, 'P8':7, 'm10':7, \
+            'm9':1, 'd4':5, 'm3':12, 'm6':24, 'M2':8, 'P5':13, 'P4':17, \
+            'A4':1, 'M3':10, 'M-3':2, 'P-5':2, 'd5':3, 'd-5':1, 'm-6':1, \
+            'M10':2, 'M9':4, 'P11':3, 'M-2':1, 'm-3':1, 'P-12':1 }
       
       # If voice crossing means negative intervals.
       expectedNoQuality2Grams = { '1 -2 6':1, '1 1 2':2, '1 -3 6':1, \
@@ -1027,12 +1165,13 @@ if __name__ == '__main__':
    visThesePartsLongSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisThesePartsLong )
 
    # Run test suites for interface/background components
-   unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      #TODO: some sort of testing for the 'lookForTheseNs' settting
+   #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
+      ##TODO: some sort of testing for the 'lookForTheseNs' settting
    #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    
    # Run test suites for analytic engine
    #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
+   

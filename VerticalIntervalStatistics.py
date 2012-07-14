@@ -64,7 +64,7 @@ class VerticalIntervalStatistics( object ):
    def __str__( self ):
       return '<VerticalIntervalStatistics about intervals and n-grams>'
    
-   def addInterval( self, theInterval ):
+   def addInterval( self, the_interval ):
       '''
       Adds a :class:`music21.interval.Interval` to the occurrences information.
       If given a simple interval, add that to both the table of simple and
@@ -75,31 +75,42 @@ class VerticalIntervalStatistics( object ):
       Automatically accounts for tracking quality or not.
       '''
       
-      # it's a simple interval
-      if theInterval.name == theInterval.semiSimpleName:
-         if theInterval.name in self._simpleIntervalDict:
-            self._simpleIntervalDict[theInterval.name] += 1
+      # NB: the "Automatically accounts for tracking quality or not" above
+      # really means "it doesn't yet matter whether to track quality or not."
+      
+      # Descending interval
+      if -1 == the_interval.direction:
+         # For the dictionary of simple intervals
+         simple_name = the_interval.semiSimpleName
+         simple_name = simple_name[0] + '-' + simple_name[1:]
+         if simple_name in self._simpleIntervalDict:
+            self._simpleIntervalDict[simple_name] += 1
          else:
-            self._simpleIntervalDict[theInterval.name] = 1
-            
-         if theInterval.name in self._compoundIntervalDict:
-            self._compoundIntervalDict[theInterval.name] += 1
+            self._simpleIntervalDict[simple_name] = 1
+         # For the dictionary of compound intervals
+         compound_name = the_interval.name
+         compound_name = compound_name[0] + '-' + compound_name[1:]
+         if compound_name in self._compoundIntervalDict:
+            self._compoundIntervalDict[compound_name] += 1
          else:
-            self._compoundIntervalDict[theInterval.name] = 1
-      # it's a compound interval
+            self._compoundIntervalDict[compound_name] = 1
+      # Ascending or unison interval
       else:
-         if theInterval.semiSimpleName in self._simpleIntervalDict:
-            self._simpleIntervalDict[theInterval.semiSimpleName] += 1
+         # For the dictionary of simple intervals
+         simple_name = the_interval.semiSimpleName
+         if simple_name in self._simpleIntervalDict:
+            self._simpleIntervalDict[simple_name] += 1
          else:
-            self._simpleIntervalDict[theInterval.semiSimpleName] = 1
-            
-         if theInterval.name in self._compoundIntervalDict:
-            self._compoundIntervalDict[theInterval.name] += 1
+            self._simpleIntervalDict[simple_name] = 1
+         # For the dictionary of compound intervals
+         compound_name = the_interval.name
+         if compound_name in self._compoundIntervalDict:
+            self._compoundIntervalDict[compound_name] += 1
          else:
-            self._compoundIntervalDict[theInterval.name] = 1
+            self._compoundIntervalDict[compound_name] = 1
    # end addInterval()
 
-   def getIntervalOccurrences( self, whichInterval, simpleOrCompound='simple' ):
+   def get_interval_occurrences( self, which_interval, simple_or_compound='simple' ):
       '''
       Returns the number of occurrences of a particular
       :class:`music21.interval.Interval`, either (by default) from the table
@@ -108,11 +119,15 @@ class VerticalIntervalStatistics( object ):
       
       Automatically accounts for tracking quality or not.
       '''
+      
+      # str of things to help sort out what the user wants
+      qualities = 'dmMPA'
+      directions = '-+'
+      
       # Given a species (number), finds all the occurrences of any quality.
       # The second argument should be either self._simpleIntervalDict or
       # self._compoundIntervalDict
-      def findNumberOfAllQualities( species, db ):
-         qualities = 'dmMPA'
+      def get_all_qualities( species, db ):
          post = 0
          for quality in qualities:
             if ( quality + species ) in db:
@@ -121,32 +136,33 @@ class VerticalIntervalStatistics( object ):
          return post
       ##
       
-      errorstr = "VerticalIntervalStatistics.getIntervalOccurrences(): " + \
-            "'simpleOrCompound' must be set to either 'simple' or 'compound'"
+      errorstr = "VerticalIntervalStatistics.get_interval_occurrences(): " + \
+            "'simple_or_compound' must be set to either 'simple' or 'compound'"
       
-      # they're ignoring quality
-      if whichInterval.isdigit():
-         if 'simple' == simpleOrCompound:
-            return findNumberOfAllQualities( whichInterval, self._simpleIntervalDict )
-         elif 'compound' == simpleOrCompound:
-            return findNumberOfAllQualities( whichInterval, self._compoundIntervalDict )
+      # Are they ignoring quality? Yes, if the interval is just a digit or if
+      # the first character is a direction
+      if which_interval.isdigit() or which_interval[0] in directions:
+         if 'simple' == simple_or_compound:
+            return get_all_qualities( which_interval, self._simpleIntervalDict )
+         elif 'compound' == simple_or_compound:
+            return get_all_qualities( which_interval, self._compoundIntervalDict )
          else:
             raise NonsensicalInputError( errorstr )
-      # they're paying attention to quality
+      # Otherwise they are paying attention to quality.
       else:
-         if 'simple' == simpleOrCompound:
-            if whichInterval in self._simpleIntervalDict:
-               return self._simpleIntervalDict[whichInterval]
+         if 'simple' == simple_or_compound:
+            if which_interval in self._simpleIntervalDict:
+               return self._simpleIntervalDict[which_interval]
             else:
                return 0
-         elif 'compound' == simpleOrCompound:
-            if whichInterval in self._compoundIntervalDict:
-               return self._compoundIntervalDict[whichInterval]
+         elif 'compound' == simple_or_compound:
+            if which_interval in self._compoundIntervalDict:
+               return self._compoundIntervalDict[which_interval]
             else:
                return 0
          else:
             raise NonsensicalInputError( errorstr )
-   # end getIntervalOccurrences()
+   # end get_interval_occurrences()
    
    def addNGram( self, theNGram ):
       '''
