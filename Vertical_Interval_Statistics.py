@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         VerticalIntervalStatistics.py
+# Name:         Vertical_Interval_Statistics.py
 # Purpose:      Stores statistics for "vis"
 #
 # Copyright (C) 2012 Christopher Antila
@@ -32,7 +32,7 @@ from problems import NonsensicalInputError
 
 
 #-------------------------------------------------------------------------------
-class VerticalIntervalStatistics( object ):
+class Vertical_Interval_Statistics( object ):
    '''
    Holds the statistics discovered by vis. Currently these are:
    
@@ -45,26 +45,26 @@ class VerticalIntervalStatistics( object ):
    # versions of that information. Memory is cheap!
    
    ## Instance Data
-   # _simpleIntervalDict
-   # _compoundIntervalDict
-   # _compoundQualityNGramsDict
-   # _compoundNoQualityNGramsDict
+   # _simple_interval_dict
+   # _compound_interval_dict
+   # _compound_quality_ngrams_dict
+   # _compound_no_quality_ngrams_dict
    def __init__( self ):
       '''
       Create a new, "empty" statistics database for a piece.
       '''
-      self._simpleIntervalDict = {}
-      self._compoundIntervalDict = {}
-      self._compoundQualityNGramsDict = [{},{},{}]
-      self._compoundNoQualityNGramsDict = [{},{},{}]
+      self._simple_interval_dict = {}
+      self._compound_interval_dict = {}
+      self._compound_quality_ngrams_dict = [{},{},{}]
+      self._compound_no_quality_ngrams_dict = [{},{},{}]
    
    def __repr__( self ):
       return self.__str__( self )
    
    def __str__( self ):
-      return '<VerticalIntervalStatistics about intervals and n-grams>'
+      return '<Vertical_Interval_Statistics about intervals and n-grams>'
    
-   def addInterval( self, the_interval ):
+   def add_interval( self, the_interval ):
       '''
       Adds a :class:`music21.interval.Interval` to the occurrences information.
       If given a simple interval, add that to both the table of simple and
@@ -83,32 +83,32 @@ class VerticalIntervalStatistics( object ):
          # For the dictionary of simple intervals
          simple_name = the_interval.semiSimpleName
          simple_name = simple_name[0] + '-' + simple_name[1:]
-         if simple_name in self._simpleIntervalDict:
-            self._simpleIntervalDict[simple_name] += 1
+         if simple_name in self._simple_interval_dict:
+            self._simple_interval_dict[simple_name] += 1
          else:
-            self._simpleIntervalDict[simple_name] = 1
+            self._simple_interval_dict[simple_name] = 1
          # For the dictionary of compound intervals
          compound_name = the_interval.name
          compound_name = compound_name[0] + '-' + compound_name[1:]
-         if compound_name in self._compoundIntervalDict:
-            self._compoundIntervalDict[compound_name] += 1
+         if compound_name in self._compound_interval_dict:
+            self._compound_interval_dict[compound_name] += 1
          else:
-            self._compoundIntervalDict[compound_name] = 1
+            self._compound_interval_dict[compound_name] = 1
       # Ascending or unison interval
       else:
          # For the dictionary of simple intervals
          simple_name = the_interval.semiSimpleName
-         if simple_name in self._simpleIntervalDict:
-            self._simpleIntervalDict[simple_name] += 1
+         if simple_name in self._simple_interval_dict:
+            self._simple_interval_dict[simple_name] += 1
          else:
-            self._simpleIntervalDict[simple_name] = 1
+            self._simple_interval_dict[simple_name] = 1
          # For the dictionary of compound intervals
          compound_name = the_interval.name
-         if compound_name in self._compoundIntervalDict:
-            self._compoundIntervalDict[compound_name] += 1
+         if compound_name in self._compound_interval_dict:
+            self._compound_interval_dict[compound_name] += 1
          else:
-            self._compoundIntervalDict[compound_name] = 1
-   # end addInterval()
+            self._compound_interval_dict[compound_name] = 1
+   # end add_interval()
 
    def get_interval_occurrences( self, which_interval, simple_or_compound='simple' ):
       '''
@@ -125,8 +125,8 @@ class VerticalIntervalStatistics( object ):
       directions = '-+'
       
       # Given a species (number), finds all the occurrences of any quality.
-      # The second argument should be either self._simpleIntervalDict or
-      # self._compoundIntervalDict
+      # The second argument should be either self._simple_interval_dict or
+      # self._compound_interval_dict
       def get_all_qualities( species, db ):
          post = 0
          for quality in qualities:
@@ -136,35 +136,35 @@ class VerticalIntervalStatistics( object ):
          return post
       ##
       
-      errorstr = "VerticalIntervalStatistics.get_interval_occurrences(): " + \
+      errorstr = "Vertical_Interval_Statistics.get_interval_occurrences(): " + \
             "'simple_or_compound' must be set to either 'simple' or 'compound'"
       
       # Are they ignoring quality? Yes, if the interval is just a digit or if
       # the first character is a direction
       if which_interval.isdigit() or which_interval[0] in directions:
          if 'simple' == simple_or_compound:
-            return get_all_qualities( which_interval, self._simpleIntervalDict )
+            return get_all_qualities( which_interval, self._simple_interval_dict )
          elif 'compound' == simple_or_compound:
-            return get_all_qualities( which_interval, self._compoundIntervalDict )
+            return get_all_qualities( which_interval, self._compound_interval_dict )
          else:
             raise NonsensicalInputError( errorstr )
       # Otherwise they are paying attention to quality.
       else:
          if 'simple' == simple_or_compound:
-            if which_interval in self._simpleIntervalDict:
-               return self._simpleIntervalDict[which_interval]
+            if which_interval in self._simple_interval_dict:
+               return self._simple_interval_dict[which_interval]
             else:
                return 0
          elif 'compound' == simple_or_compound:
-            if which_interval in self._compoundIntervalDict:
-               return self._compoundIntervalDict[which_interval]
+            if which_interval in self._compound_interval_dict:
+               return self._compound_interval_dict[which_interval]
             else:
                return 0
          else:
             raise NonsensicalInputError( errorstr )
    # end get_interval_occurrences()
    
-   def addNGram( self, theNGram ):
+   def add_ngram( self, the_ngram ):
       '''
       Adds an n-gram to the occurrences information. Automatically does or does
       not track quality, depending on the settings of the inputted NGram.
@@ -172,25 +172,25 @@ class VerticalIntervalStatistics( object ):
       
       # If there isn't yet a dictionary for this 'n' value, then we'll have to
       # make sure there is one.
-      while len(self._compoundQualityNGramsDict) <= theNGram._n:
-         self._compoundQualityNGramsDict.append( {} )
-         self._compoundNoQualityNGramsDict.append( {} )
+      while len(self._compound_quality_ngrams_dict) <= the_ngram._n:
+         self._compound_quality_ngrams_dict.append( {} )
+         self._compound_no_quality_ngrams_dict.append( {} )
          
-      # self._compoundQualityNGramsDict
-      zzz = theNGram.get_string_version( True, 'compound' )
-      if zzz in self._compoundQualityNGramsDict[theNGram._n]:
-         self._compoundQualityNGramsDict[theNGram._n][zzz] += 1
+      # self._compound_quality_ngrams_dict
+      zzz = the_ngram.get_string_version( True, 'compound' )
+      if zzz in self._compound_quality_ngrams_dict[the_ngram._n]:
+         self._compound_quality_ngrams_dict[the_ngram._n][zzz] += 1
       else:
-         self._compoundQualityNGramsDict[theNGram._n][zzz] = 1
-      # self._compoundNoQualityNGramsDict
-      zzz = theNGram.get_string_version( False, 'compound' )
-      if zzz in self._compoundNoQualityNGramsDict[theNGram._n]:
-         self._compoundNoQualityNGramsDict[theNGram._n][zzz] += 1
+         self._compound_quality_ngrams_dict[the_ngram._n][zzz] = 1
+      # self._compound_no_quality_ngrams_dict
+      zzz = the_ngram.get_string_version( False, 'compound' )
+      if zzz in self._compound_no_quality_ngrams_dict[the_ngram._n]:
+         self._compound_no_quality_ngrams_dict[the_ngram._n][zzz] += 1
       else:
-         self._compoundNoQualityNGramsDict[theNGram._n][zzz] = 1
-   # end addNGram()
+         self._compound_no_quality_ngrams_dict[the_ngram._n][zzz] = 1
+   # end add_ngram()
    
-   def getNGramOccurrences( self, whichNGram, n ):
+   def get_ngram_occurrences( self, which_ngram, n ):
       '''
       Returns the number of occurrences of a particular n-gram. Currently, all
       n-grams are treated as though they have compound intervals.
@@ -209,36 +209,36 @@ class VerticalIntervalStatistics( object ):
       # work properly, so I implemented this. This solution is clearly not
       # very good, but at least it works.
       try:
-         if whichNGram[0].isalpha(): # heedQuality
-            if whichNGram in self._compoundQualityNGramsDict[n]:
-               return self._compoundQualityNGramsDict[n][whichNGram]
+         if which_ngram[0].isalpha(): # heedQuality
+            if which_ngram in self._compound_quality_ngrams_dict[n]:
+               return self._compound_quality_ngrams_dict[n][which_ngram]
             else:
                return 0
          else: # noQuality!
-            if whichNGram in self._compoundNoQualityNGramsDict[n]:
-               return self._compoundNoQualityNGramsDict[n][whichNGram]
+            if which_ngram in self._compound_no_quality_ngrams_dict[n]:
+               return self._compound_no_quality_ngrams_dict[n][which_ngram]
             else:
                return 0
       except IndexError as indE:
          return 0
-   # end getNGramOccurrences()
+   # end get_ngram_occurrences()
    
-   def getFormattedIntervals( self, theSettings ):
+   def get_formatted_intervals( self, the_settings ):
       '''
       Formats the intervals nicely.
       '''
       # TODO: heed heedQuality
       # TODO: heed compound/simple
       post = 'All the Intervals:\n------------------\n'
-      sortedIntervals = sorted( self._compoundIntervalDict, cmp=intervalSorter )
-      for interv in sortedIntervals:
-         post += interv + ': ' + str(self._compoundIntervalDict[interv]) + '\n'
+      sorted_intervals = sorted( self._compound_interval_dict, cmp=interval_sorter )
+      for interv in sorted_intervals:
+         post += interv + ': ' + str(self._compound_interval_dict[interv]) + '\n'
       post += '\n'
       
       return post
-   # end getFormattedIntervals()
+   # end get_formatted_intervals()
    
-   def getFormattedNGrams( self, theSettings, n=None ):
+   def get_formatted_ngrams( self, the_settings, n=None ):
       '''
       Formats the n-grams nicely. If you specify 'n' as a second argument, only
       those values of n-grams will be outputted. If you do not specify 'n', all
@@ -248,9 +248,9 @@ class VerticalIntervalStatistics( object ):
       # TODO: heed compound/simple
       # TODO: heed parameter n
       post = 'All the N-Grams:\n----------------\n'
-      sortedNGrams = sorted( self._compoundNoQualityNGramsDict[2], cmp=ngramSorter )
-      for gram in sortedNGrams:
-         post += gram + ': ' + str(self._compoundNoQualityNGramsDict[2][gram]) + '\n'
+      sorted_ngrams = sorted( self._compound_no_quality_ngrams_dict[2], cmp=ngram_sorter )
+      for gram in sorted_ngrams:
+         post += gram + ': ' + str(self._compound_no_quality_ngrams_dict[2][gram]) + '\n'
       post += '\n'
       
       return post
@@ -260,7 +260,7 @@ class VerticalIntervalStatistics( object ):
 
 
 #-------------------------------------------------------------------------------
-def intervalSorter( x, y ):
+def interval_sorter( x, y ):
    '''
    Returns -1 if the first argument is a smaller interval.
    Returns 1 if the second argument is a smaller interval.
@@ -271,27 +271,27 @@ def intervalSorter( x, y ):
    - an int
    
    Examples:
-   >>> from vis import intervalSorter
-   >>> intervalSorter( 'm3', 'm3' )
+   >>> from vis import interval_sorter
+   >>> interval_sorter( 'm3', 'm3' )
    0
-   >>> intervalSorter( 'm3', 'M3' )
+   >>> interval_sorter( 'm3', 'M3' )
    1
-   >>> intervalSorter( 'A4', 'd4' )
+   >>> interval_sorter( 'A4', 'd4' )
    -1
    '''
    
-   listOfDirections = ['+', '-']
-   listOfQualities = ['d', 'm', 'P', 'M', 'A']
+   list_of_directions = ['+', '-']
+   list_of_qualities = ['d', 'm', 'P', 'M', 'A']
    
    # What if we have directional intervals?
-   if x[0] in listOfDirections:
+   if x[0] in list_of_directions:
       x = x[1:]
-   if y[0] in listOfDirections:
+   if y[0] in list_of_directions:
       y = y[1:]
    
    # What if we have numbers with no qualities? Add a 'P' to make it work.
-   if not x[0] in listOfQualities and \
-      not y[0] in listOfQualities:
+   if not x[0] in list_of_qualities and \
+      not y[0] in list_of_qualities:
       x = 'P' + x
       y = 'P' + y
    
@@ -303,19 +303,19 @@ def intervalSorter( x, y ):
    elif int(x[1:]) > int(y[1:]): # if y is generically smaller
       return 1
    else: # otherwise, we're down to the species/quality
-      xQual = x[0]
-      yQual = y[0]
-      if xQual == 'd':
+      x_qual = x[0]
+      y_qual = y[0]
+      if x_qual == 'd':
          return -1
-      elif yQual == 'd':
+      elif y_qual == 'd':
          return 1
-      elif xQual == 'A':
+      elif x_qual == 'A':
          return 1
-      elif yQual == 'A':
+      elif y_qual == 'A':
          return -1
-      elif xQual == 'm':
+      elif x_qual == 'm':
          return -1
-      elif yQual == 'm':
+      elif y_qual == 'm':
          return 1
       else:
          return 0
@@ -324,7 +324,7 @@ def intervalSorter( x, y ):
 
 
 #-------------------------------------------------------------------------------
-def ngramSorter( x, y ):
+def ngram_sorter( x, y ):
    '''
    Returns -1 if the first argument is a smaller n-gram.
    Returns 1 if the second argument is a smaller n-gram.
@@ -341,18 +341,18 @@ def ngramSorter( x, y ):
    m-3 +P4 P1
    
    Examples:
-   >>> from vis import ngramSorter
-   >>> ngramSorter( '3 +4 7', '5 +2 4' )
+   >>> from vis import ngram_sorter
+   >>> ngram_sorter( '3 +4 7', '5 +2 4' )
    -1
-   >>> ngramSorter( '3 +5 6', '3 +4 6' )
+   >>> ngram_sorter( '3 +5 6', '3 +4 6' )
    1
-   >>> ngramSorter( 'M3 1 m2', 'M3 1 M2' )
+   >>> ngram_sorter( 'M3 1 m2', 'M3 1 M2' )
    -1
-   >>> ngramSorter( '9 -2 -3', '9 -2 -3' )
+   >>> ngram_sorter( '9 -2 -3', '9 -2 -3' )
    0
-   >>> ngramSorter( '3 -2 3 -2 3', '6 +2 6' )
+   >>> ngram_sorter( '3 -2 3 -2 3', '6 +2 6' )
    -1
-   >>> ngramSorter( '3 -2 3 -2 3', '3 -2 3' )
+   >>> ngram_sorter( '3 -2 3 -2 3', '3 -2 3' )
    1
    '''
    
@@ -360,7 +360,7 @@ def ngramSorter( x, y ):
    x = x.strip()
    y = y.strip()
    
-   def calcUnitsInNGram( ng ):
+   def calc_units_in_ngram( ng ):
       # Calculate the 'units' in the n-gram, which is the number of elements
       # separated by a space, which is sort of like finding 'n'.
       units = 0
@@ -374,25 +374,25 @@ def ngramSorter( x, y ):
    
    # See if we have only one interval left. When there is only one interval,
    # the result of this will be -1
-   xFind = x.find(' ')
-   yFind = y.find(' ')
-   if -1 == xFind:
-      if -1 == yFind:
+   x_find = x.find(' ')
+   y_find = y.find(' ')
+   if -1 == x_find:
+      if -1 == y_find:
          # Both x and y have only one interval left, so the best we can do is
          # the output from intervalSorter()
-         return intervalSorter( x, y )
+         return interval_sorter( x, y )
       else:
          # x has one interval left, but y has more than one, so x is shorter.
          return -1
-   elif -1 == yFind:
+   elif -1 == y_find:
       # y has one interval left, but x has more than one, so y is shorter.
       return 1
    
    # See if the first interval will differentiate
-   possibleResult = intervalSorter( x[:xFind], y[:yFind] )
-   if 0 != possibleResult:
-      return possibleResult
+   possible_result = interval_sorter( x[:x_find], y[:y_find] )
+   if 0 != possible_result:
+      return possible_result
    
    # If not, we'll rely on ourselves to solve the next mystery!
-   return ngramSorter( x[xFind+1:], y[yFind+1:] )
+   return ngram_sorter( x[x_find+1:], y[y_find+1:] )
 #-------------------------------------------------------------------------------

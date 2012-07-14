@@ -32,7 +32,7 @@ import pprint
 
 ## Import:
 # python standard library
-from os.path import exists as pathExists
+from os.path import exists as path_exists
 # music21
 from music21.instrument import Instrument
 from music21 import converter
@@ -40,9 +40,9 @@ from music21.converter import ConverterException
 from music21.converter import ConverterFileException
 # vis
 from output_LilyPond import process_score
-# ngramSorter only needed for the unit tests?
-from VerticalIntervalStatistics import VerticalIntervalStatistics, intervalSorter, ngramSorter
-from analyticEngine import visTheseParts
+# ngram_sorter only needed for the unit tests?
+from Vertical_Interval_Statistics import Vertical_Interval_Statistics, interval_sorter, ngram_sorter
+from analytic_engine import vis_these_parts
 from NGram import NGram
 from problems import NonsensicalInputError
 from file_output import file_outputter
@@ -50,7 +50,7 @@ from file_output import file_outputter
 
 
 #-------------------------------------------------------------------------------
-def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
+def analyzeThis( pathname, the_settings = None ):#, verbosity = 'concise' ):
    '''
    Given the path to a music21-supported score, imports the score, performs a
    harmonic-functional analysis, annotates the score, and displays it with show().
@@ -61,7 +61,7 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
    '''
    
    #-------------------------------------------------------
-   def calculateAllCombis( upto ):
+   def calculate_all_combis( upto ):
       # Calculate all combinations of integers, up to a given integer.
       # 
       # Includes a 0th item... the argument should be len(whatevs) - 1.
@@ -72,98 +72,98 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
       return post
    #-------------------------------------------------------
    
-   if theSettings is None:
-      theSettings = visSettings()
+   if the_settings is None:
+      the_settings = VIS_Settings()
    
-   theStats = VerticalIntervalStatistics()
-   theScore = None
+   the_stats = Vertical_Interval_Statistics()
+   the_score = None
    
    # See what input we have
    if isinstance( pathname, str ):
       ## get the score
       print( "Importing score to music21.\n" )
       try:
-         theScore = converter.parse( pathname )
-      except ConverterException:
+         the_score = converter.parse( pathname )
+      except Converter_Exception:
          raise
-      except ConverterFileException:
+      except Converter_File_Exception:
          raise
    elif isinstance( pathname, stream.Score ):
-      theScore = pathname
+      the_score = pathname
    else:
       raise NonsensicalInputError( "analyzeThis(): input must be str or stream.Score; received " + str(type(pathname)) )
    
    # find out which 2 parts to investigate
-   numberOfParts = len(theScore.parts)
-   lookAtParts = [numberOfParts+5,numberOfParts+5]
-   while lookAtParts[0] == lookAtParts[1] or lookAtParts[0] >= numberOfParts or lookAtParts[1] >= numberOfParts:
+   number_of_parts = len(the_score.parts)
+   look_at_parts = [number_of_parts+5,number_of_parts+5]
+   while look_at_parts[0] == look_at_parts[1] or look_at_parts[0] >= number_of_parts or look_at_parts[1] >= number_of_parts:
       print( "Please input the part numbers to investigate." )
       print( "From highest to lowest, these are the possibilities:" )
       # print something like "1 for Soprano"
-      for i in xrange(numberOfParts):
+      for i in xrange(number_of_parts):
          # Try to get a part name... there may not be an Instrument object. If
          # we don't find something, this will be what appears.
-         partName = '(no part name)'
+         part_name = '(no part name)'
          for j in xrange(10):
-            if isinstance( theScore.parts[i][0], Instrument ):
-               partName = theScore.parts[i][0].bestName()
+            if isinstance( the_score.parts[i][0], Instrument ):
+               part_name = the_score.parts[i][0].bestName()
          #
-         print( str(i) + " for " + partName )
-      theirSpecification = raw_input( "Specify with higher part first.\n--> " )
-      if 'help' == theirSpecification:
+         print( str(i) + " for " + part_name )
+      their_specification = raw_input( "Specify with higher part first.\n--> " )
+      if 'help' == their_specification:
          print( "Input the two numbers with a space between them, or type 'all'" )
-      elif 'all' == theirSpecification:
+      elif 'all' == their_specification:
          print( 'Comparing all voices!' )
-         lookAtParts = 'all'
+         look_at_parts = 'all'
          break
       try:
-         lookAtParts[0] = int(theirSpecification[0])
-         lookAtParts[1] = int(theirSpecification[-1])
+         look_at_parts[0] = int(their_specification[0])
+         look_at_parts[1] = int(their_specification[-1])
       except ValueError as valErr:
          # if something didn't work out with int()
-         lookAtParts = [numberOfParts+5,numberOfParts+5]
+         look_at_parts = [number_of_parts+5,number_of_parts+5]
    
    # find out what or which 'n' to look for
    n_list = raw_input( "Please input the desired values of n (as in n-gram). Default is n=2.\n--> ").split()
    if n_list is not '':
-      theSettings.set_property( 'n', n_list )
+      the_settings.set_property( 'n', n_list )
 
    print( "Processing...\n" )
-   itTook = 0
-   if 'all' == lookAtParts:
-      partsToExamine = calculateAllCombis( numberOfParts - 1 )
+   it_took = 0.0
+   if 'all' == look_at_parts:
+      partsToExamine = calculate_all_combis( number_of_parts - 1 )
       for setOfParts in partsToExamine:
-         higher, lower = theScore.parts[setOfParts[0]], theScore.parts[setOfParts[1]]
-         itTook += visTheseParts( [higher,lower], theSettings, theStats )
+         higher, lower = the_score.parts[setOfParts[0]], the_score.parts[setOfParts[1]]
+         it_took += vis_these_parts( [higher,lower], the_settings, the_stats )
    else:
-      higher, lower = theScore.parts[lookAtParts[0]], theScore.parts[lookAtParts[1]]
-      itTook = visTheseParts( [higher,lower], theSettings, theStats )
+      higher, lower = the_score.parts[look_at_parts[0]], the_score.parts[look_at_parts[1]]
+      it_took = vis_these_parts( [higher,lower], the_settings, the_stats )
    #
-   print( ' --> the analysis took ' + str(itTook) + ' seconds' )
+   print( ' --> the analysis took ' + str(it_took) + ' seconds' )
    
    #-------------------------------------------------------
    # Prepare and Output Our Results
    #-------------------------------------------------------
    
    # Parse what we'll output
-   parsedOutput = theStats.getFormattedIntervals( theSettings ) + \
-                  theStats.getFormattedNGrams( theSettings )
+   parsed_output = the_stats.get_formatted_intervals( the_settings ) + \
+                  the_stats.get_formatted_ngrams( the_settings )
    # If this has anything, we'll assume it's a filename to use for output.
-   possibleFile = theSettings.get_property( 'outputResultsToFile' )
-   if len(possibleFile) > 0:
+   possible_file = the_settings.get_property( 'outputResultsToFile' )
+   if len(possible_file) > 0:
       print( '----------------------' )
-      print( 'Outputting results to ' + possibleFile )
-      fileOutputter( parsedOutput, possibleFile )
+      print( 'Outputting results to ' + possible_file )
+      file_outputter( parsed_output, possible_file )
    else:
       print( '---------------------' )
       print( 'Here are the results!' )
-      print( parsedOutput )
+      print( parsed_output )
    
-   if theSettings.get_property( 'produceLabeledScore' ):
+   if the_settings.get_property( 'produceLabeledScore' ):
       print( "-----------------------------" )
       print( "Processing score for display." )
       # Use the built-in outputLilyPond.py module
-      process_score( theScore )
+      process_score( the_score )
    else:
       print( "----------------------------" )
       print( "Not producing labeled score." )
@@ -174,8 +174,8 @@ def analyzeThis( pathname, theSettings = None ):#, verbosity = 'concise' ):
 
 
 
-# Class: visSettings ----------------------------------------------
-class visSettings:
+# Class: VIS_Settings ----------------------------------------------
+class VIS_Settings:
    # An internal class that holds settings for stuff.
    #
    # produceLabeledScore : whether to produce a score showing interval
@@ -207,7 +207,7 @@ class visSettings:
       # a.set_property( 'set chordLabelVerbosity concise' )
       
       # just tests whether a str is 'true' or 'True' or 'false' or 'False
-      def isTorF( s ):
+      def is_t_or_f( s ):
          if 'true' == s or 'True' == s or 'false' == s or 'False' == s:
             return True
          else:
@@ -228,7 +228,7 @@ class visSettings:
          if 'heedQuality' == property_str[:spaceIndex] or \
             'produceLabeledScore' == property_str[:spaceIndex] or \
             'produceLabelledScore' == property_str[:spaceIndex]:
-               if not isTorF( property_str[spaceIndex+1:] ):
+               if not is_t_or_f( property_str[spaceIndex+1:] ):
                   raise NonsensicalInputError( "Value must be either True or False, but we got " + str(property_str[spaceIndex+1:]) )
       
          # now match the property
@@ -276,7 +276,7 @@ class visSettings:
          return False
       else:
          return post
-# End Class: visSettings ------------------------------------------
+# End Class: VIS_Settings ------------------------------------------
 
 
 
@@ -288,21 +288,21 @@ if __name__ == '__main__':
    print( "This is free software; type 'show c' for details.\n" )
    print( "For a list of commands, type \'help\'." )
 
-   mySettings = visSettings()
-   exitProgram = False
+   my_settings = VIS_Settings()
+   exit_program = False
 
    # See which command they wanted
-   while False == exitProgram:
+   while False == exit_program:
       try:
-         userSays = raw_input( "vis @: " )
+         user_says = raw_input( "vis @: " )
       except EOFError as eof:
          # Fine, we'll just quit
-         userSays = 'quit'
+         user_says = 'quit'
       except KeyboardInterrupt as kbi:
          # Fine, we'll just exit
-         userSays = 'exit'
+         user_says = 'exit'
       # help
-      if 'help' == userSays:
+      if 'help' == user_says:
          print( """\nList of Commands:
 -------------------
 - 'exit' or 'quit' to exit or quit the program
@@ -314,13 +314,13 @@ if __name__ == '__main__':
 
 ** Note: You can type 'help' at any user prompt for more information.
 """ )
-      elif 'exit' == userSays or 'quit' == userSays:
+      elif 'exit' == user_says or 'quit' == user_says:
          print( "" )
-         exitProgram = True
+         exit_program = True
       # multi-word commands
-      elif 0 < userSays.find(' '):
-         if 'set' == userSays[:userSays.find(' ')]:
-            if 'set help' == userSays:
+      elif 0 < user_says.find(' '):
+         if 'set' == user_says[:user_says.find(' ')]:
+            if 'set help' == user_says:
                print( """
 You can change any of the settings described in the \'help settings\' command.
 
@@ -335,30 +335,30 @@ set produceLabeledScore true
 set orderPizza true
 """ )
                try:
-                  mySettings.set_property( 'orderPizza true' )
+                  my_settings.set_property( 'orderPizza true' )
                except NonsensicalInputError as err:
                   print( 'Error: ' + str(err) + "\n" )
             else:
                try:
-                  mySettings.set_property( userSays )
+                  my_settings.set_property( user_says )
                except NonsensicalInputError as e:
                   print( "Error: " + str(e) )
-         elif 'get' == userSays[:userSays.find(' ')]:
-            if 'get help' == userSays:
+         elif 'get' == user_says[:user_says.find(' ')]:
+            if 'get help' == user_says:
                print( "You can view any of the settings described in the \'help settings\' command.\n" )
                print( "Just write 'get' followed by a space and the name of the property. If" )
                print( "you mis-type a property name, vis may either guess at which property" )
                print( "meant, or tell you that it couldn't find a corresponding propety.\n" )
                print( "For example:\nget produceLabeledScore" )
-               print( mySettings.get_property( 'produceLabeledScore' ) )
+               print( my_settings.get_property( 'produceLabeledScore' ) )
             else:
                try:
-                  val = mySettings.get_property( userSays )
+                  val = my_settings.get_property( user_says )
                   print( val )
                except NonsensiclaInputError as e:
                   print( "Error: " + str(e) )
-         elif 'help' == userSays[:userSays.find(' ')]:
-            if 'help settings' == userSays:
+         elif 'help' == user_says[:user_says.find(' ')]:
+            if 'help settings' == user_says:
                print( "List of Settings:" )
                print( "=================" )
                print( "- produceLabeledScore: whether to produce a LilyPond score with n-gram diagrams." )
@@ -370,27 +370,27 @@ set orderPizza true
                print( "- offsetBetweenInterval: a decimal number representing the 'granularity' with which" )
                print( "        to search for n-grams. Type 'help settings offsetBetweenInterval' for more." )
                print( "- outputResultsToFile: the filename to output to, or nothing to disable output to a file." )
-            elif 'help settings offsetBetweenInterval' == userSays:
+            elif 'help settings offsetBetweenInterval' == user_says:
                print( "This should be the value of music21's 'quarterLength' corresponding to the" )
                print( "   \"every ____ note\" you want to look for. For example, to check on \"every" )
                print( "   eighth note,\" you use 0.5, because that is the quarterLength value that" )
                print( "   means eighth note in music21.\n" )
                print( "   1.0 quarterLength means \"one quarter note,\" which explains why an eighth" )
                print( "   note has a quarterLength of 0.5." )
-            elif 'help settings lookForTheseNs' == userSays:
+            elif 'help settings lookForTheseNs' == user_says:
                print( "Surprise--this setting doesn't actually work yet. When it does, you'll know." )
-            elif 'help filename' == userSays:
+            elif 'help filename' == user_says:
                print( "Just type the filename. TODO: Say something useful about this." )
             else:
-               print( "I don't have any help about " + userSays[userSays.find(' ')+1:] + " yet." )
-         elif 'show w' == userSays:
+               print( "I don't have any help about " + user_says[user_says.find(' ')+1:] + " yet." )
+         elif 'show w' == user_says:
             print( "\nvis is distributed in the hope that it will be useful," )
             print( "but WITHOUT ANY WARRANTY; without even the implied warranty of" )
             print( "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" )
             print( "GNU General Public License for more details.\n" )
             print( "A copy of the licence is included in the vis directory in the" )
             print( "file called 'GPL.txt'\n" )
-         elif 'show c' == userSays:
+         elif 'show c' == user_says:
             print( "\nvis is free software: you can redistribute it and/or modify" )
             print( "it under the terms of the GNU General Public License as published by" )
             print( "the Free Software Foundation, either version 3 of the License, or" )
@@ -398,18 +398,18 @@ set orderPizza true
             print( "A copy of the licence is included in the vis directory in the" )
             print( "file called 'GPL.txt'\n" )
          else:
-            print( "Unrecognized command or file name (" + userSays + ")" )
+            print( "Unrecognized command or file name (" + user_says + ")" )
       else:
-         if pathExists( userSays ):
-            print( "Loading " + userSays + " for analysis." )
+         if path_exists( user_says ):
+            print( "Loading " + user_says + " for analysis." )
             try:
-               analyzeThis( userSays, mySettings )
-            except ConverterException as e:
+               analyzeThis( user_says, my_settings )
+            except Converter_Exception as e:
                print( "--> music21 Error: " + str(e) )
-            except ConverterFileException as e:
+            except Converter_File_Exception as e:
                print( "--> music21 Error: " + str(e) )
             except NonsensicalInputError as e:
                print( "--> Error from analyzeThis(): " + str(e) )
          else:
-            print( "Unrecognized command or file name (" + userSays + ")" )
+            print( "Unrecognized command or file name (" + user_says + ")" )
 # End "main" function ----------------------------------------------------------

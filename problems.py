@@ -29,6 +29,10 @@ class NonsensicalInputError( Exception ):
    The error that I'm using for vis. This should potentially be
    replaced with more useful errors.
    '''
+   
+   # NB: This class has a name in camel case so it fits in with the built-in
+   # Python exceptions and errors.
+   
    def __init__( self, val ):
       self.value = val
    def __str__( self ):

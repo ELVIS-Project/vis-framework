@@ -135,40 +135,40 @@ class NGram( object ):
             post += ' '
          
          # Calculate this interval
-         thisInt = None
+         this_interval = None
          if 'simple' == simple_or_compound:
-            thisInt = self._list_of_intervals[i].directedSimpleName
+            this_interval = self._list_of_intervals[i].directedSimpleName
          elif 'compound' == simple_or_compound:
-            thisInt = self._list_of_intervals[i].directedName
+            this_interval = self._list_of_intervals[i].directedName
          else:
             raise NonsensicalInputError( "NGram.stringVersion(): 'simple_or_compound' (2nd argument) must be either 'simple' or 'compound'." )
          
          # If we're ignoring quality, remove the quality.
          if not heed_quality:
-            thisInt = thisInt[1:]
+            this_interval = this_interval[1:]
          
          # Append this interval
-         post += thisInt
+         post += this_interval
          
          # Calculate the lower-voice movement after this interval.
-         thisMove = None
+         this_move = None
          try: # the last interval won't have anything
-            thisMove = self._list_of_movements[i]
+            this_move = self._list_of_movements[i]
          except IndexError as inderr:
             pass # then just don't add it
          
-         if isinstance( thisMove, interval.Interval ):
-            if 1 == thisMove.direction:
+         if isinstance( this_move, interval.Interval ):
+            if 1 == this_move.direction:
                post += ' +'
-            elif -1 == thisMove.direction:
+            elif -1 == this_move.direction:
                post += ' -'
             else:
                post += ' '
             
             if 'simple' == simple_or_compound:
-               zzz = thisMove.semiSimpleName
+               zzz = this_move.semiSimpleName
             elif 'compound' == simple_or_compound:
-               zzz = thisMove.name
+               zzz = this_move.name
             else:
                raise NonsensicalInputError( "NGram.stringVersion(): 'simple_or_compound' (2nd argument) must be either 'simple' or 'compound'." )
             
@@ -177,7 +177,7 @@ class NGram( object ):
             
             post += zzz
             
-            thisMove = None
+            this_move = None
          #
          
       return post

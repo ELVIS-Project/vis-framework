@@ -36,7 +36,7 @@ from music21 import converter
 #-------------------------------------------------------------------------------
 class TestSettings( unittest.TestCase ):
    def setUp( self ):
-      self.s = visSettings()
+      self.s = VIS_Settings()
 
    def test_default_init( self ):
       # Ensure all the settings are initialized to the proper default value.
@@ -80,42 +80,42 @@ class TestSettings( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 class TestSorting( unittest.TestCase ):
    def test_interval_simple_cases( self ):
-      self.assertEqual( intervalSorter( 'M3', 'P5' ), -1 )
-      self.assertEqual( intervalSorter( 'm7', 'd4' ), 1 )
+      self.assertEqual( interval_sorter( 'M3', 'P5' ), -1 )
+      self.assertEqual( interval_sorter( 'm7', 'd4' ), 1 )
 
    def test_interval_depends_on_quality( self ):
-      self.assertEqual( intervalSorter( 'm3', 'M3' ), -1 )
-      self.assertEqual( intervalSorter( 'M3', 'm3' ), 1 )
-      self.assertEqual( intervalSorter( 'd3', 'm3' ), -1 )
-      self.assertEqual( intervalSorter( 'M3', 'd3' ), 1 )
-      self.assertEqual( intervalSorter( 'A3', 'M3' ), 1 )
-      self.assertEqual( intervalSorter( 'd3', 'A3' ), -1 )
-      self.assertEqual( intervalSorter( 'P4', 'A4' ), -1 )
-      self.assertEqual( intervalSorter( 'A4', 'P4' ), 1 )
+      self.assertEqual( interval_sorter( 'm3', 'M3' ), -1 )
+      self.assertEqual( interval_sorter( 'M3', 'm3' ), 1 )
+      self.assertEqual( interval_sorter( 'd3', 'm3' ), -1 )
+      self.assertEqual( interval_sorter( 'M3', 'd3' ), 1 )
+      self.assertEqual( interval_sorter( 'A3', 'M3' ), 1 )
+      self.assertEqual( interval_sorter( 'd3', 'A3' ), -1 )
+      self.assertEqual( interval_sorter( 'P4', 'A4' ), -1 )
+      self.assertEqual( interval_sorter( 'A4', 'P4' ), 1 )
 
    def test_interval_all_quality_equalities( self ):
-      self.assertEqual( intervalSorter( 'M3', 'M3' ), 0 )
-      self.assertEqual( intervalSorter( 'm3', 'm3' ), 0 )
-      self.assertEqual( intervalSorter( 'd3', 'd3' ), 0 )
-      self.assertEqual( intervalSorter( 'A3', 'A3' ), 0 )
+      self.assertEqual( interval_sorter( 'M3', 'M3' ), 0 )
+      self.assertEqual( interval_sorter( 'm3', 'm3' ), 0 )
+      self.assertEqual( interval_sorter( 'd3', 'd3' ), 0 )
+      self.assertEqual( interval_sorter( 'A3', 'A3' ), 0 )
    
    def test_interval_no_qualities( self ):
-      self.assertEqual( intervalSorter( '3', '3' ), 0 )
-      self.assertEqual( intervalSorter( '3', '4' ), -1 )
-      self.assertEqual( intervalSorter( '3', '2' ), 1 )
+      self.assertEqual( interval_sorter( '3', '3' ), 0 )
+      self.assertEqual( interval_sorter( '3', '4' ), -1 )
+      self.assertEqual( interval_sorter( '3', '2' ), 1 )
    
    def test_interval_with_directions( self ):
-      self.assertEqual( intervalSorter( '+3', '-3' ), 0 )
-      self.assertEqual( intervalSorter( '+3', '-4' ), -1 )
-      self.assertEqual( intervalSorter( '+3', '-2' ), 1 )
+      self.assertEqual( interval_sorter( '+3', '-3' ), 0 )
+      self.assertEqual( interval_sorter( '+3', '-4' ), -1 )
+      self.assertEqual( interval_sorter( '+3', '-2' ), 1 )
    
    def test_ngram_doctests( self ):
-      self.assertEqual( ngramSorter( '3 +4 7', '5 +2 4' ), -1 )
-      self.assertEqual( ngramSorter( '3 +5 6', '3 +4 6' ), 1 )
-      self.assertEqual( ngramSorter( 'M3 1 m2', 'M3 1 M2' ), -1 )
-      self.assertEqual( ngramSorter( '9 -2 -3', '9 -2 -3' ), 0 )
-      self.assertEqual( ngramSorter( '3 -2 3 -2 3', '6 +2 6' ), -1 )
-      self.assertEqual( ngramSorter( '3 -2 3 -2 3', '3 -2 3' ), 1 )
+      self.assertEqual( ngram_sorter( '3 +4 7', '5 +2 4' ), -1 )
+      self.assertEqual( ngram_sorter( '3 +5 6', '3 +4 6' ), 1 )
+      self.assertEqual( ngram_sorter( 'M3 1 m2', 'M3 1 M2' ), -1 )
+      self.assertEqual( ngram_sorter( '9 -2 -3', '9 -2 -3' ), 0 )
+      self.assertEqual( ngram_sorter( '3 -2 3 -2 3', '6 +2 6' ), -1 )
+      self.assertEqual( ngram_sorter( '3 -2 3 -2 3', '3 -2 3' ), 1 )
 #-------------------------------------------------------------------------------
 
 
@@ -347,9 +347,9 @@ class TestNGram( unittest.TestCase ):
 
 
 #-------------------------------------------------------------------------------
-class TestVerticalIntervalStatistics( unittest.TestCase ):
+class TestVertical_Interval_Statistics( unittest.TestCase ):
    def setUp( self ):
-      self.vis = VerticalIntervalStatistics()
+      self.vis = Vertical_Interval_Statistics()
       self.m3 = interval.Interval( 'm3' )
       self.M3 = interval.Interval( 'M3' )
       self.m10 = interval.Interval( 'm10' )
@@ -389,90 +389,90 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
                 interval.Interval(note.Note('G##4'),note.Note('E#4'))])
 
    def test_addUpInterval( self ):
-      self.vis.addInterval( self.m3 )
-      self.assertEqual( self.vis._simpleIntervalDict['m3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
-      self.vis.addInterval( self.m10 )
-      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m10'], 1 )
-      self.vis.addInterval( self.M3 )
-      self.assertEqual( self.vis._simpleIntervalDict['M3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['M3'], 1 )
-      self.vis.addInterval( self.d_m3 )
-      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
-      self.vis.addInterval( self.d_m10 )
-      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m10'], 1 )
+      self.vis.add_interval( self.m3 )
+      self.assertEqual( self.vis._simple_interval_dict['m3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m3'], 1 )
+      self.vis.add_interval( self.m10 )
+      self.assertEqual( self.vis._simple_interval_dict['m3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m10'], 1 )
+      self.vis.add_interval( self.M3 )
+      self.assertEqual( self.vis._simple_interval_dict['M3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['M3'], 1 )
+      self.vis.add_interval( self.d_m3 )
+      self.assertEqual( self.vis._simple_interval_dict['m3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m3'], 1 )
+      self.vis.add_interval( self.d_m10 )
+      self.assertEqual( self.vis._simple_interval_dict['m3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m10'], 1 )
    
    def test_addDownInterval( self ):
-      self.vis.addInterval( self.d_m3 )
-      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
-      self.vis.addInterval( self.d_m10 )
-      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-10'], 1 )
-      self.vis.addInterval( self.d_M3 )
-      self.assertEqual( self.vis._simpleIntervalDict['M-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['M-3'], 1 )
-      self.vis.addInterval( self.m3 )
-      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
-      self.vis.addInterval( self.m10 )
-      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-10'], 1 )
+      self.vis.add_interval( self.d_m3 )
+      self.assertEqual( self.vis._simple_interval_dict['m-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m-3'], 1 )
+      self.vis.add_interval( self.d_m10 )
+      self.assertEqual( self.vis._simple_interval_dict['m-3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m-10'], 1 )
+      self.vis.add_interval( self.d_M3 )
+      self.assertEqual( self.vis._simple_interval_dict['M-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['M-3'], 1 )
+      self.vis.add_interval( self.m3 )
+      self.assertEqual( self.vis._simple_interval_dict['m-3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m-3'], 1 )
+      self.vis.add_interval( self.m10 )
+      self.assertEqual( self.vis._simple_interval_dict['m-3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m-10'], 1 )
    
    def test_addUpDownIntervals( self ):
-      self.vis.addInterval( self.m3 )
-      self.vis.addInterval( self.d_m3 )
-      self.assertEqual( self.vis._simpleIntervalDict['m3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
-      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
-      self.vis.addInterval( self.m10 )
-      self.vis.addInterval( self.d_m10 )
-      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m10'], 1 )
-      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-10'], 1 )
-      self.vis.addInterval( self.M3 )
-      self.vis.addInterval( self.d_M3 )
-      self.assertEqual( self.vis._simpleIntervalDict['M3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['M3'], 1 )
-      self.assertEqual( self.vis._simpleIntervalDict['M-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['M-3'], 1 )
-      self.vis.addInterval( self.M10 )
-      self.vis.addInterval( self.d_M10 )
-      self.assertEqual( self.vis._simpleIntervalDict['m3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m10'], 1 )
-      self.assertEqual( self.vis._simpleIntervalDict['m-3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['m-10'], 1 )
-      self.assertEqual( self.vis._simpleIntervalDict['M3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['M3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['M10'], 1 )
-      self.assertEqual( self.vis._simpleIntervalDict['M-3'], 2 )
-      self.assertEqual( self.vis._compoundIntervalDict['M-3'], 1 )
-      self.assertEqual( self.vis._compoundIntervalDict['M-10'], 1 )
+      self.vis.add_interval( self.m3 )
+      self.vis.add_interval( self.d_m3 )
+      self.assertEqual( self.vis._simple_interval_dict['m3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m3'], 1 )
+      self.assertEqual( self.vis._simple_interval_dict['m-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m-3'], 1 )
+      self.vis.add_interval( self.m10 )
+      self.vis.add_interval( self.d_m10 )
+      self.assertEqual( self.vis._simple_interval_dict['m3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m10'], 1 )
+      self.assertEqual( self.vis._simple_interval_dict['m-3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m-10'], 1 )
+      self.vis.add_interval( self.M3 )
+      self.vis.add_interval( self.d_M3 )
+      self.assertEqual( self.vis._simple_interval_dict['M3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['M3'], 1 )
+      self.assertEqual( self.vis._simple_interval_dict['M-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['M-3'], 1 )
+      self.vis.add_interval( self.M10 )
+      self.vis.add_interval( self.d_M10 )
+      self.assertEqual( self.vis._simple_interval_dict['m3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m10'], 1 )
+      self.assertEqual( self.vis._simple_interval_dict['m-3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['m-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['m-10'], 1 )
+      self.assertEqual( self.vis._simple_interval_dict['M3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['M3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['M10'], 1 )
+      self.assertEqual( self.vis._simple_interval_dict['M-3'], 2 )
+      self.assertEqual( self.vis._compound_interval_dict['M-3'], 1 )
+      self.assertEqual( self.vis._compound_interval_dict['M-10'], 1 )
 
    def test_get_interval_occurrences_heed_quality_Up( self ):
-      self.vis.addInterval( self.m3 )
-      self.vis.addInterval( self.m10 )
-      self.vis.addInterval( self.M3 )
+      self.vis.add_interval( self.m3 )
+      self.vis.add_interval( self.m10 )
+      self.vis.add_interval( self.M3 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'simple' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm10', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 0 )
-      self.vis.addInterval( self.M10 )
+      self.vis.add_interval( self.M10 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'compound' ), 1 )
@@ -481,16 +481,16 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 1 )
    
    def test_get_interval_occurrences_heed_quality_Down( self ):
-      self.vis.addInterval( self.d_m3 )
-      self.vis.addInterval( self.d_m10 )
-      self.vis.addInterval( self.d_M3 )
+      self.vis.add_interval( self.d_m3 )
+      self.vis.add_interval( self.d_m10 )
+      self.vis.add_interval( self.d_M3 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-10', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-10', 'compound' ), 0 )
-      self.vis.addInterval( self.d_M10 )
+      self.vis.add_interval( self.d_M10 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
@@ -499,10 +499,10 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_interval_occurrences( 'M-10', 'compound' ), 1 )
    
    def test_get_interval_occurrences_heed_quality_Both( self ):
-      self.vis.addInterval( self.d_m3 )
-      self.vis.addInterval( self.d_m10 )
-      self.vis.addInterval( self.d_M3 )
-      self.vis.addInterval( self.d_M10 )
+      self.vis.add_interval( self.d_m3 )
+      self.vis.add_interval( self.d_m10 )
+      self.vis.add_interval( self.d_M3 )
+      self.vis.add_interval( self.d_M10 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
@@ -515,10 +515,10 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'compound' ), 0 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm10', 'compound' ), 0 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 0 )
-      self.vis.addInterval( self.m3 )
-      self.vis.addInterval( self.m10 )
-      self.vis.addInterval( self.M3 )
-      self.vis.addInterval( self.M10 )
+      self.vis.add_interval( self.m3 )
+      self.vis.add_interval( self.m10 )
+      self.vis.add_interval( self.M3 )
+      self.vis.add_interval( self.M10 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
@@ -533,50 +533,50 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 1 )
    
    def test_get_interval_occurrences_noHeedQuality_Up( self ):
-      self.vis.addInterval( self.m3 )
+      self.vis.add_interval( self.m3 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 0 )
-      self.vis.addInterval( self.m10 )
+      self.vis.add_interval( self.m10 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 1 )
-      self.vis.addInterval( self.M3 )
+      self.vis.add_interval( self.M3 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 3 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 1 )
-      self.vis.addInterval( self.M10 )
+      self.vis.add_interval( self.M10 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 4 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 2 )
    
    def test_get_interval_occurrences_noHeedQuality_Down( self ):
-      self.vis.addInterval( self.d_m3 )
+      self.vis.add_interval( self.d_m3 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 0 )
-      self.vis.addInterval( self.d_m10 )
+      self.vis.add_interval( self.d_m10 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 1 )
-      self.vis.addInterval( self.d_M3 )
+      self.vis.add_interval( self.d_M3 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 3 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 1 )
-      self.vis.addInterval( self.d_M10 )
+      self.vis.add_interval( self.d_M10 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 4 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 2 )
    
    def test_get_interval_occurrences_noHeedQuality_Both( self ):
-      self.vis.addInterval( self.m3 )
-      self.vis.addInterval( self.m10 )
-      self.vis.addInterval( self.M3 )
-      self.vis.addInterval( self.M10 )
-      self.vis.addInterval( self.d_m3 )
-      self.vis.addInterval( self.d_m10 )
-      self.vis.addInterval( self.d_M3 )
-      self.vis.addInterval( self.d_M10 )
+      self.vis.add_interval( self.m3 )
+      self.vis.add_interval( self.m10 )
+      self.vis.add_interval( self.M3 )
+      self.vis.add_interval( self.M10 )
+      self.vis.add_interval( self.d_m3 )
+      self.vis.add_interval( self.d_m10 )
+      self.vis.add_interval( self.d_M3 )
+      self.vis.add_interval( self.d_M10 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 4 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 2 )
@@ -595,71 +595,71 @@ class TestVerticalIntervalStatistics( unittest.TestCase ):
       self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', False )
       self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', self.m3 )
    
-   def test_addNGram( self ):
+   def test_add_ngram( self ):
       # basic 2-gram
-      self.vis.addNGram( self.ngc ) # m3 +P4 m3
-      self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 1} )
-      self.assertEqual( self.vis._compoundNoQualityNGramsDict[2], {'3 +4 3': 1} )
+      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
+      self.assertEqual( self.vis._compound_quality_ngrams_dict[2], {'m3 +P4 m3': 1} )
+      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[2], {'3 +4 3': 1} )
       # two of a basic 2-gram
-      self.vis.addNGram( self.ngc ) # m3 +P4 m3
-      self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 2} )
-      self.assertEqual( self.vis._compoundNoQualityNGramsDict[2], {'3 +4 3': 2} )
+      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
+      self.assertEqual( self.vis._compound_quality_ngrams_dict[2], {'m3 +P4 m3': 2} )
+      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[2], {'3 +4 3': 2} )
       # add one of a similar 2-gram
-      self.vis.addNGram( self.ngd ) # m3 +d4 M3
-      self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
-      self.assertEqual( self.vis._compoundNoQualityNGramsDict[2], {'3 +4 3': 3} )
+      self.vis.add_ngram( self.ngd ) # m3 +d4 M3
+      self.assertEqual( self.vis._compound_quality_ngrams_dict[2], {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
+      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[2], {'3 +4 3': 3} )
       # add a 4-gram, 16 times
       for i in xrange(16):
-         self.vis.addNGram( self.ngg ) # m3 +P4 M2 -m6 P5 -m2 M-10
-      self.assertEqual( self.vis._compoundQualityNGramsDict[2], {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
-      self.assertEqual( self.vis._compoundQualityNGramsDict[4], {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
-      self.assertEqual( self.vis._compoundNoQualityNGramsDict[2], {'3 +4 3': 3} )
-      self.assertEqual( self.vis._compoundNoQualityNGramsDict[4], {'3 +4 2 -6 5 +9 -10': 16} )
+         self.vis.add_ngram( self.ngg ) # m3 +P4 M2 -m6 P5 -m2 M-10
+      self.assertEqual( self.vis._compound_quality_ngrams_dict[2], {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
+      self.assertEqual( self.vis._compound_quality_ngrams_dict[4], {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
+      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[2], {'3 +4 3': 3} )
+      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[4], {'3 +4 2 -6 5 +9 -10': 16} )
    
-   def test_getNGramOccurrences( self ):
-      # getNGramOccurrences( self, whichNGram, n )
+   def test_get_ngram_occurrences( self ):
+      # get_ngram_occurrences( self, whichNGram, n )
       # test that non-existant n values are dealt with properly
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 3', n=2 ), 0 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 3', n=64 ), 0 )
-      self.assertEqual( self.vis.getNGramOccurrences( '', n=2 ), 0 )
-      self.assertEqual( self.vis.getNGramOccurrences( '', n=128 ), 0 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=2 ), 0 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=64 ), 0 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '', n=2 ), 0 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '', n=128 ), 0 )
       
       # test 2 n-grams
       # self.ngd:  m-3 +P4 M3
       # self.nge:  m3 -P4 m3
-      self.vis = VerticalIntervalStatistics()
+      self.vis = Vertical_Interval_Statistics()
       for i in xrange(12):
-         self.vis.addNGram( self.ngd )
+         self.vis.add_ngram( self.ngd )
       for i in xrange(8):
-         self.vis.addNGram( self.nge )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +d4 M3', n=2 ), 12 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 3', n=2 ), 12 )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 -P4 m3', n=2 ), 8 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 -4 3', n=2 ), 8 )
+         self.vis.add_ngram( self.nge )
+      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +d4 M3', n=2 ), 12 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=2 ), 12 )
+      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 -P4 m3', n=2 ), 8 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '3 -4 3', n=2 ), 8 )
       
       # test distinct 4-grams with identical simple-interval representations
       # self.ngg  m3 +P4 M2 -m6 P5 -m2 M10
-      self.vis = VerticalIntervalStatistics()
+      self.vis = Vertical_Interval_Statistics()
       for i in xrange(10):
-         self.vis.addNGram( self.ngg )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 0 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 +9 -3', n=4 ), 0 )
+         self.vis.add_ngram( self.ngg )
+      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
+      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 0 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -3', n=4 ), 0 )
       # self.ngh  m3 +P4 M2 -m6 P5 -m2 M3
       for i in xrange(7):
-         self.vis.addNGram( self.ngh )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
-      self.assertEqual( self.vis.getNGramOccurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 7 )
-      self.assertEqual( self.vis.getNGramOccurrences( '3 +4 2 -6 5 +2 -3', n=4 ), 7 )
-# End TestVerticalIntervalStatistics ------------------------------------------
+         self.vis.add_ngram( self.ngh )
+      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
+      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 7 )
+      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +2 -3', n=4 ), 7 )
+# End TestVertical_Interval_Statistics ------------------------------------------
 
 
 
 #-------------------------------------------------------------------------------
 class TestVisTheseParts( unittest.TestCase ):
-   # visTheseParts( theseParts, theSettings, theStatistics )
+   # vis_these_parts( theseParts, theSettings, theStatistics )
    #
    # This test suite is just excerpts of pieces selected from the works
    # available to the ELVIS project. I'm only testing small portions of works
@@ -669,8 +669,8 @@ class TestVisTheseParts( unittest.TestCase ):
    # complex set of pieces.
 
    def setUp( self ):
-      self.stats = VerticalIntervalStatistics()
-      self.settings = visSettings()
+      self.stats = Vertical_Interval_Statistics()
+      self.settings = VIS_Settings()
 
    def test_theFirst( self ):
       # BWV 7.7 (a chorale)
@@ -684,7 +684,7 @@ class TestVisTheseParts( unittest.TestCase ):
       # offset 13.0 is the fourth measure
       higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
       lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       # Prepare the findings
@@ -696,10 +696,10 @@ class TestVisTheseParts( unittest.TestCase ):
             '10 +4 10':1, '10 -2 10':3 }
 
       # Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
    
    def test_theSecond( self ):
       # Kyrie from "Missa Pro Defunctis" by Palestrina
@@ -713,7 +713,7 @@ class TestVisTheseParts( unittest.TestCase ):
       # offset 40.0 is the sixth measure
       higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 39.9 )
       lowerPart = thePiece.parts[1].getElementsByOffset( 0.0, 39.9 )
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       # Prepare the findings
@@ -723,10 +723,10 @@ class TestVisTheseParts( unittest.TestCase ):
             '6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }
 
       # Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
 
    def test_theThird( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
@@ -743,11 +743,11 @@ class TestVisTheseParts( unittest.TestCase ):
       # offset 44.0 is the 12th measure
       higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 43.9 )
       lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 43.9 )
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
 
       # Prepare the findings
       expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':2 }
@@ -757,10 +757,10 @@ class TestVisTheseParts( unittest.TestCase ):
             #'2 +2 3':1, '3 -2 2':1, '1 -2 2':1, '1 -2 5':1 }
 
       # Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
       
    def test_theSixthA( self ):
       # Two targeted testing excerpts.
@@ -773,21 +773,21 @@ class TestVisTheseParts( unittest.TestCase ):
       from test_theSixth import theFirstPiece
       higherPart = theFirstPiece.parts[0]
       lowerPart = theFirstPiece.parts[1]
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
 
       ## Prepare the findings
       expectedCompoundIntervals = { 'P11':1, 'm14':1 }
       expectedNoQuality2Grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
    
    def test_theSixthB( self ):
       # Two targeted testing excerpts.
@@ -806,21 +806,21 @@ class TestVisTheseParts( unittest.TestCase ):
       from test_theSixth import theSecondPiece
       higherPart = theSecondPiece.parts[0]
       lowerPart = theSecondPiece.parts[1]
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
 
       ## Prepare the findings
       expectedCompoundIntervals = { 'P11':1, 'm14':1 }
       expectedNoQuality2Grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
    
    def test_theSixthC( self ):
       # Two targeted testing excerpts.
@@ -832,21 +832,21 @@ class TestVisTheseParts( unittest.TestCase ):
       from test_theSixth import theThirdPiece
       higherPart = theThirdPiece.parts[0]
       lowerPart = theThirdPiece.parts[1]
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
 
       ## Prepare the findings
       expectedCompoundIntervals = { 'P12':1, 'M9':1 }
       expectedNoQuality2Grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
    
    def test_theSeventh( self ):
       # Joseph Haydn's String Quartet, Op.76/4, Movement 1
@@ -862,11 +862,11 @@ class TestVisTheseParts( unittest.TestCase ):
       # measure 120 is offset 480.0
       higherPart = thePiece.parts[0].getElementsByOffset( 448.0, 479.9 )
       lowerPart = thePiece.parts[3].getElementsByOffset( 448.0, 479.9 )
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
       
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      ##pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      #pprint.pprint( self.stats._compound_interval_dict )
+      ##pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
       
       ## Prepare the findings
       expectedCompoundIntervals = { 'P15':7, 'A11':1, 'M13':2, \
@@ -881,22 +881,22 @@ class TestVisTheseParts( unittest.TestCase ):
             '26 1 24':1, '28 1 26':1, '13 -9 21':1 }
       
       ## Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
       
-      for thing in self.stats._compoundNoQualityNGramsDict[2].iterkeys():
+      for thing in self.stats._compound_no_quality_ngrams_dict[2].iterkeys():
          if thing in expectedNoQuality2Grams:
-            if self.stats._compoundNoQualityNGramsDict[2][thing] != expectedNoQuality2Grams[thing]:
-               print( 'for ' + thing + ', actual ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
+            if self.stats._compound_no_quality_ngrams_dict[2][thing] != expectedNoQuality2Grams[thing]:
+               print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
          else:
-            print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ')' )
+            print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ')' )
       
       for thing in expectedNoQuality2Grams.iterkeys():
-         if thing in self.stats._compoundNoQualityNGramsDict[2]:
-            if self.stats._compoundNoQualityNGramsDict[2][thing] != expectedNoQuality2Grams[thing]:
-               print( 'for ' + thing + ', actual ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
+         if thing in self.stats._compound_no_quality_ngrams_dict[2]:
+            if self.stats._compound_no_quality_ngrams_dict[2][thing] != expectedNoQuality2Grams[thing]:
+               print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
          else:
             print( 'expected ' + thing + ' isn\'t present' )
    
@@ -915,11 +915,11 @@ class TestVisTheseParts( unittest.TestCase ):
       # offset 64.0 is the 15th measure
       higherPart = thePiece.parts[1].getElementsByOffset( 20.0, 63.9 )
       lowerPart = thePiece.parts[3].getElementsByOffset( 20.0, 63.9 )
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
       
-      #pprint.pprint( self.stats._compoundIntervalDict )
-      #pprint.pprint( self.stats._compoundNoQualityNGramsDict[2] )
+      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
       
       # Prepare the findings
       expectedCompoundIntervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':3, \
@@ -935,12 +935,12 @@ class TestVisTheseParts( unittest.TestCase ):
             'm-3 P1 P-4':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
-      self.assertEqual( len(self.stats._compoundQualityNGramsDict[2]), len(expectedQuality2Grams) )
-      self.assertEqual( self.stats._compoundQualityNGramsDict[2], expectedQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expectedQuality2Grams) )
+      self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expectedQuality2Grams )
    
    def test_theFifth( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
@@ -956,7 +956,7 @@ class TestVisTheseParts( unittest.TestCase ):
       # offset 64.0 is the 15th measure
       higherPart = thePiece.parts[1].getElementsByOffset( 0.0, 63.9 )
       lowerPart = thePiece.parts[2].getElementsByOffset( 0.0, 63.9 )
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       # Prepare the findings
@@ -973,55 +973,55 @@ class TestVisTheseParts( unittest.TestCase ):
             '3 +2 2':1, '2 -2 3':1, '3 +2 5':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
-      self.assertEqual( len(self.stats._compoundQualityNGramsDict[2]), len(expectedQuality2Grams) )
-      self.assertEqual( self.stats._compoundQualityNGramsDict[2], expectedQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expectedQuality2Grams) )
+      self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expectedQuality2Grams )
    
 # NOTE: compare NoQuality 2-gram dictionaries
-#for thing in self.stats._compoundNoQualityNGramsDict[2].iterkeys():
+#for thing in self.stats._compound_no_quality_ngrams_dict[2].iterkeys():
    #if thing in expectedNoQuality2Grams:
-      #if self.stats._compoundNoQualityNGramsDict[2][thing] != expectedNoQuality2Grams[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
+      #if self.stats._compound_no_quality_ngrams_dict[2][thing] != expectedNoQuality2Grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
    #else:
-      #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ')' )
+      #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ')' )
 
 #for thing in expectedNoQuality2Grams.iterkeys():
-   #if thing in self.stats._compoundNoQualityNGramsDict[2]:
-      #if self.stats._compoundNoQualityNGramsDict[2][thing] != expectedNoQuality2Grams[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundNoQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
+   #if thing in self.stats._compound_no_quality_ngrams_dict[2]:
+      #if self.stats._compound_no_quality_ngrams_dict[2][thing] != expectedNoQuality2Grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_no_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedNoQuality2Grams[thing]) )
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
 # NOTE: compare interval dictionaries
-#for thing in self.stats._compoundIntervalDict.iterkeys():
+#for thing in self.stats._compound_interval_dict.iterkeys():
    #if thing in expectedCompoundIntervals:
-      #if self.stats._compoundIntervalDict[thing] != expectedCompoundIntervals[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundIntervalDict[thing]) + ' != expected ' + str(expectedCompoundIntervals[thing]) )
+      #if self.stats._compound_interval_dict[thing] != expectedCompoundIntervals[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expectedCompoundIntervals[thing]) )
    #else:
       #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(expectedCompoundIntervals[thing]) + ')' )
 
 #for thing in expectedCompoundIntervals.iterkeys():
-   #if thing in self.stats._compoundIntervalDict:
-      #if self.stats._compoundIntervalDict[thing] != expectedCompoundIntervals[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundIntervalDict[thing]) + ' != expected ' + str(expectedCompoundIntervals[thing]) )
+   #if thing in self.stats._compound_interval_dict:
+      #if self.stats._compound_interval_dict[thing] != expectedCompoundIntervals[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expectedCompoundIntervals[thing]) )
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
 # NOTE: compare 2-gram Quality dictionaries
-#for thing in self.stats._compoundQualityNGramsDict[2].iterkeys():
+#for thing in self.stats._compound_quality_ngrams_dict[2].iterkeys():
    #if thing in expectedQuality2Grams:
-      #if self.stats._compoundQualityNGramsDict[2][thing] != expectedQuality2Grams[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedQuality2Grams[thing]) )
+      #if self.stats._compound_quality_ngrams_dict[2][thing] != expectedQuality2Grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedQuality2Grams[thing]) )
    #else:
-      #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compoundQualityNGramsDict[2][thing]) + ')' )
+      #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(self.stats._compound_quality_ngrams_dict[2][thing]) + ')' )
 
 #for thing in expectedQuality2Grams.iterkeys():
-   #if thing in self.stats._compoundQualityNGramsDict[2]:
-      #if self.stats._compoundQualityNGramsDict[2][thing] != expectedQuality2Grams[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compoundQualityNGramsDict[2][thing]) + ' != expected ' + str(expectedQuality2Grams[thing]) )
+   #if thing in self.stats._compound_quality_ngrams_dict[2]:
+      #if self.stats._compound_quality_ngrams_dict[2][thing] != expectedQuality2Grams[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_quality_ngrams_dict[2][thing]) + ' != expected ' + str(expectedQuality2Grams[thing]) )
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
@@ -1031,15 +1031,15 @@ class TestVisTheseParts( unittest.TestCase ):
 
 #-------------------------------------------------------------------------------
 class TestVisThesePartsLong( unittest.TestCase ):
-   # visTheseParts( theseParts, theSettings, theStatistics )
+   # vis_these_parts( theseParts, theSettings, theStatistics )
    #
    # This test suite expands on the TestVisTheseParts() by using longer
    # excerpts, which increases the chances for errors and also allows me to see
    # how long longer excerpts take.
    
    def setUp( self ):
-      self.stats = VerticalIntervalStatistics()
-      self.settings = visSettings()
+      self.stats = Vertical_Interval_Statistics()
+      self.settings = VIS_Settings()
 
    def test_Messiah( self ):
       # Title: "Sinfony" from "Messiah" by Handel
@@ -1054,7 +1054,7 @@ class TestVisThesePartsLong( unittest.TestCase ):
       # offset 200.0 is m.51
       higherPart = thePiece.parts[0].getElementsByOffset( 52.0, 199.9 )
       lowerPart = thePiece.parts[1].getElementsByOffset( 52.0, 199.9 )
-      itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       # Prepare the findings
@@ -1084,10 +1084,10 @@ class TestVisThesePartsLong( unittest.TestCase ):
             '9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
    
    #def test_La_Plus_des_Plus( self ):
       ## Title: "La Plus des Plus" by Josquin
@@ -1101,7 +1101,7 @@ class TestVisThesePartsLong( unittest.TestCase ):
       ## offset ??? is ???
       #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
       #lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       ## Prepare the findings
@@ -1109,10 +1109,10 @@ class TestVisThesePartsLong( unittest.TestCase ):
       #expectedNoQuality2Grams = {}
 
       ## Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      #self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      #self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
    
    #def test_Ave_Maris_Stella( self ):
       ## Title: "Ave maris stella" by Josquin
@@ -1127,7 +1127,7 @@ class TestVisThesePartsLong( unittest.TestCase ):
       ## offset ??? is ???
       #higherPart = thePiece.parts[0].getElementsByOffset( 0.0, 12.9 )
       #lowerPart = thePiece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      #itTook = visTheseParts( [higherPart,lowerPart], self.settings, self.stats )
+      #itTook = vis_these_parts( [higherPart,lowerPart], self.settings, self.stats )
       #print( '--> analysis took ' + str(itTook) + ' seconds' )
 
       ## Prepare the findings
@@ -1135,10 +1135,10 @@ class TestVisThesePartsLong( unittest.TestCase ):
       #expectedNoQuality2Grams = {}
 
       ## Verify the findings
-      #self.assertEqual( len(self.stats._compoundIntervalDict), len(expectedCompoundIntervals) )
-      #self.assertEqual( self.stats._compoundIntervalDict, expectedCompoundIntervals )
-      #self.assertEqual( len(self.stats._compoundNoQualityNGramsDict[2]), len(expectedNoQuality2Grams) )
-      #self.assertEqual( self.stats._compoundNoQualityNGramsDict[2], expectedNoQuality2Grams )
+      #self.assertEqual( len(self.stats._compound_interval_dict), len(expectedCompoundIntervals) )
+      #self.assertEqual( self.stats._compound_interval_dict, expectedCompoundIntervals )
+      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expectedNoQuality2Grams) )
+      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expectedNoQuality2Grams )
 
 
 # End TestVisThesePartsLong ---------------------------------------------------
@@ -1160,18 +1160,18 @@ if __name__ == '__main__':
    settingsSuite = unittest.TestLoader().loadTestsFromTestCase( TestSettings )
    sortingSuite = unittest.TestLoader().loadTestsFromTestCase( TestSorting )
    nGramSuite = unittest.TestLoader().loadTestsFromTestCase( TestNGram )
-   verticalIntervalStatisticsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVerticalIntervalStatistics )
-   visThesePartsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisTheseParts )
-   visThesePartsLongSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisThesePartsLong )
+   verticalIntervalStatisticsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVertical_Interval_Statistics )
+   vis_these_partsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisTheseParts )
+   vis_these_partsLongSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisThesePartsLong )
 
    # Run test suites for interface/background components
-   #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      ##TODO: some sort of testing for the 'lookForTheseNs' settting
-   #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
+      #TODO: some sort of testing for the 'lookForTheseNs' settting
+   unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    
    # Run test suites for analytic engine
-   #unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( visThesePartsLongSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsLongSuite )
    
