@@ -131,11 +131,9 @@ def analyze_this( pathname, the_settings = None ):#, verbosity = 'concise' ):
          look_at_parts = [number_of_parts+5,number_of_parts+5]
    #-----
    
-   # find out what or which 'n' to look for
-   n_list = raw_input( "Please input the desired values of n (as in n-gram). Default is n=2.\n--> ").split()
-   if n_list is not '':
-      the_settings.set_property( 'n', n_list )
-
+   # NB: I removed the "find out which 'n' to look for" part because users
+   # should set this before they type the filename.
+   
    print( "Processing...\n" )
    it_took = 0.0
    if 'all' == look_at_parts:
