@@ -57,7 +57,70 @@ class VIS_Settings:
       self._secret_settings_hash['outputResultsToFile'] = ''
       self._secret_settings_hash['n'] = [2] 
    
-   def set_property( self, property_str, prop_value = None ):
+   # Helper method to test whether a str contains a boolean value.
+   @staticmethod
+   def _is_t_or_f( s ):
+      s = s.lower()
+      if 'true' == s or 'yes' == s or 'false' == s or 'no' == s:
+         return True
+      else:
+         return False
+   #-----
+   
+   # Helper method to turn the str boolean into a real boolean
+   @staticmethod
+   def _str_to_bool( s ):
+      s = s.lower()
+      if 'true' == s or 'yes' == s:
+         return True
+      elif 'false' == s or 'no' == s:
+         return False
+      else:
+         return '' # panic?
+   #-----
+   
+   # Helper method to parse a str-based list of 'n' into an actual
+   # list of python int
+   @staticmethod
+   def _parse_list_of_n( ns ):
+      '''
+      Accepts a str and returns a sort()-ed list with all of the integers
+      as separated by any non-integer characters, with duplicates removed.
+      '''
+      
+      # NOTE: It would be nice if this were less terrible.
+      
+      # Use this to know whether a character is an int
+      list_of_int = '1234567890'
+      # Use this to hold the result
+      post = []
+      # Use this to hold previous characters
+      prev_chars = ''
+      
+      # Go over each thing
+      for each in list(ns):
+         if each in list_of_int:
+            prev_chars += each
+         else:
+            if len(prev_chars) > 0:
+               if int(prev_chars) in post:
+                  prev_chars = ''
+               else:
+                  post.append( int(prev_chars) )
+                  prev_chars = ''
+      
+      # If the last character is part of an int, it won't be processed until
+      # we do this.
+      if len(prev_chars) > 0:
+         if int(prev_chars) not in post:
+            post.append( int(prev_chars) )
+      
+      post.sort()
+      
+      return post
+   #-----
+   
+   def set_property( self, property_str ):
       # Parses 'property_str' and sets the specified property to the specified
       # value. Might later raise an exception if the property doesn't exist or
       # if the value is invalid.
@@ -66,45 +129,43 @@ class VIS_Settings:
       # a.set_property( 'chordLabelVerbosity concise' )
       # a.set_property( 'set chordLabelVerbosity concise' )
       
-      # just tests whether a str is 'true' or 'True' or 'false' or 'False
-      def is_t_or_f( s ):
-         if 'true' == s or 'True' == s or 'false' == s or 'False' == s:
-            return True
-         else:
-            return False
-      ####
-      if prop_value is None:
-         # if the str starts with "set " then remove that
-         if len(property_str) < 4:
-            pass # panic
-         elif 'set ' == property_str[:4]:
-            property_str = property_str[4:]
-               # check to make sure there's a property and a value
-         spaceIndex = property_str.find(' ')
-         if -1 == spaceIndex:
-            pass #panic
-     
-         # make sure we have a proper 'true' or 'false' str if we need one
-         if 'heedQuality' == property_str[:spaceIndex] or \
-            'produceLabeledScore' == property_str[:spaceIndex] or \
-            'produceLabelledScore' == property_str[:spaceIndex]:
-               if not is_t_or_f( property_str[spaceIndex+1:] ):
-                  raise NonsensicalInputError( "Value must be either True or False, but we got " + str(property_str[spaceIndex+1:]) )
+      # If the str starts with "set " then remove that
+      if 'set ' == property_str[:4]:
+         property_str = property_str[4:]
       
-         # now match the property
-         if property_str[:spaceIndex] in self._secret_settings_hash:
-            self._secret_settings_hash[property_str[:spaceIndex]] = property_str[spaceIndex+1:]
-         elif 'produceLabelledScore' == property_str[:spaceIndex]:
-            self._secret_settings_hash['produceLabeledScore'] = property_str[spaceIndex+1:]
-         # unrecognized property
+      # Check to make sure we still have a setting and a value
+      setting = property_str[:property_str.find(' ')]
+      value = property_str[property_str.find(' ')+1:]
+      
+      if 0 == len(setting):
+         raise NonsensicalInputError( 'Unable to find setting name in "' + property_str + '"' )
+      if 0 == len(value):
+         raise NonsensicalInputError( 'Unable to find value in "' + property_str + '"' )
+      
+      # If the property requires a boolean value, make sure we have one
+      if 'heedQuality' == setting or 'produceLabeledScore' == setting or \
+            'produceLabelledScore' == setting:
+         if not VIS_Settings._is_t_or_f( value ):
+            raise NonsensicalInputError( \
+                  'Value must be either True or False, but we got "' + \
+                  str(value) + '"' )
          else:
-            raise NonsensicalInputError( "Unrecognized property: " + property_str[:spaceIndex])
-      # So that we have a conventional setter as well, and we don't have to cast from string to list, etc
+            value = VIS_Settings._str_to_bool( value )
+      
+      # If the property is 'n' we need to parse the list of values into
+      # a real list of int.
+      if 'lookForTheseNs' == setting:
+         value = VIS_Settings._parse_list_of_n( value )
+      
+      # now match the property
+      if setting in self._secret_settings_hash:
+         self._secret_settings_hash[setting] = value
+      elif 'produceLabelledScore' == setting:
+         self._secret_settings_hash['produceLabeledScore'] = value
+      # We don't have that setting
       else:
-         if property_str in self._secret_settings_hash:
-           self._secret_settings_hash[property_str] = prop_value
-         else:
-           raise NonsensicalInputError("Unrecognized property: " + property_str)
+         raise NonsensicalInputError( "Unrecognized setting name: " + setting)
+   # end set_propety() ------------------------------------
    
    def get_property( self, property_str ):
       # Parses 'property_str' and returns the value of the specified property.
@@ -115,9 +176,7 @@ class VIS_Settings:
       # a.get_property( 'get chordLabelVerbosity' )
       
       # if the str starts with "get " then remove that
-      if len(property_str) < 4:
-         pass # panic
-      elif 'get ' == property_str[:4]:
+      if 'get ' == property_str[:4]:
          property_str = property_str[4:]
 
       # now match the property
@@ -130,10 +189,5 @@ class VIS_Settings:
       else:
          raise NonsensicalInputError( "Unrecognized property: " + property_str )
 
-      if 'True' == post or 'true' == post:
-         return True
-      elif 'False' == post or 'false' == post:
-         return False
-      else:
-         return post
+      return post
 # End Class: VIS_Settings ------------------------------------------
