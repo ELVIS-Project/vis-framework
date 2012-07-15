@@ -28,7 +28,8 @@
 from music21 import interval
 from music21 import note
 # vis
-from problems import NonsensicalInputError
+from problems import MissingInformationError
+from VIS_Settings import VIS_Settings
 
 
 
@@ -54,7 +55,7 @@ class NGram( object ):
       objects embedded, to calculate the "distance" between adjacent
       vertical intervals.
       
-      The third interval is a str, either 'simple' or 'compound' depending on
+      The third argument is a str, either 'simple' or 'compound' depending on
       which type of str output you want.
       
       If an Interval is descending, this is considered to be a voice crossing.
@@ -71,16 +72,31 @@ class NGram( object ):
       >>> b = interval.Interval( note.Note('D4'), note.Note('E4') )
       >>> ng = NGram( [a,b], s.get_property( 'heed_quality' ) )
       NGram( [music21.interval.Interval( music21.note.Note('C4'), music21.note.Note('E4') ),music21.interval.Interval( music21.note.Note('D4'), music21.note.Note('E4') )], False )
-      '''
-      # assign stuff
-      self._heed_quality = heed_quality
-      self._simple_or_compound = simple_or_compound
-      self._n = len(some_intervals)
-      self._list_of_intervals = some_intervals
-      # do stuff
-      self._calculate_movements()
-      self._string = self.get_string_version( heed_quality, simple_or_compound )
       
+      The second argument could also be a VIS_Settings object, in which case
+      the third argument is ignored.
+      '''
+      # Deal with the settings
+      if isinstance( heed_quality, VIS_Settings ):
+         pass
+      else:
+         self._heed_quality = heed_quality
+         self._simple_or_compound = simple_or_compound
+      
+      # Continue assigning
+      # TODO: if len() doesn't match settings, if there's settings, then panic
+      self._n = len(some_intervals)
+      
+      # Assign the intervals
+      self._list_of_intervals = some_intervals
+      
+      # Calculate melodic intervals between vertical intervals.
+      self._calculate_movements()
+      
+      # Generate the str representation of this NGram
+      self._string = self.get_string_version( heed_quality, simple_or_compound )
+      #----------------------------------------------------
+   
    # internal method
    def _calculate_movements( self ):
       # Calculates the movement of the lower part between adjacent Interval
@@ -96,8 +112,7 @@ class NGram( object ):
             post.append( interval.Interval( self._list_of_intervals[i].noteStart, \
                                             self._list_of_intervals[i+1].noteStart ) )
          except AttributeError as attrerr:
-            raise AttributeError( 'NGram: Received an AttributeError; this probably means one of the intervals is missing a note.Note' )
-            #raise NonsensicalInputError( 'NGram: Received an AttributeError; this probably means one of the intervals is missing a note.Note' )
+            raise MissingInformationError( 'NGram: Probably one of the intervals is missing a note.Note' )
          
       self._list_of_movements = post
    #-------------------------------------------------------
@@ -136,13 +151,14 @@ class NGram( object ):
             post += ' '
          
          # Calculate this interval
+         # NB: to avoid raising an excpetion, if it's not 'simple' we can just
+         # assume it's 'compound'.
          this_interval = None
          if 'simple' == simple_or_compound:
             this_interval = self._list_of_intervals[i].directedSimpleName
-         elif 'compound' == simple_or_compound:
-            this_interval = self._list_of_intervals[i].directedName
+         #elif 'compound' == simple_or_compound:
          else:
-            raise NonsensicalInputError( "NGram.stringVersion(): 'simple_or_compound' (2nd argument) must be either 'simple' or 'compound'." )
+            this_interval = self._list_of_intervals[i].directedName
          
          # If we're ignoring quality, remove the quality.
          if not heed_quality:
@@ -166,12 +182,13 @@ class NGram( object ):
             else:
                post += ' '
             
+            # NB: to avoid raising an exception, if it's not 'simple' we'll
+            # just assume it's compound. 
             if 'simple' == simple_or_compound:
                zzz = this_move.semiSimpleName
-            elif 'compound' == simple_or_compound:
-               zzz = this_move.name
             else:
-               raise NonsensicalInputError( "NGram.stringVersion(): 'simple_or_compound' (2nd argument) must be either 'simple' or 'compound'." )
+            #elif 'compound' == simple_or_compound:
+               zzz = this_move.name
             
             if not heed_quality:
                zzz = zzz[1:]

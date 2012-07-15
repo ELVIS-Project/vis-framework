@@ -136,8 +136,9 @@ class Vertical_Interval_Statistics( object ):
          return post
       ##
       
-      errorstr = "Vertical_Interval_Statistics.get_interval_occurrences(): " + \
-            "'simple_or_compound' must be set to either 'simple' or 'compound'"
+      errorstr = 'Second argument must be either "simple" or "compound"'
+      #errorstr = "Vertical_Interval_Statistics.get_interval_occurrences(): " + \
+            #"'simple_or_compound' must be set to either 'simple' or 'compound'"
       
       # Are they ignoring quality? Yes, if the interval is just a digit or if
       # the first character is a direction

@@ -44,13 +44,14 @@ from output_LilyPond import process_score
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics, interval_sorter, ngram_sorter
 from analytic_engine import vis_these_parts
 from NGram import NGram
-from problems import NonsensicalInputError
+from problems import *
 from file_output import file_outputter
+from VIS_Settings import VIS_Settings
 
 
 
 #-------------------------------------------------------------------------------
-def analyzeThis( pathname, the_settings = None ):#, verbosity = 'concise' ):
+def analyze_this( pathname, the_settings = None ):#, verbosity = 'concise' ):
    '''
    Given the path to a music21-supported score, imports the score, performs a
    harmonic-functional analysis, annotates the score, and displays it with show().
@@ -85,13 +86,17 @@ def analyzeThis( pathname, the_settings = None ):#, verbosity = 'concise' ):
       try:
          the_score = converter.parse( pathname )
       except Converter_Exception:
-         raise
+         # This would happen when the filename doesn't exist.
+         raise BadFileError( 'music21 reports this file does not exist: ' \
+                              + pathname )
       except Converter_File_Exception:
-         raise
+         # This would happen for an unsupported file type.
+         raise BadFileError( 'music21 reports this file type is unsupported: ' \
+                              + pathname )
    elif isinstance( pathname, stream.Score ):
       the_score = pathname
    else:
-      raise NonsensicalInputError( "analyzeThis(): input must be str or stream.Score; received " + str(type(pathname)) )
+      raise BadFileError( "analyze_this(): input must be str or stream.Score; received " + str(type(pathname)) )
    
    # find out which 2 parts to investigate
    number_of_parts = len(the_score.parts)
@@ -119,9 +124,12 @@ def analyzeThis( pathname, the_settings = None ):#, verbosity = 'concise' ):
       try:
          look_at_parts[0] = int(their_specification[0])
          look_at_parts[1] = int(their_specification[-1])
-      except ValueError as valErr:
-         # if something didn't work out with int()
+      except ValueError as val_err:
+         # If something didn't work out with int() we can just ask for the
+         # part specification again.
+         print( 'Does not compute: ' + str(val_err) )
          look_at_parts = [number_of_parts+5,number_of_parts+5]
+   #-----
    
    # find out what or which 'n' to look for
    n_list = raw_input( "Please input the desired values of n (as in n-gram). Default is n=2.\n--> ").split()
@@ -173,113 +181,7 @@ def analyzeThis( pathname, the_settings = None ):#, verbosity = 'concise' ):
    
    #
    print( '' )
-# End function analyzeThis() ---------------------------------------------------
-
-
-
-# Class: VIS_Settings ----------------------------------------------
-class VIS_Settings:
-   # An internal class that holds settings for stuff.
-   #
-   # produceLabeledScore : whether to produce a score showing interval
-   #     sequences, through LilyPond.
-   # heedQuality : whether to pay attention to the quality of an interval
-   #
-   # NOTE: When you add a property, remember to test its default setting in
-   # the unit test file.
-   # 
-   # NOTE: I'm going to keep the setting names in camel case because this is
-   # the music21 convention, and it's probably a good idea for our users to
-   # think consistently.
-   def __init__( self ):
-      self._secret_settings_hash = {}
-      self._secret_settings_hash['produceLabeledScore'] = False
-      self._secret_settings_hash['heedQuality'] = False
-      self._secret_settings_hash['lookForTheseNs'] = [2]
-      self._secret_settings_hash['offsetBetweenInterval'] = 0.5
-      self._secret_settings_hash['outputResultsToFile'] = ''
-      self._secret_settings_hash['n'] = [2] 
-   
-   def set_property( self, property_str, prop_value = None ):
-      # Parses 'property_str' and sets the specified property to the specified
-      # value. Might later raise an exception if the property doesn't exist or
-      # if the value is invalid.
-      #
-      # Examples:
-      # a.set_property( 'chordLabelVerbosity concise' )
-      # a.set_property( 'set chordLabelVerbosity concise' )
-      
-      # just tests whether a str is 'true' or 'True' or 'false' or 'False
-      def is_t_or_f( s ):
-         if 'true' == s or 'True' == s or 'false' == s or 'False' == s:
-            return True
-         else:
-            return False
-      ####
-      if prop_value is None:
-         # if the str starts with "set " then remove that
-         if len(property_str) < 4:
-            pass # panic
-         elif 'set ' == property_str[:4]:
-            property_str = property_str[4:]
-               # check to make sure there's a property and a value
-         spaceIndex = property_str.find(' ')
-         if -1 == spaceIndex:
-            pass #panic
-     
-         # make sure we have a proper 'true' or 'false' str if we need one
-         if 'heedQuality' == property_str[:spaceIndex] or \
-            'produceLabeledScore' == property_str[:spaceIndex] or \
-            'produceLabelledScore' == property_str[:spaceIndex]:
-               if not is_t_or_f( property_str[spaceIndex+1:] ):
-                  raise NonsensicalInputError( "Value must be either True or False, but we got " + str(property_str[spaceIndex+1:]) )
-      
-         # now match the property
-         if property_str[:spaceIndex] in self._secret_settings_hash:
-            self._secret_settings_hash[property_str[:spaceIndex]] = property_str[spaceIndex+1:]
-         elif 'produceLabelledScore' == property_str[:spaceIndex]:
-            self._secret_settings_hash['produceLabeledScore'] = property_str[spaceIndex+1:]
-         # unrecognized property
-         else:
-            raise NonsensicalInputError( "Unrecognized property: " + property_str[:spaceIndex])
-      # So that we have a conventional setter as well, and we don't have to cast from string to list, etc
-      else:
-         if property_str in self._secret_settings_hash:
-	        self._secret_settings_hash[property_str] = prop_value
-         else:
-	        raise NonsensicalInputError("Unrecognized property: " + property_str)
-   
-   def get_property( self, property_str ):
-      # Parses 'property_str' and returns the value of the specified property.
-      # Might later raise an exception if the property doesn't exist.
-      #
-      # Examples:
-      # a.get_property( 'chordLabelVerbosity' )
-      # a.get_property( 'get chordLabelVerbosity' )
-      
-      # if the str starts with "get " then remove that
-      if len(property_str) < 4:
-         pass # panic
-      elif 'get ' == property_str[:4]:
-         property_str = property_str[4:]
-
-      # now match the property
-      post = None
-      if property_str in self._secret_settings_hash:
-         post = self._secret_settings_hash[property_str]
-      elif 'produceLabelledScore' == property_str:
-         post = self._secret_settings_hash['produceLabeledScore']
-      # unrecognized property
-      else:
-         raise NonsensicalInputError( "Unrecognized property: " + property_str )
-
-      if 'True' == post or 'true' == post:
-         return True
-      elif 'False' == post or 'false' == post:
-         return False
-      else:
-         return post
-# End Class: VIS_Settings ------------------------------------------
+# End function analyze_this() ---------------------------------------------------
 
 
 
@@ -340,12 +242,12 @@ set orderPizza true
                try:
                   my_settings.set_property( 'orderPizza true' )
                except NonsensicalInputError as err:
-                  print( 'Error: ' + str(err) + "\n" )
+                  print( 'Unable to set property: ' + str(err) + "\n" )
             else:
                try:
                   my_settings.set_property( user_says )
                except NonsensicalInputError as e:
-                  print( "Error: " + str(e) )
+                  print( "Unable to set property: " + str(e) )
          elif 'get' == user_says[:user_says.find(' ')]:
             if 'get help' == user_says:
                print( "You can view any of the settings described in the \'help settings\' command.\n" )
@@ -358,8 +260,8 @@ set orderPizza true
                try:
                   val = my_settings.get_property( user_says )
                   print( val )
-               except NonsensiclaInputError as e:
-                  print( "Error: " + str(e) )
+               except NonsensicalInputError as e:
+                  print( "Unable to get property: " + str(e) )
          elif 'help' == user_says[:user_says.find(' ')]:
             if 'help settings' == user_says:
                print( "List of Settings:" )
@@ -406,13 +308,10 @@ set orderPizza true
          if path_exists( user_says ):
             print( "Loading " + user_says + " for analysis." )
             try:
-               analyzeThis( user_says, my_settings )
-            except Converter_Exception as e:
-               print( "--> music21 Error: " + str(e) )
-            except Converter_File_Exception as e:
-               print( "--> music21 Error: " + str(e) )
-            except NonsensicalInputError as e:
-               print( "--> Error from analyzeThis(): " + str(e) )
+               analyze_this( user_says, my_settings )
+            except BadFileError as bfe:
+               print( 'Encountered a BadFileError while processing ' + user_says + '...' )
+               print( str(bfe) )
          else:
             print( "Unrecognized command or file name (" + user_says + ")" )
 # End "main" function ----------------------------------------------------------

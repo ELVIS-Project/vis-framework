@@ -26,6 +26,6 @@
 
 __all__ = ['test_corpus', 'analytic_engine', 'file_output', 'NGram', \
            'output_LilyPond', 'problems', 'Vertical_Interval_Statistics', \
-           'vis']
+           'vis', 'VIS_Settings']
 
 import *

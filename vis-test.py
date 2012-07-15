@@ -185,7 +185,7 @@ class TestNGram( unittest.TestCase ):
    def test_distance_calc_exception( self ):
       self.temp = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval('m3')]
-      self.assertRaises( NonsensicalInputError, NGram, self.temp )
+      self.assertRaises( MissingInformationError, NGram, self.temp )
       # Note that if we do this with
       # >>> self.g[2].noteEnd = None
       # then everything is okay because we only use the .noteStart to calculate
@@ -200,7 +200,7 @@ class TestNGram( unittest.TestCase ):
          self.g[2].noteStart = None
       except AttributeError as e:
          pass
-      self.assertRaises( NonsensicalInputError, NGram, self.g )
+      self.assertRaises( MissingInformationError, NGram, self.g )
 
    def test_equality( self ):
       # if they have different heed_quality settings, they're not the same

@@ -83,3 +83,21 @@ class MissingInformationError( Exception ):
    def __str__( self ):
       return repr( self.value )
 #-------------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------------
+class BadFileError( Exception ):
+   '''
+   VIS uses this error when there is a problem loading or handling a file, not
+   related to a more specific musical element.
+   '''
+   
+   # NB: This class has a name in camel case so it fits in with the built-in
+   # Python exceptions and errors.
+   
+   def __init__( self, val ):
+      self.value = val
+   def __str__( self ):
+      return repr( self.value )
+#-------------------------------------------------------------------------------
