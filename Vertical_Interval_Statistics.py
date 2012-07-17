@@ -62,7 +62,15 @@ class Vertical_Interval_Statistics( object ):
       return self.__str__( self )
    
    def __str__( self ):
-      return '<Vertical_Interval_Statistics about intervals and n-grams>'
+      # This should produce something like...
+      # "<Vertical_Interval_Statistics with 14 intervals; 26 2-grams; 19 3-grams>"
+      post = '<Vertical_Interval_Statistics with ' + \
+            str(len(self._compound_interval_dict)) + ' intervals; '
+      for i in xrange(2,len(self._compound_quality_ngrams_dict)):
+         post += str(len(self._compound_quality_ngrams_dict[i])) + ' ' + \
+                 str(i) + '-grams; '
+      
+      return post[:-2] + '>'
    
    def add_interval( self, the_interval ):
       '''
@@ -224,18 +232,112 @@ class Vertical_Interval_Statistics( object ):
          return 0
    # end get_ngram_occurrences()
    
-   def get_formatted_intervals( self, the_settings ):
+   @staticmethod
+   def _reduce_qualities( intervals_in ):
+      ###
+      # Given a dictionary of intervals with qualities, like 
+      # V_I_S._compound_interval_dict, produces a list where the intervals
+      # don't have qualities.
+      # 
+      # ['m3':5, 'M3':6, 'P4':1] ==> ['3':11, '4':1]
+      ###
+      qualities = 'dmMPA'
+      post = {}
+      # TODO: there must be a way to get only and all of the intervals that are
+      # actually present
+      for size in xrange(1,30):
+         for quality in qualities:
+            look_for = quality + str(size)
+            if look_for in intervals_in:
+               if str(size) in post:
+                  post[str(size)] += intervals_in[look_for]
+               else:
+                  post[str(size)] = intervals_in[look_for]
+      return post
+   
+   def get_formatted_intervals( self, the_settings, specs = '' ):
       '''
-      Formats the intervals nicely.
+      Returns a str with a nicely-formatted representation of the interval
+      frequencies recoreded in this Vertical_Interval_Statistics() object.
+      
+      The second argument is a VIS_Settings() object, from which we will use
+      the heedQuality and simpleOrCompound properties.
+      
+      The third argument is optional, and should be a str specifying how to
+      sort the list of intervals. The str can contain any words in any order,
+      because unrecognized words will be ignored.
+      
+      Useful list of things for the format str to contain:
+      - 'by interval' if you want to sort the list by intervals
+      - 'by frequency' if you want to sort the list by number of occurrences
+      - 'ascending' or 'low to high' if you want the lowest or least common
+         interval at the top of the list
+      - 'descending' or 'high to low' if you want the highest or most common
+         interval at the top of the list
       '''
-      # TODO: heed heedQuality
-      # TODO: heed compound/simple
+      
+      # First, decide which dictionary to use and how to process the intervals.
+      the_dict = None
+      # Do we need to include quality?
+      if True == the_settings.get_property( 'heedQuality' ):
+         # Do we need compound or simple intervals?
+         # We need compound intervals.
+         if 'compound' == the_settings.get_property( 'simpleOrCompound' ):
+            the_dict = self._compound_interval_dict
+         # We need simple intervals.
+         else:
+            the_dict = self._simple_interval_dict
+      # We don't need to include quality
+      else:
+         # Do we need compound or simple intervals?
+         # We need compound intervals.
+         if 'compound' == the_settings.get_property( 'simpleOrCompound' ):
+            the_dict = Vertical_Interval_Statistics._reduce_qualities( self._compound_interval_dict )
+         # We need simple intervals.
+         else:
+            the_dict = Vertical_Interval_Statistics._reduce_qualities( self._simple_interval_dict )
+      
+      # Second, sort the results in the specified way.
+      if 'by frequency' in specs:
+         # We'll have to swap value/key pairs
+         flipped_dict = {}
+         for key, val in the_dict.items():
+            if val in flipped_dict:
+               flipped_dict[val] += ', ' + key
+            else:
+               flipped_dict[val] = key
+         
+         # Sort the intervals
+         if 'ascending' in specs or 'low to high' in specs:
+            sorted_intervals = sorted( flipped_dict.iterkeys() )
+         elif 'descending' in specs or 'high to low' in specs:
+            sorted_intervals = sorted( flipped_dict.iterkeys(), reverse=True )
+         else: # Default to 'ascending'
+            sorted_intervals = sorted( flipped_dict.iterkeys() )
+         
+         # We're now working with flipped_dict in "Third"
+         the_dict = flipped_dict
+      else: # elif 'by interval' in specs:
+         # Default to 'by interval'
+         if 'ascending' in specs or 'low to high' in specs:
+            sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter )
+         elif 'descending' in specs or 'high to low' in specs:
+            sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter, reverse=True )
+         else: # Default to 'ascending'
+            sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter )
+      
+      # Third, make a nicely formatted list from the results.
       post = 'All the Intervals:\n------------------\n'
-      sorted_intervals = sorted( self._compound_interval_dict, cmp=interval_sorter )
-      for interv in sorted_intervals:
-         post += interv + ': ' + str(self._compound_interval_dict[interv]) + '\n'
+      if 'by frequency' in specs:
+         for freq in sorted_intervals:
+            post += str(freq) + ': ' + the_dict[freq] + '\n'
+      else: # elif 'by interval' in specs:
+         # Default to 'by interval'
+         for interv in sorted_intervals:
+            post += interv + ': ' + str(the_dict[interv]) + '\n'
       post += '\n'
       
+      # Done!
       return post
    # end get_formatted_intervals()
    
@@ -243,7 +345,7 @@ class Vertical_Interval_Statistics( object ):
       '''
       Formats the n-grams nicely. If you specify 'n' as a second argument, only
       those values of n-grams will be outputted. If you do not specify 'n', all
-      available values of n-grams will be outputted.
+      available n-grams will be outputted.
       '''
       # TODO: heed heedQuality
       # TODO: heed compound/simple

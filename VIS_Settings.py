@@ -56,7 +56,8 @@ class VIS_Settings:
       self._secret_settings_hash['lookForTheseNs'] = [2]
       self._secret_settings_hash['offsetBetweenInterval'] = 0.5
       self._secret_settings_hash['outputResultsToFile'] = ''
-      self._secret_settings_hash['n'] = [2] 
+      self._secret_settings_hash['simpleOrCompound'] = 'compound'
+      #self._secret_settings_hash['n'] = [2] 
    
    # Helper method to test whether a str contains a boolean value.
    @staticmethod

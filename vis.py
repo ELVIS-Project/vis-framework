@@ -155,14 +155,14 @@ def analyze_this( pathname, the_settings = None ):#, verbosity = 'concise' ):
    parsed_output = the_stats.get_formatted_intervals( the_settings ) + \
                   the_stats.get_formatted_ngrams( the_settings )
    # If this has anything, we'll assume it's a filename to use for output.
-   possible_file = the_settings.get_property( 'outputResultsToFile' )
-   if len(possible_file) > 0:
+   intended_filename = the_settings.get_property( 'outputResultsToFile' )
+   if len(intended_filename) > 0:
       print( '----------------------' )
-      print( 'Outputting results to ' + possible_file )
-      output_feedback = file_outputter( parsed_output, possible_file )
-      if output_feedback[1] is not None:
+      print( 'Outputting results to ' + intended_filename )
+      file_output_result = file_outputter( parsed_output, possible_file )
+      if file_output_result[1] is not None:
          print( 'Encountered an error while attempting to write results to a file.\n' + \
-               output_feedback[1] )
+               file_output_result[1] )
    else:
       print( '---------------------' )
       print( 'Here are the results!' )

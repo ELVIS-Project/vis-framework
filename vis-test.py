@@ -675,6 +675,86 @@ class TestVertical_Interval_Statistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
       self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 7 )
       self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +2 -3', n=4 ), 7 )
+   
+   def test__reduce_qualities( self ):
+      # this stands for interval_dictionary
+      i_d = {'m3':5, 'M3':4}
+      self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
+                        {'3':9} )
+      i_d['d3'] = 12
+      self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
+                        {'3':21} )
+      i_d['A3'] = 12
+      i_d['P3'] = 12
+      self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
+                        {'3':45} )
+      i_d['d1'] = 1
+      i_d['P1'] = 4
+      self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
+                        {'1':5, '3':45} )
+   
+   def test_get_formatted_intervals( self ):
+      expected_ascending_by_interval = '''All the Intervals:
+------------------
+8: 7
+9: 3
+10: 24
+11: 3
+12: 24
+13: 14
+14: 7
+15: 9
+16: 1
+17: 5
+
+'''
+      expected_ascending_by_frequency = '''All the Intervals:
+------------------
+1: 16
+3: 11, 9
+5: 17
+7: 14, 8
+9: 15
+14: 13
+24: 10, 12
+
+'''
+      expected_descending_by_frequency = '''All the Intervals:
+------------------
+24: 10, 12
+14: 13
+9: 15
+7: 14, 8
+5: 17
+3: 11, 9
+1: 16
+
+'''
+      expected_descending_by_interval = '''All the Intervals:
+------------------
+17: 5
+16: 1
+15: 9
+14: 7
+13: 14
+12: 24
+11: 3
+10: 24
+9: 3
+8: 7
+
+'''
+      score = converter.parse( 'test_corpus/bwv77.mxl' )
+      sets = VIS_Settings()
+      vis_these_parts( [score.parts[0], score.parts[3]], sets, self.vis )
+      self.assertEqual( self.vis.get_formatted_intervals( sets, 'ascending by interval' ), \
+                        expected_ascending_by_interval )
+      self.assertEqual( self.vis.get_formatted_intervals( sets, ' ascending by frequency' ), \
+                        expected_ascending_by_frequency )
+      self.assertEqual( self.vis.get_formatted_intervals( sets, 'descending by interval' ), \
+                        expected_descending_by_interval )
+      self.assertEqual( self.vis.get_formatted_intervals( sets, 'descending by frequency' ), \
+                        expected_descending_by_frequency )
 # End TestVertical_Interval_Statistics ------------------------------------------
 
 
