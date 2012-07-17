@@ -30,6 +30,7 @@
 
 
 # Import
+import re
 from problems import NonsensicalInputError
 
 
@@ -88,36 +89,8 @@ class VIS_Settings:
       as separated by any non-integer characters, with duplicates removed.
       '''
       
-      # NOTE: It would be nice if this were less terrible.
-      
-      # Use this to know whether a character is an int
-      list_of_int = '1234567890'
-      # Use this to hold the result
-      post = []
-      # Use this to hold previous characters
-      prev_chars = ''
-      
-      # Go over each thing
-      for each in list(ns):
-         if each in list_of_int:
-            prev_chars += each
-         else:
-            if len(prev_chars) > 0:
-               if int(prev_chars) in post:
-                  prev_chars = ''
-               else:
-                  post.append( int(prev_chars) )
-                  prev_chars = ''
-      
-      # If the last character is part of an int, it won't be processed until
-      # we do this.
-      if len(prev_chars) > 0:
-         if int(prev_chars) not in post:
-            post.append( int(prev_chars) )
-      
-      post.sort()
-      
-      return post
+      # This method courtesy of Greg Burlet.
+      return sorted(set([int(n) for n in re.findall('(\d+)', ns)]))
    #-----
    
    def set_property( self, property_str ):
