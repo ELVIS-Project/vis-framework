@@ -48,16 +48,13 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    Returns the number of seconds the analysis took.
    '''
    
-   # Note the starting time of the analysis
-   analysis_start_time = datetime.now()
-   
+   # Helper Methods ---------------------------------------
    # Is 'thing' a Note?
    def is_note( thing ):
       if isinstance( thing, note.Note ):
          return True
       else:
          return False
-   #
    
    # Is 'thing' a Rest?
    def is_rest( thing ):
@@ -65,7 +62,6 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          return True
       else:
          return False
-   #
    
    # Is 'thing' a Note, Rest, or neither?
    def is_note_or_rest( thing ):
@@ -73,7 +69,16 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          return True
       else:
          return False
-   #
+   # End Helper Methods -----------------------------------
+   
+   # Note the starting time of the analysis
+   analysis_start_time = datetime.now()
+   
+   # Keep track of whether this is the first 'n' we're looking for; we should
+   # only add intervals to the Vertical_Interval_Statistics object if this is
+   # the first time, otherwise we'll get len(list_of_n) times as many intervals
+   # reported as are actually in the piece
+   on_the_first_n = True
    
    # Repeat the whole process with every specified value of n.
    for n in the_settings.get_property('lookForTheseNs'):
@@ -332,7 +337,10 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                # DEBUGGING
                #print( '--> adding ' + this_interval.name + ' at offset ' + str(max(most_recent_low.offset,most_recent_high.offset)) )
                # END DEBUGGING
-               the_statistics.add_interval( this_interval )
+               # Only count this interval if we're "on the first 'n'" meaning
+               # the intervals haven't been counted yet.
+               if on_the_first_n:
+                  the_statistics.add_interval( this_interval )
                
                # If there are insufficient previous objects to make an n-gram
                # here, then continue onto the next objects.
@@ -387,6 +395,12 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
             #print( 'Neither low nor high was flagged as updated; skipping offset: ' + str(current_offset) )
          # END DEBUGGING
       # End of the "while" loop.
+      
+      # Keep track of whether this is the first 'n' we're looking for; we should
+      # only add intervals to the Vertical_Interval_Statistics object if this is
+      # the first time, otherwise we'll get len(list_of_n) times as many intervals
+      # reported as are actually in the piece
+      on_the_first_n = False
    # End of the "for" loop.
    
    # Note the ending time of the analysis...

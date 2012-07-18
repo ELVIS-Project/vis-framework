@@ -1754,13 +1754,39 @@ class TestVisTheseParts( unittest.TestCase ):
    def setUp( self ):
       self.stats = Vertical_Interval_Statistics()
       self.settings = VIS_Settings()
-
+   
+   def test_intervals_not_counted_multiple_times( self ):
+      # BWV 7.7 (a chorale)
+      # MusicXML
+      # Soprano and Bass
+      # Measures 1 through 4
+      
+      # Process the excerpt
+      filename = 'test_corpus/bwv77.mxl'
+      the_piece = converter.parse( filename )
+      self.settings.set_property( 'lookForTheseNs 2,3,4' )
+      # offset 13.0 is the fourth measure
+      higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 12.9 )
+      lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
+      
+      # Prepare the findings
+      # NB: these are the same as test_theFirst()
+      expected_compound_intervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
+            'm13':1, 'm17':1, 'M13':1, 'm10':4 }
+      
+      # Verify the findings
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+   
+   
    def test_theFirst( self ):
       # BWV 7.7 (a chorale)
       # MusicXML
       # Soprano and Bass
       # Measures 1 through 4
-
+      
       # Process the excerpt
       filename = 'test_corpus/bwv77.mxl'
       the_piece = converter.parse( filename )
@@ -1769,7 +1795,7 @@ class TestVisTheseParts( unittest.TestCase ):
       lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
-
+      
       # Prepare the findings
       expected_compound_intervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
             'm13':1, 'm17':1, 'M13':1, 'm10':4 }
@@ -1777,7 +1803,7 @@ class TestVisTheseParts( unittest.TestCase ):
             '13 -2 17':1, '17 +6 12':1, '9 1 10':1, '12 +4 10':1, '12 -2 13':1, \
             '12 -3 13':1, '13 +2 12':1, '12 +4 8':1, '8 -4 10':1, \
             '10 +4 10':1, '10 -2 10':3 }
-
+      
       # Verify the findings
       self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
       self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
@@ -2240,9 +2266,9 @@ if __name__ == '__main__':
    #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
    
    # Run test suites for analytic engine
-   #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsLongSuite )
    
