@@ -400,17 +400,12 @@ class Vertical_Interval_Statistics( object ):
                post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
       else:
          # Which values of 'n' are present in this V_I_S instance?
-         # Make a list starting at 2, extending to number of 'n' values in
-         # this V_I_S instance.
-         list_of_n = range( 2, len(self._compound_no_quality_ngrams_dict) )
-         # Now check if there are actually n-grams in that position. If we
-         # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
-         # valid in the n-gram dictionary, but they won't actually hold
-         # any n-grams.
-         for n in list_of_n:
-            if {} == self._compound_no_quality_ngrams_dict[n]:
-               # throw it out
-               list_of_n.remove( n )
+         list_of_n = []
+         # Check every index between 2 and however many possibilities there are,
+         # and see which of these potential n values has n-grams associated.
+         for n in xrange( 2, len(self._compound_no_quality_ngrams_dict) ):
+            if {} != self._compound_no_quality_ngrams_dict[n]:
+               list_of_n.append( n )
       #-----
       
       # What if we end up with no n values?
@@ -427,6 +422,11 @@ class Vertical_Interval_Statistics( object ):
          output_dict = self._compound_no_quality_ngrams_dict
       
       # (3) Sort the dictionary
+      sorted_ngrams = []
+      # We need to have enough 'n' places in sorted_ngrams to hold the
+      # sorted dictionaries.
+      for n in xrange(max(list_of_n) + 1):
+         sorted_ngrams.append( [] )
       if 'by frequency' in specs:
          # Sort by frequency
          # We'll have to swap value/key pairs
@@ -446,10 +446,10 @@ class Vertical_Interval_Statistics( object ):
          # Sort the frequencies
          for n in list_of_n:
             if 'descending' in specs or 'high to low' in specs:
-               sorted_ngrams = sorted( flipped_dicts[n].iterkeys(), reverse=True )
+               sorted_ngrams[n] = sorted( flipped_dicts[n].iterkeys(), reverse=True )
             else: # elif 'ascending' in specs or 'low to high' in specs:
                # Default to 'ascending'
-               sorted_ngrams = sorted( flipped_dicts[n].iterkeys() )
+               sorted_ngrams[n] = sorted( flipped_dicts[n].iterkeys() )
             
          # We're now working with flipped_dicts
          output_dict = flipped_dicts
@@ -457,23 +457,23 @@ class Vertical_Interval_Statistics( object ):
          # Default to 'by ngram'
          for n in list_of_n:
             if 'descending' in specs or 'high to low' in specs:
-               sorted_ngrams = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter, reverse=True )
+               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter, reverse=True )
             else: # elif 'ascending' in specs or 'low to high' in specs:
                # Default to 'ascending'
-               sorted_ngrams = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter )
+               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter )
       
       # (4) Make a nicely formatted list from the results.
       if 'by frequency' in specs:
          for n in list_of_n:
             post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
-            for freq in sorted_ngrams:
+            for freq in sorted_ngrams[n]:
                post += str(freq) + ': ' + output_dict[n][freq] + '\n'
             post += '\n'
       else: # elif 'by interval' in specs:
          # Default to 'by interval'
          for n in list_of_n:
             post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
-            for ng in sorted_ngrams:
+            for ng in sorted_ngrams[n]:
                post += ng + ': ' + str(output_dict[n][ng]) + '\n'
             post += '\n'
       

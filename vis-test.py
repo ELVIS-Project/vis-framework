@@ -1561,6 +1561,181 @@ class Test_Output_Formatting( unittest.TestCase ):
                         ascending_by_frequency )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'descending by frequency' ), \
                         descending_by_frequency )
+   
+   def test_2_and_3_grams( self ):
+      ascending_by_ngram = '''All the 2-grams:
+-----------------------------
+3 1 6: 1
+4 1 3: 1
+5 +2 4: 1
+5 -3 6: 1
+6 1 5: 2
+6 -2 8: 1
+6 -3 8: 1
+7 1 6: 1
+8 1 5: 1
+8 1 10: 1
+8 +2 7: 1
+8 -2 9: 4
+8 -2 10: 1
+8 -3 10: 1
+9 1 8: 1
+9 +2 10: 1
+9 -2 10: 3
+9 +3 6: 1
+10 1 8: 1
+10 1 9: 2
+10 1 12: 3
+10 +2 8: 1
+10 +2 9: 1
+10 +2 10: 4
+10 -2 10: 10
+10 -2 11: 4
+10 -2 15: 2
+10 -3 10: 3
+10 -3 11: 1
+10 -3 12: 2
+10 -4 12: 1
+10 -5 15: 3
+10 +8 10: 1
+11 1 10: 5
+11 +2 10: 1
+11 -2 12: 1
+11 -2 15: 1
+12 1 8: 1
+12 1 11: 2
+12 +2 10: 2
+12 -2 13: 3
+12 +3 10: 2
+12 +5 8: 1
+12 +5 10: 1
+13 1 12: 1
+13 -2 14: 3
+14 +2 12: 1
+14 -2 15: 2
+14 -2 17: 1
+15 1 14: 1
+15 +2 13: 1
+15 +4 12: 1
+15 +5 11: 1
+15 +8 8: 2
+16 1 15: 1
+17 -2 17: 1
+
+All the 3-grams:
+-----------------------------
+3 1 6 -3 8: 1
+4 1 3 1 6: 1
+5 +2 4 1 3: 1
+5 -3 6 1 5: 1
+6 1 5 +2 4: 1
+6 1 5 -3 6: 1
+6 -2 8 1 5: 1
+6 -3 8 +2 7: 1
+7 1 6 -2 8: 1
+8 1 10 -2 10: 1
+8 +2 7 1 6: 1
+8 -2 9 -2 10: 3
+8 -2 10 -5 15: 1
+8 -3 10 -2 11: 1
+9 1 8 -2 10: 1
+9 -2 10 -2 11: 2
+9 -2 10 -2 15: 1
+9 +2 10 -3 11: 1
+9 +3 6 1 5: 1
+10 1 8 1 10: 1
+10 1 9 1 8: 1
+10 1 9 +3 6: 1
+10 1 12 -2 13: 2
+10 +2 8 -3 10: 1
+10 +2 9 +2 10: 1
+10 -2 10 -2 10: 5
+10 +2 10 -2 10: 1
+10 +2 10 -3 10: 1
+10 -2 10 -3 10: 2
+10 -2 10 -3 12: 1
+10 +2 10 -4 12: 1
+10 -2 10 +8 10: 1
+10 -2 11 1 10: 2
+10 -2 11 -2 12: 1
+10 -2 11 -2 15: 1
+10 -3 10 +2 10: 2
+10 -3 10 -2 10: 1
+10 -3 11 +2 10: 1
+10 -3 12 +3 10: 1
+10 -3 12 +5 10: 1
+10 -5 15 +8 8: 2
+10 +8 10 1 8: 1
+11 1 10 +2 8: 1
+11 1 10 +2 10: 1
+11 1 10 -5 15: 1
+11 +2 10 -2 11: 1
+11 -2 12 1 8: 1
+11 -2 15 +4 12: 1
+12 1 8 -2 9: 1
+12 1 11 1 10: 2
+12 +2 10 1 12: 1
+12 +2 10 +2 9: 1
+12 -2 13 -2 14: 3
+12 +3 10 1 9: 1
+12 +3 10 -2 10: 1
+12 +5 10 -5 15: 1
+13 1 12 +2 10: 1
+13 -2 14 -2 15: 2
+13 -2 14 -2 17: 1
+14 +2 12 +2 10: 1
+14 -2 15 1 14: 1
+14 -2 15 +2 13: 1
+14 -2 17 -2 17: 1
+15 1 14 +2 12: 1
+15 +2 13 1 12: 1
+15 +4 12 1 11: 1
+15 +5 11 1 10: 1
+15 +8 8 -2 9: 1
+16 1 15 +5 11: 1
+
+'''
+      descending_by_frequency = '''All the 2-grams:
+-----------------------------
+10: 10 -2 10
+5: 11 1 10
+4: 8 -2 9 and 10 +2 10 and 10 -2 11
+3: 10 -3 10 and 9 -2 10 and 13 -2 14 and 12 -2 13 and 10 -5 15 and 10 1 12
+2: 6 1 5 and 12 1 11 and 12 +2 10 and 10 -3 12 and 10 1 9 and 15 +8 8 and 12 +3 10 and 14 -2 15 and 10 -2 15
+1: 11 -2 15 and 15 +4 12 and 8 +2 7 and 12 +5 10 and 15 +2 13 and 17 -2 17 and 8 1 5 and 10 1 8 and 12 1 8 and 11 +2 10 and 9 +2 10 and 11 -2 12 and 13 1 12 and 12 +5 8 and 16 1 15 and 15 1 14 and 4 1 3 and 10 -4 12 and 8 -3 10 and 9 +3 6 and 10 -3 11 and 5 -3 6 and 9 1 8 and 15 +5 11 and 10 +8 10 and 6 -2 8 and 8 1 10 and 6 -3 8 and 14 -2 17 and 5 +2 4 and 8 -2 10 and 10 +2 9 and 10 +2 8 and 14 +2 12 and 3 1 6 and 7 1 6
+
+All the 3-grams:
+-----------------------------
+5: 10 -2 10 -2 10
+3: 8 -2 9 -2 10 and 12 -2 13 -2 14
+2: 10 -2 11 1 10 and 10 -2 10 -3 10 and 10 -3 10 +2 10 and 13 -2 14 -2 15 and 12 1 11 1 10 and 9 -2 10 -2 11 and 10 1 12 -2 13 and 10 -5 15 +8 8
+1: 14 -2 15 1 14 and 11 1 10 +2 8 and 15 1 14 +2 12 and 10 +2 10 -3 10 and 9 +3 6 1 5 and 9 +2 10 -3 11 and 6 1 5 -3 6 and 14 +2 12 +2 10 and 14 -2 17 -2 17 and 9 1 8 -2 10 and 12 +3 10 -2 10 and 8 +2 7 1 6 and 10 -2 10 -3 12 and 6 -2 8 1 5 and 5 -3 6 1 5 and 10 +2 10 -4 12 and 8 -3 10 -2 11 and 10 1 9 +3 6 and 9 -2 10 -2 15 and 4 1 3 1 6 and 15 +8 8 -2 9 and 10 +2 8 -3 10 and 11 1 10 -5 15 and 11 1 10 +2 10 and 15 +2 13 1 12 and 12 +3 10 1 9 and 10 -3 11 +2 10 and 13 1 12 +2 10 and 10 -3 10 -2 10 and 10 -2 10 +8 10 and 10 1 8 1 10 and 7 1 6 -2 8 and 12 +2 10 1 12 and 8 -2 10 -5 15 and 16 1 15 +5 11 and 3 1 6 -3 8 and 14 -2 15 +2 13 and 11 +2 10 -2 11 and 13 -2 14 -2 17 and 11 -2 15 +4 12 and 10 +2 10 -2 10 and 12 +5 10 -5 15 and 15 +4 12 1 11 and 5 +2 4 1 3 and 10 +8 10 1 8 and 6 1 5 +2 4 and 8 1 10 -2 10 and 10 -2 11 -2 15 and 12 +2 10 +2 9 and 10 -3 12 +5 10 and 12 1 8 -2 9 and 10 -3 12 +3 10 and 10 -2 11 -2 12 and 11 -2 12 1 8 and 10 1 9 1 8 and 6 -3 8 +2 7 and 10 +2 9 +2 10 and 15 +5 11 1 10
+
+'''
+      score = converter.parse( 'test_corpus/Jos2308.krn' )
+      sets = VIS_Settings()
+      sets.set_property( 'lookForTheseNs 2,3' )
+      vis_these_parts( [score.parts[0][:100], score.parts[-1][:100]], sets, self.vis )
+      self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by ngram' ), \
+                        ascending_by_ngram )
+      self.assertEqual( self.vis.get_formatted_ngrams( sets, 'descending by frequency' ), \
+                        descending_by_frequency )
+   
+   def test_only_4_grams_with_negatives( self ):
+      ascending_by_frequency = '''All the 4-grams:
+-----------------------------
+1: 5 -3 8 +2 7 +2 -3 and 3 -5 8 +3 -3 1 3 and 3 +3 1 1 -2 1 -3 and 5 1 6 +3 3 -2 4 and 4 +2 2 1 3 1 4 and 3 +2 3 +2 3 +2 3 and 3 -3 5 +2 4 1 3 and -2 1 -3 1 -4 1 -5 and 8 +3 6 1 5 1 6 and 8 +3 6 1 5 1 4 and 8 +3 6 1 5 1 3 and 4 1 3 +2 3 1 4 and 5 +2 3 1 2 -2 3 and 2 1 3 1 4 -2 5 and 6 +5 3 -5 8 +2 7 and -5 -2 -4 -2 3 -2 4 and 6 1 5 1 4 1 3 and 4 -2 3 +4 3 -2 3 and 5 1 4 1 3 1 5 and 6 1 5 +3 1 1 2 and 6 1 5 +3 1 1 3 and 4 -2 6 1 7 1 8 and 7 +2 6 1 5 +2 3 and -3 1 -2 -5 5 +2 4 and 3 -2 3 1 2 1 1 and 6 -2 7 -2 8 1 7 and 7 +2 6 +2 4 1 3 and 3 1 2 -2 3 +2 1 and 8 +3 6 -3 8 +2 6 and 3 +4 3 1 2 1 1 and 3 +3 1 1 3 +3 1 and -2 -2 1 1 2 1 3 and 6 +2 5 1 4 -3 6 and 5 +2 3 -2 3 1 1 and 5 -3 8 +2 7 1 6 and 2 -2 3 +2 6 +4 3 and 6 +3 3 -2 4 -2 5 and -3 +2 -3 1 -2 -5 5 and 2 -2 3 1 -3 -2 -2 and -3 1 -2 1 1 1 2 and 6 1 5 +2 4 1 3 and 6 -3 8 +2 6 -3 8 and 3 +3 1 1 2 1 3 and 7 +2 6 -3 8 +2 6 and 2 1 3 1 4 1 5 and 6 1 7 1 8 +2 7 and 6 -2 7 1 6 -2 8 and -5 -8 8 +3 6 -3 8 and 5 +2 3 +5 -3 -2 -2 and 3 -2 6 -2 8 +3 6 and 4 1 3 1 4 1 8 and 4 -2 5 -2 8 +3 6 and 3 1 1 -2 3 -2 3 and 2 -2 -3 -2 -2 -2 1 and 8 +2 5 1 6 -3 8 and 3 +2 3 -2 3 1 2 and 5 1 6 +5 3 -5 8 and 3 +4 3 -2 3 +4 3 and 6 -3 8 +2 5 1 6 and -2 -2 1 -2 2 -2 6 and 6 +2 3 +2 1 1 5 and 4 +2 1 1 2 -2 3 and 1 -5 5 1 6 +5 3 and 8 +3 -3 1 3 -2 4 and 8 +2 7 +2 6 -3 8 and -4 -2 -3 -2 -2 -2 1 and -5 -5 1 +3 3 1 -3 and 1 -3 3 -2 6 -2 8 and 4 -2 5 +2 3 -3 5 and 7 +2 6 +2 5 +2 3 and 1 1 2 1 3 1 4 and -3 1 3 -2 5 1 3 and 4 +2 3 +2 3 +2 3 and 1 1 8 -3 10 +3 6 and 3 +2 3 -2 4 +2 3 and 5 -2 6 -2 7 +2 6 and 8 +2 6 +2 4 +2 3 and -4 1 -3 -2 -2 -2 1 and 5 1 3 -2 5 -2 6 and 6 +2 5 1 4 1 3 and -2 -2 1 +3 -4 -2 -3 and 8 +3 5 1 4 1 3 and 3 1 2 1 1 1 -2 and 7 1 8 +2 7 1 6 and 6 -3 8 +2 7 1 6 and 1 1 3 +3 1 1 -2 and 6 1 5 1 3 1 4 and 5 +2 4 +2 1 1 2 and 4 1 5 -3 6 +2 5 and 6 -3 8 +2 6 -2 8 and 8 +2 7 1 6 -3 8 and 5 -3 3 -3 8 1 7 and 4 1 8 1 7 1 6 and -3 -2 -2 -2 5 -2 6 and 7 1 6 -2 8 +2 7 and 2 1 1 1 -2 1 -3 and 6 -2 8 +2 6 +2 4 and 8 +2 7 +2 5 +2 4 and 6 -5 10 1 9 +3 6 and 3 -2 3 -3 4 1 3 and 6 1 4 -2 5 +2 3 and -3 +2 -3 1 -6 -3 -3 and 2 +2 3 -5 8 +3 -3 and 5 1 1 -5 5 1 6 and 1 +3 3 1 -3 -2 -2 and 5 1 4 -3 6 -2 7 and 6 -2 7 +2 4 +2 3 and -4 -2 3 -3 5 +2 4 and 5 +5 1 -2 2 -2 -3 and 3 1 -3 -2 -2 -2 1 and 3 -2 3 +4 3 1 2 and 3 +2 3 1 4 -2 5 and 3 -2 3 1 1 -2 3 and 8 1 6 -2 8 +2 6 and 5 -3 7 1 6 -2 8 and -3 1 -6 -3 -3 +2 -3 and -3 1 -2 1 1 1 -3 and 6 1 7 1 8 1 6 and -3 -2 -2 -2 1 +3 -4 and 6 +3 3 -2 6 -2 8 and 7 1 8 +3 6 1 5 and 7 +2 5 -4 8 1 7 and 5 -2 6 -2 6 -2 6 and 2 -2 6 +2 5 1 4 and 6 -3 8 +3 5 1 4 and 6 -2 6 +2 6 -2 8 and 5 -2 6 -2 6 -2 8 and 4 1 3 -2 3 -3 5 and 5 +2 4 1 3 1 4 and -2 -2 5 -2 6 +2 1 and 6 1 5 +2 3 -2 3 and 3 -2 4 -2 6 1 4 and 3 1 5 -2 6 1 5 and 5 1 6 -3 8 +4 5 and 5 1 4 1 3 -2 3 and 6 +2 5 -3 7 1 6 and 5 1 4 1 3 -2 4 and 4 1 3 -3 6 -2 8 and 4 1 3 1 5 -2 6 and 5 -2 8 +2 7 +2 5 and 1 1 -2 1 -3 1 -4 and 10 +5 6 -5 10 1 9 and 2 1 3 -2 5 -2 6 and 7 +2 6 -2 7 +2 6 and 3 -3 5 +2 4 -2 3 and 5 +3 1 1 3 -2 4 and 6 +2 5 -3 3 -3 8 and -3 -2 -2 -2 1 1 2 and 6 1 8 +2 7 +2 6 and 4 1 6 +3 3 +2 2 and 8 +2 6 -3 8 +2 5 and 9 +3 6 -3 8 +3 5 and 3 +2 1 -3 3 -2 6 and 7 1 6 -3 8 +2 7 and 6 +3 3 +2 2 +2 3 and 3 1 2 +3 1 1 2 and 4 -2 5 1 3 -2 5 and 3 -3 4 1 3 +2 3 and 6 +2 5 +2 3 1 2 and 5 1 4 -2 3 1 4 and 4 -2 3 1 4 -2 5 and 8 +8 1 -2 2 -2 3 and 6 -3 8 +4 5 1 4 and 7 -2 8 1 7 +2 5 and 3 -2 4 -3 8 +2 7 and 5 +3 3 -2 4 -2 5 and 6 -2 8 +3 6 1 5 and -2 -5 5 +2 4 1 3 and 7 1 8 1 6 -2 8 and 3 1 4 -2 5 +2 3 and 2 1 1 1 2 -2 3 and 5 -2 8 +3 6 1 5 and 8 +2 7 +2 6 -2 7 and 6 -2 6 -2 6 +2 6 and 3 +5 -3 -2 -2 -2 1 and 3 +2 6 +4 3 -2 4 and 3 -2 4 +2 3 +2 3 and 3 1 4 1 5 -3 6 and 3 1 4 1 5 -3 7 and 4 -2 6 +8 -3 -2 -2 and 1 -2 2 -2 3 1 -3 and 5 -3 6 +2 5 1 4 and 5 1 6 1 7 1 8 and 4 -2 5 -2 6 -2 7 and 6 1 5 1 6 1 7 and 3 1 -3 -2 -2 -2 5 and 10 1 9 +3 6 -3 8 and 7 1 6 +2 5 -3 7 and 3 1 4 1 8 1 7 and 1 +3 -4 -2 -3 -2 -2 and 5 1 3 1 4 -2 6 and 7 +2 6 +2 5 -3 3 and -2 1 -3 +2 -3 1 -6 and 7 +2 5 +2 4 +2 1 and 4 +2 3 +2 3 -2 4 and 4 -3 8 +2 7 +2 6 and 4 -2 5 -2 8 +2 7 and 7 1 6 1 5 +2 4 and 6 +2 5 1 3 -2 6 and 4 -2 5 1 4 1 3 and 8 +2 7 +2 6 1 5 and 5 +2 4 -2 3 +4 3 and 5 +3 1 1 2 1 3 and 5 -3 7 1 6 +2 5 and 4 -2 6 1 4 -2 5 and -4 -2 3 -2 4 -2 5 and 5 -2 6 +2 1 1 2 and 5 -4 8 1 7 1 6 and -3 +2 -3 +2 -3 1 -2 and 2 +3 1 1 2 1 3 and 3 1 2 1 1 1 2 and -3 1 -4 1 -3 -2 -2 and 10 +3 6 1 8 +2 7 and -3 1 3 -2 4 -2 3 and 4 1 5 -3 7 1 6 and 3 -2 3 -3 5 +2 4 and 6 +2 1 1 2 1 3 and 6 1 5 1 4 1 8 and 7 +2 6 +2 5 1 3 and 4 -3 6 -2 7 1 6 and 8 +4 5 1 4 -2 3 and 3 +2 3 +2 3 -2 3 and 6 1 5 1 6 +3 3 and 5 -2 6 1 5 1 4 and 7 +2 -3 +2 -3 +2 -3 and 8 -3 10 +3 6 1 8 and -2 1 1 1 2 1 3 and 1 -2 2 -2 6 +2 5 and 6 -2 8 +2 7 +2 6 and 3 1 4 -2 6 +8 -3 and -6 -3 -3 +2 -3 1 -2 and 7 +2 4 +2 3 +2 3 and 3 +2 2 +2 3 -5 8 and 1 -2 2 -2 3 +2 6 and 6 +2 4 1 3 -3 6 and 3 -2 4 -2 5 1 3 and 3 -3 8 1 7 1 6 and 5 1 3 -2 6 -2 7 and 4 1 6 +3 3 -2 6 and 3 -5 8 +2 7 +2 6 and 6 1 7 1 8 +3 6 and 3 1 4 -2 5 1 4 and -3 +2 -3 1 -2 1 1 and 3 -2 6 -2 7 -2 8 and 3 1 4 -2 5 -2 6 and 1 -2 2 -2 -3 -2 -2 and 7 1 6 1 5 1 6 and 6 -2 7 +2 6 +2 4 and 6 -2 7 +2 6 +2 5 and 3 +2 3 1 1 -4 5 and 4 -2 5 +2 3 +5 -3 and 4 1 3 -2 4 -2 6 and 3 -2 4 +2 2 1 3 and 5 +2 4 1 3 +8 -5 and 8 1 7 +2 5 -4 8 and 6 +4 3 -2 4 +2 2 and 5 -2 6 -2 7 +2 4 and 1 -2 2 -2 3 1 4 and 8 +2 7 +2 -3 +2 -3 and -3 1 -4 1 -5 -2 -3 and 3 -3 3 1 4 -2 6 and -2 1 1 1 -3 -2 1
+2: 5 -2 6 +2 3 +2 1 and 3 -2 4 -2 5 -2 6 and 4 -2 6 1 7 1 6 and 8 1 7 1 6 1 5 and 1 1 2 1 3 -2 3 and 3 -2 3 -2 3 -2 3 and -2 -2 1 -2 2 -2 3 and 3 -2 5 -3 8 +2 7 and 4 -3 6 1 5 +3 1 and 1 1 2 -2 3 +2 1 and 3 -2 5 -2 6 +2 3 and 8 +2 7 1 6 -2 8 and 6 1 7 1 6 1 5 and 1 1 3 -2 4 -3 6 and 4 -2 5 -2 6 -2 6 and 3 -2 4 -3 6 1 5 and 2 1 3 -2 3 -2 3 and 2 1 3 -2 5 -3 8 and 7 1 6 1 5 1 4
+3: 8 +2 7 +2 6 +2 5 and 3 -2 4 -2 5 -2 8 and 1 1 2 1 3 -2 5 and 3 1 4 -2 6 1 7
+4: -3 -2 -2 -2 1 -2 2
+
+'''
+      score = converter.parse( 'test_corpus/Jos2308.krn' )
+      sets = VIS_Settings()
+      sets.set_property( 'lookForTheseNs 4' )
+      vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis )
+      self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by frequency' ), \
+                        ascending_by_frequency )
 # End Test_Output_Formatting() ------------------------------------------------
 
 
@@ -2060,14 +2235,14 @@ if __name__ == '__main__':
    output_formatting_suite = unittest.TestLoader().loadTestsFromTestCase( Test_Output_Formatting )
 
    # Run test suites for interface/background components
-   unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      #TODO: some sort of testing for the 'lookForTheseNs' settting
-   unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
+      ##TODO: some sort of testing for the 'lookForTheseNs' settting
+   #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
    
    # Run test suites for analytic engine
-   unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsLongSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsLongSuite )
    
