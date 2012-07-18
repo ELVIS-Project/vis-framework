@@ -24,10 +24,13 @@
 
 
 ## Import:
+# python
+import re
+from string import digits as string_digits
 # music21
 from music21 import interval
 # vis
-from problems import NonsensicalInputError
+from problems import NonsensicalInputError, MissingInformationError
 
 
 
@@ -245,7 +248,7 @@ class Vertical_Interval_Statistics( object ):
       post = {}
       # TODO: there must be a way to get only and all of the intervals that are
       # actually present
-      for size in xrange(1,30):
+      for size in xrange(-30,30):
          for quality in qualities:
             look_for = quality + str(size)
             if look_for in intervals_in:
@@ -260,10 +263,10 @@ class Vertical_Interval_Statistics( object ):
       Returns a str with a nicely-formatted representation of the interval
       frequencies recoreded in this Vertical_Interval_Statistics() object.
       
-      The second argument is a VIS_Settings() object, from which we will use
+      The first argument is a VIS_Settings() object, from which we will use
       the heedQuality and simpleOrCompound properties.
       
-      The third argument is optional, and should be a str specifying how to
+      The second argument is optional, and should be a str specifying how to
       sort the list of intervals. The str can contain any words in any order,
       because unrecognized words will be ignored.
       
@@ -276,7 +279,7 @@ class Vertical_Interval_Statistics( object ):
          interval at the top of the list
       '''
       
-      # First, decide which dictionary to use and how to process the intervals.
+      # (1) decide which dictionary to use and how to process the intervals.
       the_dict = None
       # Do we need to include quality?
       if True == the_settings.get_property( 'heedQuality' ):
@@ -297,7 +300,7 @@ class Vertical_Interval_Statistics( object ):
          else:
             the_dict = Vertical_Interval_Statistics._reduce_qualities( self._simple_interval_dict )
       
-      # Second, sort the results in the specified way.
+      # (2) sort the results in the specified way.
       if 'by frequency' in specs:
          # We'll have to swap value/key pairs
          flipped_dict = {}
@@ -307,26 +310,24 @@ class Vertical_Interval_Statistics( object ):
             else:
                flipped_dict[val] = key
          
-         # Sort the intervals
-         if 'ascending' in specs or 'low to high' in specs:
-            sorted_intervals = sorted( flipped_dict.iterkeys() )
-         elif 'descending' in specs or 'high to low' in specs:
+         # Sort the frequencies
+         if 'descending' in specs or 'high to low' in specs:
             sorted_intervals = sorted( flipped_dict.iterkeys(), reverse=True )
-         else: # Default to 'ascending'
+         else: # elif 'ascending' in specs or 'low to high' in specs:
+            # Default to 'ascending'
             sorted_intervals = sorted( flipped_dict.iterkeys() )
          
-         # We're now working with flipped_dict in "Third"
+         # We're now working with flipped_dict in
          the_dict = flipped_dict
       else: # elif 'by interval' in specs:
          # Default to 'by interval'
-         if 'ascending' in specs or 'low to high' in specs:
-            sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter )
-         elif 'descending' in specs or 'high to low' in specs:
+         if 'descending' in specs or 'high to low' in specs:
             sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter, reverse=True )
-         else: # Default to 'ascending'
+         else: # elif 'ascending' in specs or 'low to high' in specs:
+            # Default to 'ascending'
             sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter )
       
-      # Third, make a nicely formatted list from the results.
+      # (3) make a nicely formatted list from the results.
       post = 'All the Intervals:\n------------------\n'
       if 'by frequency' in specs:
          for freq in sorted_intervals:
@@ -341,21 +342,142 @@ class Vertical_Interval_Statistics( object ):
       return post
    # end get_formatted_intervals()
    
-   def get_formatted_ngrams( self, the_settings, n=None ):
+   def get_formatted_ngrams( self, the_settings, specs='' ):
       '''
-      Formats the n-grams nicely. If you specify 'n' as a second argument, only
-      those values of n-grams will be outputted. If you do not specify 'n', all
-      available n-grams will be outputted.
-      '''
-      # TODO: heed heedQuality
-      # TODO: heed compound/simple
-      # TODO: heed parameter n
-      post = 'All the N-Grams:\n----------------\n'
-      sorted_ngrams = sorted( self._compound_no_quality_ngrams_dict[2], cmp=ngram_sorter )
-      for gram in sorted_ngrams:
-         post += gram + ': ' + str(self._compound_no_quality_ngrams_dict[2][gram]) + '\n'
-      post += '\n'
+      Returns a str with a nicely-formatted representation of the n-gram
+      frequencies recoreded in this Vertical_Interval_Statistics() object.
       
+      The first argument is a VIS_Settings() object, from which we will use
+      the heedQuality property. For now, all n-grams use compound intervals.
+      
+      The second argument is optional, and should be a str specifying how to
+      sort the list of intervals and which value of 'n' to output. The str can
+      contain any words in any order, because unrecognized words are ignored.
+      
+      Useful list of things for the format str to contain:
+      - 'n=int,int' where "int" is an integer or a list of integers that are
+         the values of 'n' to output. The 'n' values should be separated by a
+         comma and end with a space or the end of the str. For example:
+            'n=4,5 ascending'
+            'n=3'
+         If you do not specify 'n=' then the method outputs all values in this
+         Vertical_Interval_Statistics instance. If you specify invalid values
+         of 'n' they will be ignored. If you specify only invalid values of 'n'
+         the method will raise a MissingInformationError().
+      - 'by ngram' or 'by n-gram' if you want to sort the list by intervals
+      - 'by frequency' if you want to sort the list by number of occurrences
+      - 'ascending' or 'low to high' if you want the lowest or least common
+         interval at the top of the list
+      - 'descending' or 'high to low' if you want the highest or most common
+         interval at the top of the list
+      '''
+      
+      post = ''
+      
+      # (1) Figure out which values of 'n' we should output.
+      list_of_n = []
+      if 'n=' in specs:
+         # Which values of 'n' did they specify?
+         list_of_n = specs[specs.find('n=')+2:]
+         list_of_n = list_of_n[:list_of_n.find(' ')]
+         list_of_n = sorted(set([int(n) for n in re.findall('(\d+)', list_of_n)]))
+         # Check those n values are acceptable/present
+         for n in list_of_n:
+            # First check we have that index and it's potentially filled with
+            # n-gram values
+            if n < 2 or n > (len(self._compound_no_quality_ngrams_dict) - 1):
+               # throw it out
+               list_of_n.remove( n )
+               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
+               continue # to avoid the next test
+            # Now check if there are actually n-grams in that position. If we
+            # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
+            # valid in the n-gram dictionary, but they won't actually hold
+            # any n-grams.
+            if {} == self._compound_no_quality_ngrams_dict[n]:
+               # throw it out
+               list_of_n.remove( n )
+               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
+      else:
+         # Which values of 'n' are present in this V_I_S instance?
+         # Make a list starting at 2, extending to number of 'n' values in
+         # this V_I_S instance.
+         list_of_n = range( 2, len(self._compound_no_quality_ngrams_dict) )
+         # Now check if there are actually n-grams in that position. If we
+         # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
+         # valid in the n-gram dictionary, but they won't actually hold
+         # any n-grams.
+         for n in list_of_n:
+            if {} == self._compound_no_quality_ngrams_dict[n]:
+               # throw it out
+               list_of_n.remove( n )
+      #-----
+      
+      # What if we end up with no n values?
+      if 0 == len(list_of_n):
+         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+      
+      # (2) Decide whether to take 'quality' or 'no_quality'
+      output_dict = None
+      if True == the_settings.get_property( 'heedQuality' ):
+         # We do need to include quality
+         output_dict = self._compound_quality_ngrams_dict
+      else:
+         # We don't need to include quality
+         output_dict = self._compound_no_quality_ngrams_dict
+      
+      # (3) Sort the dictionary
+      if 'by frequency' in specs:
+         # Sort by frequency
+         # We'll have to swap value/key pairs
+         flipped_dicts = []
+         # Make the right number of places for an 'n'
+         for i in xrange(max(list_of_n) + 1):
+            flipped_dicts.append( {} )
+         
+         # Do the flipping
+         for n in list_of_n:
+            for key, val in output_dict[n].items():
+               if val in flipped_dicts[n]:
+                  flipped_dicts[n][val] += ' and ' + key
+               else:
+                  flipped_dicts[n][val] = key
+         
+         # Sort the frequencies
+         for n in list_of_n:
+            if 'descending' in specs or 'high to low' in specs:
+               sorted_ngrams = sorted( flipped_dicts[n].iterkeys(), reverse=True )
+            else: # elif 'ascending' in specs or 'low to high' in specs:
+               # Default to 'ascending'
+               sorted_ngrams = sorted( flipped_dicts[n].iterkeys() )
+            
+         # We're now working with flipped_dicts
+         output_dict = flipped_dicts
+      else: # elif 'by ngram' in specs or 'by n-gram' in specs:
+         # Default to 'by ngram'
+         for n in list_of_n:
+            if 'descending' in specs or 'high to low' in specs:
+               sorted_ngrams = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter, reverse=True )
+            else: # elif 'ascending' in specs or 'low to high' in specs:
+               # Default to 'ascending'
+               sorted_ngrams = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter )
+      
+      # (4) Make a nicely formatted list from the results.
+      if 'by frequency' in specs:
+         for n in list_of_n:
+            post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
+            for freq in sorted_ngrams:
+               post += str(freq) + ': ' + output_dict[n][freq] + '\n'
+            post += '\n'
+      else: # elif 'by interval' in specs:
+         # Default to 'by interval'
+         for n in list_of_n:
+            post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
+            for ng in sorted_ngrams:
+               post += ng + ': ' + str(output_dict[n][ng]) + '\n'
+            post += '\n'
+      
+      # Done!
       return post
    # end getFormatted NGrams()
 #-------------------------------------------------------------------------------
@@ -384,17 +506,17 @@ def interval_sorter( x, y ):
    '''
    
    list_of_directions = ['+', '-']
-   list_of_qualities = ['d', 'm', 'P', 'M', 'A']
    
-   # What if we have directional intervals?
-   if x[0] in list_of_directions:
-      x = x[1:]
-   if y[0] in list_of_directions:
-      y = y[1:]
+   # I want to sort based on generic size, so the direction is irrelevant. If
+   # we have directions, they'll be removed with this. If we don't have
+   # directions, this will have no effect.
+   for direct in list_of_directions:
+      x = x.replace( direct, '' )
+      y = y.replace( direct, '' )
    
-   # What if we have numbers with no qualities? Add a 'P' to make it work.
-   if not x[0] in list_of_qualities and \
-      not y[0] in list_of_qualities:
+   # If we have numbers with no qualities, we'll just add a 'P' to both, to
+   # pretend they have the same quality (which, as far as we know, they do).
+   if x[0] in string_digits and y[0] in string_digits:
       x = 'P' + x
       y = 'P' + y
    
