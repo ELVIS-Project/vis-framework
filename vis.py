@@ -219,7 +219,8 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
       print( ' --> the analysis took ' + str(it_took) + ' seconds' )
       
       if True == the_settings.get_property( 'produceLabelledScore' ):
-         process_score( the_score, the_settings )
+         process_score( the_score )
+         #process_score( the_score, the_settings )
          # TODO: decide how to dynamically decide filename, then move this into
          # a sub-section of the "show" command in the "main" method.
    # End of "else" clause ---------------------------------

@@ -80,6 +80,10 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    # reported as are actually in the piece
    on_the_first_n = True
    
+   # This records whether we should bother to produce new stream with LilyPond
+   # annotations. This would help save time.
+   produce_lilypond = the_settings.get_property( 'produceLabeledScore' )
+   
    # Repeat the whole process with every specified value of n.
    for n in the_settings.get_property('lookForTheseNs'):
       # Now we'll take just the notes and rests. I don't want to use 
@@ -381,11 +385,13 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                      sng = str(this_ngram)
                      first_space = sng.find(' ')
                      second_space = first_space + sng[first_space+1:].find(' ') + 1
-                     lfnGEBO.lily_markup = \
-                     '_\markup{\combine \concat{\\teeny{"' + sng[:first_space] + \
-                     ' " \lower #2 "' + sng[first_space+1:second_space] + \
-                     '" " ' + sng[second_space+1:] + \
-                     '"}} \path #0.1 #\'((moveto -1 1.25) (lineto 1.65 -2.25) (lineto 4.3 1.25) (closepath))}'
+                     if produce_lilypond:
+                        lfnGEBO.lily_markup = \
+                        '_\markup{\combine \concat{\\teeny{"' + sng[:first_space] + \
+                        ' " \lower #2 "' + sng[first_space+1:second_space] + \
+                        '" " ' + sng[second_space+1:] + \
+                        '"}} \path #0.1 #\'((moveto -1 1.25) (lineto 1.65 -2.25) (lineto 4.3 1.25) (closepath))}'
+                  #-----
                   
                   # DEBUGGING
                   #print( '--> adding ' + str(this_ngram) + ' at ' + str(current_offset) )

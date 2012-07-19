@@ -360,6 +360,8 @@ def process_stream( s, the_settings ):
    - stream.Score
    - metadata.Metadata
    - layout.StaffGroup
+   
+   The second argument is a LilyPond_Settings object.
    '''
    post = ""
    # Score
@@ -369,11 +371,11 @@ def process_stream( s, the_settings ):
       post = '% LilyPond output from music21 via "output_LilyPond.py"\n'
       # Version
       post += '\\version "' + \
-         the_settings.get_setting( 'lilypond_version' ) + \
+         the_settings.get_property( 'lilypond_version' ) + \
          '"\n\n'
       # Set paper size
       post += '\\paper {\n   #(set-paper-size "' + \
-         the_settings.get_setting( 'paper_size' ) + \
+         the_settings.get_property( 'paper_size' ) + \
          '")\n}\n\n'
       
       # Parts ---------------------------------------------
@@ -397,8 +399,8 @@ def process_stream( s, the_settings ):
       post += '   >>\n'
       # Output the \layout{} block
       post += '   \\layout{\n'
-      if the_settings.get_setting( 'indent' ) is not None:
-         post += '      indent = ' + the_settings.get_setting( 'indent' ) + '\n'
+      if the_settings.get_property( 'indent' ) is not None:
+         post += '      indent = ' + the_settings.get_property( 'indent' ) + '\n'
       post += '   }\n}\n'
    # Part
    elif isinstance( s, stream.Part ):
@@ -466,12 +468,12 @@ def process_stream( s, the_settings ):
       
       # Extra Formatting Options --------------------------
       # Tagline
-      if the_settings.get_setting( 'tagline' ) is None:
+      if the_settings.get_property( 'tagline' ) is None:
          post += '   tagline = ""\n'
-      elif the_settings.get_setting( 'tagline' ) == '':
+      elif the_settings.get_property( 'tagline' ) == '':
          pass
       else:
-         post += '   tagline = "' + the_settings.get_setting( 'tagline' ) + '"\n'
+         post += '   tagline = "' + the_settings.get_property( 'tagline' ) + '"\n'
       
       # close the \header{} block
       post += "}\n"
@@ -530,44 +532,48 @@ class LilyPond_Settings:
       lily_version = lv[lv.find('LilyPond')+9:lv.find('\n')]
       self._secret_settings['lilypond_version'] = lily_version
    
-   def set_setting( self, setting_name, setting_value=None ):
+   def set_property( self, setting_name, setting_value=None ):
       '''
       Modify the value of a setting. There are two forms:
       
       >>> from output_LilyPond import *
       >>> the_settings = LilyPond_Settings()
-      >>> the_settings.set_setting( 'indent 0\mm' )
-      >>> the_settings.get_setting( 'indent' )
+      >>> the_settings.set_property( 'indent 0\mm' )
+      >>> the_settings.get_property( 'indent' )
       '0\mm'
-      >>> the_settings.set_setting( 'indent', '4\mm' )
-      >>> the_settings.get_setting( 'indent' )
+      >>> the_settings.set_property( 'indent', '4\mm' )
+      >>> the_settings.get_property( 'indent' )
       '4\mm'
       '''
       # TODO: implement the second form of whatever
       self._secret_settings[setting_name] = setting_value
    
-   def get_setting( self, setting_name ):
+   def get_property( self, setting_name ):
       return self._secret_settings[setting_name]
    
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 def output_the_file( contents, filename='test_output/lily_output' ):
-   # TODO: exception handling, if possible
+   # TODO: exception handling
    return file_outputter( contents, filename, '.ly' )
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 def run_lilypond( filename, the_settings ):
-   # file to output
-   proc = Popen( [the_settings.get_setting('lilypond_path'), '--pdf', '-o', filename, filename], stdout=PIPE, stderr=PIPE )
+   '''
+   Arguments should be a str that is the file name followed by a
+   LilyPond_Settings object.
+   '''
+   proc = Popen( [the_settings.get_property('lilypond_path'), '--pdf', '-o', filename, filename], stdout=PIPE, stderr=PIPE )
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
 def process_score( the_score, the_settings=None, filename='test_output/lily_output' ):
    '''
    Use this method to output an entire Score object. The second argument is
-   an optional LilyPond_Settings object.
+   an optional LilyPond_Settings object. The third argument is an optional
+   filename.
    '''
    
    if the_settings is None:
