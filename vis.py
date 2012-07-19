@@ -33,6 +33,9 @@ import pprint
 ## Import:
 # python standard library
 from os.path import exists as path_exists
+from os.path import isdir, isfile
+from os import walk as os_walk
+import re
 # music21
 from music21.instrument import Instrument
 from music21 import converter
@@ -79,80 +82,147 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
    if the_stats is None:
       the_stats = Vertical_Interval_Statistics()
    
-   the_score = None
+   #the_score = None
+   
+   list_of_filenames = []
    
    # See what input we have
    if isinstance( pathname, str ):
-      ## get the score
-      print( "Importing score to music21.\n" )
-      try:
-         the_score = converter.parse( pathname )
-      except Converter_Exception:
-         # This would happen when the filename doesn't exist.
-         raise BadFileError( 'music21 reports this file does not exist: ' \
-                              + pathname )
-      except Converter_File_Exception:
-         # This would happen for an unsupported file type.
-         raise BadFileError( 'music21 reports this file type is unsupported: ' \
-                              + pathname )
+      # Is the pathname a directory?
+      if isdir( pathname ):
+         for a, b, filename in os_walk( pathname ):
+            list_of_filenames.append( filename )
+         list_of_filenames = list_of_filenames[0]
+      # Is the pathname a file?
+      elif isfile( pathname ):
+         list_of_filenames.append( pathname )
+      else:
+         raise BadFileError( 'Given filename or directory name appears to be neither a file or directory.' )
    elif isinstance( pathname, stream.Score ):
       the_score = pathname
    else:
-      raise BadFileError( "analyze_this(): input must be str or stream.Score; received " + str(type(pathname)) )
+      raise BadFileError( "analyze_this(): input must be file name, directory name, or a stream.Score; received " + str(type(pathname)) )
    
-   # find out which 2 parts to investigate
-   number_of_parts = len(the_score.parts)
-   look_at_parts = [number_of_parts+5,number_of_parts+5]
-   while look_at_parts[0] == look_at_parts[1] or look_at_parts[0] >= number_of_parts or look_at_parts[1] >= number_of_parts:
-      print( "Please input the part numbers to investigate." )
-      print( "From highest to lowest, these are the possibilities:" )
-      # print something like "1 for Soprano"
-      for i in xrange(number_of_parts):
-         # Try to get a part name... there may not be an Instrument object. If
-         # we don't find something, this will be what appears.
-         part_name = '(no part name)'
-         for j in xrange(10):
-            if isinstance( the_score.parts[i][0], Instrument ):
-               part_name = the_score.parts[i][0].bestName()
-         #
-         print( str(i) + " for " + part_name )
-      their_specification = raw_input( "Specify with higher part first.\n--> " )
-      if 'help' == their_specification:
-         print( "Input the two numbers with a space between them, or type 'all'" )
-      elif 'all' == their_specification:
-         print( 'Comparing all voices!' )
-         look_at_parts = 'all'
-         break
-      try:
-         look_at_parts[0] = int(their_specification[0])
-         look_at_parts[1] = int(their_specification[-1])
-      except ValueError as val_err:
-         # If something didn't work out with int() we can just ask for the
-         # part specification again.
-         print( 'Does not compute: ' + str(val_err) )
-         look_at_parts = [number_of_parts+5,number_of_parts+5]
-   #-----
+   # DEBUGGING
+   #print( '*** list_of_filenames: ' + str(list_of_filenames) )
+   # END DEBUGGING
    
-   # NB: I removed the "find out which 'n' to look for" part because users
-   # should set this before they type the filename.
-   
-   print( "Processing...\n" )
-   it_took = 0.0
-   if 'all' == look_at_parts:
-      partsToExamine = calculate_all_combis( number_of_parts - 1 )
-      for setOfParts in partsToExamine:
-         higher, lower = the_score.parts[setOfParts[0]], the_score.parts[setOfParts[1]]
-         it_took += vis_these_parts( [higher,lower], the_settings, the_stats )
+   # Do analysis of multiple pieces
+   if len(list_of_filenames) > 1:
+      # Find out which 2 parts they want us to investigate.
+      print( "Please input the part numbers to investigate. 0 is the highest part; -1 is the lowest." )
+      print( "Remember the higher part goes first!" )
+      parts_to_investigate = raw_input( '--> ' )
+      parts_to_investigate = list(set([int(n) for n in re.findall('(-?\d+)', parts_to_investigate)]))
+      
+      cumulative_analysis_duration = 0.0
+      
+      # Holds a list of files that music21 was unable to analyze.
+      files_not_analyzed = []
+      
+      ## Iterate through all the files, analyzing them.
+      for filename in list_of_filenames:
+         print( 'Trying ' + filename + '...' )
+         try:
+            the_score = converter.parse( pathname + '/' + filename )
+         except ConverterException:
+            print( '   failed during import' )
+            files_not_analyzed.append( filename )
+            continue
+         except ConverterFileException:
+            print( '   failed during import' )
+            files_not_analyzed.append( filename )
+            continue
+         except Exception:
+            print( '   failed during import' )
+            files_not_analyzed.append( filename )
+            continue
+         print( '   successfully imported' )
+         try:
+            higher = the_score.parts[parts_to_investigate[0]]
+            lower = the_score.parts[parts_to_investigate[1]]
+            it_took = vis_these_parts( [higher,lower], the_settings, the_stats )
+            cumulative_analysis_duration += it_took
+            print( '   finished in ' + str(it_took) )
+         except Exception:
+            print( '   failed during analysis' )
+            files_not_analyzed.append( filename )
+            continue
+      
+      print( ' --> the analysis took ' + str(cumulative_analysis_duration) + ' seconds' )
+      if len(files_not_analyzed) > 0:
+         print( '*** Unable to analyze the following files:' )
+         for filename in files_not_analyzed:
+            print( filename )
+      #-----
    else:
-      higher, lower = the_score.parts[look_at_parts[0]], the_score.parts[look_at_parts[1]]
-      it_took = vis_these_parts( [higher,lower], the_settings, the_stats )
-   
-   print( ' --> the analysis took ' + str(it_took) + ' seconds' )
-   
-   if True == the_settings.get_property( 'produceLabelledScore' ):
-      process_score( the_score, the_settings )
-      # TODO: decide how to dynamically decide filename, then move this into
-      # a sub-section of the "show" command in the "main" method.
+      # Import the score.
+      print( "Importing score to music21.\n" )
+      try:
+         the_score = converter.parse( list_of_filenames[0] )
+      except ConverterException:
+         # This would happen when the filename doesn't exist.
+         raise BadFileError( 'music21 reports this file does not exist: ' \
+                              + list_of_filenames[0] )
+      except ConverterFileException:
+         # This would happen for an unsupported file type.
+         raise BadFileError( 'music21 reports this file type is unsupported: ' \
+                              + list_of_filenames[0] )
+      # find out which 2 parts to investigate
+      number_of_parts = len(the_score.parts)
+      look_at_parts = [number_of_parts+5,number_of_parts+5]
+      while look_at_parts[0] == look_at_parts[1] or look_at_parts[0] >= number_of_parts or look_at_parts[1] >= number_of_parts:
+         print( "Please input the part numbers to investigate." )
+         print( "From highest to lowest, these are the possibilities:" )
+         # print something like "1 for Soprano"
+         for i in xrange(number_of_parts):
+            # Try to get a part name... there may not be an Instrument object. If
+            # we don't find something, this will be what appears.
+            part_name = '(no part name)'
+            for j in xrange(10):
+               if isinstance( the_score.parts[i][0], Instrument ):
+                  part_name = the_score.parts[i][0].bestName()
+            #
+            print( str(i) + " for " + part_name )
+         print( '(or \'all\' to analyze all parts)' )
+         their_specification = raw_input( "Specify with higher part first.\n--> " )
+         if 'help' == their_specification:
+            print( "Input the two numbers with a space between them, or type 'all'" )
+         elif 'all' == their_specification:
+            print( 'Comparing all voices!' )
+            look_at_parts = 'all'
+            break
+         try:
+            look_at_parts[0] = int(their_specification[0])
+            look_at_parts[1] = int(their_specification[-1])
+         except ValueError as val_err:
+            # If something didn't work out with int() we can just ask for the
+            # part specification again.
+            print( 'Does not compute: ' + str(val_err) )
+            look_at_parts = [number_of_parts+5,number_of_parts+5]
+      #-----
+      
+      # NB: I removed the "find out which 'n' to look for" part because users
+      # should set this before they type the filename.
+      
+      print( "Processing...\n" )
+      it_took = 0.0
+      if 'all' == look_at_parts:
+         partsToExamine = calculate_all_combis( number_of_parts - 1 )
+         for setOfParts in partsToExamine:
+            higher, lower = the_score.parts[setOfParts[0]], the_score.parts[setOfParts[1]]
+            it_took += vis_these_parts( [higher,lower], the_settings, the_stats )
+      else:
+         higher, lower = the_score.parts[look_at_parts[0]], the_score.parts[look_at_parts[1]]
+         it_took = vis_these_parts( [higher,lower], the_settings, the_stats )
+      
+      print( ' --> the analysis took ' + str(it_took) + ' seconds' )
+      
+      if True == the_settings.get_property( 'produceLabelledScore' ):
+         process_score( the_score, the_settings )
+         # TODO: decide how to dynamically decide filename, then move this into
+         # a sub-section of the "show" command in the "main" method.
+   # End of "else" clause ---------------------------------
 # End function analyze_this() ---------------------------------------------------
 
 
@@ -189,13 +259,13 @@ if __name__ == '__main__':
 - 'exit' or 'quit' to exit or quit the program
 - 'set' to set an option (see 'set help' for more information)
 - 'get' to get the setting of an option (see 'get help')
-- 'help settings' for a list of available settings
-- a filename to analyze
-- 'help filename' for help with file names
 - 'show' for guided display of results
 - 'reset' to reset all settings and statistics
+- 'help settings' for a list of available settings
+- 'help filename' for help with file names
+- a file name or directory/folder name to analyze
 
-** Note: You can type 'help' at any user prompt for more information.
+** Note: You can type 'help' at most user prompts for more information.
 """ )
       elif 'exit' == user_says or 'quit' == user_says:
          print( "" )
@@ -395,14 +465,20 @@ set orderPizza true
             else:
                print( "I don't have any help about " + user_says[user_says.find(' ')+1:] + " yet." )
          # Analyze a whole directory/folder ---------------
-         elif 'directory' == user_says[:user_says.find(' ')] or \
-              'folder' == user_says[:user_says.find(' ')] :
-            pass
-         else:
-            print( "Unrecognized command or file name (" + user_says + ")" )
+         #elif 'directory' == user_says[:user_says.find(' ')] or \
+              #'folder' == user_says[:user_says.find(' ')] :
+            #user_says = user_says[user_says.find(' ')+1:]
+            #if path_exists( user_says ):
+               #print( "Loading directory " + user_says + " for analysis." )
+               #try:
+                  #analyze_this( user_says, my_settings, my_statistics )
+               #except BadFileError as bfe:
+                  #print( 'Encountered a BadFileError while processing ' + user_says + '...' )
+                  #print( str(bfe) )
+            #else:
+               #print( "Directory doesn't seem to exist: <" + user_says + ">" )
       else:
          if path_exists( user_says ):
-            print( "Loading " + user_says + " for analysis." )
             try:
                analyze_this( user_says, my_settings, my_statistics )
             except BadFileError as bfe:
