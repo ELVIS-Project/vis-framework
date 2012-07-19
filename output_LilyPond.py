@@ -552,7 +552,7 @@ class LilyPond_Settings:
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-def output_the_file( contents, filename='test_output/output_thing' ):
+def output_the_file( contents, filename='test_output/lily_output' ):
    # TODO: exception handling, if possible
    return file_outputter( contents, filename, '.ly' )
 #------------------------------------------------------------------------------
@@ -564,7 +564,7 @@ def run_lilypond( filename, the_settings ):
 #------------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-def process_score( the_score, the_settings=None ):
+def process_score( the_score, the_settings=None, filename='test_output/lily_output' ):
    '''
    Use this method to output an entire Score object. The second argument is
    an optional LilyPond_Settings object.

@@ -51,7 +51,7 @@ from VIS_Settings import VIS_Settings
 
 
 #-------------------------------------------------------------------------------
-def analyze_this( pathname, the_settings = None ):#, verbosity = 'concise' ):
+def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity = 'concise' ):
    '''
    Given the path to a music21-supported score, imports the score, performs a
    harmonic-functional analysis, annotates the score, and displays it with show().
@@ -76,7 +76,9 @@ def analyze_this( pathname, the_settings = None ):#, verbosity = 'concise' ):
    if the_settings is None:
       the_settings = VIS_Settings()
    
-   the_stats = Vertical_Interval_Statistics()
+   if the_stats is None:
+      the_stats = Vertical_Interval_Statistics()
+   
    the_score = None
    
    # See what input we have
@@ -144,54 +146,27 @@ def analyze_this( pathname, the_settings = None ):#, verbosity = 'concise' ):
    else:
       higher, lower = the_score.parts[look_at_parts[0]], the_score.parts[look_at_parts[1]]
       it_took = vis_these_parts( [higher,lower], the_settings, the_stats )
-   #
+   
    print( ' --> the analysis took ' + str(it_took) + ' seconds' )
    
-   #-------------------------------------------------------
-   # Prepare and Output Our Results
-   #-------------------------------------------------------
-   
-   # Parse what we'll output
-   parsed_output = the_stats.get_formatted_intervals( the_settings ) + \
-                  the_stats.get_formatted_ngrams( the_settings )
-   # If this has anything, we'll assume it's a filename to use for output.
-   intended_filename = the_settings.get_property( 'outputResultsToFile' )
-   if len(intended_filename) > 0:
-      print( '----------------------' )
-      print( 'Outputting results to ' + intended_filename )
-      file_output_result = file_outputter( parsed_output, possible_file )
-      if file_output_result[1] is not None:
-         print( 'Encountered an error while attempting to write results to a file.\n' + \
-               file_output_result[1] )
-   else:
-      print( '---------------------' )
-      print( 'Here are the results!' )
-      print( parsed_output )
-   
-   if the_settings.get_property( 'produceLabeledScore' ):
-      print( "-----------------------------" )
-      print( "Processing score for display." )
-      # Use the built-in output_LilyPond.py module
-      process_score( the_score )
-   else:
-      print( "----------------------------" )
-      print( "Not producing labeled score." )
-   
-   #
-   print( '' )
+   if True == the_settings.get_property( 'produceLabelledScore' ):
+      process_score( the_score, the_settings )
+      # TODO: decide how to dynamically decide filename, then move this into
+      # a sub-section of the "show" command in the "main" method.
 # End function analyze_this() ---------------------------------------------------
 
 
 
-# "main" function --------------------------------------------------------------
+# "main" method --------------------------------------------------------------
 if __name__ == '__main__':
    print( "vis (Prerelease)\n" )
    print( "Copyright (C) 2012 Christopher Antila" )
-   print( "This program comes with ABSOLUTELY NO WARRANTY; for details type 'show w'." )
-   print( "This is free software; type 'show c' for details.\n" )
+   print( "This program comes with ABSOLUTELY NO WARRANTY; for details type 'warranty'." )
+   print( "This is free software; type 'copyright' for details.\n" )
    print( "For a list of commands, type \'help\'." )
 
    my_settings = VIS_Settings()
+   my_statistics = Vertical_Interval_Statistics()
    exit_program = False
 
    # See which command they wanted
@@ -204,7 +179,10 @@ if __name__ == '__main__':
       except KeyboardInterrupt as kbi:
          # Fine, we'll just exit
          user_says = 'exit'
-      # help
+      
+      # Single-word Commands :
+      
+      # Help ----------------------------------------------
       if 'help' == user_says:
          print( """\nList of Commands:
 -------------------
@@ -214,14 +192,142 @@ if __name__ == '__main__':
 - 'help settings' for a list of available settings
 - a filename to analyze
 - 'help filename' for help with file names
+- 'show' for guided display of results
+- 'reset' to reset all settings and statistics
 
 ** Note: You can type 'help' at any user prompt for more information.
 """ )
       elif 'exit' == user_says or 'quit' == user_says:
          print( "" )
          exit_program = True
-      # multi-word commands
+      # Display of Results -----------------------------
+      elif 'show' == user_says:
+         which_results = raw_input( "Which results would you like to view? ('score' or 'ngrams' or 'intervals') " )
+         if 'ngrams' == which_results:
+            # NOTE: this is the same as for intervals, except for the call
+            # to my_statistics.get_formatted_ngramss!!
+            
+            # Get the user's formatting options.
+            format = 'help'
+            while 'help' == format: 
+               format = raw_input( "Please input formatting options, if any (or 'help'): " )
+               if 'help' == format:
+                  print( '''For n-grams, you can use the following options:
+- 'by frequency' or 'by ngram' to decide by what to sort
+- 'ascending'/'low to high' or 'descending'/'high to low' to decide the order
+- 'n=3,4,5' for example, preceded and separated by a space or the start/end of the options,
+  to control which 'n' values to show.
+''' )
+            #-----
+            
+            # Format the output.
+            print( "Formatting output... " )
+            try:
+               formatted_output = my_statistics.get_formatted_ngrams( my_settings, format )
+            except MissingInformationError as mie:
+               # This error happens if all the user-specified 'n' values, or all
+               # the possible 'n' values, have no n-grams associated.
+               print( "Looks like the n-gram database is empty for the n values you specified." )
+               continue
+            
+            # See whether they already set a file name.
+            fn = my_settings.get_property( 'outputResultsToFile' )
+            
+            # If the filename is '' then they didn't set one.
+            if len(fn) < 1:
+               where = raw_input( "Output results to a file? ('yes' or 'no'): " )
+               if 'yes' == where:
+                  fn = raw_input( "Input a file name: " )
+               elif 'no' == where:
+                  print( '\n' + formatted_output )
+                  continue
+               else:
+                  print( "Please type 'yes' or 'no'" )
+                  continue
+            
+            # If we're still going, we must be outputting to a file
+            print( 'Writing results to ' + fn + ' ...' )
+            file_output_result = file_outputter( formatted_output, fn )
+            if file_output_result[1] is not None:
+               print( 'Encountered an error while attempting to write results to a file.\n' + \
+                      file_output_result[1] )
+            if file_output_result[0] is not fn:
+               print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
+                      file_output_result[0] + '>' )
+         elif 'intervals' == which_results:
+            # NOTE: this is the same as for ngrams, except for the call to 
+            # my_statistics.get_formatted_intervals!!
+            
+            # Get the user's formatting options.
+            format = 'help'
+            while 'help' == format: 
+               format = raw_input( "Please input formatting options, if any (or 'help'): " )
+               if 'help' == format:
+                  print( '''For intervals, you can use the following options:
+- 'by frequency' or 'by ngram' to decide by what to sort
+- 'ascending'/'low to high' or 'descending'/'high to low' to decide the order
+- 'simple' or 'compound' to determine which type of intervals to show; otherwise
+  this is determined from your previous or the default settings
+''' )
+            #-----
+            
+            # Format the output.
+            print( "Formatting output... " )
+            formatted_output = my_statistics.get_formatted_intervals( my_settings, format )
+            
+            # See whether they already set a file name.
+            fn = my_settings.get_property( 'outputResultsToFile' )
+            
+            # If the filename is '' then they didn't set one.
+            if len(fn) < 1:
+               where = raw_input( "Output results to a file? ('yes' or 'no'): " )
+               if 'yes' == where:
+                  fn = raw_input( "Input a file name: " )
+               elif 'no' == where:
+                  print( '\n' + formatted_output )
+                  continue
+               else:
+                  print( "Please type 'yes' or 'no'" )
+                  continue
+            
+            # If we're still going, we must be outputting to a file
+            print( 'Writing results to ' + fn + ' ...' )
+            file_output_result = file_outputter( formatted_output, fn )
+            if file_output_result[1] is not None:
+               print( 'Encountered an error while attempting to write results to a file.\n' + \
+                      file_output_result[1] )
+            if file_output_result[0] is not fn:
+               print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
+                      file_output_result[0] + '>' )
+         elif 'score' == which_results:
+            print( 'At least for now, you still have to set the "produceLabelledScore" property.' )
+         else:
+            print( "Did you misspell something? And you call yourself \"university-educated\"..." )
+      # Reset ------------------------------------------
+      elif 'reset' == user_says:
+         my_settings = VIS_Settings()
+         my_statistics = Vertical_Interval_Statistics()
+         print( "Settings and statistics reset." )
+      # GPL Compliance ---------------------------------
+      elif 'warranty' == user_says:
+         print( "\nvis is distributed in the hope that it will be useful," )
+         print( "but WITHOUT ANY WARRANTY; without even the implied warranty of" )
+         print( "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" )
+         print( "GNU General Public License for more details.\n" )
+         print( "A copy of the licence is included in the vis directory in the" )
+         print( "file called 'GPL.txt'\n" )
+      elif 'copyright' == user_says:
+         print( "\nvis is free software: you can redistribute it and/or modify" )
+         print( "it under the terms of the GNU General Public License as published by" )
+         print( "the Free Software Foundation, either version 3 of the License, or" )
+         print( "(at your option) any later version.\n" )
+         print( "A copy of the licence is included in the vis directory in the" )
+         print( "file called 'GPL.txt'\n" )
+      
+      # Multi-word Commands
+      
       elif 0 < user_says.find(' '):
+         # Set Setting ------------------------------------
          if 'set' == user_says[:user_says.find(' ')]:
             if 'set help' == user_says:
                print( """
@@ -246,6 +352,7 @@ set orderPizza true
                   my_settings.set_property( user_says )
                except NonsensicalInputError as e:
                   print( "Unable to set property: " + str(e) )
+         # Get Setting ------------------------------------
          elif 'get' == user_says[:user_says.find(' ')]:
             if 'get help' == user_says:
                print( "You can view any of the settings described in the \'help settings\' command.\n" )
@@ -260,6 +367,7 @@ set orderPizza true
                   print( val )
                except NonsensicalInputError as e:
                   print( "Unable to get property: " + str(e) )
+         # Help -------------------------------------------
          elif 'help' == user_says[:user_says.find(' ')]:
             if 'help settings' == user_says:
                print( "List of Settings:" )
@@ -286,27 +394,17 @@ set orderPizza true
                print( "Just type the filename. TODO: Say something useful about this." )
             else:
                print( "I don't have any help about " + user_says[user_says.find(' ')+1:] + " yet." )
-         elif 'show w' == user_says:
-            print( "\nvis is distributed in the hope that it will be useful," )
-            print( "but WITHOUT ANY WARRANTY; without even the implied warranty of" )
-            print( "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" )
-            print( "GNU General Public License for more details.\n" )
-            print( "A copy of the licence is included in the vis directory in the" )
-            print( "file called 'GPL.txt'\n" )
-         elif 'show c' == user_says:
-            print( "\nvis is free software: you can redistribute it and/or modify" )
-            print( "it under the terms of the GNU General Public License as published by" )
-            print( "the Free Software Foundation, either version 3 of the License, or" )
-            print( "(at your option) any later version.\n" )
-            print( "A copy of the licence is included in the vis directory in the" )
-            print( "file called 'GPL.txt'\n" )
+         # Analyze a whole directory/folder ---------------
+         elif 'directory' == user_says[:user_says.find(' ')] or \
+              'folder' == user_says[:user_says.find(' ')] :
+            pass
          else:
             print( "Unrecognized command or file name (" + user_says + ")" )
       else:
          if path_exists( user_says ):
             print( "Loading " + user_says + " for analysis." )
             try:
-               analyze_this( user_says, my_settings )
+               analyze_this( user_says, my_settings, my_statistics )
             except BadFileError as bfe:
                print( 'Encountered a BadFileError while processing ' + user_says + '...' )
                print( str(bfe) )

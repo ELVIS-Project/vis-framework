@@ -281,11 +281,21 @@ class Vertical_Interval_Statistics( object ):
       
       # (1) decide which dictionary to use and how to process the intervals.
       the_dict = None
+      
+      # Does 'specs' specify whether they want compound or simple intervals?
+      s_or_c = None
+      if 'simple' in specs:
+         s_or_c = 'simple'
+      elif 'compound' in specs:
+         s_or_c = 'compound'
+      else:
+         s_or_c = the_settings.get_property( 'simpleOrCompound' )
+      
       # Do we need to include quality?
       if True == the_settings.get_property( 'heedQuality' ):
          # Do we need compound or simple intervals?
          # We need compound intervals.
-         if 'compound' == the_settings.get_property( 'simpleOrCompound' ):
+         if 'compound' == s_or_c:
             the_dict = self._compound_interval_dict
          # We need simple intervals.
          else:
@@ -294,7 +304,7 @@ class Vertical_Interval_Statistics( object ):
       else:
          # Do we need compound or simple intervals?
          # We need compound intervals.
-         if 'compound' == the_settings.get_property( 'simpleOrCompound' ):
+         if 'compound' == s_or_c:
             the_dict = Vertical_Interval_Statistics._reduce_qualities( self._compound_interval_dict )
          # We need simple intervals.
          else:
