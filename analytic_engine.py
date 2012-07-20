@@ -30,6 +30,72 @@ from music21 import stream
 from music21 import note
 # vis
 from NGram import NGram
+from problems import NonsensicalInputError # TODO: find the right error
+
+
+
+#------------------------------------------------------------------------------
+def fill_space_between_offsets( start_o, end_o ):
+   '''
+   Given two float numbers, finds the quarterLength durations required to make
+   the two objects viable. Assumes there is a Note starting both at the "start"
+   and "end" offset.
+   
+   Returns a 2-tuplet, where the first index is the required quarterLength of
+   the Note at offset start_o, and the second index is a list of the required
+   quarterLength values for a series of Rest objects that fill space to the
+   end_o. Ideally the list will be empty and no Rest objects will be required.
+   
+   The algorithm tries to fill the entire offset range with a single Note that
+   starts at start_o, up to a maximum quarterLength of 4.0 (to avoid LilyPond
+   duration representations longer than one character). The algorithm prefers
+   multiple durations over a single dotted duration.
+   '''
+   
+   # This method tells the largest quarterLength less than 4.0, that is a valid
+   # quarterLength we could use as a Note/Rest value.
+   def highest_valid_qL( rem ):
+      # Holds the valid quarterLength durations from whole note to 256th.
+      list_of_durations = [2.0, 1.0, 0.5,  0.25, 0.125, 0.0625, 0.03125, \
+         0.015625, 0.0]
+      # Easy terminal condition
+      if rem in list_of_durations:
+         return rem
+      # Otherwise, we have to look around
+      for dur in list_of_durations:
+         if dur < rem:
+            return dur
+   #--------
+   
+   # This method recursively solves the problem. The rest of the outer method
+   # serves only to start the_solver() and to format its output.
+   # 
+   # The parameter name means "quarterLength that remains to be dealt with" or
+   # something else ridiculously obvious and long.
+   def the_solver( qL_remains ):
+      if 4.0 == qL_remains:
+         # Terminal condition, just return!
+         return [ 4.0 ]
+      elif 4.0 > qL_remains >= 0.0:
+         if 0.015625 > qL_remains:
+            # give up... ?
+            return [ qL_remains ]
+         else:
+            possible_finish = highest_valid_qL( qL_remains )
+            if possible_finish == qL_remains:
+               return [ qL_remains ]
+            else:
+               return [ possible_finish ] + the_solver( qL_remains - possible_finish )
+      elif qL_remains > 4.0 :
+         return [ 4.0 ] + the_solver( qL_remains - 4.0 )
+      else:
+         # TODO: this isn't the right exception
+         raise NonsensicalInputError( 'How\'d we end up with quarterLength ' + str(qL_remains) + ' remaining?' )
+   #-----
+   
+   result = the_solver( end_o - start_o )
+   return (result[0], result[1:])
+#------------------------------------------------------------------------------
 
 
 
@@ -45,7 +111,10 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    Note that the parts must be specified so the higher part has index 0, and
    the lower part has index 1.
    
-   Returns the number of seconds the analysis took.
+   Returns a 2-tuplet with a float that is the number of seconds the analysis,
+   and a list of stream.Part objects that represent a way for LilyPond to
+   output analytic n-gram symbols correctly. If the VIS_Settings instance is
+   not set to produce a labeled score, this list will be empty.
    '''
    
    # Helper Methods ---------------------------------------
@@ -83,9 +152,17 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    # This records whether we should bother to produce new stream with LilyPond
    # annotations. This would help save time.
    produce_lilypond = the_settings.get_property( 'produceLabeledScore' )
+   list_of_lilypond_parts = []
    
    # Repeat the whole process with every specified value of n.
    for n in the_settings.get_property('lookForTheseNs'):
+      # Create a new stream.Part just for holding LilyPond annotations for this
+      # 'n' value.
+      if produce_lilypond:
+         lily_for_this_n = stream.Part()
+         lily_for_this_n.lily_analysis_voice = True
+         list_of_lilypond_parts.append( lily_for_this_n )
+      
       # Now we'll take just the notes and rests. I don't want to use 
       # .notesAndRests because then I get chords and None and other garbage.
       #hfn = these_parts[0].notesAndRests
@@ -380,17 +457,80 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                   this_ngram = NGram( ngram_history )
                   the_statistics.add_ngram( this_ngram )
                   
-                  # Add the interval's name to the lower note, for lilypond
-                  if is_note( lfnGEBO ):
+                  # Process the LilyPond annotated part, if applicable.
+                  if produce_lilypond:
+                     # TODO: reduce code duplication
+                     ## Add the interval's name to the lower note, for lilypond
                      sng = str(this_ngram)
                      first_space = sng.find(' ')
                      second_space = first_space + sng[first_space+1:].find(' ') + 1
-                     if produce_lilypond:
-                        lfnGEBO.lily_markup = \
-                        '_\markup{\combine \concat{\\teeny{"' + sng[:first_space] + \
-                        ' " \lower #2 "' + sng[first_space+1:second_space] + \
-                        '" " ' + sng[second_space+1:] + \
-                        '"}} \path #0.1 #\'((moveto -1 1.25) (lineto 1.65 -2.25) (lineto 4.3 1.25) (closepath))}'
+                     
+                     # This is the first annotation going into the score.
+                     if 0 == len(lily_for_this_n):
+                        # What if the annotations don't start at the beginning? I'll need to
+                        # fill the space with Rest objects.
+                        if current_offset > 0.0:
+                           list_of_needed_qLs = fill_space_between_offsets( 0.0, current_offset )
+                           z = note.Rest( quarterLength = list_of_needed_qLs[0] )
+                           lily_for_this_n.append( z )
+                           for needed_qL in list_of_needed_qLs[1]:
+                              z = note.Rest( quarterLength = needed_qL )
+                              lily_for_this_n.append( z )
+                        
+                        # Make a new Note in the lily_for_this_n stream, with the same offset as
+                        # the start of this n-gram.
+                        this_n_lily = note.Note( 'C4' ) # could be any pitch
+                        lily_for_this_n[-1].lily_markup = \
+                           '^\markup{\combine \concat{\\teeny{"' + sng[:first_space] + \
+                           ' " \lower #2 "' + sng[first_space+1:second_space] + \
+                           '" " ' + sng[second_space+1:] + \
+                           '"}} \path #0.1 #\'((moveto -1 1.25) (lineto 1.65 -2.25) (lineto 4.3 1.25) (closepath))}'
+                        
+                        # Trouble is, I also have to fit in the right number of
+                        # measures and filler material, or it'll be too
+                        # difficult for output_LilyPond to invent this stuff.
+                        lily_for_this_n.insert( current_offset, this_n_lily )
+                        # DEBUGGING
+                        #print( '~~~ inserted starter at offset ' + str(current_offset) )
+                        # END DEBUGGING
+                     # This is not the first annotation going into the score.
+                     else:
+                        # Figure out what's required to fill the space between the previous and this annotation
+                        # DEBUGGING
+                        #print( '~~~ lily_for_this_n[-1].offset: ' + str(lily_for_this_n[-1].offset) + '; current_offset: ' + str(current_offset) )
+                        # END DEBUGGING
+                        list_of_needed_qLs = fill_space_between_offsets( lily_for_this_n[-1].offset, current_offset )
+                        # DEBUGGING
+                        #print( '    list_of_needed_qLs: ' + str(list_of_needed_qLs) )
+                        # END DEBUGGING
+                        
+                        # Set the previous annotation to the right quarterLength
+                        lily_for_this_n[-1].quarterLength = list_of_needed_qLs[0]
+                        
+                        # Fill the remaining required space with Rest objects
+                        for needed_qL in list_of_needed_qLs[1]:
+                           z = note.Rest( quarterLength = needed_qL )
+                           lily_for_this_n.append( z )
+                        
+                        # Put in the correct label.
+                        lily_for_this_n[-1].lily_markup = \
+                           '^\markup{\combine \concat{\\teeny{"' + sng[:first_space] + \
+                           ' " \lower #2 "' + sng[first_space+1:second_space] + \
+                           '" " ' + sng[second_space+1:] + \
+                           '"}} \path #0.1 #\'((moveto -1 1.25) (lineto 1.65 -2.25) (lineto 4.3 1.25) (closepath))}'
+                        
+                        # DEBUGGING
+                        #print( '    offset ' + str(lily_for_this_n[-1].offset) + ' has label ' + sng )
+                        #print( '    lily_for_this_n[-1].quarterLength: ' + str(lily_for_this_n[-1].quarterLength) )
+                        # END DEBUGGING
+                        
+                        # Make a new Note in the lily_for_this_n stream.
+                        this_n_lily = note.Note( 'C4' ) # could be any pitch
+                        
+                        # Trouble is, I also have to fit in the right number of
+                        # measures and filler material, or it'll be too
+                        # difficult for output_LilyPond to invent this stuff.
+                        lily_for_this_n.insert( current_offset, this_n_lily )
                   #-----
                   
                   # DEBUGGING
@@ -412,5 +552,6 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    # Note the ending time of the analysis...
    # $10 says there's a better way to do this but I'm too lazy to look it up right now
    duration = datetime.now() - analysis_start_time
-   return float( str(duration.seconds) + '.' + str(duration.microseconds) )
+   duration = float( str(duration.seconds) + '.' + str(duration.microseconds) )
+   return ( duration, list_of_lilypond_parts )
 # End vis_these_parts() -------------------------------------------------------

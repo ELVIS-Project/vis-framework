@@ -72,6 +72,7 @@ class Test_Simple_Conversions( unittest.TestCase ):
       self.assertEqual( pitch_to_lily( pitch.Pitch( 'F--11' ), False ), "feses" )
    
    def test_duration_to_lily( self ):
+      # TODO: make sure you're testing all possible durations (hint: you're not)
       self.assertEqual( duration_to_lily( duration.Duration( 1.0 ) ), '4' )
       self.assertEqual( duration_to_lily( duration.Duration( 16.0 ) ), '\longa' )
       self.assertEqual( duration_to_lily( duration.Duration( 0.0625 ) ), '64' )

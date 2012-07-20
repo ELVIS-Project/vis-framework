@@ -27,6 +27,7 @@ from pprint import pprint
 # Confirmed Requirements:
 import unittest
 from vis import *
+from analytic_engine import fill_space_between_offsets
 from music21 import interval
 from music21 import note
 from music21 import converter
@@ -2275,6 +2276,27 @@ class TestVisThesePartsLong( unittest.TestCase ):
 
 
 
+#------------------------------------------------------------------------------
+class Test_Fill_Space_Between_Offsets( unittest.TestCase ):
+   def test_the_basics( self ):
+      self.assertEqual( fill_space_between_offsets( 0.0, 1.0 ), (1.0, []) )
+      self.assertEqual( fill_space_between_offsets( 0.0, 4.0 ), (4.0, []) )
+      self.assertEqual( fill_space_between_offsets( 0.0, 5.0 ), (4.0, [1.0]) )
+      self.assertEqual( fill_space_between_offsets( 0.0, 8.0 ), (4.0, [4.0]) )
+      self.assertEqual( fill_space_between_offsets( 0.0, 9.0 ), (4.0, [4.0, 1.0]) )
+      self.assertEqual( fill_space_between_offsets( 4.5, 5.0 ), (0.5, []) )
+      self.assertEqual( fill_space_between_offsets( 7693.5, 7703.0 ), (4.0, [4.0, 1.0, 0.5]) )
+      self.assertEqual( fill_space_between_offsets( 0.0, 3.96875 ), (2.0, [1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125] ) )
+      self.assertEqual( fill_space_between_offsets( 3.96875, 7.9375 ), (2.0, [1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125] ) )
+      # This one is kind of ridiculous... thanks computers!
+      rez = fill_space_between_offsets( 0.0, 3.03125000344 )
+      exp = (2.0, [1.0, 0.03125, 0.00000000344])
+      self.assertEqual( rez[0], exp[0] )
+      self.assertEqual( rez[1][0], exp[1][0] )
+      self.assertEqual( rez[1][1], exp[1][1] )
+      self.assertAlmostEqual( rez[1][2], exp[1][2], 2 )
+      #self.assertEqual( fill_space_between_offsets( ,  ), (, []) )
+# End Test_Fill_Space_Between_Offsets -----------------------------------------
 
 
 
@@ -2294,16 +2316,18 @@ if __name__ == '__main__':
    vis_these_partsSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisTheseParts )
    vis_these_partsLongSuite = unittest.TestLoader().loadTestsFromTestCase( TestVisThesePartsLong )
    output_formatting_suite = unittest.TestLoader().loadTestsFromTestCase( Test_Output_Formatting )
+   fill_space_between_offsets_suite = unittest.TestLoader().loadTestsFromTestCase( Test_Fill_Space_Between_Offsets )
 
    # Run test suites for interface/background components
-   #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      ##TODO: some sort of testing for the 'lookForTheseNs' settting
-   #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
+      #TODO: some sort of testing for the 'lookForTheseNs' settting
+   unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
    
    # Run test suites for analytic engine
-   #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsSuite )
    unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsLongSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( fill_space_between_offsets_suite )
    

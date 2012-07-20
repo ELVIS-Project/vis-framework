@@ -20,6 +20,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
+
+
 ## Import:
 # python standard library
 import os # needed for writing the output file
@@ -32,8 +34,6 @@ from music21 import note, clef, meter, key, stream, instrument, \
 from music21.duration import DurationException
 # vis
 from file_output import file_outputter
-
-#------------------------------------------------------------------------------
 
 
 
@@ -49,6 +49,7 @@ class UnidentifiedObjectError( Exception ):
 #-------------------------------------------------------------------------------
 
 
+
 #------------------------------------------------------------------------------
 def string_of_n_letters( n ):
    '''
@@ -59,6 +60,8 @@ def string_of_n_letters( n ):
       post += random_choice( string_letters )
    return post
 #------------------------------------------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 def octave_num_to_lily( num ):
@@ -75,6 +78,8 @@ def octave_num_to_lily( num ):
    else:
       raise UnidentifiedObjectError( 'Octave out of range: ' + str(num) )
 #------------------------------------------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 def pitch_to_lily( p, include_octave = True ):
@@ -100,6 +105,8 @@ def pitch_to_lily( p, include_octave = True ):
    
    return post
 #------------------------------------------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
@@ -132,7 +139,7 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
    # We need both a list of our potential durations and a dictionary of what
    # they mean in LilyPond terms.
    list_of_durations = [16.0, 8.0, 4.0, 2.0, 1.0, 0.5,  0.25, 0.125, 0.0625, \
-      0.3125]
+      0.03125]
    dictionary_of_durations = { 16.0:'\longa', 8.0:'\\breve', 4.0:'1', 2.0:'2', \
       1.0:'4', 0.5:'8', 0.25:'16', 0.125:'32', 0.0625:'64', 0.3125:'128' }
    
@@ -174,7 +181,9 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
       #
       return post
 #------------------------------------------------------------------------------
-   
+
+
+
 #------------------------------------------------------------------------------
 def note_to_lily( lily_this, known_tuplet = False ):
    '''
@@ -208,6 +217,8 @@ def note_to_lily( lily_this, known_tuplet = False ):
    return post
 #------------------------------------------------------------------------------
 
+
+
 #------------------------------------------------------------------------------
 def barline_to_lily( bl ):
    '''
@@ -231,6 +242,8 @@ def barline_to_lily( bl ):
    else:
       UnidentifiedObjectError( 'Barline type not recognized (' + bl.style + ')' )
 #------------------------------------------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 def process_measure( the_meas ):
@@ -266,6 +279,7 @@ def process_measure( the_meas ):
       if isinstance( obj, note.Note ) or isinstance( obj, note.Rest ):
          # TODO: is there a situation where I'll ever need to deal with 
          # multiple-component durations for a single Note/Rest?
+         
          # Is it a full-measure rest?
          if isinstance( obj, note.Rest) and \
             the_meas.srcStream.barDuration.quarterLength == obj.quarterLength:
@@ -347,7 +361,48 @@ def process_measure( the_meas ):
       return post
    else:
       return ""
+# End process_measure() -------------------------------------------------------
+
+
+
 #------------------------------------------------------------------------------
+def process_analysis_voice( a_v ):
+   '''
+   Processes an analysis voice from vis. This method can't deal with tuplets,
+   though it will eventually need to.
+   '''
+   
+   # Helper method stollen from note_to_lily()
+   def space_for_lily( lily_this ):
+      post = 's'
+      
+      if len(lily_this.duration.components) > 1:
+         for durational_component in lily_this.duration.components:
+            post += duration_to_lily( durational_component ) + '~ '
+         post = post[:-2]
+      else:
+         post += duration_to_lily( lily_this.duration )
+      
+      if lily_this.tie is not None:
+         if lily_this.tie.type is 'start':
+            post += "~"
+      
+      if hasattr( lily_this, 'lily_markup' ):
+         post += str(lily_this.lily_markup)
+      
+      return post
+   #--
+   
+   # Just try to fill in all the stuff
+   post = ''
+   
+   for obj in a_v:
+      post += '   ' + space_for_lily( obj ) + '\n'
+   
+   return post
+# End process_analysis_voice() ------------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 def process_stream( s, the_settings ):
@@ -362,11 +417,16 @@ def process_stream( s, the_settings ):
    - layout.StaffGroup
    
    The second argument is a LilyPond_Settings object.
+   
+   Note that if a stream.Part has the attribute 'lily_analysis_voice' and it is
+   set to True, then all Note objects will be turned into spacer objects that
+   contain an annotation, and all Rest objects will be turned into spacer
+   objects that do not contain an annotation.
    '''
    post = ""
-   # Score
+   # Score ------------------------------------------------
    if isinstance( s, stream.Score ):
-      # Things Before Parts -------------------------------
+      # Things Before Parts
       # Our mark!
       post = '% LilyPond output from music21 via "output_LilyPond.py"\n'
       # Version
@@ -378,7 +438,7 @@ def process_stream( s, the_settings ):
          the_settings.get_property( 'paper_size' ) + \
          '")\n}\n\n'
       
-      # Parts ---------------------------------------------
+      # Parts
       # This can hold all of our parts... they might also be a StaffGroup,
       # a Metadata object, or something else.
       list_of_parts = []
@@ -391,18 +451,44 @@ def process_stream( s, the_settings ):
       for i in xrange(len(list_of_parts)):
          post += list_of_parts[i]
       
-      # Things After Parts --------------------------------
+      # Things After Parts
       # Output the \score{} block
       post += '\\score {\n   \\new StaffGroup\n   <<\n'
       for each_part in the_settings._partsInThisScore:
-         post += '      \\new Staff = "' + each_part + '" \\' + each_part + '\n'
+         if each_part in the_settings._analysis_notation_parts:
+            post += '      \\new VisAnnotation = "' + each_part + '" \\' + each_part + '\n'
+         else:
+            post += '      \\new Staff = "' + each_part + '" \\' + each_part + '\n'
       post += '   >>\n'
       # Output the \layout{} block
       post += '   \\layout{\n'
       if the_settings.get_property( 'indent' ) is not None:
          post += '      indent = ' + the_settings.get_property( 'indent' ) + '\n'
+      post += '''      
+      % VisAnnotation Context
+      \context 
+      {
+         \\type "Engraver_group"
+         \\name VisAnnotation
+         \\alias Voice
+         \consists "Output_property_engraver"
+         \consists "Script_engraver"
+         \consists "Text_engraver"
+         \consists "Skip_event_swallow_translator"
+         \consists "Axis_group_engraver"
+      }
+      % End VisAnnotation Context
+      
+      % Modify "StaffGroup" context to accept VisAnnotation context.
+       \context
+       {
+         \StaffGroup
+         \\accepts VisAnnotation
+       }
+'''
       post += '   }\n}\n'
-   # Part
+      
+   # Part -------------------------------------------------
    elif isinstance( s, stream.Part ):
       # Start the Part
       # We used to use some of the part's .bestName, but many scores (like
@@ -423,27 +509,37 @@ def process_stream( s, the_settings ):
          else:
             post += '   \set Staff.shortInstrumentName = \markup{ "' + \
                instr_name + '" }\n'
+      elif hasattr( s, 'lily_analysis_voice' ) and True == s.lily_analysis_voice:
+         the_settings._analysis_notation_parts.append( callThisPart )
+         post += '   %% vis annotated analysis\n'
+         post += process_analysis_voice( s )
       #----
       
-      # Deal with the measures
-      for thing in s:
-         if isinstance( thing, stream.Measure ):
-            post += process_measure( thing )
-         elif isinstance( thing, instrument.Instrument ):
-            # We can safely ignore this (for now?) because we've already dealt
-            # with the part name earlier.
-            pass
-         # **kern importer garbage... well, it's only garbage to us
-         elif isinstance( thing, humdrum.spineParser.MiscTandam ):
-            # http://mit.edu/music21/doc/html/moduleHumdrumSpineParser.html
-            # Is there really nothing we can use this for? Seems like these
-            # exist only to help music21 developers.
-            pass
-         else:
-            raise UnidentifiedObjectError( 'Unknown object in Stream while processing Part: ' + str(thing) )
+      # If it's an analysis-annotation part, we'll handle this differently.
+      if hasattr( s, 'lily_analysis_voice' ) and True == s.lily_analysis_voice:
+         pass
+      # Otherwise, it's hopefully just a regular, everyday Part.
+      else:
+         # What's in the Part?
+         for thing in s:
+            # Probably measures.
+            if isinstance( thing, stream.Measure ):
+               post += process_measure( thing )
+            elif isinstance( thing, instrument.Instrument ):
+               # We can safely ignore this (for now?) because we've already dealt
+               # with the part name earlier.
+               pass
+            # **kern importer garbage... well, it's only garbage to us
+            elif isinstance( thing, humdrum.spineParser.MiscTandam ):
+               # http://mit.edu/music21/doc/html/moduleHumdrumSpineParser.html
+               # Is there really nothing we can use this for? Seems like these
+               # exist only to help music21 developers.
+               pass
+            else:
+               raise UnidentifiedObjectError( 'Unknown object in Stream while processing Part: ' + str(thing) )
       # finally, to close the part
       post += "}\n"
-   # Header (Metadata)
+   # Header (Metadata) ------------------------------------
    elif isinstance( s, metadata.Metadata ):
       post += "\header {\n"
       
@@ -466,7 +562,7 @@ def process_stream( s, the_settings ):
             post += '(\\"' + s.alternativeTitle + '\\")'
          post += '" }\n'
       
-      # Extra Formatting Options --------------------------
+      # Extra Formatting Options
       # Tagline
       if the_settings.get_property( 'tagline' ) is None:
          post += '   tagline = ""\n'
@@ -477,7 +573,7 @@ def process_stream( s, the_settings ):
       
       # close the \header{} block
       post += "}\n"
-   # StaffGroup
+   # StaffGroup -------------------------------------------
    elif isinstance( s, layout.StaffGroup ):
       # Ignore this undocumented non-feature!
       pass
@@ -492,7 +588,9 @@ def process_stream( s, the_settings ):
       raise UnidentifiedObjectError( 'Unknown object in Stream: ' + str(s) )
    
    return post
-#------------------------------------------------------------------------------
+# End process_stream() --------------------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 class LilyPond_Settings:
@@ -513,6 +611,8 @@ class LilyPond_Settings:
    def __init__( self ):
       # Hold a list of the part names in this Score
       self._partsInThisScore = []
+      # Hold a list of the parts that should be written with the VisAnnotation context.
+      self._analysis_notation_parts = []
       # Hold the other settings for this Score
       self._secret_settings = {}
       # Establish default values for settings in this Score
@@ -551,13 +651,17 @@ class LilyPond_Settings:
    def get_property( self, setting_name ):
       return self._secret_settings[setting_name]
    
-#------------------------------------------------------------------------------
+# End Class LilyPond_Settings() -----------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 def output_the_file( contents, filename='test_output/lily_output' ):
    # TODO: exception handling
    return file_outputter( contents, filename, '.ly' )
 #------------------------------------------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 def run_lilypond( filename, the_settings ):
@@ -567,6 +671,8 @@ def run_lilypond( filename, the_settings ):
    '''
    proc = Popen( [the_settings.get_property('lilypond_path'), '--pdf', '-o', filename, filename], stdout=PIPE, stderr=PIPE )
 #------------------------------------------------------------------------------
+
+
 
 #------------------------------------------------------------------------------
 def process_score( the_score, the_settings=None, filename='test_output/lily_output' ):
@@ -586,6 +692,8 @@ def process_score( the_score, the_settings=None, filename='test_output/lily_outp
    else:
       run_lilypond( output_result[0], the_settings )
 #------------------------------------------------------------------------------
+
+
 
 if __name__ == '__main__':
    print( "Sorry, but you can't yet run output_LilyPond.py by itself!" )

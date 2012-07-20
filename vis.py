@@ -141,7 +141,7 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
          try:
             higher = the_score.parts[parts_to_investigate[0]]
             lower = the_score.parts[parts_to_investigate[1]]
-            it_took = vis_these_parts( [higher,lower], the_settings, the_stats )
+            it_took = vis_these_parts( [higher,lower], the_settings, the_stats )[0]
             cumulative_analysis_duration += it_took
             print( '   finished in ' + str(it_took) )
          except Exception:
@@ -207,20 +207,23 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
       
       print( "Processing...\n" )
       it_took = 0.0
+      ly = None
       if 'all' == look_at_parts:
          partsToExamine = calculate_all_combis( number_of_parts - 1 )
          for setOfParts in partsToExamine:
             higher, lower = the_score.parts[setOfParts[0]], the_score.parts[setOfParts[1]]
-            it_took += vis_these_parts( [higher,lower], the_settings, the_stats )
+            it_took += vis_these_parts( [higher,lower], the_settings, the_stats )[0]
       else:
          higher, lower = the_score.parts[look_at_parts[0]], the_score.parts[look_at_parts[1]]
-         it_took = vis_these_parts( [higher,lower], the_settings, the_stats )
+         it_took, ly = vis_these_parts( [higher,lower], the_settings, the_stats )
       
       print( ' --> the analysis took ' + str(it_took) + ' seconds' )
       
       if True == the_settings.get_property( 'produceLabelledScore' ):
+         # Add the annotated part to the score
+         the_score.append( ly )
          process_score( the_score )
-         #process_score( the_score, the_settings )
+         #process_score( the_score )
          # TODO: decide how to dynamically decide filename, then move this into
          # a sub-section of the "show" command in the "main" method.
    # End of "else" clause ---------------------------------
@@ -394,6 +397,11 @@ if __name__ == '__main__':
          print( "(at your option) any later version.\n" )
          print( "A copy of the licence is included in the vis directory in the" )
          print( "file called 'GPL.txt'\n" )
+      # Temporary for Testing -----------------------------
+      elif 'lytest' == user_says:
+         print( "Running the LilyPond test." )
+         my_settings.set_property( 'produceLabeledScore true' )
+         analyze_this( 'test_corpus/bwv77.mxl', my_settings, my_statistics )
       
       # Multi-word Commands
       
