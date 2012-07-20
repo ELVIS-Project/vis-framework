@@ -100,6 +100,68 @@ def fill_space_between_offsets( start_o, end_o ):
 
 
 #------------------------------------------------------------------------------
+def make_lily_triangle( ngram ):
+   '''
+   Given the str for an n-gram with arbitrary 'n', writes the LilyPond "markup"
+   block required to make a well-formed triangle around the well-formatted
+   numbers that make up the n-gram's intervals.
+   
+   Returns a str like this:
+   "\markup{ <<ngram_here>> }"
+   ... so you must prepend your own positional indicator.
+   
+   NB: Currently only works for 2-grams.
+   '''
+   
+   # Find the locations of the two spaces in the n-gram representation.
+   first_space = ngram.find(' ')
+   second_space = first_space + ngram[first_space+1:].find(' ') + 1
+   
+   # Calculate the number of characters in thie ngrams width
+   char_len = len(ngram) - 2 # 2 spaces!
+   
+   # Start the markup
+   post = '\\markup{ \combine \concat{ \\teeny{ "'
+   
+   # Add the first interval
+   post += ngram[:first_space]
+   
+   # Make the horizontal interval lower
+   post += '" \\lower #1 "'
+   
+   # Add the horizontal interval
+   post += ngram[first_space+1:second_space]
+   
+   # Space after horiz. and 2nd vert.
+   post += '" "'
+   
+   # Add the second vertical interval
+   post += ngram[second_space+1:]
+   
+   # Close the path and add the triangle ------------------
+   post += '"}} \path #0.1 #\'((moveto -1 1.25) '
+   # Middle-bottom triangle point
+   if char_len > 4: # for four-sided triangles...
+      # This goes down to the left-bottom triangle node.
+      post += '(lineto 1.0 -1.5) '
+      # This is the right-bottom triangle node. It's 2.0 (x-wise) before the
+      # top-right triangle node, just as the bottom-left node is 2.0 from the
+      # top-left triangle node.
+      x_pos = round( ((float(char_len) + 0.3) - 2.0), 2 )
+      post += '(lineto ' + str(x_pos) + ' -1.5) '
+   else: # for three-sided triangles...
+      x_pos = round(((float(char_len) + 1.0)/2.0)-1.0, 2)
+      post += '(lineto ' + str(x_pos) + ' -2.0) '
+   # Right-most triangle point
+   # NB: This is 3.3 for 3 characters, 4.3 for 4 characters, etc.
+   post += '(lineto ' + str(char_len) + '.3 1.25) (closepath))}'
+   
+   return post
+# End make_lily_triangle() ----------------------------------------------------
+
+
+
+#------------------------------------------------------------------------------
 def vis_these_parts( these_parts, the_settings, the_statistics ):
    # NB: I broke this into a function so I can use a unit test on it.
    '''
@@ -480,11 +542,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                         # Make a new Note in the lily_for_this_n stream, with the same offset as
                         # the start of this n-gram.
                         this_n_lily = note.Note( 'C4' ) # could be any pitch
-                        lily_for_this_n[-1].lily_markup = \
-                           '^\markup{\combine \concat{\\teeny{"' + sng[:first_space] + \
-                           ' " \lower #2 "' + sng[first_space+1:second_space] + \
-                           '" " ' + sng[second_space+1:] + \
-                           '"}} \path #0.1 #\'((moveto -1 1.25) (lineto 1.65 -2.25) (lineto 4.3 1.25) (closepath))}'
+                        lily_for_this_n[-1].lily_markup = '^' + make_lily_triangle( sng )
                         
                         # Trouble is, I also have to fit in the right number of
                         # measures and filler material, or it'll be too
@@ -513,11 +571,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                            lily_for_this_n.append( z )
                         
                         # Put in the correct label.
-                        lily_for_this_n[-1].lily_markup = \
-                           '^\markup{\combine \concat{\\teeny{"' + sng[:first_space] + \
-                           ' " \lower #2 "' + sng[first_space+1:second_space] + \
-                           '" " ' + sng[second_space+1:] + \
-                           '"}} \path #0.1 #\'((moveto -1 1.25) (lineto 1.65 -2.25) (lineto 4.3 1.25) (closepath))}'
+                        lily_for_this_n[-1].lily_markup = '^' + make_lily_triangle( sng )
                         
                         # DEBUGGING
                         #print( '    offset ' + str(lily_for_this_n[-1].offset) + ' has label ' + sng )
