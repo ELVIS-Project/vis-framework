@@ -2076,6 +2076,66 @@ class TestVisTheseParts( unittest.TestCase ):
       self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expected_quality2Grams) )
       self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expected_quality2Grams )
    
+   #def test_triplet_bugA( self ):
+      ## A targeted testing excerpt.
+      ## A music21 Original
+      ## Just an arbitrary parts
+      ### NB: This tests a possible bug in the Jos2308 longer excerpt, below. But
+      ### this test is crafted specifically to have only the suspected problem
+      ### area.
+      
+      #from test_corpus.test_triplet_bug import triplet_test_piece
+      #higher_part = triplet_test_piece.parts[0]
+      #lower_part = triplet_test_piece.parts[1]
+      #analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      ##print( '--> analysis took ' + str(analysis_time) + ' seconds' )
+
+      ##pprint.pprint( self.stats._compound_interval_dict )
+      ##pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
+
+      ### Prepare the findings
+      #expected_compound_intervals = { 'P8':3, 'm10':1, 'm9':1, 'M7':1, 'P5':1, \
+         #'P4':2, 'P-15':1, 'm3':2, 'M2':1, 'A4':1, 'M3':1 }
+      #expected_no_quality2grams = {}
+
+      ### Verify the findings
+      ##self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      ##self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
+   
+   #def test_triplet_bugB( self ):
+      ## A targeted testing excerpt.
+      ## A music21 Original
+      ## Just an arbitrary parts
+      ### NB: This test tries to replicate the previous test, but without the
+      ### triplet. Instead, notes are "hidden" in non-triplet (ie. "simple sub-
+      ### division") offsets that are, like the triplet offsets, not being
+      ### counted directly.
+      ### 
+      ### I started this test as a way to help determine whether using the 
+      ### Decimal class might solve my problem.
+      
+      #from test_corpus.test_triplet_bug import simple_test_piece
+      #higher_part = simple_test_piece.parts[0]
+      #lower_part = simple_test_piece.parts[1]
+      #analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      ##print( '--> analysis took ' + str(analysis_time) + ' seconds' )
+
+      ##pprint.pprint( self.stats._compound_interval_dict )
+      ##pprint.pprint( self.stats._compound_no_quality_ngrams_dict[2] )
+
+      ### Prepare the findings
+      #expected_compound_intervals = { 'P8':3, 'm10':1, 'm9':1, 'M7':1, 'P5':1, \
+         #'P4':1, 'P-15':1, 'm3':1, 'M2':1, 'M3':2, 'A4':1 }
+      #expected_no_quality2grams = {}
+
+      ### Verify the findings
+      ##self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      ##self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
+   
 # NOTE: compare NoQuality 2-gram dictionaries
 #for thing in self.stats._compound_no_quality_ngrams_dict[2].iterkeys():
    #if thing in expected_no_quality2grams:
@@ -2190,6 +2250,7 @@ class TestVisThesePartsLong( unittest.TestCase ):
       ## Format ABC
       ## Voices: ??
       ## Measures ??
+      # NOTE: I can't finish this test until vis supports ABC files.
       
       ## Process the excerpt
       #filename = 'test_corpus/laPlusDesPlus.abc'
@@ -2243,7 +2304,7 @@ class TestVisThesePartsLong( unittest.TestCase ):
       #lower_partB = the_pieceA.parts[3].getElementsByOffset( 0.0, 12.9 )
       #analysis_time += vis_these_parts( [higher_partB,lower_partB], self.settings, self.stats )
       
-      print( '--> analysis took ' + str(analysis_time) + ' seconds' )
+      print( '--> analysis took ' + str(analysis_time[0]) + ' seconds' )
       
       # Prepare the findings
       expected_compound_intervals = { 'P1':2, 'M2':4, 'm3':5, 'P4':9, 'P5':11, \
@@ -2319,15 +2380,15 @@ if __name__ == '__main__':
    fill_space_between_offsets_suite = unittest.TestLoader().loadTestsFromTestCase( Test_Fill_Space_Between_Offsets )
 
    # Run test suites for interface/background components
-   unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      #TODO: some sort of testing for the 'lookForTheseNs' settting
-   unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
+      ##TODO: some sort of testing for the 'lookForTheseNs' settting
+   #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
    
    # Run test suites for analytic engine
    unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsLongSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( fill_space_between_offsets_suite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_partsLongSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( fill_space_between_offsets_suite )
    
