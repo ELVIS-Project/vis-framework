@@ -24,6 +24,7 @@
 ## Import:
 # python standard library
 from datetime import datetime, timedelta
+from decimal import *
 # music21
 from music21 import interval
 from music21 import stream
@@ -202,6 +203,8 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          return False
    # End Helper Methods -----------------------------------
    
+   # Initialize -------------------------------------------
+   # NB: These things will not change when we look for different 'n' values.
    # Note the starting time of the analysis
    analysis_start_time = datetime.now()
    
@@ -215,6 +218,11 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    # annotations. This would help save time.
    produce_lilypond = the_settings.get_property( 'produceLabeledScore' )
    list_of_lilypond_parts = []
+   
+   # The quarterLength at which we should record intervals and n-grams. The
+   # default is 0.5, which means intervals and n-grams will be recorded on
+   # the eighth-note beat.
+   offset_interval = Decimal( str(the_settings.get_property( 'offsetBetweenInterval' )) )
    
    # Repeat the whole process with every specified value of n.
    for n in the_settings.get_property('lookForTheseNs'):
@@ -247,40 +255,45 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          ## END DEBUGGING
       #
       
-      # Initialize -----------------------
-      # Prepare to compare the intervals.
-      # We need to know when we get to the end
-      highest_offset = max(lfn.highestOffset, hfn.highestOffset)
-      # We need to start at the beginning.
-      current_offset = min(lfn.lowestOffset, hfn.lowestOffset)
-      # How much to increment the offset. With quarterLength of 1.0 and
-      # offset_interval of 0.5, this means we're counting by eighth notes.
-      offset_interval = the_settings.get_property( 'offsetBetweenInterval' )
+      # Initialize ----------------------------------------
+      # NB: These things must be refreshed when we look for a different 'n'.
+      
+      # So we know where the end is.
+      highest_offset = Decimal( str(max(lfn.highestOffset, hfn.highestOffset)) )
+      
+      # Start at the beginning of this passage. But we actually have to set the
+      # offset to 0.001 *before* the lowest offset, so that when the "sanity
+      # check" applies, we'll be "upgraded" to the actual lowest offset.
+      current_offset = Decimal( str(min(lfn.lowestOffset, hfn.lowestOffset)) ) - Decimal('0.001')
+      
       # These hold the most recent Note/Rest in their respective
       # voice. We can't say "current" because it implies the offset of
-      # most_recent_high == current_offset, which may not be true if, for 
-      # example, there is a very long Note/Rest.
+      # most_recent_high is the same as current_offset, which may not be true
+      # if, for example, there is a long Note/Rest.
       most_recent_high, most_recent_low = None, None
-      # These will hold all the previous Note/Rest objects in their respective
+      
+      # These hold all the previous Note/Rest objects in their respective
       # voices. It's how we build n-grams, with mostRecentX and objects from
       # these lists.
       previous_highs, previous_lows = [], []
-      # First offset to check is 0.0 !
-      next_low_event, next_high_event = 0.0, 0.0
-      current_offset = -100 # so we'll take 0.0
       
-      # Loop -----------------------------
-      # The most important part!
+      # These hold the offset of the next event in their respective voices. But
+      # for now, we don't know where that will be, so we have to set them to 
+      # the starting offset.
+      next_low_event, next_high_event = current_offset, current_offset
+      
+      # Inspect the Piece ---------------------------------
       while current_offset <= highest_offset:
          # Increment at the beginning so we can use 'continue' later.
          potential_offset = min(next_low_event,next_high_event)
          
          # Sanity check
+         i = Decimal( '0.001' )
          if potential_offset <= current_offset:
             # This shouldn't ever be needed, but it's to help prevent an endless
             # loop in a situation where, for some reason, the "next event" is
             # supposed to happen before the "current event."
-            current_offset += 0.001
+            current_offset += i
          else:
             current_offset = potential_offset
          
@@ -293,7 +306,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          # currentInterval is a multiple of offset_interval, so we should count
          # the interval and n-gram(s) at this offset.
          counting_this_offset = False
-         if 0 == current_offset % offset_interval:
+         if Decimal('0') == current_offset % offset_interval:
             counting_this_offset = True
          
          # For a situation like a pedal, we need to cause the static
@@ -309,14 +322,14 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          # If current_offset has a Note/Rest in the lower part, and we're supposed
          # to be counting the objects at this offset, accept it as the 
          # most_recent_low object. This should be the same as just below for "high."
-         lfnGEBO = lfn.getElementsByOffset( current_offset )
+         lfnGEBO = lfn.getElementsByOffset( float(current_offset) )
          if len(lfnGEBO) > 0:
             lfnGEBO = lfnGEBO[0]
             
             # Wether or not we should count this object, and no matter what type
             # it is, we need to take into account the fact it occupies some
             # offset space.
-            next_low_event = lfnGEBO.offset + lfnGEBO.quarterLength
+            next_low_event = Decimal(str(lfnGEBO.offset)) + Decimal(str(lfnGEBO.quarterLength))
             
             # NOTE: This is a weird, inefficient part.
             # What happens here, basically, is I figure out what is the most recent
@@ -324,13 +337,10 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
             # thing in lfnGEBO has a long enough quarterLength that it extends past
             # the next offset we're supposed to check.
             quarterLength_is_long = False
-            pCO = int(current_offset*1000)
-            oI = int(offset_interval*1000)
+            previous_countable_offset = current_offset
             
-            while (( pCO % oI ) != 0):
-               pCO -= 1
-            else:
-               previous_countable_offset = float(pCO) / 1000.0
+            while (( previous_countable_offset % offset_interval ) != Decimal('0')):
+               previous_countable_offset -= Decimal('0.001')
             
             if next_low_event > (previous_countable_offset + offset_interval):
                quarterLength_is_long = True
@@ -391,19 +401,18 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          # most_recent_high object. This should be the same as just above,
          # except with 'high' parts substituted for 'low', so I'm removing the
          # comments here, to emphasize this.
-         hfnGEBO = hfn.getElementsByOffset( current_offset )
+         hfnGEBO = hfn.getElementsByOffset( float(current_offset) )
          if len(hfnGEBO) > 0:
             hfnGEBO = hfnGEBO[0]
-            next_high_event = hfnGEBO.offset + hfnGEBO.quarterLength
+            next_high_event = Decimal(str(hfnGEBO.offset)) + Decimal(str(hfnGEBO.quarterLength))
             
             # NOTE: This is a weird, inefficient part.
             quarterLength_is_long = False
-            pCO = int(current_offset*1000)
-            oI = int(offset_interval*1000)
-            while (( pCO % oI ) != 0):
-               pCO -= 1
-            else:
-               previous_countable_offset = float(pCO) / 1000.0
+            previous_countable_offset = current_offset
+            
+            while (( previous_countable_offset % offset_interval ) != Decimal('0')):
+               previous_countable_offset -= Decimal('0.001')
+            
             if next_high_event > (previous_countable_offset + offset_interval):
                quarterLength_is_long = True
             # NOTE: End of the weird, inefficient part.
@@ -465,9 +474,13 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          # adding anything to the statistics, so let's just skip out now
          if not counting_this_offset:
             # DEBUGGING
-            #print( '*** Skipping out because we don\'t count this offset: ' + str(current_offset) )
+            print( '*** Skipping out because we don\'t count this offset: ' + str(current_offset) )
             # END DEBUGGING
             continue
+         # DEBUGGING
+         else:
+            print( '___ We\'ll check this offset: ' + str(current_offset) )
+         # END DEBUGGING
          
          # If one of the voices was updated, we haven't yet counted this
          # vertical interval.
@@ -478,7 +491,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                # count this Interval
                this_interval = interval.Interval( most_recent_low, most_recent_high )
                # DEBUGGING
-               #print( '--> adding ' + this_interval.name + ' at offset ' + str(max(most_recent_low.offset,most_recent_high.offset)) )
+               print( '--> adding ' + this_interval.name + ' at offset ' + str(max(most_recent_low.offset,most_recent_high.offset)) )
                # END DEBUGGING
                # Only count this interval if we're "on the first 'n'" meaning
                # the intervals haven't been counted yet.
@@ -588,7 +601,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                   #-----
                   
                   # DEBUGGING
-                  #print( '--> adding ' + str(this_ngram) + ' at ' + str(current_offset) )
+                  print( '--> adding ' + str(this_ngram) + ' at ' + str(current_offset) )
                   # END DEBUGGING
          # DEBUGGING
          #else:
