@@ -68,6 +68,9 @@ def fill_space_between_offsets( start_o, end_o ):
             return dur
    #--------
    
+   start_o = float(start_o)
+   end_o = float(end_o)
+   
    # This method recursively solves the problem. The rest of the outer method
    # serves only to start the_solver() and to format its output.
    # 
@@ -474,12 +477,12 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          # adding anything to the statistics, so let's just skip out now
          if not counting_this_offset:
             # DEBUGGING
-            print( '*** Skipping out because we don\'t count this offset: ' + str(current_offset) )
+            #print( '*** Skipping out because we don\'t count this offset: ' + str(current_offset) )
             # END DEBUGGING
             continue
          # DEBUGGING
-         else:
-            print( '___ We\'ll check this offset: ' + str(current_offset) )
+         #else:
+            #print( '___ We\'ll check this offset: ' + str(current_offset) )
          # END DEBUGGING
          
          # If one of the voices was updated, we haven't yet counted this
@@ -491,7 +494,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                # count this Interval
                this_interval = interval.Interval( most_recent_low, most_recent_high )
                # DEBUGGING
-               print( '--> adding ' + this_interval.name + ' at offset ' + str(max(most_recent_low.offset,most_recent_high.offset)) )
+               #print( '--> adding ' + this_interval.name + ' at offset ' + str(max(most_recent_low.offset,most_recent_high.offset)) )
                # END DEBUGGING
                # Only count this interval if we're "on the first 'n'" meaning
                # the intervals haven't been counted yet.
@@ -555,7 +558,8 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                         # Make a new Note in the lily_for_this_n stream, with the same offset as
                         # the start of this n-gram.
                         this_n_lily = note.Note( 'C4' ) # could be any pitch
-                        lily_for_this_n[-1].lily_markup = '^' + make_lily_triangle( sng )
+                        this_n_lily.lily_markup = '^' + make_lily_triangle( sng )
+                        #lily_for_this_n[-1].lily_markup = '^' + make_lily_triangle( sng )
                         
                         # Trouble is, I also have to fit in the right number of
                         # measures and filler material, or it'll be too
@@ -601,7 +605,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                   #-----
                   
                   # DEBUGGING
-                  print( '--> adding ' + str(this_ngram) + ' at ' + str(current_offset) )
+                  #print( '--> adding ' + str(this_ngram) + ' at ' + str(current_offset) )
                   # END DEBUGGING
          # DEBUGGING
          #else:
