@@ -117,6 +117,13 @@ class NGram( object ):
       self._list_of_movements = post
    #-------------------------------------------------------
 
+   def retrograde(self):
+      '''
+      Returns the retrograde (backwards) n-gram of self.
+      '''
+      reversed_intervals = self._list_of_intervals[::-1]
+      return NGram(reversed_intervals, self._heed_quality, self._simple_or_compound)
+
    def n( self ):
       return self._n
 
