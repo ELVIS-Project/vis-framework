@@ -373,6 +373,24 @@ class TestNGram( unittest.TestCase ):
       self.assertEqual( NGram(self.e,False).__repr__(), '<NGram 3 -4 3>' )
       self.assertEqual( NGram(self.f,False).__repr__(), '<NGram 3 -2 -3>' )
       self.assertEqual( NGram(self.g,False).__repr__(), '<NGram 3 +4 2 -6 5 +9 -10>' )
+
+   def test_retrograde( self ):
+      self.assertTrue( NGram(self.a,True).retrograde() == NGram([interval.Interval(note.Note('A4'), \
+            note.Note('C5')),interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
+      self.assertTrue( NGram(self.b,True).retrograde() == NGram([interval.Interval(note.Note('A4'), \
+            note.Note('C#5')),interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
+      self.assertTrue( NGram(self.c,True).retrograde() == NGram([interval.Interval(note.Note('D5'), \
+            note.Note('F5')),interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
+      self.assertTrue( NGram(self.d,True).retrograde() == NGram([interval.Interval(note.Note('D5'), \
+            note.Note('F#5')),interval.Interval(note.Note('C5'),note.Note('A4'))],True) )
+      self.assertTrue( NGram(self.e,True).retrograde() == NGram([interval.Interval(note.Note('E4'), \
+            note.Note('G4')),interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
+      self.assertTrue( NGram(self.f,True).retrograde() == NGram([interval.Interval(note.Note('G#4'), \
+            note.Note('E4')),interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
+      self.assertTrue( NGram(self.g,True).retrograde() == NGram([interval.Interval(note.Note('G##5'), \
+            note.Note('E#4')),interval.Interval(note.Note('F#4'),note.Note('C#5')), \
+            interval.Interval(note.Note('D5'),note.Note('E5')), \
+            interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
 #------------------------------------------------------------------------------
 
 
