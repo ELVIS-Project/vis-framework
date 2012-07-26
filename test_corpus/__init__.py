@@ -24,4 +24,4 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-import test_theSixth, test_triplet_bug
+import test_theSixth, test_triplet_bug, vis_these_parts_unit_tests
