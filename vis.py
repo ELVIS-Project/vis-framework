@@ -275,6 +275,15 @@ if __name__ == '__main__':
          print( "" )
          exit_program = True
       # Display of Results -----------------------------
+      elif 'powerlaw' == user_says:
+         try:
+            power_law = my_statistics.power_law_analysis( my_settings )
+         except MissingInformationError as mie:
+            # This error happens if all the user-specified 'n' values, or all
+            # the possible 'n' values, have no n-grams associated.
+            print( "Looks like the n-gram database is empty for the n values you specified." )
+            continue
+         print power_law
       elif 'show' == user_says:
          which_results = raw_input( "Which results would you like to view? ('score' or 'ngrams' or 'intervals') " )
          if 'ngrams' == which_results:
@@ -325,13 +334,17 @@ if __name__ == '__main__':
             
             # If we're still going, we must be outputting to a file
             print( 'Writing results to ' + fn + ' ...' )
-            file_output_result = file_outputter( formatted_output, fn )
-            if file_output_result[1] is not None:
-               print( 'Encountered an error while attempting to write results to a file.\n' + \
+            if isinstance(formatted_output,basestring):
+               file_output_result = file_outputter( formatted_output, fn )
+               if file_output_result[1] is not None:
+                  print( 'Encountered an error while attempting to write results to a file.\n' + \
                       file_output_result[1] )
-            if file_output_result[0] is not fn:
-               print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
+               if file_output_result[0] is not fn:
+                  print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
                       file_output_result[0] + '>' )
+            else: #must be an array of graphs
+               for n in range(len(formatted_output)):
+                  formatted_output[n].write(fn+str(n))
          elif 'intervals' == which_results:
             # NOTE: this is the same as for ngrams, except for the call to 
             # my_statistics.get_formatted_intervals!!
@@ -373,13 +386,16 @@ if __name__ == '__main__':
             
             # If we're still going, we must be outputting to a file
             print( 'Writing results to ' + fn + ' ...' )
-            file_output_result = file_outputter( formatted_output, fn )
-            if file_output_result[1] is not None:
-               print( 'Encountered an error while attempting to write results to a file.\n' + \
+            if isinstance(formatted_output,basestring):
+               file_output_result = file_outputter( formatted_output, fn )
+               if file_output_result[1] is not None:
+                  print( 'Encountered an error while attempting to write results to a file.\n' + \
                       file_output_result[1] )
-            if file_output_result[0] is not fn:
-               print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
+               if file_output_result[0] is not fn:
+                  print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
                       file_output_result[0] + '>' )
+            else: #must be a graph
+               formatted_output.write(fn)
          elif 'score' == which_results:
             print( 'At least for now, you still have to set the "produceLabelledScore" property.' )
          else:

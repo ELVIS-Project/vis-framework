@@ -31,6 +31,8 @@ from string import digits as string_digits
 from music21 import interval, graph
 # vis
 from problems import NonsensicalInputError, MissingInformationError
+#numpy
+from numpy import array,linalg,ones,log
 
 
 
@@ -258,6 +260,45 @@ class Vertical_Interval_Statistics( object ):
                   post[str(size)] = intervals_in[look_for]
       return post
    
+   def power_law_analysis( self, the_settings ):
+	  #Most of this method is the same as get_formatted_ngrams()
+      list_of_n = []
+      # Check every index between 2 and however many possibilities there are,
+      # and see which of these potential n values has n-grams associated.
+      for n in xrange( 2, len(self._compound_no_quality_ngrams_dict) ):
+         if {} != self._compound_no_quality_ngrams_dict[n]:
+            list_of_n.append( n )
+      #-----
+
+      # What if we end up with no n values?
+      if 0 == len(list_of_n):
+         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+      output_dict = None
+      if True == the_settings.get_property( 'heedQuality' ):
+         # We do need to include quality
+         output_dict = self._compound_quality_ngrams_dict
+      else:
+         # We don't need to include quality
+         output_dict = self._compound_no_quality_ngrams_dict
+
+      # (3) Sort the dictionary
+      sorted_ngrams = []
+      # We need to have enough 'n' places in sorted_ngrams to hold the
+      # sorted dictionaries.
+      for n in xrange(max(list_of_n) + 1):
+         sorted_ngrams.append( [] )
+      post = ''
+      for n in list_of_n:
+         sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng], reverse=True )
+         #we do a power-law regression by instead looking at the logarithmic scales and doing linear regression
+         xi = [log(i) for i in range(1,len(sorted_ngrams[n])+1)]
+         A = array([ xi, ones(len(xi))])
+         y = [log(output_dict[n][ng]) for ng in sorted_ngrams[n]]
+         w = linalg.lstsq(A.T,y)[0] #least-squares regression on the data
+         post += '\nthe power law exponent for the '+str(n)+'-grams is '+str(-w[0]) #w[0] contains the slope of the line
+      return post
+   #end power_law_analysis()
+
    def get_formatted_intervals( self, the_settings, specs = '' ):
       '''
       Returns a str with a nicely-formatted representation of the interval
