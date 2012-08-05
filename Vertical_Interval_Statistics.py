@@ -28,7 +28,7 @@
 import re
 from string import digits as string_digits
 # music21
-from music21 import interval
+from music21 import interval, graph
 # vis
 from problems import NonsensicalInputError, MissingInformationError
 
@@ -354,8 +354,9 @@ class Vertical_Interval_Statistics( object ):
    
    def get_formatted_ngrams( self, the_settings, specs='' ):
       '''
-      Returns a str with a nicely-formatted representation of the n-gram
-      frequencies recoreded in this Vertical_Interval_Statistics() object.
+      Returns a str or music21.graph.Graph object with a nicely-formatted
+      representation of the n-gram frequencies recoreded in this
+      Vertical_Interval_Statistics() object.
       
       The first argument is a VIS_Settings() object, from which we will use
       the heedQuality property. For now, all n-grams use compound intervals.
@@ -380,6 +381,7 @@ class Vertical_Interval_Statistics( object ):
          interval at the top of the list
       - 'descending' or 'high to low' if you want the highest or most common
          interval at the top of the list
+      - 'graph' if you want a graph displayed instead of text
       '''
       
       post = ''
@@ -472,7 +474,22 @@ class Vertical_Interval_Statistics( object ):
                # Default to 'ascending'
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter )
       
-      # (4) Make a nicely formatted list from the results.
+      # (4.1) If some graphs are asked for, prepare them.
+      if 'graph' in specs:
+         grapharr = []
+         for n in list_of_n:
+            g = graph.GraphHistogram(doneAction=None)
+            data = [(k,output_dict[n][sorted_ngrams[n][k]]) for k in range(len(sorted_ngrams[n]))]
+            g.setData(data)
+            g.setTicks('x',[(k+0.4,sorted_ngrams[n][k]) for k in range(len(sorted_ngrams[n]))])
+            g.xTickLabelHorizontalAlignment='center'
+            g.xTickLabelRotation = 0
+            g.setTicks('y',[(k,k) for k in range(max([output_dict[n][sorted_ngrams[n][j]] for j in range(len(sorted_ngrams[n]))]))])
+            g.process()
+            grapharr.append(g)
+         return grapharr
+
+      # (4.2) Else make a nicely formatted list from the results.
       if 'by frequency' in specs:
          for n in list_of_n:
             post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
