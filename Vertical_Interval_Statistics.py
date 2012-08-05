@@ -277,6 +277,7 @@ class Vertical_Interval_Statistics( object ):
          interval at the top of the list
       - 'descending' or 'high to low' if you want the highest or most common
          interval at the top of the list
+      - 'graph' if you want a graph instead of text
       '''
       
       # (1) decide which dictionary to use and how to process the intervals.
@@ -311,24 +312,14 @@ class Vertical_Interval_Statistics( object ):
             the_dict = Vertical_Interval_Statistics._reduce_qualities( self._simple_interval_dict )
       
       # (2) sort the results in the specified way.
-      if 'by frequency' in specs:
-         # We'll have to swap value/key pairs
-         flipped_dict = {}
-         for key, val in the_dict.items():
-            if val in flipped_dict:
-               flipped_dict[val] += ', ' + key
-            else:
-               flipped_dict[val] = key
-         
+      if 'by frequency' in specs:         
          # Sort the frequencies
          if 'descending' in specs or 'high to low' in specs:
-            sorted_intervals = sorted( flipped_dict.iterkeys(), reverse=True )
+            sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x] )
          else: # elif 'ascending' in specs or 'low to high' in specs:
             # Default to 'ascending'
-            sorted_intervals = sorted( flipped_dict.iterkeys() )
-         
-         # We're now working with flipped_dict in
-         the_dict = flipped_dict
+            sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x], reverse=True )
+
       else: # elif 'by interval' in specs:
          # Default to 'by interval'
          if 'descending' in specs or 'high to low' in specs:
@@ -337,15 +328,22 @@ class Vertical_Interval_Statistics( object ):
             # Default to 'ascending'
             sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter )
       
-      # (3) make a nicely formatted list from the results.
+      # (3.1) If a graph is asked for, return one.
+      if 'graph' in specs:
+         g = graph.GraphHistogram(doneAction=None)
+         data = [(k,the_dict[sorted_intervals[k]]) for k in range(len(sorted_intervals))]
+         g.setData(data)
+         g.setTicks('x',[(k+0.4,sorted_intervals[k]) for k in range(len(sorted_intervals))])
+         g.xTickLabelHorizontalAlignment='center'
+         g.xTickLabelRotation = 0
+         g.setTicks('y',[(k,k) for k in range(max([the_dict[sorted_intervals[j]] for j in range(len(sorted_intervals))]))])
+         g.process()
+         return g
+
+      # (3.2) Else make a nicely formatted list from the results.
       post = 'All the Intervals:\n------------------\n'
-      if 'by frequency' in specs:
-         for freq in sorted_intervals:
-            post += str(freq) + ': ' + the_dict[freq] + '\n'
-      else: # elif 'by interval' in specs:
-         # Default to 'by interval'
-         for interv in sorted_intervals:
-            post += interv + ': ' + str(the_dict[interv]) + '\n'
+      for interv in sorted_intervals:
+         post += interv + ': ' + str(the_dict[interv]) + '\n'
       post += '\n'
       
       # Done!

@@ -362,7 +362,10 @@ if __name__ == '__main__':
                if 'yes' == where:
                   fn = raw_input( "Input a file name: " )
                elif 'no' == where:
-                  print( '\n' + formatted_output )
+                  if isinstance(formatted_output,basestring):
+                     print( '\n' + formatted_output )
+                  else:
+                     formatted_output.show()
                   continue
                else:
                   print( "Please type 'yes' or 'no'" )
