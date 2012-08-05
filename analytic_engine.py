@@ -167,7 +167,6 @@ def make_lily_triangle( ngram ):
 
 #------------------------------------------------------------------------------
 def vis_these_parts( these_parts, the_settings, the_statistics ):
-   # NB: I broke this into a function so I can use a unit test on it.
    '''
    Given a list of two :class:`music21.stream.Part` objects, an visSettings
    object, and a VerticalIntervalStatistics object, calculate the n-grams
@@ -183,13 +182,19 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    not set to produce a labeled score, this list will be empty.
    '''
    
-   # Helper Methods ---------------------------------------
-   # Is 'thing' a Note?
-   def is_note( thing ):
-      if isinstance( thing, note.Note ):
-         return True
-      else:
-         return False
+   # Parameters:
+   # these_parts : a two-element list of the parts to analyze, with the "upper part" first
+   # the_settings : a VIS_Settings instance
+   # the_statistics : a Vertical_Interval_Statistics instance
+   
+   ## Helper Methods ---------------------------------------
+   # TODO: see whether we need these or not
+   ## Is 'thing' a Note?
+   #def is_note( thing ):
+      #if isinstance( thing, note.Note ):
+         #return True
+      #else:
+         #return False
    
    # Is 'thing' a Rest?
    def is_rest( thing ):
@@ -198,430 +203,228 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
       else:
          return False
    
-   # Is 'thing' a Note, Rest, or neither?
-   def is_note_or_rest( thing ):
-      if isinstance( thing, note.Note) or isinstance( thing, note.Rest ):
-         return True
-      else:
-         return False
-   # End Helper Methods -----------------------------------
+   ## Is 'thing' a Note, Rest, or neither?
+   #def is_note_or_rest( thing ):
+      #if isinstance( thing, note.Note) or isinstance( thing, note.Rest ):
+         #return True
+      #else:
+         #return False
+   ## End Helper Methods -----------------------------------
    
    # Initialize -------------------------------------------
-   # NB: These things will not change when we look for different 'n' values.
    # Note the starting time of the analysis
    analysis_start_time = datetime.now()
    
-   # Keep track of whether this is the first 'n' we're looking for; we should
-   # only add intervals to the Vertical_Interval_Statistics object if this is
-   # the first time, otherwise we'll get len(list_of_n) times as many intervals
-   # reported as are actually in the piece
-   on_the_first_n = True
+   # The parts we're analyzing
+   lower_part = these_parts[1].flat.notesAndRests
+   higher_part = these_parts[0].flat.notesAndRests
    
-   # This records whether we should bother to produce new stream with LilyPond
-   # annotations. This would help save time.
-   produce_lilypond = the_settings.get_property( 'produceLabeledScore' )
-   list_of_lilypond_parts = []
+   # The current index we're checking
+   current_lower_index = 0
+   current_higher_index = 0
    
-   # The quarterLength at which we should record intervals and n-grams. The
-   # default is 0.5, which means intervals and n-grams will be recorded on
-   # the eighth-note beat.
-   offset_interval = Decimal( str(the_settings.get_property( 'offsetBetweenInterval' )) )
+   # The highest indices.
+   len_lower = len(lower_part)
+   len_higher = len(higher_part)
    
-   # Repeat the whole process with every specified value of n.
-   for n in the_settings.get_property('lookForTheseNs'):
-      # Create a new stream.Part just for holding LilyPond annotations for this
-      # 'n' value.
-      if produce_lilypond:
-         lily_for_this_n = stream.Part()
-         lily_for_this_n.lily_analysis_voice = True
-         list_of_lilypond_parts.append( lily_for_this_n )
-      
-      # Now we'll take just the notes and rests. I don't want to use 
-      # .notesAndRests because then I get chords and None and other garbage.
-      #hfn = these_parts[0].notesAndRests
-      #lfn = these_parts[1].notesAndRests
-      hfn, lfn = stream.Stream(), stream.Stream()
-      for thing in these_parts[0].flat:
-         if is_note_or_rest( thing ):
-            hfn.append( thing )
-         ## DEBUGGING
-         #else:
-            #print( "Not a note or rest, not in hfn: " + str(type(thing)) )
-         ## END DEBUGGING
-      #
-      for thing in these_parts[1].flat:
-         if is_note_or_rest( thing ):
-            lfn.append( thing )
-         ## DEBUGGING
-         #else:
-            #print( "Not a note or rest, not in hfn: " + str(type(thing)) )
-         ## END DEBUGGING
-      #
-      
-      # Initialize ----------------------------------------
-      # NB: These things must be refreshed when we look for a different 'n'.
-      
-      # So we know where the end is.
-      highest_offset = Decimal( str(max(lfn.highestOffset, hfn.highestOffset)) )
-      
-      # Start at the beginning of this passage. But we actually have to set the
-      # offset to 0.001 *before* the lowest offset, so that when the "sanity
-      # check" applies, we'll be "upgraded" to the actual lowest offset.
-      current_offset = Decimal( str(min(lfn.lowestOffset, hfn.lowestOffset)) ) - Decimal('0.001')
-      
-      # These hold the most recent Note/Rest in their respective
-      # voice. We can't say "current" because it implies the offset of
-      # most_recent_high is the same as current_offset, which may not be true
-      # if, for example, there is a long Note/Rest.
-      most_recent_high, most_recent_low = None, None
-      
-      # These hold all the previous Note/Rest objects in their respective
-      # voices. It's how we build n-grams, with mostRecentX and objects from
-      # these lists.
-      previous_highs, previous_lows = [], []
-      
-      # These hold the offset of the next event in their respective voices. But
-      # for now, we don't know where that will be, so we have to set them to 
-      # the starting offset.
-      next_low_event, next_high_event = current_offset, current_offset
-      
-      # Inspect the Piece ---------------------------------
-      while current_offset <= highest_offset:
-         # Increment at the beginning so we can use 'continue' later.
-         potential_offset = min(next_low_event,next_high_event)
-         
-         # Sanity check
-         i = Decimal( '0.001' )
-         if potential_offset <= current_offset:
-            # This shouldn't ever be needed, but it's to help prevent an endless
-            # loop in a situation where, for some reason, the "next event" is
-            # supposed to happen before the "current event."
-            current_offset += i
-         else:
-            current_offset = potential_offset
-         
-         # DEBUGGING
-         #print( '!!! new current_offset: ' + str(current_offset) )
-         # END DEBUGGING
-         
-         # To know whether we should count the intervals and n-grams at this
-         # offset. If current_offset / offset_interval has no remainder, we know
-         # currentInterval is a multiple of offset_interval, so we should count
-         # the interval and n-gram(s) at this offset.
-         counting_this_offset = False
-         if Decimal('0') == current_offset % offset_interval:
-            counting_this_offset = True
-         
-         # For a situation like a pedal, we need to cause the static
-         # voice to update its record of previous positions, or else it will seem
-         # as though every n-gram has the correct moving voice, but the static
-         # voice always has the notes leading up to the start of the period of
-         # inactivity.
-         low_must_update = high_must_update = False
-         # But we also need to make sure that we're not updating a part that was
-         # already updated.
-         low_updated = high_updated = False
-         
-         # If current_offset has a Note/Rest in the lower part, and we're supposed
-         # to be counting the objects at this offset, accept it as the 
-         # most_recent_low object. This should be the same as just below for "high."
-         lfnGEBO = lfn.getElementsByOffset( float(current_offset) )
-         if len(lfnGEBO) > 0:
-            lfnGEBO = lfnGEBO[0]
-            
-            # Wether or not we should count this object, and no matter what type
-            # it is, we need to take into account the fact it occupies some
-            # offset space.
-            next_low_event = Decimal(str(lfnGEBO.offset)) + Decimal(str(lfnGEBO.quarterLength))
-            
-            # NOTE: This is a weird, inefficient part.
-            # What happens here, basically, is I figure out what is the most recent
-            # offset that we are supposed to check, then I figure out whether the
-            # thing in lfnGEBO has a long enough quarterLength that it extends past
-            # the next offset we're supposed to check.
-            quarterLength_is_long = False
-            previous_countable_offset = current_offset
-            
-            while (( previous_countable_offset % offset_interval ) != Decimal('0')):
-               previous_countable_offset -= Decimal('0.001')
-            
-            if next_low_event > (previous_countable_offset + offset_interval):
-               quarterLength_is_long = True
-            # NOTE: End of the weird, inefficient part.
-            
-            if counting_this_offset or quarterLength_is_long:
-               # If this is the first thing in the piece, most_recent_low will be empty
-               # and we must put something there.
-               if most_recent_low is None:
-                  most_recent_low = lfnGEBO
-                  # Indicate that other part must update and that we already did.
-                  high_must_update, low_updated = True, True
-               # If the most recent object is the other of Note/Rest than this, we
-               # should add it on.
-               elif type(most_recent_low) != type(lfnGEBO):
-                  # Add the most (now ex-)most recent object to the list of previous
-                  # objects, then assign lfnGEBO as the most recent object.
-                  previous_lows.append( most_recent_low )
-                  most_recent_low = lfnGEBO
-                  # Indicate that other part must update and that we already did.
-                  high_must_update, low_updated = True, True
-               # If the current and most recent objects are Note objects.
-               elif is_note( lfnGEBO ):
-                  # If the current and most recent objects both have the same pitch,
-                  # we can just add the current to the list.
-                  if ( lfnGEBO.pitch != most_recent_low.pitch ):
-                     # DEBUGGING
-                     #print( 'different pitches in l, so adding at offset ' + str(current_offset) )
-                     # END DEBUGGING
-                     # Add the most (now ex-)most recent object to the list of previous
-                     # objects, then assign lfnGEBO as the most recent object.
-                     previous_lows.append( most_recent_low )
-                     most_recent_low = lfnGEBO
-                     # Indicate that other part must update and that we already did.
-                     high_must_update, low_updated = True, True
-                  # But if lfnGEBO and most_recent_low do in fact have the same pitch,
-                  # we need to put lfnGEBO into most_recent_low because it is in fact
-                  # the most recent. This helps when we calculate the next offset
-                  # we expect something to happen. Only difference is we won't update
-                  # previous_lows.
-                  else:
-                     # DEBUGGING
-                     #print( 'same pitches in l, so updating at offset ' + str(current_offset) )
-                     # END DEBUGGING
-                     most_recent_low = lfnGEBO
-               else: # True == is_rest( lfnGEBO )
-                  # DEBUGGING
-                  #print( 'l still resting, so updating at offset ' + str(current_offset) )
-                  # END DEBUGGING
-                  most_recent_low = lfnGEBO
-                  #print( '***!!! lfnGEBO is offset ' + str(lfnGEBO.offset) + ' and qL ' + str(lfnGEBO.quarterLength) )
-                  #print( '***!!! mRL is offset ' + str(lfnGEBO.offset) + ' and qL ' + str(lfnGEBO.quarterLength) )
-            else:
-               pass
-         #--------
-         
-         # If current_offset has a Note/Rest in the higher part, accept it as the
-         # most_recent_high object. This should be the same as just above,
-         # except with 'high' parts substituted for 'low', so I'm removing the
-         # comments here, to emphasize this.
-         hfnGEBO = hfn.getElementsByOffset( float(current_offset) )
-         if len(hfnGEBO) > 0:
-            hfnGEBO = hfnGEBO[0]
-            next_high_event = Decimal(str(hfnGEBO.offset)) + Decimal(str(hfnGEBO.quarterLength))
-            
-            # NOTE: This is a weird, inefficient part.
-            quarterLength_is_long = False
-            previous_countable_offset = current_offset
-            
-            while (( previous_countable_offset % offset_interval ) != Decimal('0')):
-               previous_countable_offset -= Decimal('0.001')
-            
-            if next_high_event > (previous_countable_offset + offset_interval):
-               quarterLength_is_long = True
-            # NOTE: End of the weird, inefficient part.
-            
-            if counting_this_offset or quarterLength_is_long:
-               if most_recent_high is None:
-                  most_recent_high = hfnGEBO
-                  low_must_update, high_updated = True, True
-               elif type(most_recent_high) != type(hfnGEBO):
-                  previous_highs.append( most_recent_high )
-                  most_recent_high = hfnGEBO
-                  low_must_update, high_updated = True, True
-               elif is_note( hfnGEBO ):
-                  if ( hfnGEBO.pitch != most_recent_high.pitch ):
-                     # DEBUGGING
-                     #print( 'different pitches in h, so adding at offset ' + str(current_offset) )
-                     # END DEBUGGING
-                     previous_highs.append( most_recent_high )
-                     most_recent_high = hfnGEBO
-                     low_must_update, high_updated = True, True
-                  else:
-                     # DEBUGGING
-                     #print( 'same pitches in h, so updating at offset ' + str(current_offset) )
-                     # END DEBUGGING
-                     most_recent_high = hfnGEBO
-               else: #if is_rest( hfnGEBO ):
-                  # DEBUGGING
-                  #print( 'h still resting, so updating at offset ' + str(current_offset) )
-                  # END DEBUGGING
-                  most_recent_high = hfnGEBO
-         #--------
-         
-         # If one part was updated, but the other was not, as in a pedal point, we
-         # need to copy the most recent object in the not-updated part into our
-         # list of previously-happened stuff. This has the effect of keeping the
-         # two parts "in sync," such that the same index in previous_lows and
-         # previous_highs yields a vertical interval that actually happened in the
-         # piece.
-         if low_must_update and not low_updated:
-            previous_lows.append( most_recent_low )
-            low_updated = True
-         if high_must_update and not high_updated:
-            previous_highs.append( most_recent_high )
-            high_updated = True
-         
-         # What are the next notes in each voice? It's tempting to do this at the
-         # end of the loop, but if we do, we can't easily use the next bit to avoid
-         # counting things that don't fall on an offset_interval boundary.
-         # Note: I *think* that a nextXxxxEvent less than current_offset is not a
-         # big deal, so I won't put a sanity check here.
-         #next_low_event = most_recent_low.offset + most_recent_low.quarterLength
-         #next_high_event = most_recent_high.offset + most_recent_high.quarterLength
-         # DEBUGGING
-         #print( "*!* next_low_event: " + str(next_low_event) + ' as ' + str(most_recent_low.offset) + ' + ' + str(most_recent_low.quarterLength) )
-         #print( "*!* next_high_event: " + str(next_high_event) + ' as ' + str(most_recent_high.offset) + ' + ' + str(most_recent_high.quarterLength) )
-         # END DEBUGGING
-         
-         # If this offset isn't on a division of our offset_interval, we won't be
-         # adding anything to the statistics, so let's just skip out now
-         if not counting_this_offset:
-            # DEBUGGING
-            #print( '*** Skipping out because we don\'t count this offset: ' + str(current_offset) )
-            # END DEBUGGING
-            continue
-         # DEBUGGING
-         #else:
-            #print( '___ We\'ll check this offset: ' + str(current_offset) )
-         # END DEBUGGING
-         
-         # If one of the voices was updated, we haven't yet counted this
-         # vertical interval.
-         if low_updated or high_updated:
-            # If the mostRecent high and low objects are both Notes, we can count
-            # them as an Interval, and potentially into an NGram.
-            if is_note( most_recent_low ) and is_note( most_recent_high ):
-               # count this Interval
-               this_interval = interval.Interval( most_recent_low, most_recent_high )
-               # DEBUGGING
-               #print( '--> adding ' + this_interval.name + ' at offset ' + str(max(most_recent_low.offset,most_recent_high.offset)) )
-               # END DEBUGGING
-               # Only count this interval if we're "on the first 'n'" meaning
-               # the intervals haven't been counted yet.
-               if on_the_first_n:
-                  the_statistics.add_interval( this_interval )
-               
-               # If there are insufficient previous objects to make an n-gram
-               # here, then continue onto the next objects.
-               if len(previous_lows) < (n-1) or len(previous_highs) < (n-1):
-                  # DEBUGGING
-                  #print( '--< not enough intervals for a ' + str(n) + '-gram (too short) at offset ' + str(current_offset) )
-                  # END DEBUGGING
-                  continue
-               
-               # If some of the previous objects we'll use are Rest rather than
-               # Note objects, continue onto the next objects.
-               there_are_rests = False
-               for i in xrange(1,n):
-                  if is_rest( previous_lows[-1*i] ) or \
-                     is_rest( previous_highs[-1*i] ):
-                        there_are_rests = True
-                        break
-               
-               if there_are_rests:
-                  # DEBUGGING
-                  #print( '--< not enough intervals for a ' + str(n) + '-gram (rests) at offset ' + str(current_offset) )
-                  # END DEBUGGING
-                  continue
-               # If we're still going, then make an NGram and add it to the
-               # statistics!
-               else:
-                  # Construct the n-gram's previous intervals
-                  ngram_history = []
-                  for i in xrange(-1*(n-1),0):
-                     ngram_history.append( interval.Interval( previous_lows[i], \
-                                                              previous_highs[i] ) )
-                  ngram_history.append( this_interval )
-                  this_ngram = NGram( ngram_history )
-                  the_statistics.add_ngram( this_ngram )
-                  
-                  # Process the LilyPond annotated part, if applicable.
-                  if produce_lilypond:
-                     # TODO: reduce code duplication
-                     ## Add the interval's name to the lower note, for lilypond
-                     sng = str(this_ngram)
-                     first_space = sng.find(' ')
-                     second_space = first_space + sng[first_space+1:].find(' ') + 1
-                     
-                     # This is the first annotation going into the score.
-                     if 0 == len(lily_for_this_n):
-                        # What if the annotations don't start at the beginning? I'll need to
-                        # fill the space with Rest objects.
-                        if current_offset > 0.0:
-                           list_of_needed_qLs = fill_space_between_offsets( 0.0, current_offset )
-                           z = note.Rest( quarterLength = list_of_needed_qLs[0] )
-                           lily_for_this_n.append( z )
-                           for needed_qL in list_of_needed_qLs[1]:
-                              z = note.Rest( quarterLength = needed_qL )
-                              lily_for_this_n.append( z )
-                        
-                        # Make a new Note in the lily_for_this_n stream, with the same offset as
-                        # the start of this n-gram.
-                        this_n_lily = note.Note( 'C4' ) # could be any pitch
-                        this_n_lily.lily_markup = '^' + make_lily_triangle( sng )
-                        #lily_for_this_n[-1].lily_markup = '^' + make_lily_triangle( sng )
-                        
-                        # Trouble is, I also have to fit in the right number of
-                        # measures and filler material, or it'll be too
-                        # difficult for output_LilyPond to invent this stuff.
-                        lily_for_this_n.insert( current_offset, this_n_lily )
-                        # DEBUGGING
-                        #print( '~~~ inserted starter at offset ' + str(current_offset) )
-                        # END DEBUGGING
-                     # This is not the first annotation going into the score.
-                     else:
-                        # Figure out what's required to fill the space between the previous and this annotation
-                        # DEBUGGING
-                        #print( '~~~ lily_for_this_n[-1].offset: ' + str(lily_for_this_n[-1].offset) + '; current_offset: ' + str(current_offset) )
-                        # END DEBUGGING
-                        list_of_needed_qLs = fill_space_between_offsets( lily_for_this_n[-1].offset, current_offset )
-                        # DEBUGGING
-                        #print( '    list_of_needed_qLs: ' + str(list_of_needed_qLs) )
-                        # END DEBUGGING
-                        
-                        # Set the previous annotation to the right quarterLength
-                        lily_for_this_n[-1].quarterLength = list_of_needed_qLs[0]
-                        
-                        # Fill the remaining required space with Rest objects
-                        for needed_qL in list_of_needed_qLs[1]:
-                           z = note.Rest( quarterLength = needed_qL )
-                           lily_for_this_n.append( z )
-                        
-                        # Put in the correct label.
-                        lily_for_this_n[-1].lily_markup = '^' + make_lily_triangle( sng )
-                        
-                        # DEBUGGING
-                        #print( '    offset ' + str(lily_for_this_n[-1].offset) + ' has label ' + sng )
-                        #print( '    lily_for_this_n[-1].quarterLength: ' + str(lily_for_this_n[-1].quarterLength) )
-                        # END DEBUGGING
-                        
-                        # Make a new Note in the lily_for_this_n stream.
-                        this_n_lily = note.Note( 'C4' ) # could be any pitch
-                        
-                        # Trouble is, I also have to fit in the right number of
-                        # measures and filler material, or it'll be too
-                        # difficult for output_LilyPond to invent this stuff.
-                        lily_for_this_n.insert( current_offset, this_n_lily )
-                  #-----
-                  
-                  # DEBUGGING
-                  #print( '--> adding ' + str(this_ngram) + ' at ' + str(current_offset) )
-                  # END DEBUGGING
-         # DEBUGGING
-         #else:
-            #print( 'Neither low nor high was flagged as updated; skipping offset: ' + str(current_offset) )
-         # END DEBUGGING
-      # End of the "while" loop.
-      
-      # Keep track of whether this is the first 'n' we're looking for; we should
-      # only add intervals to the Vertical_Interval_Statistics object if this is
-      # the first time, otherwise we'll get len(list_of_n) times as many intervals
-      # reported as are actually in the piece
-      on_the_first_n = False
-   # End of the "for" loop.
+   # The interval by which to count every event. That is, Note/Rest objects
+   # will be counted every offset_interval.
+   offset_interval = the_settings.get_property( 'offsetBetweenInterval' )
+   
+   # Keep track of which offsets we've checked. We'll take the lower offset of
+   # the first notes in the streams as the starting point. We increment this
+   # only when we record something at an offset. This will help us be sure
+   # we don't accidentally go backwards.
+   current_offset = min( lower_part[0].offset, higher_part[0].offset )
+   
+   # Hold a list of all previously-recorded moments--whether an actual Interval
+   # or just a Note/Rest, or even a Rest/Rest.
+   interval_history = []
+   
+   # Hold a list of int objects that are the 'n' values in 'n-gram' that we're
+   # supposed to be looking for.
+   find_these_ns = the_settings.get_property( 'lookForTheseNs' )
+   
+   # Go through all the things!
+   while current_lower_index <= len_lower and current_higher_index <= len_higher:
+		# Make sure the current indices aren't past the end of the parts.
+		if current_lower_index >= len_lower:
+			current_lower_index = len_lower - 1
+		if current_higher_index >= len_higher:
+			current_higher_index = len_higher - 1
+		
+		# Sanity check. If we've already recorded something *past* the current
+		# objects' offsets, then we're moving backwards.
+		# TODO: handle this intelligently (raise exception)
+		if current_offset >= lower_part[current_lower_index].offset and \
+			current_offset >= higher_part[current_higher_index].offset and \
+			current_offset != 0.0:
+			# DEBUGGING
+			print( 'panic! current_offset is ' + str(current_offset) + ' but higher is ' + str(higher_part[current_higher_index].offset) + ' and lower is ' +  str(lower_part[current_lower_index].offset) )
+			# END DEBUGGING
+		
+		# Make sure we have the right objects. --------------
+		# This protects against situations where, for instance, a long note is
+		# held through many notes in the other part. This will keep us on the
+		# right note.
+		
+		# If the current stream objects don't have the same offset, we should set
+		# the stream with the higher offset to use the previous object.
+		if lower_part[current_lower_index].offset != \
+				higher_part[current_higher_index].offset:
+			# Which object has the greater offset?
+			greater_offset = max( higher_part[current_higher_index].offset, \
+									    lower_part[current_lower_index].offset )
+			if greater_offset == higher_part[curent_higher_index].offset:
+				current_higher_index -= 1
+			else: # must be the lower part with the greater offset
+				current_lower_index -= 1
+		#-----
+		
+		# Decide whether to add the inteval -----------------
+		# These conditions must be true for us to bother counting this interval.
+		
+		# We'll use this to keep track of whether we should continue processing
+		# these particular indices.
+		contin = False
+		
+		# Q: Is the current thing at an offset we're counting?
+		# We'll use this to try different yes-counting offsets, to see if we can
+		# match with the offset of the current thing.
+		potential_new_offset = current_offset
+		
+		# The new thing will be registered at the greater of the two offsets of
+		# the objects we currently have.
+		# NB: This *must* be recalculated, because the objects may have changed
+		# since the previous time it was calculated.
+		greater_offset = max( higher_part[current_higher_index].offset, \
+									 lower_part[current_lower_index].offset )
+		
+		# We start at current_offset, which is still set to the most recently
+		# recorded interval. Then we'll increment by offset_interval until either
+		# we hit the offset at which the current event would be registered, or
+		# until we pass that offset, which means we won't hit it.
+		# NB: We need to keep potential_new_offset, because it records the
+		# yes-record offset either at or next after the greater_offset.
+		while potential_new_offset <= greater_offset:
+			if potential_new_offset == greater_offset:
+				contin = True
+				break
+			else:
+				potential_new_offset += offset_interval
+		#-----
+		
+		# Does this event continue past the next offset we're supposed to measure?
+		# NB: We only need to ask this if we aren't already continuing.
+		if not contin:
+			# We'll see if the offset of *both* the next events in our streams are
+			# greater than the "potential_new_offset". If we reach this code, the
+			# "potential_new_offset" will hold the next yes-record offset after the
+			# current event.
+			if higher_part[current_higher_index+1].offset > potential_new_offset and \
+					lower_part[current_lower_index+1].offset > potential_new_offset:
+				contin = True
+		#-----
+		
+		# Process this moment for intervals. ----------------
+		if contin:
+			# Does one or do both parts have a Rest or have Rests?
+			if is_rest( higher_part[current_higher_index] ) or \
+					is_rest( lower_part[current_lower_index] ):
+				# It doesn't really matter which part; we just have to add this as
+				# a "this moment has a Rest" moment.
+				interval_history.append( 'rest' )
+				contin = False
+			# Otherwise, we're "go" for adding this as an Interval.
+			else:
+				this_interval = interval.Interval( higher_part[current_higher_index], \
+				                                   lower_part[current_lower_index] )
+				# Is this the first Interval, or is it the same as the previous?
+				if 0 == len(interval_history) or \
+						this_interval == interval_history[-1]:
+					# Then we should stop processing it.
+					contin = False
+				else:
+					# This is a new thing, so we should keep processing.
+					the_statistics.add_interval( this_interval )
+					interval_histroy.append( this_interval )
+					# Update the current offset, because we added a new thing.
+					current_offset = max( higher_part[current_higher_index].offset, \
+					                      lower_part[current_lower_index].offset )
+		#--------
+		
+		# Process this moment for triangles. ----------------
+		if contin:
+			# For all the 'n' values we're looking for, we need to first make sure
+			# there are enough pre-recorded things in the interval_history, then
+			# make sure there are enough that are Interval objects and not the
+			# str 'rest' that means a Rest.
+			for n in find_these_ns:
+				# Is the interval history long enough?
+				if len(interval_history) < n:
+					continue
+				
+				# Hold a list of intervals that will make up this n-gram.
+				list_of_intervals = []
+				
+				# Are there enough non-"rest" elements to make an n-gram?
+				enough_non_rests = True
+				
+				# Are there enough non-"rest" elements?
+				# We'll go through each of the previous n-1 elements, and if none
+				# of them is a "rest" then we can build an n-gram with this 'n'.
+				# We only need n-1 elements from the interval_history because we're
+				# getting an additional interval from this_interval.
+				for previous_thing in xrange( 1, n ):
+					if 'rest' == interval_history[(-1 * previous_thing)]:
+						enough_non_rests = False
+						break
+					else:
+						# If there are no rests, we can add this interval to the list
+						# of things that will be passed to the NGram() constructor.
+						list_of_intervals.append( previous_thing )
+				
+				# Finish making the n-gram
+				if enough_non_rests:
+					# Append the final interval (the current one).
+					list_of_intervals.append( this_interval )
+					
+					# Make an NGram object, then add it to the statistics database.
+					this_ngram = NGram( list_of_intervals, \
+					                    the_settings.get_property( 'heedQuality' ), \
+					                    the_settings.get_property( 'simpleOrCompound' ) )
+					the_statistics.add_ngram( this_ngram )
+		#--------
+		
+		# Annotate the score for LilyPond.
+		# TODO: write this
+		
+		# Finally, increment the current index.
+		current_lower_index += 1
+		current_higher_index += 1
+	# End "while" loop -------------------------------------
+   
+   
+   # -we'll need to keep track of which offsets we've checked
+   # 1.) Go through each "thing"
+   # 		1) take .notesAndRests
+   # 		2) are the offsets the same? YES
+   # 		3) are the offsets different? YES (with the lower-offset Note/Rest and the previous Note/Rest of the other part)
+   # 2.) Decide whether to add it to the list of intervals.
+   # 		-is the current thing *at* an offset we're checking? YES
+   # 		-is the next thing past the next offset we're checking? YES
+   # 		-is this thing the same as the previous thing? NO
+   # 3.) If it's a viable interval, decide whether to add it to the list of n-grams.
+   # 		-are there enough intervals in a row to build the n-gram? YES
+   # 4.) If we're annotating the score, add the appropriate LilyPond annotations.
+   
+   
+   
+   
    
    # Note the ending time of the analysis...
-   # $10 says there's a better way to do this but I'm too lazy to look it up right now
+   # TODO: come up with a better timing thing
+   # NOTE: list_of_lilypond_parts is a list of all the parts that contain spacing Note objects with annotations.
    duration = datetime.now() - analysis_start_time
    duration = float( str(duration.seconds) + '.' + str(duration.microseconds) )
    return ( duration, list_of_lilypond_parts )
