@@ -440,31 +440,15 @@ class Vertical_Interval_Statistics( object ):
       for n in xrange(max(list_of_n) + 1):
          sorted_ngrams.append( [] )
       if 'by frequency' in specs:
-         # Sort by frequency
-         # We'll have to swap value/key pairs
-         flipped_dicts = []
-         # Make the right number of places for an 'n'
-         for i in xrange(max(list_of_n) + 1):
-            flipped_dicts.append( {} )
-         
-         # Do the flipping
-         for n in list_of_n:
-            for key, val in output_dict[n].items():
-               if val in flipped_dicts[n]:
-                  flipped_dicts[n][val] += ' and ' + key
-               else:
-                  flipped_dicts[n][val] = key
-         
          # Sort the frequencies
          for n in list_of_n:
             if 'descending' in specs or 'high to low' in specs:
-               sorted_ngrams[n] = sorted( flipped_dicts[n].iterkeys(), reverse=True )
+               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng] )
             else: # elif 'ascending' in specs or 'low to high' in specs:
                # Default to 'ascending'
-               sorted_ngrams[n] = sorted( flipped_dicts[n].iterkeys() )
+               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng], reverse=True )
             
          # We're now working with flipped_dicts
-         output_dict = flipped_dicts
       else: # elif 'by ngram' in specs or 'by n-gram' in specs:
          # Default to 'by ngram'
          for n in list_of_n:
@@ -490,13 +474,7 @@ class Vertical_Interval_Statistics( object ):
          return grapharr
 
       # (4.2) Else make a nicely formatted list from the results.
-      if 'by frequency' in specs:
-         for n in list_of_n:
-            post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
-            for freq in sorted_ngrams[n]:
-               post += str(freq) + ': ' + output_dict[n][freq] + '\n'
-            post += '\n'
-      else: # elif 'by interval' in specs:
+      else:
          # Default to 'by interval'
          for n in list_of_n:
             post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
