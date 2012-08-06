@@ -2494,6 +2494,27 @@ class Test_Vis_These_Parts_Unit( unittest.TestCase ):
       self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
       self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
+   def test_sixB( self ):
+      # Test 6B
+      # Same as 6, plus an extra qL=0.5 at beginning and end of both streams.
+      
+      # Process the excerpt
+      #the_piece = vis_these_parts_unit_tests.test_1
+      higher_part = vis_these_parts_unit_tests.test_6B[0]
+      lower_part = vis_these_parts_unit_tests.test_6B[1]
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      
+      # Prepare the findings
+      expected_compound_intervals = { 'P8':1, 'm7':2, 'd5':1 }
+      
+      expected_no_quality2grams = { '7 -3 8':1, '8 +2 7':1, '7 +2 5':1 }
+      
+      # Verify the findings
+      #self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
+   
    def test_seven( self ):
       # Test 7
       
@@ -2507,6 +2528,27 @@ class Test_Vis_These_Parts_Unit( unittest.TestCase ):
       expected_compound_intervals = { 'P8':1, 'm7':1 }
       
       expected_no_quality2grams = { '8 +2 7':1 }
+      
+      # Verify the findings
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
+   
+   def test_sevenB( self ):
+      # Test 7B
+      # Same as 7, plus an extra qL=0.5 at the end in both streams.
+      
+      # Process the excerpt
+      #the_piece = vis_these_parts_unit_tests.test_1
+      higher_part = vis_these_parts_unit_tests.test_7B[0]
+      lower_part = vis_these_parts_unit_tests.test_7B[1]
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      
+      # Prepare the findings
+      expected_compound_intervals = { 'P8':1, 'm7':1, 'm6':1 }
+      
+      expected_no_quality2grams = { '8 +2 7':1, '7 +2 6':1 }
       
       # Verify the findings
       self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
@@ -2594,25 +2636,25 @@ class Test_Vis_These_Parts_Unit( unittest.TestCase ):
       self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
       self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
-   #def test_twelve( self ):
-      ## Test 12
+   def test_twelve( self ):
+      # Test 12
       
-      ## Process the excerpt
-      ##the_piece = vis_these_parts_unit_tests.test_1
-      #higher_part = vis_these_parts_unit_tests.test_12[0]
-      #lower_part = vis_these_parts_unit_tests.test_12[1]
-      #analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      # Process the excerpt
+      #the_piece = vis_these_parts_unit_tests.test_1
+      higher_part = vis_these_parts_unit_tests.test_12[0]
+      lower_part = vis_these_parts_unit_tests.test_12[1]
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       
-      ## Prepare the findings
-      #expected_compound_intervals = { 'P8':1 }
+      # Prepare the findings
+      expected_compound_intervals = { 'P8':1 }
       
-      #expected_no_quality2grams = {}
+      expected_no_quality2grams = {}
       
-      ## Verify the findings
-      #self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
-      #self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
-      #self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
+      # Verify the findings
+      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
+      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats._compound_no_quality_ngrams_dict[2]), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats._compound_no_quality_ngrams_dict[2], expected_no_quality2grams )
    
    def test_thirteen( self ):
       # Test 13
@@ -2624,7 +2666,7 @@ class Test_Vis_These_Parts_Unit( unittest.TestCase ):
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       
       # Prepare the findings
-      expected_compound_intervals = { 'P8':1 }
+      expected_compound_intervals = { 'P8':2 }
       
       expected_no_quality2grams = {}
       
@@ -2646,7 +2688,7 @@ class Test_Vis_These_Parts_Unit( unittest.TestCase ):
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'M10':1, 'P12':1 }
       
-      expected_no_quality2grams = { '8 -2 10':1, '10 -2 12':1 }
+      expected_no_quality2grams = { '10 -2 12':1 }
       
       # Verify the findings
       self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
@@ -2658,7 +2700,6 @@ class Test_Vis_These_Parts_Unit( unittest.TestCase ):
       # Test 15
       
       # Process the excerpt
-      #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_15[0]
       lower_part = vis_these_parts_unit_tests.test_15[1]
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
@@ -2710,4 +2751,4 @@ if __name__ == '__main__':
    #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_parts_integration_long_suite )
    #unittest.TextTestRunner( verbosity = 2 ).run( fill_space_between_offsets_suite )
    unittest.TextTestRunner( verbosity = 2 ).run( vis_these_parts_unit_suite )
-   
+	

@@ -198,10 +198,17 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    
    # Is 'thing' a Rest?
    def is_rest( thing ):
-      if isinstance( thing, note.Rest ):
-         return True
-      else:
-         return False
+      return isinstance( thing, note.Rest )
+   
+   # Rounds n to the nearest "precision". For instance...
+   # round_to( 12.6, 0.5 ) ==> 12.5
+   # 
+   # My thanks to the Internet:
+   # http://stackoverflow.com/questions/4265546/python-round-to-nearest-05
+   def round_to( n, precision ):
+      correction = 0.5 if n >= 0 else -0.5
+      return int( n / precision + correction ) * precision
+
    
    ## Is 'thing' a Note, Rest, or neither?
    #def is_note_or_rest( thing ):
@@ -226,16 +233,16 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    # The highest indices.
    len_lower = len(lower_part)
    len_higher = len(higher_part)
+   # DEBUGGING
+   #print( 'len_lower: ' + str(len_lower) + ' len_higher: ' + str(len_higher) )
+   # END DEBUGGING
    
    # The interval by which to count every event. That is, Note/Rest objects
    # will be counted every offset_interval.
    offset_interval = the_settings.get_property( 'offsetBetweenInterval' )
    
-   # Keep track of which offsets we've checked. We'll take the lower offset of
-   # the first notes in the streams as the starting point. We increment this
-   # only when we record something at an offset. This will help us be sure
-   # we don't accidentally go backwards.
-   current_offset = min( lower_part[0].offset, higher_part[0].offset )
+   # Record the offset of the most recently added interval.
+   current_offset = None
    
    # Hold a list of all previously-recorded moments--whether an actual Interval
    # or just a Note/Rest, or even a Rest/Rest.
@@ -246,42 +253,106 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    find_these_ns = the_settings.get_property( 'lookForTheseNs' )
    
    # Go through all the things!
-   while current_lower_index <= len_lower and current_higher_index <= len_higher:
+   # The highest valid index is one less than the len(). 
+   while current_lower_index < len_lower or current_higher_index < len_higher:
+		# DEBUGGING
+		#print( 'schwonk' )
+		#print( 'before index-check:' )
+		#print( 'current_offset: ' + str(current_offset) + ' higher: ' + str(current_higher_index) + ' lower: ' + str(current_lower_index) )
+		# END DEBUGGING
+		
 		# Make sure the current indices aren't past the end of the parts.
 		if current_lower_index >= len_lower:
-			current_lower_index = len_lower - 1
+			#current_lower_index = len_lower - 1
+			current_lower_index -= 1
 		if current_higher_index >= len_higher:
-			current_higher_index = len_higher - 1
+			#current_higher_index = len_higher - 1
+			current_higher_index -= 1
+		
+		# DEBUGGING
+		#print( 'after index-check:' )
+		#print( 'current_offset: ' + str(current_offset) + ' higher: ' + str(current_higher_index) + ' lower: ' + str(current_lower_index) )
+		# END DEBUGGING
 		
 		# Sanity check. If we've already recorded something *past* the current
 		# objects' offsets, then we're moving backwards.
 		# TODO: handle this intelligently (raise exception)
 		if current_offset >= lower_part[current_lower_index].offset and \
-			current_offset >= higher_part[current_higher_index].offset and \
-			current_offset != 0.0:
+			current_offset >= higher_part[current_higher_index].offset:
 			# DEBUGGING
-			print( 'panic! current_offset is ' + str(current_offset) + ' but higher is ' + str(higher_part[current_higher_index].offset) + ' and lower is ' +  str(lower_part[current_lower_index].offset) )
+			#print( 'panic! current_offset is ' + str(current_offset) + ' but higher is ' + str(higher_part[current_higher_index].offset) + ' and lower is ' +  str(lower_part[current_lower_index].offset) )
 			# END DEBUGGING
+			pass
 		
 		# Make sure we have the right objects. --------------
 		# This protects against situations where, for instance, a long note is
 		# held through many notes in the other part. This will keep us on the
-		# right note.
+		# right note. We know there's a problem if the current objects don't
+		# have the same offset.
 		
 		# If the current stream objects don't have the same offset, we should set
 		# the stream with the higher offset to use the previous object.
+		
+		# If the offsets aren't the same...
 		if lower_part[current_lower_index].offset != \
 				higher_part[current_higher_index].offset:
-			# Which object has the greater offset?
-			greater_offset = max( higher_part[current_higher_index].offset, \
-									    lower_part[current_lower_index].offset )
-			if greater_offset == higher_part[curent_higher_index].offset:
-				current_higher_index -= 1
-			else: # must be the lower part with the greater offset
-				current_lower_index -= 1
+			
+			# If the objects are the last in their streams...
+			if current_lower_index == ( len_lower - 1 ) and \
+			      current_higher_index == ( len_higher - 1 ):
+				# DEBUGGING
+				#print( '!! both of the objects are last in stream' )
+				# END DEBUGGING
+				pass
+			# If the higher object is last in its stream...
+			elif current_higher_index == ( len_higher - 1 ):
+				# DEBUGGING
+				#print( '!! higher object is last in stream' )
+				# END DEBUGGING
+				# We can only decrement the higher stream, if it's what occurs later.
+				if higher_part[current_higher_index].offset > \
+						lower_part[current_lower_index].offset:
+					current_higher_index -= 1
+			# If the lower object is last in its stream...
+			elif current_lower_index == ( len_lower - 1 ):
+				# DEBUGGING
+				#print( '!! lower object is last in stream' )
+				# END DEBUGGING
+				# We can only decrement the lower stream, if it's what occurs later.
+				if lower_part[current_lower_index].offset > \
+						higher_part[current_higher_index].offset:
+					current_lower_index -= 1
+			# Neither object is last in its stream...
+			else:
+				# DEBUGGING
+				#print( '!! offsets unequal; lower: ' + str(lower_part[current_lower_index].offset) + ' and higher: ' + str(higher_part[current_higher_index].offset) )
+				# END DEBUGGING
+				# Which object has the greater offset?
+				if higher_part[current_higher_index].offset > \
+						lower_part[current_lower_index].offset:
+					# Must be the higher part with the greater offset.
+					# DEBUGGING
+					#print( '  decrementing current_higher' )
+					# END DEBUGGING
+					current_higher_index -= 1
+				else:
+					# Must be the lower part with the greater offset.
+					# DEBUGGING
+					#print( '  decrementing current_lower' )
+					# END DEBUGGING
+					current_lower_index -= 1
+		# DEBUGGING
+		#else:
+			#print( '!! offsets are equal' )
+			# END DEBUGGING
 		#-----
 		
-		# Decide whether to add the inteval -----------------
+		# DEBUGGING
+		#print( "!  What I've got here is higher i:" + str(current_higher_index) + " o:" + str(higher_part[current_higher_index].offset) + \
+		       #" and lower i:" + str(current_lower_index) + " o:" + str(lower_part[current_lower_index].offset) )
+		# END DEBUGGNG
+		
+		# Decide whether to add the interval -----------------
 		# These conditions must be true for us to bother counting this interval.
 		
 		# We'll use this to keep track of whether we should continue processing
@@ -291,14 +362,23 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
 		# Q: Is the current thing at an offset we're counting?
 		# We'll use this to try different yes-counting offsets, to see if we can
 		# match with the offset of the current thing.
-		potential_new_offset = current_offset
+		if current_offset is None:
+			# We'll start at the start of the streams.
+			potential_new_offset = min( higher_part[0].offset, lower_part[0].offset )
+		else:
+			# Round current_offset to the nearest yes-counting interval.
+			potential_new_offset = round_to( current_offset, offset_interval )
+			# If potential_new_offset is greater than current_offset, we may have
+			# missed something, so go back!
+			if potential_new_offset > current_offset:
+				potential_new_offset -= offset_interval
 		
 		# The new thing will be registered at the greater of the two offsets of
 		# the objects we currently have.
 		# NB: This *must* be recalculated, because the objects may have changed
 		# since the previous time it was calculated.
 		greater_offset = max( higher_part[current_higher_index].offset, \
-									 lower_part[current_lower_index].offset )
+		                      lower_part[current_lower_index].offset )
 		
 		# We start at current_offset, which is still set to the most recently
 		# recorded interval. Then we'll increment by offset_interval until either
@@ -309,6 +389,9 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
 		while potential_new_offset <= greater_offset:
 			if potential_new_offset == greater_offset:
 				contin = True
+				# DEBUGGING
+				#print( '!  we mark this interval because it\'s a yes-record' )
+				# END DEBUGGING
 				break
 			else:
 				potential_new_offset += offset_interval
@@ -321,13 +404,52 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
 			# greater than the "potential_new_offset". If we reach this code, the
 			# "potential_new_offset" will hold the next yes-record offset after the
 			# current event.
-			if higher_part[current_higher_index+1].offset > potential_new_offset and \
-					lower_part[current_lower_index+1].offset > potential_new_offset:
-				contin = True
+			
+			# First see whether we're at the end of the streams.
+			if current_higher_index == len_higher - 1 or \
+					current_lower_index == len_lower - 1:
+				# Then we'll have to use the quarterLength duration. We don't want
+				# to use this unless we have to, because this kind of arithmetic
+				# could lead to errors.
+				end_of_higher = higher_part[current_higher_index].offset + \
+				                higher_part[current_higher_index].quarterLength
+				end_of_lower = lower_part[current_lower_index].offset + \
+				               lower_part[current_lower_index].quarterLength
+				# DEBUGGING
+				#print( '      beep' )
+				# END DEBUGGING
+				# Now do the test
+				if end_of_lower > potential_new_offset and \
+						end_of_higher > potential_new_offset:
+					contin = True
+					# DEBUGGING
+					#print( '   !  Did arithmetic to find out the interval does continue' )
+					# END DEBUGGING
+			else:
+				# We're not at the end of the streams, so we can test without
+				# arithmetic.
+				# DEBUGGING
+				#print( '      boop' )
+				# END DEBUGGING
+				if higher_part[current_higher_index+1].offset > potential_new_offset and \
+						lower_part[current_lower_index+1].offset > potential_new_offset:
+					# DEBUGGING
+					#print( '   !  Avoided arithmetic; found out the interval does continue' )
+					# END DEBUGGING
+					contin = True
+				# DEBUGGING
+				#else:
+					#print( "   !  potential_new_offset:" + str(potential_new_offset) + " and next higher is " + \
+							#str(higher_part[current_higher_index+1].offset) + " and next lower is " + \
+							#str(lower_part[current_lower_index+1].offset) )
+				# END DEBUGGING
 		#-----
 		
 		# Process this moment for intervals. ----------------
 		if contin:
+			# DEBUGGING
+			#print( '  trying to make intervals' )
+			# END DEBUGGING
 			# Does one or do both parts have a Rest or have Rests?
 			if is_rest( higher_part[current_higher_index] ) or \
 					is_rest( lower_part[current_lower_index] ):
@@ -335,19 +457,45 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
 				# a "this moment has a Rest" moment.
 				interval_history.append( 'rest' )
 				contin = False
+				# DEBUG
+				#print( '** rests therefore no interval at offset ' + str(this_interval.offset) )
+				#if is_rest( higher_part[current_higher_index] ):
+					#print( '   higher_part has rest; current_index is ' + str(current_higher_index) )
+				#else:
+					#print( '   lower_part has rest; current_index is ' + str(current_lower_index) )
+				# END DEBUG
 			# Otherwise, we're "go" for adding this as an Interval.
 			else:
-				this_interval = interval.Interval( higher_part[current_higher_index], \
-				                                   lower_part[current_lower_index] )
+				this_interval = interval.Interval( lower_part[current_lower_index], \
+				                                   higher_part[current_higher_index] )
+				# Set the offset to the higher of the objects it's made from
+				this_interval.offset = max( lower_part[current_lower_index].offset, \
+				                            higher_part[current_higher_index].offset )
 				# Is this the first Interval, or is it the same as the previous?
-				if 0 == len(interval_history) or \
+				if 0 < len(interval_history) and \
 						this_interval == interval_history[-1]:
-					# Then we should stop processing it.
-					contin = False
-				else:
-					# This is a new thing, so we should keep processing.
+					# This means it's the same interval, but does it have the same notes?
+					if this_interval.noteStart.nameWithOctave == interval_history[-1].noteStart.nameWithOctave:
+						# This is the same
+						contin = False
+						# DEBUGGING
+						#print( '** not adding the same interval twice in a row' )
+						# END DEBUGGING
+					# DEBUGGING
+					#else:
+						# This is different
+						#print( '** same interval but different notes ' + str(this_interval.noteStart == interval_history[-1].noteStart) )
+						#print( '   previous noteStart: ' + str(interval_history[-1].noteStart) )
+						#print( '   this noteStart: ' + str(this_interval.noteStart) )
+						# END DEBUGGING
+				
+				# else # This is a new thing, so we should keep processing.
+				if contin:
+					# DEBUGGING
+					#print( '** recording a ' + str(this_interval) + ' at offset ' + str(this_interval.offset) )
+					# END DEBUGGING
 					the_statistics.add_interval( this_interval )
-					interval_histroy.append( this_interval )
+					interval_history.append( this_interval )
 					# Update the current offset, because we added a new thing.
 					current_offset = max( higher_part[current_higher_index].offset, \
 					                      lower_part[current_lower_index].offset )
@@ -355,6 +503,9 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
 		
 		# Process this moment for triangles. ----------------
 		if contin:
+			# DEBUGGING
+			#print( '  trying to make n-grams' )
+			# END DEBUGGING
 			# For all the 'n' values we're looking for, we need to first make sure
 			# there are enough pre-recorded things in the interval_history, then
 			# make sure there are enough that are Interval objects and not the
@@ -375,8 +526,12 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
 				# of them is a "rest" then we can build an n-gram with this 'n'.
 				# We only need n-1 elements from the interval_history because we're
 				# getting an additional interval from this_interval.
-				for previous_thing in xrange( 1, n ):
-					if 'rest' == interval_history[(-1 * previous_thing)]:
+				for i in xrange( ( -1 * n ), 0 ):
+					previous_thing = interval_history[i]
+					# DEBUGGING
+					#print( 'previous_thing: ' + str(previous_thing) )
+					# END DEBUGGING
+					if 'rest' == previous_thing:
 						enough_non_rests = False
 						break
 					else:
@@ -386,8 +541,12 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
 				
 				# Finish making the n-gram
 				if enough_non_rests:
-					# Append the final interval (the current one).
-					list_of_intervals.append( this_interval )
+					# DEBUGGING
+					#print( 'interval_history: ' + str(interval_history) )
+					#print( 'list_of_intervals: ' + str(list_of_intervals) )
+					#for each in list_of_intervals:
+						#print( str(type(each)) )
+					# END DEBUGGING
 					
 					# Make an NGram object, then add it to the statistics database.
 					this_ngram = NGram( list_of_intervals, \
@@ -398,10 +557,18 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
 		
 		# Annotate the score for LilyPond.
 		# TODO: write this
+		# just temporary
+		list_of_lilypond_parts = None
 		
 		# Finally, increment the current index.
+		# DEBUGGING
+		#print( 'next loop\'s current_lower: ' + str(current_lower_index) + ' and current_higher: ' + str(current_higher_index) )
+		# END DEBUGGING
 		current_lower_index += 1
 		current_higher_index += 1
+		# DEBUGGING
+		#print( 'next loop\'s current_lower: ' + str(current_lower_index) + ' and current_higher: ' + str(current_higher_index) )
+		# END DEBUGGING
 	# End "while" loop -------------------------------------
    
    
@@ -417,10 +584,6 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    # 3.) If it's a viable interval, decide whether to add it to the list of n-grams.
    # 		-are there enough intervals in a row to build the n-gram? YES
    # 4.) If we're annotating the score, add the appropriate LilyPond annotations.
-   
-   
-   
-   
    
    # Note the ending time of the analysis...
    # TODO: come up with a better timing thing

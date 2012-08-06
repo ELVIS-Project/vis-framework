@@ -118,6 +118,25 @@ test_6 = Score( [top, bot] )
 
 
 
+# Test 6B ----------------------------------------------------------------------
+top = Part()
+top.append( TimeSignature( '4/4' ) )
+top.append( Note('A4', quarterLength=0.5) )
+top.append( Note('G4', quarterLength=1.0) )
+top.append( Note('F4', quarterLength=0.5) )
+
+bot = Part()
+bot.append( TimeSignature( '4/4' ) )
+bot.append( Note('B3', quarterLength=0.5) )
+bot.append( Note('G3', quarterLength=0.5) )
+bot.append( Note('A3', quarterLength=0.5) )
+bot.append( Note('B3', quarterLength=0.5) )
+
+test_6B = Score( [top, bot] )
+#------------------------------------------------------------------------------
+
+
+
 # Test 7 ----------------------------------------------------------------------
 top = Part()
 top.append( TimeSignature( '4/4' ) )
@@ -130,6 +149,24 @@ bot.append( Rest( quarterLength=0.25 ) )
 bot.append( Note('A3', quarterLength=0.5) )
 
 test_7 = Score( [top, bot] )
+#------------------------------------------------------------------------------
+
+
+
+# Test 7B ----------------------------------------------------------------------
+top = Part()
+top.append( TimeSignature( '4/4' ) )
+top.append( Note('G4', quarterLength=1.0) )
+top.append( Note('G4', quarterLength=0.5) )
+
+bot = Part()
+bot.append( TimeSignature( '4/4' ) )
+bot.append( Note('G3', quarterLength=0.25) )
+bot.append( Rest( quarterLength=0.25 ) )
+bot.append( Note('A3', quarterLength=0.5) )
+bot.append( Note('B3', quarterLength=0.5) )
+
+test_7B = Score( [top, bot] )
 #------------------------------------------------------------------------------
 
 
@@ -284,7 +321,7 @@ bot.append( TimeSignature( '4/4' ) )
 bot.append( Note('G3', quarterLength=0.5) )
 bot.append( Note('A3', quarterLength=0.25) )
 bot.append( Note('F3', quarterLength=0.375) )
-bot.append( Rest( quarterLenght=0.25 ) )
+bot.append( Rest( quarterLength=0.25 ) )
 bot.append( Note('G3', quarterLength=0.625) )
 bot.append( Note('G3', quarterLength=0.5) )
 
