@@ -334,7 +334,8 @@ class Vertical_Interval_Statistics( object ):
          s_or_c = the_settings.get_property( 'simpleOrCompound' )
       
       # Do we need to include quality?
-      if True == the_settings.get_property( 'heedQuality' ):
+      if 'quality' in specs or \
+         ( the_settings.get_property( 'heedQuality' ) and 'noQuality' not in specs ):
          # Do we need compound or simple intervals?
          # We need compound intervals.
          if 'compound' == s_or_c:
@@ -465,7 +466,8 @@ class Vertical_Interval_Statistics( object ):
       
       # (2) Decide whether to take 'quality' or 'no_quality'
       output_dict = None
-      if True == the_settings.get_property( 'heedQuality' ):
+      if 'quality' in specs or ( the_settings.get_property( 'heedQuality' ) and \
+         'noQuality' not in specs ):
          # We do need to include quality
          output_dict = self._compound_quality_ngrams_dict
       else:
@@ -487,7 +489,7 @@ class Vertical_Interval_Statistics( object ):
                # Default to 'ascending'
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng], reverse=True )
             
-         # We're now working with flipped_dicts
+      # We're now working with flipped_dicts
       else: # elif 'by ngram' in specs or 'by n-gram' in specs:
          # Default to 'by ngram'
          for n in list_of_n:
@@ -510,7 +512,7 @@ class Vertical_Interval_Statistics( object ):
             g.setTicks('y',[(k,k) for k in range(max([output_dict[n][sorted_ngrams[n][j]] for j in range(len(sorted_ngrams[n]))]))])
             g.process()
             grapharr.append(g)
-         return grapharr
+         post = grapharr
 
       # (4.2) Else make a nicely formatted list from the results.
       else:
