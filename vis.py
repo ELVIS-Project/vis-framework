@@ -264,6 +264,7 @@ if __name__ == '__main__':
 - 'set' to set an option (see 'set help' for more information)
 - 'get' to get the setting of an option (see 'get help')
 - 'show' for guided display of results
+- 'powerlaw' for power law something something
 - 'reset' to reset all settings and statistics
 - 'help settings' for a list of available settings
 - 'help filename' for help with file names
@@ -300,6 +301,7 @@ if __name__ == '__main__':
 - 'ascending'/'low to high' or 'descending'/'high to low' to decide the order
 - 'n=3,4,5' for example, preceded and separated by a space or the start/end of the options,
   to control which 'n' values to show.
+- 'graph' to see a bar graph of the results
 ''' )
             #-----
             
@@ -355,10 +357,11 @@ if __name__ == '__main__':
                format = raw_input( "Please input formatting options, if any (or 'help'): " )
                if 'help' == format:
                   print( '''For intervals, you can use the following options:
-- 'by frequency' or 'by ngram' to decide by what to sort
+- 'by frequency' or 'by interval' to decide by what to sort
 - 'ascending'/'low to high' or 'descending'/'high to low' to decide the order
 - 'simple' or 'compound' to determine which type of intervals to show; otherwise
   this is determined from your previous or the default settings
+- 'graph' to see a bar graph of the results
 ''' )
             #-----
             
