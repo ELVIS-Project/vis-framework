@@ -233,7 +233,7 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
 
 # "main" method --------------------------------------------------------------
 if __name__ == '__main__':
-   print( "vis (Prerelease)\n" )
+   print( "vis (post-Milestone 1)\n" )
    print( "Copyright (C) 2012 Christopher Antila" )
    print( "This program comes with ABSOLUTELY NO WARRANTY; for details type 'warranty'." )
    print( "This is free software; type 'copyright' for details.\n" )
