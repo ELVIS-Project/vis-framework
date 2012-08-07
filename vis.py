@@ -107,13 +107,16 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
    #print( '*** list_of_filenames: ' + str(list_of_filenames) )
    # END DEBUGGING
    
-   # Do analysis of multiple pieces
+   # Analysis: Multiple Pieces ----------------------------
    if len(list_of_filenames) > 1:
       # Find out which 2 parts they want us to investigate.
-      print( "Please input the part numbers to investigate. 0 is the highest part; -1 is the lowest." )
+      print( "Please input the part numbers to investigate. 0 is the highest part; -1 is the lowest. Or 'all'" )
       print( "Remember the higher part goes first!" )
       parts_to_investigate = raw_input( '--> ' )
-      parts_to_investigate = list(set([int(n) for n in re.findall('(-?\d+)', parts_to_investigate)]))
+      # If the user isn't asking for all parts...
+      if 'all' != parts_to_investigate:
+         # Parse the input to pick out which parts they specified.
+         parts_to_investigate = list(set([int(n) for n in re.findall('(-?\d+)', parts_to_investigate)]))
       
       cumulative_analysis_duration = 0.0
       
@@ -139,13 +142,39 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
             continue
          print( '   successfully imported' )
          try:
-            higher = the_score.parts[parts_to_investigate[0]]
-            lower = the_score.parts[parts_to_investigate[1]]
-            it_took = vis_these_parts( [higher,lower], the_settings, the_stats )[0]
-            cumulative_analysis_duration += it_took
-            print( '   finished in ' + str(it_took) )
-         except Exception:
+            if 'all' == parts_to_investigate:
+               # We have to examine all combinations of parts.
+               # How many parts are in this piece?
+               number_of_parts = len(the_score.parts)
+               # Get a list of all the part-combinations to examine.
+               parts_to_examine = calculate_all_combis( number_of_parts - 1 )
+               # "Zero" it_took
+               it_took = 0.0
+               # Analyze every part combination.
+               for set_of_parts in parts_to_examine:
+                  higher = the_score.parts[set_of_parts[0]]
+                  lower = the_score.parts[set_of_parts[1]]
+                  it_took += vis_these_parts( [higher,lower], the_settings, the_stats )[0]
+               # Add this duration to the cumulative duration.
+               cumulative_analysis_duration += it_took
+               # Print how long it took
+               print( '   finished in ' + str(it_took) )
+            else:
+               # We should only examine the specified parts.
+               # Get the two parts.
+               higher = the_score.parts[parts_to_investigate[0]]
+               lower = the_score.parts[parts_to_investigate[1]]
+               # Run the analysis
+               it_took = vis_these_parts( [higher,lower], the_settings, the_stats )[0]
+               # Add this duration to the cumulative duration.
+               cumulative_analysis_duration += it_took
+               # Print this duration.
+               print( '   finished in ' + str(it_took) )
+         except Exception as exc:
             print( '   failed during analysis' )
+            # DEBUGGING
+            print( '   DEBUGGING: ' + str(exc) )
+            # END DEBUGGING
             files_not_analyzed.append( filename )
             continue
       
@@ -154,7 +183,7 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
          print( '*** Unable to analyze the following files:' )
          for filename in files_not_analyzed:
             print( filename )
-      #-----
+   # Analysis: Single Piece -------------------------------
    else:
       # Import the score.
       print( "Importing score to music21.\n" )
