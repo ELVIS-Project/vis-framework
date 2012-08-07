@@ -331,6 +331,7 @@ if __name__ == '__main__':
 - 'n=3,4,5' for example, preceded and separated by a space or the start/end of the options,
   to control which 'n' values to show.
 - 'graph' to see a bar graph of the results
+- 'total' for the number of n-grams found (*not* the number of different kinds)
 ''' )
             #-----
             
@@ -391,6 +392,7 @@ if __name__ == '__main__':
 - 'simple' or 'compound' to determine which type of intervals to show; otherwise
   this is determined from your previous or the default settings
 - 'graph' to see a bar graph of the results
+- 'total' for the total number of intervals found (*not* the number of different kinds)
 ''' )
             #-----
             

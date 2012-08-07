@@ -321,6 +321,17 @@ class Vertical_Interval_Statistics( object ):
       - 'graph' if you want a graph instead of text
       '''
       
+      # If they want the total number of intervals found.
+      if 'total' in specs:
+         t_n_i = 0
+         # Add up the number of intervals.
+         # Use simple because there are fewer of them.
+         for interv in self._simple_interval_dict.values():
+            t_n_i += interv
+         
+         return str(t_n_i)
+      #--------
+      
       # (1) decide which dictionary to use and how to process the intervals.
       the_dict = None
       
@@ -463,6 +474,18 @@ class Vertical_Interval_Statistics( object ):
       # What if we end up with no n values?
       if 0 == len(list_of_n):
          raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+      
+      # If they want the total number of n-grams found.
+      if 'total' in specs:
+         t_n_ng = 0
+         # Add up the number of triangles for each 'n' value.
+         for n in list_of_n:
+            # Use 'no_quality' because there will be fewer to go through
+            for triangle in self._compound_no_quality_ngrams_dict[n].values():
+               t_n_ng += triangle
+         
+         return str(t_n_ng)
+      #--------
       
       # (2) Decide whether to take 'quality' or 'no_quality'
       output_dict = None
