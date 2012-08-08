@@ -359,22 +359,14 @@ class TestNGram( unittest.TestCase ):
       self.assertEqual( NGram(self.g,False).get_string_version(False,'simple'), '3 +4 2 -6 5 +2 -3' )
 
    def test_repr( self ):
-      self.assertEqual( NGram(self.a,True).__repr__(), '<NGram m3 P1 m3>' )
-      self.assertEqual( NGram(self.b,True).__repr__(), '<NGram m3 P1 M3>' )
-      self.assertEqual( NGram(self.c,True).__repr__(), '<NGram m3 +P4 m3>' )
-      self.assertEqual( NGram(self.d,True).__repr__(), '<NGram m-3 +M2 M3>' )
-      self.assertEqual( NGram(self.e,True).__repr__(), '<NGram m3 -P4 m3>' )
-      self.assertEqual( NGram(self.f,True).__repr__(), '<NGram m3 -m2 M-3>' )
-      self.assertEqual( NGram(self.g,True).__repr__(), '<NGram m3 +P4 M2 -m6 P5 +A9 M-10>' )
-      #
-      self.assertEqual( NGram(self.a,False).__repr__(), '<NGram 3 1 3>' )
-      self.assertEqual( NGram(self.b,False).__repr__(), '<NGram 3 1 3>' )
-      self.assertEqual( NGram(self.c,False).__repr__(), '<NGram 3 +4 3>' )
-      self.assertEqual( NGram(self.d,False).__repr__(), '<NGram -3 +2 3>' )
-      self.assertEqual( NGram(self.e,False).__repr__(), '<NGram 3 -4 3>' )
-      self.assertEqual( NGram(self.f,False).__repr__(), '<NGram 3 -2 -3>' )
-      self.assertEqual( NGram(self.g,False).__repr__(), '<NGram 3 +4 2 -6 5 +9 -10>' )
-
+      self.assertEqual( NGram(self.a).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'A4' ), Note( 'C5' ) )] )" )
+      self.assertEqual( NGram(self.b).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'A4' ), Note( 'C#5' ) )] )" )
+      self.assertEqual( NGram(self.c).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'D5' ), Note( 'F5' ) )] )" )
+      self.assertEqual( NGram(self.d).__repr__(), "NGram( [Interval( Note( 'C5' ), Note( 'A4' ) ), Interval( Note( 'D5' ), Note( 'F#5' ) )] )" )
+      self.assertEqual( NGram(self.e).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'E4' ), Note( 'G4' ) )] )" )
+      self.assertEqual( NGram(self.f).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'G#4' ), Note( 'E4' ) )] )" )
+      self.assertEqual( NGram(self.g).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'D5' ), Note( 'E5' ) ), Interval( Note( 'F#4' ), Note( 'C#5' ) ), Interval( Note( 'G##5' ), Note( 'E#4' ) )] )" )
+   
    def test_retrograde( self ):
       self.assertTrue( NGram(self.a,True).retrograde() == NGram([interval.Interval(note.Note('A4'), \
             note.Note('C5')),interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
@@ -2760,7 +2752,7 @@ if __name__ == '__main__':
    #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
       ###TODO: some sort of testing for the 'lookForTheseNs' settting
    #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
-   #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
+   unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
    
@@ -2768,5 +2760,5 @@ if __name__ == '__main__':
    #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_parts_integration_short_suite )
    #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_parts_integration_long_suite )
    #unittest.TextTestRunner( verbosity = 2 ).run( fill_space_between_offsets_suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( vis_these_parts_unit_suite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_parts_unit_suite )
 	

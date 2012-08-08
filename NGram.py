@@ -127,16 +127,26 @@ class NGram( object ):
    def n( self ):
       return self._n
 
-   # I think we shouldn't have this method because of difficulties getting
-   # different answers depending on heed_quality, and because it's not
-   # going to be much different from __str__() anyway.
-   #def getIntervals( self ):
-      #return self._list_of_intervals
-   
    def __repr__( self ):
-      # TODO: re-implement this, as per the Python standard... the return
-      # value should be sufficient code to re-make an == object.
-      return '<' + __name__ + ' ' + str(self) + '>'
+      # The Python standard suggests the return value from this method should
+      # be sufficient to re-create the object. This is a little more complicated
+      # than the music21 core classes make it seem.
+      
+      # Start out with NGram constructor.
+      post = __name__ + '( ['
+      
+      # Add a constructor for every Interval.
+      for each_int in self._list_of_intervals:
+         post += "Interval( Note( '" + each_int.noteStart.nameWithOctave + \
+               "' ), Note( '" + each_int.noteEnd.nameWithOctave + "' ) ), "
+      
+      # Remove the final ", " from the list of Intervals
+      post = post[:-2]
+      
+      # Append the final parenthesis.
+      post += "] )"
+      
+      return post
    
    def get_string_version( self, heed_quality, simple_or_compound ):
       '''
