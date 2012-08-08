@@ -367,6 +367,12 @@ class TestNGram( unittest.TestCase ):
       self.assertEqual( NGram(self.f).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'G#4' ), Note( 'E4' ) )] )" )
       self.assertEqual( NGram(self.g).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'D5' ), Note( 'E5' ) ), Interval( Note( 'F#4' ), Note( 'C#5' ) ), Interval( Note( 'G##5' ), Note( 'E#4' ) )] )" )
    
+   def test_voice_crossing( self ):
+      self.assertFalse( NGram( self.a ).voice_crossing() )
+      self.assertFalse( NGram( self.b ).voice_crossing() )
+      self.assertTrue( NGram( self.f ).voice_crossing() )
+      self.assertTrue( NGram( self.g ).voice_crossing() )
+   
    def test_retrograde( self ):
       self.assertTrue( NGram(self.a,True).retrograde() == NGram([interval.Interval(note.Note('A4'), \
             note.Note('C5')),interval.Interval(note.Note('A4'),note.Note('C5'))],True) )

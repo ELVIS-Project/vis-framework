@@ -46,6 +46,7 @@ class NGram( object ):
    # _list_of_movements
    # _heed_quality
    # _string
+   # _has_voice_crossing
    def __init__( self, some_intervals, heed_quality=False, simple_or_compound='compound' ):
       '''
       Create a new n-gram when given a list of the
@@ -83,12 +84,19 @@ class NGram( object ):
          self._heed_quality = heed_quality
          self._simple_or_compound = simple_or_compound
       
-      # Continue assigning
-      # TODO: if len() doesn't match settings, if there's settings, then panic
+      # How many intervals are in this triangle/n-gram?
       self._n = len(some_intervals)
       
-      # Assign the intervals
-      self._list_of_intervals = some_intervals
+      # Assign the intervals. Check each one to see if there is a negative
+      # interval, which would signify voice crossing.
+      self._has_voice_crossing = False
+      self._list_of_intervals = []
+      for interv in some_intervals:
+         # Check direction
+         if -1 == interv.direction:
+            self._has_voice_crossing = True
+         # Assign to new NGram
+         self._list_of_intervals.append( interv )
       
       # Calculate melodic intervals between vertical intervals.
       self._calculate_movements()
@@ -147,6 +155,13 @@ class NGram( object ):
       post += "] )"
       
       return post
+   
+   def voice_crossing( self ):
+      '''
+      Returns True if the NGram object has voice crossing (meaning that one
+      or more of the Interval objects has a negative direction) or else False.
+      '''
+      return self._has_voice_crossing
    
    def get_string_version( self, heed_quality, simple_or_compound ):
       '''
