@@ -384,6 +384,22 @@ class TestNGram( unittest.TestCase ):
             note.Note('E#4')),interval.Interval(note.Note('F#4'),note.Note('C#5')), \
             interval.Interval(note.Note('D5'),note.Note('E5')), \
             interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
+   
+   def test_canonical( self ):
+      # m-3 +M2 M3
+      self.assertEqual( NGram( self.d, True ).canonical(), 'm3 M2 M3' )
+      self.assertEqual( NGram( self.d, False ).canonical(), '3 2 3' )
+      # m3 -P4 m3
+      self.assertEqual( NGram( self.e, True ).canonical(), 'm3 P4 m3' )
+      self.assertEqual( NGram( self.e, False ).canonical(), '3 4 3' )
+      # m3 -P4 M-3
+      self.assertEqual( NGram( self.f, True ).canonical(), 'm3 m2 M3' )
+      self.assertEqual( NGram( self.f, False ).canonical(), '3 2 3' )
+      # m3 +P4 M2 -m6 P5 -m2 M-10
+      self.assertEqual( NGram( self.g, True ).canonical(), 'm3 P4 M2 m6 P5 A9 M10' )
+      self.assertEqual( NGram( self.g, False ).canonical(), '3 4 2 6 5 9 10' )
+   
+   
 #------------------------------------------------------------------------------
 
 

@@ -46,6 +46,7 @@ class NGram( object ):
    # _list_of_movements
    # _heed_quality
    # _string
+   # _has_voice_crossing
    def __init__( self, some_intervals, heed_quality=False, simple_or_compound='compound' ):
       '''
       Create a new n-gram when given a list of the
@@ -70,7 +71,7 @@ class NGram( object ):
       >>> s = visSettings()
       >>> a = interval.Interval( note.Note('C4'), note.Note('E4') )
       >>> b = interval.Interval( note.Note('D4'), note.Note('E4') )
-      >>> ng = NGram( [a,b], s.get_property( 'heed_quality' ) )
+      >>> ng = NGram( [a, b], s )
       NGram( [music21.interval.Interval( music21.note.Note('C4'), music21.note.Note('E4') ),music21.interval.Interval( music21.note.Note('D4'), music21.note.Note('E4') )], False )
       
       The second argument could also be a VIS_Settings object, in which case
@@ -83,19 +84,26 @@ class NGram( object ):
          self._heed_quality = heed_quality
          self._simple_or_compound = simple_or_compound
       
-      # Continue assigning
-      # TODO: if len() doesn't match settings, if there's settings, then panic
+      # How many intervals are in this triangle/n-gram?
       self._n = len(some_intervals)
       
-      # Assign the intervals
-      self._list_of_intervals = some_intervals
+      # Assign the intervals. Check each one to see if there is a negative
+      # interval, which would signify voice crossing.
+      self._has_voice_crossing = False
+      self._list_of_intervals = []
+      for interv in some_intervals:
+         # Check direction
+         if -1 == interv.direction:
+            self._has_voice_crossing = True
+         # Assign to new NGram
+         self._list_of_intervals.append( interv )
       
       # Calculate melodic intervals between vertical intervals.
       self._calculate_movements()
       
       # Generate the str representation of this NGram
       self._string = self.get_string_version( heed_quality, simple_or_compound )
-      #----------------------------------------------------
+   # End NGram() ------------------------------------------
    
    # internal method
    def _calculate_movements( self ):
@@ -117,14 +125,27 @@ class NGram( object ):
       self._list_of_movements = post
    #-------------------------------------------------------
 
-   def retrograde(self):
+   def retrograde( self ):
       '''
       Returns the retrograde (backwards) n-gram of self.
+      
+      >>> from music21 import *
+      >>> from vis import *
+      >>> s = visSettings()
+      >>> a = interval.Interval( note.Note('C4'), note.Note('E4') )
+      >>> b = interval.Interval( note.Note('D4'), note.Note('E4') )
+      >>> ng = NGram( [a, b], s )
+      >>> ng.retrograde() == NGram( [b, a], s )
+      True
       '''
       reversed_intervals = self._list_of_intervals[::-1]
       return NGram(reversed_intervals, self._heed_quality, self._simple_or_compound)
 
    def n( self ):
+      '''
+      Return the 'n' of this n-gram, which means the number of vertical
+      intervals in this object.
+      '''
       return self._n
 
    def __repr__( self ):
@@ -147,6 +168,23 @@ class NGram( object ):
       post += "] )"
       
       return post
+   
+   def canonical( self ):
+      '''
+      Return the "canonical non-crossed" str representation of this NGram
+      object. This is like an "absolute value" function, in that it removes any
+      positive/negative signs and does not do much else.
+      
+      Be cautious about interpreting the meaning of this method's return values.
+      This 'm3 M2 m3' matches any of the following:
+      - 'm-3 +M2 m-3'
+      - 'm-3 +M2 m3'
+      - 'm3 -M2 m-2'
+      - etc.
+      These are not necessarily experientially similar.
+      '''
+      post = str(self).replace( '-', '' )
+      return post.replace( '+', '' )
    
    def get_string_version( self, heed_quality, simple_or_compound ):
       '''
