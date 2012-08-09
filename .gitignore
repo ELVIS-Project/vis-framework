@@ -3,6 +3,7 @@
 .directory
 test_output/*
 extra_trials/*
+*.kate-swp
 
 *.py[co]
 
