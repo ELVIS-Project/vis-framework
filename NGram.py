@@ -186,6 +186,13 @@ class NGram( object ):
       post = str(self).replace( '-', '' )
       return post.replace( '+', '' )
    
+   def voice_crossing( self ):
+      '''
+      Returns True if the NGram object has voice crossing (meaning that one
+      or more of the Interval objects has a negative direction) or else False.
+      '''
+      return self._has_voice_crossing
+   
    def get_string_version( self, heed_quality, simple_or_compound ):
       '''
       Return a string-format representation of this NGram object. With no
