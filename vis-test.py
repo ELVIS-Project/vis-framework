@@ -198,12 +198,31 @@ class TestNGram( unittest.TestCase ):
       self.assertEqual( y._n, 4 )
 
    def test_constructor_assignment( self ):
+      # We have to make sure the settings are properly set, and that it works
+      # for n-grams of multiple sizes/lengths.
+      s = VIS_Settings()
+      s.set_property( 'heedQuality true' )
+      s.set_property( 'simpleOrCompound simple' )
+      #
       x = NGram( self.a )
       self.assertEqual( x._list_of_intervals, self.a )
-      #self.assertEqual( x.getIntervals(), self.a )
+      self.assertFalse( x._heed_quality )
+      self.assertEqual( x._simple_or_compound, 'compound' )
+      #
+      x = NGram( self.a, s )
+      self.assertEqual( x._list_of_intervals, self.a )
+      self.assertTrue( x._heed_quality )
+      self.assertEqual( x._simple_or_compound, 'simple' )
+      #
       y = NGram( self.g )
       self.assertEqual( y._list_of_intervals, self.g )
-      #self.assertEqual( y.getIntervals(), self.g )
+      self.assertFalse( y._heed_quality )
+      self.assertEqual( y._simple_or_compound, 'compound' )
+      #
+      y = NGram( self.g, s )
+      self.assertEqual( y._list_of_intervals, self.g )
+      self.assertTrue( y._heed_quality )
+      self.assertEqual( y._simple_or_compound, 'simple' )
 
    def test_distance_calculations( self ):
       self.assertEqual( NGram( self.a )._list_of_movements, self.a_distance )
@@ -357,6 +376,17 @@ class TestNGram( unittest.TestCase ):
       #
       self.assertEqual( NGram(self.f,False).get_string_version(False,'simple'), '3 -2 -3' )
       self.assertEqual( NGram(self.g,False).get_string_version(False,'simple'), '3 +4 2 -6 5 +2 -3' )
+      # Now test with a VIS_Settings object
+      s = VIS_Settings()
+      s.set_property( 'heedQuality true' )
+      s.set_property( 'simpleOrCompound compound' )
+      self.assertEqual( NGram(self.g).get_string_version( s ), 'm3 +P4 M2 -m6 P5 +A9 M-10' )
+      s.set_property( 'heedQuality false' )
+      self.assertEqual( NGram(self.g).get_string_version( s ), '3 +4 2 -6 5 +9 -10' )
+      s.set_property( 'simpleOrCompound simple' )
+      self.assertEqual( NGram(self.g).get_string_version( s ), '3 +4 2 -6 5 +2 -3' )
+      s.set_property( 'heedQuality true' )
+      self.assertEqual( NGram(self.g).get_string_version( s ), 'm3 +P4 M2 -m6 P5 +A2 M-3' )
 
    def test_repr( self ):
       self.assertEqual( NGram(self.a).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'A4' ), Note( 'C5' ) )] )" )

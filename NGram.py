@@ -45,6 +45,7 @@ class NGram( object ):
    # _list_of_intervals
    # _list_of_movements
    # _heed_quality
+   # _simple_or_compound
    # _string
    # _has_voice_crossing
    def __init__( self, some_intervals, heed_quality=False, simple_or_compound='compound' ):
@@ -79,7 +80,8 @@ class NGram( object ):
       '''
       # Deal with the settings
       if isinstance( heed_quality, VIS_Settings ):
-         pass
+         self._heed_quality = heed_quality.get_property( 'heedQuality' )
+         self._simple_or_compound = heed_quality.get_property( 'simpleOrCompound' )
       else:
          self._heed_quality = heed_quality
          self._simple_or_compound = simple_or_compound
@@ -102,7 +104,7 @@ class NGram( object ):
       self._calculate_movements()
       
       # Generate the str representation of this NGram
-      self._string = self.get_string_version( heed_quality, simple_or_compound )
+      self._string = self.get_string_version( self._heed_quality, self._simple_or_compound )
    # End NGram() ------------------------------------------
    
    # internal method
@@ -193,32 +195,66 @@ class NGram( object ):
       '''
       return self._has_voice_crossing
    
-   def get_string_version( self, heed_quality, simple_or_compound ):
+   def get_string_version( self, heed_quality=None, simple_or_compound=None ):
       '''
       Return a string-format representation of this NGram object. With no
       arguments, the intervals are compound, and quality is heeded or not as
       per the setting of this NGram object.
       
-      This function is called by str(vis.NGram) so the following should be
-      true of any NGram object:
-      str(vis.NGram) == NGram.stringVersion()
+      This function is called internally by str(vis.NGram) so the following
+      should be true of any NGram object:
+      str(vis.NGram) == NGram.get_string_version()
+      
+      You can also call this method directly for different formatting options
+      than those at NGram-creation time. If you do this, specify the new
+      formatting options either directly or through a VIS_Settings object.
+      
+      >>> from music21 import *
+      >>> from vis import *
+      >>> s = VIS_Settings()
+      >>> a = interval.Interval( note.Note('C4'), note.Note('E5') )
+      >>> b = interval.Interval( note.Note('D4'), note.Note('E5') )
+      >>> ng = NGram( [a, b], s )
+      >>> ng.get_string_version()
+      'M10 +M2 M9'
+      >>> ng.get_string_version( heed_quality=False, simple_or_compound='simple )
+      '3 +2 2'
+      >>> s.set_property( 'heedQuality False' )
+      >>> ng.get_string_version( s )
+      '10 +2 9'
+      
+      Note that calling this method does not change the internally-stored
+      str representation or the internally-stored settings.
       '''
       
+      # Deal with the settings.
+      if isinstance( heed_quality, VIS_Settings ):
+         # Extract settings from the VIS_Settings instance.
+         # NB: We have to set heed_quality last, or we can't get further
+         # settings from it.
+         simple_or_compound = heed_quality.get_property( 'simpleOrCompound' )
+         heed_quality = heed_quality.get_property( 'heedQuality' )
+      else:
+         if simple_or_compound is None:
+            simple_or_compound = self._simple_or_compound
+         if heed_quality is None:
+            heed_quality = self._heed_quality
+      
+      # Hold the str we're making.
       post = ''
       
-      # for each index in _listOfIntervals
+      # We need to consider every index of _list_of_intervals, which contains
+      # the vertical intervals of this NGram.
       for i in xrange(len(self._list_of_intervals)):
-         # If post isn't empty, put a space between this and the previous int
+         # If post isn't empty, this isn't the first interval added, so we need
+         # to put a space between this and the previous int.
          if len(post) > 0:
             post += ' '
          
          # Calculate this interval
-         # NB: to avoid raising an excpetion, if it's not 'simple' we can just
-         # assume it's 'compound'.
          this_interval = None
          if 'simple' == simple_or_compound:
             this_interval = self._list_of_intervals[i].directedSimpleName
-         #elif 'compound' == simple_or_compound:
          else:
             this_interval = self._list_of_intervals[i].directedName
          
@@ -230,12 +266,18 @@ class NGram( object ):
          post += this_interval
          
          # Calculate the lower-voice movement after this interval.
+         # NB: The final interval won't have anything, and currently we deal
+         # with this by simply catching the IndexError that would result, and
+         # ignoring it. There's probably a more elegant way.
          this_move = None
-         try: # the last interval won't have anything
+         try:
             this_move = self._list_of_movements[i]
          except IndexError as inderr:
-            pass # then just don't add it
+            pass
          
+         # Add the direction to the horizontal interval. The call to
+         # isinstance() means we won't try to find the direction of None, which
+         # is what would happen for the final horizontal interval.
          if isinstance( this_move, interval.Interval ):
             if 1 == this_move.direction:
                post += ' +'
@@ -244,12 +286,9 @@ class NGram( object ):
             else:
                post += ' '
             
-            # NB: to avoid raising an exception, if it's not 'simple' we'll
-            # just assume it's compound. 
             if 'simple' == simple_or_compound:
                zzz = this_move.semiSimpleName
             else:
-            #elif 'compound' == simple_or_compound:
                zzz = this_move.name
             
             if not heed_quality:
@@ -258,7 +297,7 @@ class NGram( object ):
             post += zzz
             
             this_move = None
-         #
+      # End the "for"
          
       return post
    # end _calculate_string_version ------------------------
