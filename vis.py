@@ -235,6 +235,9 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
       # should set this before they type the filename.
       
       print( "Processing...\n" )
+      # TODO: update this section, and vis_these_parts(), to accept a list of
+      # Part objects for LilyPond annotation, rather than a single Part object
+      # that is the only possible annotation.
       it_took = 0.0
       ly = None
       if 'all' == look_at_parts:
