@@ -124,7 +124,7 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
          # We have multiple components
          raise UnidentifiedObjectError( 'Cannot process durations with ' + \
             'multiple components (received ' + str(dur.components) + \
-            ' for quartereLength of ' + str(dur.quarterLength) + ')' )
+            ' for quarterLength of ' + str(dur.quarterLength) + ')' )
       elif known_tuplet:
          # We have part of a tuple. This isn't necessarily a problem; we'll
          # assume we are given this by process_measure() and that it knows
@@ -252,7 +252,7 @@ def process_measure( the_meas ):
    
    Input should be a Measure.
    '''
-   post = "   "
+   post = "\t"
    
    # first check if it's a partial (pick-up) measure
    if 0.0 < the_meas.duration.quarterLength < the_meas.barDuration.quarterLength:
@@ -262,12 +262,12 @@ def process_measure( the_meas ):
       if round( the_meas.duration.quarterLength, 2 ) < the_meas.barDuration.quarterLength:
          # But still, we may get something stupid...
          try:
-            post += "\\partial " + duration_to_lily( the_meas.duration ) + "\n   "
+            post += "\\partial " + duration_to_lily( the_meas.duration ) + "\n\t"
          except UnidentifiedObjectError as uoe:
             # ... so if it doesn't work the first time, it may in fact be a
             # partial measure; we'll try rounding and see what we can get.
             rounded_duration = duration.Duration( round( the_meas.duration.quarterLength, 2 ) )
-            post += "\\partial " + duration_to_lily( rounded_duration ) + "\n   "
+            post += "\\partial " + duration_to_lily( rounded_duration ) + "\n\t"
    
    # Make the_meas an iterable, so we can pull in multiple elements when we
    # need to deal with tuplets.
@@ -313,26 +313,26 @@ def process_measure( the_meas ):
       # Clef
       elif isinstance( obj, clef.Clef ):
          if isinstance( obj, clef.TrebleClef ):
-            post += "\\clef treble\n   "
+            post += "\\clef treble\n\t"
          elif isinstance( obj, clef.BassClef ):
-            post += "\\clef bass\n   "
+            post += "\\clef bass\n\t"
          elif isinstance( obj, clef.TenorClef ):
-            post += "\\clef tenor\n   "
+            post += "\\clef tenor\n\t"
          elif isinstance( obj, clef.AltoClef ):
-            post += "\\clef alto\n   "
+            post += "\\clef alto\n\t"
          else:
             raise UnidentifiedObjectError( 'Clef type not recognized: ' + obj )
       # Time Signature
       elif isinstance( obj, meter.TimeSignature ):
-         post += "\\time " + str(obj.beatCount) + "/" + str(obj.denominator) + "\n   "
+         post += "\\time " + str(obj.beatCount) + "/" + str(obj.denominator) + "\n\t"
       # Key Signature
       elif isinstance( obj, key.KeySignature ):
          pm = obj.pitchAndMode
          if 2 == len(pm) and pm[1] is not None:
-            post += "\\key " + pitch_to_lily( pm[0], include_octave=False ) + " \\" + pm[1] + "\n   "
+            post += "\\key " + pitch_to_lily( pm[0], include_octave=False ) + " \\" + pm[1] + "\n\t"
          else:
             # We'll have to assume it's \major, because music21 does that.
-            post += "\\key " + pitch_to_lily( pm[0], include_octave=False ) + " \\major\n   "
+            post += "\\key " + pitch_to_lily( pm[0], include_octave=False ) + " \\major\n\t"
       # Barline
       elif isinstance( obj, bar.Barline ):
          # There's no need to write down a regular barline, because they tend
@@ -397,7 +397,7 @@ def process_analysis_voice( a_v ):
    post = ''
    
    for obj in a_v:
-      post += '   ' + space_for_lily( obj ) + '\n'
+      post += '\t' + space_for_lily( obj ) + '\n'
    
    return post
 # End process_analysis_voice() ------------------------------------------------
@@ -434,7 +434,7 @@ def process_stream( s, the_settings ):
          the_settings.get_property( 'lilypond_version' ) + \
          '"\n\n'
       # Set paper size
-      post += '\\paper {\n   #(set-paper-size "' + \
+      post += '\\paper {\n\t#(set-paper-size "' + \
          the_settings.get_property( 'paper_size' ) + \
          '")\n}\n\n'
       
@@ -453,40 +453,39 @@ def process_stream( s, the_settings ):
       
       # Things After Parts
       # Output the \score{} block
-      post += '\\score {\n   \\new StaffGroup\n   <<\n'
+      post += '\\score {\n\t\\new StaffGroup\n\t<<\n'
       for each_part in the_settings._partsInThisScore:
          if each_part in the_settings._analysis_notation_parts:
-            post += '      \\new VisAnnotation = "' + each_part + '" \\' + each_part + '\n'
+            post += '\t\t\\new VisAnnotation = "' + each_part + '" \\' + each_part + '\n'
          else:
-            post += '      \\new Staff = "' + each_part + '" \\' + each_part + '\n'
-      post += '   >>\n'
+            post += '\t\t\\new Staff = "' + each_part + '" \\' + each_part + '\n'
+      post += '\t>>\n'
       # Output the \layout{} block
-      post += '   \\layout{\n'
+      post += '\t\\layout{\n'
       if the_settings.get_property( 'indent' ) is not None:
-         post += '      indent = ' + the_settings.get_property( 'indent' ) + '\n'
-      post += '''      
-      % VisAnnotation Context
-      \context 
-      {
-         \\type "Engraver_group"
-         \\name VisAnnotation
-         \\alias Voice
-         \consists "Output_property_engraver"
-         \consists "Script_engraver"
-         \consists "Text_engraver"
-         \consists "Skip_event_swallow_translator"
-         \consists "Axis_group_engraver"
-      }
-      % End VisAnnotation Context
-      
-      % Modify "StaffGroup" context to accept VisAnnotation context.
-       \context
-       {
-         \StaffGroup
-         \\accepts VisAnnotation
-       }
+         post += '\t\tindent = ' + the_settings.get_property( 'indent' ) + '\n'
+      post += '''\t\t% VisAnnotation Context
+\t\t\context 
+\t\t{
+\t\t\t\\type "Engraver_group"
+\t\t\t\\name VisAnnotation
+\t\t\t\\alias Voice
+\t\t\t\consists "Output_property_engraver"
+\t\t\t\consists "Script_engraver"
+\t\t\t\consists "Text_engraver"
+\t\t\t\consists "Skip_event_swallow_translator"
+\t\t\t\consists "Axis_group_engraver"
+\t\t}
+\t\t% End VisAnnotation Context
+\t\t
+\t\t% Modify "StaffGroup" context to accept VisAnnotation context.
+\t\t\context
+\t\t{
+\t\t\t\StaffGroup
+\t\t\t\\accepts VisAnnotation
+\t\t}
 '''
-      post += '   }\n}\n'
+      post += '\t}\n}\n'
       
    # Part -------------------------------------------------
    elif isinstance( s, stream.Part ):
@@ -500,18 +499,18 @@ def process_stream( s, the_settings ):
       # both the .instrumentName and .shortInstrumentName for LilyPond.
       instr_name = s.getInstrument().partName
       if instr_name is not None and len(instr_name) > 0:
-         post += '   %% ' + instr_name + '\n'
-         post += '   \set Staff.instrumentName = \markup{ "' + \
+         post += '\t%% ' + instr_name + '\n'
+         post += '\t\set Staff.instrumentName = \markup{ "' + \
             instr_name + '" }\n'
          if len(instr_name) > 3:
-            post += '   \set Staff.shortInstrumentName = \markup{ "' + \
+            post += '\t\set Staff.shortInstrumentName = \markup{ "' + \
                instr_name[:3] + '." }\n'
          else:
-            post += '   \set Staff.shortInstrumentName = \markup{ "' + \
+            post += '\t\set Staff.shortInstrumentName = \markup{ "' + \
                instr_name + '" }\n'
       elif hasattr( s, 'lily_analysis_voice' ) and True == s.lily_analysis_voice:
          the_settings._analysis_notation_parts.append( callThisPart )
-         post += '   %% vis annotated analysis\n'
+         post += '\t%% vis annotated analysis\n'
          post += process_analysis_voice( s )
       #----
       
@@ -544,20 +543,20 @@ def process_stream( s, the_settings ):
       post += "\header {\n"
       
       if s.composer is not None:
-         post += '   composer = \markup{ "' + s.composer.name + '" }\n'
+         post += '\tcomposer = \markup{ "' + s.composer.name + '" }\n'
       if s.composers is not None: # I don't really know what to do with non-composer contributors
          pass
       if 'None' != s.date:
-         post += '   date = "' + str(s.date) + '"\n'
+         post += '\tdate = "' + str(s.date) + '"\n'
       if s.movementName is not None:
-         post += '   subtitle = \markup{ "'
+         post += '\tsubtitle = \markup{ "'
          if None != s.movementNumber:
             post += str(s.movementNumber) + ': '
          post += s.movementName + '" }\n'
       if s.opusNumber is not None:
-         post += '   opus = "' + str(s.opusNumber) + '"\n'
+         post += '\topus = "' + str(s.opusNumber) + '"\n'
       if s.title is not None:
-         post += '   title = \markup{ \"' + s.title
+         post += '\ttitle = \markup{ \"' + s.title
          if s.alternativeTitle is not None:
             post += '(\\"' + s.alternativeTitle + '\\")'
          post += '" }\n'
@@ -565,11 +564,11 @@ def process_stream( s, the_settings ):
       # Extra Formatting Options
       # Tagline
       if the_settings.get_property( 'tagline' ) is None:
-         post += '   tagline = ""\n'
+         post += '\ttagline = ""\n'
       elif the_settings.get_property( 'tagline' ) == '':
          pass
       else:
-         post += '   tagline = "' + the_settings.get_property( 'tagline' ) + '"\n'
+         post += '\ttagline = "' + the_settings.get_property( 'tagline' ) + '"\n'
       
       # close the \header{} block
       post += "}\n"
