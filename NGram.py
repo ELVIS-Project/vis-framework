@@ -24,11 +24,13 @@
 
 
 ## Import:
+# Python
+from string import lower as lowercase
 # music21
 from music21 import interval
 from music21 import note
 # vis
-from problems import MissingInformationError
+from problems import MissingInformationError, NonsensicalInputError
 from VIS_Settings import VIS_Settings
 
 
@@ -300,7 +302,114 @@ class NGram( object ):
       # End the "for"
          
       return post
-   # end _calculate_string_version ------------------------
+   # end _calculate_string_version --------------------------------------------
+   
+   def get_inversion_at_the( self, interv ):
+      '''
+      Returns an NGram with the upper and lower parts inverted at the interval
+      specified.
+      
+      The interval of inversion must be either an int or a str that contains an
+      int. Inversion is always diatonic.
+      
+      >>> from music21 import *
+      >>> from vis import *
+      >>> a = interval.Interval( note.Note('C4'), note.Note('E4') )
+      >>> b = interval.Interval( note.Note('D4'), note.Note('E4') )
+      >>> ng = NGram( [a, b], True, 'compound' )
+      >>> str(ng)
+      'M3 +M2 M2'
+      >>> str(ng.get_inversion_at_the( '12' )
+      'm10 ? m11'
+      >>> str(ng.get_inversion_at_the( 12 )
+      'm10 ? m11'
+      '''
+      
+      # Helper method to transform a quality-letter into the quality-letter
+      # needed for inversion
+      def get_inverted_quality( start_spec ):
+         start_spec = lowercase( start_spec )
+         if 'diminshed' == start_spec:
+            return 'A'
+         elif 'minor' == start_spec:
+            return 'M'
+         elif 'perfect' == start_spec:
+            return 'P'
+         elif 'major' == start_spec:
+            return 'm'
+         elif 'augmented' == start_spec:
+            return 'd'
+      
+      # Helper method to check for stupid intervals like 'm4'
+      def check_for_stupid( huh ):
+         if 'm' == huh[0]:
+            # If this is to be a Minor interval, we should change it to dim. if
+            # the size is 1, 4, 5, or a multiple.
+            if '1' == huh[1:] or \
+               '4' == huh[1:] or \
+               '5' == huh[1:] or \
+               '8' == huh[1:] or \
+               '11' == huh[1:] or \
+               '12' == huh[1:] or \
+               '15' == huh[1:] or \
+               '19' == huh[1:] or \
+               '20' == huh[1:] or \
+               '23' == huh[1:]:
+                  return 'P' + huh[1:]
+            else:
+               return huh
+         elif 'M' == huh[0]:
+            # If this is to be a Major interval, we should change it to Aug. if
+            # the size is 1, 4, 5, or a multiple.
+            if '1' == huh[1:] or \
+               '4' == huh[1:] or \
+               '5' == huh[1:] or \
+               '8' == huh[1:] or \
+               '11' == huh[1:] or \
+               '12' == huh[1:] or \
+               '15' == huh[1:] or \
+               '19' == huh[1:] or \
+               '20' == huh[1:] or \
+               '23' == huh[1:]:
+                  return 'P' + huh[1:]
+            else:
+               return huh
+         else:
+            return huh
+      
+      # Convert the inversion interval to an int, if required.
+      if isinstance( interv, str ):
+         interv = int(interv)
+      
+      # Go through the intervals in this NGram instance and invert each one.
+      inverted_intervals = []
+      for old_interv in self._list_of_intervals:
+         # What size do we need?
+         new_size = interv - old_interv.generic.directed + 1
+         
+         # Which quality do we need?
+         new_quality = get_inverted_quality( old_interv.specificName )
+         
+         # Make the str name of the new Interval
+         new_interv = new_quality + str(new_size)
+         
+         # Make sure we aren't asking for something like 'm4'
+         new_interv = check_for_stupid( new_interv )
+         
+         # Make a new Interval of the right size.
+         new_interv = interval.Interval( new_interv )
+         
+         # Set the noteEnd to the same as the old_interv so there are indeed
+         # Note objects in this Interval.
+         new_interv.noteEnd = old_interv.noteEnd
+         
+         # Append the new Interval to the list that will be sent to the NGram
+         # constructor.
+         inverted_intervals.append( new_interv )
+      
+      # Make a new NGram object to return
+      return NGram( inverted_intervals, self._heed_quality, self._simple_or_compound )
+   # End get_inversion_at_the() -----------------------------------------------
    
    def __str__( self ):
       return self._string
