@@ -155,31 +155,31 @@ class TestSorting( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 class TestNGram( unittest.TestCase ):
    def setUp( self ):
-      # m3 u m3
+      # 'm3 P1 m3'
       self.a = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('A4'),note.Note('C5'))]
       self.a_distance = [interval.Interval(note.Note('A4'),note.Note('A4'))]
-      # m3 u M3
+      # 'm3 P1 M3'
       self.b = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('A4'),note.Note('C#5'))]
       self.b_distance = [interval.Interval(note.Note('A4'),note.Note('A4'))]
-      # m3 +P4 m3
+      # 'm3 +P4 m3'
       self.c = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('D5'),note.Note('F5'))]
       self.c_distance = [interval.Interval(note.Note('A4'),note.Note('D5'))]
-      # m-3 +P4 M3
+      # 'm-3 +M2 M3'
       self.d = [interval.Interval(note.Note('C5'),note.Note('A4')), \
                 interval.Interval(note.Note('D5'),note.Note('F#5'))]
       self.d_distance = [interval.Interval(note.Note('C5'),note.Note('D5'))]
-      # m3 -P4 m3
+      # 'm3 -P4 m3'
       self.e = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('E4'),note.Note('G4'))]
       self.e_distance = [interval.Interval(note.Note('A4'),note.Note('E4'))]
-      # m3 -P4 M-3
+      # 'm3 -m2 M-3'
       self.f = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('G#4'),note.Note('E4'))]
       self.f_distance = [interval.Interval(note.Note('A4'),note.Note('G#4'))]
-      # m3 +P4 M2 -m6 P5 -m2 M-10
+      # 'm3 +P4 M2 -m6 P5 +A9 M-10'
       self.g = [interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('D5'),note.Note('E5')), \
                 interval.Interval(note.Note('F#4'),note.Note('C#5')), \
@@ -435,7 +435,46 @@ class TestNGram( unittest.TestCase ):
       self.assertEqual( NGram( self.g, True ).canonical(), 'm3 P4 M2 m6 P5 A9 M10' )
       self.assertEqual( NGram( self.g, False ).canonical(), '3 4 2 6 5 9 10' )
    
-   
+   def test_inversion( self ):
+      s = VIS_Settings()
+      s.set_property( 'heedQuality true' )
+      # 'm3 P1 m3'
+         # interval.Interval(note.Note('A4'),note.Note('C5'))
+         # interval.Interval(note.Note('A4'),note.Note('C5'))
+      self.assertEqual( str(NGram(self.a, s).get_inversion_at_the( 12 )), \
+            'M-10 P1 M-10' )
+      # 'm3 P1 M3'
+         # interval.Interval(note.Note('A4'),note.Note('C5'))
+         # interval.Interval(note.Note('A4'),note.Note('C#5'))
+      #self.assertEqual( str(NGram(self.b, s).get_inversion_at_the( 12 )), \
+            #'M-10 +A1 m-10' )
+      # 'm3 +P4 m3'
+         # interval.Interval(note.Note('A4'),note.Note('C5'))
+         # interval.Interval(note.Note('D5'),note.Note('F5'))
+      self.assertEqual( str(NGram(self.c, s).get_inversion_at_the( 12 )), \
+            'M-10 +P4 M-10' )
+      # 'm-3 +M2 M3'
+         # interval.Interval(note.Note('C5'),note.Note('A4'))
+         # interval.Interval(note.Note('D5'),note.Note('F#5'))
+      self.assertEqual( str(NGram(self.d, s).get_inversion_at_the( 12 )), \
+            'M10 +M6 m-10' )
+      # 'm3 -P4 m3'
+         # interval.Interval(note.Note('A4'),note.Note('C5'))
+         # interval.Interval(note.Note('E4'),note.Note('G4'))
+      self.assertEqual( str(NGram(self.e, s).get_inversion_at_the( 12 )), \
+            'M-10 -P4 M-10' )
+      # 'm3 -m2 M-3'
+         # interval.Interval(note.Note('A4'),note.Note('C5'))
+         # interval.Interval(note.Note('G#4'),note.Note('E4'))
+      self.assertEqual( str(NGram(self.f, s).get_inversion_at_the( 12 )), \
+            'M-10 -m6 m10' )
+      # 'm3 +P4 M2 -m6 P5 +A9 M-10'
+         # interval.Interval(note.Note('A4'),note.Note('C5'))
+         # interval.Interval(note.Note('D5'),note.Note('E5'))
+         # interval.Interval(note.Note('F#4'),note.Note('C#5'))
+         # interval.Interval(note.Note('G##5'),note.Note('E#4'))
+      self.assertEqual( str(NGram(self.g, s).get_inversion_at_the( 12 )), \
+            'm3 +P4 M2 -m6 P5 +A9 M-10' )
 #------------------------------------------------------------------------------
 
 

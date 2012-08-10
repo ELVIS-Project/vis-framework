@@ -305,6 +305,7 @@ class NGram( object ):
    # end _calculate_string_version --------------------------------------------
    
    def get_inversion_at_the( self, interv ):
+      # TODO: finish and test this
       '''
       Returns an NGram with the upper and lower parts inverted at the interval
       specified.
@@ -384,14 +385,16 @@ class NGram( object ):
       # Go through the intervals in this NGram instance and invert each one.
       inverted_intervals = []
       for old_interv in self._list_of_intervals:
-         # What size do we need?
-         new_size = interv - old_interv.generic.directed + 1
-         
          # Which quality do we need?
-         new_quality = get_inverted_quality( old_interv.specificName )
+         new_interv = get_inverted_quality( old_interv.specificName )
          
-         # Make the str name of the new Interval
-         new_interv = new_quality + str(new_size)
+         # Which direction is the new Interval? (Opposite of the old one.)
+         if 1 == old_interv.direction:
+            new_interv += '-'
+         # NB: For 0 or 1, we don't need to add anything.
+         
+         # What size do we need?
+         new_interv += str( ( interv - old_interv.generic.directed + 1 ) % interv )
          
          # Make sure we aren't asking for something like 'm4'
          new_interv = check_for_stupid( new_interv )
