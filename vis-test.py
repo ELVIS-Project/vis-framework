@@ -2841,9 +2841,9 @@ if __name__ == '__main__':
 
    # Run test suites for interface/background components
    #unittest.TextTestRunner( verbosity = 2 ).run( settingsSuite )
-      ###TODO: some sort of testing for the 'lookForTheseNs' settting
+      ##TODO: some sort of testing for the 'lookForTheseNs' settting
    #unittest.TextTestRunner( verbosity = 2 ).run( sortingSuite )
-   unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( nGramSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( verticalIntervalStatisticsSuite )
    #unittest.TextTestRunner( verbosity = 2 ).run( output_formatting_suite )
    
@@ -2852,4 +2852,4 @@ if __name__ == '__main__':
    #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_parts_integration_long_suite )
    #unittest.TextTestRunner( verbosity = 2 ).run( fill_space_between_offsets_suite )
    #unittest.TextTestRunner( verbosity = 2 ).run( vis_these_parts_unit_suite )
-	
+   

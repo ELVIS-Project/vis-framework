@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Project SYSTEM "Project-4.6.dtd">
+<!-- eric4 project file for project vis -->
+<!-- Saved: 2012-08-11, 16:42:49 -->
+<!-- Copyright (C) 2012 Christopher Antila, Jamie Klassen, christopher.antila@mail.mcgill.ca -->
+<Project version="4.6">
+  <Language>en</Language>
+  <ProgLanguage mixed="0">Python</ProgLanguage>
+  <ProjectType>Qt4</ProjectType>
+  <Description>A "vertical interval sequences" analysis program for music21.</Description>
+  <Version>2</Version>
+  <Author>Christopher Antila, Jamie Klassen</Author>
+  <Email>christopher.antila@mail.mcgill.ca</Email>
+  <Sources>
+    <Source>vis.py</Source>
+    <Source>NGram.py</Source>
+    <Source>VIS_Settings.py</Source>
+    <Source>problems.py</Source>
+    <Source>output_LilyPond-test.py</Source>
+    <Source>__init__.py</Source>
+    <Source>file_output.py</Source>
+    <Source>analytic_engine.py</Source>
+    <Source>output_LilyPond.py</Source>
+    <Source>test_corpus/__init__.py</Source>
+    <Source>test_corpus/test_triplet_bug.py</Source>
+    <Source>test_corpus/vis_these_parts_unit_tests.py</Source>
+    <Source>test_corpus/test_theSixth.py</Source>
+    <Source>Vertical_Interval_Statistics.py</Source>
+    <Source>vis-test.py</Source>
+    <Source>qt/Ui_main_window.py</Source>
+    <Source>__main__.py</Source>
+  </Sources>
+  <Forms>
+    <Form>qt/main_window.ui</Form>
+  </Forms>
+  <Translations>
+  </Translations>
+  <Resources>
+  </Resources>
+  <Interfaces>
+  </Interfaces>
+  <Others>
+  </Others>
+  <MainScript>__main__.py</MainScript>
+  <Vcs>
+    <VcsType>None</VcsType>
+  </Vcs>
+  <FiletypeAssociations>
+    <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.qm" type="TRANSLATIONS" />
+    <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
+    <FiletypeAssociation pattern="*.pyw" type="SOURCES" />
+    <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
+    <FiletypeAssociation pattern="*.ts" type="TRANSLATIONS" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
+    <FiletypeAssociation pattern="*.qrc" type="RESOURCES" />
+  </FiletypeAssociations>
+</Project>

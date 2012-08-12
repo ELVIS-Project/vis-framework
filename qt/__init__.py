@@ -5,8 +5,8 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 # 
-# Filename: __init__.py
-# Purpose: Import all the VIS Files
+# Filename: test_corpus/__init__.py
+# Purpose: Import the PyQt4 Interface Files
 #
 # Copyright (C) 2012 Christopher Antila
 #
@@ -24,8 +24,4 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-__all__ = ['test_corpus', 'analytic_engine', 'file_output', 'NGram', \
-           'output_LilyPond', 'problems', 'Vertical_Interval_Statistics', \
-           'vis', 'VIS_Settings',  'qt']
-
-import __all__
+import Ui_main_window

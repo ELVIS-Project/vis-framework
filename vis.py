@@ -6,7 +6,7 @@
 # Program Description:       Measures sequences of vertical intervals.
 # 
 # Filename: vis.py
-# Purpose: Provide the interface for vis.
+# Purpose: Provide the text interface for vis.
 #
 # Attribution:  Based on the 'harrisonHarmony.py' module available at...
 #               https://github.com/crantila/harrisonHarmony/
