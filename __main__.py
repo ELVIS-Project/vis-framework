@@ -29,14 +29,20 @@
 
 # Python
 import sys
+from os import path
+from os import walk as os_walk
 # PyQt4
 from PyQt4 import QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
 # music21
+from music21 import converter # for analyze_this()
+from music21.converter import ConverterException # for analyze_this()
+from music21.converter import ConverterFileException # for analyze_this()
 # vis
 from qt.Ui_main_window import Ui_MainWindow
 from vis import VIS_Settings
 from vis import Vertical_Interval_Statistics
+from analytic_engine import vis_these_parts
 
 
 
@@ -47,6 +53,7 @@ class Vis_MainWindow( Ui_MainWindow ):
    def setup_vis( self ):
       self.settings = VIS_Settings()
       self.statistics = Vertical_Interval_Statistics()
+      self.analysis_files = [] # Hold the list of filenames to analyze.
    
    # Link all the signals with their methods.
    def setup_signals( self ):
@@ -63,7 +70,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_setOffset.clicked.connect( self.settings_offset_interval )
       
       # "Input" Tab
-      self.btnAnalyze.clicked.connect( self.analyze_this )
+      self.btn_analyze.clicked.connect( self.analyze_button )
+      self.btn_chooseFiles.clicked.connect( self.choose_files )
+      self.btn_chooseDirectories.clicked.connect( self.choose_directories )
       
       # "Show" Tab
       
@@ -104,11 +113,200 @@ class Vis_MainWindow( Ui_MainWindow ):
    
    # "Input" Tab -------------------------------------------
    # When users choose the "Analyze!" button.
-   def analyze_this( self, sig ):
-      # TODO: write the actual stuff here
-      self.txt_results.setPlainText( str(self.settings._secret_settings_hash) )
+   def analyze_button( self, sig ):
+      # Update the text box on the "input" tab
+      self.txt_filenames.setPlainText( 'Will analyze these files:\n' + str(self.analysis_files) + '\n\nProgress:\n' )
+      # Call analyze_this()
+      self.analyze_this()
    
+   # When users choose the "Choose Files" button.
+   def choose_files( self, sig ):
+      list_of_files = QtGui.QFileDialog.getOpenFileNames( None, 'Choose Files to Analyze', '~', '*.pdf' )
+      processed_str = ''
+      self.analysis_files = []
+      for each in list_of_files:
+         processed_str += str(each) + '\n'
+         self.analysis_files.append( str(each) )
+      self.txt_filenames.setPlainText( processed_str )
    
+   # When users choose the "Choose Directories" button.
+   def choose_directories( self, sig ):
+      direc = QtGui.QFileDialog.getExistingDirectory( None, 'Choose Directory to Analyze', '~' )
+      self.analysis_files = [ direc ]
+      self.txt_filenames.setPlainText( str(direc) )
+
+   
+
+
+
+
+
+
+   #----------------------------------------------------------------------------
+   def analyze_this( self ):
+      '''
+      Analyze a list of files and directories. Statistics will be added to, and
+      settings will be used from, the "self" object. The list of files should
+      also be specified in "self" as self.analysis_files as a list of str
+      pathnames. This method will analyze all single files in that list, and
+      all files in a directory in that list, but will not recurse further.
+      
+      '''
+      #-------------------------------------------------------
+      def calculate_all_combis( upto ):
+         # Calculate all combinations of integers, up to a given integer.
+         # 
+         # Includes a 0th item... the argument should be len(whatevs) - 1.
+         post = []
+         for left in xrange(upto):
+            for right in xrange(left+1,upto+1):
+               post.append( [left,right] )
+         return post
+      #-------------------------------------------------------
+      
+      # Prepare the list of files. Go through every element and see if it's a
+      # directory. If so, bring out all the filenames to the top-level list.
+      corrected_file_list = []
+      for pathname in self.analysis_files:
+         if path.isdir( pathname ):
+            # TODO: something tells me this doesn't do what I had in mind
+            for a, b, filename in os_walk( pathname ):
+               corrected_file_list.append( filename )
+         else:
+            corrected_file_list.append( pathname )
+      # Finally, replace analysis_files with corrected_file_list
+      self.analysis_files = corrected_file_list
+      
+      # Hold a list of pieces that failed during analysis.
+      files_not_analyzed = []
+      
+      # Accumulate the length of time spent in vis_these_parts()
+      cumulative_analysis_duration = 0.0
+      
+      # Hold a list of parts to analyze.
+      parts_to_analyze = []
+      
+      # Go through all the files/directories.
+      for piece_name in self.analysis_files:
+         # Figure out which parts to analyze.
+         #parts_to_examine = list(set([int(n) for n in re.findall('(-?\d+)', parts_to_examine)]))
+         parts_to_examine = 'all'
+         
+         # Hold this score
+         the_score = None
+         
+         # Try to open this file
+         self.txt_filenames.appendPlainText( 'Trying "' + piece_name + '"' )
+         try:
+            the_score = converter.parse( piece_name )
+         except ConverterException as convexc:
+            self.txt_filenames.appendPlainText( '   failed during import' )
+            self.txt_filenames.appendPlainText( str(convexc) )
+            files_not_analyzed.append( piece_name )
+            continue
+         except ConverterFileException as convfileexc:
+            self.txt_filenames.appendPlainText( '   failed during import' )
+            self.txt_filenames.appendPlainText( str(convfileexc) )
+            files_not_analyzed.append( piece_name )
+            continue
+         except Exception as exc:
+            self.txt_filenames.appendPlainText( '   failed during import' )
+            self.txt_filenames.appendPlainText( str(exc) )
+            files_not_analyzed.append( piece_name )
+            continue
+         else:
+            self.txt_filenames.appendPlainText( '   successfully imported' )
+         
+         # Try to analyze this file
+         try:
+            if 'all' == parts_to_examine:
+               # We have to examine all combinations of parts.
+               # How many parts are in this piece?
+               number_of_parts = len(the_score.parts)
+               # Get a list of all the part-combinations to examine.
+               parts_to_examine = calculate_all_combis( number_of_parts - 1 )
+               # "Zero" it_took
+               it_took = 0.0
+               # Analyze every part combination.
+               for set_of_parts in parts_to_examine:
+                  higher = the_score.parts[set_of_parts[0]]
+                  lower = the_score.parts[set_of_parts[1]]
+                  this_took, ly = vis_these_parts( [higher,lower], self.settings, self.statistics )
+                  it_took += this_took
+               # Add this duration to the cumulative duration.
+               cumulative_analysis_duration += it_took
+               # Print how long it took
+               self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
+            else:
+               # We should only examine the specified parts.
+               # Get the two parts.
+               higher = the_score.parts[parts_to_examine[0]]
+               lower = the_score.parts[parts_to_examine[1]]
+               # Run the analysis
+               it_took, ly = vis_these_parts( [higher,lower], self.settings, self.statistics )
+               # Add this duration to the cumulative duration.
+               cumulative_analysis_duration += it_took
+               # Print this duration.
+               self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
+            
+            # Now do the LilyPond portion, if needed.
+            if True == self.settings.get_property( 'produceLabelledScore' ):
+               # Add the annotated part to the score
+               the_score.append( ly )
+               # Send the score for processing
+               process_score( the_score )
+               # TODO: decide how to dynamically decide filename, then move this into
+               # a sub-section of the "show" command in the "main" method.
+         # If something fails, we don't want the entire analysis to fail, but
+         # we do need to tell our user.
+         except Exception as exc:
+            self.txt_filenames.appendPlainText( '   failed during analysis' )
+            self.txt_filenames.appendPlainText( str(exc) )
+            files_not_analyzed.append( piece_name )
+            continue
+         
+      # Print how long the analysis took.
+      self.txt_filenames.appendPlainText( '\n\n --> the analysis took ' + str(cumulative_analysis_duration) + ' seconds' )
+      
+      # If there are files we were asked to analyze, but we couldn't,
+      # then say so.
+      if len(files_not_analyzed) > 0:
+         self.txt_filenames.appendPlainText( '*** Unable to analyze the following files:' )
+         for filename in files_not_analyzed:
+            pass
+            self.txt_filenames.appendPlainText( filename )
+      
+      # TODO: remove this temporary thing
+      # just print out the interval dictionary, so I know it worked
+      self.txt_results.setPlainText( str( self.statistics._simple_interval_dict ) )
+   # End function analyze_this() ---------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # "Main" Method ----------------------------------------------------------------
 def main():

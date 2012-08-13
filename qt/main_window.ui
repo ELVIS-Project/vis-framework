@@ -287,17 +287,37 @@ Please include one file name or directory per line.</string>
          </widget>
         </item>
         <item>
+         <widget class="QPushButton" name="btn_chooseFiles">
+          <property name="text">
+           <string>Choose Files</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_chooseDirectories">
+          <property name="text">
+           <string>Choose Directory</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPlainTextEdit" name="txt_filenames">
+          <property name="documentTitle">
+           <string notr="true"/>
+          </property>
           <property name="undoRedoEnabled">
            <bool>false</bool>
           </property>
           <property name="plainText">
            <string notr="true"/>
           </property>
+          <property name="textInteractionFlags">
+           <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btnAnalyze">
+         <widget class="QPushButton" name="btn_analyze">
           <property name="text">
            <string>Analyze!</string>
           </property>

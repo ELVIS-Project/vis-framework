@@ -54,15 +54,7 @@ from VIS_Settings import VIS_Settings
 
 
 #-------------------------------------------------------------------------------
-def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity = 'concise' ):
-   '''
-   Given the path to a music21-supported score, imports the score, performs a
-   harmonic-functional analysis, annotates the score, and displays it with show().
-
-   The second argument is optional, and takes the form of a str that is either
-   'concise' or 'verbose', which will be passed to `labelThisChord()`, to
-   display either verbose or concise labels.
-   '''
+def analyze_this( pathname, the_settings = None, the_stats = None ):
    
    #-------------------------------------------------------
    def calculate_all_combis( upto ):
@@ -82,8 +74,6 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
    if the_stats is None:
       the_stats = Vertical_Interval_Statistics()
    
-   #the_score = None
-   
    list_of_filenames = []
    
    # See what input we have
@@ -102,10 +92,6 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
       the_score = pathname
    else:
       raise BadFileError( "analyze_this(): input must be file name, directory name, or a stream.Score; received " + str(type(pathname)) )
-   
-   # DEBUGGING
-   #print( '*** list_of_filenames: ' + str(list_of_filenames) )
-   # END DEBUGGING
    
    # Analysis: Multiple Pieces ----------------------------
    if len(list_of_filenames) > 1:
@@ -172,9 +158,6 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):#, verbosity
                print( '   finished in ' + str(it_took) )
          except Exception as exc:
             print( '   failed during analysis' )
-            # DEBUGGING
-            print( '   DEBUGGING: ' + str(exc) )
-            # END DEBUGGING
             files_not_analyzed.append( filename )
             continue
       

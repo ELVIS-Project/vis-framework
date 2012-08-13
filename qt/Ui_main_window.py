@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/christo/ELVIS/programs/vis/qt/main_window.ui'
 #
-# Created: Sat Aug 11 22:55:15 2012
+# Created: Mon Aug 13 16:31:05 2012
 #      by: PyQt4 UI code generator 4.6.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -140,13 +140,20 @@ class Ui_MainWindow(object):
         self.label_3 = QtGui.QLabel(self.tab_input)
         self.label_3.setObjectName("label_3")
         self.verticalLayout_4.addWidget(self.label_3)
+        self.btn_chooseFiles = QtGui.QPushButton(self.tab_input)
+        self.btn_chooseFiles.setObjectName("btn_chooseFiles")
+        self.verticalLayout_4.addWidget(self.btn_chooseFiles)
+        self.btn_chooseDirectories = QtGui.QPushButton(self.tab_input)
+        self.btn_chooseDirectories.setObjectName("btn_chooseDirectories")
+        self.verticalLayout_4.addWidget(self.btn_chooseDirectories)
         self.txt_filenames = QtGui.QPlainTextEdit(self.tab_input)
         self.txt_filenames.setUndoRedoEnabled(False)
+        self.txt_filenames.setTextInteractionFlags(QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.txt_filenames.setObjectName("txt_filenames")
         self.verticalLayout_4.addWidget(self.txt_filenames)
-        self.btnAnalyze = QtGui.QPushButton(self.tab_input)
-        self.btnAnalyze.setObjectName("btnAnalyze")
-        self.verticalLayout_4.addWidget(self.btnAnalyze)
+        self.btn_analyze = QtGui.QPushButton(self.tab_input)
+        self.btn_analyze.setObjectName("btn_analyze")
+        self.verticalLayout_4.addWidget(self.btn_analyze)
         self.tabs_main.addTab(self.tab_input, "")
         self.tab_output = QtGui.QWidget()
         self.tab_output.setObjectName("tab_output")
@@ -187,7 +194,9 @@ class Ui_MainWindow(object):
         self.tabs_main.setTabText(self.tabs_main.indexOf(self.tab_settings), QtGui.QApplication.translate("MainWindow", "Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Filenames to Analyze.\n"
 "Please include one file name or directory per line.", None, QtGui.QApplication.UnicodeUTF8))
-        self.btnAnalyze.setText(QtGui.QApplication.translate("MainWindow", "Analyze!", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_chooseFiles.setText(QtGui.QApplication.translate("MainWindow", "Choose Files", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_chooseDirectories.setText(QtGui.QApplication.translate("MainWindow", "Choose Directory", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_analyze.setText(QtGui.QApplication.translate("MainWindow", "Analyze!", None, QtGui.QApplication.UnicodeUTF8))
         self.tabs_main.setTabText(self.tabs_main.indexOf(self.tab_input), QtGui.QApplication.translate("MainWindow", "Input", None, QtGui.QApplication.UnicodeUTF8))
         self.tabs_main.setTabText(self.tabs_main.indexOf(self.tab_output), QtGui.QApplication.translate("MainWindow", "Show", None, QtGui.QApplication.UnicodeUTF8))
 
