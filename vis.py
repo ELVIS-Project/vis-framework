@@ -32,6 +32,7 @@ import pprint
 
 ## Import:
 # python standard library
+from os.path import splitext
 from os.path import exists as path_exists
 from os.path import isdir, isfile
 from os import walk as os_walk
@@ -369,7 +370,7 @@ if __name__ == '__main__':
                       file_output_result[0] + '>' )
             else: #must be an array of graphs
                for n in range(len(formatted_output)):
-                  formatted_output[n].write(fn+str(n))
+                  formatted_output[n].write(splitext(fn)[0]+'-'+str(n)+splitext(fn)[1])
        	 elif 'powerlaw' == which_results:
             try:
                power_law = my_statistics.power_law_analysis( my_settings )
@@ -423,8 +424,9 @@ if __name__ == '__main__':
                if file_output_result[0] is not fn:
                   print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
                       file_output_result[0] + '>' )
-            else: #must be a graph
-               formatted_output.write(fn)
+            else: #must be an array of graphs
+               for n in range(len(formatted_output)):
+                  formatted_output[n].write(splitext(fn)[0]+'-'+str(n)+splitext(fn)[1])
          elif 'intervals' == which_results:
             # NOTE: this is the same as for ngrams, except for the call to 
             # my_statistics.get_formatted_intervals!!

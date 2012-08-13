@@ -352,7 +352,7 @@ class Vertical_Interval_Statistics( object ):
                entry += (pair,)
                data.append(entry) 
             g.setData(data)
-
+            g.setTitle(str(n)+'-Grams')
             #this is a very slight edit of the music21.graph.GraphGroupedVerticalBar.process() and labelBars() methods
             fig = plt.figure()
             setattr(g,'fig', fig)
