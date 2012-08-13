@@ -319,7 +319,6 @@ class Vertical_Interval_Statistics( object ):
       # sorted dictionaries.
       for n in xrange(max(list_of_n) + 1):
          sorted_ngrams.append( [] )
-      post = ''
       for n in list_of_n:
          sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng] )
 
@@ -335,7 +334,8 @@ class Vertical_Interval_Statistics( object ):
                sorted_ngrams[n].remove(retrograde)
             else:
                ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],0)
-      post=None
+      post = ''
+
       # (5.1) If some graphs are asked for, prepare them
       if 'graph' in specs:
          grapharr = []
@@ -353,7 +353,7 @@ class Vertical_Interval_Statistics( object ):
                data.append(entry) 
             g.setData(data)
 
-            #this is a very subtle edit of the music21.graph.GraphGroupedVerticalBar.process() and labelBars() methods
+            #this is a very slight edit of the music21.graph.GraphGroupedVerticalBar.process() and labelBars() methods
             fig = plt.figure()
             setattr(g,'fig', fig)
             fig.subplots_adjust(bottom=.3)
@@ -406,6 +406,12 @@ class Vertical_Interval_Statistics( object ):
             g.done()
             grapharr.append(g)
          post = grapharr
+      # (5.2) Else prepare a nicely formatted list of the results
+      else:
+         for n in list_of_n:
+            post += 'All the ' + str(n) + '-grams with retrogrades:\n-----------------------------\n'
+            for ng in ngram_pairs[n].keys():
+               post += str(ng[0]) + ': ' + str(ngram_pairs[n][ng][0]) +'; '+str(ng[1])+': '+str(ngram_pairs[n][ng][1]) + '\n'
       return post
       
    #end retrogrades()
@@ -451,7 +457,7 @@ class Vertical_Interval_Statistics( object ):
          A = array([ xi, ones(len(xi))])
          y = [log(output_dict[n][ng]) for ng in sorted_ngrams[n]]
          w = linalg.lstsq(A.T,y)[0] #least-squares regression on the data
-         #w[0] contains the slope of the line
+         #w[0] contains the slope of the line, and we'll just display positive numbers because that's nice.
          post += '\nthe power law exponent for the '+str(n)+'-grams is '+str(-w[0])+'; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
       return post
    #end power_law_analysis()
@@ -545,7 +551,7 @@ class Vertical_Interval_Statistics( object ):
          g.setData(data)
          g.setTicks('x',[(k+0.4,sorted_intervals[k]) for k in range(len(sorted_intervals))])
          g.xTickLabelHorizontalAlignment='center'
-         g.xTickLabelRotation = 0
+         setattr(g,'xTickLabelRotation',90)
          g.setTicks('y',[(k,k) for k in range(max([the_dict[sorted_intervals[j]] for j in range(len(sorted_intervals))]))])
          g.process()
          return g
@@ -691,8 +697,9 @@ class Vertical_Interval_Statistics( object ):
             data = [(k,output_dict[n][sorted_ngrams[n][k]]) for k in range(len(sorted_ngrams[n]))]
             g.setData(data)
             g.setTicks('x',[(k+0.4,sorted_ngrams[n][k]) for k in range(len(sorted_ngrams[n]))])
-            g.xTickLabelHorizontalAlignment='center'
-            g.xTickLabelRotation = 0
+            g.xTickLabelRotation = 90
+            g.xTickLabelVerticalAlignment='top'
+            g.setTitle(str(n)+'-Grams')
             g.setTicks('y',[(k,k) for k in range(max([output_dict[n][sorted_ngrams[n][j]] for j in range(len(sorted_ngrams[n]))]))])
             g.process()
             grapharr.append(g)
