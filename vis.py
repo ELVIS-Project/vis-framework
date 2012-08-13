@@ -296,7 +296,6 @@ if __name__ == '__main__':
 - 'set' to set an option (see 'set help' for more information)
 - 'get' to get the setting of an option (see 'get help')
 - 'show' for guided display of results
-- 'powerlaw' for power law something something
 - 'reset' to reset all settings and statistics
 - 'help settings' for a list of available settings
 - 'help filename' for help with file names
@@ -308,17 +307,8 @@ if __name__ == '__main__':
          print( "" )
          exit_program = True
       # Display of Results -----------------------------
-      elif 'powerlaw' == user_says:
-         try:
-            power_law = my_statistics.power_law_analysis( my_settings )
-         except MissingInformationError as mie:
-            # This error happens if all the user-specified 'n' values, or all
-            # the possible 'n' values, have no n-grams associated.
-            print( "Looks like the n-gram database is empty for the n values you specified." )
-            continue
-         print power_law
       elif 'show' == user_says:
-         which_results = raw_input( "Which results would you like to view? ('score' or 'ngrams' or 'intervals') " )
+         which_results = raw_input( "Which results would you like to view? ('score' or 'ngrams' or 'intervals' or 'powerlaw' or 'retrogrades') " )
          if 'ngrams' == which_results:
             # NOTE: this is the same as for intervals, except for the call
             # to my_statistics.get_formatted_ngramss!!
@@ -380,6 +370,61 @@ if __name__ == '__main__':
             else: #must be an array of graphs
                for n in range(len(formatted_output)):
                   formatted_output[n].write(fn+str(n))
+       	 elif 'powerlaw' == which_results:
+            try:
+               power_law = my_statistics.power_law_analysis( my_settings )
+            except MissingInformationError as mie:
+               # This error happens if all the user-specified 'n' values, or all
+               # the possible 'n' values, have no n-grams associated.
+               print( "Looks like the n-gram database is empty for the n values you specified." )
+               continue
+            print power_law
+         elif 'retrogrades' == which_results:
+            format = 'help'
+            while 'help' == format:
+               format = raw_input("Please input formatting options, if any (or 'help'): ")
+               if 'help' == format:
+                  print('''You can use the following options:
+-'by ratio' to sort the retrograde pairs by their ratio
+- 'ascending'/'low to high' or 'descending'/'high to low' to decide the order
+- 'quality' or 'noQuality' to distinguish between n-grams with different qualities
+- 'graph' to see a bar graph of the results''')
+
+            # Format the output.
+            print( "Formatting output... " )
+            formatted_output = my_statistics.retrogrades( my_settings, format )
+
+            # See whether they already set a file name.
+            fn = my_settings.get_property( 'outputResultsToFile' )
+
+            # If the filename is '' then they didn't set one.
+            if len(fn) < 1:
+               where = raw_input( "Output results to a file? ('yes' or 'no'): " )
+               if 'yes' == where:
+                  fn = raw_input( "Input a file name: " )
+               elif 'no' == where:
+                  if isinstance(formatted_output,basestring):
+                     print( '\n' + formatted_output )
+                  else:
+                     for g in formatted_output: 
+                        g.show()
+                  continue
+               else:
+                  print( "Please type 'yes' or 'no'" )
+                  continue
+
+            # If we're still going, we must be outputting to a file
+            print( 'Writing results to ' + fn + ' ...' )
+            if isinstance(formatted_output,basestring):
+               file_output_result = file_outputter( formatted_output, fn )
+               if file_output_result[1] is not None:
+                  print( 'Encountered an error while attempting to write results to a file.\n' + \
+                      file_output_result[1] )
+               if file_output_result[0] is not fn:
+                  print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
+                      file_output_result[0] + '>' )
+            else: #must be a graph
+               formatted_output.write(fn)
          elif 'intervals' == which_results:
             # NOTE: this is the same as for ngrams, except for the call to 
             # my_statistics.get_formatted_intervals!!

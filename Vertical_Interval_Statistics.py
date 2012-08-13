@@ -25,14 +25,14 @@
 
 ## Import:
 # python
-import re
+import re, copy
 from string import digits as string_digits
 # music21
 from music21 import interval, graph
 # vis
 from problems import NonsensicalInputError, MissingInformationError
 #numpy
-from numpy import array,linalg,ones,log
+from numpy import array,linalg,ones,log,corrcoef
 
 
 
@@ -60,8 +60,7 @@ class Vertical_Interval_Statistics( object ):
       '''
       self._simple_interval_dict = {}
       self._compound_interval_dict = {}
-      self._compound_quality_ngrams_dict = [{},{},{}]
-      self._compound_no_quality_ngrams_dict = [{},{},{}]
+      self._compound_ngrams_dict = [{},{},{}]
    
    def __repr__( self ):
       return self.__str__( self )
@@ -71,8 +70,8 @@ class Vertical_Interval_Statistics( object ):
       # "<Vertical_Interval_Statistics with 14 intervals; 26 2-grams; 19 3-grams>"
       post = '<Vertical_Interval_Statistics with ' + \
             str(len(self._compound_interval_dict)) + ' intervals; '
-      for i in xrange(2,len(self._compound_quality_ngrams_dict)):
-         post += str(len(self._compound_quality_ngrams_dict[i])) + ' ' + \
+      for i in xrange(2,len(self._compound_ngrams_dict)):
+         post += str(len(self._compound_ngrams_dict[i])) + ' ' + \
                  str(i) + '-grams; '
       
       return post[:-2] + '>'
@@ -186,22 +185,13 @@ class Vertical_Interval_Statistics( object ):
       
       # If there isn't yet a dictionary for this 'n' value, then we'll have to
       # make sure there is one.
-      while len(self._compound_quality_ngrams_dict) <= the_ngram._n:
-         self._compound_quality_ngrams_dict.append( {} )
-         self._compound_no_quality_ngrams_dict.append( {} )
+      while len(self._compound_ngrams_dict) <= the_ngram._n:
+         self._compound_ngrams_dict.append( {} )
          
-      # self._compound_quality_ngrams_dict
-      zzz = the_ngram.get_string_version( True, 'compound' )
-      if zzz in self._compound_quality_ngrams_dict[the_ngram._n]:
-         self._compound_quality_ngrams_dict[the_ngram._n][zzz] += 1
+      if the_ngram in self._compound_ngrams_dict[the_ngram._n]:
+         self._compound_ngrams_dict[the_ngram._n][the_ngram] += 1
       else:
-         self._compound_quality_ngrams_dict[the_ngram._n][zzz] = 1
-      # self._compound_no_quality_ngrams_dict
-      zzz = the_ngram.get_string_version( False, 'compound' )
-      if zzz in self._compound_no_quality_ngrams_dict[the_ngram._n]:
-         self._compound_no_quality_ngrams_dict[the_ngram._n][zzz] += 1
-      else:
-         self._compound_no_quality_ngrams_dict[the_ngram._n][zzz] = 1
+         self._compound_ngrams_dict[the_ngram._n][the_ngram] = 1
    # end add_ngram()
    
    def get_ngram_occurrences( self, which_ngram, n ):
@@ -260,27 +250,136 @@ class Vertical_Interval_Statistics( object ):
                   post[str(size)] = intervals_in[look_for]
       return post
    
+   @staticmethod
+   def _set_heed_quality( ngram, heed_quality ):
+      ret = copy.deepcopy(ngram)
+      ret.set_heed_quality(heed_quality)
+      return ret
+
+   def retrogrades( self, the_settings, specs='' ):
+	  #TODO: refactor the beginning of all the ngram methods
+      # (1) Figure out which values of 'n' we should output.
+      list_of_n = []
+      if 'n=' in specs:
+         # Which values of 'n' did they specify?
+         list_of_n = specs[specs.find('n=')+2:]
+         list_of_n = list_of_n[:list_of_n.find(' ')]
+         list_of_n = sorted(set([int(n) for n in re.findall('(\d+)', list_of_n)]))
+         # Check those n values are acceptable/present
+         for n in list_of_n:
+            # First check we have that index and it's potentially filled with
+            # n-gram values
+            if n < 2 or n > (len(self._compound_ngrams_dict) - 1):
+               # throw it out
+               list_of_n.remove( n )
+               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
+               continue # to avoid the next test
+            # Now check if there are actually n-grams in that position. If we
+            # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
+            # valid in the n-gram dictionary, but they won't actually hold
+            # any n-grams.
+            if {} == self._compound_ngrams_dict[n]:
+               # throw it out
+               list_of_n.remove( n )
+               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
+      else:
+         # Which values of 'n' are present in this V_I_S instance?
+         list_of_n = []
+         # Check every index between 2 and however many possibilities there are,
+         # and see which of these potential n values has n-grams associated.
+         for n in xrange( 2, len(self._compound_ngrams_dict) ):
+            if {} != self._compound_ngrams_dict[n]:
+               list_of_n.append( n )
+      #-----
+
+      # What if we end up with no n values?
+      if 0 == len(list_of_n):
+         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+
+      # (2) Decide whether to take 'quality' or 'no_quality'
+      output_dict = None
+      if 'quality' in specs or ( the_settings.get_property( 'heedQuality' ) and \
+         'noQuality' not in specs ):
+         # We do need to include quality
+         output_dict = [dict(map(lambda (key, value): \
+            (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
+            d.items())) for d in self._compound_ngrams_dict]
+      else:
+         # We don't need to include quality
+         output_dict = [dict(map(lambda (key, value): \
+            (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
+            d.items())) for d in self._compound_ngrams_dict]
+
+      # (3) Sort the dictionary
+      sorted_ngrams = []
+      # We need to have enough 'n' places in sorted_ngrams to hold the
+      # sorted dictionaries.
+      for n in xrange(max(list_of_n) + 1):
+         sorted_ngrams.append( [] )
+      post = ''
+      for n in list_of_n:
+         sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng] )
+
+      # (4) Generate the results
+      ngram_pairs = []
+      for n in xrange(max(list_of_n) + 1):
+         ngram_pairs.append( {} )
+      for n in list_of_n:
+         for ng in sorted_ngrams[n]:
+            retrograde = ng.retrograde()
+            if retrograde in sorted_ngrams[n]:
+               ngram_pairs[n][(ng,retrograde)] = float(output_dict[n][ng])/float(output_dict[n][retrograde])
+               sorted_ngrams[n].remove(retrograde)
+            else:
+               ngram_pairs[n][(ng,retrograde)] = 0.0
+      post=None
+      # (5.1) If some graphs are asked for, prepare them
+      if 'graph' in specs:
+         grapharr = []
+         for n in list_of_n:
+            keys = sorted(ngram_pairs[n].keys(), key = lambda ng: ngram_pairs[n][ng], reverse=True)
+            g = graph.GraphHistogram(doneAction=None)
+            data = [(k,ngram_pairs[n][keys[k]]) for k in range(len(keys))]
+            g.setData(data)
+            g.setTicks('x',[(k+0.4,str(keys[k][0])+', '+str(keys[k][1])) for k in range(len(keys))])
+            g.xTickLabelHorizontalAlignment='center'
+            g.xTickLabelRotation = 0
+            g.setTicks('y',[(ngram_pairs[n][keys[k]],ngram_pairs[n][keys[k]]) for k in range(len(keys))])
+            g.process()
+            grapharr.append(g)
+         post = grapharr
+      return post
+      
+   #end retrogrades()
+
+
    def power_law_analysis( self, the_settings ):
 	  #Most of this method is the same as get_formatted_ngrams()
       list_of_n = []
       # Check every index between 2 and however many possibilities there are,
       # and see which of these potential n values has n-grams associated.
-      for n in xrange( 2, len(self._compound_no_quality_ngrams_dict) ):
-         if {} != self._compound_no_quality_ngrams_dict[n]:
+      for n in xrange( 2, len(self._compound_ngrams_dict) ):
+         if {} != self._compound_ngrams_dict[n]:
             list_of_n.append( n )
       #-----
 
       # What if we end up with no n values?
       if 0 == len(list_of_n):
          raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+      
+      # (2) Decide whether to take 'quality' or 'no_quality'
       output_dict = None
-      if True == the_settings.get_property( 'heedQuality' ):
+      if the_settings.get_property( 'heedQuality' ):
          # We do need to include quality
-         output_dict = self._compound_quality_ngrams_dict
+         output_dict = [dict(map(lambda (key, value): \
+	        (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
+	        d.items())) for d in self._compound_ngrams_dict]
       else:
          # We don't need to include quality
-         output_dict = self._compound_no_quality_ngrams_dict
-
+         output_dict = [dict(map(lambda (key, value): \
+	        (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
+	        d.items())) for d in self._compound_ngrams_dict]
+      
       # (3) Sort the dictionary
       sorted_ngrams = []
       # We need to have enough 'n' places in sorted_ngrams to hold the
@@ -295,7 +394,8 @@ class Vertical_Interval_Statistics( object ):
          A = array([ xi, ones(len(xi))])
          y = [log(output_dict[n][ng]) for ng in sorted_ngrams[n]]
          w = linalg.lstsq(A.T,y)[0] #least-squares regression on the data
-         post += '\nthe power law exponent for the '+str(n)+'-grams is '+str(-w[0]) #w[0] contains the slope of the line
+         #w[0] contains the slope of the line
+         post += '\nthe power law exponent for the '+str(n)+'-grams is '+str(-w[0])+'; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
       return post
    #end power_law_analysis()
 
@@ -448,7 +548,7 @@ class Vertical_Interval_Statistics( object ):
          for n in list_of_n:
             # First check we have that index and it's potentially filled with
             # n-gram values
-            if n < 2 or n > (len(self._compound_no_quality_ngrams_dict) - 1):
+            if n < 2 or n > (len(self._compound_ngrams_dict) - 1):
                # throw it out
                list_of_n.remove( n )
                post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
@@ -457,7 +557,7 @@ class Vertical_Interval_Statistics( object ):
             # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
             # valid in the n-gram dictionary, but they won't actually hold
             # any n-grams.
-            if {} == self._compound_no_quality_ngrams_dict[n]:
+            if {} == self._compound_ngrams_dict[n]:
                # throw it out
                list_of_n.remove( n )
                post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
@@ -466,8 +566,8 @@ class Vertical_Interval_Statistics( object ):
          list_of_n = []
          # Check every index between 2 and however many possibilities there are,
          # and see which of these potential n values has n-grams associated.
-         for n in xrange( 2, len(self._compound_no_quality_ngrams_dict) ):
-            if {} != self._compound_no_quality_ngrams_dict[n]:
+         for n in xrange( 2, len(self._compound_ngrams_dict) ):
+            if {} != self._compound_ngrams_dict[n]:
                list_of_n.append( n )
       #-----
       
@@ -481,7 +581,7 @@ class Vertical_Interval_Statistics( object ):
          # Add up the number of triangles for each 'n' value.
          for n in list_of_n:
             # Use 'no_quality' because there will be fewer to go through
-            for triangle in self._compound_no_quality_ngrams_dict[n].values():
+            for triangle in self._compound_ngrams_dict[n].values():
                t_n_ng += triangle
          
          return str(t_n_ng)
@@ -492,10 +592,14 @@ class Vertical_Interval_Statistics( object ):
       if 'quality' in specs or ( the_settings.get_property( 'heedQuality' ) and \
          'noQuality' not in specs ):
          # We do need to include quality
-         output_dict = self._compound_quality_ngrams_dict
+         output_dict = [dict(map(lambda (key, value): \
+	        (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
+	        d.items())) for d in self._compound_ngrams_dict]
       else:
          # We don't need to include quality
-         output_dict = self._compound_no_quality_ngrams_dict
+         output_dict = [dict(map(lambda (key, value): \
+	        (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
+	        d.items())) for d in self._compound_ngrams_dict]
       
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -543,7 +647,7 @@ class Vertical_Interval_Statistics( object ):
          for n in list_of_n:
             post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
             for ng in sorted_ngrams[n]:
-               post += ng + ': ' + str(output_dict[n][ng]) + '\n'
+               post += str(ng) + ': ' + str(output_dict[n][ng]) + '\n'
             post += '\n'
       
       # Done!
@@ -618,7 +722,7 @@ def interval_sorter( x, y ):
 
 
 #-------------------------------------------------------------------------------
-def ngram_sorter( x, y ):
+def ngram_sorter( a, b ):
    '''
    Returns -1 if the first argument is a smaller n-gram.
    Returns 1 if the second argument is a smaller n-gram.
@@ -650,6 +754,7 @@ def ngram_sorter( x, y ):
    1
    '''
    
+   x,y = str(a), str(b)
    # Just in case there are some extra spaces
    x = x.strip()
    y = y.strip()

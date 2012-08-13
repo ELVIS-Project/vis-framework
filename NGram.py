@@ -129,6 +129,10 @@ class NGram( object ):
       self._list_of_movements = post
    #-------------------------------------------------------
 
+   def set_heed_quality( self, heed_quality ):
+      self._heed_quality = heed_quality
+      self._string = self.get_string_version( self._heed_quality, self._simple_or_compound )
+
    def retrograde( self ):
       '''
       Returns the retrograde (backwards) n-gram of self.
@@ -416,6 +420,9 @@ class NGram( object ):
    
    def __str__( self ):
       return self._string
+
+   def __hash__( self):
+      return hash(self._string)
 
    def __eq__( self, other ):
       # If they have different heed_quality settings, different 'n' value, or
