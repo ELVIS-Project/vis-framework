@@ -5,7 +5,7 @@
 # Name:         NGram.py
 # Purpose:      Class-based representation of an n-gram of vertical intervals.
 #
-# Copyright (C) 2012 Christopher Antila
+# Copyright (C) 2012 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

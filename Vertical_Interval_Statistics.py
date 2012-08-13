@@ -5,7 +5,7 @@
 # Name:         Vertical_Interval_Statistics.py
 # Purpose:      Stores statistics for "vis"
 #
-# Copyright (C) 2012 Christopher Antila
+# Copyright (C) 2012 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,6 +33,9 @@ from music21 import interval, graph
 from problems import NonsensicalInputError, MissingInformationError
 #numpy
 from numpy import array,linalg,ones,log,corrcoef
+#matplotlib
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 
@@ -328,30 +331,84 @@ class Vertical_Interval_Statistics( object ):
          for ng in sorted_ngrams[n]:
             retrograde = ng.retrograde()
             if retrograde in sorted_ngrams[n]:
-               ngram_pairs[n][(ng,retrograde)] = float(output_dict[n][ng])/float(output_dict[n][retrograde])
+               ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],output_dict[n][retrograde])
                sorted_ngrams[n].remove(retrograde)
             else:
-               ngram_pairs[n][(ng,retrograde)] = 0.0
+               ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],0)
       post=None
       # (5.1) If some graphs are asked for, prepare them
       if 'graph' in specs:
          grapharr = []
          for n in list_of_n:
-            keys = sorted(ngram_pairs[n].keys(), key = lambda ng: ngram_pairs[n][ng], reverse=True)
-            g = graph.GraphHistogram(doneAction=None)
-            data = [(k,ngram_pairs[n][keys[k]]) for k in range(len(keys))]
+            keys = sorted(ngram_pairs[n].keys(), key = lambda ng: float(ngram_pairs[n][ng][1])/float(ngram_pairs[n][ng][0]), reverse=True)
+            g = graph.GraphGroupedVerticalBar(doneAction=None)
+            data = []
+            for k in range(len(keys)):
+               entry = (str(keys[k][0])+' '+str(keys[k][1]),)
+               pair = {}
+               key_pair = keys[k]
+               pair['n-gram'] = ngram_pairs[n][key_pair][0]
+               pair['retrograde'] = ngram_pairs[n][key_pair][1]
+               entry += (pair,)
+               data.append(entry) 
             g.setData(data)
-            g.setTicks('x',[(k+0.4,str(keys[k][0])+', '+str(keys[k][1])) for k in range(len(keys))])
-            g.xTickLabelHorizontalAlignment='center'
-            g.xTickLabelRotation = 0
-            g.setTicks('y',[(ngram_pairs[n][keys[k]],ngram_pairs[n][keys[k]]) for k in range(len(keys))])
-            g.process()
+
+            #this is a very subtle edit of the music21.graph.GraphGroupedVerticalBar.process() and labelBars() methods
+            fig = plt.figure()
+            setattr(g,'fig', fig)
+            fig.subplots_adjust(bottom=.3)
+            ax = fig.add_subplot(1, 1, 1)
+
+            # b value is a list of values for each bar
+            for a, b in getattr(g,'data'):
+               barsPerGroup = len(b)
+               # get for legend
+               subLabels = sorted(b.keys())
+               break
+            widthShift = 1 / float(barsPerGroup)
+
+            xVals = []
+            yBundles = []
+            for i, (a, b) in enumerate(getattr(g,'data')):
+               # create x vals from index values 
+               xVals.append(i)
+               yBundles.append([b[key] for key in sorted(b.keys())])
+
+            rects = []
+            for i in range(barsPerGroup):
+               yVals = []
+               for j, x in enumerate(xVals):
+                  # get position, then get bar group
+                  yVals.append(yBundles[j][i])
+               xValsShifted = []
+               for x in xVals:
+                  xValsShifted.append(x + (widthShift * i))
+               colors = getattr(g,'colors')
+
+               rect = ax.bar(xValsShifted, yVals, width=widthShift, alpha=.8, 
+                   color=graph.getColor(colors[i % len(colors)]))
+               rects.append(rect)
+
+            colors = []
+            for k in range(len(rects)):
+               for j in range(len(rects[k])):
+                  height = rects[k][j].get_height()
+                  ax.text(rects[k][j].get_x()+rects[k][j].get_width()/2., height+.05, '%s'%(str(keys[j][k])), rotation='vertical', ha='center', va='bottom', 
+                  fontsize=getattr(g,'tickFontSize'), family=getattr(g,'fontFamily'))
+               colors.append(rects[k][0])
+
+            font = matplotlib.font_manager.FontProperties(size=getattr(g,'tickFontSize'),
+                        family=getattr(g,'fontFamily')) 
+            ax.legend(colors, subLabels, prop=font)
+
+            g._adjustAxisSpines(ax)
+            g._applyFormatting(ax)
+            g.done()
             grapharr.append(g)
          post = grapharr
       return post
       
    #end retrogrades()
-
 
    def power_law_analysis( self, the_settings ):
 	  #Most of this method is the same as get_formatted_ngrams()
