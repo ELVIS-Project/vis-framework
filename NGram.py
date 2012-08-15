@@ -5,7 +5,7 @@
 # Name:         NGram.py
 # Purpose:      Class-based representation of an n-gram of vertical intervals.
 #
-# Copyright (C) 2012 Christopher Antila
+# Copyright (C) 2012 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -128,6 +128,10 @@ class NGram( object ):
          
       self._list_of_movements = post
    #-------------------------------------------------------
+
+   def set_heed_quality( self, heed_quality ):
+      self._heed_quality = heed_quality
+      self._string = self.get_string_version( self._heed_quality, self._simple_or_compound )
 
    def retrograde( self ):
       '''
@@ -416,6 +420,9 @@ class NGram( object ):
    
    def __str__( self ):
       return self._string
+
+   def __hash__( self):
+      return hash(self._string)
 
    def __eq__( self, other ):
       # If they have different heed_quality settings, different 'n' value, or
