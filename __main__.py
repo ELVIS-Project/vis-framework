@@ -75,7 +75,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_chooseDirectories.clicked.connect( self.choose_directories )
       
       # "Show" Tab
-      
+      self.score_slider.sliderMoved.connect( self.adjust_slider )
+      self.btn_auto_n.clicked.connect( self.auto_fill_n )
+   
+   
    
    # "Settings" Tab ----------------------------------------
    # When users change "Interval Quality"
@@ -134,14 +137,23 @@ class Vis_MainWindow( Ui_MainWindow ):
       direc = QtGui.QFileDialog.getExistingDirectory( None, 'Choose Directory to Analyze', '~' )
       self.analysis_files = [ direc ]
       self.txt_filenames.setPlainText( str(direc) )
-
    
-
-
-
-
-
-
+   # "Show" Tab --------------------------------------------
+   def adjust_slider( self, n ):
+      # For fun...
+      self.score_progress.setValue( n )
+   
+   # "Cardinalities" -------------------
+   def auto_fill_n( self ):
+      self.line_show_triangles_n.setText( str(self.settings.get_property( 'lookForTheseNs' )) )
+   
+   
+   
+   
+   
+   
+   
+   
    #----------------------------------------------------------------------------
    def analyze_this( self ):
       '''

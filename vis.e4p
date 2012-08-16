@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project vis -->
-<!-- Saved: 2012-08-11, 16:42:49 -->
+<!-- Saved: 2012-08-12, 22:58:08 -->
 <!-- Copyright (C) 2012 Christopher Antila, Jamie Klassen, christopher.antila@mail.mcgill.ca -->
 <Project version="4.6">
   <Language>en</Language>
@@ -29,6 +29,7 @@
     <Source>vis-test.py</Source>
     <Source>qt/Ui_main_window.py</Source>
     <Source>__main__.py</Source>
+    <Source>qt/__init__.py</Source>
   </Sources>
   <Forms>
     <Form>qt/main_window.ui</Form>
