@@ -566,10 +566,10 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
             if current_offset > 0.0:
                list_of_needed_qLs = fill_space_between_offsets( 0.0, current_offset )
                z = note.Rest( quarterLength = list_of_needed_qLs[0] )
-               list_of_lilpond_parts.append( z )
+               list_of_lilypond_parts.append( z )
                for needed_qL in list_of_needed_qLs[1]:
                   z = note.Rest( quarterLength = needed_qL )
-                  list_of_lilpond_parts.append( z )
+                  list_of_lilypond_parts.append( z )
             
             # Make a new Note in the lily_for_this_n stream, with the same offset as
             # the start of this n-gram.

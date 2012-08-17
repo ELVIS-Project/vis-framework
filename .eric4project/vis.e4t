@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-4.2.dtd">
 <!-- eric4 tasks file for project vis -->
-<!-- Saved: 2012-08-16, 02:30:58 -->
+<!-- Saved: 2012-08-17, 01:39:41 -->
 <Tasks version="4.2">
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: find the right error</Summary>
@@ -58,60 +58,6 @@
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test negative intervals</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 16:38:05</Created>
-    <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>816</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test with quality</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 16:38:05</Created>
-    <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>817</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test with simple</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 16:38:05</Created>
-    <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>818</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test with voice crossing</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 16:38:05</Created>
-    <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>882</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test with and without heedQuality</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 16:38:05</Created>
-    <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>883</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: some sort of testing for the 'lookForTheseNs' settting</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 16:38:05</Created>
-    <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>2844</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: update this section, and vis_these_parts(), to accept a list of</Summary>
     <Description></Description>
     <Created>2012-08-16, 01:47:30</Created>
@@ -139,66 +85,129 @@
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: there must be a way to get only and all of the intervals that are</Summary>
+    <Summary>TODO: see if there are input-checking things to do</Summary>
     <Description></Description>
-    <Created>2012-08-16, 01:47:37</Created>
+    <Created>2012-08-17, 01:11:34</Created>
     <Resource>
-      <Filename>Vertical_Interval_Statistics.py</Filename>
-      <Linenumber>244</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: refactor the beginning of all the ngram methods</Summary>
-    <Description></Description>
-    <Created>2012-08-16, 01:47:37</Created>
-    <Resource>
-      <Filename>Vertical_Interval_Statistics.py</Filename>
-      <Linenumber>263</Linenumber>
+      <Filename>__main__.py</Filename>
+      <Linenumber>108</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: see if there are input-checking things to do</Summary>
     <Description></Description>
-    <Created>2012-08-16, 02:29:01</Created>
+    <Created>2012-08-17, 01:11:34</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>101</Linenumber>
+      <Linenumber>121</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: see if there are input-checking things to do</Summary>
+    <Summary>TODO: remove this debugging print()</Summary>
     <Description></Description>
-    <Created>2012-08-16, 02:29:01</Created>
+    <Created>2012-08-17, 01:11:34</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>114</Linenumber>
+      <Linenumber>234</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: something tells me this doesn't do what I had in mind</Summary>
     <Description></Description>
-    <Created>2012-08-16, 02:29:01</Created>
+    <Created>2012-08-17, 01:11:34</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>184</Linenumber>
+      <Linenumber>334</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: figure this out</Summary>
+    <Description></Description>
+    <Created>2012-08-17, 01:11:34</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>354</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: decide how to dynamically decide filename, then move this into</Summary>
     <Description></Description>
-    <Created>2012-08-16, 02:29:01</Created>
+    <Created>2012-08-17, 01:11:34</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>270</Linenumber>
+      <Linenumber>421</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: remove this temporary thing</Summary>
+    <Summary>TODO: there must be a way to get only and all of the intervals that are</Summary>
     <Description></Description>
-    <Created>2012-08-16, 02:29:01</Created>
+    <Created>2012-08-17, 01:32:44</Created>
     <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>291</Linenumber>
+      <Filename>Vertical_Interval_Statistics.py</Filename>
+      <Linenumber>243</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: refactor the beginning of all the ngram methods</Summary>
+    <Description></Description>
+    <Created>2012-08-17, 01:32:44</Created>
+    <Resource>
+      <Filename>Vertical_Interval_Statistics.py</Filename>
+      <Linenumber>262</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: test negative intervals</Summary>
+    <Description></Description>
+    <Created>2012-08-17, 01:37:18</Created>
+    <Resource>
+      <Filename>vis-test.py</Filename>
+      <Linenumber>816</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: test with quality</Summary>
+    <Description></Description>
+    <Created>2012-08-17, 01:37:18</Created>
+    <Resource>
+      <Filename>vis-test.py</Filename>
+      <Linenumber>817</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: test with simple</Summary>
+    <Description></Description>
+    <Created>2012-08-17, 01:37:18</Created>
+    <Resource>
+      <Filename>vis-test.py</Filename>
+      <Linenumber>818</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: test with voice crossing</Summary>
+    <Description></Description>
+    <Created>2012-08-17, 01:37:18</Created>
+    <Resource>
+      <Filename>vis-test.py</Filename>
+      <Linenumber>882</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: test with and without heedQuality</Summary>
+    <Description></Description>
+    <Created>2012-08-17, 01:37:18</Created>
+    <Resource>
+      <Filename>vis-test.py</Filename>
+      <Linenumber>883</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: some sort of testing for the 'lookForTheseNs' settting</Summary>
+    <Description></Description>
+    <Created>2012-08-17, 01:37:18</Created>
+    <Resource>
+      <Filename>vis-test.py</Filename>
+      <Linenumber>2844</Linenumber>
     </Resource>
   </Task>
 </Tasks>

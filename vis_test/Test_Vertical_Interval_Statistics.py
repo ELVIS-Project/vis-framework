@@ -60,17 +60,40 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       # m3 -P4 M-3
       self.ngf = NGram([interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('G#4'),note.Note('E4'))])
-      # self.ngg  m3 +P4 M2 -m6 P5 -m2 M-10
+      # self.ngg  m3 +P4 M2 -m6 P5 +m2 M-10
       self.ngg = NGram([interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('D5'),note.Note('E5')), \
                 interval.Interval(note.Note('F#4'),note.Note('C#5')), \
                 interval.Interval(note.Note('G##5'),note.Note('E#4'))])
-      # self.ngh  m3 +P4 M2 -m6 P5 -m2 M-3
+      # self.ngh  m3 +P4 M2 -m6 P5 +m2 M-3
       self.ngh = NGram([interval.Interval(note.Note('A4'),note.Note('C5')), \
                 interval.Interval(note.Note('D5'),note.Note('E5')), \
                 interval.Interval(note.Note('F#4'),note.Note('C#5')), \
                 interval.Interval(note.Note('G##4'),note.Note('E#4'))])
-
+   
+   # get_formatted_ngram_dict() ---------------------------
+   def test_get_formatted_ngram_dict_1( self ):
+      self.vis.add_ngram( self.nga )
+      self.vis.add_ngram( self.ngh )
+      check = self.vis.get_formatted_ngram_dict()
+      expected = [{}, {}, {'3 1 3':1}, {}, {'3 +4 2 -6 5 +2 -3':1}]
+      self.assertEqual( check, expected )
+   
+   def test_get_formatted_ngram_dict_2( self ):
+      self.vis.add_ngram( self.nga )
+      self.vis.add_ngram( self.ngh )
+      check = self.vis.get_formatted_ngram_dict( 2 )
+      expected = {'3 1 3':1}
+      self.assertEqual( check, expected )
+   
+   def test_get_formatted_ngram_dict_3( self ):
+      self.vis.add_ngram( self.nga )
+      self.vis.add_ngram( self.ngh )
+      check = self.vis.get_formatted_ngram_dict( 4 )
+      expected = {'3 +4 2 -6 5 +2 -3':1}
+      self.assertEqual( check, expected )
+   
+   # add_interval() ---------------------------------------
    def test_addUpInterval( self ):
       self.vis.add_interval( self.m3 )
       self.assertEqual( self.vis._simple_interval_dict['m3'], 1 )
@@ -144,7 +167,8 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.assertEqual( self.vis._simple_interval_dict['M-3'], 2 )
       self.assertEqual( self.vis._compound_interval_dict['M-3'], 1 )
       self.assertEqual( self.vis._compound_interval_dict['M-10'], 1 )
-
+   
+   # get_interval_occurrences() ---------------------------
    def test_get_interval_occurrences_heed_quality_Up( self ):
       self.vis.add_interval( self.m3 )
       self.vis.add_interval( self.m10 )
@@ -278,65 +302,70 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', False )
       self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', self.m3 )
    
+   # add_ngram() ------------------------------------------
    def test_add_ngram( self ):
       # basic 2-gram
       self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.assertEqual( self.vis._compound_quality_ngrams_dict[2], {'m3 +P4 m3': 1} )
-      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[2], {'3 +4 3': 1} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'m3 +P4 m3': 1} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'3 +4 3': 1} )
       # two of a basic 2-gram
       self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.assertEqual( self.vis._compound_quality_ngrams_dict[2], {'m3 +P4 m3': 2} )
-      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[2], {'3 +4 3': 2} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'m3 +P4 m3': 2} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'3 +4 3': 2} )
       # add one of a similar 2-gram
       self.vis.add_ngram( self.ngd ) # m3 +d4 M3
-      self.assertEqual( self.vis._compound_quality_ngrams_dict[2], {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
-      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[2], {'3 +4 3': 3} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'3 +4 3': 3} )
       # add a 4-gram, 16 times
       for i in xrange(16):
          self.vis.add_ngram( self.ngg ) # m3 +P4 M2 -m6 P5 -m2 M-10
-      self.assertEqual( self.vis._compound_quality_ngrams_dict[2], {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
-      self.assertEqual( self.vis._compound_quality_ngrams_dict[4], {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
-      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[2], {'3 +4 3': 3} )
-      self.assertEqual( self.vis._compound_no_quality_ngrams_dict[4], {'3 +4 2 -6 5 +9 -10': 16} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict( 4 ), {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'3 +4 3': 3} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict( 4 ), {'3 +4 2 -6 5 +9 -10': 16} )
    
-   def test_get_ngram_occurrences( self ):
-      # get_ngram_occurrences( self, whichNGram, n )
-      # test that non-existant n values are dealt with properly
-      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=2 ), 0 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=64 ), 0 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '', n=2 ), 0 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '', n=128 ), 0 )
+   # get_ngram_occurrences() ------------------------------
+   #def test_get_ngram_occurrences( self ):
+      # NOTE: Test removed because the method is broken and also removed. If we
+      # need this method again, we'll have to modify these tests.
+      ## get_ngram_occurrences( self, whichNGram, n )
+      ## test that non-existant n values are dealt with properly
+      #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=2 ), 0 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=64 ), 0 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '', n=2 ), 0 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '', n=128 ), 0 )
       
-      # test 2 n-grams
-      # self.ngd:  m-3 +P4 M3
-      # self.nge:  m3 -P4 m3
-      self.vis = Vertical_Interval_Statistics()
-      for i in xrange(12):
-         self.vis.add_ngram( self.ngd )
-      for i in xrange(8):
-         self.vis.add_ngram( self.nge )
-      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +d4 M3', n=2 ), 12 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=2 ), 12 )
-      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 -P4 m3', n=2 ), 8 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '3 -4 3', n=2 ), 8 )
+      ## test 2 n-grams
+      ## self.ngd:  m-3 +P4 M3
+      ## self.nge:  m3 -P4 m3
+      #self.vis = Vertical_Interval_Statistics()
+      #for i in xrange(12):
+         #self.vis.add_ngram( self.ngd )
+      #for i in xrange(8):
+         #self.vis.add_ngram( self.nge )
+      #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +d4 M3', n=2 ), 12 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3', n=2 ), 12 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 -P4 m3', n=2 ), 8 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '3 -4 3', n=2 ), 8 )
       
-      # test distinct 4-grams with identical simple-interval representations
-      # self.ngg  m3 +P4 M2 -m6 P5 -m2 M10
-      self.vis = Vertical_Interval_Statistics()
-      for i in xrange(10):
-         self.vis.add_ngram( self.ngg )
-      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
-      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 0 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -3', n=4 ), 0 )
-      # self.ngh  m3 +P4 M2 -m6 P5 -m2 M3
-      for i in xrange(7):
-         self.vis.add_ngram( self.ngh )
-      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
-      self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 7 )
-      self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +2 -3', n=4 ), 7 )
+      ## test distinct 4-grams with identical simple-interval representations
+      ## self.ngg  m3 +P4 M2 -m6 P5 -m2 M10
+      #self.vis = Vertical_Interval_Statistics()
+      #for i in xrange(10):
+         #self.vis.add_ngram( self.ngg )
+      #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 0 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -3', n=4 ), 0 )
+      ## self.ngh  m3 +P4 M2 -m6 P5 -m2 M3
+      #for i in xrange(7):
+         #self.vis.add_ngram( self.ngh )
+      #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10', n=4 ), 10 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 7 )
+      #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +2 -3', n=4 ), 7 )
    
+   # _reduce_qualities() ----------------------------------
    def test__reduce_qualities( self ):
       # this stands for interval_dictionary
       i_d = {'m3':5, 'M3':4}
