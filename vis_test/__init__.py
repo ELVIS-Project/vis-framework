@@ -5,8 +5,8 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 # 
-# Filename: __init__.py
-# Purpose: Import all the VIS Files
+# Filename: vis-test/__init__.py
+# Purpose: Import the Automated Tests for vis
 #
 # Copyright (C) 2012 Christopher Antila
 #
@@ -24,8 +24,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-__all__ = ['test_corpus', 'analytic_engine', 'file_output', 'NGram', \
-           'output_LilyPond', 'problems', 'Vertical_Interval_Statistics', \
-           'vis', 'VIS_Settings',  'qt', 'vis-test']
-
-import __all__
+import Test_Settings, Test_Sorting, Test_NGram, \
+       Test_Vertical_Interval_Statistics, Test_Output_Formatting, \
+       Test_Analysis_Engine_Integration_Short, \
+       Test_Analysis_Engine_Integration_Long, \
+       Test_Analysis_Engine_Unit, Test_Fill_Space_Between_Offsets
