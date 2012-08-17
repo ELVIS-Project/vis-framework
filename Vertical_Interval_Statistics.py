@@ -31,9 +31,9 @@ from string import digits as string_digits
 from music21 import interval, graph
 # vis
 from problems import NonsensicalInputError, MissingInformationError
-#numpy
-from numpy import array,linalg,ones,log,corrcoef
-#matplotlib
+# numpy
+from numpy import array, linalg, ones, log, corrcoef
+# matplotlib
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -260,7 +260,7 @@ class Vertical_Interval_Statistics( object ):
       return ret
 
    def retrogrades( self, the_settings, specs='' ):
-	  #TODO: refactor the beginning of all the ngram methods
+     #TODO: refactor the beginning of all the ngram methods
       # (1) Figure out which values of 'n' we should output.
       list_of_n = []
       if 'n=' in specs:
@@ -417,7 +417,7 @@ class Vertical_Interval_Statistics( object ):
    #end retrogrades()
 
    def power_law_analysis( self, the_settings ):
-	  #Most of this method is the same as get_formatted_ngrams()
+     #Most of this method is the same as get_formatted_ngrams()
       list_of_n = []
       # Check every index between 2 and however many possibilities there are,
       # and see which of these potential n values has n-grams associated.
@@ -435,13 +435,13 @@ class Vertical_Interval_Statistics( object ):
       if the_settings.get_property( 'heedQuality' ):
          # We do need to include quality
          output_dict = [dict(map(lambda (key, value): \
-	        (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
-	        d.items())) for d in self._compound_ngrams_dict]
+           (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
+           d.items())) for d in self._compound_ngrams_dict]
       else:
          # We don't need to include quality
          output_dict = [dict(map(lambda (key, value): \
-	        (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
-	        d.items())) for d in self._compound_ngrams_dict]
+           (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
+           d.items())) for d in self._compound_ngrams_dict]
       
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -530,10 +530,10 @@ class Vertical_Interval_Statistics( object ):
       # (2) sort the results in the specified way.
       if 'by frequency' in specs:         
          # Sort the frequencies
-         if 'descending' in specs or 'high to low' in specs:
+         if 'ascending' in specs or 'low to high' in specs:
             sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x] )
-         else: # elif 'ascending' in specs or 'low to high' in specs:
-            # Default to 'ascending'
+         else: # elif 'descending' in specs or 'high to low' in specs:
+            # Default to 'descending'
             sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x], reverse=True )
 
       else: # elif 'by interval' in specs:
@@ -596,6 +596,9 @@ class Vertical_Interval_Statistics( object ):
       - 'descending' or 'high to low' if you want the highest or most common
          interval at the top of the list
       - 'graph' if you want a graph displayed instead of text
+      
+      NOTE: If you specify n= values, you *must* end this with a space character
+      or it will not be properly detected. End-of-string is insufficient.
       '''
       
       post = ''
@@ -656,13 +659,13 @@ class Vertical_Interval_Statistics( object ):
          'noQuality' not in specs ):
          # We do need to include quality
          output_dict = [dict(map(lambda (key, value): \
-	        (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
-	        d.items())) for d in self._compound_ngrams_dict]
+           (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
+           d.items())) for d in self._compound_ngrams_dict]
       else:
          # We don't need to include quality
          output_dict = [dict(map(lambda (key, value): \
-	        (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
-	        d.items())) for d in self._compound_ngrams_dict]
+           (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
+           d.items())) for d in self._compound_ngrams_dict]
       
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -673,10 +676,10 @@ class Vertical_Interval_Statistics( object ):
       if 'by frequency' in specs:
          # Sort the frequencies
          for n in list_of_n:
-            if 'descending' in specs or 'high to low' in specs:
+            if 'ascending' in specs or 'low to high' in specs:
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng] )
-            else: # elif 'ascending' in specs or 'low to high' in specs:
-               # Default to 'ascending'
+            else: # elif 'descending' in specs or 'high to low' in specs:
+               # Default to 'descending'
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng], reverse=True )
             
       # We're now working with flipped_dicts

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/christo/ELVIS/programs/vis/qt/main_window.ui'
 #
-# Created: Thu Aug 16 02:30:54 2012
+# Created: Fri Aug 17 00:29:46 2012
 #      by: PyQt4 UI code generator 4.6.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -310,7 +310,7 @@ class Ui_MainWindow(object):
         self.label_4.setBuddy(self.line_show_triangles_n)
 
         self.retranslateUi(MainWindow)
-        self.tabs_main.setCurrentIndex(2)
+        self.tabs_main.setCurrentIndex(1)
         self.tabs_settings.setCurrentIndex(0)
         self.tabs_output_options.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)

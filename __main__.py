@@ -31,6 +31,7 @@
 import sys
 from os import path
 from os import walk as os_walk
+from string import replace as str_replace
 # PyQt4
 from PyQt4 import QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
@@ -43,6 +44,8 @@ from qt.Ui_main_window import Ui_MainWindow
 from vis import VIS_Settings
 from vis import Vertical_Interval_Statistics
 from analytic_engine import vis_these_parts
+from problems import MissingInformationError
+from file_output import file_outputter
 
 
 
@@ -77,6 +80,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       # "Show" Tab
       self.score_slider.sliderMoved.connect( self.adjust_slider )
       self.btn_auto_n.clicked.connect( self.auto_fill_n )
+      self.btn_show_intervals.clicked.connect( self.show_intervals )
+      self.btn_save_intervals.clicked.connect( self.save_intervals )
+      self.btn_show_triangles.clicked.connect( self.show_triangles )
+      self.btn_save_triangles.clicked.connect( self.save_triangles )
    
    
    
@@ -143,14 +150,158 @@ class Vis_MainWindow( Ui_MainWindow ):
       # For fun...
       self.score_progress.setValue( n )
    
-   # "Cardinalities" -------------------
+   # When users choose "Show" for triangles
+   def show_triangles( self, zoop ):
+      self.show_specs_getter( 'ngram' )
+   
+   # When users choose "Show" for intervals
+   def show_intervals( self, zoop ):
+      self.show_specs_getter( 'interval' )
+   
+   # When users choose "Save" for triangles
+   def save_triangles( self, zoop ):
+      self.show_specs_getter( 'ngram file' )
+   
+   # When users choose "Save" for intervals
+   def save_intervals( self, zoop ):
+      self.show_specs_getter( 'interval file' )
+   
+   # "Cardinalities"
    def auto_fill_n( self ):
       self.line_show_triangles_n.setText( str(self.settings.get_property( 'lookForTheseNs' )) )
    
    
    
    
+   #----------------------------------------------------------------------------
+   def show_specs_getter( self, grob ):
+      '''
+      Given a str that contains either 'ngram' or 'interval' and optionally
+      'file', this method finds the settings of the appropriate "Show" sub-tab,
+      then call show_results() with the correct settings.
+      '''
+      post = grob
+      
+      # This method merely gets the settings, but doesn't do anything with them.
+      
+      if 'ngram' in post:
+         # Check settings on the "Show"/"Triangles" tab
+         # Sort Order
+         if self.rdo_ascending_triangles.isChecked():
+            post += ' ascending '
+         else:
+            post += ' descending '
+         
+         # Sort Object
+         if self.rdo_ngrams_by_ngram.isChecked():
+            post += ' by ngram '
+         else:
+            post += ' by frequency '
+         
+         # Graph
+         if self.chk_graph_triangles.isChecked():
+            post += ' graph '
+         
+         # n
+         # We must remove any spaces in this box, because spaces are later
+         # unerstood as the termination of the string
+         enns = str(self.line_show_triangles_n.text())
+         enns = str_replace( enns, ' ', '' )
+         enns = str_replace( enns, '[', '' )
+         enns = str_replace( enns, ']', '' )
+         post += ' n=' + enns + ' '
+         
+      elif 'interval' in post:
+         # Check settings on the "Show"/"Intervals" tab
+         # Sort Order
+         if self.rdo_ascending_intervals.isChecked():
+            post += ' ascending '
+         else:
+            post += ' descending '
+         
+         # Sort Object
+         if self.rdo_intervals_by_interval.isChecked():
+            post += ' by interval '
+         else:
+            post += ' by frequency '
+         
+         # Graph
+         if self.chk_graph_intervals.isChecked():
+            post += ' graph '
+      
+      # Call show_results() to actually display things.
+      # We'll try to catch exceptions and alert our user intelligently.
+      # TODO: remove this debugging print()
+      print( post )
+      try:
+         self.show_results( post )
+      except MissingInformationError as mie:
+         QtGui.QMessageBox.warning(None,
+            "Yikes!",
+            str(mie),
+            QtGui.QMessageBox.StandardButtons(\
+               QtGui.QMessageBox.Ok),
+            QtGui.QMessageBox.Ok)
    
+   
+   
+   #----------------------------------------------------------------------------
+   def show_results( self, specs ):
+      '''
+      Show the results of an analysis query. The argument should be a string
+      that specifies what to show and how to show it. You must include the
+      following components
+      - 'ngram' or 'interval' : whether to display results of n-grams or
+         intervals
+      - 'by interval' or 'by ngram' or 'by frequency' : whether to sort results
+         by discovered-thing or by the number of them
+      - ('ascending' or 'low to high') or ('descending' or 'high to low') :
+         which direction to sort results
+      - 'graph' : to produce a chart rather than a list
+      - 'file' : to output results to a file rather than the screen
+      - 'n=XX' : for ngrams, to specify which values of n to show
+      
+      If you send the 'graph' option, the 'file' option is ignored.
+      
+      If you send the 'file' option, a 'Save As' dialogue window appears.
+      '''
+      
+      # NB: I broke this apart for modularity, but I'm not sure we need it.
+      
+      # Hold the str we'll output.
+      results = None
+      
+      # First, format the results.
+      if 'ngram' in specs:
+         # output ngrams
+         results = self.statistics.get_formatted_ngrams( self.settings, specs )
+      else:
+         # output intervals
+         results = self.statistics.get_formatted_intervals( self.settings, specs )
+      
+      # Second, deal with results output to a file.
+      if 'file' in specs:
+         # Get the file name to which to save results.
+         output_filename = QtGui.QFileDialog.getSaveFileName(\
+            None,
+            "Save Results",
+            '',
+            '',
+            None)
+         
+         # Use the file_output module's utility method.
+         output_results = file_outputter( results, output_filename, 'OVERWRITE' )
+         
+         # If there's a str as the second element, there was an error.
+         if isinstance( output_results[1], str ):
+            self.txt_results.appendPlainText( 'Error during output:' )
+            self.txt_results.appendPlainText( output_results[1] )
+         else:
+            self.txt_results.appendPlainText( 'Results outputted to ' + \
+                                              output_filename[0] )
+      # Third, deal with results shown in the window.
+      else:
+         self.txt_results.setPlainText( str(results)  )
    
    
    
@@ -160,9 +311,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       Analyze a list of files and directories. Statistics will be added to, and
       settings will be used from, the "self" object. The list of files should
       also be specified in "self" as self.analysis_files as a list of str
-      pathnames. This method will analyze all single files in that list, and
-      all files in a directory in that list, but will not recurse further.
-      
+      pathnames. This method analyzes all single files in that list, or all
+      files in directories (and their subdirectories) in that list. 
       '''
       #-------------------------------------------------------
       def calculate_all_combis( upto ):
@@ -201,6 +351,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Go through all the files/directories.
       for piece_name in self.analysis_files:
          # Figure out which parts to analyze.
+         # TODO: figure this out
          #parts_to_examine = list(set([int(n) for n in re.findall('(-?\d+)', parts_to_examine)]))
          parts_to_examine = 'all'
          
@@ -288,9 +439,6 @@ class Vis_MainWindow( Ui_MainWindow ):
             pass
             self.txt_filenames.appendPlainText( filename )
       
-      # TODO: remove this temporary thing
-      # just print out the interval dictionary, so I know it worked
-      self.txt_results.setPlainText( str( self.statistics._simple_interval_dict ) )
    # End function analyze_this() ---------------------------------------------------
 
 

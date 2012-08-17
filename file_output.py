@@ -51,10 +51,15 @@ def file_outputter( contents, filename, extension='' ):
    # Filename must be a str
    if not isinstance( filename, str ):
       filename = str(filename)
-   # File mustn't already exist
-   while exists( filename + extension ):
-      filename += '-0'
-   # Output must must be a str.
+   # Unless we got the OVERWRITE signal, the file mustn't already exist.
+   if 'OVERWRITE' != extension:
+      while exists( filename + extension ):
+         filename += '-0'
+   else:
+      # We need to do this, or else we'll inadvertently *not* overwrite the
+      # pre-existing file.
+      extension = ''
+   # Output must be a str.
    if not isinstance( contents, str ):
       contents = str(contents)
    
@@ -81,4 +86,4 @@ def file_outputter( contents, filename, extension='' ):
    
    # Return the filename we actually used.
    return [filename, return_error]
-#------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
