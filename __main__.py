@@ -182,7 +182,8 @@ class Vis_MainWindow( Ui_MainWindow ):
    
    # When users choose the "Choose Files" button.
    def choose_files( self, sig ):
-      list_of_files = QtGui.QFileDialog.getOpenFileNames( None, 'Choose Files to Analyze', '~', '*.pdf' )
+	  # this should refer to some global constants involving which filenames we can use
+      list_of_files = QtGui.QFileDialog.getOpenFileNames( None, 'Choose Files to Analyze', '~', '*.pdf *.mxl *.krn *.abc *.mei' )
       processed_str = ''
       self.analysis_files = []
       for each in list_of_files:

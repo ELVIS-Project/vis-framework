@@ -330,9 +330,14 @@ class Vertical_Interval_Statistics( object ):
       for n in list_of_n:
          for ng in sorted_ngrams[n]:
             retrograde = ng.retrograde()
-            if retrograde in sorted_ngrams[n]:
-               ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],output_dict[n][retrograde])
-               sorted_ngrams[n].remove(retrograde)
+            # this is an odd workaround; used to get KeyErrors, possibly because accessing the key
+            # wasn't using __hash__ correctly? Anyway, the problem seems to have to do with
+            # changing NGram.__repr__ to include the specific pitches in the NGram.
+            matches = [gram for gram in sorted_ngrams[n] if gram == retrograde]
+            if len(matches) > 0:
+               for ngram in matches:
+                  ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],output_dict[n][ngram])
+                  sorted_ngrams[n].remove(retrograde)
             else:
                ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],0)
       post = ''
