@@ -563,7 +563,7 @@ class Vertical_Interval_Statistics( object ):
          g.setTicks('x',[(k+0.4,sorted_intervals[k]) for k in range(len(sorted_intervals))])
          g.xTickLabelHorizontalAlignment='center'
          setattr(g,'xTickLabelRotation',90)
-         g.setTicks('y',[(k,k) for k in range(max([the_dict[sorted_intervals[j]] for j in range(len(sorted_intervals))]))])
+         g.setTicks('y',[(k,k) for k in xrange(max([the_dict[sorted_intervals[j]] for j in range(len(sorted_intervals))]))])
          g.process()
          return g
 
@@ -583,8 +583,38 @@ class Vertical_Interval_Statistics( object ):
       displaying a text chart or graph, as well as computing the "total metric"
       difference between the two.
       '''
+      # (1) Figure out which 'n' values to display
       post = ''
-      list_of_n = the_settings.get_property( 'lookForTheseNs')
+      list_of_n = []
+      if 'n=' in specs:
+         list_of_n = specs[specs.find('n=')+2:]
+         list_of_n = list_of_n[:list_of_n.find(' ')]
+         list_of_n = sorted(set([int(n) for n in re.findall('(\d+)', list_of_n)]))
+         # Check those n values are acceptable/present
+         for n in list_of_n:
+            # First check we have that index and it's potentially filled with
+            # n-gram values
+            if n < 2 or n > (len(self._ngrams_dict) - 1):
+               # throw it out
+               list_of_n.remove( n )
+               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
+               continue # to avoid the next test
+            # Now check if there are actually n-grams in that position. If we
+            # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
+            # valid in the n-gram dictionary, but they won't actually hold
+            # any n-grams.
+            if {} == self._ngrams_dict[n]:
+               # throw it out
+               list_of_n.remove( n )
+               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
+      else:
+         list_of_n = [i for i in range(len(self._ngrams_dict)) if self._ngrams_dict[i] != {}]
+      # What if we end up with no n values?
+      if 0 == len(list_of_n):
+         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+
+      # (2) Organize the results
+      tables = {}
       for n in list_of_n:
          table = {}
          self_dict = self.get_formatted_ngram_dict()[n]
@@ -596,18 +626,49 @@ class Vertical_Interval_Statistics( object ):
                table[ng][1] = other_dict[ng]
             else:
                table[ng] = [0,other_dict[ng]]
-         width1 = max([len(str(ng)) for ng in table.keys()])
-         total1 = sum([t[0] for t in table.values()])
-         width2 = max([len(str(t[0])) for t in table.values()]+[len(file1)+2])
-         total2 = sum([t[1] for t in table.values()])
-         post += "{0:{1:n}}{2:{3:n}}{4}".format(str(n)+"-Gram",width1+2,"# "+file1,width2+2,"# "+file2)
-         post += "\n"+("-"*(width1+width2+len(file2)+6))
-         for ng in table.iterkeys():
-            post += "\n{0:{1:n}}{2:{3:n}}{4}".format(str(ng),width1+2,\
+         tables[n] = table
+      # (3.1) If some graphs are asked for, prepare them
+      if 'graph' in specs:
+         grapharr = []
+         for n in list_of_n:
+            table = tables[n]
+            keys = table.keys()
+            g = graph.GraphGroupedVerticalBar(doneAction=None)
+            data = []
+            for k in range(len(keys)):
+               entry = ("bar%s"%str(k),)
+               pair = {}
+               ngram_key = keys[k]
+               pair[file1] = table[ngram_key][0]
+               pair[file2] = table[ngram_key][1]
+               entry += (pair,)
+               data.append(entry) 
+            g.setData(data)
+            g.setTicks('x',[(k+0.4,keys[k]) for k in range(len(keys))])
+            g.xTickLabelRotation = 90
+            g.xTickLabelVerticalAlignment='top'
+            g.setTitle(str(n)+'-Grams')
+            g.setTicks('y',[(k,k) for k in xrange(max([max(v[0],v[1]) for v in table.values()]))])
+            g.process()
+            grapharr.append(g)
+         post = grapharr
+
+      #(3.2) Otherwise make a nicely formatted list of the results
+      else:
+         for n in list_of_n:
+            table = tables[n]
+            width1 = max([len(str(ng)) for ng in table.keys()])
+            total1 = sum([t[0] for t in table.values()])
+            width2 = max([len(str(t[0])) for t in table.values()]+[len(file1)+2])
+            total2 = sum([t[1] for t in table.values()])
+            post += "{0:{1:n}}{2:{3:n}}{4}".format(str(n)+"-Gram",width1+2,"# "+file1,width2+2,"# "+file2)
+            post += "\n"+("-"*(width1+width2+len(file2)+6))
+            for ng in table.iterkeys():
+               post += "\n{0:{1:n}}{2:{3:n}}{4}".format(str(ng),width1+2,\
                         str(table[ng][0]),width2+2,str(table[ng][1]))
-         post += '\n'
-         totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()]) 
-         post += "\nTotal difference between "+str(n)+"-grams: "+str(totaldiff)+"\n"
+            post += '\n'
+            totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()]) 
+            post += "\nTotal difference between "+str(n)+"-grams: "+str(totaldiff)+"\n"
       return post
    
    def get_formatted_ngrams( self, the_settings, specs='' ):
@@ -747,7 +808,7 @@ class Vertical_Interval_Statistics( object ):
             g.xTickLabelRotation = 90
             g.xTickLabelVerticalAlignment='top'
             g.setTitle(str(n)+'-Grams')
-            g.setTicks('y',[(k,k) for k in range(max([output_dict[n][sorted_ngrams[n][j]] for j in range(len(sorted_ngrams[n]))]))])
+            g.setTicks('y',[(k,k) for k in xrange(max([output_dict[n][sorted_ngrams[n][j]] for j in range(len(sorted_ngrams[n]))]))])
             g.process()
             grapharr.append(g)
          post = grapharr

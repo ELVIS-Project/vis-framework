@@ -284,6 +284,7 @@ if __name__ == '__main__':
 - 'help settings' for a list of available settings
 - 'help filename' for help with file names
 - a file name or directory/folder name to analyze
+- 'compare' and two file names separated by spaces to do an n-gram comparison
 
 ** Note: You can type 'help' at most user prompts for more information.
 """ )
@@ -558,14 +559,15 @@ set orderPizza true
                   format = raw_input( "Please input formatting options, if any (or 'help'): " )
                   if 'help' == format:
                      print( '''For ngram comparisons, you can use the following options:
-                              - 'by frequency' or 'by ngram' to decide by what to sort
-                              - 'ascending'/'low to high' or 'descending'/'high to low' to decide the order
-                              - 'n=3,4,5' for example, preceded and separated by a space or the start/end of the options,
-                              to control which 'n' values to show.
-                              - 'graph' to see a bar graph of the results
-                              ''' )
+- 'n=3,4,5' for example, preceded and separated by a space or the start/end of the options,
+  to control which 'n' values to show.
+- 'graph' to see a bar graph of the results''' )
                formatted_output = stats1.compare( my_settings, stats2, fn1, fn2, format )
-               print formatted_output
+               if isinstance(formatted_output,basestring):
+                  print formatted_output
+               else:
+                  for g in formatted_output:
+                     g.show()
          # Help -------------------------------------------
          elif 'help' == user_says[:user_says.find(' ')]:
             if 'help settings' == user_says:
