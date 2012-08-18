@@ -50,7 +50,7 @@ class NonsensicalInputWarning( Exception ):
    VIS uses this error for situations where an argument does not make sense,
    but we can somehow continue execution.
    
-   For example: TODO
+   For example: setting a property to an invalid value. It'll just be ignored.
    '''
    
    # NB: This class has a name in camel case so it fits in with the built-in

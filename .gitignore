@@ -4,6 +4,7 @@
 test_output/*
 extra_trials/*
 *.kate-swp
+.eric4project/*
 
 *.py[co]
 

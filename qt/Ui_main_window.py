@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/christo/ELVIS/programs/vis/qt/main_window.ui'
 #
-# Created: Fri Aug 17 00:29:46 2012
+# Created: Sat Aug 18 01:42:34 2012
 #      by: PyQt4 UI code generator 4.6.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -129,6 +129,17 @@ class Ui_MainWindow(object):
         self.btn_setOffset.setObjectName("btn_setOffset")
         self.horizontalLayout.addWidget(self.btn_setOffset)
         self.verticalLayout_9.addLayout(self.horizontalLayout)
+        self.groupBox_8 = QtGui.QGroupBox(self.groupBox_Offsets)
+        self.groupBox_8.setObjectName("groupBox_8")
+        self.verticalLayout_15 = QtGui.QVBoxLayout(self.groupBox_8)
+        self.verticalLayout_15.setObjectName("verticalLayout_15")
+        self.btn_save_settings = QtGui.QPushButton(self.groupBox_8)
+        self.btn_save_settings.setObjectName("btn_save_settings")
+        self.verticalLayout_15.addWidget(self.btn_save_settings)
+        self.btn_load_settings = QtGui.QPushButton(self.groupBox_8)
+        self.btn_load_settings.setObjectName("btn_load_settings")
+        self.verticalLayout_15.addWidget(self.btn_load_settings)
+        self.verticalLayout_9.addWidget(self.groupBox_8)
         self.verticalLayout_2.addWidget(self.groupBox_Offsets)
         self.tabs_settings.addTab(self.tab_obscure_settings, "")
         self.verticalLayout_3.addWidget(self.tabs_settings)
@@ -332,6 +343,9 @@ class Ui_MainWindow(object):
         self.groupBox_Offsets.setTitle(QtGui.QApplication.translate("MainWindow", "Offsets", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Offset between Intervals:", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_setOffset.setText(QtGui.QApplication.translate("MainWindow", "Set", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_8.setTitle(QtGui.QApplication.translate("MainWindow", "Load and Save Settings", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_save_settings.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_load_settings.setText(QtGui.QApplication.translate("MainWindow", "Load", None, QtGui.QApplication.UnicodeUTF8))
         self.tabs_settings.setTabText(self.tabs_settings.indexOf(self.tab_obscure_settings), QtGui.QApplication.translate("MainWindow", "Obscure Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.tabs_main.setTabText(self.tabs_main.indexOf(self.tab_settings), QtGui.QApplication.translate("MainWindow", "Settings", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Filenames to Analyze.\n"

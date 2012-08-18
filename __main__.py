@@ -45,7 +45,7 @@ from vis import VIS_Settings
 from vis import Vertical_Interval_Statistics
 from analytic_engine import vis_these_parts
 from problems import MissingInformationError
-from file_output import file_outputter
+from file_output import file_outputter, file_inputter
 
 
 
@@ -71,6 +71,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.rdo_noScore.clicked.connect( self.settings_LilyPond_score )
       self.line_intervalOffset.returnPressed.connect( self.settings_offset_interval )
       self.btn_setOffset.clicked.connect( self.settings_offset_interval )
+      self.btn_save_settings.clicked.connect( self.settings_save )
+      self.btn_load_settings.clicked.connect( self.settings_load )
       
       # "Input" Tab
       self.btn_analyze.clicked.connect( self.analyze_button )
@@ -120,6 +122,55 @@ class Vis_MainWindow( Ui_MainWindow ):
       set_offset_interval = str(self.line_intervalOffset.text())
       # TODO: see if there are input-checking things to do
       self.settings.set_property( 'offsetBetweenInterval ' + set_offset_interval )
+   
+   # When users choose "Load" settings
+   def settings_load( self ):
+      filename = str(QtGui.QFileDialog.getOpenFileName(\
+         None,
+         "Load Which Settings File?",
+         "vis_settings.txt",
+         '',
+         None))
+      
+      self.settings.import_settings( file_inputter( filename ) )
+      
+      # Now we also have to update the interface
+      self.line_intervalOffset.setText( str(self.settings.get_property( 'offsetBetweenInterval' )) )
+      self.line_n.setText( str(self.settings.get_property( 'lookForTheseNs' )) )
+      
+      if self.settings.get_property( 'heedQuality' ):
+         self.rdo_heedQuality.setChecked( True )
+         self.rdo_ignoreQuality.setChecked( False )
+      else:
+         self.rdo_ignoreQuality.setChecked( True )
+         self.rdo_heedQuality.setChecked( False )
+      
+      if 'compound' == self.settings.get_property( 'simpleOrCompound' ):
+         self.rdo_compoundIntervals.setChecked( True )
+         self.rdo_simpleIntervals.setChecked( False )
+      else:
+         self.rdo_compoundIntervals.setChecked( False )
+         self.rdo_simpleIntervals.setChecked( True )
+      
+      if self.settings.get_property( 'produceLabeledScore' ):
+         self.rdo_yesScore.setChecked( True )
+         self.rdo_noScore.setChecked( False )
+      else:
+         self.rdo_yesScore.setChecked( False )
+         self.rdo_noScore.setChecked( True )
+   # End settings_load()
+   
+   # When users choose "Save" settings
+   def settings_save( self ):
+      filename = str(QtGui.QFileDialog.getSaveFileName(\
+         None,
+         "Save Settings Where?",
+         "vis_settings.txt",
+         '',
+         None))#,
+         #QtGui.QFileDialog.Options(QtGui.QFileDialog.ConfirmOverwrite)))
+      
+      file_outputter( self.settings.export_settings(), filename )
    
    # "Input" Tab -------------------------------------------
    # When users choose the "Analyze!" button.

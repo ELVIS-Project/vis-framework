@@ -31,7 +31,9 @@
 
 # Import
 import re
-from problems import NonsensicalInputError
+from problems import NonsensicalInputWarning
+import string
+from file_output import file_outputter, file_inputter
 
 
 
@@ -107,20 +109,20 @@ class VIS_Settings:
       if 'set ' == property_str[:4]:
          property_str = property_str[4:]
       
-      # Check to make sure we still have a setting and a value
+      # Check to make sure we have a setting and a value
       setting = property_str[:property_str.find(' ')]
       value = property_str[property_str.find(' ')+1:]
       
       if 0 == len(setting):
-         raise NonsensicalInputError( 'Unable to find setting name in "' + property_str + '"' )
+         raise NonsensicalInputWarning( 'Unable to find setting name in "' + property_str + '"' )
       if 0 == len(value):
-         raise NonsensicalInputError( 'Unable to find value in "' + property_str + '"' )
+         raise NonsensicalInputWarning( 'Unable to find value in "' + property_str + '"' )
       
       # If the property requires a boolean value, make sure we have one
       if 'heedQuality' == setting or 'produceLabeledScore' == setting or \
             'produceLabelledScore' == setting:
          if not VIS_Settings._is_t_or_f( value ):
-            raise NonsensicalInputError( \
+            raise NonsensicalInputWarning( \
                   'Value must be either True or False, but we got "' + \
                   str(value) + '"' )
          else:
@@ -131,6 +133,20 @@ class VIS_Settings:
       if 'lookForTheseNs' == setting:
          value = VIS_Settings._parse_list_of_n( value )
       
+      # If the property is 'offsetBetweenInterval' then make sure we have an
+      # int for this, not a str
+      if 'offsetBetweenInterval' == setting:
+         try:
+            value = float(value)
+         except ValueError as vale:
+            msg = 'Invalid value for offsetBetweenInterval; ignoring'
+            raise NonsensicalInputWarning( msg )
+      
+      # If the property is 'outputResultsToFile' and the value is 'None' then
+      # the value should actually be ''
+      if 'outputResultsToFile' == setting and 'None' == value:
+         value = ''
+      
       # now match the property
       if setting in self._secret_settings_hash:
          self._secret_settings_hash[setting] = value
@@ -138,7 +154,7 @@ class VIS_Settings:
          self._secret_settings_hash['produceLabeledScore'] = value
       # We don't have that setting
       else:
-         raise NonsensicalInputError( "Unrecognized setting name: " + setting)
+         raise NonsensicalInputWarning( "Unrecognized setting name: " + setting )
    # end set_propety() ------------------------------------
    
    def get_property( self, property_str ):
@@ -161,7 +177,82 @@ class VIS_Settings:
          post = self._secret_settings_hash['produceLabeledScore']
       # unrecognized property
       else:
-         raise NonsensicalInputError( "Unrecognized property: " + property_str )
-
+         raise NonsensicalInputWarning( "Unrecognized property: " + property_str )
+      
       return post
-# End Class: VIS_Settings ------------------------------------------
+   
+   def import_settings( self, import_from ):
+      '''
+      Given a str with settings, modifies self to have the same settings.
+      
+      The str should be of the format outputted by export_settings()
+      
+      TODO: deal with test_import_settings_2()
+      '''
+      
+      # Make a list of all the newline-separated fragments.
+      list_of_settings = []
+      while 0 < len(import_from):
+         # Find the newline (nli = new line index)
+         nli = import_from.find( '\n' )
+         # If there isn't one, we're at the end of the file, so everything
+         # goes in as the final setting.
+         if 0 > nli:
+            list_of_settings.append( import_from )
+            import_from = ''
+         # Otherwise, take everything up to the newline and add it as the next
+         # setting, then remove the newline.
+         else:
+            this_setting = import_from[:nli]
+            list_of_settings.append( this_setting )
+            import_from = import_from[nli+1:]
+      
+      # Prepare each setting and send it to set_property()
+      for setting in list_of_settings:
+         # If there is no ':' then there is no setting, so ignore this.
+         if 0 > setting.find( ':' ):
+            continue
+         else:
+            # Otherwise, strip the setting.
+            setting = string.strip( setting, ' \n' )
+            # Remove the ':'
+            setting = string.replace( setting, ':', '' )
+            # If the setting is 'outputResultsToFile' but there is no filename,
+            # add 'None' so set_property() can pick this up.
+            if 'outputResultsToFile' == setting:
+               setting += ' None'
+            # Send it to set_property()
+            self.set_property( setting )
+   # ------------------------------------------------------
+   
+   def export_settings( self ):
+      '''
+      Exports the settings of self to a str. Each setting is written on one
+      line, with a semicolon separating the setting name (on the left) from the
+      setting value (on the right).
+      '''
+      
+      # Hold the str that will have settings in it.
+      post = ''
+      
+      # Go through every setting, and output it.
+      for key in self._secret_settings_hash.iterkeys():
+         post += str(key) + ': ' + str(self._secret_settings_hash[key]) + '\n'
+      
+      return post
+   
+   def save_settings( self, filename ):
+      '''
+      When called with a filename, this method puts the result of
+      self.export_settings() into the specified file.
+      '''
+      file_outputter( self.export_settings(), filename )
+   
+   def load_settings( self, filename ):
+      '''
+      When called with a filename, this method puts the contents of that file
+      through self.import_settings().
+      '''
+      self.import_settings( file_inputter( filename ) )
+   
+# End Class: VIS_Settings -----------------------------------------------------

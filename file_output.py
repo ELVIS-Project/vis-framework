@@ -24,6 +24,9 @@
 # python standard library
 from os.path import exists
 from os import access, W_OK
+import fileinput
+# vis
+from problems import BadFileError
 
 
 
@@ -87,3 +90,27 @@ def file_outputter( contents, filename, extension='' ):
    # Return the filename we actually used.
    return [filename, return_error]
 #-------------------------------------------------------------------------------
+
+
+
+#------------------------------------------------------------------------------
+def file_inputter( filename ):
+   '''
+   Reads the file with the path specified as a str, and returns its contents.
+   '''
+   
+   # Sanity checks
+   # Filename must be a str
+   if not isinstance( filename, str ):
+      filename = str(filename)
+   # File must exist
+   if not exists( filename ):
+      raise BadFileError( 'File does not seem to exist.' )
+   
+   the_file = ''
+   
+   for line in fileinput.input( filename ):
+      the_file += line
+   
+   return the_file
+#------------------------------------------------------------------------------
