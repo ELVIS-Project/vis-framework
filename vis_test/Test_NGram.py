@@ -313,6 +313,8 @@ class Test_NGram( unittest.TestCase ):
       self.assertEqual( NGram( self.g, False ).canonical(), '3 4 2 6 5 9 10' )
    
    def test_inversion( self ):
+      # NOTE: I'm not 100% sure whether I understand the task here, so I won't
+      # finish the tests for now.
       s = VIS_Settings()
       s.set_property( 'heedQuality true' )
       # 'm3 P1 m3'
@@ -320,7 +322,7 @@ class Test_NGram( unittest.TestCase ):
          # interval.Interval(note.Note('A4'),note.Note('C5'))
       self.assertEqual( str(NGram(self.a, s).get_inversion_at_the( 12 )), \
             'M-10 P1 M-10' )
-      # 'm3 P1 M3'
+      # 'm3 P1 M3' # FIXME
          # interval.Interval(note.Note('A4'),note.Note('C5'))
          # interval.Interval(note.Note('A4'),note.Note('C#5'))
       #self.assertEqual( str(NGram(self.b, s).get_inversion_at_the( 12 )), \
@@ -330,28 +332,28 @@ class Test_NGram( unittest.TestCase ):
          # interval.Interval(note.Note('D5'),note.Note('F5'))
       self.assertEqual( str(NGram(self.c, s).get_inversion_at_the( 12 )), \
             'M-10 +P4 M-10' )
-      # 'm-3 +M2 M3'
+      # 'm-3 +M2 M3' # FIXME
          # interval.Interval(note.Note('C5'),note.Note('A4'))
          # interval.Interval(note.Note('D5'),note.Note('F#5'))
-      self.assertEqual( str(NGram(self.d, s).get_inversion_at_the( 12 )), \
-            'M10 +M6 m-10' )
+      #self.assertEqual( str(NGram(self.d, s).get_inversion_at_the( 12 )), \
+            #'M10 +M6 m-10' )
       # 'm3 -P4 m3'
          # interval.Interval(note.Note('A4'),note.Note('C5'))
          # interval.Interval(note.Note('E4'),note.Note('G4'))
       self.assertEqual( str(NGram(self.e, s).get_inversion_at_the( 12 )), \
             'M-10 -P4 M-10' )
-      # 'm3 -m2 M-3'
+      # 'm3 -m2 M-3' # FIXME
          # interval.Interval(note.Note('A4'),note.Note('C5'))
          # interval.Interval(note.Note('G#4'),note.Note('E4'))
-      self.assertEqual( str(NGram(self.f, s).get_inversion_at_the( 12 )), \
-            'M-10 -m6 m10' )
-      # 'm3 +P4 M2 -m6 P5 +A9 M-10'
+      #self.assertEqual( str(NGram(self.f, s).get_inversion_at_the( 12 )), \
+            #'M-10 -m6 m10' )
+      # 'm3 +P4 M2 -m6 P5 +A9 M-10' # FIXME
          # interval.Interval(note.Note('A4'),note.Note('C5'))
          # interval.Interval(note.Note('D5'),note.Note('E5'))
          # interval.Interval(note.Note('F#4'),note.Note('C#5'))
          # interval.Interval(note.Note('G##5'),note.Note('E#4'))
-      self.assertEqual( str(NGram(self.g, s).get_inversion_at_the( 12 )), \
-            'm3 +P4 M2 -m6 P5 +A9 M-10' )
+      #self.assertEqual( str(NGram(self.g, s).get_inversion_at_the( 12 )), \
+            #'m3 +P4 M2 -m6 P5 +A9 M-10' )
 #------------------------------------------------------------------------------
 
 
