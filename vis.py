@@ -536,6 +536,36 @@ set orderPizza true
                   print( val )
                except NonsensicalInputError as e:
                   print( "Unable to get property: " + str(e) )
+         # Compare two pieces ------------------------------
+         elif 'compare' == user_says[:user_says.find(' ')]:
+            if len(user_says.split()) != 3:
+               print "Error: "+str(NonsensicalInputError("Must compare two pieces at a time!"))
+            else:
+               fn1 = user_says.split()[1]
+               stats1 = Vertical_Interval_Statistics()
+               fn2 = user_says.split()[2]
+               stats2 = Vertical_Interval_Statistics()
+               try:
+                  analyze_this(fn1,my_settings,stats1)
+                  analyze_this(fn2,my_settings,stats2)
+               except BadFileError as bfe:
+                  print( 'Encountered a BadFileError while processing ' + user_says + '...' )
+                  print( str(bfe) )
+                  continue
+               # Get the user's formatting options.
+               format = 'help'
+               while 'help' == format: 
+                  format = raw_input( "Please input formatting options, if any (or 'help'): " )
+                  if 'help' == format:
+                     print( '''For ngram comparisons, you can use the following options:
+                              - 'by frequency' or 'by ngram' to decide by what to sort
+                              - 'ascending'/'low to high' or 'descending'/'high to low' to decide the order
+                              - 'n=3,4,5' for example, preceded and separated by a space or the start/end of the options,
+                              to control which 'n' values to show.
+                              - 'graph' to see a bar graph of the results
+                              ''' )
+               formatted_output = stats1.compare( my_settings, stats2, fn1, fn2, format )
+               print formatted_output
          # Help -------------------------------------------
          elif 'help' == user_says[:user_says.find(' ')]:
             if 'help settings' == user_says:

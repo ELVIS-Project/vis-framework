@@ -341,7 +341,8 @@ class Vertical_Interval_Statistics( object ):
       if 'graph' in specs:
          grapharr = []
          for n in list_of_n:
-            keys = sorted(ngram_pairs[n].keys(), key = lambda ng: float(ngram_pairs[n][ng][1])/float(ngram_pairs[n][ng][0]), reverse=True)
+            keys = sorted(ngram_pairs[n].keys(), key = lambda ng: \
+                          float(ngram_pairs[n][ng][1])/float(ngram_pairs[n][ng][0]), reverse=True)
             g = graph.GraphGroupedVerticalBar(doneAction=None)
             data = []
             for k in range(len(keys)):
@@ -354,7 +355,8 @@ class Vertical_Interval_Statistics( object ):
                data.append(entry) 
             g.setData(data)
             g.setTitle(str(n)+'-Grams')
-            #this is a very slight edit of the music21.graph.GraphGroupedVerticalBar.process() and labelBars() methods
+            # this is a very slight edit of the music21.graph.GraphGroupedVerticalBar.process()
+            # and labelBars() methods
             fig = plt.figure()
             setattr(g,'fig', fig)
             fig.subplots_adjust(bottom=.3)
@@ -394,8 +396,9 @@ class Vertical_Interval_Statistics( object ):
             for k in range(len(rects)):
                for j in range(len(rects[k])):
                   height = rects[k][j].get_height()
-                  ax.text(rects[k][j].get_x()+rects[k][j].get_width()/2., height+.05, '%s'%(str(keys[j][k])), rotation='vertical', ha='center', va='bottom', 
-                  fontsize=getattr(g,'tickFontSize'), family=getattr(g,'fontFamily'))
+                  ax.text(rects[k][j].get_x()+rects[k][j].get_width()/2., height+.05, \
+                          '%s'%(str(keys[j][k])), rotation='vertical', ha='center', va='bottom', 
+                          fontsize=getattr(g,'tickFontSize'), family=getattr(g,'fontFamily'))
                colors.append(rects[k][0])
 
             font = matplotlib.font_manager.FontProperties(size=getattr(g,'tickFontSize'),
@@ -412,7 +415,8 @@ class Vertical_Interval_Statistics( object ):
          for n in list_of_n:
             post += 'All the ' + str(n) + '-grams with retrogrades:\n-----------------------------\n'
             for ng in ngram_pairs[n].keys():
-               post += str(ng[0]) + ': ' + str(ngram_pairs[n][ng][0]) +'; '+str(ng[1])+': '+str(ngram_pairs[n][ng][1]) + '\n'
+               post += str(ng[0]) + ': ' + str(ngram_pairs[n][ng][0]) +'; ' \
+                       +str(ng[1])+': '+str(ngram_pairs[n][ng][1]) + '\n'
       return post
       
    #end retrogrades()
@@ -459,7 +463,8 @@ class Vertical_Interval_Statistics( object ):
          y = [log(output_dict[n][ng]) for ng in sorted_ngrams[n]]
          w = linalg.lstsq(A.T,y)[0] #least-squares regression on the data
          #w[0] contains the slope of the line, and we'll just display positive numbers because that's nice.
-         post += '\nthe power law exponent for the '+str(n)+'-grams is '+str(-w[0])+'; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
+         post += '\nthe power law exponent for the '+str(n)+'-grams is '+str(-w[0])+ \
+                 '; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
       return post
    #end power_law_analysis()
 
@@ -566,6 +571,39 @@ class Vertical_Interval_Statistics( object ):
       # Done!
       return post
    # end get_formatted_intervals()
+
+   def compare( self, the_settings, other_stats, file1, file2, specs='' ):
+      '''
+      Compares the relative frequencies of n-grams in two different files,
+      displaying a text chart or graph, as well as computing the "total metric"
+      difference between the two.
+      '''
+      post = ''
+      list_of_n = the_settings.get_property( 'lookForTheseNs')
+      for n in list_of_n:
+         table = {}
+         self_dict = self.get_formatted_ngram_dict()[n]
+         other_dict = other_stats.get_formatted_ngram_dict()[n]
+         for ng in self_dict.iterkeys():
+            table[ng] = [self_dict[ng],0]
+         for ng in other_dict.iterkeys():
+            if ng in self_dict:
+               table[ng][1] = other_dict[ng]
+            else:
+               table[ng] = [0,other_dict[ng]]
+         width1 = max([len(str(ng)) for ng in table.keys()])
+         total1 = sum([t[0] for t in table.values()])
+         width2 = max([len(str(t[0])) for t in table.values()]+[len(file1)+2])
+         total2 = sum([t[1] for t in table.values()])
+         post += "{0:{1:n}}{2:{3:n}}{4}".format(str(n)+"-Gram",width1+2,"# "+file1,width2+2,"# "+file2)
+         post += "\n"+("-"*(width1+width2+len(file2)+6))
+         for ng in table.iterkeys():
+            post += "\n{0:{1:n}}{2:{3:n}}{4}".format(str(ng),width1+2,\
+                        str(table[ng][0]),width2+2,str(table[ng][1]))
+         post += '\n'
+         totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()]) 
+         post += "\nTotal difference between "+str(n)+"-grams: "+str(totaldiff)+"\n"
+      return post
    
    def get_formatted_ngrams( self, the_settings, specs='' ):
       '''
