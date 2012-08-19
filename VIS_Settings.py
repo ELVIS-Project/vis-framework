@@ -55,6 +55,7 @@ class VIS_Settings:
       self._secret_settings_hash = {}
       self._secret_settings_hash['produceLabeledScore'] = False
       self._secret_settings_hash['heedQuality'] = False
+      self._secret_settings_hash['recurse'] = False
       self._secret_settings_hash['lookForTheseNs'] = [2]
       self._secret_settings_hash['offsetBetweenInterval'] = 0.5
       self._secret_settings_hash['outputResultsToFile'] = ''
@@ -121,7 +122,7 @@ class VIS_Settings:
       
       # If the property requires a boolean value, make sure we have one
       if 'heedQuality' == setting or 'produceLabeledScore' == setting or \
-            'produceLabelledScore' == setting:
+            'produceLabelledScore' == setting or 'recurse' == setting:
          if not VIS_Settings._is_t_or_f( value ):
             raise NonsensicalInputWarning( \
                   'Value must be either True or False, but we got "' + \
