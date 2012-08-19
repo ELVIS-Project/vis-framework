@@ -36,6 +36,8 @@ class Test_Settings( unittest.TestCase ):
       self.assertEqual( self.s._secret_settings_hash['lookForTheseNs'], [2] )
       self.assertEqual( self.s._secret_settings_hash['offsetBetweenInterval'], 0.5 )
       self.assertEqual( self.s._secret_settings_hash['outputResultsToFile'], '' )
+      self.assertEqual( self.s._secret_settings_hash['simpleOrCompound'], 'compound' )
+      self.assertEqual( self.s._secret_settings_hash['howToChooseVoices'],'independently' )
    
    def test_set_property_1( self ):
       # Setting something to a new, valid value is done properly.
@@ -115,11 +117,12 @@ class Test_Settings( unittest.TestCase ):
       self.assertTrue( 'lookForTheseNs: [2]' in actual )
       self.assertTrue( 'offsetBetweenInterval: 0.5' in actual )
       self.assertTrue( 'outputResultsToFile: ' in actual )
+      self.assertTrue( 'howToChooseVoices: independently' in actual )
    
    def test_import_settings_1( self ):
       # For the first one, just set most things to their default values,
       # nothing difficult.
-      set_str = 'produceLabeledScore: True\nheedQuality: True\nlookForTheseNs: [3]\noffsetBetweenInterval: 0.6\noutputResultsToFile: '
+      set_str = 'produceLabeledScore: True\nheedQuality: True\nlookForTheseNs: [3]\noffsetBetweenInterval: 0.6\noutputResultsToFile: \nhowToChooseVoices: once'
       self.s.import_settings( set_str )
       # Ensure all the settings are initialized to the proper default value.
       self.assertEqual( self.s._secret_settings_hash['produceLabeledScore'], True )
@@ -127,6 +130,7 @@ class Test_Settings( unittest.TestCase ):
       self.assertEqual( self.s._secret_settings_hash['lookForTheseNs'], [3] )
       self.assertEqual( self.s._secret_settings_hash['offsetBetweenInterval'], 0.6 )
       self.assertEqual( self.s._secret_settings_hash['outputResultsToFile'], '' )
+      self.assertEqual( self.s._secret_settings_hash['howToChooseVoices'], 'once' )
    
    #def test_import_settings_2( self ):
       ## More complicated stuff
@@ -138,6 +142,7 @@ class Test_Settings( unittest.TestCase ):
       #self.assertEqual( self.s._secret_settings_hash['lookForTheseNs'], [2,4] )
       #self.assertEqual( self.s._secret_settings_hash['offsetBetweenInterval'], 0.125 )
       #self.assertEqual( self.s._secret_settings_hash['outputResultsToFile'], '/home/christo/output.txt' )
+      # howToChooseVoices
    
 #-------------------------------------------------------------------------------
 

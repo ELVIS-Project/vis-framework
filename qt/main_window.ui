@@ -143,6 +143,35 @@
              </widget>
             </item>
             <item>
+             <widget class="QGroupBox" name="groupBox_9">
+              <property name="title">
+               <string>How to Choose Voices to Analyze</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_16">
+               <item>
+                <widget class="QRadioButton" name="rdo_choose_every_file">
+                 <property name="text">
+                  <string>Choose once for all files</string>
+                 </property>
+                 <property name="checked">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="rdo_choose_just_once">
+                 <property name="text">
+                  <string>Choose for every file</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
              <widget class="QGroupBox" name="groupBoxwhichNs">
               <property name="minimumSize">
                <size>
@@ -302,25 +331,23 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Filenames to Analyze.
-Please include one file name or directory per line.</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_chooseFiles">
-          <property name="text">
-           <string>Choose Files</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btn_chooseDirectories">
-          <property name="text">
-           <string>Choose Directory</string>
-          </property>
+         <widget class="QWidget" name="widget_4" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_5">
+           <item>
+            <widget class="QPushButton" name="btn_chooseFiles">
+             <property name="text">
+              <string>Choose Files</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_chooseDirectories">
+             <property name="text">
+              <string>Choose Directory</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
         <item>

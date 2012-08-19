@@ -32,6 +32,7 @@ import sys
 from os import path
 from os import walk as os_walk
 from string import replace as str_replace
+import re
 # PyQt4
 from PyQt4 import QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
@@ -41,6 +42,7 @@ from music21.converter import ConverterException # for analyze_this()
 from music21.converter import ConverterFileException # for analyze_this()
 # vis
 from qt.Ui_main_window import Ui_MainWindow
+from qt.Ui_select_voices import Ui_select_voices
 from vis import VIS_Settings
 from vis import Vertical_Interval_Statistics
 from analytic_engine import vis_these_parts
@@ -73,6 +75,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_setOffset.clicked.connect( self.settings_offset_interval )
       self.btn_save_settings.clicked.connect( self.settings_save )
       self.btn_load_settings.clicked.connect( self.settings_load )
+      self.rdo_choose_every_file.toggled.connect( self.settings_file_choose )
       
       # "Input" Tab
       self.btn_analyze.clicked.connect( self.analyze_button )
@@ -90,6 +93,13 @@ class Vis_MainWindow( Ui_MainWindow ):
    
    
    # "Settings" Tab ----------------------------------------
+   # When users change "How to Choose Voices to Analyze"
+   def settings_file_choose( self, choose_once ):
+      if choose_once:
+         self.settings.set_property( 'howToChooseVoices once' )
+      else:
+         self.settings.set_property( 'howToChooseVoices independently' )
+   
    # When users change "Interval Quality"
    def settings_interval_quality( self ):
       if True == self.rdo_heedQuality.isChecked():
@@ -123,8 +133,16 @@ class Vis_MainWindow( Ui_MainWindow ):
       # TODO: see if there are input-checking things to do
       self.settings.set_property( 'offsetBetweenInterval ' + set_offset_interval )
    
+   # When users change "How to Choose Voices to Analyze"
+   def settings_choose_voices( self ):
+      if True == self.rdo_choose_every_file.isChecked():
+         self.settings.set_property( 'howToChooseVoices independently' )
+      else: # Must be True == self.rdo_choose_just_once.isChecked()
+         self.settings.set_property( 'howToChooseVoices once' )
+   
    # When users choose "Load" settings
    def settings_load( self ):
+      
       filename = str(QtGui.QFileDialog.getOpenFileName(\
          None,
          "Load Which Settings File?",
@@ -145,6 +163,19 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.rdo_ignoreQuality.setChecked( True )
          self.rdo_heedQuality.setChecked( False )
       
+      if 'once' == self.settings.get_property( 'howToChooseVoices' ):
+         self.rdo_choose_every_file.setChecked( False )
+         self.rdo_choose_just_once.setChecked( True )
+         # DEBUG
+         self.txt_filenames.setPlainText( 'choose once' )
+         # END DEBUG
+      else:
+         self.rdo_choose_every_file.setChecked( True )
+         self.rdo_choose_just_once.setChecked( False )
+         # DEBUG
+         self.txt_filenames.setPlainText( 'choose each' )
+         # END DEBUG
+      
       if 'compound' == self.settings.get_property( 'simpleOrCompound' ):
          self.rdo_compoundIntervals.setChecked( True )
          self.rdo_simpleIntervals.setChecked( False )
@@ -158,6 +189,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       else:
          self.rdo_yesScore.setChecked( False )
          self.rdo_noScore.setChecked( True )
+      
+      
    # End settings_load()
    
    # When users choose "Save" settings
@@ -170,7 +203,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          None))#,
          #QtGui.QFileDialog.Options(QtGui.QFileDialog.ConfirmOverwrite)))
       
-      file_outputter( self.settings.export_settings(), filename )
+      file_outputter( self.settings.export_settings(), filename, 'OVERWRITE' )
    
    # "Input" Tab -------------------------------------------
    # When users choose the "Analyze!" button.
@@ -182,7 +215,7 @@ class Vis_MainWindow( Ui_MainWindow ):
    
    # When users choose the "Choose Files" button.
    def choose_files( self, sig ):
-	  # this should refer to some global constants involving which filenames we can use
+     # this should refer to some global constants involving which filenames we can use
       list_of_files = QtGui.QFileDialog.getOpenFileNames( None, 'Choose Files to Analyze', '~', '*.pdf *.mxl *.krn *.abc *.mei' )
       processed_str = ''
       self.analysis_files = []
@@ -378,6 +411,17 @@ class Vis_MainWindow( Ui_MainWindow ):
          return post
       #-------------------------------------------------------
       
+      # How do we choose voices?
+      how_to_choose = self.settings.get_property( 'howToChooseVoices' )
+      
+      # Hold the list of parts to examine
+      parts_to_examine = None
+      
+      # If we only choose once, let's do it now.
+      if 'once' == how_to_choose:
+         part_finder = Vis_Select_Voices()
+         parts_to_examine = part_finder.trigger()
+      
       # Prepare the list of files. Go through every element and see if it's a
       # directory. If so, bring out all the filenames to the top-level list.
       corrected_file_list = []
@@ -402,11 +446,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       
       # Go through all the files/directories.
       for piece_name in self.analysis_files:
-         # Figure out which parts to analyze.
-         # TODO: figure this out
-         #parts_to_examine = list(set([int(n) for n in re.findall('(-?\d+)', parts_to_examine)]))
-         parts_to_examine = 'all'
-         
          # Hold this score
          the_score = None
          
@@ -431,6 +470,22 @@ class Vis_MainWindow( Ui_MainWindow ):
             continue
          else:
             self.txt_filenames.appendPlainText( '   successfully imported' )
+         
+         # If necessary, figure out which parts to analyze.
+         if 'independently' == how_to_choose:
+            # Find out the available part names
+            available_parts = []
+            i = 0
+            for part in the_score.parts:
+               instr = part.getInstrument()
+               if instr is None:
+                  available_parts.append( str(i) )
+               else:
+                  available_parts.append( instr.bestName() )
+               i += 1
+            # Display the QDialog
+            part_finder = Vis_Select_Voices()
+            parts_to_examine = part_finder.trigger( available_parts )
          
          # Try to analyze this file
          try:
@@ -492,10 +547,129 @@ class Vis_MainWindow( Ui_MainWindow ):
             self.txt_filenames.appendPlainText( filename )
       
    # End function analyze_this() ---------------------------------------------------
+#-------------------------------------------------------------------------------
 
 
 
-
+class Vis_Select_Voices( Ui_select_voices ):
+   
+   # self._chk_voice : a list of the "part" selection checkboxes
+   
+   def trigger( self, list_of_parts = [] ):
+      '''
+      Causes the "Select Voices to Analyze" window to be shown. The argument
+      should be a list. If the list is empty, we'll hide the portion of the
+      window that lists specific parts. Otherwise the list should contain many
+      str objects that specify the name of the part in the score associated with
+      that index value.
+      
+      For example, for a SATB piece, the list will be:
+      ['Soprano', 'Alto', 'Tenor', 'Bass']
+      The 'Soprano' part should be found in score.parts[0], the 'Alto' part in
+      score.parts[1], and so on.
+      
+      The return value is either a two-element list of int, the str 'all', or
+      a two-element list of int and the str 'bs' (for "basso seguente"). This
+      is the user's choice of parts.
+      
+      For example:
+      >>> which_parts = Vis_Select_Voices()
+      >>> result = which_parts.trigger( ['oboe', 'cello', 'tuba'] )
+      >>> # The user chooses which parts
+      >>> print( str(result) )
+      [0, 2]
+      '''
+      
+      # UI setup stuff
+      self.select_voices = QtGui.QDialog()
+      self.v_s_v = Vis_Select_Voices()
+      self.v_s_v.setupUi( self.select_voices )
+      
+      # Is there no list of parts?
+      if 0 == len(list_of_parts):
+         # Hide the specific-part-choosing stuff
+         self.v_s_v.rdo_choose_these.hide()
+         self.v_s_v.chk_voice_0.hide()
+      else:
+         # Display the names of the parts in the checkboxes, creating new
+         # checkboxes as required. The first part/checkbox is already there.
+         self.v_s_v.chk_voice_0.setText( list_of_parts[0] )
+         self.v_s_v.chk_voice_0.setEnabled( False )
+         self.chk_voice = [self.v_s_v.chk_voice_0]
+         i = 1
+         for part_name in list_of_parts[1:]:
+            # Make a new checkbox
+            self.chk_voice.append( QtGui.QCheckBox(self.v_s_v.widget_8) )
+            self.chk_voice[i].setObjectName("chk_voice_" + str(i))
+            self.v_s_v.verticalLayout_3.addWidget(self.chk_voice[i])
+            self.chk_voice[i].setText( list_of_parts[i] )
+            self.chk_voice[i].setEnabled( False )
+            i += 1
+      
+      # Final UI setup
+      self.setup_signals()
+      self.select_voices.exec_()
+      
+      # ... and our user chooses...
+      
+      # Now we have to find out what they did and return it.
+      if self.v_s_v.rdo_all.isChecked():
+         # "Compare all part combinations"
+         return 'all'
+      elif self.v_s_v.rdo_these_parts.isChecked():
+         # "Compare these parts"
+         parts_to_examine = self.v_s_v.line_these_parts.text()
+         parts_to_examine = list(set([int(n) for n in re.findall('(-?\d+)', parts_to_examine)]))
+         return parts_to_examine[:2]
+      elif self.v_s_v.rdo_part_and_bs.isChecked():
+         # "Compare this part with basso seguente"
+         part_to_examine = self.v_s_v.line_part_and_bs.text()
+         part_to_examine = list(set([int(n) for n in re.findall('(-?\d+)', part_to_examine)]))
+         part_to_examine = part_to_examine[:1]
+         part_to_examine.append( 'bs' )
+         return part_to_examine
+      else:
+         # "Choose two specific voices"
+         # TODO: yell if there are fewer or greater than 2 voices selected
+         post = []
+         for i in xrange(len(self.chk_voice)):
+            if self.chk_voice[i].isChecked():
+               post.append( i )
+         return post
+   
+   # Link all the signals with their methods.
+   def setup_signals( self ):
+      # "Settings" Tab
+      self.v_s_v.rdo_choose_these.toggled.connect( self.able_checks )
+      self.v_s_v.rdo_these_parts.toggled.connect( self.compare_radio )
+      self.v_s_v.rdo_part_and_bs.toggled.connect( self.bs_radio )
+      self.v_s_v.btn_continue.clicked.connect( self.continue_button )
+   
+   # When users enable or disable "Choose two specific voices"
+   def able_checks( self, state ):
+      # If the radio button is enabled, we're going to enable the checkboxes;
+      # if the   '    '     is disabled, we're going to disable the checkboxes.
+      
+      # Go through each checkbox and apply the correct state to it.
+      for box in self.chk_voice:
+         box.setEnabled( state )
+   
+   # When users enable or disable "Compare these parts"
+   def compare_radio( self, state ):
+      # If the radio button is enabled, we're going to enable the QLineEdit;
+      # if the   '    '     is disabled, we're going to disable the QLineEdit.
+      self.v_s_v.line_these_parts.setEnabled( state )
+   
+   # When users enable or disable "Compare this part with basso seguente"
+   def bs_radio( self, state ):
+      # If the radio button is enabled, we're going to enable the QLineEdit;
+      # if the   '    '     is disabled, we're going to disable the QLineEdit.
+      self.v_s_v.line_part_and_bs.setEnabled( state )
+   
+   # When users choose "Continue"
+   def continue_button( self ):
+      self.select_voices.accept()
+#-------------------------------------------------------------------------------
 
 
 
