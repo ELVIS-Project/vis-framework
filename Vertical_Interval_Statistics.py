@@ -617,8 +617,8 @@ class Vertical_Interval_Statistics( object ):
       tables = {}
       for n in list_of_n:
          table = {}
-         self_dict = self.get_formatted_ngram_dict()[n]
-         other_dict = other_stats.get_formatted_ngram_dict()[n]
+         self_dict = self._ngrams_dict[n]
+         other_dict = other_stats._ngrams_dict[n]
          for ng in self_dict.iterkeys():
             table[ng] = [self_dict[ng],0]
          for ng in other_dict.iterkeys():
@@ -653,23 +653,26 @@ class Vertical_Interval_Statistics( object ):
             grapharr.append(g)
          post = grapharr
 
-      #(3.2) Otherwise make a nicely formatted list of the results
+      # (3.2) Otherwise make a nicely formatted list of the results
       else:
+         s_or_c = the_settings.get_property( 'simpleOrCompound' )
+         heed_quality = the_settings.get_property( 'heedQuality' )
          for n in list_of_n:
             table = tables[n]
-            width1 = max([len(str(ng)) for ng in table.keys()])
+            width1 = max([len(ng.get_string_version(heed_quality,s_or_c)) for ng in table.keys()])
             total1 = sum([t[0] for t in table.values()])
             width2 = max([len(str(t[0])) for t in table.values()]+[len(file1)+2])
             total2 = sum([t[1] for t in table.values()])
             post += "{0:{1:n}}{2:{3:n}}{4}".format(str(n)+"-Gram",width1+2,"# "+file1,width2+2,"# "+file2)
             post += "\n"+("-"*(width1+width2+len(file2)+6))
             for ng in table.iterkeys():
-               post += "\n{0:{1:n}}{2:{3:n}}{4}".format(str(ng),width1+2,\
+               post += "\n{0:{1:n}}{2:{3:n}}{4}".format(ng.get_string_version(heed_quality,s_or_c),width1+2,\
                         str(table[ng][0]),width2+2,str(table[ng][1]))
             post += '\n'
             totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()]) 
             post += "\nTotal difference between "+str(n)+"-grams: "+str(totaldiff)+"\n"
       return post
+   # end compare()
    
    def get_formatted_ngrams( self, the_settings, specs='' ):
       '''

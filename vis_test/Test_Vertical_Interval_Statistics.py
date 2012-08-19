@@ -382,6 +382,48 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       i_d['P1'] = 4
       self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
                         {'1':5, '3':45} )
+
+   def test_compare_noHeedQuality( self ):
+      other_stats = Vertical_Interval_Statistics()
+      settings = VIS_Settings()
+      output = '''2-Gram  # settings1  # settings2
+--------------------------------
+3 +4 3  3            1
+3 1 3   2            4
+
+Total difference between 2-grams: 0.8
+'''
+      settings.set_property( 'heedQuality false')
+      other_stats.add_ngram( self.ngc )
+      for i in range(2):
+         self.vis.add_ngram( self.nga )
+      for i in range(3):
+         self.vis.add_ngram( self.ngc )
+      for i in range(4):
+         other_stats.add_ngram( self.nga )
+      self.assertEqual( self.vis.compare( settings, other_stats, "settings1", "settings2", ""), output )
+
+   def test_compare_heedQuality( self ):
+      other_stats = Vertical_Interval_Statistics()
+      settings = VIS_Settings()
+      output = '''2-Gram     # settings1  # settings2
+-----------------------------------
+m3 +P4 m3  3            1
+m3 P1 m3   2            4
+
+Total difference between 2-grams: 0.8
+'''
+      settings.set_property( 'heedQuality true')
+      other_stats.add_ngram( self.ngc )
+      for i in range(2):
+         self.vis.add_ngram( self.nga )
+      for i in range(3):
+         self.vis.add_ngram( self.ngc )
+      for i in range(4):
+         other_stats.add_ngram( self.nga )
+      self.assertEqual( self.vis.compare( settings, other_stats, "settings1", "settings2", ""), output )
+
+
 # End TestVertical_Interval_Statistics ----------------------------------------
 
 
