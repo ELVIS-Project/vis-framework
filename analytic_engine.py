@@ -104,7 +104,7 @@ def fill_space_between_offsets( start_o, end_o ):
 
 
 #------------------------------------------------------------------------------
-def make_lily_triangle( ngram ):
+def make_lily_triangle( ngram, which_colour = None ):
    '''
    Given the str for an n-gram with arbitrary 'n', writes the LilyPond "markup"
    block required to make a well-formed triangle around the well-formatted
@@ -125,7 +125,15 @@ def make_lily_triangle( ngram ):
    char_len = len(ngram) - 2 # 2 spaces!
    
    # Start the markup
-   post = '\\markup{ \combine \concat{ \\teeny{ "'
+   post = '\\markup{ '
+   
+   # Append the colour
+   if which_colour is not None:
+      print( 'using this colour: ' + which_colour )
+      post += '\\with-color ' + which_colour + ' '
+   
+   # Continue the beginning
+   post += '\combine \concat{ \\teeny{ "'
    
    # Add the first interval
    post += ngram[:first_space]
@@ -166,7 +174,8 @@ def make_lily_triangle( ngram ):
 
 
 #------------------------------------------------------------------------------
-def vis_these_parts( these_parts, the_settings, the_statistics ):
+def vis_these_parts( these_parts, the_settings, the_statistics, \
+                     targeted_output = None ):
    '''
    Given a list of two :class:`music21.stream.Part` objects, an visSettings
    object, and a VerticalIntervalStatistics object, calculate the n-grams
@@ -186,6 +195,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    # these_parts : a two-element list of the parts to analyze, with the "upper part" first
    # the_settings : a VIS_Settings instance
    # the_statistics : a Vertical_Interval_Statistics instance
+   # targeted_output : the instructions given to (the GUI version of) analyze_this()
    
    ## Helper Methods ---------------------------------------
    # TODO: see whether we need these or not
@@ -206,6 +216,28 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
    # Initialize -------------------------------------------
    # Note the starting time of the analysis
    analysis_start_time = datetime.now()
+   
+   # Parse targeted_output ------------------------------
+   # Hold instructions from 'only annotate'
+   list_to_annotate = []
+   
+   # Hold instructions from 'only colour'
+   list_to_colour = []
+   
+   # Hold the colour instruction
+   annotation_colour = None
+   
+   # Go through all the instructions
+   if targeted_output is not None:
+      # Do we have instructions on which voices to analyze?
+      for instruction in targeted_output:
+         if 'only annotate' == instruction[0]:
+            list_to_annotate.append( instruction[1] )
+         elif 'only colour' == instruction[0]:
+            list_to_colour.append( instruction[1] )
+         elif 'annotate colour' == instruction[0]:
+            annotation_colour = instruction[1]
+   # End parsing of targeted_output ---------------------
    
    # The parts we're analyzing
    lower_part = these_parts[1].flat.notesAndRests
@@ -558,6 +590,19 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
          # Get the str representation of this n-gram.
          str_this_ngram = str(this_ngram)
          
+         # If we're only looking for certain ngrams...
+         if 0 < len(list_to_annotate) or 0 < len(list_to_colour):
+            # ... if this ngram is in the colour list, we're good
+            if str_this_ngram in list_to_colour:
+               pass
+            # ... if this ngram isn't in the colour list, but the other list is
+            # empty, we're still good (but we just won't colour this)
+            elif 0 == len(list_to_annotate):
+               pass
+            # ... otherwise, we won't annotate this ngram.
+            else:
+               continue
+         
          # If this is the first annotation going into the score.
          if 0 == len(list_of_lilypond_parts):
             # Maybe the annotations don't start at the beginning of the Part, so
@@ -571,10 +616,22 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                   z = note.Rest( quarterLength = needed_qL )
                   list_of_lilypond_parts.append( z )
             
+            # Figure out which colour we need
+            this_colour = None
+            if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
+               # We must colour this ngram
+               this_colour = annotation_colour
+            elif 0 == len(list_to_colour):
+               # We must colour all ngrams
+               this_colour = annotation_colour
+            # else:
+            #     this_colour = None, because there are ngrams to colour, but
+            #     this ngram isn't one of them.
+            
             # Make a new Note in the lily_for_this_n stream, with the same offset as
             # the start of this n-gram.
             this_n_lily = note.Note( 'C4' ) # could be any pitch
-            this_n_lily.lily_markup = '^' + make_lily_triangle( str_this_ngram )
+            this_n_lily.lily_markup = '^' + make_lily_triangle( str_this_ngram, this_colour )
             #lily_for_this_n[-1].lily_markup = '^' + make_lily_triangle( str_this_ngram )
             
             # Trouble is, I also have to fit in the right number of
@@ -595,8 +652,20 @@ def vis_these_parts( these_parts, the_settings, the_statistics ):
                z = note.Rest( quarterLength = needed_qL )
                list_of_lilypond_parts.append( z )
             
+            # Figure out which colour we need
+            this_colour = None
+            if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
+               # We must colour this ngram
+               this_colour = annotation_colour
+            elif 0 == len(list_to_colour):
+               # We must colour all ngrams
+               this_colour = annotation_colour
+            # else:
+            #     this_colour = None, because there are ngrams to colour, but
+            #     this ngram isn't one of them.
+            
             # Put in the correct label.
-            list_of_lilypond_parts[-1].lily_markup = '^' + make_lily_triangle( str_this_ngram )
+            list_of_lilypond_parts[-1].lily_markup = '^' + make_lily_triangle( str_this_ngram, this_colour )
             
             # Make a new Note in the lily_for_this_n stream.
             this_n_lily = note.Note( 'C4' ) # could be any pitch

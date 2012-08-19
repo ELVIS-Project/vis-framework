@@ -48,6 +48,7 @@ from vis import Vertical_Interval_Statistics
 from analytic_engine import vis_these_parts
 from problems import MissingInformationError
 from file_output import file_outputter, file_inputter
+from output_LilyPond import process_score as lily_process_score
 
 
 
@@ -212,6 +213,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.txt_filenames.setPlainText( 'Will analyze these files:\n' + str(self.analysis_files) + '\n\nProgress:\n' )
       # Call analyze_this()
       self.analyze_this()
+      #self.analyze_this( [['these parts', [0, 3]], \
+                         #['only annotate', '10 -2 10'], \
+                         #['only colour', '12 +4 8'], \
+                         #['annotate colour', '#red']] )
    
    # When users choose the "Choose Files" button.
    def choose_files( self, sig ):
@@ -391,13 +396,36 @@ class Vis_MainWindow( Ui_MainWindow ):
    
    
    #----------------------------------------------------------------------------
-   def analyze_this( self ):
+   def analyze_this( self, targeted_output = None ):
       '''
       Analyze a list of files and directories. Statistics will be added to, and
       settings will be used from, the "self" object. The list of files should
       also be specified in "self" as self.analysis_files as a list of str
       pathnames. This method analyzes all single files in that list, or all
-      files in directories (and their subdirectories) in that list. 
+      files in directories (and their subdirectories) in that list.
+      
+      The argument, targeted_output, is a list of instructions for creating a
+      purpose-built LilyPond score. Each instruction is a list with a str and
+      the value, if any. You could have:
+      ['these parts', [int, int]]
+      ['only annotate', '3 1 3'] (the second element is a str == str(NGram) that you want to annotate; you can include many)
+      ['only colour', '3 1 3'] (the second element is a str == str(NGram) that you want to colour; you can include many; others remain #black)
+      ['annotate colour', '#blue'] (the second element is a str that is the name of the colour you want)
+         - #blue for "Normal colors"
+         - #(x11-color 'DarkRed) for "X color names"
+         - for a list of colours: http://lilypond.org/doc/v2.14/Documentation/notation/list-of-colors
+      
+      NB: If you do not specify only_annotate or only_colour, all annotations appear.
+      NB: If you specify annotate_colour without only_colour, all annotations appear, but only the only_colour ones receive that colour.
+      NB: If you specify annotate_colour and only_colour, only the only_colour annotations receive that colour.
+      NB: If you specify annotations in only_colour that are not in only_annotate, they will still be annotated.
+      
+      Therefore, if you want parts 0 and 3, and both '3 1 3' and '3 1 4' to be
+      annotated, but only '3 1 4' with the colour #darkred, you would do this:
+      >>> analyze_this( [['these parts', [0, 3], \
+                         ['only annotate', '3 1 3'], \
+                         ['only colour', '3 1 4'], \
+                         ['annotate colour', '#darkred']] )
       '''
       #-------------------------------------------------------
       def calculate_all_combis( upto ):
@@ -411,14 +439,25 @@ class Vis_MainWindow( Ui_MainWindow ):
          return post
       #-------------------------------------------------------
       
+      # Hold the list of parts to examine. Must be here because targeted_output
+      # may contain instructions.
+      parts_to_examine = None
+      
+      # Go through all the instructions
+      if targeted_output is not None:
+         # Do we have instructions on which voices to analyze? This is
+         # actually the only instruction we need in this method. Everything
+         # else will be passed onto vis_these_parts()
+         for instruction in targeted_output:
+            if 'these parts' == instruction[0]:
+               parts_to_examine = instruction[1]
+      # End parsing of targeted_output ---------------------
+      
       # How do we choose voices?
       how_to_choose = self.settings.get_property( 'howToChooseVoices' )
       
-      # Hold the list of parts to examine
-      parts_to_examine = None
-      
       # If we only choose once, let's do it now.
-      if 'once' == how_to_choose:
+      if 'once' == how_to_choose and parts_to_examine is None:
          part_finder = Vis_Select_Voices()
          parts_to_examine = part_finder.trigger()
       
@@ -472,7 +511,7 @@ class Vis_MainWindow( Ui_MainWindow ):
             self.txt_filenames.appendPlainText( '   successfully imported' )
          
          # If necessary, figure out which parts to analyze.
-         if 'independently' == how_to_choose:
+         if 'independently' == how_to_choose and parts_to_examine is None:
             # Find out the available part names
             available_parts = []
             i = 0
@@ -501,7 +540,10 @@ class Vis_MainWindow( Ui_MainWindow ):
                for set_of_parts in parts_to_examine:
                   higher = the_score.parts[set_of_parts[0]]
                   lower = the_score.parts[set_of_parts[1]]
-                  this_took, ly = vis_these_parts( [higher,lower], self.settings, self.statistics )
+                  this_took, ly = vis_these_parts( [higher,lower], \
+                                                   self.settings, \
+                                                   self.statistics, \
+                                                   targeted_output )
                   it_took += this_took
                # Add this duration to the cumulative duration.
                cumulative_analysis_duration += it_took
@@ -513,7 +555,10 @@ class Vis_MainWindow( Ui_MainWindow ):
                higher = the_score.parts[parts_to_examine[0]]
                lower = the_score.parts[parts_to_examine[1]]
                # Run the analysis
-               it_took, ly = vis_these_parts( [higher,lower], self.settings, self.statistics )
+               it_took, ly = vis_these_parts( [higher,lower], \
+                                              self.settings, \
+                                              self.statistics, \
+                                              targeted_output )
                # Add this duration to the cumulative duration.
                cumulative_analysis_duration += it_took
                # Print this duration.
@@ -524,7 +569,7 @@ class Vis_MainWindow( Ui_MainWindow ):
                # Add the annotated part to the score
                the_score.append( ly )
                # Send the score for processing
-               process_score( the_score )
+               lily_process_score( the_score )
                # TODO: decide how to dynamically decide filename, then move this into
                # a sub-section of the "show" command in the "main" method.
          # If something fails, we don't want the entire analysis to fail, but
@@ -673,27 +718,6 @@ class Vis_Select_Voices( Ui_select_voices ):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # "Main" Method ----------------------------------------------------------------
 def main():
    # Standard stuff
@@ -710,47 +734,3 @@ def main():
    
 if __name__ == "__main__":
    main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

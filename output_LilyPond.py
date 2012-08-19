@@ -372,7 +372,7 @@ def process_analysis_voice( a_v ):
    though it will eventually need to.
    '''
    
-   # Helper method stollen from note_to_lily()
+   # Helper method stolen from note_to_lily()
    def space_for_lily( lily_this ):
       post = 's'
       
@@ -391,7 +391,6 @@ def process_analysis_voice( a_v ):
          post += str(lily_this.lily_markup)
       
       return post
-   #--
    
    # Just try to fill in all the stuff
    post = ''
