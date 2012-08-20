@@ -26,9 +26,7 @@
 from datetime import datetime, timedelta
 from decimal import *
 # music21
-from music21 import interval
-from music21 import stream
-from music21 import note
+from music21 import interval, stream, note, chord
 # vis
 from NGram import NGram
 from problems import NonsensicalInputError # TODO: find the right error
@@ -169,6 +167,52 @@ def make_lily_triangle( ngram, which_colour = None ):
    
    return post
 # End make_lily_triangle() ----------------------------------------------------
+
+
+
+#------------------------------------------------------------------------------
+def make_basso_seguente( from_this ):
+   '''
+   Given a score with multiple parts, this method returns a new part that
+   represents the lowest sounding pitch at all times.
+   
+   For a good on-score demonstration:
+   >>> from music21 import *
+   >>> from analytic_engine import make_basso_seguente
+   >>> z = converter.parse( 'test_corpus/Kyrie.krn' )
+   >>> ell = make_basso_seguente( z )
+   >>> z.insertAtNativeOffset( ell )
+   >>> z.show()
+   '''
+   
+   # Hold the basso seguente part
+   bs = stream.Part()
+   
+   # "Chordify" the score, so it's easy to traverse every time the "chord" 
+   # changes.
+   from_this = from_this.chordify( addTies = False )
+   
+   # Flatten Measure objects
+   from_this = from_this.flat
+   
+   # Go through every item. If it's a Chord, get the lowest Note object and add
+   # it to the new Part.
+   for thing in from_this:
+      if isinstance( thing, chord.Chord ):
+         # Make a new Note with the right duration
+         this_note = note.Note( thing.bass(), quarterLength=thing.quarterLength )
+         
+         # Send ignoreSort=True so that we don't sort every time something is
+         # added, only once.
+         bs.insert( thing.offset, this_note, ignoreSort = True )
+   
+   # Then sort the new Part.
+   bs.sort()
+   
+   # Done!
+   return bs
+   
+# End make_basso_seguente() ---------------------------------------------------
 
 
 
