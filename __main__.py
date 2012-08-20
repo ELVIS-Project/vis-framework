@@ -46,7 +46,7 @@ from qt.Ui_main_window import Ui_MainWindow
 from qt.Ui_select_voices import Ui_select_voices
 from vis import VIS_Settings
 from vis import Vertical_Interval_Statistics
-from analytic_engine import vis_these_parts
+from analytic_engine import vis_these_parts, make_basso_seguente
 from problems import MissingInformationError
 from file_output import file_outputter, file_inputter
 from output_LilyPond import process_score as lily_process_score
@@ -580,6 +580,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       for piece_name in self.analysis_files:
          # Hold this score
          the_score = None
+         # Hold the basso seguente part, if needed
+         seguente_part = None
          
          # Try to open this file
          self.txt_filenames.appendPlainText( 'Trying "' + piece_name + '"' )
@@ -618,6 +620,13 @@ class Vis_MainWindow( Ui_MainWindow ):
             # Display the QDialog
             part_finder = Vis_Select_Voices()
             parts_to_examine = part_finder.trigger( available_parts )
+            # What if they want basso seguente?
+            if 'bs' == parts_to_examine[1]:
+               self.txt_filenames.appendPlainText( '   making basso seguente' )
+               # Make the b.s. voice
+               seguente_part = make_basso_seguente( the_score )
+         
+         self.txt_filenames.appendPlainText( '   starting analysis' )
          
          # Try to analyze this file
          try:
@@ -646,7 +655,11 @@ class Vis_MainWindow( Ui_MainWindow ):
                # We should only examine the specified parts.
                # Get the two parts.
                higher = the_score.parts[parts_to_examine[0]]
-               lower = the_score.parts[parts_to_examine[1]]
+               # Check whether we're supposed to use the basso seguente.
+               if 'bs' == parts_to_examine[1]:
+                  lower = seguente_part
+               else:
+                  lower = the_score.parts[parts_to_examine[1]]
                # Run the analysis
                it_took, ly = vis_these_parts( [higher,lower], \
                                               self.settings, \
