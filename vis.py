@@ -52,7 +52,8 @@ from problems import *
 from file_output import file_outputter
 from VIS_Settings import VIS_Settings
 
-SUPPORTED_FILETYPES = ['.mxl','.krn']
+SUPPORTED_FILETYPES = ['.mxl', '.krn', '.xml', '.mid', '.midi', '.md']
+# TODO: whatever we need to get '.abc' on this list; see Issue #21
 
 #-------------------------------------------------------------------------------
 def analyze_this( pathname, the_settings = None, the_stats = None ):
@@ -100,9 +101,9 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
          if extension in SUPPORTED_FILETYPES:
             list_of_filenames.append( pathname )
          else:
-            raise BadFileError( 'The extension \"'+extension+'\" is not supported by vis at this time.' )
+            raise BadFileError( '\"' + extension + '\" files are not supported by vis at this time.' )
       else:
-         raise BadFileError( 'Given filename or directory name appears to be neither a file or directory.' )
+         raise BadFileError( 'Given filename or directory name appears to be neither a file nor a directory.' )
    elif isinstance( pathname, stream.Score ):
       the_score = pathname
    else:
