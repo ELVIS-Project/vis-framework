@@ -416,8 +416,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       
       # Call show_results() to actually display things.
       # We'll try to catch exceptions and alert our user intelligently.
-      # TODO: remove this debugging print()
-      print( post )
       try:
          self.show_results( post )
       except MissingInformationError as mie:
