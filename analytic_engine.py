@@ -129,7 +129,6 @@ def make_lily_triangle( ngram, which_colour = None ):
    
    # Append the colour
    if which_colour is not None:
-      print( 'using this colour: ' + which_colour )
       post += '\\with-color ' + which_colour + ' '
    
    # Continue the beginning
@@ -590,17 +589,11 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
          # Get the str representation of this n-gram.
          str_this_ngram = str(this_ngram)
          
-         # If we're only looking for certain ngrams...
-         if 0 < len(list_to_annotate) or 0 < len(list_to_colour):
-            # ... if this ngram is in the colour list, we're good
-            if str_this_ngram in list_to_colour:
-               pass
-            # ... if this ngram isn't in the colour list, but the other list is
-            # empty, we're still good (but we just won't colour this)
-            elif 0 == len(list_to_annotate):
-               pass
-            # ... otherwise, we won't annotate this ngram.
-            else:
+         # If there are restrictions on what to annotate...
+         if 0 < len(list_to_annotate):
+            # If this isn't one of the things to annotate...
+            if str_this_ngram not in list_to_annotate:
+               # Then move on to the next ngram
                continue
          
          # If this is the first annotation going into the score.
@@ -616,17 +609,11 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
                   z = note.Rest( quarterLength = needed_qL )
                   list_of_lilypond_parts.append( z )
             
-            # Figure out which colour we need
+            # Figure out whether we need to colour this ngram
             this_colour = None
             if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
                # We must colour this ngram
                this_colour = annotation_colour
-            elif 0 == len(list_to_colour):
-               # We must colour all ngrams
-               this_colour = annotation_colour
-            # else:
-            #     this_colour = None, because there are ngrams to colour, but
-            #     this ngram isn't one of them.
             
             # Make a new Note in the lily_for_this_n stream, with the same offset as
             # the start of this n-gram.

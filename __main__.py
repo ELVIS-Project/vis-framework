@@ -35,6 +35,7 @@ from string import replace as str_replace
 import re
 # PyQt4
 from PyQt4 import QtGui
+from PyQt4 import Qt
 #from PyQt4.QtCore import pyqtSlot, QObject
 # music21
 from music21 import converter # for analyze_this()
@@ -59,7 +60,10 @@ class Vis_MainWindow( Ui_MainWindow ):
    def setup_vis( self ):
       self.settings = VIS_Settings()
       self.statistics = Vertical_Interval_Statistics()
-      self.analysis_files = [] # Hold the list of filenames to analyze.
+      # Hold the list of filenames to analyze.
+      self.analysis_files = []
+      # Hold the list of instructions for doing targeted analysis.
+      self.targeted_lily_options = []
    
    # Link all the signals with their methods.
    def setup_signals( self ):
@@ -90,6 +94,12 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_save_intervals.clicked.connect( self.save_intervals )
       self.btn_show_triangles.clicked.connect( self.show_triangles )
       self.btn_save_triangles.clicked.connect( self.save_triangles )
+      self.btn_targeted_add_black.clicked.connect( self.targeted_add_black )
+      self.btn_targeted_add_colour.clicked.connect( self.targeted_add_colour )
+      self.btn_targeted_colour_choose.clicked.connect( self.targeted_colour_choose )
+      self.btn_targeted_colour_clear.clicked.connect( self.targeted_colour_clear )
+      self.btn_targeted_choose_score.clicked.connect( self.targeted_choose_score )
+      self.btn_targeted_produce.clicked.connect( self.targeted_produce )
    
    
    
@@ -260,6 +270,91 @@ class Vis_MainWindow( Ui_MainWindow ):
    def auto_fill_n( self ):
       self.line_show_triangles_n.setText( str(self.settings.get_property( 'lookForTheseNs' )) )
    
+   # btn_targeted_add_black
+   def targeted_add_black( self ):
+      # Take the contents of the QLineEdit and append to the list of instructions
+      self.targeted_lily_options.append( ['only annotate', \
+                                          str(self.line_targeted_add_black.text())] )
+      self.update_targeted_output_window()
+      self.line_targeted_add_black.setText('')
+   
+   # btn_targeted_add_colour
+   def targeted_add_colour( self ):
+      # Take the contents of the QLineEdit and append to the list of
+      # instructions. Coloured ngrams must be added to both lists.
+      the_ngram = str(self.line_targeted_add_colour.text())
+      self.targeted_lily_options.append( ['only colour', the_ngram] )
+      self.targeted_lily_options.append( ['only annotate', the_ngram] )
+      self.update_targeted_output_window()
+      self.line_targeted_add_colour.setText('')
+   
+   # btn_targeted_colour_choose
+   def targeted_colour_choose( self ):
+      # Get the colour the user wants.
+      user_colour = QtGui.QColorDialog.getColor()
+
+      # Now make the str with the colour name
+      new_colour = '#(rgb-color '
+      new_colour += str(user_colour.red()) + ' '
+      new_colour += str(user_colour.green()) + ' '
+      new_colour += str(user_colour.blue()) + ')'
+      
+      # See if there's already a spot for colour and use it.
+      for instr in self.targeted_lily_options:
+         if 'annotate colour' == instr[0]:
+            instr[1] = new_colour
+      
+      # Otherwise, we'll have to add a new instruction.
+      self.targeted_lily_options.append( ['annotate colour', new_colour] )
+      
+      self.update_targeted_output_window()
+   
+   # btn_targeted_colour_clear
+   def targeted_colour_clear( self ):
+      # Go through the list of instructions; if there's a colour, remove it.
+      for instr in self.targeted_lily_options:
+         if 'annotate colour' == instr[0]:
+            instr[1] = None
+      self.update_targeted_output_window()
+   
+   # btn_targeted_choose_score
+   def targeted_choose_score( self ):
+      # Choose the file
+      the_file = QtGui.QFileDialog.getOpenFileName( None, 'Choose Files to Analyze', '~', '*.pdf *.mxl *.krn *.abc *.mei' )
+      # We'll store it in here, even though I think I may regret it later.
+      # TODO: see if you regret this
+      self.analysis_files = [str(the_file)]
+   
+   # btn_targeted_produce
+   def targeted_produce( self ):
+      # Start up the analysis engine!
+      
+      # To avoid mistakes, in cases where users select a colour but don't put
+      # any ngrams in the "to colour" list. If there are no "only colour"
+      # instructions, we'll remove the colour.
+      for instr in self.targeted_lily_options:
+         if 'only colour' == instr[0]:
+            break
+      else:
+         self.targeted_colour_clear()
+      
+      # We have to make sure the "produceLabeledScore" option is enabled.
+      if not self.settings.get_property( 'produceLabeledScore' ):
+         self.settings.set_property( 'produceLabeledScore true' )
+         self.analyze_this( self.targeted_lily_options )
+         self.settings.set_property( 'produceLabeledScore false' )
+      else:
+         self.analyze_this( self.targeted_lily_options )
+   
+   
+   
+   #----------------------------------------------------------------------------
+   def update_targeted_output_window( self ):
+      '''
+      This method updates the self.txt_results widget, formatting and showing
+      contents of the instructions from the "Targeted LilyPond Output" tab.
+      '''
+      self.txt_results.setPlainText( str(self.targeted_lily_options) )
    
    
    
@@ -415,10 +510,10 @@ class Vis_MainWindow( Ui_MainWindow ):
          - #(x11-color 'DarkRed) for "X color names"
          - for a list of colours: http://lilypond.org/doc/v2.14/Documentation/notation/list-of-colors
       
-      NB: If you do not specify only_annotate or only_colour, all annotations appear.
-      NB: If you specify annotate_colour without only_colour, all annotations appear, but only the only_colour ones receive that colour.
-      NB: If you specify annotate_colour and only_colour, only the only_colour annotations receive that colour.
-      NB: If you specify annotations in only_colour that are not in only_annotate, they will still be annotated.
+      NB: If you do not specify only_annotate or only_colour, all annotations appear, and the colour is #black
+      NB: If you specify annotate_colour without only_colour, all annotations appear, and the colour is annotate_colour
+      NB: All annotations in only_colour should also appear in only_annotate.
+      NB: All annotations in only_annotate but not only_colour will appear, but with the colour #black
       
       Therefore, if you want parts 0 and 3, and both '3 1 3' and '3 1 4' to be
       annotated, but only '3 1 4' with the colour #darkred, you would do this:
