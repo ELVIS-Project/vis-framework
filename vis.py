@@ -32,7 +32,7 @@ import pprint
 
 ## Import:
 # python standard library
-from os.path import splitext
+from os.path import splitext, join
 from os.path import exists as path_exists
 from os.path import isdir, isfile
 from os import walk as os_walk
@@ -52,7 +52,7 @@ from problems import *
 from file_output import file_outputter
 from VIS_Settings import VIS_Settings
 
-
+SUPPORTED_FILETYPES = ['.mxl','.krn']
 
 #-------------------------------------------------------------------------------
 def analyze_this( pathname, the_settings = None, the_stats = None ):
@@ -81,12 +81,26 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
    if isinstance( pathname, str ):
       # Is the pathname a directory?
       if isdir( pathname ):
-         for a, b, filename in os_walk( pathname ):
-            list_of_filenames.append( filename )
-         list_of_filenames = list_of_filenames[0]
+         for a, b, filenames in os_walk( pathname ):
+            folder = []
+            for filename in filenames:
+               if splitext(filename)[1] in SUPPORTED_FILETYPES:
+                  folder.append(join(a,filename))
+            list_of_filenames.append(folder)
+         if the_settings.get_property('recurse'):
+            new_filenames = []
+            for folder in list_of_filenames:
+               new_filenames.extend(folder)
+            list_of_filenames = new_filenames
+         else:
+            list_of_filenames = list_of_filenames[0]
       # Is the pathname a file?
       elif isfile( pathname ):
-         list_of_filenames.append( pathname )
+         extension = splitext(pathname)[1]
+         if extension in SUPPORTED_FILETYPES:
+            list_of_filenames.append( pathname )
+         else:
+            raise BadFileError( 'The extension \"'+extension+'\" is not supported by vis at this time.' )
       else:
          raise BadFileError( 'Given filename or directory name appears to be neither a file or directory.' )
    elif isinstance( pathname, stream.Score ):
@@ -114,7 +128,7 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
       for filename in list_of_filenames:
          print( 'Trying ' + filename + '...' )
          try:
-            the_score = converter.parse( pathname + '/' + filename )
+            the_score = converter.parse( filename )
          except ConverterException:
             print( '   failed during import' )
             files_not_analyzed.append( filename )
