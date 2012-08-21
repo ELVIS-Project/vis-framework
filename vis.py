@@ -264,8 +264,8 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
 
 # "main" method --------------------------------------------------------------
 if __name__ == '__main__':
-   print( "vis (post-Milestone 1)\n" )
-   print( "Copyright (C) 2012 Christopher Antila" )
+   print( "vis (Milestone 2)\n" )
+   print( "Copyright (C) 2012 Christopher Antila and Jamie Klassen" )
    print( "This program comes with ABSOLUTELY NO WARRANTY; for details type 'warranty'." )
    print( "This is free software; type 'copyright' for details.\n" )
    print( "For a list of commands, type \'help\'." )
