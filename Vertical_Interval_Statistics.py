@@ -28,9 +28,10 @@
 import re, copy
 from string import digits as string_digits
 # music21
-from music21 import interval, graph
+from music21 import interval, graph, stream, clef, meter, note
 # vis
 from problems import NonsensicalInputError, MissingInformationError
+from analytic_engine import make_lily_triangle
 # numpy
 from numpy import array, linalg, ones, log, corrcoef
 # matplotlib
@@ -862,6 +863,200 @@ class Vertical_Interval_Statistics( object ):
             post[str(k)] = v
          return post
    # End get_formatted_ngram_dict()
+   
+   def make_summary_score( self, settings, n=None, threshold=None, topX=None ):
+      '''
+      Returns a Score object with three Part objects. When you run the Score
+      through process_score() in the output_LilyPond module, the result is a
+      LilyPond file that gives summary results about the triangles recorded by
+      this instance of Vertical_Interval_Statistics.
+      
+      There are four arguments, three of which are optional:
+      - settings : a VIS_Settings object, which is required
+      - n : a list of int, specifying which "n" values for "n-gram" are to be
+         summarized. If omitted, all "n" values will be displayed.
+      - threshold : either...
+         - a single int, or
+         - a dict whose keys and values are both int
+         ... that specifies the number of occurrences required before a triangle
+         is displayed in the summary results. This is tested with "equal to or
+         greater than."
+            If you want to display triangles that occurred more than 100 times
+         (i.e. triangles that occur 100 times are not included), then you should
+         specify 101.
+            If there are multiple "n" values, and you want to specify different
+         thresholds for each, use a dict, where the key is the "n" value and the
+         value is the threshold.
+      - topX : either...
+         - a single int, or
+         - a dict whose keys and values are both int
+         ... that specifies you want to display "the most common X triangles,"
+         where X is the int you specify.
+            If you want to display the most common 10 triangles, then you should
+         specify 10.
+            If there are multiple "n" values, and you want to specify different
+         most common values for each, use a dict, where the key is the "n" value
+         and the value is "X."
+      
+      You can combine "threshold" and "topX" to limit further limit the number
+      of triangles that appear. For example, if the top five triangles occurred
+      50, 40, 15, 15, and 13 times, and you specify a threshold of 20, you will
+      only receive the top two triangles because the others occurred less than
+      20 times, and do not meet the threshold.
+      
+      In the returned Score, index 0 holds a part intended for an upper staff,
+      index 1 holds a part intended for a lower staff, and index 2 holds a part
+      with LilyPond annotations, aligned with the upper voices.
+      '''
+      
+      # (1) What are the "n" values we need?
+      #-----------------------------------------------------
+      list_of_n = []
+      if n is not None:
+         # We have to parse this list.
+         if isinstance( int, n ):
+            list_of_n.append( n )
+         else:
+            # Iterate each 'n' they specified, and see whether we have any
+            # triangles with that value.
+            for enn in n:
+               if 0 < len(self._ngrams_dict[enn]):
+                  list_of_n.append( enn )
+      else:
+         # We have to display all possible "n" values. Iterate each 'n' value
+         # we have, and see whether we have any triangels with that value.
+         for enn in xrange( 2, len(self._ngrams_dict) ):
+            if 0 < len(self._ngrams_dict[enn]):
+               list_of_n.append( enn )
+      
+      # Make sure we have "n" values to use
+      if 0 == len(list_of_n):
+         msg = 'make_summary_score(): There are no triangles with the "n" value(s) specified.'
+         raise NonsensicalInputError( msg )
+      
+      # (2) Initialize
+      #-----------------------------------------------------
+      # Hold the upper and lower, and the annotation parts that we'll use
+      upper_part = stream.Part()
+      lower_part = stream.Part()
+      lily_part = stream.Part()
+      
+      # Set up the analysis part
+      lily_part.lily_analysis_voice = True
+      
+      # (3) Go through each "n" value separately.
+      #-----------------------------------------------------
+      for n in list_of_n:
+         # Get a sorted list of the triangles
+         # NB-1: this is stolen from get_sorted_ngrams() above).
+         # NB-2: this will just use heedQuality setting from generation time.
+         # TODO: improve handling of heedQuality
+         sorted_ngrams = sorted( self._ngrams_dict[n].iterkeys(), \
+                                 key = lambda ng: self._ngrams_dict[n][ng], \
+                                 reverse=True )
+         
+         # Hold "the top" number of most frequent triangles for this "n"
+         the_top = None
+         
+         # (4) Calculate the_top
+         #--------------------------------------------------
+         # NB: We need to check the length, or else we may accidentally try to
+         # iterate past the number of ngrams we have. If "topX" is greater than
+         # the number of ngrams with this "n" then the result is the same
+         # behaviour as if there were no "topX."
+         if topX is not None:
+            # User specified one "topX" for all "n"
+            if isinstance( topX, int ):
+               # If "topX" wants more triangles than are in this "N", no good.
+               if topX > len(self._ngrams_dict[n]):
+                  the_top = len(self._ngrams_dict[n])
+               else:
+                  the_top = topX
+            # User specified a "topX" for this "n" specifically
+            elif n in topX:
+               # If "topX" wants more triangles than are in this "N", no good.
+               if topX[n] > len(self._ngrams_dict[n]):
+                  the_top = len(self._ngrams_dict[n])
+               else:
+                  the_top = topX[n]
+            # User specified "topX" for some, but not this "n"
+            else:
+               # Let's just do all of these.
+               the_top = len(self._ngrams_dict[n])
+         else:
+            # There's no "topX" so we'll analyze all of them.
+            the_top = len(self._ngrams_dict[n])
+         
+         # Hold the threshold for this ngram. The default here is equivalent
+         # to no threshold.
+         this_threshold = 0
+         
+         # (5) Figure out the threshold for this ngram
+         #--------------------------------------------------
+         if threshold is not None:
+            # User specified one "threshold" for all "n"
+            if isinstance( threshold, int ):
+               this_threshold = threshold
+            # User specified a "threshold" for this "n" specifically
+            elif n in topX:
+               this_threshold = threshold[n]
+         
+         # (6) Iterate through the_top
+         # This may take us through all the ngrams, but that's okay.
+         for i in xrange(the_top):
+            # If the occurrences for this ngram is greather than or equal to
+            # the threshold, then let's process this ngram!
+            if self._ngrams_dict[n][sorted_ngrams[i]] >= this_threshold:
+               # Hold the list of vertical and horizontal Interval objects
+               # associated with this NGram, respectively.
+               ints = sorted_ngrams[i].get_intervals()
+               moves = sorted_ngrams[i].get_movements()
+               
+               # Hold the measures for this round
+               upper_measure = stream.Measure()
+               #upper_measure.timeSignature = meter.TimeSignature( '4/4' )
+               lower_measure = stream.Measure()
+               #lower_measure.timeSignature = meter.TimeSignature( '4/4' )
+               # Except the analysis part
+               
+               # Are these the first objects in the streams?
+               if 0 == len(upper_part):
+                  # Add some starting-out stuff to the measures
+                  upper_measure.clef = clef.TrebleClef()
+                  upper_measure.timeSignature = meter.TimeSignature( '4/4' )
+                  lower_measure.clef = clef.BassClef()
+                  lower_measure.timeSignature = meter.TimeSignature( '4/4' )
+                  # Except the analysis part
+               
+               # Make the upper and lower notes
+               for interv in ints:
+                  # (6.1) Get the upper-part Note objects for this ngram
+                  upper_measure.append( note.Note( interv.noteEnd.pitch, quarterLength=2.0 ) )
+                  
+                  # (6.2) Get the lower-part Note objects for this ngram
+                  lower_measure.append( note.Note( interv.noteStart.pitch, quarterLength=2.0 ) )
+                  
+               # (6.3) Make the corresponding LilyPond analysis for this ngram
+               lily_note = note.Note( 'C4', quarterLength=4.0 )
+               lily_note.lily_markup = '^' + make_lily_triangle( str(sorted_ngrams[i]) )
+               lily_part.append( lily_note )
+               
+               # (6.3.5) Append the Measure objects
+               upper_part.append( upper_measure )
+               lower_part.append( lower_measure )
+               
+               # (6.4) Append some Rest objects to the end
+               rest_measure = stream.Measure()
+               rest_measure.lily_invisible = True
+               rest_measure.append( note.Rest( quarterLength=4.0 ) )
+               upper_part.append( rest_measure )
+               lower_part.append( rest_measure )
+               lily_part.append( note.Rest( quarterLength=4.0 ) )
+            else:
+               continue
+      
+      # Finally, make a Score and return it
+      return stream.Score( [upper_part, lower_part, lily_part] )
 #-------------------------------------------------------------------------------
 
 

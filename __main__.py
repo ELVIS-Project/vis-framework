@@ -294,10 +294,14 @@ class Vis_MainWindow( Ui_MainWindow ):
       user_colour = QtGui.QColorDialog.getColor()
 
       # Now make the str with the colour name
+      # Assume we're with LilyPond 2.16.0 or greater, and make the colour
+      # intensity fall between 0 and 1 instead of the everywhere-else standard
+      # 0 and 255.
+      # TODO: automatically detect the LilyPond version
       new_colour = '#(rgb-color '
-      new_colour += str(user_colour.red()) + ' '
-      new_colour += str(user_colour.green()) + ' '
-      new_colour += str(user_colour.blue()) + ')'
+      new_colour += str(float(user_colour.red())/255.0) + ' '
+      new_colour += str(float(user_colour.green())/255.0) + ' '
+      new_colour += str(float(user_colour.blue())/255.0) + ')'
       
       # See if there's already a spot for colour and use it.
       for instr in self.targeted_lily_options:
@@ -574,7 +578,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       cumulative_analysis_duration = 0.0
       
       # Hold a list of parts to analyze.
-      parts_to_analyze = []
+      # TODO: I think this isn't used?
+      #parts_to_analyze = []
       
       # Go through all the files/directories.
       for piece_name in self.analysis_files:

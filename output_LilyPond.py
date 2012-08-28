@@ -117,6 +117,10 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
    
    # First of all, we can't deal with tuplets or multiple-component durations
    # in this method. We need process_measure() to help.
+   # DEBUG
+   if 0 == dur.quarterLength:
+      return '\longa'
+   # END DEBUG
    if dur.tuplets is not ():
       # We know either there are multiple components or we have part of a
       # tuplet, we we need to find out which.
@@ -252,7 +256,17 @@ def process_measure( the_meas ):
    
    Input should be a Measure.
    '''
+   
    post = "\t"
+   
+   # Hold whether this Measure is supposed to be "invisible"
+   invisible = False
+   if hasattr( the_meas, 'lily_invisible' ):
+      invisible = the_meas.lily_invisible
+   
+   # Add the first requirement of invisibility
+   if invisible:
+      post += '\stopStaff\n\t'
    
    # first check if it's a partial (pick-up) measure
    if 0.0 < the_meas.duration.quarterLength < the_meas.barDuration.quarterLength:
@@ -283,7 +297,10 @@ def process_measure( the_meas ):
          # Is it a full-measure rest?
          if isinstance( obj, note.Rest) and \
             the_meas.srcStream.barDuration.quarterLength == obj.quarterLength:
-            post += 'R' + duration_to_lily( obj.duration ) + ' '
+               if invisible:
+                  post += 's' + duration_to_lily( obj.duration ) + ' '
+               else:
+                  post += 'R' + duration_to_lily( obj.duration ) + ' '
          # Is it the start of a tuplet?
          elif obj.duration.tuplets is not None and len(obj.duration.tuplets) > 0:
             #print( str( obj.duration.tuplets) )
@@ -345,7 +362,7 @@ def process_measure( the_meas ):
          # I don't know what to do with these undocumented features.
          pass
       # **kern importer garbage... well, it's only garbage to us
-      elif isinstance( obj, humdrum.spineParser.MiscTandam ):
+      elif isinstance( obj, humdrum.spineParser.MiscTandem ):
          # http://mit.edu/music21/doc/html/moduleHumdrumSpineParser.html
          # Is there really nothing we can use this for? Seems like these
          # exist only to help music21 developers.
@@ -356,11 +373,14 @@ def process_measure( the_meas ):
    #----
    
    # Append a bar-check symbol, if there was anything outputted.
-   if len(post) > 3:
+   if len(post) > 1:
       post += "|\n"
-      return post
-   else:
-      return ""
+   
+   # The final requirement of invisibility
+   if invisible:
+      post += '\t\\startStaff\n'
+   
+   return post
 # End process_measure() -------------------------------------------------------
 
 
@@ -375,6 +395,10 @@ def process_analysis_voice( a_v ):
    # Helper method stolen from note_to_lily()
    def space_for_lily( lily_this ):
       post = 's'
+      
+      # DEBUG
+      #print( '--- got analysis voice thing at offset ' + str(lily_this.offset) )
+      # END DEBUG
       
       if len(lily_this.duration.components) > 1:
          for durational_component in lily_this.duration.components:
@@ -524,11 +548,11 @@ def process_stream( s, the_settings ):
             if isinstance( thing, stream.Measure ):
                post += process_measure( thing )
             elif isinstance( thing, instrument.Instrument ):
-               # We can safely ignore this (for now?) because we've already dealt
+               # We can safely ignore this (for now?) because we already dealt
                # with the part name earlier.
                pass
             # **kern importer garbage... well, it's only garbage to us
-            elif isinstance( thing, humdrum.spineParser.MiscTandam ):
+            elif isinstance( thing, humdrum.spineParser.MiscTandem ):
                # http://mit.edu/music21/doc/html/moduleHumdrumSpineParser.html
                # Is there really nothing we can use this for? Seems like these
                # exist only to help music21 developers.
@@ -576,7 +600,7 @@ def process_stream( s, the_settings ):
       # Ignore this undocumented non-feature!
       pass
    # **kern importer garbage... well, it's only garbage to us
-   elif isinstance( obj, humdrum.spineParser.MiscTandam ):
+   elif isinstance( s, humdrum.spineParser.MiscTandem ):
       # http://mit.edu/music21/doc/html/moduleHumdrumSpineParser.html
       # Is there really nothing we can use this for? Seems like these
       # exist only to help music21 developers.
@@ -604,7 +628,7 @@ class LilyPond_Settings:
       "0\cm" for example)
    - print_instrument_names : True or False whether to print instrument names
    - lilypond_version: a str that contains the LilyPond version (default is
-      "2.14.2")
+      auto-detection of whatever's installed)
    '''
    def __init__( self ):
       # Hold a list of the part names in this Score
@@ -686,6 +710,7 @@ def process_score( the_score, the_settings=None, filename='test_output/lily_outp
    score_to_write = process_stream( the_score, the_settings )
    output_result = output_the_file( score_to_write )
    if output_result[1] is not None:
+      # TODO: raise exceptions
       print( 'Failed to output LilyPond file... \n' + output_result[1] )
    else:
       run_lilypond( output_result[0], the_settings )
@@ -697,7 +722,12 @@ if __name__ == '__main__':
    print( "Sorry, but you can't yet run output_LilyPond.py by itself!" )
 
 
-
+# TODO: Testing
+# - on a Measure, the .lily_invisible property set to True means that the Staff
+#   should be have no lines for that Measure (as in \stopStaff) and that all
+#   the Note or Rest objects inside should be made into spacing objects ("s")
+#   --> this is in the process_measure() method, and there are lots of things
+#       that need to be confirmed as appearing invisible
 
 
 
