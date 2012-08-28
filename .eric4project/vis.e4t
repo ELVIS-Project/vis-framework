@@ -1,213 +1,132 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-4.2.dtd">
 <!-- eric4 tasks file for project vis -->
-<!-- Saved: 2012-08-17, 01:39:41 -->
+<!-- Saved: 2012-08-28, 01:02:55 -->
 <Tasks version="4.2">
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: find the right error</Summary>
+    <Summary>TODO: see if there are input-checking things to do</Summary>
     <Description></Description>
-    <Created>2012-08-11, 15:49:38</Created>
+    <Created>2012-08-27, 23:39:50</Created>
     <Resource>
-      <Filename>analytic_engine.py</Filename>
-      <Linenumber>34</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: this isn't the right exception</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 15:49:38</Created>
-    <Resource>
-      <Filename>analytic_engine.py</Filename>
-      <Linenumber>96</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: see whether we need these or not</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 15:49:38</Created>
-    <Resource>
-      <Filename>analytic_engine.py</Filename>
-      <Linenumber>191</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: handle this intelligently (raise exception)</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 15:49:38</Created>
-    <Resource>
-      <Filename>analytic_engine.py</Filename>
-      <Linenumber>270</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: update this section, and analyze_this(), to accept a list of</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 15:49:38</Created>
-    <Resource>
-      <Filename>analytic_engine.py</Filename>
-      <Linenumber>610</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: come up with a better timing thing</Summary>
-    <Description></Description>
-    <Created>2012-08-11, 15:49:38</Created>
-    <Resource>
-      <Filename>analytic_engine.py</Filename>
-      <Linenumber>628</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: update this section, and vis_these_parts(), to accept a list of</Summary>
-    <Description></Description>
-    <Created>2012-08-16, 01:47:30</Created>
-    <Resource>
-      <Filename>vis.py</Filename>
-      <Linenumber>222</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: decide how to dynamically decide filename, then move this into</Summary>
-    <Description></Description>
-    <Created>2012-08-16, 01:47:30</Created>
-    <Resource>
-      <Filename>vis.py</Filename>
-      <Linenumber>243</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: Say something useful about this." )</Summary>
-    <Description></Description>
-    <Created>2012-08-16, 01:47:30</Created>
-    <Resource>
-      <Filename>vis.py</Filename>
-      <Linenumber>563</Linenumber>
+      <Filename>__main__.py</Filename>
+      <Linenumber>131</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: see if there are input-checking things to do</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:11:34</Created>
+    <Created>2012-08-27, 23:39:50</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>108</Linenumber>
+      <Linenumber>144</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: see if there are input-checking things to do</Summary>
+    <Summary>TODO: see if you regret this</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:11:34</Created>
+    <Created>2012-08-27, 23:39:50</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>121</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: remove this debugging print()</Summary>
-    <Description></Description>
-    <Created>2012-08-17, 01:11:34</Created>
-    <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>234</Linenumber>
+      <Linenumber>325</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: something tells me this doesn't do what I had in mind</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:11:34</Created>
+    <Created>2012-08-27, 23:39:50</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>334</Linenumber>
+      <Linenumber>562</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: figure this out</Summary>
+    <Summary>TODO: I think this isn't used?</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:11:34</Created>
+    <Created>2012-08-27, 23:39:50</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>354</Linenumber>
+      <Linenumber>577</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: decide how to dynamically decide filename, then move this into</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:11:34</Created>
+    <Created>2012-08-27, 23:39:50</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>421</Linenumber>
+      <Linenumber>680</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: yell if there are fewer or greater than 2 voices selected</Summary>
+    <Description></Description>
+    <Created>2012-08-27, 23:39:50</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>785</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: there must be a way to get only and all of the intervals that are</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:32:44</Created>
+    <Created>2012-08-27, 23:57:50</Created>
     <Resource>
       <Filename>Vertical_Interval_Statistics.py</Filename>
-      <Linenumber>243</Linenumber>
+      <Linenumber>245</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: refactor the beginning of all the ngram methods</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:32:44</Created>
+    <Created>2012-08-27, 23:57:50</Created>
     <Resource>
       <Filename>Vertical_Interval_Statistics.py</Filename>
-      <Linenumber>262</Linenumber>
+      <Linenumber>264</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test negative intervals</Summary>
+    <Summary>TODO: improve handling of heedQuality</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:37:18</Created>
+    <Created>2012-08-27, 23:57:50</Created>
     <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>816</Linenumber>
+      <Filename>Vertical_Interval_Statistics.py</Filename>
+      <Linenumber>952</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test with quality</Summary>
+    <Summary>TODO: whatever we need to get '.abc' on this list; see Issue #21</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:37:18</Created>
+    <Created>2012-08-28, 00:24:35</Created>
     <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>817</Linenumber>
+      <Filename>vis.py</Filename>
+      <Linenumber>56</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test with simple</Summary>
+    <Summary>TODO: update this section, and vis_these_parts(), to accept a list of</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:37:18</Created>
+    <Created>2012-08-28, 00:24:35</Created>
     <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>818</Linenumber>
+      <Filename>vis.py</Filename>
+      <Linenumber>237</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test with voice crossing</Summary>
+    <Summary>TODO: decide how to dynamically decide filename, then move this into</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:37:18</Created>
+    <Created>2012-08-28, 00:24:35</Created>
     <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>882</Linenumber>
+      <Filename>vis.py</Filename>
+      <Linenumber>258</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: test with and without heedQuality</Summary>
+    <Summary>TODO: Say something useful about this." )</Summary>
     <Description></Description>
-    <Created>2012-08-17, 01:37:18</Created>
+    <Created>2012-08-28, 00:24:35</Created>
     <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>883</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: some sort of testing for the 'lookForTheseNs' settting</Summary>
-    <Description></Description>
-    <Created>2012-08-17, 01:37:18</Created>
-    <Resource>
-      <Filename>vis-test.py</Filename>
-      <Linenumber>2844</Linenumber>
+      <Filename>vis.py</Filename>
+      <Linenumber>610</Linenumber>
     </Resource>
   </Task>
 </Tasks>
