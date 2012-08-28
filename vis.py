@@ -264,7 +264,7 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
 
 # "main" method --------------------------------------------------------------
 if __name__ == '__main__':
-   print( "vis (Milestone 2)\n" )
+   print( "vis (post Milestone 2)\n" )
    print( "Copyright (C) 2012 Christopher Antila and Jamie Klassen" )
    print( "This program comes with ABSOLUTELY NO WARRANTY; for details type 'warranty'." )
    print( "This is free software; type 'copyright' for details.\n" )
@@ -370,7 +370,7 @@ if __name__ == '__main__':
             else: #must be an array of graphs
                for n in range(len(formatted_output)):
                   formatted_output[n].write(splitext(fn)[0]+'-'+str(n)+splitext(fn)[1])
-       	 elif 'powerlaw' == which_results:
+         elif 'powerlaw' == which_results:
             try:
                power_law = my_statistics.power_law_analysis( my_settings )
             except MissingInformationError as mie:
