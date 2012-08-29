@@ -1,98 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-4.2.dtd">
 <!-- eric4 tasks file for project vis -->
-<!-- Saved: 2012-08-28, 01:02:55 -->
+<!-- Saved: 2012-08-29, 01:33:47 -->
 <Tasks version="4.2">
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: see if there are input-checking things to do</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:39:50</Created>
-    <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>131</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: see if there are input-checking things to do</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:39:50</Created>
-    <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>144</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: see if you regret this</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:39:50</Created>
-    <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>325</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: something tells me this doesn't do what I had in mind</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:39:50</Created>
-    <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>562</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: I think this isn't used?</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:39:50</Created>
-    <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>577</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: decide how to dynamically decide filename, then move this into</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:39:50</Created>
-    <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>680</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: yell if there are fewer or greater than 2 voices selected</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:39:50</Created>
-    <Resource>
-      <Filename>__main__.py</Filename>
-      <Linenumber>785</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: there must be a way to get only and all of the intervals that are</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:57:50</Created>
-    <Resource>
-      <Filename>Vertical_Interval_Statistics.py</Filename>
-      <Linenumber>245</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: refactor the beginning of all the ngram methods</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:57:50</Created>
-    <Resource>
-      <Filename>Vertical_Interval_Statistics.py</Filename>
-      <Linenumber>264</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: improve handling of heedQuality</Summary>
-    <Description></Description>
-    <Created>2012-08-27, 23:57:50</Created>
-    <Resource>
-      <Filename>Vertical_Interval_Statistics.py</Filename>
-      <Linenumber>952</Linenumber>
-    </Resource>
-  </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: whatever we need to get '.abc' on this list; see Issue #21</Summary>
     <Description></Description>
@@ -127,6 +37,276 @@
     <Resource>
       <Filename>vis.py</Filename>
       <Linenumber>610</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: deal with test_import_settings_2()</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 22:49:07</Created>
+    <Resource>
+      <Filename>VIS_Settings.py</Filename>
+      <Linenumber>193</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: there must be a way to get only and all of the intervals that are</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:32:12</Created>
+    <Resource>
+      <Filename>Vertical_Interval_Statistics.py</Filename>
+      <Linenumber>246</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: refactor the beginning of all the ngram methods</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:32:12</Created>
+    <Resource>
+      <Filename>Vertical_Interval_Statistics.py</Filename>
+      <Linenumber>265</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: improve handling of heedQuality</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:32:12</Created>
+    <Resource>
+      <Filename>Vertical_Interval_Statistics.py</Filename>
+      <Linenumber>953</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: find the right error</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:47:59</Created>
+    <Resource>
+      <Filename>analytic_engine.py</Filename>
+      <Linenumber>32</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: this isn't the right exception</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:47:59</Created>
+    <Resource>
+      <Filename>analytic_engine.py</Filename>
+      <Linenumber>94</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: see whether we need these or not</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:47:59</Created>
+    <Resource>
+      <Filename>analytic_engine.py</Filename>
+      <Linenumber>263</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: handle this intelligently (raise exception)</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:47:59</Created>
+    <Resource>
+      <Filename>analytic_engine.py</Filename>
+      <Linenumber>364</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: update this section, and analyze_this(), to accept a list of</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:47:59</Created>
+    <Resource>
+      <Filename>analytic_engine.py</Filename>
+      <Linenumber>729</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: come up with a better timing thing</Summary>
+    <Description></Description>
+    <Created>2012-08-28, 23:47:59</Created>
+    <Resource>
+      <Filename>analytic_engine.py</Filename>
+      <Linenumber>747</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: this error doesn't really describe what's going on here</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>140</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: see if we can remove some of these errors to clean up the method</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>166</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: is there a situation where I'll ever need to deal with</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>294</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: implement this</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>641</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: implement this</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>646</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: implement the second form of whatever</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>670</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: exception handling</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>682</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: raise exceptions</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>720</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: Testing</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:45:48</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>732</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: see if there are input-checking things to do</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>136</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: see if there are input-checking things to do</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>149</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: automatically detect the LilyPond version</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>300</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: see if you regret this</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>329</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: if we didn't process any pieces, stop processing</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>380</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: something tells me this doesn't do what I had in mind</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>630</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: I think this isn't used?</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>645</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: decide how to dynamically decide filename, then move this into</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>755</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: yell if there are fewer or greater than 2 voices selected</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 00:56:53</Created>
+    <Resource>
+      <Filename>__main__.py</Filename>
+      <Linenumber>860</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: finish and test this</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 01:17:34</Created>
+    <Resource>
+      <Filename>NGram.py</Filename>
+      <Linenumber>325</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: write doc-test examples</Summary>
+    <Description></Description>
+    <Created>2012-08-29, 01:17:34</Created>
+    <Resource>
+      <Filename>NGram.py</Filename>
+      <Linenumber>338</Linenumber>
     </Resource>
   </Task>
 </Tasks>
