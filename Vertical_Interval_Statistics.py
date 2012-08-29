@@ -914,7 +914,7 @@ class Vertical_Interval_Statistics( object ):
       list_of_n = []
       if n is not None:
          # We have to parse this list.
-         if isinstance( int, n ):
+         if isinstance( n, int ):
             list_of_n.append( n )
          else:
             # Iterate each 'n' they specified, and see whether we have any
@@ -1038,7 +1038,8 @@ class Vertical_Interval_Statistics( object ):
                   
                # (6.3) Make the corresponding LilyPond analysis for this ngram
                lily_note = note.Note( 'C4', quarterLength=4.0 )
-               lily_note.lily_markup = '^' + make_lily_triangle( str(sorted_ngrams[i]) )
+               lily_note.lily_markup = '^' + make_lily_triangle( str(sorted_ngrams[i]), \
+                                                                 print_to_right=str(self._ngrams_dict[n][sorted_ngrams[i]]) )
                lily_part.append( lily_note )
                
                # (6.3.5) Append the Measure objects

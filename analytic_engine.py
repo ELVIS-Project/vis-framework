@@ -102,7 +102,7 @@ def fill_space_between_offsets( start_o, end_o ):
 
 
 #------------------------------------------------------------------------------
-def make_lily_triangle( ngram, which_colour = None ):
+def make_lily_triangle( ngram, which_colour=None, print_to_right=None ):
    '''
    Given the str for an n-gram with arbitrary 'n', writes the LilyPond "markup"
    block required to make a well-formed triangle around the well-formatted
@@ -111,6 +111,12 @@ def make_lily_triangle( ngram, which_colour = None ):
    Returns a str like this:
    "\markup{ <<ngram_here>> }"
    ... so you must prepend your own positional indicator.
+   
+   Optional Keyword Arguments:
+   ---------------------------
+   - which_colour : Should be the LilyPond command for the colour of everything
+                    that follows.
+   - print_to_right : This is a str appended to the right of the ngram.
    
    NB: Currently only works for 2-grams.
    '''
@@ -147,8 +153,17 @@ def make_lily_triangle( ngram, which_colour = None ):
    # Add the second vertical interval
    post += ngram[second_space+1:]
    
-   # Close the path and add the triangle ------------------
-   post += '"}} \path #0.1 #\'((moveto -1 1.25) '
+   # Close the ngram
+   post += '"} '
+   
+   # Append the print_to_right str
+   if print_to_right is not None:
+      post += ' "   ' + print_to_right + '" } '
+   else:
+      post += '} '
+   
+   # Draw the triangle
+   post += '\path #0.1 #\'((moveto -1 1.25) '
    # Middle-bottom triangle point
    if char_len > 4: # for four-sided triangles...
       # This goes down to the left-bottom triangle node.
@@ -164,6 +179,10 @@ def make_lily_triangle( ngram, which_colour = None ):
    # Right-most triangle point
    # NB: This is 3.3 for 3 characters, 4.3 for 4 characters, etc.
    post += '(lineto ' + str(char_len) + '.3 1.25) (closepath))}'
+   
+   # DEBUGGING
+   #post += '}'
+   # END DEBUGGING
    
    return post
 # End make_lily_triangle() ----------------------------------------------------

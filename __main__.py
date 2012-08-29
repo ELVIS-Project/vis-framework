@@ -50,6 +50,7 @@ from analytic_engine import vis_these_parts, make_basso_seguente
 from problems import MissingInformationError
 from file_output import file_outputter, file_inputter
 from output_LilyPond import process_score as lily_process_score
+from output_LilyPond import LilyPond_Settings
 
 
 
@@ -100,6 +101,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_targeted_colour_clear.clicked.connect( self.targeted_colour_clear )
       self.btn_targeted_choose_score.clicked.connect( self.targeted_choose_score )
       self.btn_targeted_produce.clicked.connect( self.targeted_produce )
+      self.rdo_summary_triangles.clicked.connect( self.change_print_summary )
+      self.rdo_summary_intervals.clicked.connect( self.change_print_summary )
+      self.btn_summary_auto_n.clicked.connect( self.summary_auto_n )
+      self.btn_summary_show.clicked.connect( self.generate_summary_score )
    
    
    
@@ -211,8 +216,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          "Save Settings Where?",
          "vis_settings.txt",
          '',
-         None))#,
-         #QtGui.QFileDialog.Options(QtGui.QFileDialog.ConfirmOverwrite)))
+         None))
       
       file_outputter( self.settings.export_settings(), filename, 'OVERWRITE' )
    
@@ -349,6 +353,70 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.settings.set_property( 'produceLabeledScore false' )
       else:
          self.analyze_this( self.targeted_lily_options )
+   
+   # "Show" tab; "LilyPond Statistics Summary" sub-tab -----
+   # rdo_summary_triangles or rdo_summary_intervals
+   def change_print_summary( self ):
+      # Update the rest of the interface in accordance with the option chosen.
+      if self.rdo_summary_triangles.isChecked():
+         self.lbl_summary_triangles_or_ngrams.setText( 'triangles.' )
+         self.box_summary_cardinalities.show()
+      else:
+         self.lbl_summary_triangles_or_ngrams.setText( 'intervals.' )
+         self.box_summary_cardinalities.hide()
+   
+   def summary_auto_n( self ):
+      # on btn_summary_auto_n.clicked
+      self.line_summary_n.setText( str(self.settings.get_property( 'lookForTheseNs' )) )
+   
+   def generate_summary_score( self ):
+      # on btn_summary_show.clicked
+      # This is the one where we have to make a score. Must set the formatting
+      # options correctly for LilyPond!
+      
+      # Get a settings instance
+      l_sets = LilyPond_Settings()
+      
+      # Set all the settings
+      # - no indent
+      l_sets.set_property( 'indent 0\cm' )
+      
+      # TODO: if we didn't process any pieces, stop processing
+      
+      # Get the values of 'n' we need.
+      enns = VIS_Settings._parse_list_of_n( str(self.line_summary_n.text()) )
+      
+      # Get the threshold.
+      try:
+         threshold = int(str(self.line_summary_threshold.text()))
+      except ValueError:
+         # If they input a non-int value.
+         threshold = None
+      
+      # Get the topX.
+      try:
+         topX = int(str(self.line_summary_topX.text()))
+      except ValueError:
+         # If they input a non-int value.
+         topX = None
+      
+      # Make the score
+      summary_score = self.statistics.make_summary_score( \
+            self.settings, \
+            enns, \
+            threshold, \
+            topX )
+      
+      # Ask where to save the LilyPond file
+      out_file = str(QtGui.QFileDialog.getSaveFileName(\
+         None,
+         "Save LilyPond File Where?",
+         "Statistics Summary.ly",
+         '',
+         None))
+      
+      # Pass the score to output_LilyPond for processing.
+      lily_process_score( summary_score, the_settings=l_sets, filename=out_file )
    
    
    

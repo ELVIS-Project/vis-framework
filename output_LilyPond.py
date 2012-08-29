@@ -680,7 +680,14 @@ class LilyPond_Settings:
 #------------------------------------------------------------------------------
 def output_the_file( contents, filename='test_output/lily_output' ):
    # TODO: exception handling
-   return file_outputter( contents, filename, '.ly' )
+   
+   # Is there already an extension?
+   if 3 < len(filename) and '.ly' == filename[-3:]:
+      extension = ''
+   else:
+      extension = '.ly'
+   
+   return file_outputter( contents, filename, extension )
 #------------------------------------------------------------------------------
 
 
@@ -708,7 +715,7 @@ def process_score( the_score, the_settings=None, filename='test_output/lily_outp
       the_settings = LilyPond_Settings()
    
    score_to_write = process_stream( the_score, the_settings )
-   output_result = output_the_file( score_to_write )
+   output_result = output_the_file( score_to_write, filename )
    if output_result[1] is not None:
       # TODO: raise exceptions
       print( 'Failed to output LilyPond file... \n' + output_result[1] )
@@ -728,6 +735,9 @@ if __name__ == '__main__':
 #   the Note or Rest objects inside should be made into spacing objects ("s")
 #   --> this is in the process_measure() method, and there are lots of things
 #       that need to be confirmed as appearing invisible
+# - whether the "indent" thing from settings is processed
+# - make_lily_triangle() in analytic_engine.py
+# - providing a filename to process_score() actually outputs there
 
 
 

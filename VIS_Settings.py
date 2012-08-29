@@ -93,6 +93,7 @@ class VIS_Settings:
       Accepts a str and returns a sort()-ed list with all of the integers
       as separated by any non-integer characters, with duplicates removed.
       '''
+      # WARNING: generate_summary_score() in __main__.py uses this method!
       
       # This method courtesy of Greg Burlet.
       return sorted(set([int(n) for n in re.findall('(\d+)', ns)]))
