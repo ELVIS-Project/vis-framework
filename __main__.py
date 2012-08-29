@@ -227,10 +227,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.txt_filenames.setPlainText( 'Will analyze these files:\n' + str(self.analysis_files) + '\n\nProgress:\n' )
       # Call analyze_this()
       self.analyze_this()
-      #self.analyze_this( [['these parts', [0, 3]], \
-                         #['only annotate', '10 -2 10'], \
-                         #['only colour', '12 +4 8'], \
-                         #['annotate colour', '#red']] )
    
    # When users choose the "Choose Files" button.
    def choose_files( self, sig ):
@@ -693,6 +689,13 @@ class Vis_MainWindow( Ui_MainWindow ):
             # Display the QDialog
             part_finder = Vis_Select_Voices()
             parts_to_examine = part_finder.trigger( available_parts )
+            # If we only receive one int, it means we're supposed to analyze
+            # it twice... so duplicate it!
+            if 1 == len(parts_to_examine):
+               parts_to_examine.append( parts_to_examine[0] )
+            # DEBUG
+            print( 'parts_to_examine: ' + str(parts_to_examine) )
+            # END DEBUG
             # What if they want basso seguente?
             if 'bs' == parts_to_examine[1]:
                self.txt_filenames.appendPlainText( '   making basso seguente' )
