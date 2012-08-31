@@ -273,13 +273,13 @@ class Test_NGram( unittest.TestCase ):
       self.assertEqual( NGram(self.e).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'E4' ), Note( 'G4' ) )] )" )
       self.assertEqual( NGram(self.f).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'G#4' ), Note( 'E4' ) )] )" )
       self.assertEqual( NGram(self.g).__repr__(), "NGram( [Interval( Note( 'A4' ), Note( 'C5' ) ), Interval( Note( 'D5' ), Note( 'E5' ) ), Interval( Note( 'F#4' ), Note( 'C#5' ) ), Interval( Note( 'G##5' ), Note( 'E#4' ) )] )" )
-   
+
    def test_voice_crossing( self ):
       self.assertFalse( NGram( self.a ).voice_crossing() )
       self.assertFalse( NGram( self.b ).voice_crossing() )
       self.assertTrue( NGram( self.f ).voice_crossing() )
       self.assertTrue( NGram( self.g ).voice_crossing() )
-   
+
    def test_retrograde( self ):
       self.assertTrue( NGram(self.a,True).retrograde() == NGram([interval.Interval(note.Note('A4'), \
             note.Note('C5')),interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
@@ -297,7 +297,7 @@ class Test_NGram( unittest.TestCase ):
             note.Note('E#4')),interval.Interval(note.Note('F#4'),note.Note('C#5')), \
             interval.Interval(note.Note('D5'),note.Note('E5')), \
             interval.Interval(note.Note('A4'),note.Note('C5'))],True) )
-   
+
    def test_canonical( self ):
       # m-3 +M2 M3
       self.assertEqual( NGram( self.d, True ).canonical(), 'm3 M2 M3' )
@@ -311,49 +311,37 @@ class Test_NGram( unittest.TestCase ):
       # m3 +P4 M2 -m6 P5 -m2 M-10
       self.assertEqual( NGram( self.g, True ).canonical(), 'm3 P4 M2 m6 P5 A9 M10' )
       self.assertEqual( NGram( self.g, False ).canonical(), '3 4 2 6 5 9 10' )
+
+   def test_inversion_1( self ):
+      # m3 M+2 P4 ==(12/up)==> M-10 +M2 M-9
+      i1 = interval.Interval( note.Note( 'A4' ), note.Note( 'C5' ) )
+      i2 = interval.Interval( note.Note( 'B4' ), note.Note( 'E5' ) )
+      ng = NGram( [i1,i2], True )
+      inv_ng = ng.get_inversion_at_the( 12, 'up' )
+      self.assertEqual( str(inv_ng), 'M-10 +M2 M-9' )
+      self.assertEqual( inv_ng._list_of_intervals[0].noteStart.nameWithOctave, 'E6' )
+      self.assertEqual( inv_ng._list_of_intervals[0].noteEnd.nameWithOctave, 'C5' )
+      self.assertEqual( inv_ng._list_of_intervals[1].noteStart.nameWithOctave, 'F#6' )
+      self.assertEqual( inv_ng._list_of_intervals[1].noteEnd.nameWithOctave, 'E5' )
    
-   def test_inversion( self ):
-      # NOTE: I'm not 100% sure whether I understand the task here, so I won't
-      # finish the tests for now.
-      s = VIS_Settings()
-      s.set_property( 'heedQuality true' )
-      # 'm3 P1 m3'
-         # interval.Interval(note.Note('A4'),note.Note('C5'))
-         # interval.Interval(note.Note('A4'),note.Note('C5'))
-      self.assertEqual( str(NGram(self.a, s).get_inversion_at_the( 12 )), \
-            'M-10 P1 M-10' )
-      # 'm3 P1 M3' # FIXME
-         # interval.Interval(note.Note('A4'),note.Note('C5'))
-         # interval.Interval(note.Note('A4'),note.Note('C#5'))
-      #self.assertEqual( str(NGram(self.b, s).get_inversion_at_the( 12 )), \
-            #'M-10 +A1 m-10' )
-      # 'm3 +P4 m3'
-         # interval.Interval(note.Note('A4'),note.Note('C5'))
-         # interval.Interval(note.Note('D5'),note.Note('F5'))
-      self.assertEqual( str(NGram(self.c, s).get_inversion_at_the( 12 )), \
-            'M-10 +P4 M-10' )
-      # 'm-3 +M2 M3' # FIXME
-         # interval.Interval(note.Note('C5'),note.Note('A4'))
-         # interval.Interval(note.Note('D5'),note.Note('F#5'))
-      #self.assertEqual( str(NGram(self.d, s).get_inversion_at_the( 12 )), \
-            #'M10 +M6 m-10' )
-      # 'm3 -P4 m3'
-         # interval.Interval(note.Note('A4'),note.Note('C5'))
-         # interval.Interval(note.Note('E4'),note.Note('G4'))
-      self.assertEqual( str(NGram(self.e, s).get_inversion_at_the( 12 )), \
-            'M-10 -P4 M-10' )
-      # 'm3 -m2 M-3' # FIXME
-         # interval.Interval(note.Note('A4'),note.Note('C5'))
-         # interval.Interval(note.Note('G#4'),note.Note('E4'))
-      #self.assertEqual( str(NGram(self.f, s).get_inversion_at_the( 12 )), \
-            #'M-10 -m6 m10' )
-      # 'm3 +P4 M2 -m6 P5 +A9 M-10' # FIXME
-         # interval.Interval(note.Note('A4'),note.Note('C5'))
-         # interval.Interval(note.Note('D5'),note.Note('E5'))
-         # interval.Interval(note.Note('F#4'),note.Note('C#5'))
-         # interval.Interval(note.Note('G##5'),note.Note('E#4'))
-      #self.assertEqual( str(NGram(self.g, s).get_inversion_at_the( 12 )), \
-            #'m3 +P4 M2 -m6 P5 +A9 M-10' )
+   def test_inversion_2( self ):
+      # m3 M+2 P4 ==(12/down)==> M-10 +M2 M-9
+      i1 = interval.Interval( note.Note( 'A4' ), note.Note( 'C5' ) )
+      i2 = interval.Interval( note.Note( 'B4' ), note.Note( 'E5' ) )
+      ng = NGram( [i1,i2], True )
+      inv_ng = ng.get_inversion_at_the( 12, 'down' )
+      self.assertEqual( str(inv_ng), 'M-10 +M2 M-9' )
+      self.assertEqual( inv_ng._list_of_intervals[0].noteStart.nameWithOctave, 'A4' )
+      self.assertEqual( inv_ng._list_of_intervals[0].noteEnd.nameWithOctave, 'F3' )
+      self.assertEqual( inv_ng._list_of_intervals[1].noteStart.nameWithOctave, 'B4' )
+      self.assertEqual( inv_ng._list_of_intervals[1].noteEnd.nameWithOctave, 'A3' )
+   
+   def test_inversion_3( self ):
+      # m3 M+2 P4 ==(12/6)==> We're going for an error!
+      i1 = interval.Interval( note.Note( 'A4' ), note.Note( 'C5' ) )
+      i2 = interval.Interval( note.Note( 'B4' ), note.Note( 'E5' ) )
+      ng = NGram( [i1,i2], True )
+      self.assertRaises( NonsensicalInputError, ng.get_inversion_at_the, 12, 6 )
 #------------------------------------------------------------------------------
 
 
