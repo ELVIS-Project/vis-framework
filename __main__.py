@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
-# 
+#
 # Filename: __main__.py
 # Purpose: Provide the graphical interface for vis.
 #
@@ -47,7 +47,7 @@ from qt.Ui_select_voices import Ui_select_voices
 from vis import VIS_Settings
 from vis import Vertical_Interval_Statistics
 from analytic_engine import vis_these_parts, make_basso_seguente
-from problems import MissingInformationError
+from problems import MissingInformationError, NonsensicalInputWarning
 from file_output import file_outputter, file_inputter
 from output_LilyPond import process_score as lily_process_score
 from output_LilyPond import LilyPond_Settings
@@ -56,7 +56,7 @@ from output_LilyPond import LilyPond_Settings
 
 # Subclass for Signal Handling -------------------------------------------------
 class Vis_MainWindow( Ui_MainWindow ):
-   
+
    # Create the settings and statistics objects for vis.
    def setup_vis( self ):
       self.settings = VIS_Settings()
@@ -65,7 +65,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.analysis_files = []
       # Hold the list of instructions for doing targeted analysis.
       self.targeted_lily_options = []
-   
+
    # Link all the signals with their methods.
    def setup_signals( self ):
       # "Settings" Tab
@@ -81,13 +81,12 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_setOffset.clicked.connect( self.settings_offset_interval )
       self.btn_save_settings.clicked.connect( self.settings_save )
       self.btn_load_settings.clicked.connect( self.settings_load )
-      self.rdo_choose_every_file.toggled.connect( self.settings_file_choose )
-      
+
       # "Input" Tab
       self.btn_analyze.clicked.connect( self.analyze_button )
       self.btn_chooseFiles.clicked.connect( self.choose_files )
       self.btn_chooseDirectories.clicked.connect( self.choose_directories )
-      
+
       # "Show" Tab
       self.score_slider.sliderMoved.connect( self.adjust_slider )
       self.btn_auto_n.clicked.connect( self.auto_fill_n )
@@ -105,80 +104,73 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.rdo_summary_intervals.clicked.connect( self.change_print_summary )
       self.btn_summary_auto_n.clicked.connect( self.summary_auto_n )
       self.btn_summary_show.clicked.connect( self.generate_summary_score )
-   
-   
-   
+
+
+
    # "Settings" Tab ----------------------------------------
-   # When users change "How to Choose Voices to Analyze"
-   def settings_file_choose( self, choose_once ):
-      if choose_once:
-         self.settings.set_property( 'howToChooseVoices once' )
-      else:
-         self.settings.set_property( 'howToChooseVoices independently' )
-   
    # When users change "Interval Quality"
    def settings_interval_quality( self ):
       if True == self.rdo_heedQuality.isChecked():
          self.settings.set_property( 'heedQuality true' )
       else: # Must be True == self.rdo_ignoreQuality.isChecked()
          self.settings.set_property( 'heedQuality false' )
-   
+
    # When users change "Octaves" (simple/compound intervals)
    def settings_simple_compound( self ):
       if True == self.rdo_compoundIntervals.isChecked():
          self.settings.set_property( 'simpleOrCompound compound' )
       else: # Must be True == self.rdo_simpleIntervals.isChecked()
          self.settings.set_property( 'simpleOrCompound simple' )
-   
+
    # When users choose "Set" for "Which Values of n?"
    def settings_set_n( self ):
       set_this_n = str(self.line_n.text())
       # TODO: see if there are input-checking things to do
       self.settings.set_property( 'lookForTheseNs ' + set_this_n )
-   
+
    # When users choose to produce or not a LilyPond score
    def settings_LilyPond_score( self ):
       if True == self.rdo_yesScore.isChecked():
          self.settings.set_property( 'produceLabeledScore true' )
       else: # Must be True == self.rdo_noScore.isChecked()
          self.settings.set_property( 'produceLabeledScore false' )
-   
+
    # When users change the offset between intervals
    def settings_offset_interval( self ):
       set_offset_interval = str(self.line_intervalOffset.text())
       # TODO: see if there are input-checking things to do
       self.settings.set_property( 'offsetBetweenInterval ' + set_offset_interval )
-   
+
    # When users change "How to Choose Voices to Analyze"
    def settings_choose_voices( self ):
       if True == self.rdo_choose_every_file.isChecked():
          self.settings.set_property( 'howToChooseVoices independently' )
       else: # Must be True == self.rdo_choose_just_once.isChecked()
          self.settings.set_property( 'howToChooseVoices once' )
-   
+
    # When users choose "Load" settings
    def settings_load( self ):
-      
+
       filename = str(QtGui.QFileDialog.getOpenFileName(\
          None,
          "Load Which Settings File?",
          "vis_settings.txt",
          '',
          None))
-      
+
       self.settings.import_settings( file_inputter( filename ) )
-      
+
       # Now we also have to update the interface
       self.line_intervalOffset.setText( str(self.settings.get_property( 'offsetBetweenInterval' )) )
       self.line_n.setText( str(self.settings.get_property( 'lookForTheseNs' )) )
-      
+
       if self.settings.get_property( 'heedQuality' ):
          self.rdo_heedQuality.setChecked( True )
          self.rdo_ignoreQuality.setChecked( False )
       else:
          self.rdo_ignoreQuality.setChecked( True )
          self.rdo_heedQuality.setChecked( False )
-      
+
       if 'once' == self.settings.get_property( 'howToChooseVoices' ):
          self.rdo_choose_every_file.setChecked( False )
          self.rdo_choose_just_once.setChecked( True )
@@ -191,24 +183,24 @@ class Vis_MainWindow( Ui_MainWindow ):
          # DEBUG
          self.txt_filenames.setPlainText( 'choose each' )
          # END DEBUG
-      
+
       if 'compound' == self.settings.get_property( 'simpleOrCompound' ):
          self.rdo_compoundIntervals.setChecked( True )
          self.rdo_simpleIntervals.setChecked( False )
       else:
          self.rdo_compoundIntervals.setChecked( False )
          self.rdo_simpleIntervals.setChecked( True )
-      
+
       if self.settings.get_property( 'produceLabeledScore' ):
          self.rdo_yesScore.setChecked( True )
          self.rdo_noScore.setChecked( False )
       else:
          self.rdo_yesScore.setChecked( False )
          self.rdo_noScore.setChecked( True )
-      
-      
+
+
    # End settings_load()
-   
+
    # When users choose "Save" settings
    def settings_save( self ):
       filename = str(QtGui.QFileDialog.getSaveFileName(\
@@ -217,9 +209,9 @@ class Vis_MainWindow( Ui_MainWindow ):
          "vis_settings.txt",
          '',
          None))
-      
+
       file_outputter( self.settings.export_settings(), filename, 'OVERWRITE' )
-   
+
    # "Input" Tab -------------------------------------------
    # When users choose the "Analyze!" button.
    def analyze_button( self, sig ):
@@ -227,7 +219,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.txt_filenames.setPlainText( 'Will analyze these files:\n' + str(self.analysis_files) + '\n\nProgress:\n' )
       # Call analyze_this()
       self.analyze_this()
-   
+
    # When users choose the "Choose Files" button.
    def choose_files( self, sig ):
      # this should refer to some global constants involving which filenames we can use
@@ -238,38 +230,38 @@ class Vis_MainWindow( Ui_MainWindow ):
          processed_str += str(each) + '\n'
          self.analysis_files.append( str(each) )
       self.txt_filenames.setPlainText( processed_str )
-   
+
    # When users choose the "Choose Directories" button.
    def choose_directories( self, sig ):
       direc = QtGui.QFileDialog.getExistingDirectory( None, 'Choose Directory to Analyze', '~' )
       self.analysis_files = [ direc ]
       self.txt_filenames.setPlainText( str(direc) )
-   
+
    # "Show" Tab --------------------------------------------
    def adjust_slider( self, n ):
       # For fun...
       self.score_progress.setValue( n )
-   
+
    # When users choose "Show" for triangles
    def show_triangles( self, zoop ):
       self.show_specs_getter( 'ngram' )
-   
+
    # When users choose "Show" for intervals
    def show_intervals( self, zoop ):
       self.show_specs_getter( 'interval' )
-   
+
    # When users choose "Save" for triangles
    def save_triangles( self, zoop ):
       self.show_specs_getter( 'ngram file' )
-   
+
    # When users choose "Save" for intervals
    def save_intervals( self, zoop ):
       self.show_specs_getter( 'interval file' )
-   
+
    # "Cardinalities"
    def auto_fill_n( self ):
       self.line_show_triangles_n.setText( str(self.settings.get_property( 'lookForTheseNs' )) )
-   
+
    # btn_targeted_add_black
    def targeted_add_black( self ):
       # Take the contents of the QLineEdit and append to the list of instructions
@@ -277,7 +269,7 @@ class Vis_MainWindow( Ui_MainWindow ):
                                           str(self.line_targeted_add_black.text())] )
       self.update_targeted_output_window()
       self.line_targeted_add_black.setText('')
-   
+
    # btn_targeted_add_colour
    def targeted_add_colour( self ):
       # Take the contents of the QLineEdit and append to the list of
@@ -287,7 +279,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.targeted_lily_options.append( ['only annotate', the_ngram] )
       self.update_targeted_output_window()
       self.line_targeted_add_colour.setText('')
-   
+
    # btn_targeted_colour_choose
    def targeted_colour_choose( self ):
       # Get the colour the user wants.
@@ -302,17 +294,17 @@ class Vis_MainWindow( Ui_MainWindow ):
       new_colour += str(float(user_colour.red())/255.0) + ' '
       new_colour += str(float(user_colour.green())/255.0) + ' '
       new_colour += str(float(user_colour.blue())/255.0) + ')'
-      
+
       # See if there's already a spot for colour and use it.
       for instr in self.targeted_lily_options:
          if 'annotate colour' == instr[0]:
             instr[1] = new_colour
-      
+
       # Otherwise, we'll have to add a new instruction.
       self.targeted_lily_options.append( ['annotate colour', new_colour] )
-      
+
       self.update_targeted_output_window()
-   
+
    # btn_targeted_colour_clear
    def targeted_colour_clear( self ):
       # Go through the list of instructions; if there's a colour, remove it.
@@ -320,7 +312,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          if 'annotate colour' == instr[0]:
             instr[1] = None
       self.update_targeted_output_window()
-   
+
    # btn_targeted_choose_score
    def targeted_choose_score( self ):
       # Choose the file
@@ -328,11 +320,11 @@ class Vis_MainWindow( Ui_MainWindow ):
       # We'll store it in here, even though I think I may regret it later.
       # TODO: see if you regret this
       self.analysis_files = [str(the_file)]
-   
+
    # btn_targeted_produce
    def targeted_produce( self ):
       # Start up the analysis engine!
-      
+
       # To avoid mistakes, in cases where users select a colour but don't put
       # any ngrams in the "to colour" list. If there are no "only colour"
       # instructions, we'll remove the colour.
@@ -341,7 +333,7 @@ class Vis_MainWindow( Ui_MainWindow ):
             break
       else:
          self.targeted_colour_clear()
-      
+
       # We have to make sure the "produceLabeledScore" option is enabled.
       if not self.settings.get_property( 'produceLabeledScore' ):
          self.settings.set_property( 'produceLabeledScore true' )
@@ -349,7 +341,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.settings.set_property( 'produceLabeledScore false' )
       else:
          self.analyze_this( self.targeted_lily_options )
-   
+
    # "Show" tab; "LilyPond Statistics Summary" sub-tab -----
    # rdo_summary_triangles or rdo_summary_intervals
    def change_print_summary( self ):
@@ -360,49 +352,49 @@ class Vis_MainWindow( Ui_MainWindow ):
       else:
          self.lbl_summary_triangles_or_ngrams.setText( 'intervals.' )
          self.box_summary_cardinalities.hide()
-   
+
    def summary_auto_n( self ):
       # on btn_summary_auto_n.clicked
       self.line_summary_n.setText( str(self.settings.get_property( 'lookForTheseNs' )) )
-   
+
    def generate_summary_score( self ):
       # on btn_summary_show.clicked
       # This is the one where we have to make a score. Must set the formatting
       # options correctly for LilyPond!
-      
+
       # Get a settings instance
       l_sets = LilyPond_Settings()
-      
+
       # Set all the settings
       # - no indent
       l_sets.set_property( 'indent 0\cm' )
-      
+
       # TODO: if we didn't process any pieces, stop processing
-      
+
       # Get the values of 'n' we need.
       enns = VIS_Settings._parse_list_of_n( str(self.line_summary_n.text()) )
-      
+
       # Get the threshold.
       try:
          threshold = int(str(self.line_summary_threshold.text()))
       except ValueError:
          # If they input a non-int value.
          threshold = None
-      
+
       # Get the topX.
       try:
          topX = int(str(self.line_summary_topX.text()))
       except ValueError:
          # If they input a non-int value.
          topX = None
-      
+
       # Make the score
       summary_score = self.statistics.make_summary_score( \
             self.settings, \
             enns, \
             threshold, \
             topX )
-      
+
       # Ask where to save the LilyPond file
       out_file = str(QtGui.QFileDialog.getSaveFileName(\
          None,
@@ -410,12 +402,12 @@ class Vis_MainWindow( Ui_MainWindow ):
          "Statistics Summary.ly",
          '',
          None))
-      
+
       # Pass the score to output_LilyPond for processing.
       lily_process_score( summary_score, the_settings=l_sets, filename=out_file )
-   
-   
-   
+
+
+
    #----------------------------------------------------------------------------
    def update_targeted_output_window( self ):
       '''
@@ -423,9 +415,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       contents of the instructions from the "Targeted LilyPond Output" tab.
       '''
       self.txt_results.setPlainText( str(self.targeted_lily_options) )
-   
-   
-   
+
+
+
    #----------------------------------------------------------------------------
    def show_specs_getter( self, grob ):
       '''
@@ -434,9 +426,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       then call show_results() with the correct settings.
       '''
       post = grob
-      
+
       # This method merely gets the settings, but doesn't do anything with them.
-      
+
       if 'ngram' in post:
          # Check settings on the "Show"/"Triangles" tab
          # Sort Order
@@ -444,17 +436,17 @@ class Vis_MainWindow( Ui_MainWindow ):
             post += ' ascending '
          else:
             post += ' descending '
-         
+
          # Sort Object
          if self.rdo_ngrams_by_ngram.isChecked():
             post += ' by ngram '
          else:
             post += ' by frequency '
-         
+
          # Graph
          if self.chk_graph_triangles.isChecked():
             post += ' graph '
-         
+
          # n
          # We must remove any spaces in this box, because spaces are later
          # unerstood as the termination of the string
@@ -463,7 +455,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          enns = str_replace( enns, '[', '' )
          enns = str_replace( enns, ']', '' )
          post += ' n=' + enns + ' '
-         
+
       elif 'interval' in post:
          # Check settings on the "Show"/"Intervals" tab
          # Sort Order
@@ -471,17 +463,17 @@ class Vis_MainWindow( Ui_MainWindow ):
             post += ' ascending '
          else:
             post += ' descending '
-         
+
          # Sort Object
          if self.rdo_intervals_by_interval.isChecked():
             post += ' by interval '
          else:
             post += ' by frequency '
-         
+
          # Graph
          if self.chk_graph_intervals.isChecked():
             post += ' graph '
-      
+
       # Call show_results() to actually display things.
       # We'll try to catch exceptions and alert our user intelligently.
       try:
@@ -493,9 +485,9 @@ class Vis_MainWindow( Ui_MainWindow ):
             QtGui.QMessageBox.StandardButtons(\
                QtGui.QMessageBox.Ok),
             QtGui.QMessageBox.Ok)
-   
-   
-   
+
+
+
    #----------------------------------------------------------------------------
    def show_results( self, specs ):
       '''
@@ -511,17 +503,17 @@ class Vis_MainWindow( Ui_MainWindow ):
       - 'graph' : to produce a chart rather than a list
       - 'file' : to output results to a file rather than the screen
       - 'n=XX' : for ngrams, to specify which values of n to show
-      
+
       If you send the 'graph' option, the 'file' option is ignored.
-      
+
       If you send the 'file' option, a 'Save As' dialogue window appears.
       '''
-      
+
       # NB: I broke this apart for modularity, but I'm not sure we need it.
-      
+
       # Hold the str we'll output.
       results = None
-      
+
       # First, format the results.
       if 'ngram' in specs:
          # output ngrams
@@ -529,7 +521,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       else:
          # output intervals
          results = self.statistics.get_formatted_intervals( self.settings, specs )
-      
+
       # Second, deal with results output to a file.
       if 'file' in specs:
          # Get the file name to which to save results.
@@ -539,10 +531,10 @@ class Vis_MainWindow( Ui_MainWindow ):
             '',
             '',
             None)
-         
+
          # Use the file_output module's utility method.
          output_results = file_outputter( results, output_filename, 'OVERWRITE' )
-         
+
          # If there's a str as the second element, there was an error.
          if isinstance( output_results[1], str ):
             self.txt_results.appendPlainText( 'Error during output:' )
@@ -553,9 +545,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Third, deal with results shown in the window.
       else:
          self.txt_results.setPlainText( str(results)  )
-   
-   
-   
+
+
+
    #----------------------------------------------------------------------------
    def analyze_this( self, targeted_output = None ):
       '''
@@ -564,7 +556,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       also be specified in "self" as self.analysis_files as a list of str
       pathnames. This method analyzes all single files in that list, or all
       files in directories (and their subdirectories) in that list.
-      
+
       The argument, targeted_output, is a list of instructions for creating a
       purpose-built LilyPond score. Each instruction is a list with a str and
       the value, if any. You could have:
@@ -575,12 +567,12 @@ class Vis_MainWindow( Ui_MainWindow ):
          - #blue for "Normal colors"
          - #(x11-color 'DarkRed) for "X color names"
          - for a list of colours: http://lilypond.org/doc/v2.14/Documentation/notation/list-of-colors
-      
+
       NB: If you do not specify only_annotate or only_colour, all annotations appear, and the colour is #black
       NB: If you specify annotate_colour without only_colour, all annotations appear, and the colour is annotate_colour
       NB: All annotations in only_colour should also appear in only_annotate.
       NB: All annotations in only_annotate but not only_colour will appear, but with the colour #black
-      
+
       Therefore, if you want parts 0 and 3, and both '3 1 3' and '3 1 4' to be
       annotated, but only '3 1 4' with the colour #darkred, you would do this:
       >>> analyze_this( [['these parts', [0, 3], \
@@ -591,7 +583,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       #-------------------------------------------------------
       def calculate_all_combis( upto ):
          # Calculate all combinations of integers, up to a given integer.
-         # 
+         #
          # Includes a 0th item... the argument should be len(whatevs) - 1.
          post = []
          for left in xrange(upto):
@@ -599,11 +591,11 @@ class Vis_MainWindow( Ui_MainWindow ):
                post.append( [left,right] )
          return post
       #-------------------------------------------------------
-      
+
       # Hold the list of parts to examine. Must be here because targeted_output
       # may contain instructions.
       parts_to_examine = None
-      
+
       # Go through all the instructions
       if targeted_output is not None:
          # Do we have instructions on which voices to analyze? This is
@@ -613,15 +605,7 @@ class Vis_MainWindow( Ui_MainWindow ):
             if 'these parts' == instruction[0]:
                parts_to_examine = instruction[1]
       # End parsing of targeted_output ---------------------
-      
-      # How do we choose voices?
-      how_to_choose = self.settings.get_property( 'howToChooseVoices' )
-      
-      # If we only choose once, let's do it now.
-      if 'once' == how_to_choose and parts_to_examine is None:
-         part_finder = Vis_Select_Voices()
-         parts_to_examine = part_finder.trigger()
-      
+
       # Prepare the list of files. Go through every element and see if it's a
       # directory. If so, bring out all the filenames to the top-level list.
       corrected_file_list = []
@@ -634,24 +618,20 @@ class Vis_MainWindow( Ui_MainWindow ):
             corrected_file_list.append( pathname )
       # Finally, replace analysis_files with corrected_file_list
       self.analysis_files = corrected_file_list
-      
+
       # Hold a list of pieces that failed during analysis.
       files_not_analyzed = []
-      
+
       # Accumulate the length of time spent in vis_these_parts()
       cumulative_analysis_duration = 0.0
-      
-      # Hold a list of parts to analyze.
-      # TODO: I think this isn't used?
-      #parts_to_analyze = []
-      
+
       # Go through all the files/directories.
       for piece_name in self.analysis_files:
          # Hold this score
          the_score = None
          # Hold the basso seguente part, if needed
          seguente_part = None
-         
+
          # Try to open this file
          self.txt_filenames.appendPlainText( 'Trying "' + piece_name + '"' )
          try:
@@ -673,9 +653,9 @@ class Vis_MainWindow( Ui_MainWindow ):
             continue
          else:
             self.txt_filenames.appendPlainText( '   successfully imported' )
-         
+
          # If necessary, figure out which parts to analyze.
-         if 'independently' == how_to_choose and parts_to_examine is None:
+         if parts_to_examine is None:
             # Find out the available part names
             available_parts = []
             i = 0
@@ -686,24 +666,34 @@ class Vis_MainWindow( Ui_MainWindow ):
                else:
                   available_parts.append( instr.bestName() )
                i += 1
+
             # Display the QDialog
-            part_finder = Vis_Select_Voices()
-            parts_to_examine = part_finder.trigger( available_parts )
+            # Error loop. If users choose an invalid/unworkable combination of
+            # voices, we'll receive a NonsensicalInputWarning, and we have to ask
+            # again.
+            while parts_to_examine is None:
+               try:
+                  part_finder = Vis_Select_Voices()
+                  parts_to_examine, keep_asking_voices = part_finder.trigger( available_parts )
+               except NonsensicalInputWarning as niw:
+                  # We don't need to do much of anything, except clear
+                  # parts_to_examine, so the loop ensures we will re-open
+                  # the QDialog
+                  parts_to_examine = None
+
             # If we only receive one int, it means we're supposed to analyze
             # it twice... so duplicate it!
             if 1 == len(parts_to_examine):
                parts_to_examine.append( parts_to_examine[0] )
-            # DEBUG
-            print( 'parts_to_examine: ' + str(parts_to_examine) )
-            # END DEBUG
+
             # What if they want basso seguente?
             if 'bs' == parts_to_examine[1]:
                self.txt_filenames.appendPlainText( '   making basso seguente' )
                # Make the b.s. voice
                seguente_part = make_basso_seguente( the_score )
-         
+
          self.txt_filenames.appendPlainText( '   starting analysis' )
-         
+
          # Try to analyze this file
          try:
             if 'all' == parts_to_examine:
@@ -745,7 +735,7 @@ class Vis_MainWindow( Ui_MainWindow ):
                cumulative_analysis_duration += it_took
                # Print this duration.
                self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
-            
+
             # Now do the LilyPond portion, if needed.
             if True == self.settings.get_property( 'produceLabelledScore' ):
                # Add the annotated part to the score
@@ -754,6 +744,7 @@ class Vis_MainWindow( Ui_MainWindow ):
                lily_process_score( the_score )
                # TODO: decide how to dynamically decide filename, then move this into
                # a sub-section of the "show" command in the "main" method.
+
          # If something fails, we don't want the entire analysis to fail, but
          # we do need to tell our user.
          except Exception as exc:
@@ -761,10 +752,15 @@ class Vis_MainWindow( Ui_MainWindow ):
             self.txt_filenames.appendPlainText( str(exc) )
             files_not_analyzed.append( piece_name )
             continue
-         
+
+         # If we're supposed to keep asking the user which voices to analyze,
+         # we'll clear parts_to_examine
+         if keep_asking_voices:
+            parts_to_examine = None
+
       # Print how long the analysis took.
       self.txt_filenames.appendPlainText( '\n\n --> the analysis took ' + str(cumulative_analysis_duration) + ' seconds' )
-      
+
       # If there are files we were asked to analyze, but we couldn't,
       # then say so.
       if len(files_not_analyzed) > 0:
@@ -772,16 +768,16 @@ class Vis_MainWindow( Ui_MainWindow ):
          for filename in files_not_analyzed:
             pass
             self.txt_filenames.appendPlainText( filename )
-      
+
    # End function analyze_this() ---------------------------------------------------
 #-------------------------------------------------------------------------------
 
 
 
 class Vis_Select_Voices( Ui_select_voices ):
-   
+
    # self._chk_voice : a list of the "part" selection checkboxes
-   
+
    def trigger( self, list_of_parts = [] ):
       '''
       Causes the "Select Voices to Analyze" window to be shown. The argument
@@ -789,16 +785,26 @@ class Vis_Select_Voices( Ui_select_voices ):
       window that lists specific parts. Otherwise the list should contain many
       str objects that specify the name of the part in the score associated with
       that index value.
-      
+
       For example, for a SATB piece, the list will be:
       ['Soprano', 'Alto', 'Tenor', 'Bass']
       The 'Soprano' part should be found in score.parts[0], the 'Alto' part in
       score.parts[1], and so on.
-      
-      The return value is either a two-element list of int, the str 'all', or
-      a two-element list of int and the str 'bs' (for "basso seguente"). This
-      is the user's choice of parts.
-      
+
+      The return value is a 2-tuple, where the first element...
+      - the str 'all',
+      - a list with 2 int objects that are the part indices to examine,
+      - a list with an int and the str 'bs' (for "basso seguente"), or
+      - a list with a single int that represents the part index to analyze
+        monophonically
+      ... and the second element is 'True' or 'False' in response to the
+      question of whether the caller method should keep asking the user for
+      a voice selection every time.
+
+      Raises NonsensicalInputWarning when the answer received is, for some
+      reason, unworkable or invalid. This is only a "NIWarning" (not an
+      "NIError") because execution can continue by asking the user again.
+
       For example:
       >>> which_parts = Vis_Select_Voices()
       >>> result = which_parts.trigger( ['oboe', 'cello', 'tuba'] )
@@ -806,12 +812,12 @@ class Vis_Select_Voices( Ui_select_voices ):
       >>> print( str(result) )
       [0, 2]
       '''
-      
+
       # UI setup stuff
       self.select_voices = QtGui.QDialog()
       self.v_s_v = Vis_Select_Voices()
       self.v_s_v.setupUi( self.select_voices )
-      
+
       # Is there no list of parts?
       if 0 == len(list_of_parts):
          # Hide the specific-part-choosing stuff
@@ -832,38 +838,62 @@ class Vis_Select_Voices( Ui_select_voices ):
             self.chk_voice[i].setText( list_of_parts[i] )
             self.chk_voice[i].setEnabled( False )
             i += 1
-      
+
       # Final UI setup
       self.setup_signals()
       self.select_voices.exec_()
-      
+
+      # EXECUTION PAUSES
       # ... and our user chooses...
-      
+      # EXECUTION CONTINUES
+
+      # Find their answer to whether the caller method should keep asking the
+      # user for voice selection every time. This is the inverse to the question
+      # posed on the interface.
+      if self.v_s_v.chk_preserve_voices_selction.isChecked():
+         keep_asking = False
+      else:
+         keep_asking = True
+
       # Now we have to find out what they did and return it.
       if self.v_s_v.rdo_all.isChecked():
          # "Compare all part combinations"
-         return 'all'
+         return ( 'all', keep_asking )
       elif self.v_s_v.rdo_these_parts.isChecked():
          # "Compare these parts"
          parts_to_examine = self.v_s_v.line_these_parts.text()
          parts_to_examine = list(set([int(n) for n in re.findall('(-?\d+)', parts_to_examine)]))
-         return parts_to_examine[:2]
+         return ( parts_to_examine[:2], keep_asking )
       elif self.v_s_v.rdo_part_and_bs.isChecked():
          # "Compare this part with basso seguente"
          part_to_examine = self.v_s_v.line_part_and_bs.text()
          part_to_examine = list(set([int(n) for n in re.findall('(-?\d+)', part_to_examine)]))
          part_to_examine = part_to_examine[:1]
          part_to_examine.append( 'bs' )
-         return part_to_examine
+         return ( part_to_examine, keep_asking )
       else:
          # "Choose two specific voices"
-         # TODO: yell if there are fewer or greater than 2 voices selected
          post = []
          for i in xrange(len(self.chk_voice)):
             if self.chk_voice[i].isChecked():
                post.append( i )
-         return post
-   
+
+         # Are there fewer or greater than two voices?
+         if 2 != len(post) and 1 != len(post):
+            # Display a warning message
+            QtGui.QMessageBox.warning(None,
+               "vis: Warning",
+               """Choose only two voices.""",
+               QtGui.QMessageBox.StandardButtons(\
+                  QtGui.QMessageBox.Ok),
+               QtGui.QMessageBox.Ok)
+            # Raise a warning
+            msg = 'Vis_Select_Voices(): you must choose 2 voices; received ' + \
+               str(len(post))
+            raise NonsensicalInputWarning( msg )
+
+         return ( post, keep_asking )
+
    # Link all the signals with their methods.
    def setup_signals( self ):
       # "Settings" Tab
@@ -871,31 +901,32 @@ class Vis_Select_Voices( Ui_select_voices ):
       self.v_s_v.rdo_these_parts.toggled.connect( self.compare_radio )
       self.v_s_v.rdo_part_and_bs.toggled.connect( self.bs_radio )
       self.v_s_v.btn_continue.clicked.connect( self.continue_button )
-   
+
    # When users enable or disable "Choose two specific voices"
    def able_checks( self, state ):
       # If the radio button is enabled, we're going to enable the checkboxes;
       # if the   '    '     is disabled, we're going to disable the checkboxes.
-      
+
       # Go through each checkbox and apply the correct state to it.
       for box in self.chk_voice:
          box.setEnabled( state )
-   
+
    # When users enable or disable "Compare these parts"
    def compare_radio( self, state ):
       # If the radio button is enabled, we're going to enable the QLineEdit;
       # if the   '    '     is disabled, we're going to disable the QLineEdit.
       self.v_s_v.line_these_parts.setEnabled( state )
-   
+
    # When users enable or disable "Compare this part with basso seguente"
    def bs_radio( self, state ):
       # If the radio button is enabled, we're going to enable the QLineEdit;
       # if the   '    '     is disabled, we're going to disable the QLineEdit.
       self.v_s_v.line_part_and_bs.setEnabled( state )
-   
+
    # When users choose "Continue"
    def continue_button( self ):
       self.select_voices.accept()
+      # NB: Execution continues part-way through trigger()
 #-------------------------------------------------------------------------------
 
 
@@ -913,6 +944,6 @@ def main():
    # Standard stuff
    MainWindow.show()
    sys.exit( app.exec_() )
-   
+
 if __name__ == "__main__":
    main()

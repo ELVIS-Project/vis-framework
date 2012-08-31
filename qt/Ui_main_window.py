@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/qt/main_window.ui'
 #
-# Created: Tue Aug 28 23:36:58 2012
+# Created: Thu Aug 30 21:39:23 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,19 +78,6 @@ class Ui_MainWindow(object):
         self.rdo_simpleIntervals.setObjectName(_fromUtf8("rdo_simpleIntervals"))
         self.verticalLayout_6.addWidget(self.rdo_simpleIntervals)
         self.verticalLayout.addWidget(self.groupBox_Octaves)
-        self.groupBox_9 = QtGui.QGroupBox(self.tab_usual_settings)
-        self.groupBox_9.setObjectName(_fromUtf8("groupBox_9"))
-        self.verticalLayout_16 = QtGui.QVBoxLayout(self.groupBox_9)
-        self.verticalLayout_16.setObjectName(_fromUtf8("verticalLayout_16"))
-        self.rdo_choose_every_file = QtGui.QRadioButton(self.groupBox_9)
-        self.rdo_choose_every_file.setChecked(False)
-        self.rdo_choose_every_file.setObjectName(_fromUtf8("rdo_choose_every_file"))
-        self.verticalLayout_16.addWidget(self.rdo_choose_every_file)
-        self.rdo_choose_just_once = QtGui.QRadioButton(self.groupBox_9)
-        self.rdo_choose_just_once.setChecked(True)
-        self.rdo_choose_just_once.setObjectName(_fromUtf8("rdo_choose_just_once"))
-        self.verticalLayout_16.addWidget(self.rdo_choose_just_once)
-        self.verticalLayout.addWidget(self.groupBox_9)
         self.groupBoxwhichNs = QtGui.QGroupBox(self.tab_usual_settings)
         self.groupBoxwhichNs.setMinimumSize(QtCore.QSize(191, 71))
         self.groupBoxwhichNs.setObjectName(_fromUtf8("groupBoxwhichNs"))
@@ -498,9 +485,6 @@ class Ui_MainWindow(object):
         self.groupBox_Octaves.setTitle(QtGui.QApplication.translate("MainWindow", "Octaves", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_compoundIntervals.setText(QtGui.QApplication.translate("MainWindow", "Compound Intervals", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_simpleIntervals.setText(QtGui.QApplication.translate("MainWindow", "Simple Intervals", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_9.setTitle(QtGui.QApplication.translate("MainWindow", "How to Choose Voices to Analyze", None, QtGui.QApplication.UnicodeUTF8))
-        self.rdo_choose_every_file.setText(QtGui.QApplication.translate("MainWindow", "Choose once for all files", None, QtGui.QApplication.UnicodeUTF8))
-        self.rdo_choose_just_once.setText(QtGui.QApplication.translate("MainWindow", "Choose for every file", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBoxwhichNs.setTitle(QtGui.QApplication.translate("MainWindow", "Which Values of n?", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "n = ", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_setN.setText(QtGui.QApplication.translate("MainWindow", "Set", None, QtGui.QApplication.UnicodeUTF8))

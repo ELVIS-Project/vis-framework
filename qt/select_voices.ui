@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>476</width>
-    <height>241</height>
+    <width>457</width>
+    <height>223</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -216,6 +216,13 @@
    <item>
     <widget class="QWidget" name="widget_2" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QCheckBox" name="chk_preserve_voices_selction">
+        <property name="text">
+         <string>Same for Remaining Files</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
