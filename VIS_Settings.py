@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
-# 
+#
 # Filename: VIS_Settings.py
 # Purpose: Provide a settings object for vis
 #
@@ -47,7 +47,7 @@ class VIS_Settings:
    #
    # NOTE: When you add a property, remember to test its default setting in
    # the unit test file.
-   # 
+   #
    # NOTE: I'm going to keep the setting names in camel case because this is
    # the music21 convention, and it's probably a good idea for our users to
    # think consistently.
@@ -60,9 +60,7 @@ class VIS_Settings:
       self._secret_settings_hash['offsetBetweenInterval'] = 0.5
       self._secret_settings_hash['outputResultsToFile'] = ''
       self._secret_settings_hash['simpleOrCompound'] = 'compound'
-      # NB: for this, either 'independently' or 'once'
-      self._secret_settings_hash['howToChooseVoices'] = 'independently'
-   
+
    # Helper method to test whether a str contains a boolean value.
    @staticmethod
    def _is_t_or_f( s ):
@@ -72,7 +70,7 @@ class VIS_Settings:
       else:
          return False
    #-----
-   
+
    # Helper method to turn the str boolean into a real boolean
    @staticmethod
    def _str_to_bool( s ):
@@ -84,7 +82,7 @@ class VIS_Settings:
       else:
          return '' # panic?
    #-----
-   
+
    # Helper method to parse a str-based list of 'n' into an actual
    # list of python int
    @staticmethod
@@ -94,11 +92,11 @@ class VIS_Settings:
       as separated by any non-integer characters, with duplicates removed.
       '''
       # WARNING: generate_summary_score() in __main__.py uses this method!
-      
+
       # This method courtesy of Greg Burlet.
       return sorted(set([int(n) for n in re.findall('(\d+)', ns)]))
    #-----
-   
+
    def set_property( self, property_str ):
       # Parses 'property_str' and sets the specified property to the specified
       # value. Might later raise an exception if the property doesn't exist or
@@ -107,20 +105,20 @@ class VIS_Settings:
       # Examples:
       # a.set_property( 'chordLabelVerbosity concise' )
       # a.set_property( 'set chordLabelVerbosity concise' )
-      
+
       # If the str starts with "set " then remove that
       if 'set ' == property_str[:4]:
          property_str = property_str[4:]
-      
+
       # Check to make sure we have a setting and a value
       setting = property_str[:property_str.find(' ')]
       value = property_str[property_str.find(' ')+1:]
-      
+
       if 0 == len(setting):
          raise NonsensicalInputWarning( 'Unable to find setting name in "' + property_str + '"' )
       if 0 == len(value):
          raise NonsensicalInputWarning( 'Unable to find value in "' + property_str + '"' )
-      
+
       # If the property requires a boolean value, make sure we have one
       if 'heedQuality' == setting or 'produceLabeledScore' == setting or \
             'produceLabelledScore' == setting or 'recurse' == setting:
@@ -130,12 +128,12 @@ class VIS_Settings:
                   str(value) + '"' )
          else:
             value = VIS_Settings._str_to_bool( value )
-      
+
       # If the property is 'n' we need to parse the list of values into
       # a real list of int.
       if 'lookForTheseNs' == setting:
          value = VIS_Settings._parse_list_of_n( value )
-      
+
       # If the property is 'offsetBetweenInterval' then make sure we have an
       # int for this, not a str
       if 'offsetBetweenInterval' == setting:
@@ -144,12 +142,12 @@ class VIS_Settings:
          except ValueError as vale:
             msg = 'Invalid value for offsetBetweenInterval; ignoring'
             raise NonsensicalInputWarning( msg )
-      
+
       # If the property is 'outputResultsToFile' and the value is 'None' then
       # the value should actually be ''
       if 'outputResultsToFile' == setting and 'None' == value:
          value = ''
-      
+
       # now match the property
       if setting in self._secret_settings_hash:
          self._secret_settings_hash[setting] = value
@@ -159,7 +157,7 @@ class VIS_Settings:
       else:
          raise NonsensicalInputWarning( "Unrecognized setting name: " + setting )
    # end set_propety() ------------------------------------
-   
+
    def get_property( self, property_str ):
       # Parses 'property_str' and returns the value of the specified property.
       # Might later raise an exception if the property doesn't exist.
@@ -167,7 +165,7 @@ class VIS_Settings:
       # Examples:
       # a.get_property( 'chordLabelVerbosity' )
       # a.get_property( 'get chordLabelVerbosity' )
-      
+
       # if the str starts with "get " then remove that
       if 'get ' == property_str[:4]:
          property_str = property_str[4:]
@@ -181,18 +179,18 @@ class VIS_Settings:
       # unrecognized property
       else:
          raise NonsensicalInputWarning( "Unrecognized property: " + property_str )
-      
+
       return post
-   
+
    def import_settings( self, import_from ):
       '''
       Given a str with settings, modifies self to have the same settings.
-      
+
       The str should be of the format outputted by export_settings()
-      
+
       TODO: deal with test_import_settings_2()
       '''
-      
+
       # Make a list of all the newline-separated fragments.
       list_of_settings = []
       while 0 < len(import_from):
@@ -209,7 +207,7 @@ class VIS_Settings:
             this_setting = import_from[:nli]
             list_of_settings.append( this_setting )
             import_from = import_from[nli+1:]
-      
+
       # Prepare each setting and send it to set_property()
       for setting in list_of_settings:
          # If there is no ':' then there is no setting, so ignore this.
@@ -227,35 +225,35 @@ class VIS_Settings:
             # Send it to set_property()
             self.set_property( setting )
    # ------------------------------------------------------
-   
+
    def export_settings( self ):
       '''
       Exports the settings of self to a str. Each setting is written on one
       line, with a semicolon separating the setting name (on the left) from the
       setting value (on the right).
       '''
-      
+
       # Hold the str that will have settings in it.
       post = ''
-      
+
       # Go through every setting, and output it.
       for key in self._secret_settings_hash.iterkeys():
          post += str(key) + ': ' + str(self._secret_settings_hash[key]) + '\n'
-      
+
       return post
-   
+
    def save_settings( self, filename ):
       '''
       When called with a filename, this method puts the result of
       self.export_settings() into the specified file.
       '''
       file_outputter( self.export_settings(), filename )
-   
+
    def load_settings( self, filename ):
       '''
       When called with a filename, this method puts the contents of that file
       through self.import_settings().
       '''
       self.import_settings( file_inputter( filename ) )
-   
+
 # End Class: VIS_Settings -----------------------------------------------------
