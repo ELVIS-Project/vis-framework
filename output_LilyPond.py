@@ -3,19 +3,19 @@
 #-------------------------------------------------------------------------------
 # Name:         outputLilypond.py
 # Purpose:      Outputs music21 Objects into LilyPond Format
-# 
+#
 # Copyright (C) 2012 Christopher Antila
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
@@ -68,11 +68,11 @@ def octave_num_to_lily( num ):
    '''
    Returns the LilyPond symbol corresponding to the octave number.
    '''
-   
+
    dictionary_of_octaves = { 0:",,,", 1:",,", 2:",", 3:"", 4:"'", 5:"''", \
       6:"'''", 7:"''''", 8:"'''''", 9:"''''''", 10:"'''''''", 11:"''''''''", \
       12:"'''''''''" }
-   
+
    if num in dictionary_of_octaves:
       return dictionary_of_octaves[num]
    else:
@@ -85,7 +85,7 @@ def octave_num_to_lily( num ):
 def pitch_to_lily( p, include_octave = True ):
    '''
    Returns a str that is the LilyPond pitch name for the pitch.Pitch
-   
+
    Second argument can be set to 'no' to avoid the commas or apostrophes that
    indicate octave.
    '''
@@ -96,13 +96,13 @@ def pitch_to_lily( p, include_octave = True ):
          post += 'es'
       elif '#' == accidental:
          post += 'is'
-   
+
    if include_octave:
       if p.octave is None:
          post += octave_num_to_lily( p.implicitOctave )
       else:
          post += octave_num_to_lily( p.octave )
-   
+
    return post
 #------------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
    Returns a LilyPond length integer (like '4' for quarter note) corresponding
    to the Duration passed in.
    '''
-   
+
    # First of all, we can't deal with tuplets or multiple-component durations
    # in this method. We need process_measure() to help.
    # DEBUG
@@ -139,17 +139,17 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
       else:
          # TODO: this error doesn't really describe what's going on here
          raise UnidentifiedObjectError( 'duration_to_lily(): Cannot process tuplet components' )
-   
+
    # We need both a list of our potential durations and a dictionary of what
    # they mean in LilyPond terms.
    list_of_durations = [16.0, 8.0, 4.0, 2.0, 1.0, 0.5,  0.25, 0.125, 0.0625, \
       0.03125]
    dictionary_of_durations = { 16.0:'\longa', 8.0:'\\breve', 4.0:'1', 2.0:'2', \
       1.0:'4', 0.5:'8', 0.25:'16', 0.125:'32', 0.0625:'64', 0.3125:'128' }
-   
+
    # So we only access the quarterLength once
    dur_qL = dur.quarterLength
-   
+
    # If there are no dots, the value should be in the dictionary, and we can
    # simply return it.
    if dur_qL in dictionary_of_durations:
@@ -177,7 +177,7 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
             if possible_new_qL != dur.quarterLength:
                return duration_to_lily( duration.Duration( round( dur.quarterLength, 2 ) ) )
             else:
-               raise UnidentifiedObjectError( 'A-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(err) )   
+               raise UnidentifiedObjectError( 'A-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(err) )
          except UnidentifiedObjectError as uoerr:
             raise uoerr
       except DurationException as durexc:
@@ -192,15 +192,15 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
 def note_to_lily( lily_this, known_tuplet = False ):
    '''
    Returns a str that is a LilyPond representation of the inputted note.Note.
-   
+
    Additionally appends any value in the Note object's "lily_markup" property.
-   
+
    The second argument, known_tuplet, is not used by note_to_lily() but passed
    on to duration_to_lily().
    '''
-   
+
    post = ''
-   
+
    if len(lily_this.duration.components) > 1:
       the_pitch = pitch_to_lily( lily_this.pitch )
       for durational_component in lily_this.duration.components:
@@ -210,14 +210,14 @@ def note_to_lily( lily_this, known_tuplet = False ):
       post += "r" + duration_to_lily( lily_this.duration, known_tuplet )
    else:
       post += pitch_to_lily( lily_this.pitch ) + duration_to_lily( lily_this.duration, known_tuplet )
-   
+
    if lily_this.tie is not None:
       if lily_this.tie.type is 'start':
          post += "~"
-   
+
    if hasattr( lily_this, 'lily_markup' ):
       post += str(lily_this.lily_markup)
-   
+
    return post
 #------------------------------------------------------------------------------
 
@@ -230,16 +230,16 @@ def barline_to_lily( bl ):
    representation of that barline.
    '''
    # From the music21 source code... a list of barline styles...
-   # 
-   # barStyleList = ['regular', 'dotted', 'dashed', 'heavy', 'double', 'final', 
+   #
+   # barStyleList = ['regular', 'dotted', 'dashed', 'heavy', 'double', 'final',
    #               'heavy-light', 'heavy-heavy', 'tick', 'short', 'none']
-   
+
    dictionary_of_barlines = { 'regular':"|", 'dotted':":", 'dashed':"dashed", \
       'heavy':"|.|", 'double':"||", 'final':"|.", 'heavy-light':".|", \
       'heavy-heavy':".|.", 'tick':"'", 'short':"'", 'none':"" }
-   
+
    post = '\\bar "'
-   
+
    if bl.style in dictionary_of_barlines:
       post += dictionary_of_barlines[bl.style] + '"'
       return post
@@ -253,21 +253,21 @@ def barline_to_lily( bl ):
 def process_measure( the_meas ):
    '''
    Returns a str that is one line of a LilyPond score, containing one Measure.
-   
+
    Input should be a Measure.
    '''
-   
+
    post = "\t"
-   
+
    # Hold whether this Measure is supposed to be "invisible"
    invisible = False
    if hasattr( the_meas, 'lily_invisible' ):
       invisible = the_meas.lily_invisible
-   
+
    # Add the first requirement of invisibility
    if invisible:
       post += '\stopStaff\n\t'
-   
+
    # first check if it's a partial (pick-up) measure
    if 0.0 < the_meas.duration.quarterLength < the_meas.barDuration.quarterLength:
       #print( str(the_meas.duration.quarterLength) + ' andza ' + str(the_meas.barDuration.quarterLength) )
@@ -282,18 +282,18 @@ def process_measure( the_meas ):
             # partial measure; we'll try rounding and see what we can get.
             rounded_duration = duration.Duration( round( the_meas.duration.quarterLength, 2 ) )
             post += "\\partial " + duration_to_lily( rounded_duration ) + "\n\t"
-   
+
    # Make the_meas an iterable, so we can pull in multiple elements when we
    # need to deal with tuplets.
    the_meas = iter( the_meas )
-   
+
    # now fill in all the stuff
    for obj in the_meas:
       # Note or Rest
       if isinstance( obj, note.Note ) or isinstance( obj, note.Rest ):
-         # TODO: is there a situation where I'll ever need to deal with 
+         # TODO: is there a situation where I'll ever need to deal with
          # multiple-component durations for a single Note/Rest?
-         
+
          # Is it a full-measure rest?
          if isinstance( obj, note.Rest) and \
             the_meas.srcStream.barDuration.quarterLength == obj.quarterLength:
@@ -316,7 +316,7 @@ def process_measure( the_meas ):
          # It's just a regular note or rest
          else:
             post += note_to_lily( obj ) + " "
-      
+
       #if isinstance( obj, note.Note ):
          #post += note_to_lily( obj ) + " "
       #elif isinstance( obj, note.Rest ):
@@ -371,15 +371,15 @@ def process_measure( the_meas ):
       else:
          raise UnidentifiedObjectError( 'Unknown object in Bar: ' + str(obj) )
    #----
-   
+
    # Append a bar-check symbol, if there was anything outputted.
    if len(post) > 1:
       post += "|\n"
-   
+
    # The final requirement of invisibility
    if invisible:
       post += '\t\\startStaff\n'
-   
+
    return post
 # End process_measure() -------------------------------------------------------
 
@@ -391,37 +391,37 @@ def process_analysis_voice( a_v ):
    Processes an analysis voice from vis. This method can't deal with tuplets,
    though it will eventually need to.
    '''
-   
+
    # Helper method stolen from note_to_lily()
    def space_for_lily( lily_this ):
       post = 's'
-      
+
       # DEBUG
       #print( '--- got analysis voice thing at offset ' + str(lily_this.offset) )
       # END DEBUG
-      
+
       if len(lily_this.duration.components) > 1:
          for durational_component in lily_this.duration.components:
             post += duration_to_lily( durational_component ) + '~ '
          post = post[:-2]
       else:
          post += duration_to_lily( lily_this.duration )
-      
+
       if lily_this.tie is not None:
          if lily_this.tie.type is 'start':
             post += "~"
-      
+
       if hasattr( lily_this, 'lily_markup' ):
          post += str(lily_this.lily_markup)
-      
+
       return post
-   
+
    # Just try to fill in all the stuff
    post = ''
-   
+
    for obj in a_v:
       post += '\t' + space_for_lily( obj ) + '\n'
-   
+
    return post
 # End process_analysis_voice() ------------------------------------------------
 
@@ -432,15 +432,15 @@ def process_stream( s, the_settings ):
    '''
    Outputs a str containing part or all of a LilyPond source file, when given
    a stream.*
-   
+
    So far, can be called with:
    - stream.Part
    - stream.Score
    - metadata.Metadata
    - layout.StaffGroup
-   
+
    The second argument is a LilyPond_Settings object.
-   
+
    Note that if a stream.Part has the attribute 'lily_analysis_voice' and it is
    set to True, then all Note objects will be turned into spacer objects that
    contain an annotation, and all Rest objects will be turned into spacer
@@ -460,7 +460,7 @@ def process_stream( s, the_settings ):
       post += '\\paper {\n\t#(set-paper-size "' + \
          the_settings.get_property( 'paper_size' ) + \
          '")\n}\n\n'
-      
+
       # Parts
       # This can hold all of our parts... they might also be a StaffGroup,
       # a Metadata object, or something else.
@@ -473,7 +473,7 @@ def process_stream( s, the_settings ):
       # things, so we'll keep everything in this supposedly efficient loop.
       for i in xrange(len(list_of_parts)):
          post += list_of_parts[i]
-      
+
       # Things After Parts
       # Output the \score{} block
       post += '\\score {\n\t\\new StaffGroup\n\t<<\n'
@@ -488,7 +488,7 @@ def process_stream( s, the_settings ):
       if the_settings.get_property( 'indent' ) is not None:
          post += '\t\tindent = ' + the_settings.get_property( 'indent' ) + '\n'
       post += '''\t\t% VisAnnotation Context
-\t\t\context 
+\t\t\context
 \t\t{
 \t\t\t\\type "Engraver_group"
 \t\t\t\\name VisAnnotation
@@ -509,7 +509,7 @@ def process_stream( s, the_settings ):
 \t\t}
 '''
       post += '\t}\n}\n'
-      
+
    # Part -------------------------------------------------
    elif isinstance( s, stream.Part ):
       # Start the Part
@@ -536,7 +536,7 @@ def process_stream( s, the_settings ):
          post += '\t%% vis annotated analysis\n'
          post += process_analysis_voice( s )
       #----
-      
+
       # If it's an analysis-annotation part, we'll handle this differently.
       if hasattr( s, 'lily_analysis_voice' ) and True == s.lily_analysis_voice:
          pass
@@ -564,7 +564,7 @@ def process_stream( s, the_settings ):
    # Header (Metadata) ------------------------------------
    elif isinstance( s, metadata.Metadata ):
       post += "\header {\n"
-      
+
       if s.composer is not None:
          post += '\tcomposer = \markup{ "' + s.composer.name + '" }\n'
       if s.composers is not None: # I don't really know what to do with non-composer contributors
@@ -583,7 +583,7 @@ def process_stream( s, the_settings ):
          if s.alternativeTitle is not None:
             post += '(\\"' + s.alternativeTitle + '\\")'
          post += '" }\n'
-      
+
       # Extra Formatting Options
       # Tagline
       if the_settings.get_property( 'tagline' ) is None:
@@ -592,7 +592,7 @@ def process_stream( s, the_settings ):
          pass
       else:
          post += '\ttagline = "' + the_settings.get_property( 'tagline' ) + '"\n'
-      
+
       # close the \header{} block
       post += "}\n"
    # StaffGroup -------------------------------------------
@@ -608,7 +608,7 @@ def process_stream( s, the_settings ):
    # Something else...
    else:
       raise UnidentifiedObjectError( 'Unknown object in Stream: ' + str(s) )
-   
+
    return post
 # End process_stream() --------------------------------------------------------
 
@@ -618,7 +618,7 @@ def process_stream( s, the_settings ):
 class LilyPond_Settings:
    '''
    Holds the settings relevant to output formatting of a LilyPond file.
-   
+
    List of Settings:
    - bar_numbers : print bar numbers on 'every' bar, the start of every 'system'
       or 'never'
@@ -627,8 +627,9 @@ class LilyPond_Settings:
    - indent : either 'default' or a str that is the indentation you want (like
       "0\cm" for example)
    - print_instrument_names : True or False whether to print instrument names
-   - lilypond_version: a str that contains the LilyPond version (default is
+   - lilypond_version : a str that contains the LilyPond version (default is
       auto-detection of whatever's installed)
+   - lilypond_path : a str that is the full path to the LilyPond executable
    '''
    def __init__( self ):
       # Hold a list of the part names in this Score
@@ -645,19 +646,18 @@ class LilyPond_Settings:
       self._secret_settings['indent'] = None
       self._secret_settings['print_instrument_names'] = True # TODO: implement this
       self._secret_settings['paper_size'] = 'letter'
-      # Super-fancy discovery of where LilyPond is on this computer, and which
-      # version is available.
-      proc = Popen( ['which', 'lilypond'], stdout=PIPE )
-      self._secret_settings['lilypond_path'] = proc.stdout.read()[:-1] # slice gets rid of terminating newline
-      proc = Popen( ['lilypond', '--version'], stdout=PIPE )
-      lv = proc.stdout.read()
-      lily_version = lv[lv.find('LilyPond')+9:lv.find('\n')]
-      self._secret_settings['lilypond_version'] = lily_version
-   
+      # Deal with the LilyPond path and version
+      res = detect_lilypond()
+      self._secret_settings['lilypond_path'] = res[0]
+      self._secret_settings['lilypond_version'] = res[1]
+      self._secret_settings_hash['lilypond_version_numbers'] = \
+         make_lily_version_numbers( res[1] )
+
+
    def set_property( self, setting_name, setting_value=None ):
       '''
       Modify the value of a setting. There are two forms:
-      
+
       >>> from output_LilyPond import *
       >>> the_settings = LilyPond_Settings()
       >>> the_settings.set_property( 'indent 0\mm' )
@@ -669,10 +669,10 @@ class LilyPond_Settings:
       '''
       # TODO: implement the second form of whatever
       self._secret_settings[setting_name] = setting_value
-   
+
    def get_property( self, setting_name ):
       return self._secret_settings[setting_name]
-   
+
 # End Class LilyPond_Settings() -----------------------------------------------
 
 
@@ -680,13 +680,13 @@ class LilyPond_Settings:
 #------------------------------------------------------------------------------
 def output_the_file( contents, filename='test_output/lily_output' ):
    # TODO: exception handling
-   
+
    # Is there already an extension?
    if 3 < len(filename) and '.ly' == filename[-3:]:
       extension = ''
    else:
       extension = '.ly'
-   
+
    return file_outputter( contents, filename, extension )
 #------------------------------------------------------------------------------
 
@@ -710,10 +710,10 @@ def process_score( the_score, the_settings=None, filename='test_output/lily_outp
    an optional LilyPond_Settings object. The third argument is an optional
    filename.
    '''
-   
+
    if the_settings is None:
       the_settings = LilyPond_Settings()
-   
+
    score_to_write = process_stream( the_score, the_settings )
    output_result = output_the_file( score_to_write, filename )
    if output_result[1] is not None:
@@ -721,6 +721,43 @@ def process_score( the_score, the_settings=None, filename='test_output/lily_outp
       print( 'Failed to output LilyPond file... \n' + output_result[1] )
    else:
       run_lilypond( output_result[0], the_settings )
+#------------------------------------------------------------------------------
+
+
+
+#------------------------------------------------------------------------------
+def detect_lilypond():
+   '''
+   Determine the path to LilyPond and its version.
+
+   Returns a 2-tuple with two str objects:
+   - the full path of the LilyPond executable
+   - the version reported by that executable
+   '''
+   proc = Popen( ['which', 'lilypond'], stdout=PIPE )
+   lily_path = proc.stdout.read()[:-1] # slice gets rid of terminating newline
+   proc = Popen( [lily_path, '--version'], stdout=PIPE )
+   lv = proc.stdout.read()
+   lily_verzh = lv[lv.find('LilyPond')+9:lv.find('\n')]
+
+   return ( lily_path, lily_verzh )
+#------------------------------------------------------------------------------
+
+
+
+#------------------------------------------------------------------------------
+def make_lily_version_numbers( version_str ):
+   '''
+   Take a str with three integers separated by the '.' character and returns
+   a 3-tuplet with the integers.
+   '''
+   major = int(version_str[:version_str.find('.')])
+   version_str = version_str[version_str.find('.')+1:]
+   minor = int(version_str[:version_str.find('.')])
+   version_str = version_str[version_str.find('.')+1:]
+   revision = int(version_str)
+
+   return ( major, minor, revision )
 #------------------------------------------------------------------------------
 
 
@@ -738,6 +775,9 @@ if __name__ == '__main__':
 # - whether the "indent" thing from settings is processed
 # - make_lily_triangle() in analytic_engine.py
 # - providing a filename to process_score() actually outputs there
+# - detect_lilypond() : when it works, and when it doesn't
+# - whether the thing that calls LilyPond actually uses the auto-detected path
+# - update existing tests for whatever stuff I've modified since they worked
 
 
 

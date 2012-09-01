@@ -50,12 +50,17 @@ from analytic_engine import vis_these_parts, make_basso_seguente
 from problems import MissingInformationError, NonsensicalInputWarning
 from file_output import file_outputter, file_inputter
 from output_LilyPond import process_score as lily_process_score
-from output_LilyPond import LilyPond_Settings
+from output_LilyPond import LilyPond_Settings, detect_lilypond, \
+                            make_lily_version_numbers
 
 
 
 # Subclass for Signal Handling -------------------------------------------------
 class Vis_MainWindow( Ui_MainWindow ):
+
+   # "self" objects
+   # self.analysis_files : a list of pathnames for analysis
+   # self.lilypond_version_numbers : the 3-tuplet of a LilyPond version
 
    # Create the settings and statistics objects for vis.
    def setup_vis( self ):
@@ -125,7 +130,6 @@ class Vis_MainWindow( Ui_MainWindow ):
    # When users choose "Set" for "Which Values of n?"
    def settings_set_n( self ):
       set_this_n = str(self.line_n.text())
-      # TODO: see if there are input-checking things to do
       self.settings.set_property( 'lookForTheseNs ' + set_this_n )
 
    # When users choose to produce or not a LilyPond score
@@ -138,7 +142,6 @@ class Vis_MainWindow( Ui_MainWindow ):
    # When users change the offset between intervals
    def settings_offset_interval( self ):
       set_offset_interval = str(self.line_intervalOffset.text())
-      # TODO: see if there are input-checking things to do
       self.settings.set_property( 'offsetBetweenInterval ' + set_offset_interval )
 
    # When users change "How to Choose Voices to Analyze"
@@ -174,15 +177,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       if 'once' == self.settings.get_property( 'howToChooseVoices' ):
          self.rdo_choose_every_file.setChecked( False )
          self.rdo_choose_just_once.setChecked( True )
-         # DEBUG
-         self.txt_filenames.setPlainText( 'choose once' )
-         # END DEBUG
       else:
          self.rdo_choose_every_file.setChecked( True )
          self.rdo_choose_just_once.setChecked( False )
-         # DEBUG
-         self.txt_filenames.setPlainText( 'choose each' )
-         # END DEBUG
 
       if 'compound' == self.settings.get_property( 'simpleOrCompound' ):
          self.rdo_compoundIntervals.setChecked( True )
@@ -285,15 +282,31 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Get the colour the user wants.
       user_colour = QtGui.QColorDialog.getColor()
 
-      # Now make the str with the colour name
-      # Assume we're with LilyPond 2.16.0 or greater, and make the colour
-      # intensity fall between 0 and 1 instead of the everywhere-else standard
-      # 0 and 255.
-      # TODO: automatically detect the LilyPond version
-      new_colour = '#(rgb-color '
-      new_colour += str(float(user_colour.red())/255.0) + ' '
-      new_colour += str(float(user_colour.green())/255.0) + ' '
-      new_colour += str(float(user_colour.blue())/255.0) + ')'
+      # We need to know our LilyPond version.
+      # TODO: test this, faking an earlier LilyPond version
+      if not hasattr( self, 'lilypond_version_numbers' ):
+         l_v = detect_lilypond()
+         self.lilypond_version_numbers = make_lilypond_version_numbers( l_v )
+
+      # Make the str with the colour name.
+      # What if LilyPond 2.14.x and older?
+      if 2 == self.lilypond_version_numbers[0] and \
+         14 >= self.lilypond_version_numbers[0]:
+            new_colour = '#(rgb-color '
+            new_colour += str(user_colour.red()) + ' '
+            new_colour += str(user_colour.green()) + ' '
+            new_colour += str(user_colour.blue()) + ')'
+      # What if LilyPond 2.16.x and newer?
+      elif 2 == self.lilypond_version_numbers[0] and \
+         16 <= self.lilypond_version_numbers[0]:
+            new_colour = '#(rgb-color '
+            new_colour += str(float(user_colour.red())/255.0) + ' '
+            new_colour += str(float(user_colour.green())/255.0) + ' '
+            new_colour += str(float(user_colour.blue())/255.0) + ')'
+      # If something else (3.x, 1.x, or 2.15.x)
+      else:
+         msg = 'Cannot use LilyPond 2.15.x with colours; please upgrade to 2.16.0 or downgrade to 2.14.2'
+         raise IncompatibleSetupError( msg )
 
       # See if there's already a spot for colour and use it.
       for instr in self.targeted_lily_options:
@@ -317,8 +330,6 @@ class Vis_MainWindow( Ui_MainWindow ):
    def targeted_choose_score( self ):
       # Choose the file
       the_file = QtGui.QFileDialog.getOpenFileName( None, 'Choose Files to Analyze', '~', '*.pdf *.mxl *.krn *.abc *.mei' )
-      # We'll store it in here, even though I think I may regret it later.
-      # TODO: see if you regret this
       self.analysis_files = [str(the_file)]
 
    # btn_targeted_produce

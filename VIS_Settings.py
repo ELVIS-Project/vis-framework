@@ -34,6 +34,7 @@ import re
 from problems import NonsensicalInputWarning
 import string
 from file_output import file_outputter, file_inputter
+from output_LilyPond import detect_lilypond, make_lily_version_numbers
 
 
 
@@ -60,6 +61,11 @@ class VIS_Settings:
       self._secret_settings_hash['offsetBetweenInterval'] = 0.5
       self._secret_settings_hash['outputResultsToFile'] = ''
       self._secret_settings_hash['simpleOrCompound'] = 'compound'
+      res = detect_lilypond()
+      self._secret_settings_hash['lilypondPath'] = res[0]
+      self._secret_settings_hash['lilypondVersion'] = res[1]
+      self._secret_settings_hash['lilypondVersionNumbers'] = \
+         make_lily_version_numbers( res[1] )
 
    # Helper method to test whether a str contains a boolean value.
    @staticmethod

@@ -28,14 +28,14 @@ class NonsensicalInputError( Exception ):
    '''
    VIS uses this error for situations where a user-provided value does not
    make sense, and the only recourse is to stop execution.
-   
+
    For example: if we are setting accepting a user's preferred value for whether
    or not to pay attention to interval quality, and they tell us 'cheese'.
    '''
-   
+
    # NB: This class has a name in camel case so it fits in with the built-in
    # Python exceptions and errors.
-   
+
    def __init__( self, val ):
       self.value = val
    def __str__( self ):
@@ -49,13 +49,13 @@ class NonsensicalInputWarning( Exception ):
    '''
    VIS uses this error for situations where an argument does not make sense,
    but we can somehow continue execution.
-   
+
    For example: setting a property to an invalid value. It'll just be ignored.
    '''
-   
+
    # NB: This class has a name in camel case so it fits in with the built-in
    # Python exceptions and errors.
-   
+
    def __init__( self, val ):
       self.value = val
    def __str__( self ):
@@ -69,15 +69,15 @@ class MissingInformationError( Exception ):
    '''
    VIS uses this error when there is insufficient information to continue
    processing, and execution must be stopped.
-   
+
    For example: if we are to find the interval between the lower notes of two
    Interval objects, but the Interval objects do not have Note objects
    associated, and therefore could be any distance apart.
    '''
-   
+
    # NB: This class has a name in camel case so it fits in with the built-in
    # Python exceptions and errors.
-   
+
    def __init__( self, val ):
       self.value = val
    def __str__( self ):
@@ -92,10 +92,32 @@ class BadFileError( Exception ):
    VIS uses this error when there is a problem loading or handling a file, not
    related to a more specific musical element.
    '''
-   
+
    # NB: This class has a name in camel case so it fits in with the built-in
    # Python exceptions and errors.
-   
+
+   def __init__( self, val ):
+      self.value = val
+   def __str__( self ):
+      return repr( self.value )
+#-------------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------------
+class IncompatibleSetupError( Exception ):
+   '''
+   VIS uses this error when there is a problem with either the setup of VIS
+   itself, or of the system on which it's operating.
+
+   For example: VIS will not create a colour for the 2.15.x series of LilyPond
+   because there was an incompatible change at some point. Therefore a system
+   with LilyPond 2.15.x is an incompatible setup.
+   '''
+
+   # NB: This class has a name in camel case so it fits in with the built-in
+   # Python exceptions and errors.
+
    def __init__( self, val ):
       self.value = val
    def __str__( self ):
