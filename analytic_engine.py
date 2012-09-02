@@ -23,13 +23,13 @@
 
 ## Import:
 # python standard library
-from datetime import datetime, timedelta
+import time
 from decimal import *
 # music21
 from music21 import interval, stream, note, chord
 # vis
 from NGram import NGram
-from problems import NonsensicalInputError
+from problems import NonsensicalInputError, IncompatibleSetupError
 
 
 
@@ -271,7 +271,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
 
    # Initialize --------------------------------------------
    # Note the starting time of the analysis
-   analysis_start_time = datetime.now()
+   analysis_start_time = time.time()
 
    # Parse targeted_output ---------------------------------
    # Hold instructions from 'only annotate'
@@ -362,10 +362,10 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
 
       # Sanity check. If we've already recorded something *past* the current
       # objects' offsets, then we're moving backwards.
-      # TODO: handle this intelligently (raise exception)
       if current_offset >= lower_part[current_lower_index].offset and \
          current_offset >= higher_part[current_higher_index].offset:
-         pass
+            msg = 'Analytic engine started moving backward so we\'re aborting.'
+            raise IncompatibleSetupError( msg )
 
       # Make sure we have the right objects. --------------
       # This protects against situations where, for instance, a long note is
@@ -624,7 +624,8 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
             #     this ngram isn't one of them.
 
             # Put in the correct label.
-            list_of_lilypond_parts[-1].lily_markup = '^' + make_lily_triangle( str_this_ngram, this_colour )
+            list_of_lilypond_parts[-1].lily_markup = '^' + \
+               make_lily_triangle( str_this_ngram, this_colour )
 
             # Make a new Note in the lily_for_this_n stream.
             this_n_lily = note.Note( 'C4' ) # could be any pitch
@@ -635,20 +636,12 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
             list_of_lilypond_parts.insert( current_offset, this_n_lily )
       # End LilyPond section ------------------------------
 
-      # TODO: update this section, and analyze_this(), to accept a list of
-      # Part objects for LilyPond annotation, rather than a single Part object
-      # that is the only possible annotation.
-      # NB: There should be one part here for every 'n' value we looked for.
-      #list_of_lilypond_parts.append( lily_part )
-
       # Finally, increment the current index.
       current_lower_index += 1
       current_higher_index += 1
    # End "while" loop -------------------------------------
 
    # Note the ending time of the analysis...
-   # TODO: come up with a better timing thing
-   duration = datetime.now() - analysis_start_time
-   duration = float( str(duration.seconds) + '.' + str(duration.microseconds) )
+   duration = time.time() - analysis_start_time
    return ( duration, list_of_lilypond_parts )
 # End vis_these_parts() -------------------------------------------------------
