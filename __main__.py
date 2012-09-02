@@ -58,9 +58,13 @@ from output_LilyPond import LilyPond_Settings, detect_lilypond, \
 # Subclass for Signal Handling -------------------------------------------------
 class Vis_MainWindow( Ui_MainWindow ):
 
-   # "self" objects
+   # "self" Objects
+   #---------------
    # self.analysis_files : a list of pathnames for analysis
    # self.lilypond_version_numbers : the 3-tuplet of a LilyPond version
+   # self.settings : a VIS_Settings instance
+   # self.statistics : a Vertical_Interval_Statistics instance
+   # self.targeted_lily_options : options for "targeted LilyPond output"
 
    # Create the settings and statistics objects for vis.
    def setup_vis( self ):
@@ -70,6 +74,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.analysis_files = []
       # Hold the list of instructions for doing targeted analysis.
       self.targeted_lily_options = []
+      # Hold a 3-tuplet of the LilyPond version number
+      self.lilypond_version_numbers = None
 
    # Link all the signals with their methods.
    def setup_signals( self ):
@@ -284,21 +290,23 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # We need to know our LilyPond version.
       # TODO: test this, faking an earlier LilyPond version
-      if not hasattr( self, 'lilypond_version_numbers' ):
-         l_v = detect_lilypond()
-         self.lilypond_version_numbers = make_lilypond_version_numbers( l_v )
+      if self.lilypond_version_numbers is None:
+         l_v = detect_lilypond()[1]
+         self.lilypond_version_numbers = make_lily_version_numbers( l_v )
 
       # Make the str with the colour name.
       # What if LilyPond 2.14.x and older?
       if 2 == self.lilypond_version_numbers[0] and \
-         14 >= self.lilypond_version_numbers[0]:
+         14 >= self.lilypond_version_numbers[1]:
+            print( 'got LilyPond 2.14 or older' )
             new_colour = '#(rgb-color '
             new_colour += str(user_colour.red()) + ' '
             new_colour += str(user_colour.green()) + ' '
             new_colour += str(user_colour.blue()) + ')'
       # What if LilyPond 2.16.x and newer?
       elif 2 == self.lilypond_version_numbers[0] and \
-         16 <= self.lilypond_version_numbers[0]:
+         16 <= self.lilypond_version_numbers[1]:
+            print( 'got LilyPond 2.16 or newer' )
             new_colour = '#(rgb-color '
             new_colour += str(float(user_colour.red())/255.0) + ' '
             new_colour += str(float(user_colour.green())/255.0) + ' '

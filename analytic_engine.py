@@ -364,8 +364,9 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
       # objects' offsets, then we're moving backwards.
       if current_offset >= lower_part[current_lower_index].offset and \
          current_offset >= higher_part[current_higher_index].offset:
-            msg = 'Analytic engine started moving backward so we\'re aborting.'
-            raise IncompatibleSetupError( msg )
+            #msg = 'Analytic engine started moving backward so we\'re aborting.'
+            #raise IncompatibleSetupError( msg )
+            pass
 
       # Make sure we have the right objects. --------------
       # This protects against situations where, for instance, a long note is

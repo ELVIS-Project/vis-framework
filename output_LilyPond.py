@@ -650,7 +650,7 @@ class LilyPond_Settings:
       res = detect_lilypond()
       self._secret_settings['lilypond_path'] = res[0]
       self._secret_settings['lilypond_version'] = res[1]
-      self._secret_settings_hash['lilypond_version_numbers'] = \
+      self._secret_settings['lilypond_version_numbers'] = \
          make_lily_version_numbers( res[1] )
 
 
