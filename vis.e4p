@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project vis -->
-<!-- Saved: 2012-08-28, 01:02:54 -->
+<!-- Saved: 2012-08-31, 22:09:06 -->
 <!-- Copyright (C) 2012 Christopher Antila, Jamie Klassen, christopher.antila@mail.mcgill.ca -->
 <Project version="4.6">
   <Language>en</Language>
   <ProgLanguage mixed="0">Python</ProgLanguage>
   <ProjectType>Qt4</ProjectType>
   <Description>A "vertical interval sequences" analysis program for music21.</Description>
-  <Version>2</Version>
+  <Version>3</Version>
   <Author>Christopher Antila, Jamie Klassen</Author>
   <Email>christopher.antila@mail.mcgill.ca</Email>
   <Sources>
