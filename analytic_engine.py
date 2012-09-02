@@ -135,25 +135,49 @@ def make_lily_triangle( ngram, which_colour=None, print_to_right=None ):
       post += '\\with-color ' + which_colour + ' '
 
    # Continue the beginning
-   post += '\combine \concat{ \\teeny{ "'
+   post += '\combine \concat{ \\teeny{ '
 
-   # Add the first interval
-   post += ngram[:first_space]
+   # Whether the previous interval was 'up' or 'down (vertical or horizontal).
+   # Start with 'down' so the first interval is 'up'
+   previous_was = 'down'
 
-   # Make the horizontal interval lower
-   post += '" \\lower #1 "'
+   # Loop through all the intervals, adding one-by-one
+   while ngram is not None:
+      # Remove extra spaces
+      ngram = ngram.strip()
 
-   # Add the horizontal interval
-   post += ngram[first_space+1:second_space]
+      # Is this the last interval?
+      if -1 == ngram.find(' '):
+         # The last interval will always be a vertical one, so always 'up'
+         post += '"' + ngram + '" '
 
-   # Space after horiz. and 2nd vert.
-   post += '" "'
+         # Set 'ngram' to None so we know to leave the loop
+         ngram = None
 
-   # Add the second vertical interval
-   post += ngram[second_space+1:]
+      # This is not the last interval
+      else:
+         # If the previous interval was 'up' this one is 'down'
+         if 'up' == previous_was:
+            previous_was = 'down'
 
-   # Close the ngram
-   post += '"} '
+            # Make the horizontal interval lower and append it
+            post += '\\lower #1 "' + ngram[:ngram.find(' ')] + '" '
+
+            # Remove this interval from 'ngram'
+            ngram = ngram[ngram.find(' '):]
+
+         # The previous interval was 'down' so this is 'up'
+         else:
+            previous_was = 'up'
+
+            # Append the vertical interval at the same height
+            post += '"' + ngram[:ngram.find(' ')] + '" '
+
+            # Remove this interval from 'ngram'
+            ngram = ngram[ngram.find(' '):]
+   else:
+      # Close the numbers portion
+      post += '} '
 
    # Append the print_to_right str
    if print_to_right is not None:
@@ -162,22 +186,17 @@ def make_lily_triangle( ngram, which_colour=None, print_to_right=None ):
       post += '} '
 
    # Draw the triangle
-   post += '\path #0.1 #\'((moveto -1 1.25) '
+   post += '\path #0.1 #\'((moveto -0.5 0.0) '
    # Middle-bottom triangle point
-   if char_len > 4: # for four-sided triangles...
-      # This goes down to the left-bottom triangle node.
-      post += '(lineto 1.0 -1.5) '
-      # This is the right-bottom triangle node. It's 2.0 (x-wise) before the
-      # top-right triangle node, just as the bottom-left node is 2.0 from the
-      # top-left triangle node.
-      x_pos = round( ((float(char_len) + 0.3) - 2.0), 2 )
-      post += '(lineto ' + str(x_pos) + ' -1.5) '
-   else: # for three-sided triangles...
-      x_pos = round(((float(char_len) + 1.0)/2.0)-1.0, 2)
-      post += '(lineto ' + str(x_pos) + ' -2.0) '
-   # Right-most triangle point
+   # This goes down to the top-left triangle node.
+   post += '(lineto -1.0 1.5) '
+   # This is the top-right triangle node.
+   x_pos = round( (char_len * 0.9) + 0.5, 2 )
+   post += '(lineto ' + str(x_pos) + ' 1.5)'
+   #post += '(lineto ' + str(x_pos) + ' 1.5) '
+   # Bottom-right triangle point
    # NB: This is 3.3 for 3 characters, 4.3 for 4 characters, etc.
-   post += '(lineto ' + str(char_len) + '.3 1.25) (closepath))}'
+   post += '(lineto ' + str(x_pos - 0.5) + ' 0.0))}'
 
    return post
 # End make_lily_triangle() ----------------------------------------------------
