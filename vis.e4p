@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project vis -->
-<!-- Saved: 2012-08-31, 22:09:06 -->
+<!-- Saved: 2012-09-03, 00:25:15 -->
 <!-- Copyright (C) 2012 Christopher Antila, Jamie Klassen, christopher.antila@mail.mcgill.ca -->
 <Project version="4.6">
   <Language>en</Language>
@@ -36,19 +36,23 @@
     <Source>vis_test/Test_Settings.py</Source>
     <Source>vis_test/Test_Analysis_Engine_Integration_Short.py</Source>
     <Source>vis_test/Test_Analysis_Engine_Unit.py</Source>
-    <Source>vis_test/Test_Fill_Space_Between_Offsets.py</Source>
     <Source>vis_test/Test_Output_Formatting.py</Source>
     <Source>vis_test/Test_NGram.py</Source>
     <Source>vis_test/Test_Analysis_Engine_Integration_Long.py</Source>
     <Source>qt/Ui_select_voices.py</Source>
+    <Source>vis_test/Test_Other_Analysis_Engine.py</Source>
+    <Source>qt/Ui_new_main_window.py</Source>
+    <Source>qt/icons_rc.py</Source>
   </Sources>
   <Forms>
     <Form>qt/main_window.ui</Form>
     <Form>qt/select_voices.ui</Form>
+    <Form>qt/new_main_window.ui</Form>
   </Forms>
   <Translations>
   </Translations>
   <Resources>
+    <Resource>qt/icons.qrc</Resource>
   </Resources>
   <Interfaces>
   </Interfaces>

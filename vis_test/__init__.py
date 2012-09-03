@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
-# 
+#
 # Filename: vis-test/__init__.py
 # Purpose: Import the Automated Tests for vis
 #
@@ -28,4 +28,4 @@ import Test_Settings, Test_Sorting, Test_NGram, \
        Test_Vertical_Interval_Statistics, Test_Output_Formatting, \
        Test_Analysis_Engine_Integration_Short, \
        Test_Analysis_Engine_Integration_Long, \
-       Test_Analysis_Engine_Unit, Test_Fill_Space_Between_Offsets
+       Test_Analysis_Engine_Unit, Test_Other_Analysis_Engine

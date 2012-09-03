@@ -27,40 +27,40 @@
 
 import unittest
 from vis import *
-from analytic_engine import fill_space_between_offsets
+from analytic_engine import fill_space_between_offsets, make_lily_triangle
 
 
 
 #------------------------------------------------------------------------------
-class Test_Fill_Space_Between_Offsets( unittest.TestCase ):
-   def test_1( self ):
+class Test_Other_Analysis_Engine( unittest.TestCase ):
+   def test_fill_space_between_offsets_1( self ):
       self.assertEqual( fill_space_between_offsets( 0.0, 1.0 ), (1.0, []) )
-   
-   def test_2( self ):
+
+   def test_fill_space_between_offsets_2( self ):
       self.assertEqual( fill_space_between_offsets( 0.0, 4.0 ), (4.0, []) )
-   
-   def test_3( self ):
+
+   def test_fill_space_between_offsets_3( self ):
       self.assertEqual( fill_space_between_offsets( 0.0, 5.0 ), (4.0, [1.0]) )
-   
-   def test_4( self ):
+
+   def test_fill_space_between_offsets_4( self ):
       self.assertEqual( fill_space_between_offsets( 0.0, 8.0 ), (4.0, [4.0]) )
-   
-   def test_5( self ):
+
+   def test_fill_space_between_offsets_5( self ):
       self.assertEqual( fill_space_between_offsets( 0.0, 9.0 ), (4.0, [4.0, 1.0]) )
-   
-   def test_6( self ):
+
+   def test_fill_space_between_offsets_6( self ):
       self.assertEqual( fill_space_between_offsets( 4.5, 5.0 ), (0.5, []) )
-   
-   def test_7( self ):
+
+   def test_fill_space_between_offsets_7( self ):
       self.assertEqual( fill_space_between_offsets( 7693.5, 7703.0 ), (4.0, [4.0, 1.0, 0.5]) )
-   
-   def test_8( self ):
+
+   def test_fill_space_between_offsets_8( self ):
       self.assertEqual( fill_space_between_offsets( 0.0, 3.96875 ), (2.0, [1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125] ) )
-   
-   def test_9( self ):
+
+   def test_fill_space_between_offsets_9( self ):
       self.assertEqual( fill_space_between_offsets( 3.96875, 7.9375 ), (2.0, [1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125] ) )
-   
-   def test_10( self ):
+
+   def test_fill_space_between_offsets_10( self ):
       # This one is kind of ridiculous... thanks computers!
       rez = fill_space_between_offsets( 0.0, 3.03125000344 )
       exp = (2.0, [1.0, 0.03125, 0.00000000344])
@@ -68,6 +68,19 @@ class Test_Fill_Space_Between_Offsets( unittest.TestCase ):
       self.assertEqual( rez[1][0], exp[1][0] )
       self.assertEqual( rez[1][1], exp[1][1] )
       self.assertAlmostEqual( rez[1][2], exp[1][2], 2 )
+
+   def test_make_lily_triangle_1( self ):
+      # Just the up-or-down part, not the "triangle"=(line)
+      actual = make_lily_triangle( '3 1 3' )
+      expected = '\markup{ \combine \concat{ \\teeny{ "3" \lower #1 "1" "3" } }'
+      self.assertEqual( actual[:60], expected )
+
+   def test_make_lily_triangle_2( self ):
+      # Just the up-or-down part, not the "triangle"=(line)
+      actual = make_lily_triangle( '12 +4 8 -4 12' )
+      expected = '\\markup{ \\combine \\concat{ \\teeny{ "12" \\lower #1 "+4" "8" \\lower #1 "-4" "12" } }'
+      self.assertEqual( actual[:82], expected )
+
 # End Test_Fill_Space_Between_Offsets -----------------------------------------
 
 
@@ -75,4 +88,4 @@ class Test_Fill_Space_Between_Offsets( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_Fill_Space_Between_Offsets )
+suite = unittest.TestLoader().loadTestsFromTestCase( Test_Other_Analysis_Engine )
