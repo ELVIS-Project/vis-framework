@@ -745,61 +745,60 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.txt_filenames.appendPlainText( '   starting analysis' )
 
          # Try to analyze this file
-         try:
-            if 'all' == parts_to_examine:
-               # We have to examine all combinations of parts.
-               # How many parts are in this piece?
-               number_of_parts = len(the_score.parts)
-               # Get a list of all the part-combinations to examine.
-               parts_to_examine = calculate_all_combis( number_of_parts - 1 )
-               # "Zero" it_took
-               it_took = 0.0
-               # Analyze every part combination.
-               for set_of_parts in parts_to_examine:
-                  higher = the_score.parts[set_of_parts[0]]
-                  lower = the_score.parts[set_of_parts[1]]
-                  this_took, ly = vis_these_parts( [higher,lower], \
-                                                   self.settings, \
-                                                   self.statistics, \
-                                                   targeted_output )
-                  it_took += this_took
-               # Add this duration to the cumulative duration.
-               cumulative_analysis_duration += it_took
-               # Print how long it took
-               self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
+         if 'all' == parts_to_examine:
+            # We have to examine all combinations of parts.
+            # How many parts are in this piece?
+            number_of_parts = len(the_score.parts)
+            # Get a list of all the part-combinations to examine.
+            parts_to_examine = calculate_all_combis( number_of_parts - 1 )
+            # "Zero" it_took
+            it_took = 0.0
+            # Analyze every part combination.
+            for set_of_parts in parts_to_examine:
+               higher = the_score.parts[set_of_parts[0]]
+               lower = the_score.parts[set_of_parts[1]]
+               this_took, ly, error = vis_these_parts( [higher,lower], \
+                                                self.settings, \
+                                                self.statistics, \
+                                                targeted_output )
+               it_took += this_took
+            # Add this duration to the cumulative duration.
+            cumulative_analysis_duration += it_took
+            # Print how long it took
+            self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
+         else:
+            # We should only examine the specified parts.
+            # Get the two parts.
+            higher = the_score.parts[parts_to_examine[0]]
+            # Check whether we're supposed to use the basso seguente.
+            if 'bs' == parts_to_examine[1]:
+               lower = seguente_part
             else:
-               # We should only examine the specified parts.
-               # Get the two parts.
-               higher = the_score.parts[parts_to_examine[0]]
-               # Check whether we're supposed to use the basso seguente.
-               if 'bs' == parts_to_examine[1]:
-                  lower = seguente_part
-               else:
-                  lower = the_score.parts[parts_to_examine[1]]
-               # Run the analysis
-               it_took, ly = vis_these_parts( [higher,lower], \
-                                              self.settings, \
-                                              self.statistics, \
-                                              targeted_output )
-               # Add this duration to the cumulative duration.
-               cumulative_analysis_duration += it_took
-               # Print this duration.
-               self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
-
-            # Now do the LilyPond portion, if needed.
-            if True == self.settings.get_property( 'produceLabelledScore' ):
-               # Add the annotated part to the score
-               the_score.append( ly )
-               # Send the score for processing
-               lily_process_score( the_score )
-               # TODO: decide how to dynamically decide filename, then move this into
-               # a sub-section of the "show" command in the "main" method.
-
-         # If something fails, we don't want the entire analysis to fail, but
-         # we do need to tell our user.
-         except Exception as exc:
+               lower = the_score.parts[parts_to_examine[1]]
+            # Run the analysis
+            it_took, ly, error = vis_these_parts( [higher,lower], \
+                                           self.settings, \
+                                           self.statistics, \
+                                           targeted_output )
+            # Add this duration to the cumulative duration.
+            cumulative_analysis_duration += it_took
+            # Print this duration.
+            self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
+ 
+         # Now do the LilyPond portion, if needed.
+         if True == self.settings.get_property( 'produceLabelledScore' ):
+            # Add the annotated part to the score
+            the_score.append( ly )
+            # Send the score for processing
+            lily_process_score( the_score )
+            # TODO: decide how to dynamically decide filename, then move this into
+            # a sub-section of the "show" command in the "main" method.
+ 
+          # If something fails, we don't want the entire analysis to fail, but
+          # we do need to tell our user.
+         if error is not None:
             self.txt_filenames.appendPlainText( '   failed during analysis' )
-            self.txt_filenames.appendPlainText( str(exc) )
+            self.txt_filenames.appendPlainText( error )
             files_not_analyzed.append( piece_name )
             continue
 

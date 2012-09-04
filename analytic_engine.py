@@ -29,6 +29,7 @@ from decimal import *
 from music21 import interval, stream, note, chord
 # vis
 from NGram import NGram
+import Vertical_Interval_Statistics
 from problems import NonsensicalInputError, IncompatibleSetupError
 
 
@@ -294,6 +295,9 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
    # Initialize --------------------------------------------
    # Note the starting time of the analysis
    analysis_start_time = time.time()
+   
+   # Create a statistics buffer
+   statistics_buffer = Vertical_Interval_Statistics.Vertical_Interval_Statistics()
 
    # Parse targeted_output ---------------------------------
    # Hold instructions from 'only annotate'
@@ -392,323 +396,329 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
 
    # Go through all the things!
    # The highest valid index is one less than the len().
-   while current_lower_index < len_lower or current_higher_index < len_higher:
-      # Make sure the current indices aren't past the end of the parts.
-      if current_lower_index >= len_lower:
-         #current_lower_index = len_lower - 1
-         current_lower_index -= 1
-      if current_higher_index >= len_higher:
-         #current_higher_index = len_higher - 1
-         current_higher_index -= 1
-
-      # Sanity check. If we've already recorded something *past* the current
-      # objects' offsets, then we're moving backwards.
-      if current_offset >= lower_part[current_lower_index].offset and \
-         current_offset >= higher_part[current_higher_index].offset:
-            #msg = 'Analytic engine started moving backward so we\'re aborting.'
-            #raise IncompatibleSetupError( msg )
-            pass
-
-      # Make sure we have the right objects. --------------
-      # This protects against situations where, for instance, a long note is
-      # held through many notes in the other part. This will keep us on the
-      # right note. We know there's a problem if the current objects don't
-      # have the same offset.
-
-      # If the current stream objects don't have the same offset, we should set
-      # the stream with the higher offset to use the previous object.
-
-      # If the offsets aren't the same...
-      if lower_part[current_lower_index].offset != \
-            higher_part[current_higher_index].offset:
-
-         # If the objects are the last in their streams...
-         if current_lower_index == ( len_lower - 1 ) and \
-               current_higher_index == ( len_higher - 1 ):
-            pass
-         # If the higher object is last in its stream...
-         elif current_higher_index == ( len_higher - 1 ):
-            # We can only decrement the higher stream, if it's what occurs later.
-            if higher_part[current_higher_index].offset > \
-                  lower_part[current_lower_index].offset:
-               current_higher_index -= 1
-         # If the lower object is last in its stream...
-         elif current_lower_index == ( len_lower - 1 ):
-            # We can only decrement the lower stream, if it's what occurs later.
-            if lower_part[current_lower_index].offset > \
-                  higher_part[current_higher_index].offset:
-               current_lower_index -= 1
-         # Neither object is last in its stream...
-         else:
-            # Which object has the greater offset?
-            if higher_part[current_higher_index].offset > \
-                  lower_part[current_lower_index].offset:
-               # Must be the higher part with the greater offset.
-               current_higher_index -= 1
-            else:
-               # Must be the lower part with the greater offset.
-               current_lower_index -= 1
-
-      # Decide whether to add the interval -----------------
-      # These conditions must be true for us to bother counting this interval.
-
-      # We'll use this to keep track of whether we should continue processing
-      # these particular indices.
-      contin = False
-
-      # Q: Is the current thing at an offset we're counting?
-      # We'll use this to try different yes-counting offsets, to see if we can
-      # match with the offset of the current thing.
-      if current_offset is None:
-         # We'll start at the start of the streams.
-         potential_new_offset = min( higher_part[0].offset, lower_part[0].offset )
-      else:
-         # Round current_offset to the nearest yes-counting interval.
-         potential_new_offset = round_to( current_offset, offset_interval )
-         # If potential_new_offset is greater than current_offset, we may have
-         # missed something, so go back!
-         if potential_new_offset > current_offset:
-            potential_new_offset -= offset_interval
-
-      # The new thing will be registered at the greater of the two offsets of
-      # the objects we currently have.
-      # NB: This *must* be recalculated, because the objects may have changed
-      # since the previous time it was calculated.
-      greater_offset = max( higher_part[current_higher_index].offset, \
-                            lower_part[current_lower_index].offset )
-
-      # We start at current_offset, which is still set to the most recently
-      # recorded interval. Then we'll increment by offset_interval until either
-      # we hit the offset at which the current event would be registered, or
-      # until we pass that offset, which means we won't hit it.
-      # NB: We need to keep potential_new_offset, because it records the
-      # yes-record offset either at or next after the greater_offset.
-      while potential_new_offset <= greater_offset:
-         if potential_new_offset == greater_offset:
-            contin = True
-            break
-         else:
-            potential_new_offset += offset_interval
-
-      # Does this event continue past the next offset we're supposed to measure?
-      # NB: We only need to ask this if we aren't already continuing.
-      if not contin:
-         # We'll see if the offset of *both* the next events in our streams are
-         # greater than the "potential_new_offset". If we reach this code, the
-         # "potential_new_offset" will hold the next yes-record offset after the
-         # current event.
-
-         # First see whether we're at the end of the streams.
-         if current_higher_index == len_higher - 1 or \
-               current_lower_index == len_lower - 1:
-            # Then we'll have to use the quarterLength duration. We don't want
-            # to use this unless we have to, because this kind of arithmetic
-            # could lead to errors.
-            end_of_higher = higher_part[current_higher_index].offset + \
-                            higher_part[current_higher_index].quarterLength
-            end_of_lower = lower_part[current_lower_index].offset + \
-                           lower_part[current_lower_index].quarterLength
-
-            # Now do the test
-            if end_of_lower > potential_new_offset and \
-                  end_of_higher > potential_new_offset:
-               contin = True
-         else:
-            # We're not at the end of the streams, so we can test without
-            # arithmetic.
-            if higher_part[current_higher_index+1].offset > potential_new_offset and \
-                  lower_part[current_lower_index+1].offset > potential_new_offset:
-               contin = True
-
-      # Process this moment for intervals. ----------------
-      if contin:
-         # Does one or do both parts have a Rest or have Rests?
-         if is_rest( higher_part[current_higher_index] ) or \
-               is_rest( lower_part[current_lower_index] ):
-            # It doesn't really matter which part; we just have to add this as
-            # a "this moment has a Rest" moment.
-            interval_history.append( 'rest' )
-            contin = False
-         # Otherwise, we're "go" for adding this as an Interval.
-         else:
-            this_interval = interval.Interval( lower_part[current_lower_index], \
-                                               higher_part[current_higher_index] )
-            # Set the offset to the higher of the objects it's made from
-            this_interval.offset = max( lower_part[current_lower_index].offset, \
-                                        higher_part[current_higher_index].offset )
-            # Is this the first Interval, or is it the same as the previous?
-            if 0 < len(interval_history) and \
-                  this_interval == interval_history[-1]:
-               # This means it's the same interval, but does it have the same notes?
-               if this_interval.noteStart.nameWithOctave == interval_history[-1].noteStart.nameWithOctave:
-                  # This is the same
-                  contin = False
-            # else # This is a new thing, so we should keep processing.
-            if contin:
-               the_statistics.add_interval( this_interval )
-               interval_history.append( this_interval )
-               # Update the current offset, because we added a new thing.
-               current_offset = max( higher_part[current_higher_index].offset, \
-                                     lower_part[current_lower_index].offset )
-
-      # Process this moment for triangles. ----------------
-      # Hold the NGram object we'll create.
-      this_ngram = None
-      if contin:
-         # For all the 'n' values we're looking for, we need to first make sure
-         # there are enough pre-recorded things in the interval_history, then
-         # make sure there are enough that are Interval objects and not the
-         # str 'rest' that means a Rest.
-         for n in find_these_ns:
-            # Is the interval history long enough?
-            if len(interval_history) < n:
-               continue
-
-            # Hold a list of intervals that will make up this n-gram.
-            list_of_intervals = []
-
-            # Are there enough non-"rest" elements to make an n-gram?
-            enough_non_rests = True
-
-            # Are there enough non-"rest" elements?
-            # We'll go through each of the previous n-1 elements, and if none
-            # of them is a "rest" then we can build an n-gram with this 'n'.
-            # We only need n-1 elements from the interval_history because we're
-            # getting an additional interval from this_interval.
-            for i in xrange( ( -1 * n ), 0 ):
-               previous_thing = interval_history[i]
-               if 'rest' == previous_thing:
-                  enough_non_rests = False
-                  break
-               else:
-                  # If there are no rests, we can add this interval to the list
-                  # of things that will be passed to the NGram() constructor.
-                  list_of_intervals.append( previous_thing )
-
-            # Finish making the n-gram
-            if enough_non_rests:
-               # Make an NGram object, then add it to the statistics database.
-               this_ngram = NGram( list_of_intervals, \
-                                   the_settings.get_property( 'heedQuality' ), \
-                                   the_settings.get_property( 'simpleOrCompound' ) )
-               the_statistics.add_ngram( this_ngram )
-            else:
-               # There aren't enough non-rests, so we won't be putting a
-               # triangle here. We need to set 'contin' to False so that we
-               # won't try to add a LilyPond annotation.
-               contin = False
-
-      # Annotate the score for LilyPond.
-      if contin:
-         # Get the str representation of this n-gram.
-         str_this_ngram = str(this_ngram)
-
-         # If there are restrictions on what to annotate...
-         if 0 < len(list_to_annotate):
-            # If this isn't one of the things to annotate...
-            if str_this_ngram not in list_to_annotate:
-               # Then move on to the next ngram
-               continue
-
-         # If this is the first annotation going into the score.
-         if 0 == len(list_of_lilypond_parts):
-
-            # If we are supposed to print a "legend" that says the part names.
-            if part_names is not None:
-               # Make a new Note
-               #legend_lily = note.Note( 'C4' )
-
-               # Start off the annotation
-               legend_lily = '_\markup{ '
-
-               # Are we colouring this?
-               if part_names[2]:
-                  legend_lily += '\with-color ' + annotation_colour + ' '
-
-               # Append the part names
-               legend_lily += '"' + part_names[0] + ' and ' + part_names[1] + '" }'
-
-               # Insert the Note
-               #list_of_lilypond_parts.insert( 0.0, legend_lily )
-            else:
-               # A sensible default value
-               legend_lily = ''
-
-            # Maybe the annotations don't start at the beginning of the Part, so
-            # let's fill the empty space with Rest objects. Remember, if we get
-            # here, then current_offset has the offset of the just-added object.
-            if current_offset > 0.0:
-               list_of_needed_qLs = fill_space_between_offsets( 0.0, current_offset )
-               z = note.Rest( quarterLength = list_of_needed_qLs[0] )
-               list_of_lilypond_parts.append( z )
-               for needed_qL in list_of_needed_qLs[1]:
-                  z = note.Rest( quarterLength = needed_qL )
-                  list_of_lilypond_parts.append( z )
-
-            # Figure out whether we need to colour this ngram
-            #this_colour = None
-            #if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
-               ## We must colour this ngram
-               #this_colour = annotation_colour
-
-            # Make a new Note in the lily_for_this_n stream, with the same offset as
-            # the start of this n-gram.
-            this_n_lily = note.Note( 'C4' ) # could be any pitch
-            this_n_lily.lily_markup = legend_lily
-
-            # Trouble is, I also have to fit in the right number of
-            # measures and filler material, or it'll be too
-            # difficult for output_LilyPond to invent this stuff.
-            list_of_lilypond_parts.insert( current_offset, this_n_lily )
-
-         # If this is not the first annotation going into the score.
-         else:
-            # Figure out what's required to fill the space between the previous and this annotation
-            list_of_needed_qLs = fill_space_between_offsets( list_of_lilypond_parts[-1].offset, current_offset )
-
-            # Set the previous annotation to the right quarterLength
-            list_of_lilypond_parts[-1].quarterLength = list_of_needed_qLs[0]
-
-            # Fill the remaining required space with Rest objects
-            for needed_qL in list_of_needed_qLs[1]:
-               z = note.Rest( quarterLength = needed_qL )
-               list_of_lilypond_parts.append( z )
-
-            # Figure out which colour we need
-            this_colour = None
-            if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
-               # We must colour this ngram
-               this_colour = annotation_colour
-            elif 0 == len(list_to_colour):
-               # We must colour all ngrams
-               this_colour = annotation_colour
-            # else:
-            #     this_colour = None, because there are ngrams to colour, but
-            #     this ngram isn't one of them.
-
-            # Put in the correct label.
-            if hasattr( list_of_lilypond_parts[-1], 'lily_markup' ):
-               list_of_lilypond_parts[-1].lily_markup += '^' + \
-                  make_lily_triangle( str_this_ngram, this_colour )
-            else:
-               list_of_lilypond_parts[-1].lily_markup = '^' + \
-                  make_lily_triangle( str_this_ngram, this_colour )
-
-            # Make a new Note in the lily_for_this_n stream.
-            this_n_lily = note.Note( 'C4' ) # could be any pitch
-
-            # Trouble is, I also have to fit in the right number of
-            # measures and filler material, or it'll be too
-            # difficult for output_LilyPond to invent this stuff.
-            list_of_lilypond_parts.insert( current_offset, this_n_lily )
-      # End LilyPond section ------------------------------
-
-      # Finally, increment the current index.
-      current_lower_index += 1
-      current_higher_index += 1
-   # End "while" loop -------------------------------------
+   error = None
+   try:
+       while current_lower_index < len_lower or current_higher_index < len_higher:
+          # Make sure the current indices aren't past the end of the parts.
+          if current_lower_index >= len_lower:
+             #current_lower_index = len_lower - 1
+             current_lower_index -= 1
+          if current_higher_index >= len_higher:
+             #current_higher_index = len_higher - 1
+             current_higher_index -= 1
+    
+          # Sanity check. If we've already recorded something *past* the current
+          # objects' offsets, then we're moving backwards.
+          if current_offset >= lower_part[current_lower_index].offset and \
+             current_offset >= higher_part[current_higher_index].offset:
+                #msg = 'Analytic engine started moving backward so we\'re aborting.'
+                #raise IncompatibleSetupError( msg )
+                pass
+    
+          # Make sure we have the right objects. --------------
+          # This protects against situations where, for instance, a long note is
+          # held through many notes in the other part. This will keep us on the
+          # right note. We know there's a problem if the current objects don't
+          # have the same offset.
+    
+          # If the current stream objects don't have the same offset, we should set
+          # the stream with the higher offset to use the previous object.
+    
+          # If the offsets aren't the same...
+          if lower_part[current_lower_index].offset != \
+                higher_part[current_higher_index].offset:
+    
+             # If the objects are the last in their streams...
+             if current_lower_index == ( len_lower - 1 ) and \
+                   current_higher_index == ( len_higher - 1 ):
+                pass
+             # If the higher object is last in its stream...
+             elif current_higher_index == ( len_higher - 1 ):
+                # We can only decrement the higher stream, if it's what occurs later.
+                if higher_part[current_higher_index].offset > \
+                      lower_part[current_lower_index].offset:
+                   current_higher_index -= 1
+             # If the lower object is last in its stream...
+             elif current_lower_index == ( len_lower - 1 ):
+                # We can only decrement the lower stream, if it's what occurs later.
+                if lower_part[current_lower_index].offset > \
+                      higher_part[current_higher_index].offset:
+                   current_lower_index -= 1
+             # Neither object is last in its stream...
+             else:
+                # Which object has the greater offset?
+                if higher_part[current_higher_index].offset > \
+                      lower_part[current_lower_index].offset:
+                   # Must be the higher part with the greater offset.
+                   current_higher_index -= 1
+                else:
+                   # Must be the lower part with the greater offset.
+                   current_lower_index -= 1
+    
+          # Decide whether to add the interval -----------------
+          # These conditions must be true for us to bother counting this interval.
+    
+          # We'll use this to keep track of whether we should continue processing
+          # these particular indices.
+          contin = False
+    
+          # Q: Is the current thing at an offset we're counting?
+          # We'll use this to try different yes-counting offsets, to see if we can
+          # match with the offset of the current thing.
+          if current_offset is None:
+             # We'll start at the start of the streams.
+             potential_new_offset = min( higher_part[0].offset, lower_part[0].offset )
+          else:
+             # Round current_offset to the nearest yes-counting interval.
+             potential_new_offset = round_to( current_offset, offset_interval )
+             # If potential_new_offset is greater than current_offset, we may have
+             # missed something, so go back!
+             if potential_new_offset > current_offset:
+                potential_new_offset -= offset_interval
+    
+          # The new thing will be registered at the greater of the two offsets of
+          # the objects we currently have.
+          # NB: This *must* be recalculated, because the objects may have changed
+          # since the previous time it was calculated.
+          greater_offset = max( higher_part[current_higher_index].offset, \
+                                lower_part[current_lower_index].offset )
+    
+          # We start at current_offset, which is still set to the most recently
+          # recorded interval. Then we'll increment by offset_interval until either
+          # we hit the offset at which the current event would be registered, or
+          # until we pass that offset, which means we won't hit it.
+          # NB: We need to keep potential_new_offset, because it records the
+          # yes-record offset either at or next after the greater_offset.
+          while potential_new_offset <= greater_offset:
+             if potential_new_offset == greater_offset:
+                contin = True
+                break
+             else:
+                potential_new_offset += offset_interval
+    
+          # Does this event continue past the next offset we're supposed to measure?
+          # NB: We only need to ask this if we aren't already continuing.
+          if not contin:
+             # We'll see if the offset of *both* the next events in our streams are
+             # greater than the "potential_new_offset". If we reach this code, the
+             # "potential_new_offset" will hold the next yes-record offset after the
+             # current event.
+    
+             # First see whether we're at the end of the streams.
+             if current_higher_index == len_higher - 1 or \
+                   current_lower_index == len_lower - 1:
+                # Then we'll have to use the quarterLength duration. We don't want
+                # to use this unless we have to, because this kind of arithmetic
+                # could lead to errors.
+                end_of_higher = higher_part[current_higher_index].offset + \
+                                higher_part[current_higher_index].quarterLength
+                end_of_lower = lower_part[current_lower_index].offset + \
+                               lower_part[current_lower_index].quarterLength
+    
+                # Now do the test
+                if end_of_lower > potential_new_offset and \
+                      end_of_higher > potential_new_offset:
+                   contin = True
+             else:
+                # We're not at the end of the streams, so we can test without
+                # arithmetic.
+                if higher_part[current_higher_index+1].offset > potential_new_offset and \
+                      lower_part[current_lower_index+1].offset > potential_new_offset:
+                   contin = True
+    
+          # Process this moment for intervals. ----------------
+          if contin:
+             # Does one or do both parts have a Rest or have Rests?
+             if is_rest( higher_part[current_higher_index] ) or \
+                   is_rest( lower_part[current_lower_index] ):
+                # It doesn't really matter which part; we just have to add this as
+                # a "this moment has a Rest" moment.
+                interval_history.append( 'rest' )
+                contin = False
+             # Otherwise, we're "go" for adding this as an Interval.
+             else:
+                this_interval = interval.Interval( lower_part[current_lower_index], \
+                                                   higher_part[current_higher_index] )
+                # Set the offset to the higher of the objects it's made from
+                this_interval.offset = max( lower_part[current_lower_index].offset, \
+                                            higher_part[current_higher_index].offset )
+                # Is this the first Interval, or is it the same as the previous?
+                if 0 < len(interval_history) and \
+                      this_interval == interval_history[-1]:
+                   # This means it's the same interval, but does it have the same notes?
+                   if this_interval.noteStart.nameWithOctave == interval_history[-1].noteStart.nameWithOctave:
+                      # This is the same
+                      contin = False
+                # else # This is a new thing, so we should keep processing.
+                if contin:
+                   statistics_buffer.add_interval( this_interval )
+                   interval_history.append( this_interval )
+                   # Update the current offset, because we added a new thing.
+                   current_offset = max( higher_part[current_higher_index].offset, \
+                                         lower_part[current_lower_index].offset )
+    
+          # Process this moment for triangles. ----------------
+          # Hold the NGram object we'll create.
+          this_ngram = None
+          if contin:
+             # For all the 'n' values we're looking for, we need to first make sure
+             # there are enough pre-recorded things in the interval_history, then
+             # make sure there are enough that are Interval objects and not the
+             # str 'rest' that means a Rest.
+             for n in find_these_ns:
+                # Is the interval history long enough?
+                if len(interval_history) < n:
+                   continue
+    
+                # Hold a list of intervals that will make up this n-gram.
+                list_of_intervals = []
+    
+                # Are there enough non-"rest" elements to make an n-gram?
+                enough_non_rests = True
+    
+                # Are there enough non-"rest" elements?
+                # We'll go through each of the previous n-1 elements, and if none
+                # of them is a "rest" then we can build an n-gram with this 'n'.
+                # We only need n-1 elements from the interval_history because we're
+                # getting an additional interval from this_interval.
+                for i in xrange( ( -1 * n ), 0 ):
+                   previous_thing = interval_history[i]
+                   if 'rest' == previous_thing:
+                      enough_non_rests = False
+                      break
+                   else:
+                      # If there are no rests, we can add this interval to the list
+                      # of things that will be passed to the NGram() constructor.
+                      list_of_intervals.append( previous_thing )
+    
+                # Finish making the n-gram
+                if enough_non_rests:
+                   # Make an NGram object, then add it to the statistics database.
+                   this_ngram = NGram( list_of_intervals, \
+                                       the_settings.get_property( 'heedQuality' ), \
+                                       the_settings.get_property( 'simpleOrCompound' ) )
+                   statistics_buffer.add_ngram( this_ngram )
+                else:
+                   # There aren't enough non-rests, so we won't be putting a
+                   # triangle here. We need to set 'contin' to False so that we
+                   # won't try to add a LilyPond annotation.
+                   contin = False
+    
+          # Annotate the score for LilyPond.
+          if contin:
+             # Get the str representation of this n-gram.
+             str_this_ngram = str(this_ngram)
+    
+             # If there are restrictions on what to annotate...
+             if 0 < len(list_to_annotate):
+                # If this isn't one of the things to annotate...
+                if str_this_ngram not in list_to_annotate:
+                   # Then move on to the next ngram
+                   continue
+    
+             # If this is the first annotation going into the score.
+             if 0 == len(list_of_lilypond_parts):
+    
+                # If we are supposed to print a "legend" that says the part names.
+                if part_names is not None:
+                   # Make a new Note
+                   #legend_lily = note.Note( 'C4' )
+    
+                   # Start off the annotation
+                   legend_lily = '_\markup{ '
+    
+                   # Are we colouring this?
+                   if part_names[2]:
+                      legend_lily += '\with-color ' + annotation_colour + ' '
+    
+                   # Append the part names
+                   legend_lily += '"' + part_names[0] + ' and ' + part_names[1] + '" }'
+    
+                   # Insert the Note
+                   #list_of_lilypond_parts.insert( 0.0, legend_lily )
+                else:
+                   # A sensible default value
+                   legend_lily = ''
+    
+                # Maybe the annotations don't start at the beginning of the Part, so
+                # let's fill the empty space with Rest objects. Remember, if we get
+                # here, then current_offset has the offset of the just-added object.
+                if current_offset > 0.0:
+                   list_of_needed_qLs = fill_space_between_offsets( 0.0, current_offset )
+                   z = note.Rest( quarterLength = list_of_needed_qLs[0] )
+                   list_of_lilypond_parts.append( z )
+                   for needed_qL in list_of_needed_qLs[1]:
+                      z = note.Rest( quarterLength = needed_qL )
+                      list_of_lilypond_parts.append( z )
+    
+                # Figure out whether we need to colour this ngram
+                #this_colour = None
+                #if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
+                   ## We must colour this ngram
+                   #this_colour = annotation_colour
+    
+                # Make a new Note in the lily_for_this_n stream, with the same offset as
+                # the start of this n-gram.
+                this_n_lily = note.Note( 'C4' ) # could be any pitch
+                this_n_lily.lily_markup = legend_lily
+    
+                # Trouble is, I also have to fit in the right number of
+                # measures and filler material, or it'll be too
+                # difficult for output_LilyPond to invent this stuff.
+                list_of_lilypond_parts.insert( current_offset, this_n_lily )
+    
+             # If this is not the first annotation going into the score.
+             else:
+                # Figure out what's required to fill the space between the previous and this annotation
+                list_of_needed_qLs = fill_space_between_offsets( list_of_lilypond_parts[-1].offset, current_offset )
+    
+                # Set the previous annotation to the right quarterLength
+                list_of_lilypond_parts[-1].quarterLength = list_of_needed_qLs[0]
+    
+                # Fill the remaining required space with Rest objects
+                for needed_qL in list_of_needed_qLs[1]:
+                   z = note.Rest( quarterLength = needed_qL )
+                   list_of_lilypond_parts.append( z )
+    
+                # Figure out which colour we need
+                this_colour = None
+                if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
+                   # We must colour this ngram
+                   this_colour = annotation_colour
+                elif 0 == len(list_to_colour):
+                   # We must colour all ngrams
+                   this_colour = annotation_colour
+                # else:
+                #     this_colour = None, because there are ngrams to colour, but
+                #     this ngram isn't one of them.
+    
+                # Put in the correct label.
+                if hasattr( list_of_lilypond_parts[-1], 'lily_markup' ):
+                   list_of_lilypond_parts[-1].lily_markup += '^' + \
+                      make_lily_triangle( str_this_ngram, this_colour )
+                else:
+                   list_of_lilypond_parts[-1].lily_markup = '^' + \
+                      make_lily_triangle( str_this_ngram, this_colour )
+    
+                # Make a new Note in the lily_for_this_n stream.
+                this_n_lily = note.Note( 'C4' ) # could be any pitch
+    
+                # Trouble is, I also have to fit in the right number of
+                # measures and filler material, or it'll be too
+                # difficult for output_LilyPond to invent this stuff.
+                list_of_lilypond_parts.insert( current_offset, this_n_lily )
+          # End LilyPond section ------------------------------
+    
+          # Finally, increment the current index.
+          current_lower_index += 1
+          current_higher_index += 1
+       # End "while" loop -------------------------------------
+       the_statistics.extend(statistics_buffer)
+   except Exception as e:
+      error = str(e)
+       
 
    # Note the ending time of the analysis...
    duration = time.time() - analysis_start_time
-   return ( duration, list_of_lilypond_parts )
+   return ( duration, list_of_lilypond_parts, error )
 # End vis_these_parts() -------------------------------------------------------

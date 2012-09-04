@@ -246,7 +246,7 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
             it_took += vis_these_parts( [higher,lower], the_settings, the_stats )[0]
       else:
          higher, lower = the_score.parts[look_at_parts[0]], the_score.parts[look_at_parts[1]]
-         it_took, ly = vis_these_parts( [higher,lower], the_settings, the_stats )
+         it_took, ly, error = vis_these_parts( [higher,lower], the_settings, the_stats )
       
       print( ' --> the analysis took ' + str(it_took) + ' seconds' )
       
