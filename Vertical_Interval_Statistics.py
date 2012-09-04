@@ -182,8 +182,8 @@ class Vertical_Interval_Statistics( object ):
    
    def add_ngram( self, the_ngram ):
       '''
-      Adds an n-gram to the occurrences information. Automatically does or does
-      not track quality, depending on the settings of the inputted NGram.
+      Adds an n-gram to the occurrences information. Tracks quality, since quality
+      can always be ignored, but not recovered.
       '''
       
       # If there isn't yet a dictionary for this 'n' value, then we'll have to
@@ -191,10 +191,11 @@ class Vertical_Interval_Statistics( object ):
       while len(self._ngrams_dict) <= the_ngram._n:
          self._ngrams_dict.append( {} )
          
-      if the_ngram in self._ngrams_dict[the_ngram._n]:
-         self._ngrams_dict[the_ngram._n][the_ngram] += 1
+      index_ngram = Vertical_Interval_Statistics._set_heed_quality(the_ngram, True)
+      if index_ngram in self._ngrams_dict[the_ngram._n]:
+         self._ngrams_dict[the_ngram._n][index_ngram] += 1
       else:
-         self._ngrams_dict[the_ngram._n][the_ngram] = 1
+         self._ngrams_dict[the_ngram._n][index_ngram] = 1
    # end add_ngram()
    
    #def get_ngram_occurrences( self, which_ngram, n ):
@@ -261,10 +262,7 @@ class Vertical_Interval_Statistics( object ):
       ret.set_heed_quality(heed_quality)
       return ret
 
-   def retrogrades( self, the_settings, specs='' ):
-     #TODO: refactor the beginning of all the ngram methods
-      # (1) Figure out which values of 'n' we should output.
-      list_of_n = []
+   def determine_list_of_n( self, the_settings, specs, post ):
       if 'n=' in specs:
          # Which values of 'n' did they specify?
          list_of_n = specs[specs.find('n=')+2:]
@@ -301,19 +299,34 @@ class Vertical_Interval_Statistics( object ):
       if 0 == len(list_of_n):
          raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
 
-      # (2) Decide whether to take 'quality' or 'no_quality'
+      return list_of_n
+
+   def prepare_ngram_output_dict( self, the_settings, list_of_n, specs ):
       output_dict = None
       if 'quality' in specs or ( the_settings.get_property( 'heedQuality' ) and \
          'noQuality' not in specs ):
          # We do need to include quality
-         output_dict = [dict(map(lambda (key, value): \
-            (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
-            d.items())) for d in self._ngrams_dict]
+         output_dict = self._ngrams_dict
       else:
          # We don't need to include quality
-         output_dict = [dict(map(lambda (key, value): \
-            (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
-            d.items())) for d in self._ngrams_dict]
+         output_dict = [{} for i in range(len(self._ngrams_dict))]
+         for n in list_of_n:
+            for ng in self._ngrams_dict[n].iterkeys():
+               key_name = Vertical_Interval_Statistics._set_heed_quality(ng,False)
+               if key_name not in output_dict[n]:
+                  output_dict[n][key_name] = sum([self._ngrams_dict[n][ngram] for ngram in \
+                     self._ngrams_dict[n].keys() if Vertical_Interval_Statistics._set_heed_quality(ngram,False) == key_name])
+      return output_dict
+
+   def retrogrades( self, the_settings, specs='' ):
+     #TODO: refactor the beginning of all the ngram methods
+      # (1) Figure out which values of 'n' we should output.
+      post = ''
+      list_of_n = self.determine_list_of_n(the_settings,specs,post)
+
+      # (2) Decide whether to take 'quality' or 'no_quality'
+      output_dict = self.prepare_ngram_output_dict(the_settings,list_of_n,specs)
+            
 
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -341,7 +354,6 @@ class Vertical_Interval_Statistics( object ):
                   sorted_ngrams[n].remove(retrograde)
             else:
                ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],0)
-      post = ''
 
       # (5.1) If some graphs are asked for, prepare them
       if 'graph' in specs:
@@ -428,31 +440,11 @@ class Vertical_Interval_Statistics( object ):
    #end retrogrades()
 
    def power_law_analysis( self, the_settings ):
-     #Most of this method is the same as get_formatted_ngrams()
-      list_of_n = []
-      # Check every index between 2 and however many possibilities there are,
-      # and see which of these potential n values has n-grams associated.
-      for n in xrange( 2, len(self._ngrams_dict) ):
-         if {} != self._ngrams_dict[n]:
-            list_of_n.append( n )
-      #-----
-
-      # What if we end up with no n values?
-      if 0 == len(list_of_n):
-         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+      post = ''
+      list_of_n = self.determine_list_of_n( the_settings,'',post )
       
       # (2) Decide whether to take 'quality' or 'no_quality'
-      output_dict = None
-      if the_settings.get_property( 'heedQuality' ):
-         # We do need to include quality
-         output_dict = [dict(map(lambda (key, value): \
-           (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
-           d.items())) for d in self._ngrams_dict]
-      else:
-         # We don't need to include quality
-         output_dict = [dict(map(lambda (key, value): \
-           (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
-           d.items())) for d in self._ngrams_dict]
+      output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n, '' )
       
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -595,7 +587,7 @@ class Vertical_Interval_Statistics( object ):
          for n in list_of_n:
             # First check we have that index and it's potentially filled with
             # n-gram values
-            if n < 2 or n > (len(self._ngrams_dict) - 1):
+            if n < 2 or (n > (len(self._ngrams_dict) - 1) and n > (len(other_stats._ngrams_dict) - 1)):
                # throw it out
                list_of_n.remove( n )
                post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
@@ -604,12 +596,13 @@ class Vertical_Interval_Statistics( object ):
             # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
             # valid in the n-gram dictionary, but they won't actually hold
             # any n-grams.
-            if {} == self._ngrams_dict[n]:
+            if {} == self._ngrams_dict[n] and {} == other_stats._ngrams_dict[n]:
                # throw it out
                list_of_n.remove( n )
                post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
       else:
-         list_of_n = [i for i in range(len(self._ngrams_dict)) if self._ngrams_dict[i] != {}]
+         list_of_n = [i for i in range(max(len(self._ngrams_dict),len(other_stats._ngrams_dict))) if \
+                     self._ngrams_dict[i] != {} or other_stats._ngrams_dict[i] != {}]
       # What if we end up with no n values?
       if 0 == len(list_of_n):
          raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
@@ -713,42 +706,7 @@ class Vertical_Interval_Statistics( object ):
       post = ''
       
       # (1) Figure out which values of 'n' we should output.
-      list_of_n = []
-      if 'n=' in specs:
-         # Which values of 'n' did they specify?
-         list_of_n = specs[specs.find('n=')+2:]
-         list_of_n = list_of_n[:list_of_n.find(' ')]
-         list_of_n = sorted(set([int(n) for n in re.findall('(\d+)', list_of_n)]))
-         # Check those n values are acceptable/present
-         for n in list_of_n:
-            # First check we have that index and it's potentially filled with
-            # n-gram values
-            if n < 2 or n > (len(self._ngrams_dict) - 1):
-               # throw it out
-               list_of_n.remove( n )
-               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
-               continue # to avoid the next test
-            # Now check if there are actually n-grams in that position. If we
-            # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
-            # valid in the n-gram dictionary, but they won't actually hold
-            # any n-grams.
-            if {} == self._ngrams_dict[n]:
-               # throw it out
-               list_of_n.remove( n )
-               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
-      else:
-         # Which values of 'n' are present in this V_I_S instance?
-         list_of_n = []
-         # Check every index between 2 and however many possibilities there are,
-         # and see which of these potential n values has n-grams associated.
-         for n in xrange( 2, len(self._ngrams_dict) ):
-            if {} != self._ngrams_dict[n]:
-               list_of_n.append( n )
-      #-----
-      
-      # What if we end up with no n values?
-      if 0 == len(list_of_n):
-         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+      list_of_n = self.determine_list_of_n( the_settings, specs, post )
       
       # If they want the total number of n-grams found.
       if 'total' in specs:
@@ -763,18 +721,7 @@ class Vertical_Interval_Statistics( object ):
       #--------
       
       # (2) Decide whether to take 'quality' or 'no_quality'
-      output_dict = None
-      if 'quality' in specs or ( the_settings.get_property( 'heedQuality' ) and \
-         'noQuality' not in specs ):
-         # We do need to include quality
-         output_dict = [dict(map(lambda (key, value): \
-           (Vertical_Interval_Statistics._set_heed_quality( key, True ), value), \
-           d.items())) for d in self._ngrams_dict]
-      else:
-         # We don't need to include quality
-         output_dict = [dict(map(lambda (key, value): \
-           (Vertical_Interval_Statistics._set_heed_quality( key, False ), value), \
-           d.items())) for d in self._ngrams_dict]
+      output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n, specs )
       
       # (3) Sort the dictionary
       sorted_ngrams = []
