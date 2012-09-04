@@ -139,9 +139,9 @@
      </widget>
     </item>
     <item>
-     <widget class="QStackedWidget" name="stackedWidget">
+     <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_analyze">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -367,7 +367,7 @@
             </widget>
            </item>
            <item row="0" column="3">
-            <widget class="QGroupBox" name="groupBox_8">
+            <widget class="QGroupBox" name="groupBox_n">
              <property name="title">
               <string>Values of N</string>
              </property>
@@ -379,7 +379,7 @@
             </widget>
            </item>
            <item row="3" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_12">
+            <widget class="QGroupBox" name="groupBox_sorted_by">
              <property name="title">
               <string>Sorted by...</string>
              </property>
@@ -430,7 +430,7 @@
                <widget class="QLineEdit" name="lineEdit_2"/>
               </item>
               <item>
-               <widget class="QLabel" name="label_6">
+               <widget class="QLabel" name="lbl_most_common">
                 <property name="text">
                  <string>most common triangles.</string>
                 </property>
@@ -443,7 +443,7 @@
             </widget>
            </item>
            <item row="3" column="2" colspan="2">
-            <widget class="QGroupBox" name="groupBox_13">
+            <widget class="QGroupBox" name="groupBox_sort_order">
              <property name="title">
               <string>Sort Order</string>
              </property>
@@ -475,7 +475,7 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
               <item>
-               <widget class="QLabel" name="label_7">
+               <widget class="QLabel" name="lbl_exclude_if_fewer">
                 <property name="text">
                  <string>Exclude triangles with fewer than</string>
                 </property>
@@ -609,7 +609,7 @@
             </spacer>
            </item>
            <item row="0" column="4" rowspan="3" colspan="2">
-            <widget class="QGroupBox" name="groupBox_14">
+            <widget class="QGroupBox" name="groupBox_targeted_score">
              <property name="enabled">
               <bool>false</bool>
              </property>
@@ -730,16 +730,15 @@
           <zorder>groupBox_5</zorder>
           <zorder>groupBox_6</zorder>
           <zorder>groupBox_7</zorder>
-          <zorder>groupBox_8</zorder>
+          <zorder>groupBox_n</zorder>
           <zorder>groupBox_9</zorder>
           <zorder>groupBox_10</zorder>
           <zorder>groupBox_11</zorder>
-          <zorder>groupBox_12</zorder>
-          <zorder>groupBox_13</zorder>
-          <zorder>label_5</zorder>
+          <zorder>groupBox_sorted_by</zorder>
+          <zorder>groupBox_sort_order</zorder>
           <zorder>btn_show_results</zorder>
           <zorder>horizontalSpacer_4</zorder>
-          <zorder>groupBox_14</zorder>
+          <zorder>groupBox_targeted_score</zorder>
          </widget>
         </item>
        </layout>
@@ -819,7 +818,7 @@
          </layout>
         </item>
         <item>
-         <widget class="QLabel" name="label_12">
+         <widget class="QLabel" name="lbl_status_text">
           <property name="text">
            <string>Please wait...</string>
           </property>
@@ -829,7 +828,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QProgressBar" name="progressBar">
+         <widget class="QProgressBar" name="progress_bar">
           <property name="value">
            <number>0</number>
           </property>
