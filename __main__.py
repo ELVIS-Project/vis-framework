@@ -611,7 +611,12 @@ class Vis_MainWindow( Ui_MainWindow ):
       ['annotate colour', '#blue'] (the second element is a str that is the name of the colour you want)
          - #blue for "Normal colors"
          - #(x11-color 'DarkRed) for "X color names"
-         - for a list of colours: http://lilypond.org/doc/v2.14/Documentation/notation/list-of-colors
+         - for a list of colours: http://lilypond.org/doc/v2.16/Documentation/notation/list-of-colors
+      ['part names', str, str, 'colour'/'no colour'] : If you wish to print a "legend" annotation
+         that contains the part names being compared, include the part names
+         here as two str objects. It doesn't really matter which part is which,
+         but the str at index 1 is printed first. If the third element is 'colour'
+         then the part names will be printed as per the instruction 'annotate colour'.
 
       NB: If you do not specify only_annotate or only_colour, all annotations appear, and the colour is #black
       NB: If you specify annotate_colour without only_colour, all annotations appear, and the colour is annotate_colour
