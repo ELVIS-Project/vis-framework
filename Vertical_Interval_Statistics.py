@@ -469,7 +469,7 @@ class Vertical_Interval_Statistics( object ):
          y = [log(output_dict[n][ng]) for ng in sorted_ngrams[n]]
          w = linalg.lstsq(A.T,y)[0] #least-squares regression on the data
          #w[0] contains the slope of the line, and we'll just display positive numbers because that's nice.
-         post += '\nthe power law exponent for the '+str(n)+'-grams is '+str(-w[0])+ \
+         post += 'The power law exponent for the '+str(n)+'-grams is '+str(-w[0])+ \
                  '; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
       return post
    #end power_law_analysis()

@@ -460,18 +460,22 @@ class Vis_MainWindow( Ui_MainWindow ):
       # This method merely gets the settings, but doesn't do anything with them.
 
       if 'ngram' in post:
-         # Check settings on the "Show"/"Triangles" tab
-         # Sort Order
-         if self.rdo_ascending_triangles.isChecked():
-            post += ' ascending '
-         else:
-            post += ' descending '
+         # Check whether we're producing a summary or power-law analysis
+         if self.rdo_summary.isChecked():
+            # Check settings on the "Show"/"Triangles" tab
+            # Sort Order
+            if self.rdo_ascending_triangles.isChecked():
+               post += ' ascending '
+            else:
+               post += ' descending '
 
-         # Sort Object
-         if self.rdo_ngrams_by_ngram.isChecked():
-            post += ' by ngram '
-         else:
-            post += ' by frequency '
+            # Sort Object
+            if self.rdo_ngrams_by_ngram.isChecked():
+               post += ' by ngram '
+            else:
+               post += ' by frequency '
+         else: #self.rdo_powerlaw.isChecked() == True
+            post += ' powerlaw'
 
          # Graph
          if self.chk_graph_triangles.isChecked():
@@ -546,8 +550,12 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # First, format the results.
       if 'ngram' in specs:
-         # output ngrams
-         results = self.statistics.get_formatted_ngrams( self.settings, specs )
+         if 'powerlaw' in specs:
+            # output power-law analysis
+            results = self.statistics.power_law_analysis( self.settings )
+         else:
+            # output ngrams
+            results = self.statistics.get_formatted_ngrams( self.settings, specs )
       else:
          # output intervals
          results = self.statistics.get_formatted_intervals( self.settings, specs )
