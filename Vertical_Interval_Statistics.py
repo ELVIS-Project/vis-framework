@@ -191,11 +191,16 @@ class Vertical_Interval_Statistics( object ):
       while len(self._ngrams_dict) <= the_ngram._n:
          self._ngrams_dict.append( {} )
          
-      index_ngram = Vertical_Interval_Statistics._set_heed_quality(the_ngram, True)
+      index_ngram = Vertical_Interval_Statistics._set_heed_quality(the_ngram, False)
+      detail_ngram = Vertical_Interval_Statistics._set_heed_quality(the_ngram, True)
       if index_ngram in self._ngrams_dict[the_ngram._n]:
-         self._ngrams_dict[the_ngram._n][index_ngram] += 1
+         if detail_ngram in self._ngrams_dict[the_ngram._n][index_ngram]:
+            self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram] += 1
+         else:
+            self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = 1
       else:
-         self._ngrams_dict[the_ngram._n][index_ngram] = 1
+         self._ngrams_dict[the_ngram._n][index_ngram] = {}
+         self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = 1
    # end add_ngram()
    
    #def get_ngram_occurrences( self, which_ngram, n ):
@@ -301,21 +306,53 @@ class Vertical_Interval_Statistics( object ):
 
       return list_of_n
 
+   def extend( self, other_stats ):
+      for interval in other_stats._simple_interval_dict.iterkeys():
+         if interval in self._simple_interval_dict:
+            self._simple_interval_dict[interval] += other_stats._simple_interval_dict[interval]
+         else:
+            self._simple_interval_dict[interval] = other_stats._simple_interval_dict[interval]
+
+      for interval in other_stats._compound_interval_dict.iterkeys():
+         if interval in self._compound_interval_dict:
+            self._compound_interval_dict[interval] += other_stats._compound_interval_dict[interval]
+         else:
+            self._compound_interval_dict[interval] = other_stats._compound_interval_dict[interval]
+
+      p, q = len(self._ngrams_dict), len(other_stats._ngrams_dict)
+      if p < q:
+         for i in range(q-p):
+            self._ngrams_dict.append( {} )
+      for n in range(len(other_stats._ngrams_dict)):
+         for ng in other_stats._ngrams_dict[n].iterkeys():
+            if ng in self._ngrams_dict[n]:
+               for ngram in other_stats._ngrams_dict[n][ng].iterkeys():
+                  if ngram in self._ngrams_dict[n][ng]:
+                     self._ngrams_dict[n][ng][ngram] += other_stats._ngrams_dict[n][ng][ngram]
+                  else:
+                     self._ngrams_dict[n][ng][ngram] = other_stats._ngrams_dict[n][ng][ngram]
+            else:
+               self._ngrams_dict[n][ng] = other_stats._ngrams_dict[n][ng]
+      
+
    def prepare_ngram_output_dict( self, the_settings, list_of_n, specs ):
       output_dict = None
       if 'quality' in specs or ( the_settings.get_property( 'heedQuality' ) and \
          'noQuality' not in specs ):
          # We do need to include quality
-         output_dict = self._ngrams_dict
+         output_dict = []
+         for n in list_of_n:
+            keys = []
+            values = []
+            for ng in self._ngrams_dict[n].iterkeys():
+               keys.extend(self._ngrams_dict[n][ng].keys())
+               values.extend(self._ngrams_dict[n][ng].values())
+            while len(output_dict) < n+1:
+               output_dict.append( {} )
+            output_dict[n] = dict(keys,values)
       else:
          # We don't need to include quality
-         output_dict = [{} for i in range(len(self._ngrams_dict))]
-         for n in list_of_n:
-            for ng in self._ngrams_dict[n].iterkeys():
-               key_name = Vertical_Interval_Statistics._set_heed_quality(ng,False)
-               if key_name not in output_dict[n]:
-                  output_dict[n][key_name] = sum([self._ngrams_dict[n][ngram] for ngram in \
-                     self._ngrams_dict[n].keys() if Vertical_Interval_Statistics._set_heed_quality(ngram,False) == key_name])
+         output_dict = [{ngram:sum(d[ngram].values()) for ngram in d.keys()} for d in self._ngrams_dict]
       return output_dict
 
    def retrogrades( self, the_settings, specs='' ):
@@ -611,8 +648,8 @@ class Vertical_Interval_Statistics( object ):
       tables = {}
       for n in list_of_n:
          table = {}
-         self_dict = self._ngrams_dict[n]
-         other_dict = other_stats._ngrams_dict[n]
+         self_dict = self.prepare_ngram_output_dict(the_settings,list_of_n,specs+' noQuality')[n]
+         other_dict = other_stats.prepare_ngram_output_dict(the_settings,list_of_n,specs+' noQuality')[n]
          for ng in self_dict.iterkeys():
             table[ng] = [self_dict[ng],0]
          for ng in other_dict.iterkeys():
@@ -642,7 +679,7 @@ class Vertical_Interval_Statistics( object ):
             g.xTickLabelRotation = 90
             g.xTickLabelVerticalAlignment='top'
             g.setTitle(str(n)+'-Grams')
-            g.setTicks('y',[(k,k) for k in xrange(max([max(v[0],v[1]) for v in table.values()]))])
+            g.setTicks('y',[(k,k) for k in xrange(max([max(int(v[0]),int(v[1])) for v in table.values()]))])
             g.process()
             grapharr.append(g)
          post = grapharr
