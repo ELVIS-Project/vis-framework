@@ -39,6 +39,7 @@ from PyQt4 import Qt
 #from PyQt4.QtCore import pyqtSlot, QObject
 # music21
 from music21 import converter # for analyze_this()
+from music21 import graph # for show_results()
 from music21.converter import ConverterException # for analyze_this()
 from music21.converter import ConverterFileException # for analyze_this()
 # vis
@@ -563,7 +564,14 @@ class Vis_MainWindow( Ui_MainWindow ):
                                               output_filename[0] )
       # Third, deal with results shown in the window.
       else:
-         self.txt_results.setPlainText( str(results)  )
+          if isinstance(results, basestring):
+              self.txt_results.setPlainText( str(results)  )
+          elif isinstance(results, graph.Graph):
+              results.show()
+          else: 
+              #array of graphs
+              for g in results:
+                  g.show()
 
 
 
