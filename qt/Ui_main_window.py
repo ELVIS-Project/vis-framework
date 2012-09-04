@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/qt/main_window.ui'
+# Form implementation generated from reading ui file 'main_window.ui'
 #
-# Created: Thu Aug 30 21:39:23 2012
-#      by: PyQt4 UI code generator 4.9.1
+# Created: Mon Sep  3 22:42:39 2012
+#      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(636, 666)
+        MainWindow.resize(636, 648)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -235,6 +235,18 @@ class Ui_MainWindow(object):
         self.tab_triangles.setObjectName(_fromUtf8("tab_triangles"))
         self.gridLayout = QtGui.QGridLayout(self.tab_triangles)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.groupBox_9 = QtGui.QGroupBox(self.tab_triangles)
+        self.groupBox_9.setObjectName(_fromUtf8("groupBox_9"))
+        self.horizontalLayout_11 = QtGui.QHBoxLayout(self.groupBox_9)
+        self.horizontalLayout_11.setObjectName(_fromUtf8("horizontalLayout_11"))
+        self.rdo_summary = QtGui.QRadioButton(self.groupBox_9)
+        self.rdo_summary.setChecked(True)
+        self.rdo_summary.setObjectName(_fromUtf8("rdo_summary"))
+        self.horizontalLayout_11.addWidget(self.rdo_summary)
+        self.rdo_powerlaw = QtGui.QRadioButton(self.groupBox_9)
+        self.rdo_powerlaw.setObjectName(_fromUtf8("rdo_powerlaw"))
+        self.horizontalLayout_11.addWidget(self.rdo_powerlaw)
+        self.gridLayout.addWidget(self.groupBox_9, 0, 0, 1, 2)
         self.groupBox_4 = QtGui.QGroupBox(self.tab_triangles)
         self.groupBox_4.setObjectName(_fromUtf8("groupBox_4"))
         self.verticalLayout_20 = QtGui.QVBoxLayout(self.groupBox_4)
@@ -246,7 +258,15 @@ class Ui_MainWindow(object):
         self.rdo_descending_triangles.setChecked(True)
         self.rdo_descending_triangles.setObjectName(_fromUtf8("rdo_descending_triangles"))
         self.verticalLayout_20.addWidget(self.rdo_descending_triangles)
-        self.gridLayout.addWidget(self.groupBox_4, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.groupBox_4, 1, 0, 1, 1)
+        self.groupBox_6 = QtGui.QGroupBox(self.tab_triangles)
+        self.groupBox_6.setObjectName(_fromUtf8("groupBox_6"))
+        self.verticalLayout_22 = QtGui.QVBoxLayout(self.groupBox_6)
+        self.verticalLayout_22.setObjectName(_fromUtf8("verticalLayout_22"))
+        self.chk_graph_triangles = QtGui.QCheckBox(self.groupBox_6)
+        self.chk_graph_triangles.setObjectName(_fromUtf8("chk_graph_triangles"))
+        self.verticalLayout_22.addWidget(self.chk_graph_triangles)
+        self.gridLayout.addWidget(self.groupBox_6, 1, 1, 1, 1)
         self.groupBox_5 = QtGui.QGroupBox(self.tab_triangles)
         self.groupBox_5.setObjectName(_fromUtf8("groupBox_5"))
         self.verticalLayout_21 = QtGui.QVBoxLayout(self.groupBox_5)
@@ -258,15 +278,7 @@ class Ui_MainWindow(object):
         self.rdo_ngrams_by_freq.setChecked(True)
         self.rdo_ngrams_by_freq.setObjectName(_fromUtf8("rdo_ngrams_by_freq"))
         self.verticalLayout_21.addWidget(self.rdo_ngrams_by_freq)
-        self.gridLayout.addWidget(self.groupBox_5, 1, 0, 1, 1)
-        self.groupBox_6 = QtGui.QGroupBox(self.tab_triangles)
-        self.groupBox_6.setObjectName(_fromUtf8("groupBox_6"))
-        self.verticalLayout_22 = QtGui.QVBoxLayout(self.groupBox_6)
-        self.verticalLayout_22.setObjectName(_fromUtf8("verticalLayout_22"))
-        self.chk_graph_triangles = QtGui.QCheckBox(self.groupBox_6)
-        self.chk_graph_triangles.setObjectName(_fromUtf8("chk_graph_triangles"))
-        self.verticalLayout_22.addWidget(self.chk_graph_triangles)
-        self.gridLayout.addWidget(self.groupBox_6, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.groupBox_5, 2, 0, 1, 1)
         self.groupBox_7 = QtGui.QGroupBox(self.tab_triangles)
         self.groupBox_7.setObjectName(_fromUtf8("groupBox_7"))
         self.verticalLayout_24 = QtGui.QVBoxLayout(self.groupBox_7)
@@ -287,7 +299,7 @@ class Ui_MainWindow(object):
         self.btn_auto_n = QtGui.QPushButton(self.groupBox_7)
         self.btn_auto_n.setObjectName(_fromUtf8("btn_auto_n"))
         self.verticalLayout_24.addWidget(self.btn_auto_n)
-        self.gridLayout.addWidget(self.groupBox_7, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.groupBox_7, 2, 1, 1, 1)
         self.widget_2 = QtGui.QWidget(self.tab_triangles)
         self.widget_2.setObjectName(_fromUtf8("widget_2"))
         self.horizontalLayout_3 = QtGui.QHBoxLayout(self.widget_2)
@@ -299,7 +311,7 @@ class Ui_MainWindow(object):
         self.btn_save_triangles = QtGui.QPushButton(self.widget_2)
         self.btn_save_triangles.setObjectName(_fromUtf8("btn_save_triangles"))
         self.horizontalLayout_3.addWidget(self.btn_save_triangles)
-        self.gridLayout.addWidget(self.widget_2, 2, 0, 1, 2)
+        self.gridLayout.addWidget(self.widget_2, 3, 0, 1, 2)
         self.tabs_output_options.addTab(self.tab_triangles, _fromUtf8(""))
         self.tab_score = QtGui.QWidget()
         self.tab_score.setObjectName(_fromUtf8("tab_score"))
@@ -475,7 +487,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.tabs_main.setCurrentIndex(1)
         self.tabs_settings.setCurrentIndex(0)
-        self.tabs_output_options.setCurrentIndex(4)
+        self.tabs_output_options.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -518,14 +530,17 @@ class Ui_MainWindow(object):
         self.btn_save_intervals.setToolTip(QtGui.QApplication.translate("MainWindow", "Save results to a file", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_save_intervals.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
         self.tabs_output_options.setTabText(self.tabs_output_options.indexOf(self.tab_intervals), QtGui.QApplication.translate("MainWindow", "Intervals", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_9.setTitle(QtGui.QApplication.translate("MainWindow", "Display", None, QtGui.QApplication.UnicodeUTF8))
+        self.rdo_summary.setText(QtGui.QApplication.translate("MainWindow", "Summary", None, QtGui.QApplication.UnicodeUTF8))
+        self.rdo_powerlaw.setText(QtGui.QApplication.translate("MainWindow", "Power Law Analysis", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_4.setTitle(QtGui.QApplication.translate("MainWindow", "Sort Order", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_ascending_triangles.setText(QtGui.QApplication.translate("MainWindow", "Low to High (Ascending)", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_descending_triangles.setText(QtGui.QApplication.translate("MainWindow", "High to Low (Descending)", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_5.setTitle(QtGui.QApplication.translate("MainWindow", "Sort Object", None, QtGui.QApplication.UnicodeUTF8))
-        self.rdo_ngrams_by_ngram.setText(QtGui.QApplication.translate("MainWindow", "By Interval", None, QtGui.QApplication.UnicodeUTF8))
-        self.rdo_ngrams_by_freq.setText(QtGui.QApplication.translate("MainWindow", "By Frequency", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_6.setTitle(QtGui.QApplication.translate("MainWindow", "Graph", None, QtGui.QApplication.UnicodeUTF8))
         self.chk_graph_triangles.setText(QtGui.QApplication.translate("MainWindow", "Produce Graph", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_5.setTitle(QtGui.QApplication.translate("MainWindow", "Sort Object", None, QtGui.QApplication.UnicodeUTF8))
+        self.rdo_ngrams_by_ngram.setText(QtGui.QApplication.translate("MainWindow", "By N-Gram", None, QtGui.QApplication.UnicodeUTF8))
+        self.rdo_ngrams_by_freq.setText(QtGui.QApplication.translate("MainWindow", "By Frequency", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_7.setTitle(QtGui.QApplication.translate("MainWindow", "Cardinalities", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("MainWindow", "n = ", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_auto_n.setText(QtGui.QApplication.translate("MainWindow", "Auto Fill", None, QtGui.QApplication.UnicodeUTF8))
@@ -560,14 +575,4 @@ class Ui_MainWindow(object):
         self.btn_summary_show.setText(QtGui.QApplication.translate("MainWindow", "Show", None, QtGui.QApplication.UnicodeUTF8))
         self.tabs_output_options.setTabText(self.tabs_output_options.indexOf(self.tab_lilypond_summary), QtGui.QApplication.translate("MainWindow", "LilyPond Statistics Summary", None, QtGui.QApplication.UnicodeUTF8))
         self.tabs_main.setTabText(self.tabs_main.indexOf(self.tab_output), QtGui.QApplication.translate("MainWindow", "Show", None, QtGui.QApplication.UnicodeUTF8))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtGui.QApplication(sys.argv)
-    MainWindow = QtGui.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
 

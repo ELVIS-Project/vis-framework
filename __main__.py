@@ -116,6 +116,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.rdo_summary_intervals.clicked.connect( self.change_print_summary )
       self.btn_summary_auto_n.clicked.connect( self.summary_auto_n )
       self.btn_summary_show.clicked.connect( self.generate_summary_score )
+      self.rdo_summary.clicked.connect( self.change_ngram_display )
+      self.rdo_powerlaw.clicked.connect( self.change_ngram_display )
 
 
 
@@ -372,6 +374,14 @@ class Vis_MainWindow( Ui_MainWindow ):
       else:
          self.lbl_summary_triangles_or_ngrams.setText( 'intervals.' )
          self.box_summary_cardinalities.hide()
+
+   def change_ngram_display( self ):
+      if self.rdo_summary.isChecked() and not self.groupBox_4.isEnabled() and not self.groupBox_5.isEnabled():
+         self.groupBox_4.setEnabled(True)
+         self.groupBox_5.setEnabled(True)
+      elif self.rdo_powerlaw.isChecked():
+         self.groupBox_4.setEnabled(False)
+         self.groupBox_5.setEnabled(False)
 
    def summary_auto_n( self ):
       # on btn_summary_auto_n.clicked
