@@ -680,6 +680,9 @@ class LilyPond_Settings:
 #------------------------------------------------------------------------------
 def output_the_file( contents, filename='test_output/lily_output' ):
    # TODO: exception handling
+   dir = os.path.dirname(filename)
+   if not os.path.exists(dir):
+      os.makedirs(dir)
 
    # Is there already an extension?
    if 3 < len(filename) and '.ly' == filename[-3:]:

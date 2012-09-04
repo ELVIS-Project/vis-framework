@@ -73,7 +73,8 @@ def file_outputter( contents, filename, extension='' ):
    try:
       output_file = open( filename+extension, 'w' )
    except IOError as ioe:
-      return_error = 'Unable to open file for writing (' + filename + extension + ')'
+      return_error = 'Unable to open file for writing (' + filename + extension + ') because of exception: '+str(ioe)
+      return [filename, return_error]
    
    # Write the file.
    try:
