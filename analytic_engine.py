@@ -253,18 +253,21 @@ def make_basso_seguente( from_this ):
 def vis_these_parts( these_parts, the_settings, the_statistics, \
                      targeted_output = None ):
    '''
-   Given a list of two :class:`music21.stream.Part` objects, an visSettings
-   object, and a VerticalIntervalStatistics object, calculate the n-grams
-   specified in the settings object, then put the statistics in the statistics
-   object.
+   Given a list of two :class:`music21.stream.Part` objects, a VIS_Settings
+   object, and a Vertical_Interval_Statistics object, calculate the n-grams
+   specified in the_settings, then put the statistics in the_statistics.
 
    Note that the parts must be specified so the higher part has index 0, and
    the lower part has index 1.
 
-   Returns a 2-tuplet with a float that is the number of seconds the analysis,
-   and a list of stream.Part objects that represent a way for LilyPond to
-   output analytic n-gram symbols correctly. If the VIS_Settings instance is
+   Returns a 2-tuplet with a float that is the number of seconds consumd in
+   analysis, and a list of :class:`stream.Part` objects that represent a way
+   for LilyPond to output analytic n-gram symbols correctly. If the_settings is
    not set to produce a labeled score, this list will be empty.
+
+   The third argument, targeted_output, is optional. It should contain a list of
+   instructions, as provided to the GUI version of analyze_this(). Refer to that
+   method's documentation for more information.
    '''
 
    # Parameters:
@@ -302,6 +305,13 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
    # Hold the colour instruction
    annotation_colour = None
 
+   # Whether to print the part names
+   # NB: this is filled out to a three-element list:
+   # - index 0 : a part name
+   # - index 1 : other part name
+   # - index 2 : True or False, whether to use annotation_colour
+   part_names = None
+
    # Go through all the instructions
    if targeted_output is not None:
       # Do we have instructions on which voices to analyze?
@@ -312,6 +322,18 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
             list_to_colour.append( instruction[1] )
          elif 'annotate colour' == instruction[0]:
             annotation_colour = instruction[1]
+         elif 'part names' == instruction[0]:
+            part_names = [instruction[1],instruction[2]]
+            # Whether we are to analyze in colour
+            if 'colour' == instruction[3]:
+               part_names.append( True )
+            else:
+               part_names.append( False )
+
+      # Finally, check if we got an annotation_colour, and if not, then we
+      # can't write the labels in colour either.
+      if annotation_colour is None and part_names is not None:
+         part_names[3] = False
    # End parsing of targeted_output ------------------------
 
    # Prepare the parts we're analyzing ---------------------
@@ -590,6 +612,28 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
 
          # If this is the first annotation going into the score.
          if 0 == len(list_of_lilypond_parts):
+
+            # If we are supposed to print a "legend" that says the part names.
+            if part_names is not None:
+               # Make a new Note
+               #legend_lily = note.Note( 'C4' )
+
+               # Start off the annotation
+               legend_lily = '_\markup{ '
+
+               # Are we colouring this?
+               if part_names[2]:
+                  legend_lily += '\with-color ' + annotation_colour + ' '
+
+               # Append the part names
+               legend_lily += '"' + part_names[0] + ' and ' + part_names[1] + '" }'
+
+               # Insert the Note
+               #list_of_lilypond_parts.insert( 0.0, legend_lily )
+            else:
+               # A sensible default value
+               legend_lily = ''
+
             # Maybe the annotations don't start at the beginning of the Part, so
             # let's fill the empty space with Rest objects. Remember, if we get
             # here, then current_offset has the offset of the just-added object.
@@ -602,16 +646,15 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
                   list_of_lilypond_parts.append( z )
 
             # Figure out whether we need to colour this ngram
-            this_colour = None
-            if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
-               # We must colour this ngram
-               this_colour = annotation_colour
+            #this_colour = None
+            #if 0 < len(list_to_colour) and str_this_ngram in list_to_colour:
+               ## We must colour this ngram
+               #this_colour = annotation_colour
 
             # Make a new Note in the lily_for_this_n stream, with the same offset as
             # the start of this n-gram.
             this_n_lily = note.Note( 'C4' ) # could be any pitch
-            this_n_lily.lily_markup = '^' + make_lily_triangle( str_this_ngram, this_colour )
-            #lily_for_this_n[-1].lily_markup = '^' + make_lily_triangle( str_this_ngram )
+            this_n_lily.lily_markup = legend_lily
 
             # Trouble is, I also have to fit in the right number of
             # measures and filler material, or it'll be too
@@ -644,8 +687,12 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
             #     this ngram isn't one of them.
 
             # Put in the correct label.
-            list_of_lilypond_parts[-1].lily_markup = '^' + \
-               make_lily_triangle( str_this_ngram, this_colour )
+            if hasattr( list_of_lilypond_parts[-1], 'lily_markup' ):
+               list_of_lilypond_parts[-1].lily_markup += '^' + \
+                  make_lily_triangle( str_this_ngram, this_colour )
+            else:
+               list_of_lilypond_parts[-1].lily_markup = '^' + \
+                  make_lily_triangle( str_this_ngram, this_colour )
 
             # Make a new Note in the lily_for_this_n stream.
             this_n_lily = note.Note( 'C4' ) # could be any pitch
