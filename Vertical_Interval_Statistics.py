@@ -58,6 +58,7 @@ class Vertical_Interval_Statistics( object ):
    # _simple_interval_dict
    # _compound_interval_dict
    # _ngrams_dict
+   # _pieces_analyzed
    def __init__( self ):
       '''
       Create a new, "empty" statistics database for a piece.
@@ -65,14 +66,19 @@ class Vertical_Interval_Statistics( object ):
       self._simple_interval_dict = {}
       self._compound_interval_dict = {}
       self._ngrams_dict = [{},{},{}]
+      self._pieces_analyzed = []
    
    def __repr__( self ):
       return self.__str__( self )
    
    def __str__( self ):
       # This should produce something like...
-      # "<Vertical_Interval_Statistics with 14 intervals; 26 2-grams; 19 3-grams>"
-      post = '<Vertical_Interval_Statistics with ' + \
+      # "<Vertical_Interval_Statistics for 1 piece with 14 intervals; 26 2-grams; 19 3-grams>"
+      nbr_pieces = len(self._pieces_analyzed)
+      pieces = " pieces"
+      if 1 == nbr_pieces:
+         pieces = " piece"
+      post = '<Vertical_Interval_Statistics for '+str(nbr_pieces)+pieces+' with ' + \
             str(len(self._compound_interval_dict)) + ' intervals; '
       for i in xrange(2,len(self._ngrams_dict)):
          post += str(len(self._ngrams_dict[i])) + ' ' + \
@@ -80,9 +86,10 @@ class Vertical_Interval_Statistics( object ):
       
       return post[:-2] + '>'
    
-   def add_interval( self, the_interval ):
+   def add_interval( self, the_interval, piece_index=0 ):
       '''
-      Adds a :class:`music21.interval.Interval` to the occurrences information.
+      Adds a :class:`music21.interval.Interval` to the occurrences information
+      for the piece of the given index.
       If given a simple interval, add that to both the table of simple and
       compound intervals. If given a compound interval, adds that to the table
       of compound intervals and the single-octave equivalent to the table of
@@ -95,41 +102,52 @@ class Vertical_Interval_Statistics( object ):
       # really means "it doesn't yet matter whether to track quality or not."
       
       # Descending interval
+
+      nbr_pieces = len(self._pieces_analyzed)
+      ran = range(nbr_pieces) if nbr_pieces > 0 else [0]
       if -1 == the_interval.direction:
          # For the dictionary of simple intervals
          simple_name = the_interval.semiSimpleName
          simple_name = simple_name[0] + '-' + simple_name[1:]
-         if simple_name in self._simple_interval_dict:
-            self._simple_interval_dict[simple_name] += 1
-         else:
-            self._simple_interval_dict[simple_name] = 1
+         if simple_name not in self._simple_interval_dict:
+            self._simple_interval_dict[simple_name] = [0,[0 for i in ran]]
+         self._simple_interval_dict[simple_name][0] += 1
+         self._simple_interval_dict[simple_name][1][piece_index] += 1
+            
          # For the dictionary of compound intervals
          compound_name = the_interval.name
          compound_name = compound_name[0] + '-' + compound_name[1:]
-         if compound_name in self._compound_interval_dict:
-            self._compound_interval_dict[compound_name] += 1
-         else:
-            self._compound_interval_dict[compound_name] = 1
+         if compound_name not in self._compound_interval_dict:
+            self._compound_interval_dict[compound_name] = [0,[0 for i in ran]]
+         self._compound_interval_dict[compound_name][0] += 1
+         self._compound_interval_dict[compound_name][1][piece_index] += 1
       # Ascending or unison interval
       else:
          # For the dictionary of simple intervals
          simple_name = the_interval.semiSimpleName
-         if simple_name in self._simple_interval_dict:
-            self._simple_interval_dict[simple_name] += 1
-         else:
-            self._simple_interval_dict[simple_name] = 1
+         if simple_name not in self._simple_interval_dict:
+            self._simple_interval_dict[simple_name] = [0,[0 for i in ran]]
+         self._simple_interval_dict[simple_name][0] += 1
+         self._simple_interval_dict[simple_name][1][piece_index] += 1
          # For the dictionary of compound intervals
          compound_name = the_interval.name
-         if compound_name in self._compound_interval_dict:
-            self._compound_interval_dict[compound_name] += 1
-         else:
-            self._compound_interval_dict[compound_name] = 1
+         if compound_name not in self._compound_interval_dict:
+            self._compound_interval_dict[compound_name] = [0,[0 for i in ran]]
+         self._compound_interval_dict[compound_name][0] += 1
+         self._compound_interval_dict[compound_name][1][piece_index] += 1
    # end add_interval()
 
-   def get_interval_occurrences( self, which_interval, simple_or_compound='simple' ):
+   def get_simple_interval_summary_dict( self ):
+      return dict(map(lambda (key,value): (key,value[0]), self._simple_interval_dict.iteritems()))
+
+   def get_compound_interval_summary_dict( self ):
+      return dict(map(lambda (key,value): (key,value[0]), self._compound_interval_dict.iteritems()))
+
+   def get_interval_occurrences( self, which_interval, simple_or_compound='simple', piece_index=None ):
       '''
       Returns the number of occurrences of a particular
-      :class:`music21.interval.Interval`, either (by default) from the table
+      :class:`music21.interval.Interval` in a particular piece, 
+      either (by default) from the table
       with compound intervals, or if the second argument is 'simple' then from
       the table with simple intervals.
       
@@ -143,11 +161,15 @@ class Vertical_Interval_Statistics( object ):
       # Given a species (number), finds all the occurrences of any quality.
       # The second argument should be either self._simple_interval_dict or
       # self._compound_interval_dict
-      def get_all_qualities( species, db ):
+      def get_all_qualities( species, db, piece_index ):
          post = 0
          for quality in qualities:
             if ( quality + species ) in db:
-               post += db[quality+species]
+               if piece_index is None:
+                  #then the total number of occurrences
+                  post += db[quality+species][0]
+               else:
+                  post += db[quality+species][1][piece_index]
          
          return post
       ##
@@ -160,21 +182,27 @@ class Vertical_Interval_Statistics( object ):
       # the first character is a direction
       if which_interval.isdigit() or which_interval[0] in directions:
          if 'simple' == simple_or_compound:
-            return get_all_qualities( which_interval, self._simple_interval_dict )
+            return get_all_qualities( which_interval, self._simple_interval_dict, piece_index )
          elif 'compound' == simple_or_compound:
-            return get_all_qualities( which_interval, self._compound_interval_dict )
+            return get_all_qualities( which_interval, self._compound_interval_dict, piece_index )
          else:
             raise NonsensicalInputError( errorstr )
       # Otherwise they are paying attention to quality.
       else:
          if 'simple' == simple_or_compound:
             if which_interval in self._simple_interval_dict:
-               return self._simple_interval_dict[which_interval]
+               if piece_index is None:
+                  return self._simple_interval_dict[which_interval][0]
+               else:
+                  return self._simple_interval_dict[which_interval][1][piece_index]
             else:
                return 0
          elif 'compound' == simple_or_compound:
             if which_interval in self._compound_interval_dict:
-               return self._compound_interval_dict[which_interval]
+               if piece_index is None:
+                  return self._compound_interval_dict[which_interval][0]
+               else:
+                  return self._compound_interval_dict[which_interval][1][piece_index]
             else:
                return 0
          else:
@@ -308,15 +336,18 @@ class Vertical_Interval_Statistics( object ):
       return list_of_n
 
    def extend( self, other_stats ):
+      self._pieces_analyzed += other_stats._pieces_analyzed
       for interval in other_stats._simple_interval_dict.iterkeys():
          if interval in self._simple_interval_dict:
-            self._simple_interval_dict[interval] += other_stats._simple_interval_dict[interval]
+            self._simple_interval_dict[interval][0] += other_stats._simple_interval_dict[interval][0]
+            self._simple_interval_dict[interval][1] += other_stats._simple_interval_dict[interval][1]
          else:
             self._simple_interval_dict[interval] = other_stats._simple_interval_dict[interval]
 
       for interval in other_stats._compound_interval_dict.iterkeys():
          if interval in self._compound_interval_dict:
-            self._compound_interval_dict[interval] += other_stats._compound_interval_dict[interval]
+            self._compound_interval_dict[interval][0] += other_stats._compound_interval_dict[interval][0]
+            self._compound_interval_dict[interval][1] += other_stats._compound_interval_dict[interval][1]
          else:
             self._compound_interval_dict[interval] = other_stats._compound_interval_dict[interval]
 

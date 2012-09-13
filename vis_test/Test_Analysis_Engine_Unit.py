@@ -58,8 +58,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -78,8 +78,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -98,8 +98,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -118,8 +118,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -138,8 +138,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = { '8 +2 6':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -158,8 +158,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = { '8 +2 7':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -179,8 +179,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = { '7 -3 8':1, '8 +2 7':1, '7 +2 5':1 }
       
       # Verify the findings
-      #self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      #self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -199,8 +199,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = { '8 +2 7':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -220,8 +220,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = { '8 +2 7':1, '7 +2 6':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -240,8 +240,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = { '8 +2 7':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -260,8 +260,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -280,8 +280,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -300,8 +300,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -320,8 +320,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -340,8 +340,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {}
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -360,8 +360,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = { '10 -2 12':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -380,8 +380,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
          '7 1 6':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
 # End Test_Vis_These_Parts_Unit -----------------------------------------------

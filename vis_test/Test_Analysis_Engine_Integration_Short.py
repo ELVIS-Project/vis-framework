@@ -67,8 +67,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             'm13':1, 'm17':1, 'M13':1, 'm10':4 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
    
    
    def test_theFirst( self ):
@@ -95,8 +95,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '10 +4 10':1, '10 -2 10':3 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -122,8 +122,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }
 
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
 
@@ -145,7 +145,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
-      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       #pprint.pprint( self.stats.get_formatted_ngram_dict(2) )
 
       # Prepare the findings
@@ -156,8 +156,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             #'2 +2 3':1, '3 -2 2':1, '1 -2 2':1, '1 -2 5':1 }
 
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
       
@@ -175,7 +175,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
-      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       #pprint.pprint( self.stats.get_formatted_ngram_dict(2) )
 
       ## Prepare the findings
@@ -183,8 +183,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       expected_no_quality2grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -208,7 +208,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
-      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       #pprint.pprint( self.stats.get_formatted_ngram_dict(2) )
 
       ## Prepare the findings
@@ -216,8 +216,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       expected_no_quality2grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -234,7 +234,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
-      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       #pprint.pprint( self.stats.get_formatted_ngram_dict(2) )
 
       ## Prepare the findings
@@ -242,8 +242,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       expected_no_quality2grams = {}
 
       ## Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -264,7 +264,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
-      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       ##pprint.pprint( self.stats.get_formatted_ngram_dict(2) )
       
       ## Prepare the findings
@@ -280,8 +280,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '26 1 24':1, '28 1 26':1, '13 -9 21':1 }
       
       ## Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -303,7 +303,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
-      #pprint.pprint( self.stats._compound_interval_dict )
+      #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       #pprint.pprint( self.stats.get_formatted_ngram_dict(2) )
       
       # Prepare the findings
@@ -320,8 +320,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             #'m-3 P1 P-4':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
       # TODO: these tests would currently require a second analysis; I'll
@@ -360,8 +360,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '3 +2 2':1, '2 -2 3':1, '3 +2 5':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
       # TODO: these tests would currently require a second analysis; I'll
@@ -383,7 +383,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       #analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       ##print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
-      ##pprint.pprint( self.stats._compound_interval_dict )
+      ##pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       ##pprint.pprint( self.stats.get_formatted_ngram_dict(2) )
 
       ### Prepare the findings
@@ -392,8 +392,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       #expected_no_quality2grams = {}
 
       ### Verify the findings
-      ##self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      ##self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      #self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       ##self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       #self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -415,7 +415,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       #analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
       ##print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
-      ##pprint.pprint( self.stats._compound_interval_dict )
+      ##pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       ##pprint.pprint( self.stats.get_formatted_ngram_dict(2) )
 
       ### Prepare the findings
@@ -424,8 +424,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       #expected_no_quality2grams = {}
 
       ### Verify the findings
-      ##self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      ##self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      #self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       ##self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       #self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -445,17 +445,17 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       #print( 'expected ' + thing + ' isn\'t present' )
 
 # NOTE: compare interval dictionaries
-#for thing in self.stats._compound_interval_dict.iterkeys():
+#for thing in self.stats.get_compound_interval_summary_dict().iterkeys():
    #if thing in expected_compound_intervals:
-      #if self.stats._compound_interval_dict[thing] != expected_compound_intervals[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
+      #if self.stats.get_compound_interval_summary_dict()[thing] != expected_compound_intervals[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats.get_compound_interval_summary_dict()[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
    #else:
       #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(expected_compound_intervals[thing]) + ')' )
 
 #for thing in expected_compound_intervals.iterkeys():
-   #if thing in self.stats._compound_interval_dict:
-      #if self.stats._compound_interval_dict[thing] != expected_compound_intervals[thing]:
-         #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
+   #if thing in self.stats.get_compound_interval_summary_dict():
+      #if self.stats.get_compound_interval_summary_dict()[thing] != expected_compound_intervals[thing]:
+         #print( 'for ' + thing + ', actual ' + str(self.stats.get_compound_interval_summary_dict()[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
    #else:
       #print( 'expected ' + thing + ' isn\'t present' )
 
