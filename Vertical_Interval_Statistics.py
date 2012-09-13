@@ -340,20 +340,20 @@ class Vertical_Interval_Statistics( object ):
       return list_of_n
 
    def extend( self, other_stats ):
+      nbr_pieces = len(self._pieces_analyzed)
+      ran = range(nbr_pieces) if nbr_pieces > 0 else [0]
       self._pieces_analyzed += other_stats._pieces_analyzed
       for interval in other_stats._simple_interval_dict.iterkeys():
-         if interval in self._simple_interval_dict:
-            self._simple_interval_dict[interval][0] += other_stats._simple_interval_dict[interval][0]
-            self._simple_interval_dict[interval][1] += other_stats._simple_interval_dict[interval][1]
-         else:
-            self._simple_interval_dict[interval] = other_stats._simple_interval_dict[interval]
+         if interval not in self._simple_interval_dict:
+            self._simple_interval_dict[interval] = [0,[0 for i in ran]]
+         self._simple_interval_dict[interval][0] += other_stats._simple_interval_dict[interval][0]
+         self._simple_interval_dict[interval][1] += other_stats._simple_interval_dict[interval][1]
 
       for interval in other_stats._compound_interval_dict.iterkeys():
-         if interval in self._compound_interval_dict:
-            self._compound_interval_dict[interval][0] += other_stats._compound_interval_dict[interval][0]
-            self._compound_interval_dict[interval][1] += other_stats._compound_interval_dict[interval][1]
-         else:
-            self._compound_interval_dict[interval] = other_stats._compound_interval_dict[interval]
+         if interval not in self._compound_interval_dict:
+            self._compoudn_interval_dict[interval] = [0,[0 for i in ran]]
+         self._compound_interval_dict[interval][0] += other_stats._compound_interval_dict[interval][0]
+         self._compound_interval_dict[interval][1] += other_stats._compound_interval_dict[interval][1]
 
       p, q = len(self._ngrams_dict), len(other_stats._ngrams_dict)
       if p < q:
@@ -361,15 +361,13 @@ class Vertical_Interval_Statistics( object ):
             self._ngrams_dict.append( {} )
       for n in range(len(other_stats._ngrams_dict)):
          for ng in other_stats._ngrams_dict[n].iterkeys():
-            if ng in self._ngrams_dict[n]:
-               for ngram in other_stats._ngrams_dict[n][ng].iterkeys():
-                  if ngram in self._ngrams_dict[n][ng]:
-                     self._ngrams_dict[n][ng][ngram] += other_stats._ngrams_dict[n][ng][ngram]
-                  else:
-                     self._ngrams_dict[n][ng][ngram] = other_stats._ngrams_dict[n][ng][ngram]
-            else:
-               self._ngrams_dict[n][ng] = other_stats._ngrams_dict[n][ng]
-      
+            if ng not in self._ngrams_dict[n]:
+               self._ngrams_dict[n][ng] = {}
+            for ngram in other_stats._ngrams_dict[n][ng].iterkeys():
+               if ngram not in self._ngrams_dict[n][ng]:
+                  self._ngrams_dict[n][ng][ngram] = [0,[0 for i in ran]]
+               self._ngrams_dict[n][ng][ngram][0] += other_stats._ngrams_dict[n][ng][ngram][0]
+               self._ngrams_dict[n][ng][ngram][1] += other_stats._ngrams_dict[n][ng][ngram][1]      
 
    def prepare_ngram_output_dict( self, the_settings, list_of_n, specs ):
       output_dict = None
