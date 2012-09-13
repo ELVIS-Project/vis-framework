@@ -209,7 +209,7 @@ class Vertical_Interval_Statistics( object ):
             raise NonsensicalInputError( errorstr )
    # end get_interval_occurrences()
    
-   def add_ngram( self, the_ngram ):
+   def add_ngram( self, the_ngram, piece_index=0 ):
       '''
       Adds an n-gram to the occurrences information. Tracks quality, since quality
       can always be ignored, but not recovered.
@@ -219,17 +219,21 @@ class Vertical_Interval_Statistics( object ):
       # make sure there is one.
       while len(self._ngrams_dict) <= the_ngram._n:
          self._ngrams_dict.append( {} )
+
+      nbr_pieces = len(self._pieces_analyzed)
+      ran = range(nbr_pieces) if nbr_pieces > 0 else [0]
          
       index_ngram = Vertical_Interval_Statistics._set_heed_quality(the_ngram, False)
       detail_ngram = Vertical_Interval_Statistics._set_heed_quality(the_ngram, True)
       if index_ngram in self._ngrams_dict[the_ngram._n]:
-         if detail_ngram in self._ngrams_dict[the_ngram._n][index_ngram]:
-            self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram] += 1
-         else:
-            self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = 1
+         if detail_ngram not in self._ngrams_dict[the_ngram._n][index_ngram]:
+            self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = [0,[0 for i in ran]]
+         self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram][0] += 1
+         self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram][1][piece_index] += 1
       else:
          self._ngrams_dict[the_ngram._n][index_ngram] = {}
-         self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = 1
+         self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = [1,[0 for i in ran]]
+         self._ngrams_dict[the_ngram._n][index_ngram][detail_ngram][1][piece_index] = 1
    # end add_ngram()
    
    #def get_ngram_occurrences( self, which_ngram, n ):
@@ -378,13 +382,13 @@ class Vertical_Interval_Statistics( object ):
             values = []
             for ng in self._ngrams_dict[n].iterkeys():
                keys.extend(self._ngrams_dict[n][ng].keys())
-               values.extend(self._ngrams_dict[n][ng].values())
+               values.extend([v[0] for v in self._ngrams_dict[n][ng].values()]) #replace 0 with piece_index
             while len(output_dict) < n+1:
                output_dict.append( {} )
-            output_dict[n] = dict(keys,values)
+            output_dict[n] = dict(zip(keys,values))
       else:
          # We don't need to include quality
-         output_dict = [{ngram:sum(d[ngram].values()) for ngram in d.keys()} for d in self._ngrams_dict]
+         output_dict = [{ngram:sum([v[0] for v in d[ngram].values()]) for ngram in d.keys()} for d in self._ngrams_dict] #replace 0 with piece_index
       return output_dict
 
    def retrogrades( self, the_settings, specs='' ):
