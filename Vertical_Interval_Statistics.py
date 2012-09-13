@@ -30,6 +30,7 @@ from string import digits as string_digits
 # music21
 from music21 import interval, graph, stream, clef, meter, note
 # vis
+from VIS_Settings import VIS_Settings
 from problems import NonsensicalInputError, MissingInformationError
 from analytic_engine import make_lily_triangle
 # numpy
@@ -842,8 +843,15 @@ class Vertical_Interval_Statistics( object ):
          return post
       # With an argument, we have to make a copy of only a specific dict.
       else:
+         settings = VIS_Settings()
+         try:
+            formatted_dict = self.prepare_ngram_output_dict( settings, \
+                             self.determine_list_of_n( settings, "", "" ), "noQuality" )
+         except MissingInformationError:
+            #if there are no ngrams, just return an empty dict.
+            return {}
          post = {}
-         for k, v in self._ngrams_dict[n].iteritems():
+         for k, v in formatted_dict[n].iteritems():
             post[str(k)] = v
          return post
    # End get_formatted_ngram_dict()
