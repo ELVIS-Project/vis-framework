@@ -85,8 +85,8 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
             '9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }
       
       # Verify the findings
-      self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -111,8 +111,8 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
       #expected_no_quality2grams = {}
       
       ## Verify the findings
-      #self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      #self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      #self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       #self.assertEqual( len(self.stats.get_formatted_ngram_dict(2)), len(expected_no_quality2grams) )
       #self.assertEqual( self.stats.get_formatted_ngram_dict(2), expected_no_quality2grams )
    
@@ -159,23 +159,23 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
          #'M6':8 }
       #expected_no_quality3grams = {}
       
-      #for thing in self.stats._compound_interval_dict.iterkeys():
+      #for thing in self.stats.get_compound_interval_summary_dict().iterkeys():
          #if thing in expected_compound_intervals:
-            #if self.stats._compound_interval_dict[thing] != expected_compound_intervals[thing]:
-               #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
+            #if self.stats.get_compound_interval_summary_dict()[thing] != expected_compound_intervals[thing]:
+               #print( 'for ' + thing + ', actual ' + str(self.stats.get_compound_interval_summary_dict()[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
          #else:
             #print( 'actual ' + thing + ' isn\'t expected (there are ' + str(expected_compound_intervals[thing]) + ')' )
 
       #for thing in expected_compound_intervals.iterkeys():
-         #if thing in self.stats._compound_interval_dict:
-            #if self.stats._compound_interval_dict[thing] != expected_compound_intervals[thing]:
-               #print( 'for ' + thing + ', actual ' + str(self.stats._compound_interval_dict[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
+         #if thing in self.stats.get_compound_interval_summary_dict():
+            #if self.stats.get_compound_interval_summary_dict()[thing] != expected_compound_intervals[thing]:
+               #print( 'for ' + thing + ', actual ' + str(self.stats.get_compound_interval_summary_dict()[thing]) + ' != expected ' + str(expected_compound_intervals[thing]) )
          #else:
             #print( 'expected ' + thing + ' isn\'t present' )
       
       ## Verify the findings
-      #self.assertEqual( len(self.stats._compound_interval_dict), len(expected_compound_intervals) )
-      #self.assertEqual( self.stats._compound_interval_dict, expected_compound_intervals )
+      #self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      #self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       ##self.assertEqual( len(self.stats._ngrams_dict[3]), len(expected_no_quality2grams) )
       ##self.assertEqual( self.stats._ngrams_dict[3], expected_no_quality2grams )
 # End TestVisThesePartsLong ---------------------------------------------------
