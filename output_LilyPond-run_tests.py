@@ -39,8 +39,14 @@ if __name__ == '__main__':
    print( "###############################################################################" )
    print( "" )
 
-   # Run test suites
-   unittest.TextTestRunner( verbosity = 2 ).run( simple_conversions_suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( process_measure_suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( process_stream_part_suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( detect_lilypond_suite )
+   # Unit Tests
+   unittest.TextTestRunner( verbosity = 1 ).run( detect_lilypond_suite )
+   unittest.TextTestRunner( verbosity = 1 ).run( t_o_n_t_l )
+   unittest.TextTestRunner( verbosity = 1 ).run( t_p_t_l )
+   unittest.TextTestRunner( verbosity = 1 ).run( t_d_t_l )
+   unittest.TextTestRunner( verbosity = 1 ).run( t_n_t_l )
+   unittest.TextTestRunner( verbosity = 1 ).run( t_b_t_l )
+
+   # Run Integration Tests
+   unittest.TextTestRunner( verbosity = 1 ).run( process_measure_suite )
+   unittest.TextTestRunner( verbosity = 1 ).run( process_stream_part_suite )

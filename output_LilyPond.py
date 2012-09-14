@@ -50,6 +50,19 @@ class UnidentifiedObjectError( Exception ):
 
 
 
+#-------------------------------------------------------------------------------
+class ImpossibleToProcessError( Exception ):
+   '''
+   When something is identified, but for some reason cannot be processed.
+   '''
+   def __init__( self, val ):
+      self.value = val
+   def __str__( self ):
+      return repr( self.value )
+#-------------------------------------------------------------------------------
+
+
+
 #------------------------------------------------------------------------------
 def string_of_n_letters( n ):
    '''
@@ -114,19 +127,18 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
    Returns a LilyPond length integer (like '4' for quarter note) corresponding
    to the Duration passed in.
    '''
+   # TODO: We should be able to deal with multiple-component durations that are
+   # actually from a single Note/Rest... as with the duration of a Measure. For
+   # this I imagine we would need to round.
 
    # First of all, we can't deal with tuplets or multiple-component durations
    # in this method. We need process_measure() to help.
-   # DEBUG
-   if 0 == dur.quarterLength:
-      return '\longa'
-   # END DEBUG
    if dur.tuplets is not ():
       # We know either there are multiple components or we have part of a
       # tuplet, we we need to find out which.
       if len(dur.components) > 1:
          # We have multiple components
-         raise UnidentifiedObjectError( 'Cannot process durations with ' + \
+         raise ImpossibleToProcessError( 'Cannot process durations with ' + \
             'multiple components (received ' + str(dur.components) + \
             ' for quarterLength of ' + str(dur.quarterLength) + ')' )
       elif known_tuplet:
@@ -137,8 +149,7 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
          # adjusted quarterLength
          dur = duration.Duration( dur.type )
       else:
-         # TODO: this error doesn't really describe what's going on here
-         raise UnidentifiedObjectError( 'duration_to_lily(): Cannot process tuplet components' )
+         raise ImpossibleToProcessError( 'duration_to_lily(): Cannot process tuplet components' )
 
    # We need both a list of our potential durations and a dictionary of what
    # they mean in LilyPond terms.
@@ -162,27 +173,10 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
          if (dur_qL - d) > 0.0:
             post += dictionary_of_durations[d]
             break
-      #
-      # TODO: see if we can remove some of these errors to clean up the method
-      try:
-         for i in xrange(dur.dots):
-            post += "."
-      except TypeError as err:
-         # As a last-ditch effort, we'll see if we were given something silly
-         # like 7.992729172438 as a single durational unit. If so, we can try
-         # to fix it with round(). NOTE: I'm not sure this will work with
-         # other silly quarterLength values.
-         try:
-            possible_new_qL = round( dur.quarterLength, 2 )
-            if possible_new_qL != dur.quarterLength:
-               return duration_to_lily( duration.Duration( round( dur.quarterLength, 2 ) ) )
-            else:
-               raise UnidentifiedObjectError( 'A-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(err) )
-         except UnidentifiedObjectError as uoerr:
-            raise uoerr
-      except DurationException as durexc:
-         raise UnidentifiedObjectError( 'B-Duration appears to be invalid (' + str(dur.quarterLength) + ') || ' + str(durexc) )
-      #
+
+      for i in xrange(dur.dots):
+         post += "."
+
       return post
 #------------------------------------------------------------------------------
 
@@ -293,6 +287,7 @@ def process_measure( the_meas ):
       if isinstance( obj, note.Note ) or isinstance( obj, note.Rest ):
          # TODO: is there a situation where I'll ever need to deal with
          # multiple-component durations for a single Note/Rest?
+         # ANSWER: yes, sometimes
 
          # Is it a full-measure rest?
          if isinstance( obj, note.Rest) and \
@@ -660,14 +655,10 @@ class LilyPond_Settings:
 
       >>> from output_LilyPond import *
       >>> the_settings = LilyPond_Settings()
-      >>> the_settings.set_property( 'indent 0\mm' )
-      >>> the_settings.get_property( 'indent' )
-      '0\mm'
       >>> the_settings.set_property( 'indent', '4\mm' )
       >>> the_settings.get_property( 'indent' )
       '4\mm'
       '''
-      # TODO: implement the second form of whatever
       self._secret_settings[setting_name] = setting_value
 
    def get_property( self, setting_name ):
@@ -720,8 +711,8 @@ def process_score( the_score, the_settings=None, filename='test_output/lily_outp
    score_to_write = process_stream( the_score, the_settings )
    output_result = output_the_file( score_to_write, filename )
    if output_result[1] is not None:
-      # TODO: raise exceptions
-      print( 'Failed to output LilyPond file... \n' + output_result[1] )
+      # There was some sort of error while outputting the file
+      raise IOError( 'Could not output file ' + output_result[1] )
    else:
       run_lilypond( output_result[0], the_settings )
 #------------------------------------------------------------------------------
@@ -766,7 +757,7 @@ def make_lily_version_numbers( version_str ):
 
 
 if __name__ == '__main__':
-   print( "Sorry, but you can't yet run output_LilyPond.py by itself!" )
+   print( "Sorry, but you cannot run output_LilyPond.py by itself!" )
 
 
 # TODO: Testing
