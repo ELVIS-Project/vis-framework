@@ -884,16 +884,39 @@ class Vertical_Interval_Statistics( object ):
       if 'graph' in specs:
          grapharr = []
          for n in list_of_n:
-            g = graph.GraphHistogram(doneAction=None)
+            g = graph.GraphHistogram(doneAction=None,tickFontSize=12)
             data = [(k,output_dict[n][sorted_ngrams[n][k]]) for k in range(len(sorted_ngrams[n]))]
             g.setData(data)
-            g.setTicks('x',[(k+0.4,sorted_ngrams[n][k]) for k in range(len(sorted_ngrams[n]))])
-            g.xTickLabelRotation = 90
+            g.setTicks('x',[(k+0.7,sorted_ngrams[n][k]) for k in xrange(len(sorted_ngrams[n]))])
+            g.setAxisLabel('x',str(n)+"-Gram")
+            g.xTickLabelRotation = 45
             g.xTickLabelVerticalAlignment='top'
-            g.setTitle(str(n)+'-Grams')
-            g.setTicks('y',[(k,k) for k in xrange(max([output_dict[n][sorted_ngrams[n][j]] for j in range(len(sorted_ngrams[n]))]))])
-            g.process()
-            grapharr.append(g)
+            g.xTickLabelHorizontalAlignment='right'
+            g.setTitle(str(n)+"-Grams in "+join([str(os.path.split(p)[1])+", " for p in self._pieces_analyzed])[:-2])
+            max_height = max([output_dict[n][sorted_ngrams[n][j]] for j in range(len(sorted_ngrams[n]))])+1
+            tick_dist = max(max_height/10,1)
+            ticks = []
+            k = 0
+            while k*tick_dist <= max_height:
+               k += 1
+               ticks.append(k*tick_dist)
+            g.setTicks('y',[(k,k) for k in ticks])
+            g.fig = plt.figure()
+            g.fig.subplots_adjust(left=0.15, bottom=0.2)
+            ax = g.fig.add_subplot(1, 1, 1)
+
+            x = []
+            y = []
+            for a, b in g.data:
+               x.append(a)
+               y.append(b)
+            ax.bar(x, y, alpha=.8, color=graph.getColor(g.colors[0]))
+
+            g._adjustAxisSpines(ax)
+            g._applyFormatting(ax)
+            ax.set_ylabel('Frequency', fontsize=g.labelFontSize, family=g.fontFamily, rotation='vertical')
+            g.done()
+            grapharr.append(g)        
          post = grapharr
 
       # (4.2) Else make a nicely formatted list from the results.
