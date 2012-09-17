@@ -950,6 +950,12 @@
         </item>
         <item>
          <widget class="QPlainTextEdit" name="txt_results">
+          <property name="font">
+           <font>
+            <family>Courier</family>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
           <property name="plainText">
            <string notr="true"/>
           </property>

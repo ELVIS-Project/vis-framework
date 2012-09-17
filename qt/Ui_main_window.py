@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_window.ui'
+# Form implementation generated from reading ui file '/Users/jamieklassen/Documents/Code/vis/qt/main_window.ui'
 #
-# Created: Mon Sep  3 22:42:39 2012
+# Created: Mon Sep 17 17:37:31 2012
 #      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -471,6 +471,10 @@ class Ui_MainWindow(object):
         self.tabs_output_options.addTab(self.tab_lilypond_summary, _fromUtf8(""))
         self.verticalLayout_10.addWidget(self.tabs_output_options)
         self.txt_results = QtGui.QPlainTextEdit(self.tab_output)
+        font = QtGui.QFont()
+        font.setFamily(_fromUtf8("Courier"))
+        font.setPointSize(14)
+        self.txt_results.setFont(font)
         self.txt_results.setPlainText(_fromUtf8(""))
         self.txt_results.setBackgroundVisible(False)
         self.txt_results.setObjectName(_fromUtf8("txt_results"))

@@ -25,9 +25,9 @@
 
 ## Import:
 # python
-import re, copy
-import os.path
+import re, copy, os.path
 from string import digits as string_digits
+from string import join
 # music21
 from music21 import interval, graph, stream, clef, meter, note
 # vis
@@ -638,13 +638,36 @@ class Vertical_Interval_Statistics( object ):
       # (3.1) If a graph is asked for, return one.
       if 'graph' in specs:
          g = graph.GraphHistogram(doneAction=None)
-         data = [(k,the_dict[sorted_intervals[k]]) for k in range(len(sorted_intervals))]
+         data = [(k,the_dict[sorted_intervals[k]][0]) for k in range(len(sorted_intervals))]
          g.setData(data)
+         g.setTitle("Intervals in "+join([str(os.path.split(p)[1])+", " for p in self._pieces_analyzed])[:-2])
          g.setTicks('x',[(k+0.4,sorted_intervals[k]) for k in range(len(sorted_intervals))])
          g.xTickLabelHorizontalAlignment='center'
-         setattr(g,'xTickLabelRotation',90)
-         g.setTicks('y',[(k,k) for k in xrange(max([the_dict[sorted_intervals[j]] for j in range(len(sorted_intervals))]))])
-         g.process()
+         setattr(g,'xTickLabelRotation',45)
+         g.setAxisLabel('x','Interval')
+         max_height = max([the_dict[sorted_intervals[j]][0] for j in range(len(sorted_intervals))])+1
+         tick_dist = max_height/10
+         ticks = []
+         k = 0
+         while k*tick_dist <= max_height:
+            k += 1
+            ticks.append(k*tick_dist)
+         g.setTicks('y',[(k,k) for k in ticks])
+         g.fig = plt.figure()
+         g.fig.subplots_adjust(left=0.15)
+         ax = g.fig.add_subplot(1, 1, 1)
+
+         x = []
+         y = []
+         for a, b in g.data:
+            x.append(a)
+            y.append(b)
+         ax.bar(x, y, alpha=.8, color=graph.getColor(g.colors[0]))
+
+         g._adjustAxisSpines(ax)
+         g._applyFormatting(ax)
+         ax.set_ylabel('Frequency', fontsize=g.labelFontSize, family=g.fontFamily, rotation='vertical')
+         g.done()
          return g
 
       # (3.2) Else make a nicely formatted list from the results.
