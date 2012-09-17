@@ -156,7 +156,7 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
                for set_of_parts in parts_to_examine:
                   higher = the_score.parts[set_of_parts[0]]
                   lower = the_score.parts[set_of_parts[1]]
-                  it_took += vis_these_parts( [higher,lower], the_settings, the_stats )[0]
+                  it_took += vis_these_parts( [higher,lower], the_settings, the_stats, filename )[0]
                # Add this duration to the cumulative duration.
                cumulative_analysis_duration += it_took
                # Print how long it took
@@ -167,7 +167,7 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
                higher = the_score.parts[parts_to_investigate[0]]
                lower = the_score.parts[parts_to_investigate[1]]
                # Run the analysis
-               it_took = vis_these_parts( [higher,lower], the_settings, the_stats )[0]
+               it_took = vis_these_parts( [higher,lower], the_settings, the_stats, filename )[0]
                # Add this duration to the cumulative duration.
                cumulative_analysis_duration += it_took
                # Print this duration.
@@ -243,10 +243,10 @@ def analyze_this( pathname, the_settings = None, the_stats = None ):
          partsToExamine = calculate_all_combis( number_of_parts - 1 )
          for setOfParts in partsToExamine:
             higher, lower = the_score.parts[setOfParts[0]], the_score.parts[setOfParts[1]]
-            it_took += vis_these_parts( [higher,lower], the_settings, the_stats )[0]
+            it_took += vis_these_parts( [higher,lower], the_settings, the_stats, list_of_filenames[0] )[0]
       else:
          higher, lower = the_score.parts[look_at_parts[0]], the_score.parts[look_at_parts[1]]
-         it_took, ly, error = vis_these_parts( [higher,lower], the_settings, the_stats )
+         it_took, ly, error = vis_these_parts( [higher,lower], the_settings, the_stats, list_of_filenames[0] )
       
       print( ' --> the analysis took ' + str(it_took) + ' seconds' )
       

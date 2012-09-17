@@ -50,7 +50,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_1[0]
       lower_part = vis_these_parts_unit_tests.test_1[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1 }
@@ -70,7 +70,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_2[0]
       lower_part = vis_these_parts_unit_tests.test_2[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1 }
@@ -90,7 +90,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_3[0]
       lower_part = vis_these_parts_unit_tests.test_3[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1 }
@@ -110,7 +110,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_4[0]
       lower_part = vis_these_parts_unit_tests.test_4[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1 }
@@ -130,7 +130,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_5[0]
       lower_part = vis_these_parts_unit_tests.test_5[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm6':1 }
@@ -150,7 +150,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_6[0]
       lower_part = vis_these_parts_unit_tests.test_6[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':1 }
@@ -171,7 +171,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_6B[0]
       lower_part = vis_these_parts_unit_tests.test_6B[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':2, 'd5':1 }
@@ -191,7 +191,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_7[0]
       lower_part = vis_these_parts_unit_tests.test_7[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':1 }
@@ -212,7 +212,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_7B[0]
       lower_part = vis_these_parts_unit_tests.test_7B[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':1, 'm6':1 }
@@ -232,7 +232,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_8[0]
       lower_part = vis_these_parts_unit_tests.test_8[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':1 }
@@ -252,7 +252,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_9[0]
       lower_part = vis_these_parts_unit_tests.test_9[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1 }
@@ -272,7 +272,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_10[0]
       lower_part = vis_these_parts_unit_tests.test_10[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1 }
@@ -292,7 +292,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_11[0]
       lower_part = vis_these_parts_unit_tests.test_1[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1 }
@@ -312,7 +312,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_12[0]
       lower_part = vis_these_parts_unit_tests.test_12[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1 }
@@ -332,7 +332,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_13[0]
       lower_part = vis_these_parts_unit_tests.test_13[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':2 }
@@ -352,7 +352,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       #the_piece = vis_these_parts_unit_tests.test_1
       higher_part = vis_these_parts_unit_tests.test_14[0]
       lower_part = vis_these_parts_unit_tests.test_14[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'M10':1, 'P12':1 }
@@ -371,7 +371,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Process the excerpt
       higher_part = vis_these_parts_unit_tests.test_15[0]
       lower_part = vis_these_parts_unit_tests.test_15[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, "filename" )
       
       # Prepare the findings
       expected_compound_intervals = { 'P8':2, 'M10':1, 'm7':1, 'M6':1 }

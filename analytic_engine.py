@@ -251,7 +251,7 @@ def make_basso_seguente( from_this ):
 
 
 #------------------------------------------------------------------------------
-def vis_these_parts( these_parts, the_settings, the_statistics, \
+def vis_these_parts( these_parts, the_settings, the_statistics, the_piece, \
                      targeted_output = None ):
    '''
    Given a list of two :class:`music21.stream.Part` objects, a VIS_Settings
@@ -298,6 +298,7 @@ def vis_these_parts( these_parts, the_settings, the_statistics, \
    
    # Create a statistics buffer
    statistics_buffer = Vertical_Interval_Statistics.Vertical_Interval_Statistics()
+   statistics_buffer._pieces_analyzed.append(the_piece)
 
    # Parse targeted_output ---------------------------------
    # Hold instructions from 'only annotate'

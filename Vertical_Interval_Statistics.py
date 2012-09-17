@@ -26,6 +26,7 @@
 ## Import:
 # python
 import re, copy
+import os.path
 from string import digits as string_digits
 # music21
 from music21 import interval, graph, stream, clef, meter, note
@@ -289,7 +290,9 @@ class Vertical_Interval_Statistics( object ):
             look_for = quality + str(size)
             if look_for in intervals_in:
                if str(size) in post:
-                  post[str(size)] += intervals_in[look_for]
+                  post[str(size)][0] += intervals_in[look_for][0]
+                  for i in range(len(intervals_in[look_for][1])):
+                     post[str(size)][1][i] += intervals_in[look_for][1][i]
                else:
                   post[str(size)] = intervals_in[look_for]
       return post
@@ -340,34 +343,47 @@ class Vertical_Interval_Statistics( object ):
       return list_of_n
 
    def extend( self, other_stats ):
-      nbr_pieces = len(self._pieces_analyzed)
-      ran = range(nbr_pieces) if nbr_pieces > 0 else [0]
+      nbr_pieces = int(len(self._pieces_analyzed))
+      ran = range(nbr_pieces)
+      new_index = nbr_pieces - 1 if nbr_pieces != 0 else 0
+      other_ran = range(len(other_stats._pieces_analyzed))
       self._pieces_analyzed += other_stats._pieces_analyzed
+      for interval in self._simple_interval_dict.iterkeys():
+         self._simple_interval_dict[interval][1] += [0 for i in other_ran]
+      for interval in self._compound_interval_dict.iterkeys():
+         self._compound_interval_dict[interval][1] += [0 for i in other_ran]
       for interval in other_stats._simple_interval_dict.iterkeys():
          if interval not in self._simple_interval_dict:
-            self._simple_interval_dict[interval] = [0,[0 for i in ran]]
+            self._simple_interval_dict[interval] = [0,[0 for i in ran+other_ran]]
          self._simple_interval_dict[interval][0] += other_stats._simple_interval_dict[interval][0]
-         self._simple_interval_dict[interval][1] += other_stats._simple_interval_dict[interval][1]
+         for i in other_ran:
+            self._simple_interval_dict[interval][1][new_index+i] += other_stats._simple_interval_dict[interval][1][i]
 
       for interval in other_stats._compound_interval_dict.iterkeys():
          if interval not in self._compound_interval_dict:
-            self._compoudn_interval_dict[interval] = [0,[0 for i in ran]]
+            self._compound_interval_dict[interval] = [0,[0 for i in ran+other_ran]]
          self._compound_interval_dict[interval][0] += other_stats._compound_interval_dict[interval][0]
-         self._compound_interval_dict[interval][1] += other_stats._compound_interval_dict[interval][1]
+         for i in other_ran:
+            self._compound_interval_dict[interval][1][new_index+i] += other_stats._compound_interval_dict[interval][1][i]
 
       p, q = len(self._ngrams_dict), len(other_stats._ngrams_dict)
       if p < q:
          for i in range(q-p):
             self._ngrams_dict.append( {} )
+      for d in self._ngrams_dict:
+         for ng in d.iterkeys():
+            for ngram in d[ng].iterkeys():
+               d[ng][ngram][1] += [0 for i in other_ran]
       for n in range(len(other_stats._ngrams_dict)):
          for ng in other_stats._ngrams_dict[n].iterkeys():
             if ng not in self._ngrams_dict[n]:
                self._ngrams_dict[n][ng] = {}
             for ngram in other_stats._ngrams_dict[n][ng].iterkeys():
                if ngram not in self._ngrams_dict[n][ng]:
-                  self._ngrams_dict[n][ng][ngram] = [0,[0 for i in ran]]
+                  self._ngrams_dict[n][ng][ngram] = [0,[0 for i in ran+other_ran]]
                self._ngrams_dict[n][ng][ngram][0] += other_stats._ngrams_dict[n][ng][ngram][0]
-               self._ngrams_dict[n][ng][ngram][1] += other_stats._ngrams_dict[n][ng][ngram][1]      
+               for i in other_ran:
+                  self._ngrams_dict[n][ng][ngram][1][new_index+i] += other_stats._ngrams_dict[n][ng][ngram][1][i]    
 
    def prepare_ngram_output_dict( self, the_settings, list_of_n, specs ):
       output_dict = None
@@ -632,9 +648,31 @@ class Vertical_Interval_Statistics( object ):
          return g
 
       # (3.2) Else make a nicely formatted list from the results.
-      post = 'All the Intervals:\n------------------\n'
+      post = ""
+      widths = []
+      heading = "Interval"
+      width = max([len(str(k)) for k in sorted_intervals]+[len(heading)+2])
+      widths.append(width)
+      for i in range(len(self._pieces_analyzed)):
+         width = max([len(str(the_dict[k][1][i])) for k in sorted_intervals]+[len(os.path.split(self._pieces_analyzed[i])[1])+3])
+         widths.append(width)
+      width_total = max([len(str(the_dict[k][0])) for k in sorted_intervals]+[len("Total")])+2
+      widths.append(width_total)
+      row = "{0:{1:n}}".format(heading, widths[0])
+      for i in range(len(self._pieces_analyzed)):
+         row += "{0:{1:n}}".format("# "+os.path.split(self._pieces_analyzed[i])[1]+" ", widths[i+1])
+      row += "{0:{1:n}}".format("# Total", widths[-1])
+      row += "\n"
+      post += row
+      row = "-"*sum(widths)+"\n"
+      post += row
       for interv in sorted_intervals:
-         post += interv + ': ' + str(the_dict[interv]) + '\n'
+         row = "{0:{1:n}}".format(str(interv), widths[0])
+         for i in range(len(self._pieces_analyzed)):
+            row += "{0:{1:n}}".format(str(the_dict[interv][1][i]), widths[i+1])
+         row += "{0:{1:n}}".format(str(the_dict[interv][0]), widths[-1])
+         row += "\n"
+         post += row
       post += '\n'
       
       # Done!

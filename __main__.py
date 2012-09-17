@@ -760,6 +760,7 @@ class Vis_MainWindow( Ui_MainWindow ):
                this_took, ly, error = vis_these_parts( [higher,lower], \
                                                 self.settings, \
                                                 self.statistics, \
+                                                piece_name, \
                                                 targeted_output )
                it_took += this_took
             # Add this duration to the cumulative duration.
@@ -779,6 +780,7 @@ class Vis_MainWindow( Ui_MainWindow ):
             it_took, ly, error = vis_these_parts( [higher,lower], \
                                            self.settings, \
                                            self.statistics, \
+                                           piece_name, \
                                            targeted_output )
             # Add this duration to the cumulative duration.
             cumulative_analysis_duration += it_took

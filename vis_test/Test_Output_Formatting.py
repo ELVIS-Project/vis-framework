@@ -84,7 +84,7 @@ class Test_Output_Formatting( unittest.TestCase ):
 '''
       score = converter.parse( 'test_corpus/bwv77.mxl' )
       sets = VIS_Settings()
-      vis_these_parts( [score.parts[0], score.parts[3]], sets, self.vis )
+      vis_these_parts( [score.parts[0], score.parts[3]], sets, self.vis, 'test_corpus/bwv77.mxl' )
       self.assertEqual( self.vis.get_formatted_intervals( sets, 'ascending by interval' ), \
                         expected_ascending_by_interval )
       self.assertEqual( self.vis.get_formatted_intervals( sets, 'ascending by frequency' ), \
@@ -491,7 +491,7 @@ class Test_Output_Formatting( unittest.TestCase ):
 '''
       score = converter.parse( 'test_corpus/Kyrie.krn' )
       sets = VIS_Settings()
-      vis_these_parts( [score.parts[0], score.parts[-1]], sets, self.vis )
+      vis_these_parts( [score.parts[0], score.parts[-1]], sets, self.vis, 'test_corpus/Kyrie.krn' )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by ngram' ), \
                         ascending_by_ngram )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'descending by ngram' ), \
@@ -552,7 +552,7 @@ class Test_Output_Formatting( unittest.TestCase ):
       descending_by_frequency = 'All the Intervals:\n------------------\n6: 107\n4: 78\n3: 72\n5: 56\n1: 31\n8: 29\n2: 17\n10: 15\n7: 13\n-3: 13\n9: 9\n11: 8\n-2: 7\n-5: 6\n-6: 5\n13: 3\n-4: 2\n-12: 1\n12: 1\n\n'
       score = converter.parse( 'test_corpus/sinfony.md' )
       sets = VIS_Settings()
-      vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis )
+      vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis, 'test_corpus/sinfony.md' )
       self.assertEqual( self.vis.get_formatted_intervals( sets, 'ascending by interval' ), \
                         ascending_by_interval )
       self.assertEqual( self.vis.get_formatted_intervals( sets, 'descending by interval' ), \
@@ -1373,7 +1373,7 @@ class Test_Output_Formatting( unittest.TestCase ):
 '''
       score = converter.parse( 'test_corpus/sinfony.md' )
       sets = VIS_Settings()
-      vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis )
+      vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis, 'test_corpus/sinfony.md' )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by ngram' ), \
                         ascending_by_ngram )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'descending by ngram' ), \
@@ -1651,7 +1651,7 @@ All the 3-grams:
       score = converter.parse( 'test_corpus/Jos2308.krn' )
       sets = VIS_Settings()
       sets.set_property( 'lookForTheseNs 2,3' )
-      vis_these_parts( [score.parts[0][:100], score.parts[-1][:100]], sets, self.vis )
+      vis_these_parts( [score.parts[0][:100], score.parts[-1][:100]], sets, self.vis, 'test_corpus/Jos2308.krn' )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by ngram' ), \
                         ascending_by_ngram )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'descending by frequency' ), \
@@ -1951,7 +1951,7 @@ All the 3-grams:
       score = converter.parse( 'test_corpus/Jos2308.krn' )
       sets = VIS_Settings()
       sets.set_property( 'lookForTheseNs 4' )
-      vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis )
+      vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis, 'test_corpus/Jos2308.krn' )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by frequency' ), \
                         ascending_by_frequency )
 # End Test_Output_Formatting() ------------------------------------------------

@@ -55,7 +55,7 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
       # offset 200.0 is m.51
       higher_part = the_piece.parts[0].getElementsByOffset( 52.0, 199.9 )
       lower_part = the_piece.parts[1].getElementsByOffset( 52.0, 199.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
       # Prepare the findings

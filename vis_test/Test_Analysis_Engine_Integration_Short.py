@@ -58,7 +58,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 13.0 is the fourth measure
       higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 12.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
       # Prepare the findings
@@ -83,7 +83,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 13.0 is the fourth measure
       higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 12.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
       # Prepare the findings
@@ -112,7 +112,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 40.0 is the sixth measure
       higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 39.9 )
       lower_part = the_piece.parts[1].getElementsByOffset( 0.0, 39.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       # Prepare the findings
@@ -142,7 +142,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 44.0 is the 12th measure
       higher_part = the_piece.parts[1].getElementsByOffset( 20.0, 43.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 20.0, 43.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -172,7 +172,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       from test_corpus.test_theSixth import the_first_piece
       higher_part = the_first_piece.parts[0]
       lower_part = the_first_piece.parts[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -205,7 +205,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       from test_corpus.test_theSixth import the_second_piece
       higher_part = the_second_piece.parts[0]
       lower_part = the_second_piece.parts[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -231,7 +231,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       from test_corpus.test_theSixth import the_third_piece
       higher_part = the_third_piece.parts[0]
       lower_part = the_third_piece.parts[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -261,7 +261,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # measure 120 is offset 480.0
       higher_part = the_piece.parts[0].getElementsByOffset( 448.0, 479.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 448.0, 479.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -300,7 +300,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 64.0 is the 15th measure
       higher_part = the_piece.parts[1].getElementsByOffset( 20.0, 63.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 20.0, 63.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
       
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -343,7 +343,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 64.0 is the 15th measure
       higher_part = the_piece.parts[1].getElementsByOffset( 0.0, 63.9 )
       lower_part = the_piece.parts[2].getElementsByOffset( 0.0, 63.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats )
+      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       # Prepare the findings
