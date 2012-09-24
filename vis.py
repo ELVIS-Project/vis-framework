@@ -368,8 +368,8 @@ if __name__ == '__main__':
                   print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
                       file_output_result[0] + '>' )
             else: #must be an array of graphs
-               for n in range(len(formatted_output)):
-                  formatted_output[n].write(splitext(fn)[0]+'-'+str(n)+splitext(fn)[1])
+               for n, graph in enumerate(formatted_output):
+                  graph.write(splitext(fn)[0]+'-'+str(n)+splitext(fn)[1])
          elif 'powerlaw' == which_results:
             try:
                power_law = my_statistics.power_law_analysis( my_settings )
@@ -424,8 +424,8 @@ if __name__ == '__main__':
                   print( 'Couldn\'t use <' + fn + '>, so results are in <' + \
                       file_output_result[0] + '>' )
             else: #must be an array of graphs
-               for n in range(len(formatted_output)):
-                  formatted_output[n].write(splitext(fn)[0]+'-'+str(n)+splitext(fn)[1])
+               for n, graph in enumerate(formatted_output):
+                  graph.write(splitext(fn)[0]+'-'+str(n)+splitext(fn)[1])
          elif 'intervals' == which_results:
             # NOTE: this is the same as for ngrams, except for the call to 
             # my_statistics.get_formatted_intervals!!

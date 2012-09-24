@@ -364,24 +364,6 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10', n=4 ), 10 )
       #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3', n=4 ), 7 )
       #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +2 -3', n=4 ), 7 )
-   
-   # _reduce_qualities() ----------------------------------
-   def test__reduce_qualities( self ):
-      # this stands for interval_dictionary
-      i_d = {'m3':5, 'M3':4}
-      self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
-                        {'3':9} )
-      i_d['d3'] = 12
-      self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
-                        {'3':21} )
-      i_d['A3'] = 12
-      i_d['P3'] = 12
-      self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
-                        {'3':45} )
-      i_d['d1'] = 1
-      i_d['P1'] = 4
-      self.assertEqual( Vertical_Interval_Statistics._reduce_qualities( i_d ), \
-                        {'1':5, '3':45} )
 
    def test_compare_noHeedQuality( self ):
       other_stats = Vertical_Interval_Statistics()

@@ -273,31 +273,6 @@ class Vertical_Interval_Statistics( object ):
    ## end get_ngram_occurrences()
    
    @staticmethod
-   def _reduce_qualities( intervals_in ):
-      ###
-      # Given a dictionary of intervals with qualities, like 
-      # V_I_S._compound_interval_dict, produces a list where the intervals
-      # don't have qualities.
-      # 
-      # ['m3':5, 'M3':6, 'P4':1] ==> ['3':11, '4':1]
-      ###
-      qualities = 'dmMPA'
-      post = {}
-      # TODO: there must be a way to get only and all of the intervals that are
-      # actually present
-      for size in xrange(-30,30):
-         for quality in qualities:
-            look_for = quality + str(size)
-            if look_for in intervals_in:
-               if str(size) in post:
-                  post[str(size)][0] += intervals_in[look_for][0]
-                  for i in range(len(intervals_in[look_for][1])):
-                     post[str(size)][1][i] += intervals_in[look_for][1][i]
-               else:
-                  post[str(size)] = intervals_in[look_for]
-      return post
-   
-   @staticmethod
    def _set_heed_quality( ngram, heed_quality ):
       ret = copy.deepcopy(ngram)
       ret.set_heed_quality(heed_quality)
@@ -374,16 +349,16 @@ class Vertical_Interval_Statistics( object ):
          for ng in d.iterkeys():
             for ngram in d[ng].iterkeys():
                d[ng][ngram][1] += [0 for i in other_ran]
-      for n in range(len(other_stats._ngrams_dict)):
-         for ng in other_stats._ngrams_dict[n].iterkeys():
+      for n, d in enumerate(other_stats._ngrams_dict):
+         for ng in d.iterkeys():
             if ng not in self._ngrams_dict[n]:
                self._ngrams_dict[n][ng] = {}
-            for ngram in other_stats._ngrams_dict[n][ng].iterkeys():
+            for ngram in d[ng].iterkeys():
                if ngram not in self._ngrams_dict[n][ng]:
                   self._ngrams_dict[n][ng][ngram] = [0,[0 for i in ran+other_ran]]
-               self._ngrams_dict[n][ng][ngram][0] += other_stats._ngrams_dict[n][ng][ngram][0]
+               self._ngrams_dict[n][ng][ngram][0] += d[ng][ngram][0]
                for i in other_ran:
-                  self._ngrams_dict[n][ng][ngram][1][new_index+i] += other_stats._ngrams_dict[n][ng][ngram][1][i]    
+                  self._ngrams_dict[n][ng][ngram][1][new_index+i] += d[ng][ngram][1][i]    
 
    def prepare_ngram_output_dict( self, the_settings, list_of_n, specs ):
       output_dict = None
@@ -450,12 +425,11 @@ class Vertical_Interval_Statistics( object ):
                           float(ngram_pairs[n][ng][1])/float(ngram_pairs[n][ng][0]), reverse=True)
             g = graph.GraphGroupedVerticalBar(doneAction=None)
             data = []
-            for k in range(len(keys)):
-               entry = (str(keys[k][0])+' '+str(keys[k][1]),)
+            for key in keys:
+               entry = (str(key[0])+' '+str(key[1]),)
                pair = {}
-               key_pair = keys[k]
-               pair['n-gram'] = ngram_pairs[n][key_pair][0]
-               pair['retrograde'] = ngram_pairs[n][key_pair][1]
+               pair['n-gram'] = ngram_pairs[n][key][0]
+               pair['retrograde'] = ngram_pairs[n][key][1]
                entry += (pair,)
                data.append(entry) 
             g.setData(data)
@@ -613,10 +587,10 @@ class Vertical_Interval_Statistics( object ):
          # Do we need compound or simple intervals?
          # We need compound intervals.
          if 'compound' == s_or_c:
-            the_dict = Vertical_Interval_Statistics._reduce_qualities( self._compound_interval_dict )
+            the_dict = self.get_compound_interval_summary_dict()
          # We need simple intervals.
          else:
-            the_dict = Vertical_Interval_Statistics._reduce_qualities( self._simple_interval_dict )
+            the_dict = self.get_simple_interval_summary_dict()
       
       # (2) sort the results in the specified way.
       if 'by frequency' in specs:         
@@ -638,15 +612,15 @@ class Vertical_Interval_Statistics( object ):
       # (3.1) If a graph is asked for, return one.
       if 'graph' in specs:
          g = graph.GraphHistogram(doneAction=None)
-         data = [(k,the_dict[sorted_intervals[k]][0]) for k in range(len(sorted_intervals))]
+         data = [(i,the_dict[interv][0]) for i, interv in enumerate(sorted_intervals)]
          g.setData(data)
          g.setTitle("Intervals in "+join([str(os.path.split(p)[1])+", " for p in self._pieces_analyzed])[:-2])
-         g.setTicks('x',[(k+0.4,sorted_intervals[k]) for k in range(len(sorted_intervals))])
+         g.setTicks('x',[(i+0.4,interv) for i,interv in enumerate(sorted_intervals)])
          g.xTickLabelHorizontalAlignment='center'
          setattr(g,'xTickLabelRotation',45)
          g.setAxisLabel('x','Interval')
-         max_height = max([the_dict[sorted_intervals[j]][0] for j in range(len(sorted_intervals))])+1
-         tick_dist = max_height/10
+         max_height = max([the_dict[interv][0] for interv in sorted_intervals])+1
+         tick_dist = max(max_height/10,1)
          ticks = []
          k = 0
          while k*tick_dist <= max_height:
@@ -676,14 +650,14 @@ class Vertical_Interval_Statistics( object ):
       heading = "Interval"
       width = max([len(str(k)) for k in sorted_intervals]+[len(heading)+2])
       widths.append(width)
-      for i in range(len(self._pieces_analyzed)):
-         width = max([len(str(the_dict[k][1][i])) for k in sorted_intervals]+[len(os.path.split(self._pieces_analyzed[i])[1])+3])
+      for i, piece in enumerate(self._pieces_analyzed):
+         width = max([len(str(the_dict[k][1][i])) for k in sorted_intervals]+[len(os.path.split(piece)[1])+3])
          widths.append(width)
       width_total = max([len(str(the_dict[k][0])) for k in sorted_intervals]+[len("Total")])+2
       widths.append(width_total)
       row = "{0:{1:n}}".format(heading, widths[0])
-      for i in range(len(self._pieces_analyzed)):
-         row += "{0:{1:n}}".format("# "+os.path.split(self._pieces_analyzed[i])[1]+" ", widths[i+1])
+      for i, piece in enumerate(self._pieces_analyzed):
+         row += "{0:{1:n}}".format("# "+os.path.split(piece)[1]+" ", widths[i+1])
       row += "{0:{1:n}}".format("# Total", widths[-1])
       row += "\n"
       post += row
@@ -691,7 +665,7 @@ class Vertical_Interval_Statistics( object ):
       post += row
       for interv in sorted_intervals:
          row = "{0:{1:n}}".format(str(interv), widths[0])
-         for i in range(len(self._pieces_analyzed)):
+         for i, piece in enumerate(self._pieces_analyzed):
             row += "{0:{1:n}}".format(str(the_dict[interv][1][i]), widths[i+1])
          row += "{0:{1:n}}".format(str(the_dict[interv][0]), widths[-1])
          row += "\n"
@@ -761,16 +735,14 @@ class Vertical_Interval_Statistics( object ):
             keys = table.keys()
             g = graph.GraphGroupedVerticalBar(doneAction=None)
             data = []
-            for k in range(len(keys)):
-               entry = ("bar%s"%str(k),)
+            for k, key in enumerate(keys):
                pair = {}
-               ngram_key = keys[k]
-               pair[file1] = table[ngram_key][0]
-               pair[file2] = table[ngram_key][1]
-               entry += (pair,)
+               pair[file1] = table[key][0]
+               pair[file2] = table[key][1]
+               entry = ("bar%s"%str(k),pair)
                data.append(entry) 
             g.setData(data)
-            g.setTicks('x',[(k+0.4,keys[k]) for k in range(len(keys))])
+            g.setTicks('x',[(k+0.4,key) for k, key in enumerate(keys)])
             g.xTickLabelRotation = 90
             g.xTickLabelVerticalAlignment='top'
             g.setTitle(str(n)+'-Grams')
@@ -885,15 +857,15 @@ class Vertical_Interval_Statistics( object ):
          grapharr = []
          for n in list_of_n:
             g = graph.GraphHistogram(doneAction=None,tickFontSize=12)
-            data = [(k,output_dict[n][sorted_ngrams[n][k]]) for k in range(len(sorted_ngrams[n]))]
+            data = [(k,output_dict[n][key]) for k, key in enumerate(sorted_ngrams[n])]
             g.setData(data)
-            g.setTicks('x',[(k+0.7,sorted_ngrams[n][k]) for k in xrange(len(sorted_ngrams[n]))])
+            g.setTicks('x',[(k+0.7,key) for k, key in enumerate(sorted_ngrams[n])])
             g.setAxisLabel('x',str(n)+"-Gram")
             g.xTickLabelRotation = 45
             g.xTickLabelVerticalAlignment='top'
             g.xTickLabelHorizontalAlignment='right'
             g.setTitle(str(n)+"-Grams in "+join([str(os.path.split(p)[1])+", " for p in self._pieces_analyzed])[:-2])
-            max_height = max([output_dict[n][sorted_ngrams[n][j]] for j in range(len(sorted_ngrams[n]))])+1
+            max_height = max([output_dict[n][key] for key in sorted_ngrams[n]])+1
             tick_dist = max(max_height/10,1)
             ticks = []
             k = 0
