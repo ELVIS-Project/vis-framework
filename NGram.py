@@ -117,19 +117,14 @@ class NGram( object ):
       # Calculates the movement of the lower part between adjacent Interval
       # objects, then returns a list of them.
 
-      # Hold the list of Interval objects.
+      # This choice of iteration is a nice hack from 
+      # http://stackoverflow.com/questions/914715/python-looping-through-all-but-the-last-item-of-a-list
       post = []
-      # Now calculate a list of the Interval objects between the lowest notes.
-      # For every note except the last...
-      for i, j in zip(self._list_of_intervals,self._list_of_intervals[1:]):
-         # this choice of iteration is a nice hack from 
-         # http://stackoverflow.com/questions/914715/python-looping-through-all-but-the-last-item-of-a-list
-
-         # Append the Interval between the .noteEnd of each Interval.
-         try:
-            post.append( interval.Interval( i.noteStart, j.noteStart ) )
-         except AttributeError as attrerr:
-            raise MissingInformationError( 'NGram: Probably one of the intervals is missing a note.Note' )
+      z = zip(self._list_of_intervals,self._list_of_intervals[1:])
+      try:
+         post = [interval.Interval( i.noteStart, j.noteStart ) for i,j in z]
+      except AttributeError as attrerr:
+         raise MissingInformationError( 'NGram: Probably one of the intervals is missing a note.Note' )
 
       self._list_of_movements = post
    #-------------------------------------------------------
