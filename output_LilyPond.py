@@ -466,8 +466,8 @@ def process_stream( s, the_settings ):
       # Append the parts to the score we're building. In the future, it'll
       # be important to re-arrange the parts if necessary, or maybe to filter
       # things, so we'll keep everything in this supposedly efficient loop.
-      for i in xrange(len(list_of_parts)):
-         post += list_of_parts[i]
+      for p in list_of_parts:
+         post += p
 
       # Things After Parts
       # Output the \score{} block

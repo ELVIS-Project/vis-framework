@@ -121,11 +121,11 @@ class NGram( object ):
       post = []
       # Now calculate a list of the Interval objects between the lowest notes.
       # For every note except the last...
-      for i in xrange(len(self._list_of_intervals)-1):
+      for i, interv in enumerate(self._list_of_intervals[:-2]):
          # Append the Interval between the .noteEnd of each Interval.
          try:
-            post.append( interval.Interval( self._list_of_intervals[i].noteStart, \
-                                            self._list_of_intervals[i+1].noteStart ) )
+            post.append( interval.Interval( interv.noteStart, \
+                                            interv.next().noteStart ) )
          except AttributeError as attrerr:
             raise MissingInformationError( 'NGram: Probably one of the intervals is missing a note.Note' )
 
@@ -267,7 +267,7 @@ class NGram( object ):
 
       # We need to consider every index of _list_of_intervals, which contains
       # the vertical intervals of this NGram.
-      for i in xrange(len(self._list_of_intervals)):
+      for i, interv in enumerate(self._list_of_intervals):
          # If post isn't empty, this isn't the first interval added, so we need
          # to put a space between this and the previous int.
          if len(post) > 0:
@@ -276,9 +276,9 @@ class NGram( object ):
          # Calculate this interval
          this_interval = None
          if 'simple' == simple_or_compound:
-            this_interval = self._list_of_intervals[i].directedSimpleName
+            this_interval = interv.directedSimpleName
          else:
-            this_interval = self._list_of_intervals[i].directedName
+            this_interval = interv.directedName
 
          # If we're ignoring quality, remove the quality.
          if not heed_quality:
@@ -638,13 +638,13 @@ class NGram( object ):
       else:
          # ... things are more difficult because, as long as the numbers are
          # the same, we're supposed to consider them equal.
-         for i in xrange(len(self._list_of_intervals)):
-            if self._list_of_intervals[i].generic.directed != \
+         for i, interv in enumerate(self._list_of_intervals):
+            if interv.generic.directed != \
                other._list_of_intervals[i].generic.directed:
                   return False
 
-         for i in xrange(len(self._list_of_movements)):
-            if self._list_of_movements[i].generic.directed != \
+         for i, interv in enumerate(self._list_of_movements):
+            if interv.generic.directed != \
                other._list_of_movements[i].generic.directed:
                   return False
 

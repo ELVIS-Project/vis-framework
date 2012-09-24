@@ -925,8 +925,8 @@ class Vis_Select_Voices( Ui_select_voices ):
       else:
          # "Choose two specific voices"
          post = []
-         for i in xrange(len(self.chk_voice)):
-            if self.chk_voice[i].isChecked():
+         for i, j in enumerate(self.chk_voice):
+            if j.isChecked():
                post.append( i )
 
          # Are there fewer or greater than two voices?
