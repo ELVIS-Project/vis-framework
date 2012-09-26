@@ -170,6 +170,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ## a note followed by a bunch of rests.
       
       from test_corpus.test_theSixth import the_first_piece
+      filename = "filename"
       higher_part = the_first_piece.parts[0]
       lower_part = the_first_piece.parts[1]
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
@@ -203,6 +204,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ## part still has a note sounding.
       
       from test_corpus.test_theSixth import the_second_piece
+      filename = "filename"
       higher_part = the_second_piece.parts[0]
       lower_part = the_second_piece.parts[1]
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
@@ -229,6 +231,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ## problem caused by the top voice in the previous test.
       
       from test_corpus.test_theSixth import the_third_piece
+      filename = "filename"
       higher_part = the_third_piece.parts[0]
       lower_part = the_third_piece.parts[1]
       analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
