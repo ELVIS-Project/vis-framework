@@ -72,7 +72,7 @@ class Vertical_Interval_Statistics( object ):
       self._pieces_analyzed = []
    
    def __repr__( self ):
-      return self.__str__( self )
+      return str(self)
    
    def __str__( self ):
       # This should produce something like...
@@ -141,10 +141,10 @@ class Vertical_Interval_Statistics( object ):
    # end add_interval()
 
    def get_simple_interval_summary_dict( self ):
-      return dict(map(lambda (key,value): (key,value[0]), self._simple_interval_dict.iteritems()))
+      return {k:v[0] for k,v in self._simple_interval_dict.iteritems()}
 
    def get_compound_interval_summary_dict( self ):
-      return dict(map(lambda (key,value): (key,value[0]), self._compound_interval_dict.iteritems()))
+      return {k:v[0] for k,v in self._compound_interval_dict.iteritems()}
 
    def get_interval_occurrences( self, which_interval, simple_or_compound='simple', piece_index=None ):
       '''
@@ -300,11 +300,9 @@ class Vertical_Interval_Statistics( object ):
    @staticmethod
    def _get_simple_version( ngram ):
       ng = copy.deepcopy(ngram)
-      l = ng._list_of_intervals
-      l = map(lambda interv: interval.Interval(interv.semiSimpleName),l)
-      ng._list_of_intervals = l
+      l = ng._list_of_intervals 
+      ng._list_of_intervals = [interval.Interval(i.semiSimpleName) for i in l]
       ng._simple_or_compound = 'simple'
-      #ng._calculate_movements()
       ng._string = ng.get_string_version(ng._heed_quality,ng._simple_or_compound)
       return ng
 
@@ -348,51 +346,42 @@ class Vertical_Interval_Statistics( object ):
       return list_of_n
 
    def extend( self, other_stats ):
-      nbr_pieces = int(len(self._pieces_analyzed))
-      ran = range(nbr_pieces)
-      new_index = nbr_pieces - 1 if nbr_pieces != 0 else 0
-      other_ran = range(len(other_stats._pieces_analyzed))
+      self_empty = [0,[0 for p in self._pieces_analyzed]]
+      other_empty = [0,[0 for p in other_stats._pieces_analyzed]]
+
+      #helper methods for merging the entries of the various dicts involved
+      def merger(x,y):
+         return merger(0,y) if x is None else \
+                merger(x,0) if y is None else \
+                x+y
+
+      def merge( a,b ):
+         return merge( self_empty, b ) if a is None else \
+                merge(a,other_empty) if b is None else \
+                map(merger,*[a,b])
+
+      def merge_dicts( x,y ):
+         return merge_dicts({},y) if x is None else \
+                merge_dicts(x,{}) if y is None else \
+                dict((key,merge(x.get(key),y.get(key))) for key in set(x.keys()+y.keys()))
+
+      def merge_lists(x,y):
+         return merge_lists({},y) if x is None else \
+                (x,{}) if y is None else \
+                (x,y)
+
+      def merge_ngram_dicts(x,y):
+         return dict((key,merge_dicts(x.get(key),y.get(key))) for key in set(x.keys()+y.keys()))
+
+      def merge_ngram_dict_list( data_dict, other_dict ):
+         return [merge_ngram_dicts(a,b) for a,b in map(merge_lists,*[data_dict,other_dict])]
+
       self._pieces_analyzed += other_stats._pieces_analyzed
-      for interval in self._simple_interval_dict.iterkeys():
-         self._simple_interval_dict[interval][1] += [0 for i in other_ran]
-      for interval in self._compound_interval_dict.iterkeys():
-         self._compound_interval_dict[interval][1] += [0 for i in other_ran]
-      for interval in other_stats._simple_interval_dict.iterkeys():
-         if interval not in self._simple_interval_dict:
-            self._simple_interval_dict[interval] = [0,[0 for i in ran+other_ran]]
-         self._simple_interval_dict[interval][0] += other_stats._simple_interval_dict[interval][0]
-         for i in other_ran:
-            self._simple_interval_dict[interval][1][new_index+i] += other_stats._simple_interval_dict[interval][1][i]
+      self._simple_interval_dict = merge_dicts(self._simple_interval_dict,other_stats._simple_interval_dict)
+      self._compound_interval_dict = merge_dicts(self._compound_interval_dict,other_stats._compound_interval_dict)
 
-      for interval in other_stats._compound_interval_dict.iterkeys():
-         if interval not in self._compound_interval_dict:
-            self._compound_interval_dict[interval] = [0,[0 for i in ran+other_ran]]
-         self._compound_interval_dict[interval][0] += other_stats._compound_interval_dict[interval][0]
-         for i in other_ran:
-            self._compound_interval_dict[interval][1][new_index+i] += other_stats._compound_interval_dict[interval][1][i]
-
-      def extend_ngram_dict( data_dict, other_dict ):
-         p, q = len(data_dict), len(other_dict)
-         if p < q:
-            for i in range(q-p):
-               data_dict.append( {} )
-         for d in data_dict:
-            for ng in d.iterkeys():
-               for ngram in d[ng].iterkeys():
-                  d[ng][ngram][1] += [0 for i in other_ran]
-         for n, d in enumerate(other_dict):
-            for ng in d.iterkeys():
-               if ng not in data_dict[n]:
-                  data_dict[n][ng] = {}
-               for ngram in d[ng].iterkeys():
-                  if ngram not in data_dict[n][ng]:
-                     data_dict[n][ng][ngram] = [0,[0 for i in ran+other_ran]]
-                  data_dict[n][ng][ngram][0] += d[ng][ngram][0]
-                  for i in other_ran:
-                     data_dict[n][ng][ngram][1][new_index+i] += d[ng][ngram][1][i]
-
-      extend_ngram_dict( self._compound_ngrams_dict, other_stats._compound_ngrams_dict )
-      extend_ngram_dict( self._simple_ngrams_dict, other_stats._simple_ngrams_dict )    
+      self._compound_ngrams_dict = merge_ngram_dict_list( self._compound_ngrams_dict, other_stats._compound_ngrams_dict )
+      self._simple_ngrams_dict = merge_ngram_dict_list( self._simple_ngrams_dict, other_stats._simple_ngrams_dict )
 
    def prepare_ngram_output_dict( self, the_settings, list_of_n, specs ):
       # decide simple or compound
@@ -411,13 +400,15 @@ class Vertical_Interval_Statistics( object ):
             values = []
             for ng in data_dict[n].iterkeys():
                keys.extend(data_dict[n][ng].keys())
-               values.extend([v[0] for v in data_dict[n][ng].values()]) #replace 0 with piece_index
+               values.extend(data_dict[n][ng].values())
             while len(output_dict) < n+1:
                output_dict.append( {} )
             output_dict[n] = dict(zip(keys,values))
       else:
          # We don't need to include quality
-         output_dict = [{ngram:sum([v[0] for v in d[ngram].values()]) for ngram in d.keys()} for d in data_dict] #replace 0 with piece_index
+         output_dict = [{ngram:[sum([v[0] for v in d[ngram].values()]), \
+                       [sum(x) for x in zip(*[v[1] for v in d[ngram].values()])]] \
+                       for ngram in d.keys()} for d in data_dict]
       return output_dict
 
    def retrogrades( self, the_settings, specs='' ):
@@ -612,25 +603,23 @@ class Vertical_Interval_Statistics( object ):
       else:
          s_or_c = the_settings.get_property( 'simpleOrCompound' )
       
-      # Do we need to include quality?
-      if 'quality' in specs or \
-         ( the_settings.get_property( 'heedQuality' ) and 'noQuality' not in specs ):
-         # Do we need compound or simple intervals?
-         # We need compound intervals.
-         if 'compound' == s_or_c:
-            the_dict = self._compound_interval_dict
-         # We need simple intervals.
-         else:
-            the_dict = self._simple_interval_dict
-      # We don't need to include quality
+      # Do we need compound or simple intervals?
+      # We need compound intervals.
+      if 'compound' == s_or_c:
+         the_dict = self._compound_interval_dict
+      # We need simple intervals.
       else:
-         # Do we need compound or simple intervals?
-         # We need compound intervals.
-         if 'compound' == s_or_c:
-            the_dict = self.get_compound_interval_summary_dict()
-         # We need simple intervals.
-         else:
-            the_dict = self.get_simple_interval_summary_dict()
+         the_dict = self._simple_interval_dict
+         
+      # Do we need to remove quality?
+      if ('noQuality' in specs or not the_settings.get_property( 'heedQuality' )) \
+         and 'quality' not in specs:
+         non_numeric = re.compile(r'[^\d-]+')
+         #because, very occasionally, a regex actually does the trick.
+         red = lambda k:non_numeric.sub('',k)
+         keys = set(red(k) for k in the_dict.keys())
+         keys = [(k,filter(lambda t:red(t[0])==k,the_dict.items())) for k in keys]
+         the_dict = {k:[sum(v[0] for K,v in l),map(sum,zip(*[v[1] for K,v in l]))] for k,l in keys}
       
       # (2) sort the results in the specified way.
       if 'by frequency' in specs:         
@@ -715,6 +704,22 @@ class Vertical_Interval_Statistics( object ):
       # Done!
       return post
    # end get_formatted_intervals()
+
+   def similarity( self, some_pieces, other_pieces, n, simple_or_compound="compound", heedQuality=False ):
+      '''
+      Given two lists of indices of self._pieces_analyzed,
+      an integer n, and the other obvious settings, computes
+      the similarity between the N-Grams in the two samples.
+      '''
+      settings = VIS_Settings()
+      settings.set_property( "heedQuality "+str(heedQuality) )
+      the_dict = self.prepare_ngram_output_dict(settings,[n],simple_or_compound)[n]
+      total_some = sum(sum(v[1][i] for i in some_pieces) for v in the_dict.values())
+      total_other = sum(sum(v[1][i] for i in other_pieces) for v in the_dict.values())
+      total_diff = sum(abs((sum(v[1][i] for i in some_pieces)*100)/total_some \
+                           -(sum(v[1][i] for i in other_pieces)*100)/total_other) \
+                       for v in the_dict.values())
+      return 1.0 - float(total_diff)/200
 
    def compare( self, the_settings, other_stats, file1, file2, specs='' ):
       '''
@@ -878,10 +883,10 @@ class Vertical_Interval_Statistics( object ):
          # Sort the frequencies
          for n in list_of_n:
             if 'ascending' in specs or 'low to high' in specs:
-               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng] )
+               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng][0] )
             else: # elif 'descending' in specs or 'high to low' in specs:
                # Default to 'descending'
-               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng], reverse=True )
+               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng][0], reverse=True )
             
       # We're now working with flipped_dicts
       else: # elif 'by ngram' in specs or 'by n-gram' in specs:
@@ -898,7 +903,7 @@ class Vertical_Interval_Statistics( object ):
          grapharr = []
          for n in list_of_n:
             g = graph.GraphHistogram(doneAction=None,tickFontSize=12)
-            data = [(k,output_dict[n][key]) for k, key in enumerate(sorted_ngrams[n])]
+            data = [(k,output_dict[n][key][0]) for k, key in enumerate(sorted_ngrams[n])]
             g.setData(data)
             g.setTicks('x',[(k+0.7,key) for k, key in enumerate(sorted_ngrams[n])])
             g.setAxisLabel('x',str(n)+"-Gram")
@@ -906,7 +911,7 @@ class Vertical_Interval_Statistics( object ):
             g.xTickLabelVerticalAlignment='top'
             g.xTickLabelHorizontalAlignment='right'
             g.setTitle(str(n)+"-Grams in "+join([str(os.path.split(p)[1])+", " for p in self._pieces_analyzed])[:-2])
-            max_height = max([output_dict[n][key] for key in sorted_ngrams[n]])+1
+            max_height = max([output_dict[n][key][0] for key in sorted_ngrams[n]])+1
             tick_dist = max(max_height/10,1)
             ticks = []
             k = 0
@@ -934,12 +939,39 @@ class Vertical_Interval_Statistics( object ):
 
       # (4.2) Else make a nicely formatted list from the results.
       else:
-         # Default to 'by interval'
+         post = ""
+         for k, piece in enumerate(self._pieces_analyzed,start=1):
+            post += "p"+str(k)+" = "+os.path.split(piece)[1]+"\n"
+         post += "\n"
          for n in list_of_n:
-            post += 'All the ' + str(n) + '-grams:\n-----------------------------\n'
-            for ng in sorted_ngrams[n]:
-               post += str(ng) + ': ' + str(output_dict[n][ng]) + '\n'
-            post += '\n'
+            the_dict = output_dict[n]
+            sorted_ngrams = sorted_ngrams[n]
+            widths = []
+            heading = str(n)+"-Gram"
+            width = max([len(str(k)) for k in sorted_ngrams]+[len(heading)])+2
+            widths.append(width)
+            for i, piece in enumerate(self._pieces_analyzed):
+               width = max([len(str(the_dict[k][1][i])) for k in sorted_ngrams]+[len("p"+str(i+1))+3])
+               widths.append(width)
+            width_total = max([len(str(the_dict[k][0])) for k in sorted_ngrams]+[len("Total")])+2
+            widths.append(width_total)
+            row = "{0:{1:n}}".format(heading, widths[0])
+            for i, piece in enumerate(self._pieces_analyzed,start=1):
+               row += "{0:{1:n}}".format("# p"+str(i)+" ", widths[i])
+            row += "{0:{1:n}}".format("# Total", widths[-1])
+            row += "\n"
+            post += row
+            row = "-"*sum(widths)+"\n"
+            post += row
+            for ngram in sorted_ngrams:
+               row = "{0:{1:n}}".format(str(ngram), widths[0])
+               for i, piece in enumerate(self._pieces_analyzed):
+                  row += "{0:{1:n}}".format(str(the_dict[ngram][1][i]), widths[i+1])
+               row += "{0:{1:n}}".format(str(the_dict[ngram][0]), widths[-1])
+               row += "\n"
+               post += row
+            post += '\n\n'
+         post = post[:-3] #forget the last extra newline
       
       # Done!
       return post
@@ -975,8 +1007,10 @@ class Vertical_Interval_Statistics( object ):
       else:
          settings = VIS_Settings()
          try:
-            formatted_dict = self.prepare_ngram_output_dict( settings, \
+            unformatted_dict = self.prepare_ngram_output_dict( settings, \
                              self.determine_list_of_n( settings, "", "" ), "noQuality" )
+            formatted_dict = [{k:v[0] for k,v in d.iteritems()} \
+                             for d in unformatted_dict]
          except MissingInformationError:
             #if there are no ngrams, just return an empty dict.
             return {}
