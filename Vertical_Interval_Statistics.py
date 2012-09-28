@@ -25,7 +25,7 @@
 
 ## Import:
 # python
-import re, copy, os.path
+import re, copy, os.path, json
 from string import digits as string_digits
 from string import join
 # music21
@@ -34,6 +34,7 @@ from music21 import interval, graph, stream, clef, meter, note
 from VIS_Settings import VIS_Settings
 from problems import NonsensicalInputError, MissingInformationError
 from analytic_engine import make_lily_triangle
+from NGram import NGram
 # numpy
 from numpy import array, linalg, ones, log, corrcoef
 # matplotlib
@@ -88,6 +89,94 @@ class Vertical_Interval_Statistics( object ):
                  str(i) + '-grams; '
       
       return post[:-2] + '>'
+
+   def _validate( self ):
+      if not isinstance(self._pieces_analyzed,list):
+         raise NonsensicalInputError("_pieces_analyzed must be of type list")
+      for s in self._pieces_analyzed:
+         if not isinstance(s,str):
+            raise NonsensicalInputError("_pieces_analyzed may contain only strings")
+      
+      easy_atts = ["_simple_interval_dict","_compound_interval_dict"]
+      ngram_dicts = ["_compound_ngrams_dict","_simple_ngrams_dict"]
+      
+      def validate_values( vals,att_name ):
+         for v in vals:
+            if not isinstance(v,list):
+               raise NonsensicalInputError(att_name+" values must be of type list")
+            if len(v) != 2:
+	            raise NonsensicalInputError(att_name+" value does not have 2 items")
+            if not isinstance(v[1],list) or not isinstance(v[0],int):
+               raise NonsensicalInputError(att_name+" values must be of the form [int,list]")
+            for i in v[1]:
+               if not isinstance(i,int):
+                  raise NonsensicalInputError("second part of "+att_name+" values must be list of ints")
+            if v[0] != sum(v[1]):
+               raise NonsensicalInputError("first part of "+att_name+" values must equal sum of second part")
+            if len(v[1]) != len(self._pieces_analyzed):
+               raise NonsensicalInputError("second part of "+att_name+" must have as many elements as pieces analyzed")
+
+      for att_name in easy_atts:
+         att = getattr(self,att_name)
+         if not isinstance(att,dict):
+            raise NonsensicalInputError(att_name+" must be of type dict")
+         for k in att.keys():
+            try:
+               i = interval.Interval(k)
+            except: #music21 error if not a proper interval string
+               raise NonsensicalInputError(k+" is not a valid interval")
+         validate_values( att.values(), att_name )
+
+      for att_name in ngram_dicts:
+         att = getattr(self,att_name)
+         if not isinstance(att,list):
+            raise NonsensicalInputError(att_name+" must be of type list")
+         for d in att:
+            if not isinstance(d,dict):
+               raise NonsensicalInputError(att_name+" items must be of type dict")
+            for k,v in d.items():
+               if not isinstance(k,NGram):
+                  raise NonsensicalInputError(att_name+" keys must be of type NGram")
+               if not isinstance(v,dict):
+                  raise NonsensicalInputError(att_name+" values must be of type dict")
+               for key in v.keys():
+                  if not isinstance(key,NGram):
+                     raise NonsensicalInputError(att_name+" value keys must be of type NGram")
+               validate_values( v.values(), att_name+" value" )
+
+      return True
+
+   @staticmethod
+   def _stringify( d ):
+      return {Vertical_Interval_Statistics._stringify(k):Vertical_Interval_Statistics._stringify(v) \
+                for k,v in d.items()} if isinstance(d,dict) else \
+             map(Vertical_Interval_Statistics._stringify,d) if isinstance(d,list) else \
+             d if isinstance(d,int) else \
+             str(d)
+
+   def to_json( self ):
+      # _stringify ensures that the dict is JSON-serializable,
+      # since all keys in a JSONObject must be strings
+      return json.JSONEncoder().encode(Vertical_Interval_Statistics._stringify(self.__dict__))
+
+   @classmethod
+   def from_json( cls,json_string ):
+      vis = Vertical_Interval_Statistics()
+      # use _stringify since JSONDecoder interprets all strings as unicode.
+      d = Vertical_Interval_Statistics._stringify(json.JSONDecoder().decode(json_string))
+      def fix_keys( ngd ):
+         return {NGram.make_from_str(k):fix_keys(v) for k,v in ngd.items()} if isinstance(ngd,dict) \
+                else ngd
+      easy_atts = ["_pieces_analyzed","_simple_interval_dict","_compound_interval_dict"]
+      ngram_dicts = ["_compound_ngrams_dict","_simple_ngrams_dict"]
+      for att in easy_atts+ngram_dicts:
+         if d.get(att) is not None:
+            val = d[att] if att in easy_atts else [fix_keys(ngd) for ngd in d[att]]
+            setattr(vis,att,val)
+         else:
+            raise MissingInformationError("The dict supplied is missing the attribute "+att)
+      if vis._validate():
+         return vis
    
    def add_interval( self, the_interval, piece_index=0 ):
       '''
@@ -300,8 +389,11 @@ class Vertical_Interval_Statistics( object ):
    @staticmethod
    def _get_simple_version( ngram ):
       ng = copy.deepcopy(ngram)
-      l = ng._list_of_intervals 
-      ng._list_of_intervals = [interval.Interval(i.semiSimpleName) for i in l]
+      l = ng._list_of_intervals
+      for i in l:
+         ns = i.noteStart
+         i = interval.Interval(i.semiSimpleName)
+         i.noteStart = ns
       ng._simple_or_compound = 'simple'
       ng._string = ng.get_string_version(ng._heed_quality,ng._simple_or_compound)
       return ng
