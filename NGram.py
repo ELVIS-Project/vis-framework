@@ -25,6 +25,7 @@
 
 ## Import:
 # Python
+import re
 from string import lower as lowercase
 from string import digits as str_digits
 from string import replace as str_replace
@@ -439,173 +440,61 @@ class NGram( object ):
                     self._simple_or_compound )
    # End get_inversion_at_the() ------------------------------------------------
 
-   @staticmethod
-   def make_from_str( spec ):
-      '''
-      Accepts a str of the same format outputted by str(NGram) and outputs a
-      new NGram object with the indicated vertical intervals and movements.
+   @classmethod
+   def make_from_str(cls,string):
+      vertical = re.compile(r'([MmAdP]?)([-]?)([\d]+)')
+      horizontal = re.compile(r'([+-]?)([MmAdP]?)([\d]+)')
 
-      The .noteStart component of the first vertical interval is always C4, and
-      all other pitches are determined in relation to that.
-      '''
-
-      # (1) Separate the vertical and horizontal components
-      #----------------------------------------------------
-
-      # Keep track of whether the previous thing we recorded was vertical or
-      # horizontal. We start with "horizontal" so the first thing we record
-      # will be vertical
-      previous_was = 'horizontal'
-
-      # Hold the intervals remaining to be parsed. We'll start out by removing
-      # whitespace characters at the start and end, and by removing any '+'
-      # characters, since we assume that non '-' intervals are positive.
-      remaining_spec = str_replace( spec, '+', '' ).strip()
-
-      # Hold the vertical and horizontal interval strings, respectively
-      vert_interv_str = []
-      horiz_interv_str = []
-
-      # For when we're on the last interval
-      last_interval = False
-
-      # Do this until there are no more intervals
-      while last_interval is not True:
-         # DEBUGGING
-         #print( "*** shooping with " + remaining_spec )
-         # END DEBUGGING
-         # Is this the last interval?
-         remaining_spec.strip()
-         if -1 == remaining_spec.find( ' ' ):
-            last_interval = True
-
-         # Break off the first interval... use strip() because music21 doesn't
-         # like extra space characters.
-         if last_interval:
-            this_interval = remaining_spec
+      def make_vert(s):
+         m = vertical.match(s)
+         if m is None:
+            raise NonsensicalInputError("cannot make N-Gram from badly formatted string")
+         if m.group(0) != s:
+            raise NonsensicalInputError("cannot make N-Gram from badly formatted string")
+         if m.group(1) == "":
+            try:
+               return interval.Interval("M"+s)
+            except:
+               return interval.Interval("P"+s)
          else:
-            this_interval = remaining_spec[:remaining_spec.find(' ')].strip()
+            return interval.Interval(s)
 
-         # If this is a negative interval, remove the '-' and put it at the end,
-         # so that our "is there a quality?" check doesn't get tripped up by the
-         # first character not being a digit.
-         if '-' in this_interval:
-            this_interval = str_replace( this_interval, '.', '' ) + '-'
-
-         # Append to the correct list
-         if 'horizontal' == previous_was:
-            # This is vertical
-            vert_interv_str.append( this_interval )
-            previous_was = 'vertical'
-         else: # 'vertical' == previous_was
-            horiz_interv_str.append( this_interval )
-            previous_was = 'horizontal'
-
-         # Remove this interval from the front of the string
-         if not last_interval:
-            remaining_spec = remaining_spec[remaining_spec.find(' '):].strip()
-
-      # Check that we have the right number of components. This should be one
-      # more vertical than horizontal interval.
-      if len(vert_interv_str) != ( len(horiz_interv_str) + 1 ):
-         msg = 'NGram.make_from_str(): There are the wrong number of intervals'
-         raise NonsensicalInputWarning( msg )
-
-      # Final thing... we need to know whether the intervals had a quality
-      if vert_interv_str[0][0] in str_digits:
-         heed_quality = False
-      else:
-         heed_quality = True
-
-      # (2) Make Interval objects of all the interval components.
-      #----------------------------------------------------------
-      # NB1: The reason this is a separate step from the previous is that, if we
-      # have intervals without quality, I'll need to assign a quality.
-      # NB2: We try to catch some of our mistakes, but if the interval
-      # specification is too mangled, we just won't bother.
-
-      # Hold all the sizes that require "perfect," not "major" or "minor."
-      perfect_sizes = ['1', '4', '5', '8', '11', '12', '15', '19', '20', '23']
-
-      # Hold the vertical and horizontal intervals, respectively
-      vert_intervs = []
-      horiz_intervs = []
-
-      # Make all the vertical intervals
-      for interv in vert_interv_str:
-         # If the first character is a digit, there's no quality, so we add one
-         if interv[0] in str_digits:
-            if interv in perfect_sizes:
-               # This is a "perfect" interval size like 4 or 5
-               try:
-                  vert_intervs.append( interval.Interval( 'P' + interv ) )
-               except ValueError:
-                  # This probably means it wasn't "perfect"
-                  vert_intervs.append( interval.Interval( 'M' + interv ) )
-               except TypeError:
-                  # This probably means we have two qualities
-                  vert_intervs.append( interval.Interval( interv ) )
-            else:
-               # This is an "imperfect" interval size like 2 or 3
-               try:
-                  vert_intervs.append( interval.Interval( 'M' + interv ) )
-               except ValueError:
-                  # This probably means it wasn't "imperfect"
-                  vert_intervs.append( interval.Interval( 'P' + interv ) )
-               except TypeError:
-                  # This probably means we have two qualities
-                  vert_intervs.append( interval.Interval( interv ) )
+      def make_horiz(s):
+         m = horizontal.match(s)
+         if m is None:
+            raise NonsensicalInputError("cannot make N-Gram from badly formatted string")
+         if m.group(0) != s:
+            NonsensicalInputError("cannot make N-Gram from badly formatted string")
+         sign = m.group(1) if m.group(1) == "-" else ""
+         if m.group(2) == "":
+            try:
+               return interval.Interval("M"+sign+m.group(3))
+            except:
+               return interval.Interval("P"+sign+m.group(3))
          else:
-            # We already had the quality in the str version
-            vert_intervs.append( interval.Interval( interv ) )
+            return interval.Interval(m.group(2)+sign+m.group(3))
 
-      # Make all the horizontal intervals
-      for interv in horiz_interv_str:
-         # If the first character is a digit, there's no quality, so we add one
-         if interv[0] in str_digits:
-            if interv in perfect_sizes:
-               # This is a "perfect" interval size like 4 or 5
-               try:
-                  horiz_intervs.append( interval.Interval( 'P' + interv ) )
-               except ValueError:
-                  # This probably means it wasn't "perfect"
-                  horiz_intervs.append( interval.Interval( 'M' + interv ) )
-               except TypeError:
-                  # This probably means we have two qualities
-                  horiz_intervs.append( interval.Interval( interv ) )
-            else:
-               # This is an "imperfect" interval size like 2 or 3
-               try:
-                  horiz_intervs.append( interval.Interval( 'M' + interv ) )
-               except ValueError:
-                  # This probably means it wasn't "imperfect"
-                  horiz_intervs.append( interval.Interval( 'P' + interv ) )
-               except TypeError:
-                  # This probably means we have two qualities
-                  horiz_intervs.append( interval.Interval( interv ) )
-         else:
-            # We already had the quality in the str version
-            horiz_intervs.append( interval.Interval( interv ) )
+      intervals = string.split(' ')
 
-      # (3) Integrate the vertical and horizontal components.
-      #------------------------------------------------------
+      if len(intervals) % 2 == 0 or len(intervals) < 3:
+         raise NonsensicalInputError("cannot make N-Gram from wrong number of intervals")
 
-      # We'll use vert_intervs to hold the list of vertical intervals with Note
-      # objects that we will pass to the NGram() constructor in step (4)
+      nt = note.Note("C4")
+      l_i = []
+      for i, interv in list(enumerate(intervals))[:-2:2]:
+         new_int = make_vert(interv)
+         new_int.noteStart = nt
+         l_i.append(new_int)
+         horiz = make_horiz(intervals[i+1])
+         horiz.noteStart = nt
+         nt = horiz.noteEnd
+      last_int = make_vert(intervals[-1])
+      last_int.noteStart = nt
+      l_i.append(last_int)
 
-      # Start off with the first vertical interval. music21 automatically sets
-      # the noteEnd property for us.
-      vert_intervs[0].noteStart = note.Note( 'C4' )
-
-      # Now loop through the rest of the vertical intervals, setting the
-      # noteStart property to the value specified by the horizontal intervals.
-      for i in xrange( 1, len(vert_intervs) ):
-         vert_intervs[i].noteStart = vert_intervs[i-1].noteStart.transpose( horiz_intervs[i-1] )
-
-      # (4) Call the NGram() constructor and return the result.
-      #--------------------------------------------------------
-      return NGram( vert_intervs, heed_quality )
-   # End make_from_str() -------------------------------------------------------
+      ng = NGram(l_i)
+      ng.set_heed_quality(False if string[0].isdigit() else True)
+      return ng
 
    def __str__( self ):
       return self._string
