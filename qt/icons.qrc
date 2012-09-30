@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/right-arrow.png</file>
+    <file>icons/choose_files.png</file>
     <file>icons/working.png</file>
     <file>icons/show_checkmark.png</file>
     <file>icons/start-analysis.png</file>

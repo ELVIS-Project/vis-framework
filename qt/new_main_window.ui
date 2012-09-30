@@ -19,10 +19,13 @@
      <widget class="QWidget" name="function_menu" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QToolButton" name="btn_analyze">
+        <widget class="QToolButton" name="btn_choose_files">
+         <property name="toolTip">
+          <string>Choose Files</string>
+         </property>
          <property name="icon">
           <iconset resource="icons.qrc">
-           <normaloff>:/icons/icons/analyze.png</normaloff>:/icons/icons/analyze.png</iconset>
+           <normaloff>:/icons/icons/choose_files.png</normaloff>:/icons/icons/choose_files.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -45,13 +48,39 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="btn_show">
-         <property name="text">
-          <string/>
+        <widget class="QToolButton" name="btn_step1">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
+         <property name="toolTip">
+          <string>Continue to Step 2</string>
          </property>
          <property name="icon">
           <iconset resource="icons.qrc">
-           <normaloff>:/icons/icons/show_results.png</normaloff>:/icons/icons/show_results.png</iconset>
+           <normaloff>:/icons/icons/right-arrow.png</normaloff>:/icons/icons/right-arrow.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="btn_analyze">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Prepare and Assemble for Analysis</string>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/icons/icons/analyze.png</normaloff>:/icons/icons/analyze.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -62,6 +91,9 @@
          <property name="checkable">
           <bool>true</bool>
          </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
          <property name="autoExclusive">
           <bool>true</bool>
          </property>
@@ -71,13 +103,42 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="btn_settings">
-         <property name="text">
-          <string>...</string>
+        <widget class="QToolButton" name="btn_step2">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Continue to the Step 3</string>
          </property>
          <property name="icon">
           <iconset resource="icons.qrc">
-           <normaloff>:/icons/icons/settings.png</normaloff>:/icons/icons/settings.png</iconset>
+           <normaloff>:/icons/icons/right-arrow.png</normaloff>:/icons/icons/right-arrow.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="btn_show">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Show and Save Results</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/icons/icons/show_results.png</normaloff>:/icons/icons/show_results.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -111,8 +172,8 @@
        </item>
        <item>
         <widget class="QToolButton" name="btn_about">
-         <property name="text">
-          <string>...</string>
+         <property name="toolTip">
+          <string>About &quot;vis&quot;</string>
          </property>
          <property name="icon">
           <iconset resource="icons.qrc">
@@ -143,12 +204,12 @@
       <property name="currentIndex">
        <number>1</number>
       </property>
-      <widget class="QWidget" name="page_analyze">
+      <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QGroupBox" name="groupBox">
+         <widget class="QGroupBox" name="grp_choose_files">
           <property name="title">
-           <string>Analyze</string>
+           <string>Choose Files</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
@@ -179,6 +240,9 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="btn_file_add">
+                   <property name="toolTip">
+                    <string>Add Files</string>
+                   </property>
                    <property name="text">
                     <string/>
                    </property>
@@ -199,6 +263,9 @@
                  </item>
                  <item>
                   <widget class="QPushButton" name="btn_file_remove">
+                   <property name="toolTip">
+                    <string>Remove Selected Files</string>
+                   </property>
                    <property name="text">
                     <string/>
                    </property>
@@ -221,60 +288,188 @@
                </widget>
               </item>
               <item>
-               <widget class="QPlainTextEdit" name="txt_file_list"/>
+               <widget class="QListView" name="gui_file_list">
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::ExtendedSelection</enum>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
            </item>
            <item>
-            <widget class="QWidget" name="widget_2" native="true">
+            <widget class="QWidget" name="widget" native="true">
              <property name="maximumSize">
               <size>
                <width>200</width>
                <height>16777215</height>
               </size>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_8">
-              <item>
-               <spacer name="verticalSpacer">
+             <layout class="QVBoxLayout" name="verticalLayout_8"/>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="page_analyze">
+       <layout class="QVBoxLayout" name="verticalLayout_23">
+        <item>
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>Assemble Results, Statistics, Analyses</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QPushButton" name="btn_load_statistics">
+             <property name="text">
+              <string>Load Existing Statistics Database</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2" rowspan="2">
+            <widget class="QGroupBox" name="groupBox_8">
+             <property name="title">
+              <string>Settings for Piece</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <item row="5" column="1" colspan="2">
+               <spacer name="horizontalSpacer_8">
                 <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+                 <enum>Qt::Horizontal</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
-                  <width>20</width>
-                  <height>40</height>
+                  <width>40</width>
+                  <height>20</height>
                  </size>
                 </property>
                </spacer>
               </item>
-              <item>
-               <widget class="QLabel" name="label_4">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
+              <item row="5" column="0">
+               <widget class="QPushButton" name="btn_add_check_combo">
+                <property name="text">
+                 <string>Add Combination</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLineEdit" name="line_values_of_n">
+                <property name="inputMask">
+                 <string notr="true"/>
                 </property>
                 <property name="text">
-                 <string>Which values of n?</string>
+                 <string>2</string>
                 </property>
-                <property name="buddy">
-                 <cstring>line_files_n</cstring>
+                <property name="maxLength">
+                 <number>1024</number>
                 </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="line_files_n">
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
+                <property name="frame">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item>
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Values of 'n':</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLineEdit" name="line_offset_interval">
+                <property name="inputMask">
+                 <string notr="true"/>
+                </property>
+                <property name="text">
+                 <string>0.5</string>
+                </property>
+                <property name="maxLength">
+                 <number>256</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>Offset Interval:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1" colspan="2">
+               <widget class="QLineEdit" name="line_compare_these_parts">
+                <property name="inputMask">
+                 <string notr="true"/>
+                </property>
+                <property name="text">
+                 <string>e.g., [0,3] or [[0,3],[1,3]]</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>Compare These Parts:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QPushButton" name="btn_choose_note">
+                <property name="text">
+                 <string>Choose Offset Note</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="3">
+               <widget class="QWidget" name="widget_2" native="true">
+                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                 <item>
+                  <spacer name="horizontalSpacer_7">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Maximum</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QWidget" name="widget_5" native="true">
+                   <layout class="QVBoxLayout" name="verticalLayout_22">
+                    <item>
+                     <widget class="QCheckBox" name="chk_all_voice_combos">
+                      <property name="toolTip">
+                       <string>Collect Statistics for all Part Combinations</string>
+                      </property>
+                      <property name="text">
+                       <string>All Combinations</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="chk_basso_seguente">
+                      <property name="toolTip">
+                       <string>Generate Basso Seguente Part</string>
+                      </property>
+                      <property name="text">
+                       <string>Basso Seguente</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item row="6" column="1">
                <spacer name="verticalSpacer_2">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -287,30 +482,46 @@
                 </property>
                </spacer>
               </item>
-              <item>
-               <widget class="QPushButton" name="btn_files_analyze">
-                <property name="maximumSize">
+              <item row="2" column="1">
+               <spacer name="verticalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
                  <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
+                  <width>20</width>
+                  <height>40</height>
                  </size>
                 </property>
-                <property name="text">
-                 <string>&amp;Start Analysis</string>
-                </property>
-                <property name="icon">
-                 <iconset resource="icons.qrc">
-                  <normaloff>:/icons/icons/start-analysis.png</normaloff>:/icons/icons/start-analysis.png</iconset>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>32</width>
-                  <height>32</height>
-                 </size>
-                </property>
-               </widget>
+               </spacer>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QTableView" name="gui_pieces_list">
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <attribute name="horizontalHeaderMinimumSectionSize">
+              <number>2</number>
+             </attribute>
+             <attribute name="verticalHeaderVisible">
+              <bool>false</bool>
+             </attribute>
             </widget>
            </item>
           </layout>
@@ -373,7 +584,7 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_12">
               <item>
-               <widget class="QLineEdit" name="lineEdit"/>
+               <widget class="QLineEdit" name="line_show_these_ns"/>
               </item>
              </layout>
             </widget>
@@ -397,7 +608,7 @@
               <item>
                <widget class="QRadioButton" name="rdo_name">
                 <property name="text">
-                 <string>triangle</string>
+                 <string>n-gram</string>
                 </property>
                </widget>
               </item>
@@ -427,12 +638,12 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_2"/>
+               <widget class="QLineEdit" name="line_output_most_common"/>
               </item>
               <item>
                <widget class="QLabel" name="lbl_most_common">
                 <property name="text">
-                 <string>most common triangles.</string>
+                 <string>most common n-grams.</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -477,7 +688,7 @@
               <item>
                <widget class="QLabel" name="lbl_exclude_if_fewer">
                 <property name="text">
-                 <string>Exclude triangles with fewer than</string>
+                 <string>Exclude n-grams with fewer than</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -485,7 +696,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="lineEdit_3"/>
+               <widget class="QLineEdit" name="line_threshold"/>
               </item>
               <item>
                <widget class="QLabel" name="label_8">
@@ -568,7 +779,7 @@
               <item>
                <widget class="QRadioButton" name="rdo_ngrams">
                 <property name="text">
-                 <string>Triangles/n-grams</string>
+                 <string>N-grams</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -581,7 +792,7 @@
            <item row="3" column="5">
             <widget class="QPushButton" name="btn_show_results">
              <property name="text">
-              <string>Show</string>
+              <string>Process and &amp;Show</string>
              </property>
              <property name="icon">
               <iconset resource="icons.qrc">
@@ -620,7 +831,7 @@
               <item>
                <widget class="QLabel" name="label_9">
                 <property name="text">
-                 <string>Annotate this triangle in colour:</string>
+                 <string>Annotate this n-gram in colour:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -630,14 +841,14 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
                 <item>
-                 <widget class="QLineEdit" name="lineEdit_4">
+                 <widget class="QLineEdit" name="line_ngram_in_colour">
                   <property name="alignment">
                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pushButton">
+                 <widget class="QPushButton" name="btn_ngram_in_colour">
                   <property name="text">
                    <string/>
                   </property>
@@ -655,7 +866,7 @@
               <item>
                <widget class="QLabel" name="label_10">
                 <property name="text">
-                 <string>Annotate this triangle in black:</string>
+                 <string>Annotate this n-gram in black:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
@@ -665,10 +876,10 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_5">
                 <item>
-                 <widget class="QLineEdit" name="lineEdit_5"/>
+                 <widget class="QLineEdit" name="line_ngram_in_black"/>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="pushButton_2">
+                 <widget class="QPushButton" name="btn_ngram_in_black">
                   <property name="text">
                    <string/>
                   </property>
@@ -774,9 +985,12 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_7">
+           <widget class="QPushButton" name="btn_wait_clock">
             <property name="enabled">
              <bool>true</bool>
+            </property>
+            <property name="toolTip">
+             <string>Hi, mom!</string>
             </property>
             <property name="text">
              <string/>
@@ -846,67 +1060,6 @@
            </size>
           </property>
          </spacer>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="page_settings">
-       <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
-         <widget class="QGroupBox" name="groupBox_3">
-          <property name="title">
-           <string>Change Settings</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_20">
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_7">
-             <item>
-              <widget class="QLabel" name="label_11">
-               <property name="text">
-                <string>Offset between Intervals:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLineEdit" name="lineEdit_6">
-               <property name="text">
-                <string>0.5</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButton_4">
-               <property name="text">
-                <string>Set</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_15">
-             <property name="title">
-              <string>Load or Save Settings</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_19">
-              <item>
-               <widget class="QPushButton" name="pushButton_5">
-                <property name="text">
-                 <string>Load Settings</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QPushButton" name="pushButton_6">
-                <property name="text">
-                 <string>Save Settings</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-          </layout>
-         </widget>
         </item>
        </layout>
       </widget>
