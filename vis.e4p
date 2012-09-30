@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project vis -->
-<!-- Saved: 2012-09-03, 00:25:15 -->
+<!-- Saved: 2012-09-25, 21:16:30 -->
 <!-- Copyright (C) 2012 Christopher Antila, Jamie Klassen, christopher.antila@mail.mcgill.ca -->
 <Project version="4.6">
   <Language>en</Language>
@@ -16,7 +16,6 @@
     <Source>NGram.py</Source>
     <Source>VIS_Settings.py</Source>
     <Source>problems.py</Source>
-    <Source>output_LilyPond-test.py</Source>
     <Source>__init__.py</Source>
     <Source>file_output.py</Source>
     <Source>analytic_engine.py</Source>
@@ -43,11 +42,13 @@
     <Source>vis_test/Test_Other_Analysis_Engine.py</Source>
     <Source>qt/Ui_new_main_window.py</Source>
     <Source>qt/icons_rc.py</Source>
+    <Source>new__main__.py</Source>
   </Sources>
   <Forms>
     <Form>qt/main_window.ui</Form>
     <Form>qt/select_voices.ui</Form>
     <Form>qt/new_main_window.ui</Form>
+    <Form>qt/select_offset.ui</Form>
   </Forms>
   <Translations>
   </Translations>

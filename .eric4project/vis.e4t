@@ -1,132 +1,150 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-4.2.dtd">
 <!-- eric4 tasks file for project vis -->
-<!-- Saved: 2012-09-03, 00:27:41 -->
+<!-- Saved: 2012-09-30, 14:49:28 -->
 <Tasks version="4.2">
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: make sure you're testing all possible durations (hint: you're not)</Summary>
+    <Summary>TODO: currently this fails because the duration of the three triplets is</Summary>
     <Description></Description>
-    <Created>2012-09-01, 00:37:26</Created>
+    <Created>2012-09-13, 23:40:36</Created>
     <Resource>
-      <Filename>output_LilyPond-test.py</Filename>
-      <Linenumber>75</Linenumber>
+      <Filename>output_LilyPond_integration_tests.py</Filename>
+      <Linenumber>90</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: this error doesn't really describe what's going on here</Summary>
+    <Summary>TODO: We should be able to deal with multiple-component durations that are</Summary>
     <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
+    <Created>2012-09-13, 23:43:55</Created>
     <Resource>
       <Filename>output_LilyPond.py</Filename>
-      <Linenumber>140</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: see if we can remove some of these errors to clean up the method</Summary>
-    <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
-    <Resource>
-      <Filename>output_LilyPond.py</Filename>
-      <Linenumber>166</Linenumber>
+      <Linenumber>130</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: is there a situation where I'll ever need to deal with</Summary>
     <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
+    <Created>2012-09-13, 23:43:55</Created>
     <Resource>
       <Filename>output_LilyPond.py</Filename>
-      <Linenumber>294</Linenumber>
+      <Linenumber>288</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: implement this</Summary>
     <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
+    <Created>2012-09-13, 23:43:55</Created>
+    <Resource>
+      <Filename>output_LilyPond.py</Filename>
+      <Linenumber>637</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: implement this</Summary>
+    <Description></Description>
+    <Created>2012-09-13, 23:43:55</Created>
     <Resource>
       <Filename>output_LilyPond.py</Filename>
       <Linenumber>642</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: implement this</Summary>
-    <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
-    <Resource>
-      <Filename>output_LilyPond.py</Filename>
-      <Linenumber>647</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: implement the second form of whatever</Summary>
-    <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
-    <Resource>
-      <Filename>output_LilyPond.py</Filename>
-      <Linenumber>670</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: exception handling</Summary>
     <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
+    <Created>2012-09-13, 23:43:55</Created>
     <Resource>
       <Filename>output_LilyPond.py</Filename>
-      <Linenumber>682</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="False" bugfix="False">
-    <Summary>TODO: raise exceptions</Summary>
-    <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
-    <Resource>
-      <Filename>output_LilyPond.py</Filename>
-      <Linenumber>720</Linenumber>
+      <Linenumber>673</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: Testing</Summary>
     <Description></Description>
-    <Created>2012-09-01, 22:24:43</Created>
+    <Created>2012-09-13, 23:43:55</Created>
     <Resource>
       <Filename>output_LilyPond.py</Filename>
-      <Linenumber>769</Linenumber>
+      <Linenumber>763</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: test this, faking an earlier LilyPond version</Summary>
     <Description></Description>
-    <Created>2012-09-02, 18:41:39</Created>
+    <Created>2012-09-30, 12:48:55</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>292</Linenumber>
+      <Linenumber>295</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: if we didn't process any pieces, stop processing</Summary>
     <Description></Description>
-    <Created>2012-09-02, 18:41:39</Created>
+    <Created>2012-09-30, 12:48:55</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>391</Linenumber>
+      <Linenumber>402</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: something tells me this doesn't do what I had in mind</Summary>
     <Description></Description>
-    <Created>2012-09-02, 18:41:39</Created>
+    <Created>2012-09-30, 12:48:55</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>633</Linenumber>
+      <Linenumber>664</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="False" bugfix="False">
     <Summary>TODO: decide how to dynamically decide filename, then move this into</Summary>
     <Description></Description>
-    <Created>2012-09-02, 18:41:39</Created>
+    <Created>2012-09-30, 12:48:55</Created>
     <Resource>
       <Filename>__main__.py</Filename>
-      <Linenumber>764</Linenumber>
+      <Linenumber>796</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: finish this</Summary>
+    <Description></Description>
+    <Created>2012-09-30, 14:47:19</Created>
+    <Resource>
+      <Filename>new__main__.py</Filename>
+      <Linenumber>162</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: make this nicer... formatting part names</Summary>
+    <Description></Description>
+    <Created>2012-09-30, 14:47:19</Created>
+    <Resource>
+      <Filename>new__main__.py</Filename>
+      <Linenumber>262</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: why this no work?</Summary>
+    <Description></Description>
+    <Created>2012-09-30, 14:47:19</Created>
+    <Resource>
+      <Filename>new__main__.py</Filename>
+      <Linenumber>270</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: ballz</Summary>
+    <Description></Description>
+    <Created>2012-09-30, 14:47:19</Created>
+    <Resource>
+      <Filename>new__main__.py</Filename>
+      <Linenumber>291</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="False" bugfix="False">
+    <Summary>TODO: ballz</Summary>
+    <Description></Description>
+    <Created>2012-09-30, 14:47:19</Created>
+    <Resource>
+      <Filename>new__main__.py</Filename>
+      <Linenumber>301</Linenumber>
     </Resource>
   </Task>
 </Tasks>
