@@ -1073,7 +1073,7 @@ class Vertical_Interval_Statistics( object ):
       return post
    # end get_formatted_ngrams()
    
-   def get_formatted_ngram_dict( self, *args ):
+   def get_formatted_ngram_dict( self, simple_or_compound, *args ):
       '''
       Returns a formatted version of the ngram dictionary.
       
@@ -1090,27 +1090,34 @@ class Vertical_Interval_Statistics( object ):
       ngram dictionary (except keys will be replaced with strings), 
       which is a list of dict objects of len() >= 3 , and
       where each cardinality is stored in its position in the list (i.e. 2-grams
-      will be stored in get_formatted_ngram_dict()[2] ).
+      will be stored in get_formatted_ngram_dict('simple')[2] ).
       '''
-      
+
+      if simple_or_compound != 'simple' and simple_or_compound != 'compound':
+         raise NonsensicalInputError("simple_or_compound argument must be 'simple' or 'compound")
       # With no argument, we return a copy of the entire dict.
       if args is ():
-         return self.get_formatted_ngram_dict(*range(2,len(self._compound_ngrams_dict)))
-      elif len(args) == 1 and isinstance(args[0],str):
+         the_dict = self._simple_ngrams_dict if simple_or_compound == 'simple' \
+                    else self._compound_ngrams_dict
+         return self.get_formatted_ngram_dict(simple_or_compound, *range(len(the_dict)))
+      elif len(args) == 1 and isinstance(args[0],basestring):
          try:
             new_args = map(int,args.split())
-            return self.get_formatted_ngram_dict(*new_args)
+            return self.get_formatted_ngram_dict(simple_or_compound, *new_args)
          except ValueError: #if your string is badly formatted
             raise NonsensicalInputError("string input does not contain a list of ints")
       # With an argument, we have to make a copy of only a specific dict.
       else:
+         for n in args:
+            if not isinstance(n,int):
+               raise NonsensicalInputError("must input a list of int objects")
          big_N = max(args)
          if big_N >= len(self._compound_ngrams_dict):
             raise NonsensicalInputError("There are no N-Grams for N="+str(big_N))
          settings = VIS_Settings()
          try:
             unformatted_dict = self.prepare_ngram_output_dict( settings, \
-                             self.determine_list_of_n( settings, "", "" ), "noQuality" )
+                             self.determine_list_of_n( settings, "", "" ), "noQuality "+simple_or_compound )
             formatted_dict = [{k:v[0] for k,v in d.iteritems()} \
                              for d in unformatted_dict]
          except MissingInformationError:

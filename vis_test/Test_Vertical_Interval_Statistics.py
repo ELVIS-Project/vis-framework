@@ -70,26 +70,34 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
                 interval.Interval(note.Note('D5'),note.Note('E5')), \
                 interval.Interval(note.Note('F#4'),note.Note('C#5')), \
                 interval.Interval(note.Note('G##4'),note.Note('E#4'))])
+
+      # m10 u m10
+      self.ngi = NGram([interval.Interval(note.Note('A4'),note.Note('C6')), \
+                interval.Interval(note.Note('A4'),note.Note('C6'))])
+
+      # m10 +P4 m10
+      self.ngj = NGram([interval.Interval(note.Note('A4'),note.Note('C6')), \
+                interval.Interval(note.Note('D5'),note.Note('F6'))])
    
    # get_formatted_ngram_dict() ---------------------------
    def test_get_formatted_ngram_dict_1( self ):
       self.vis.add_ngram( self.nga )
       self.vis.add_ngram( self.ngh )
-      check = self.vis.get_formatted_ngram_dict()
+      check = self.vis.get_formatted_ngram_dict('compound')
       expected = [{}, {}, {'3 1 3':1}, {}, {'3 +4 2 -6 5 +2 -3':1}]
       self.assertEqual( check, expected )
    
    def test_get_formatted_ngram_dict_2( self ):
       self.vis.add_ngram( self.nga )
       self.vis.add_ngram( self.ngh )
-      check = self.vis.get_formatted_ngram_dict( 2 )
+      check = self.vis.get_formatted_ngram_dict('compound',  2 )
       expected = {'3 1 3':1}
       self.assertEqual( check, expected )
    
    def test_get_formatted_ngram_dict_3( self ):
       self.vis.add_ngram( self.nga )
       self.vis.add_ngram( self.ngh )
-      check = self.vis.get_formatted_ngram_dict( 4 )
+      check = self.vis.get_formatted_ngram_dict('compound',  4 )
       expected = {'3 +4 2 -6 5 +2 -3':1}
       self.assertEqual( check, expected )
    
@@ -306,23 +314,31 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_add_ngram( self ):
       # basic 2-gram
       self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      #self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'m3 +P4 m3': 1} )
-      self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'3 +4 3': 1} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 1} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 1} )
       # two of a basic 2-gram
       self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      #self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'m3 +P4 m3': 2} )
-      self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'3 +4 3': 2} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 2} )
       # add one of a similar 2-gram
       self.vis.add_ngram( self.ngd ) # m3 +d4 M3
-      #self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
-      self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'3 +4 3': 3} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 3} )
       # add a 4-gram, 16 times
       for i in xrange(16):
          self.vis.add_ngram( self.ngg ) # m3 +P4 M2 -m6 P5 -m2 M-10
-      #self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
-      #self.assertEqual( self.vis.get_formatted_ngram_dict( 4 ), {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
-      self.assertEqual( self.vis.get_formatted_ngram_dict( 2 ), {'3 +4 3': 3} )
-      self.assertEqual( self.vis.get_formatted_ngram_dict( 4 ), {'3 +4 2 -6 5 +9 -10': 16} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
+      #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  4 ), {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 3} )
+      self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  4 ), {'3 +4 2 -6 5 +9 -10': 16} )
+
+   def test_simple_vs_compound_ngrams_dict_1( self ):
+      self.vis._pieces_analyzed.append("piece")
+      self.vis.add_ngram( self.ngi )
+      expected = {'10 1 10':1}
+      self.assertEqual( expected,self.vis.get_formatted_ngram_dict('compound',2) )
+      expected = {'3 1 3':1}
+      self.assertEqual( expected,self.vis.get_formatted_ngram_dict('simple',2) )
    
    # get_ngram_occurrences() ------------------------------
    #def test_get_ngram_occurrences( self ):
