@@ -1073,7 +1073,7 @@ class Vertical_Interval_Statistics( object ):
       return post
    # end get_formatted_ngrams()
    
-   def get_formatted_ngram_dict( self, n=None ):
+   def get_formatted_ngram_dict( self, *args ):
       '''
       Returns a formatted version of the ngram dictionary.
       
@@ -1094,11 +1094,8 @@ class Vertical_Interval_Statistics( object ):
       '''
       
       # With no argument, we return a copy of the entire dict.
-      if None is n:
-         post = [{},{}]
-         for i in xrange( 2, len(self._compound_ngrams_dict) ):
-            post.append( self.get_formatted_ngram_dict( i ) )
-         return post
+      if args is ():
+         return get_formatted_ngram_dict(*range(2,len(self._compound_ngrams_dict)))
       # With an argument, we have to make a copy of only a specific dict.
       else:
          settings = VIS_Settings()
@@ -1110,9 +1107,9 @@ class Vertical_Interval_Statistics( object ):
          except MissingInformationError:
             #if there are no ngrams, just return an empty dict.
             return {}
-         post = {}
-         for k, v in formatted_dict[n].iteritems():
-            post[str(k)] = v
+         post = [{str(k):v for k,v in formatted_dict[n].items()} for n in args]
+         if len(args) == 1:
+            post = post[0]
          return post
    # End get_formatted_ngram_dict()
    
