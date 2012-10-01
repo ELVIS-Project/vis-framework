@@ -1085,19 +1085,28 @@ class Vertical_Interval_Statistics( object ):
       
       If you specify an int, a str with a list of int objects, or a list of int
       objects, then only that or those cardinalities will be returned.
-      NOTE: so far, this only works with a single int
       
-      If you specify no arguments, you will get an exact copy of the internal
-      ngram dictionary, which is a list of dict objects of len() >= 3 , and
+      If you specify no arguments, you will get an 'exact' copy of the internal
+      ngram dictionary (except keys will be replaced with strings), 
+      which is a list of dict objects of len() >= 3 , and
       where each cardinality is stored in its position in the list (i.e. 2-grams
       will be stored in get_formatted_ngram_dict()[2] ).
       '''
       
       # With no argument, we return a copy of the entire dict.
       if args is ():
-         return get_formatted_ngram_dict(*range(2,len(self._compound_ngrams_dict)))
+         return self.get_formatted_ngram_dict(*range(2,len(self._compound_ngrams_dict)))
+      elif len(args) == 1 and isinstance(args[0],str):
+         try:
+            new_args = map(int,args.split())
+            return self.get_formatted_ngram_dict(*new_args)
+         except ValueError: #if your string is badly formatted
+            raise NonsensicalInputError("string input does not contain a list of ints")
       # With an argument, we have to make a copy of only a specific dict.
       else:
+         big_N = max(args)
+         if big_N >= len(self._compound_ngrams_dict):
+            raise NonsensicalInputError("There are no N-Grams for N="+str(big_N))
          settings = VIS_Settings()
          try:
             unformatted_dict = self.prepare_ngram_output_dict( settings, \
