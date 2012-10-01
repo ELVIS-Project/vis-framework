@@ -43,8 +43,8 @@ from music21 import graph # for show_results()
 from music21.converter import ConverterException # for analyze_this()
 from music21.converter import ConverterFileException # for analyze_this()
 # vis
-from qt.Ui_main_window import Ui_MainWindow
-from qt.Ui_select_voices import Ui_select_voices
+from qt_stuff.Ui_main_window import Ui_MainWindow
+from qt_stuff.Ui_select_voices import Ui_select_voices
 from vis import VIS_Settings
 from vis import Vertical_Interval_Statistics
 from analytic_engine import vis_these_parts, make_basso_seguente

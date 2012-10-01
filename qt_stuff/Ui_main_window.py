@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/Users/jamieklassen/Documents/Code/vis/qt/main_window.ui'
+# Form implementation generated from reading ui file 'qt/main_window.ui'
 #
-# Created: Mon Sep 17 17:37:31 2012
+# Created: Mon Sep 17 20:34:21 2012
 #      by: PyQt4 UI code generator 4.9.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -246,6 +246,9 @@ class Ui_MainWindow(object):
         self.rdo_powerlaw = QtGui.QRadioButton(self.groupBox_9)
         self.rdo_powerlaw.setObjectName(_fromUtf8("rdo_powerlaw"))
         self.horizontalLayout_11.addWidget(self.rdo_powerlaw)
+        self.rdo_compare = QtGui.QRadioButton(self.groupBox_9)
+        self.rdo_compare.setObjectName(_fromUtf8("rdo_compare"))
+        self.horizontalLayout_11.addWidget(self.rdo_compare)
         self.gridLayout.addWidget(self.groupBox_9, 0, 0, 1, 2)
         self.groupBox_4 = QtGui.QGroupBox(self.tab_triangles)
         self.groupBox_4.setObjectName(_fromUtf8("groupBox_4"))
@@ -537,6 +540,7 @@ class Ui_MainWindow(object):
         self.groupBox_9.setTitle(QtGui.QApplication.translate("MainWindow", "Display", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_summary.setText(QtGui.QApplication.translate("MainWindow", "Summary", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_powerlaw.setText(QtGui.QApplication.translate("MainWindow", "Power Law Analysis", None, QtGui.QApplication.UnicodeUTF8))
+        self.rdo_compare.setText(QtGui.QApplication.translate("MainWindow", "Compare", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_4.setTitle(QtGui.QApplication.translate("MainWindow", "Sort Order", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_ascending_triangles.setText(QtGui.QApplication.translate("MainWindow", "Low to High (Ascending)", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_descending_triangles.setText(QtGui.QApplication.translate("MainWindow", "High to Low (Descending)", None, QtGui.QApplication.UnicodeUTF8))

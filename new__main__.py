@@ -29,13 +29,17 @@
 
 # Python
 import sys
+from os.path import isfile
 # PyQt4
 from PyQt4 import Qt, QtCore, QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
 # music21
 # vis
-from qt.Ui_new_main_window import Ui_MainWindow
-from qt.Ui_select_voices import Ui_select_voices
+from qt_stuff.Ui_new_main_window import Ui_MainWindow
+from qt_stuff.Ui_select_voices import Ui_select_voices
+from PyQt4 import QtGui as qt
+from problems import NonsensicalInputError
+from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 
 # TEMPORARY
 from time import sleep
@@ -61,7 +65,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
 
       #self.settings = VIS_Settings()
-      #self.statistics = Vertical_Interval_Statistics()
+      self.statistics = Vertical_Interval_Statistics()
       ## Hold the list of filenames to analyze.
       #self.analysis_files = []
       ## Hold the list of instructions for doing targeted analysis.
@@ -85,6 +89,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_file_remove.clicked.connect( self.remove_files )
       self.chk_all_voice_combos.stateChanged.connect( self.adjust_bs )
       self.btn_step1.clicked.connect( self.progress_to_assemble )
+      self.btn_load_statistics.clicked.connect( self.load_statistics )
 
    # GUI Things (Main Menu Toolbar) ------------------------
    def tool_choose( self ):
@@ -167,6 +172,26 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.tool_analyze()
 
    # GUI Things ("Assemble" Panel) -------------------------
+   def load_statistics( self ):
+      statistics_file = QtGui.QFileDialog.getOpenFileName(\
+                        self.centralwidget,\
+                        "Choose Statistics File",\
+                        "",
+                        "JSON Files (*.json)",
+                        None)
+      if isfile(statistics_file):
+         fp = open(statistics_file,"r")
+         json_string = fp.read()
+         new_vis = None
+         try:
+            new_vis = Vertical_Interval_Statistics.from_json(json_string)
+         except NonsensicalInputError as nie:
+            error_dialog = QtGui.QErrorMessage()
+            error_dialog.showMessage('The selected statistics file is not valid: '+str(nie))
+            error_dialog.exec_()
+            return
+         self.statistics.extend(new_vis)
+
    def adjust_bs( self ):
       # Adjusts the "basso seguente" checkbox depending on whether "all
       # combinations" is selected

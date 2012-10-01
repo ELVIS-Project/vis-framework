@@ -163,7 +163,11 @@ class Vertical_Interval_Statistics( object ):
    def from_json( cls,json_string ):
       vis = Vertical_Interval_Statistics()
       # use _stringify since JSONDecoder interprets all strings as unicode.
-      d = Vertical_Interval_Statistics._stringify(json.JSONDecoder().decode(json_string))
+      d = None
+      try:
+         d = Vertical_Interval_Statistics._stringify(json.JSONDecoder().decode(json_string))
+      except Exception as e:
+         raise NonsensicalInputError("JSON data could not be parsed: "+str(e))
       def fix_keys( ngd ):
          return {NGram.make_from_str(k):fix_keys(v) for k,v in ngd.items()} if isinstance(ngd,dict) \
                 else ngd
