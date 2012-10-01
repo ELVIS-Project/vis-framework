@@ -37,7 +37,6 @@ from PyQt4 import Qt, QtCore, QtGui
 # vis
 from qt_stuff.Ui_new_main_window import Ui_MainWindow
 from qt_stuff.Ui_select_voices import Ui_select_voices
-from PyQt4 import QtGui as qt
 from problems import NonsensicalInputError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 
