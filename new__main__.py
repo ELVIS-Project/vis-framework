@@ -35,8 +35,8 @@ from PyQt4 import Qt, QtCore, QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
 # music21
 # vis
-from qt_stuff.Ui_new_main_window import Ui_MainWindow
-from qt_stuff.Ui_select_voices import Ui_select_voices
+from gui_files.Ui_new_main_window import Ui_MainWindow
+from gui_files.Ui_select_voices import Ui_select_voices
 from problems import NonsensicalInputError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 
