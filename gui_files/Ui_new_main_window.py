@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/qt/new_main_window.ui'
+# Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/new_main_window.ui'
 #
-# Created: Sun Sep 30 14:45:42 2012
+# Created: Mon Oct  1 21:54:57 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -167,9 +167,11 @@ class Ui_MainWindow(object):
         spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout_3.addItem(spacerItem2, 5, 1, 1, 2)
         self.btn_add_check_combo = QtGui.QPushButton(self.groupBox_8)
+        self.btn_add_check_combo.setEnabled(False)
         self.btn_add_check_combo.setObjectName(_fromUtf8("btn_add_check_combo"))
         self.gridLayout_3.addWidget(self.btn_add_check_combo, 5, 0, 1, 1)
         self.line_values_of_n = QtGui.QLineEdit(self.groupBox_8)
+        self.line_values_of_n.setEnabled(False)
         self.line_values_of_n.setInputMask(_fromUtf8(""))
         self.line_values_of_n.setMaxLength(1024)
         self.line_values_of_n.setFrame(True)
@@ -179,6 +181,7 @@ class Ui_MainWindow(object):
         self.label_4.setObjectName(_fromUtf8("label_4"))
         self.gridLayout_3.addWidget(self.label_4, 0, 0, 1, 1)
         self.line_offset_interval = QtGui.QLineEdit(self.groupBox_8)
+        self.line_offset_interval.setEnabled(False)
         self.line_offset_interval.setInputMask(_fromUtf8(""))
         self.line_offset_interval.setMaxLength(256)
         self.line_offset_interval.setObjectName(_fromUtf8("line_offset_interval"))
@@ -187,6 +190,7 @@ class Ui_MainWindow(object):
         self.label_6.setObjectName(_fromUtf8("label_6"))
         self.gridLayout_3.addWidget(self.label_6, 1, 0, 1, 1)
         self.line_compare_these_parts = QtGui.QLineEdit(self.groupBox_8)
+        self.line_compare_these_parts.setEnabled(False)
         self.line_compare_these_parts.setInputMask(_fromUtf8(""))
         self.line_compare_these_parts.setObjectName(_fromUtf8("line_compare_these_parts"))
         self.gridLayout_3.addWidget(self.line_compare_these_parts, 3, 1, 1, 2)
@@ -194,6 +198,7 @@ class Ui_MainWindow(object):
         self.label_7.setObjectName(_fromUtf8("label_7"))
         self.gridLayout_3.addWidget(self.label_7, 3, 0, 1, 1)
         self.btn_choose_note = QtGui.QPushButton(self.groupBox_8)
+        self.btn_choose_note.setEnabled(False)
         self.btn_choose_note.setObjectName(_fromUtf8("btn_choose_note"))
         self.gridLayout_3.addWidget(self.btn_choose_note, 1, 2, 1, 1)
         self.widget_2 = QtGui.QWidget(self.groupBox_8)
@@ -209,9 +214,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_22.setMargin(0)
         self.verticalLayout_22.setObjectName(_fromUtf8("verticalLayout_22"))
         self.chk_all_voice_combos = QtGui.QCheckBox(self.widget_5)
+        self.chk_all_voice_combos.setEnabled(False)
         self.chk_all_voice_combos.setObjectName(_fromUtf8("chk_all_voice_combos"))
         self.verticalLayout_22.addWidget(self.chk_all_voice_combos)
         self.chk_basso_seguente = QtGui.QCheckBox(self.widget_5)
+        self.chk_basso_seguente.setEnabled(False)
         self.chk_basso_seguente.setObjectName(_fromUtf8("chk_basso_seguente"))
         self.verticalLayout_22.addWidget(self.chk_basso_seguente)
         self.horizontalLayout_9.addWidget(self.widget_5)

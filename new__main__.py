@@ -61,10 +61,12 @@ class Vis_MainWindow( Ui_MainWindow ):
    def setup_vis( self ):
       self.gui_file_list.setModel( self.analysis_files )
       self.gui_pieces_list.setModel( self.analysis_pieces )
-
+      self.statistics = Vertical_Interval_Statistics()
+      # Hold a list of checkboxes that represent the parts in a piece
+      self.piece_checkboxes = None
 
       #self.settings = VIS_Settings()
-      self.statistics = Vertical_Interval_Statistics()
+      
       ## Hold the list of filenames to analyze.
       #self.analysis_files = []
       ## Hold the list of instructions for doing targeted analysis.
@@ -75,6 +77,7 @@ class Vis_MainWindow( Ui_MainWindow ):
    # Link all the signals with their methods.
    def setup_signals( self ):
       self.tool_analyze()
+      self.btn_choose_files.clicked.connect( self.tool_choose )
       self.btn_about.clicked.connect( self.tool_about )
       self.btn_analyze.clicked.connect( self.tool_analyze )
       self.btn_show.clicked.connect( self.tool_show )
@@ -89,10 +92,14 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.chk_all_voice_combos.stateChanged.connect( self.adjust_bs )
       self.btn_step1.clicked.connect( self.progress_to_assemble )
       self.btn_load_statistics.clicked.connect( self.load_statistics )
+      self.gui_pieces_list.clicked.connect( self.update_pieces_selection )
+      self.chk_all_voice_combos.clicked.connect( self.all_voice_combos )
+      self.chk_basso_seguente.clicked.connect( self.chose_bs )
 
    # GUI Things (Main Menu Toolbar) ------------------------
    def tool_choose( self ):
       self.main_screen.setCurrentWidget( self.page_choose )
+      self.btn_analyze.setEnabled( False )
 
    def tool_analyze( self ):
       self.main_screen.setCurrentWidget( self.page_analyze )
@@ -199,9 +206,111 @@ class Vis_MainWindow( Ui_MainWindow ):
       else:
          self.chk_basso_seguente.setText( 'Basso Seguente' )
 
+   def all_voice_combos( self ):
+      # Are we enabling "all" or disabling?
+      if self.chk_all_voice_combos.isChecked():
+         # Enabling
+         # Are there specific part names? If so, disable those checkboxes
+         if self.piece_checkboxes is not None:
+            for box in self.piece_checkboxes:
+               box.setEnabled( False )
+         # Update the QLineEdit, then update the selected pieces
+         self.line_compare_these_parts.setText( 'all' )
+         # TODO: update the selected pieces
+      else:
+         # Disabling
+         # Are there specific part names? If so, enable those checkboxes
+         if self.piece_checkboxes is not None:
+            for box in self.piece_checkboxes:
+               box.setEnabled( True )
+         # Update the QLineEdit, then update the selected pieces
+         self.line_compare_these_parts.setText( 'e.g., [0,3] or [[0,3],[1,3]]' )
+         # TODO: update the selected pieces
+   
+   def chose_bs( self ):
+      # When somebody chooses the "basso seguente" checkbox, if "all" is also
+      # selected, we should update the QLineEdit
+      if self.chk_all_voice_combos.isChecked():
+         if self.chk_basso_seguente.isChecked():
+            self.line_compare_these_parts.setText( '[all,bs]' )
+            # TODO: update the selected pieces
+         else:
+            self.line_compare_these_parts.setText( 'all' )
+            # TODO: update the selected pieces
+   
    def update_pieces_selection( self ):
+      # TODO: finish the other things for this method
       # When the user changes the piece(s) selected in self.gui_pieces_list
-      pass
+      
+      # Which piece is/pieces are selected?
+      currently_selected = self.gui_pieces_list.selectedIndexes()
+      
+      # NB: we get a list of all the cells selected, and this is definitely done
+      # in rows, so because each row has 6 things, if we have 6 cells, it means
+      # we have only one row... but more than 6 cells means more than one row
+      if len(currently_selected) == 0:
+         # (1) Enable all the controls
+         self.line_values_of_n.setEnabled( False )
+         self.line_offset_interval.setEnabled( False )
+         self.btn_choose_note.setEnabled( False )
+         self.line_compare_these_parts.setEnabled( False )
+         self.chk_all_voice_combos.setEnabled( False )
+         self.chk_basso_seguente.setEnabled( False )
+         self.btn_add_check_combo.setEnabled( False )
+         # (2) Remove the part list
+         if self.piece_checkboxes is not None:
+            for part in self.piece_checkboxes:
+               self.verticalLayout_22.removeWidget( part )
+            self.piece_checkboxes = None
+      elif len(currently_selected) > 6:
+         # Multiple pieces selected... can't customize for it
+         # (1) Enable all the controls
+         self.line_values_of_n.setEnabled( True )
+         self.line_offset_interval.setEnabled( True )
+         self.btn_choose_note.setEnabled( True )
+         self.line_compare_these_parts.setEnabled( True )
+         self.chk_all_voice_combos.setEnabled( True )
+         self.chk_basso_seguente.setEnabled( True )
+         self.btn_add_check_combo.setEnabled( True )
+         # (2) Remove the part list
+         if self.piece_checkboxes is not None:
+            for part in self.piece_checkboxes:
+               self.verticalLayout_22.removeWidget( part )
+            self.piece_checkboxes = None
+      else:
+         # Only one piece... customize for it
+         # (1) Enable all the controls
+         self.line_values_of_n.setEnabled( True )
+         self.line_offset_interval.setEnabled( True )
+         self.btn_choose_note.setEnabled( True )
+         self.line_compare_these_parts.setEnabled( True )
+         self.chk_all_voice_combos.setEnabled( True )
+         self.chk_basso_seguente.setEnabled( True )
+         self.btn_add_check_combo.setEnabled( True )
+         # (2) Populate the part list
+         # (2a) Remove previous items from the layout
+         if self.piece_checkboxes is not None:
+            for part in self.piece_checkboxes:
+               self.verticalLayout_22.removeWidget( part )
+            self.piece_checkboxes = None
+         # (2b) Get the list of parts
+         list_of_parts = None
+         for cell in currently_selected:
+            if 2 == cell.column():
+               list_of_parts = self.analysis_pieces.data( cell, \
+                                                          QtCore.Qt.DisplayRole )
+               break
+         # (2c) Put up a checkbox for each part
+         self.piece_checkboxes = []
+         for part_name in list_of_parts:
+            # n_c_b means "new check box"
+            n_c_b = QtGui.QCheckBox( self.widget_5 )
+            n_c_b.setObjectName( "chk_" + part_name )
+            n_c_b.setText( part_name )
+            self.piece_checkboxes.append( n_c_b )
+         # (2d) Add all the widgets to the layout
+         for part in self.piece_checkboxes:
+            self.verticalLayout_22.addWidget( part )
 
 # Model for "Choose Files" Panel -----------------------------------------------
 class List_of_Files( QtCore.QAbstractListModel ):
@@ -282,11 +391,12 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
 
    def data(self, index, role):
       if index.isValid() and QtCore.Qt.DisplayRole == role:
-         if 2 == index.column():
-            # TODO: make this nicer... formatting part names
-            return str(self.pieces[index.row()][2])[1:-1]
-         else:
-            return QtCore.QVariant( self.pieces[index.row()][index.column()] )
+         return self.pieces[index.row()][index.column()]
+         #if 2 == index.column():
+            ## TODO: make this nicer... formatting part names
+            #return str(self.pieces[index.row()][2])[1:-1]
+         #else:
+            #return QtCore.QVariant( self.pieces[index.row()][index.column()] )
       else:
          return QtCore.QVariant()
 

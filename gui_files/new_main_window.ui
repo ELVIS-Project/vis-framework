@@ -349,6 +349,9 @@
               </item>
               <item row="5" column="0">
                <widget class="QPushButton" name="btn_add_check_combo">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Add Combination</string>
                 </property>
@@ -356,6 +359,9 @@
               </item>
               <item row="0" column="1">
                <widget class="QLineEdit" name="line_values_of_n">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="inputMask">
                  <string notr="true"/>
                 </property>
@@ -379,6 +385,9 @@
               </item>
               <item row="1" column="1">
                <widget class="QLineEdit" name="line_offset_interval">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="inputMask">
                  <string notr="true"/>
                 </property>
@@ -399,6 +408,9 @@
               </item>
               <item row="3" column="1" colspan="2">
                <widget class="QLineEdit" name="line_compare_these_parts">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="inputMask">
                  <string notr="true"/>
                 </property>
@@ -416,6 +428,9 @@
               </item>
               <item row="1" column="2">
                <widget class="QPushButton" name="btn_choose_note">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Choose Offset Note</string>
                 </property>
@@ -445,6 +460,9 @@
                    <layout class="QVBoxLayout" name="verticalLayout_22">
                     <item>
                      <widget class="QCheckBox" name="chk_all_voice_combos">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
                       <property name="toolTip">
                        <string>Collect Statistics for all Part Combinations</string>
                       </property>
@@ -455,6 +473,9 @@
                     </item>
                     <item>
                      <widget class="QCheckBox" name="chk_basso_seguente">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
                       <property name="toolTip">
                        <string>Generate Basso Seguente Part</string>
                       </property>
