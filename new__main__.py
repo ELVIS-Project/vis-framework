@@ -37,7 +37,7 @@ from PyQt4 import Qt, QtCore, QtGui
 # vis
 from gui_files.Ui_new_main_window import Ui_MainWindow
 from gui_files.Ui_select_voices import Ui_select_voices
-from problems import NonsensicalInputError
+from problems import NonsensicalInputError, MissingInformationError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 
 # TEMPORARY
@@ -191,9 +191,9 @@ class Vis_MainWindow( Ui_MainWindow ):
          new_vis = None
          try:
             new_vis = Vertical_Interval_Statistics.from_json(json_string)
-         except NonsensicalInputError as nie:
+         except (NonsensicalInputError, MissingInformationError) as e:
             error_dialog = QtGui.QErrorMessage()
-            error_dialog.showMessage('The selected statistics file is not valid: '+str(nie))
+            error_dialog.showMessage('The selected statistics file is not valid: '+str(e))
             error_dialog.exec_()
             return
          self.statistics.extend(new_vis)
