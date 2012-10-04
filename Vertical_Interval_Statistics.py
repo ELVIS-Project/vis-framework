@@ -349,40 +349,34 @@ class Vertical_Interval_Statistics( object ):
 
    # end add_ngram()
    
-   #def get_ngram_occurrences( self, which_ngram, n ):
-      # NOTE: This method is broken, and unused, so I removed it. If we need it,
-      # we'll have to rewrite it and its tests.
-      #'''
-      #Returns the number of occurrences of a particular n-gram. Currently, all
-      #n-grams are treated as though they have compound intervals.
+   def get_ngram_occurrences( self, which_ngram ):
+      '''
+      Returns the number of occurrences of a particular n-gram. Currently, all
+      n-grams are treated as though they have compound intervals.
       
-      #The first argument must be the output from either NGram.stringVersion
-      #or str(NGram) (which calles stringVersion() internally).
+      The first argument must be an NGram object or the output from either
+      NGram.stringVersion or str(NGram) (which calls stringVersion() internally).
       
-      #The second argument is the value 'n' for the n-gram you seek.
+      Automatically does or does not track quality, depending on the settings
+      of the inputted NGram objects.
+      '''
+      ng = None
+      if isinstance(which_ngram,NGram):
+         ng = which_ngram
+      if isinstance(which_ngram,basestring):
+         try:
+            ng = NGram.make_from_str(which_ngram)
+         except NonsensicalInputError as nie:
+            raise
+      else:
+         raise NonsensicalInputError("Input must be of type NGram or string")
+      ng_no_hq = Vertical_Interval_Statistics._set_heed_quality(ng.False)
+      n = ng.n()
+      hq = ng._heed_quality
+      the_dict = self.prepare_ngram_output_dict( VIS_Settings(), [n], 'compound'+hq )[n]
+      return 0 if the_dict.get(ng) is None else the_dict[ng][0] #replace 0 with piece_index?
       
-      #Automatically does or does not track quality, depending on the settings
-      #of the inputted NGram objects.
-      #'''
-      
-      ## I tried to implement this in a cleaner way, predicting whether or not
-      ## we had a dictionary for the value of n we were given, but it didn't
-      ## work properly, so I implemented this. This solution is clearly not
-      ## very good, but at least it works.
-      #try:
-         #if which_ngram[0].isalpha(): # heedQuality
-            #if which_ngram in self._compound_quality_compound_ngrams_dict[n]:
-               #return self._compound_quality_compound_ngrams_dict[n][which_ngram]
-            #else:
-               #return 0
-         #else: # noQuality!
-            #if which_ngram in self._compound_no_quality_compound_ngrams_dict[n]:
-               #return self._compound_no_quality_compound_ngrams_dict[n][which_ngram]
-            #else:
-               #return 0
-      #except IndexError as indE:
-         #return 0
-   ## end get_ngram_occurrences()
+   # end get_ngram_occurrences()
    
    @staticmethod
    def _set_heed_quality( ngram, heed_quality ):
