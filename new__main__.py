@@ -29,7 +29,9 @@
 
 # Python
 import sys
-from os.path import isfile
+from os.path import isfile, join, splitext
+from os import walk
+from itertools import chain
 # PyQt4
 from PyQt4 import Qt, QtCore, QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
@@ -87,7 +89,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.rdo_chart.clicked.connect( self.unchoose_targeted_score )
       self.rdo_score.clicked.connect( self.unchoose_targeted_score )
       self.rdo_list.clicked.connect( self.unchoose_targeted_score )
-      self.btn_file_add.clicked.connect( self.add_files )
+      self.btn_dir_add.clicked.connect( self.add_dir )
+      self.btn_file_add.clicked.connect( self.get_files )
       self.btn_file_remove.clicked.connect( self.remove_files )
       self.chk_all_voice_combos.stateChanged.connect( self.adjust_bs )
       self.btn_step1.clicked.connect( self.progress_to_assemble )
@@ -134,20 +137,33 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.groupBox_targeted_score.setEnabled( False )
 
    # GUI Things ("Choose Files" Panel) ---------------------
-   def add_files( self ):
+   def add_dir( self ):
+      d = QtGui.QFileDialog.getExistingDirectory(\
+          None,
+          "Choose Directory to Analyze",
+          '',
+          QtGui.QFileDialog.ShowDirsOnly)
+      d = str(d)
+      extensions = ['.mid','.midi','.mxl','.krn','.xml','.md']
+      possible_files = chain(*[[join(path,fp) for fp in files if 
+                              splitext(fp)[1] in extensions]
+                             for path,names,files in walk(d)])
+      self.add_files(possible_files)
+
+   def get_files( self ):
       # Get the list of files to add
       possible_files = QtGui.QFileDialog.getOpenFileNames(\
          None,
          "Choose Files to Analyze",
          '',
-         '',
+         '*.mid *.midi *.mxl *.krn *.xml *.md',
          None)
+      self.add_files(possible_files)
 
+   def add_files( self, possible_files ):
       # Make sure we don't add files that are already there
-      list_of_files = []
-      for file in possible_files:
-         if not self.analysis_files.alreadyThere( file ):
-            list_of_files.append( file )
+      list_of_files = [fp for fp in possible_files if
+                       not self.analysis_files.alreadyThere(fp)]
 
       # Add the right number of rows to the list
       start_row = self.analysis_files.rowCount()

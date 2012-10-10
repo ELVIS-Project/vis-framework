@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>849</width>
+    <height>678</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -202,7 +202,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -239,6 +239,29 @@
                   </spacer>
                  </item>
                  <item>
+                  <widget class="QPushButton" name="btn_dir_add">
+                   <property name="toolTip">
+                    <string>Add Directory</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="icons.qrc">
+                     <normaloff>:/icons/icons/add-dir.png</normaloff>:/icons/icons/add-dir.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>32</width>
+                     <height>32</height>
+                    </size>
+                   </property>
+                   <property name="flat">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="QPushButton" name="btn_file_add">
                    <property name="toolTip">
                     <string>Add Files</string>
@@ -248,12 +271,12 @@
                    </property>
                    <property name="icon">
                     <iconset resource="icons.qrc">
-                     <normaloff>:/icons/icons/list-add.png</normaloff>:/icons/icons/list-add.png</iconset>
+                     <normaloff>:/icons/icons/add-file.png</normaloff>:/icons/icons/add-file.png</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
-                     <width>22</width>
-                     <height>22</height>
+                     <width>32</width>
+                     <height>32</height>
                     </size>
                    </property>
                    <property name="flat">
@@ -264,7 +287,7 @@
                  <item>
                   <widget class="QPushButton" name="btn_file_remove">
                    <property name="toolTip">
-                    <string>Remove Selected Files</string>
+                    <string>Remove Selected Items</string>
                    </property>
                    <property name="text">
                     <string/>
@@ -275,8 +298,8 @@
                    </property>
                    <property name="iconSize">
                     <size>
-                     <width>22</width>
-                     <height>22</height>
+                     <width>32</width>
+                     <height>32</height>
                     </size>
                    </property>
                    <property name="flat">
@@ -598,6 +621,58 @@
              </layout>
             </widget>
            </item>
+           <item row="2" column="2" colspan="2">
+            <widget class="QGroupBox" name="groupBox_6">
+             <property name="title">
+              <string>Interval Quality</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_10">
+              <item>
+               <widget class="QRadioButton" name="rdo_heedQuality">
+                <property name="text">
+                 <string>Display</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rdo_noHeedQuality">
+                <property name="text">
+                 <string>Ignore</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="2">
+            <widget class="QGroupBox" name="groupBox_7">
+             <property name="title">
+              <string>What to Display</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_11">
+              <item>
+               <widget class="QRadioButton" name="rdo_intervals">
+                <property name="text">
+                 <string>Intervals</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rdo_ngrams">
+                <property name="text">
+                 <string>N-grams</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item row="0" column="3">
             <widget class="QGroupBox" name="groupBox_n">
              <property name="title">
@@ -610,16 +685,16 @@
              </layout>
             </widget>
            </item>
-           <item row="3" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_sorted_by">
+           <item row="2" column="0" colspan="2">
+            <widget class="QGroupBox" name="groupBox_9">
              <property name="title">
-              <string>Sorted by...</string>
+              <string>Octaves</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_16">
+             <layout class="QVBoxLayout" name="verticalLayout_13">
               <item>
-               <widget class="QRadioButton" name="rdo_frequency">
+               <widget class="QRadioButton" name="rdo_compound">
                 <property name="text">
-                 <string>frequency</string>
+                 <string>Compound Intervals</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -627,9 +702,9 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rdo_name">
+               <widget class="QRadioButton" name="rdo_simple">
                 <property name="text">
-                 <string>n-gram</string>
+                 <string>Simple Intervals</string>
                 </property>
                </widget>
               </item>
@@ -674,32 +749,6 @@
              </layout>
             </widget>
            </item>
-           <item row="3" column="2" colspan="2">
-            <widget class="QGroupBox" name="groupBox_sort_order">
-             <property name="title">
-              <string>Sort Order</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_17">
-              <item>
-               <widget class="QRadioButton" name="rdo_descending">
-                <property name="text">
-                 <string>Descending (High to Low)</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_ascending">
-                <property name="text">
-                 <string>Ascending (Low to High)</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item row="1" column="2" colspan="2">
             <widget class="QGroupBox" name="groupBox_11">
              <property name="title">
@@ -732,42 +781,42 @@
              </layout>
             </widget>
            </item>
-           <item row="2" column="2" colspan="2">
-            <widget class="QGroupBox" name="groupBox_6">
+           <item row="3" column="0" colspan="2">
+            <widget class="QGroupBox" name="groupBox_sorted_by">
              <property name="title">
-              <string>Interval Quality</string>
+              <string>Sorted by...</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_10">
+             <layout class="QVBoxLayout" name="verticalLayout_16">
               <item>
-               <widget class="QRadioButton" name="rdo_heedQuality">
+               <widget class="QRadioButton" name="rdo_frequency">
                 <property name="text">
-                 <string>Display</string>
+                 <string>frequency</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rdo_noHeedQuality">
+               <widget class="QRadioButton" name="rdo_name">
                 <property name="text">
-                 <string>Ignore</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
+                 <string>n-gram</string>
                 </property>
                </widget>
               </item>
              </layout>
             </widget>
            </item>
-           <item row="2" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_9">
+           <item row="3" column="2" colspan="2">
+            <widget class="QGroupBox" name="groupBox_sort_order">
              <property name="title">
-              <string>Octaves</string>
+              <string>Sort Order</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_13">
+             <layout class="QVBoxLayout" name="verticalLayout_17">
               <item>
-               <widget class="QRadioButton" name="rdo_compound">
+               <widget class="QRadioButton" name="rdo_descending">
                 <property name="text">
-                 <string>Compound Intervals</string>
+                 <string>Descending (High to Low)</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -775,35 +824,9 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rdo_simple">
+               <widget class="QRadioButton" name="rdo_ascending">
                 <property name="text">
-                 <string>Simple Intervals</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="0" column="1" colspan="2">
-            <widget class="QGroupBox" name="groupBox_7">
-             <property name="title">
-              <string>What to Display</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_11">
-              <item>
-               <widget class="QRadioButton" name="rdo_intervals">
-                <property name="text">
-                 <string>Intervals</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_ngrams">
-                <property name="text">
-                 <string>N-grams</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
+                 <string>Ascending (Low to High)</string>
                 </property>
                </widget>
               </item>
