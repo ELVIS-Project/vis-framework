@@ -691,17 +691,16 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
          elif 'raw_list' == role:
             return QtCore.QVariant( self.pieces[index.row()][index.column()] )
          else:
-            return QtCore.QVariant()
+            return QtCore.QVariant(QtCore.QVariant.Invalid)
 
    def headerData( self, section, orientation, role ):
-      # TODO: why this no work?
       header_names = ['Path', 'Title', 'List of Part Names', 'Offset', 'n', \
                       'Compare These Parts']
 
-      if QtCore.Qt.Horizontal == orientation:
+      if QtCore.Qt.Horizontal == orientation and QtCore.Qt.DisplayRole == role:
          return header_names[section]
       else:
-         return None
+         return QtCore.QVariant()
 
    def setData( self, index, value, role ):
       # NB: use this pattern
