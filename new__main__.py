@@ -96,6 +96,17 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.rdo_chart.clicked.connect( self.unchoose_targeted_score )
       self.rdo_score.clicked.connect( self.unchoose_targeted_score )
       self.rdo_list.clicked.connect( self.unchoose_targeted_score )
+      self.line_show_these_ns.editingFinished.connect( self.update_n_values_displayed )
+      self.line_output_most_common.editingFinished.connect( self.update_top_x )
+      self.line_threshold.editingFinished.connect( self.update_threshold )
+      self.rdo_compound.clicked.connect( self.update_simple_compound )
+      self.rdo_simple.clicked.connect( self.update_simple_compound )
+      self.rdo_heedQuality.clicked.connect( self.update_heed_quality )
+      self.rdo_noHeedQuality.clicked.connect( self.update_heed_quality )
+      self.rdo_frequency.clicked.connect( self.update_sorted_by )
+      self.rdo_name.clicked.connect( self.update_sorted_by )
+      self.rdo_ascending.clicked.connect( self.update_sort_order )
+      self.rdo_descending.clicked.connect( self.update_sort_order )
       self.btn_dir_add.clicked.connect( self.add_dir )
       self.btn_file_add.clicked.connect( self.get_files )
       self.btn_file_remove.clicked.connect( self.remove_files )
@@ -749,6 +760,31 @@ class Vis_MainWindow( Ui_MainWindow ):
       for cell in selected_cells:
          if self.model_offset == cell.column():
             self.analysis_pieces.setData( cell, chosen_offset, QtCore.Qt.EditRole )
+
+# GUI stuff ("Show" Panel) ---------------------------------
+   def show_results( self ):
+      pass
+
+   def update_n_values_displayed( self ):
+      pass
+
+   def update_top_x( self ):
+      pass
+
+   def update_threshold( self ):
+      pass
+
+   def update_simple_compound( self ):
+      pass
+
+   def update_heed_quality( self ):
+      pass
+
+   def update_sorted_by( self ):
+      pass
+
+   def update_sort_order( self ):
+      pass
 
 # Model for "Choose Files" Panel -----------------------------------------------
 class List_of_Files( QtCore.QAbstractListModel ):
