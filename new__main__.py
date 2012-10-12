@@ -36,6 +36,8 @@ from itertools import chain
 from PyQt4 import Qt, QtCore, QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
 # music21
+from music21 import converter
+from music21.converter import ConverterException, ConverterFileException
 # vis
 from gui_files.Ui_select_offset import Ui_Select_Offset
 from gui_files.Ui_new_main_window import Ui_MainWindow
@@ -110,6 +112,9 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    def tool_analyze( self ):
       self.main_screen.setCurrentWidget( self.page_analyze )
+
+   def tool_working( self ):
+      self.main_screen.setCurrentWidget( self.page_working )
 
    def tool_show( self ):
       self.main_screen.setCurrentWidget( self.page_show )
@@ -190,7 +195,28 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.analysis_files.removeRows( file.row(), 1 )
 
    def progress_to_assemble( self ):
-      # TODO: finish this
+      # move the GUI to the "working" panel
+      failed_files = []
+      self.tool_working()
+      self.progress_bar.setMinimum(0)
+      self.progress_bar.setMaximum(self.analysis_files.rowCount())
+      for i,fp in enumerate(list(self.analysis_files.iterator()),start=1):
+         self.lbl_status_text.setText("Please wait... importing "+fp)
+         score = None
+         try:
+            score = converter.parse(str(fp))
+         except (ConverterException,ConverterFileException) as e:
+            failed_files.append(fp)
+            continue
+         last = self.analysis_pieces.rowCount()
+         self.analysis_pieces.insertRows(last,1)
+         index = self.analysis_pieces.createIndex(last,0)
+         self.analysis_pieces.setData(index,fp,QtCore.Qt.EditRole)
+         index = self.analysis_pieces.createIndex(last,1)
+         self.analysis_pieces.setData(index,score,QtCore.Qt.EditRole)
+         index = self.analysis_pieces.createIndex(last,2)
+         self.analysis_pieces.setData(index,[p.id for p in score.parts],QtCore.Qt.EditRole)
+         self.progress_bar.setValue(i)
 
       # finally, move the GUI to the "assemble" panel
       self.btn_analyze.setEnabled( True )
@@ -659,6 +685,10 @@ class List_of_Files( QtCore.QAbstractListModel ):
       '''
       return candidate in self.files
 
+   def iterator( self ):
+      for f in self.files:
+         yield f
+
    def removeRows( self, row, count, parent=QtCore.QModelIndex() ):
       self.beginRemoveRows( parent, row, row )
       self.files = self.files[:row] + self.files[row+count:]
@@ -672,11 +702,11 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
    # Here's the data model:
    # self.pieces : a list of lists. For each sub-list...
    #    sublist[0] : filename
-   #    sublist[1] : piece name, if available, or ''
-   #    sublist[2] : list of part names, if available, or a list of '' for each part
+   #    sublist[1] : a music21 score object corresponding to the filename
+   #    sublist[2] : list of names of parts in the score
    #    sublist[3] : offset interval
-   #    sublist[4] : n as a str
-   #    sublist[5] : the "compare these parts" str
+   #    sublist[4] : list of values of n to look for
+   #    sublist[5] : list of pairs of indices for parts
 
    def __init__( self, parent=QtCore.QModelIndex() ):
       QtCore.QAbstractTableModel.__init__( self, parent )
@@ -689,10 +719,7 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
       self.model_n = 4 # values of "n" to find
       self.model_compare_parts = 5 # list of two-element lists of part indices
 
-      #self.pieces = []
-      self.pieces = [['/home/asdf.mxl','Symphony',['S','A','T','B'],0.5,'2','[all,bs]'], \
-                     ['/home/dd.midi','Chorale',['violin','tuba'],0.5,'2,3','[[0,1]]'], \
-                     ['/home/shoop.md','Zibb zibb whack!',['S','A','T','B'],0.5,'2','[all]']]
+      self.pieces = []
 
    def rowCount( self, parent=QtCore.QModelIndex() ):
       return len(self.pieces)
@@ -704,9 +731,17 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
    def data(self, index, role):
       if index.isValid():
          if QtCore.Qt.DisplayRole == role:
-            if self.model_parts_list == index.column():
+            if self.model_score == index.column():
+               score = self.pieces[index.row()][index.column()]
+               if score.metadata is not None:
+                  return QtCore.QVariant( score.metadata.title )
+               else:
+                  return QtCore.QVariant('')
+            elif self.model_parts_list == index.column():
                # this is for the part names
-               return QtCore.QVariant( str(self.pieces[index.row()][2])[1:-1] )
+               return QtCore.QVariant( str([str(p) for p in self.pieces[index.row()][index.column()]])[1:-1] )
+            elif self.model_n == index.column():
+               return ",".join(str(n) for n in self.pieces[index.row()][index.column()])
             else:
                return QtCore.QVariant( self.pieces[index.row()][index.column()] )
          elif 'raw_list' == role:
@@ -734,21 +769,16 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
       else:
          return False
 
-   #def insertRows( self, row, count, parent=QtCore.QModelIndex() ):
-      ## TODO: ballz
-      #self.beginInsertRows( parent, row, row+count )
-      #new_files = self.files[:row]
-      #for zed in xrange( count ):
-         #new_files.append( '' )
-      #new_files += self.files[row:]
-      #self.files = new_files
-      #self.endInsertRows()
+   def insertRows( self, row, count, parent=QtCore.QModelIndex() ):
+      self.beginInsertRows( parent, row, row+count )
+      for zed in xrange(count):
+         self.pieces.insert(row,['',None,[],0.5,[2],[]])
+      self.endInsertRows()
 
-   #def removeRows( self, row, count, parent=QtCore.QModelIndex() ):
-      ## TODO: ballz
-      #self.beginRemoveRows( parent, row, row )
-      #self.files = self.files[:row] + self.files[row+count:]
-      #self.endRemoveRows()
+   def removeRows( self, row, count, parent=QtCore.QModelIndex() ):
+      self.beginRemoveRows( parent, row, row+count )
+      self.pieces = self.pieces[:row] + self.pieces[row+count:]
+      self.endRemoveRows()
 # End Class List_of_Pieces ------------------------------------------------------
 
 
