@@ -32,6 +32,7 @@ import sys
 from os.path import isfile, join, splitext
 from os import walk
 from itertools import chain
+import re
 # PyQt4
 from PyQt4 import Qt, QtCore, QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
@@ -528,7 +529,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # For now, just take the contents of line_values_of_n and put it in
       # the pieces
-      new_n = str(self.line_values_of_n.text())
+      new_n = list(set([int(n) for n in re.findall('(-?\d+)', self.line_values_of_n.text())]))
 
       # Update the selected pieces
       # get the list of selected cells... for each one that is the "n"
