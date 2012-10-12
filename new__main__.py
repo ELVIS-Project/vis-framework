@@ -342,6 +342,11 @@ class Vis_MainWindow( Ui_MainWindow ):
 
             # Update the parts selection
             self.update_parts_selection( new_spec )
+
+      # Also clear the part-selection checkboxes
+      self.chk_basso_seguente.setChecked( False )
+      for box in self.piece_checkboxes:
+         box.setChecked( False )
    # End add_parts_combination() ---------------------------
 
    def add_parts_combo_by_lineEdit( self ):
@@ -356,8 +361,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       Updates line_compare_these_parts and the model data for all selected
       pieces so that the "parts to compare" contains part_spec.
       '''
-
-      print( 'update parts selection') # DEBUG
 
       # update the UI
       self.line_compare_these_parts.setText( part_spec )
@@ -489,16 +492,14 @@ class Vis_MainWindow( Ui_MainWindow ):
                else:
                   first_comp = ''
                   break
-         if '' != first_comp:
+         if '' == first_comp:
             # Multiple parts have different specs
-            print( 'multiple parts have different specs' ) # DEBUG
             self.line_compare_these_parts.setText( '' )
             self.chk_all_voice_combos.setChecked( False )
             self.chk_basso_seguente.setChecked( False )
             self.adjust_bs()
          else:
             # Multiple parts have the same spec
-            print( 'multiple parts with same specs' ) # DEBUG
             self.update_comparison_parts( currently_selected )
       else:
          # Only one piece... customize for it
@@ -536,8 +537,6 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       The argument should be a list of the currently selected cells.
       '''
-
-      print( 'update_comparison_parts() called!' ) # DEBUG
 
       for cell in currently_selected:
          if 5 == cell.column():
@@ -670,7 +669,7 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
       QtCore.QAbstractTableModel.__init__( self, parent )
       #self.pieces = []
       self.pieces = [['/home/asdf.mxl','Symphony',['S','A','T','B'],0.5,'2','[all,bs]'], \
-                     ['/home/dd.midi','Chorale',['violin','tuba'],0.5,'2,3','[0,1]'], \
+                     ['/home/dd.midi','Chorale',['violin','tuba'],0.5,'2,3','[[0,1]]'], \
                      ['/home/shoop.md','Zibb zibb whack!',['S','A','T','B'],0.5,'2','[all]']]
 
    def rowCount( self, parent=QtCore.QModelIndex() ):
