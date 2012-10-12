@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui_files/new_main_window.ui'
+# Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/new_main_window.ui'
 #
-# Created: Wed Oct 10 10:15:06 2012
-#      by: PyQt4 UI code generator 4.9.4
+# Created: Fri Oct 12 15:14:27 2012
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -481,6 +481,10 @@ class Ui_MainWindow(object):
         self.progress_bar.setProperty("value", 0)
         self.progress_bar.setObjectName(_fromUtf8("progress_bar"))
         self.verticalLayout_21.addWidget(self.progress_bar)
+        self.lbl_currently_processing = QtGui.QLabel(self.page_working)
+        self.lbl_currently_processing.setAlignment(QtCore.Qt.AlignCenter)
+        self.lbl_currently_processing.setObjectName(_fromUtf8("lbl_currently_processing"))
+        self.verticalLayout_21.addWidget(self.lbl_currently_processing)
         spacerItem12 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.verticalLayout_21.addItem(spacerItem12)
         self.main_screen.addWidget(self.page_working)
@@ -512,7 +516,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.main_screen.setCurrentIndex(0)
+        self.main_screen.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -576,8 +580,19 @@ class Ui_MainWindow(object):
         self.pushButton_3.setText(QtGui.QApplication.translate("MainWindow", "Choose Colour", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_wait_clock.setToolTip(QtGui.QApplication.translate("MainWindow", "Hi, mom!", None, QtGui.QApplication.UnicodeUTF8))
         self.lbl_status_text.setText(QtGui.QApplication.translate("MainWindow", "Please wait...", None, QtGui.QApplication.UnicodeUTF8))
+        self.lbl_currently_processing.setText(QtGui.QApplication.translate("MainWindow", "(processing)", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_4.setTitle(QtGui.QApplication.translate("MainWindow", "Information about vis", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><span style=\" text-decoration: underline;\">vis (pre-Milestone 4)</span></p><p>Copyright (c) 2012 Christopher Antila and Jamie Klassen</p><p>This program is free software: you can redistribute it and/or modify<br/>it under the terms of the GNU General Public License as published by<br/>the Free Software Foundation, either version 3 of the License, or<br/>(at your option) any later version.</p><p>This program is distributed in the hope that it will be useful,<br/>but WITHOUT ANY WARRANTY; without even the implied warranty of<br/>MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the<br/>GNU General Public License for more details.</p><p>You should have received a copy of the GNU General Public License<br/>along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p>vis was written as part of McGill University\'s contribution to the ELVIS project.<br/>For more information about ELVIS, please refer to our <a href=\"http://elvis.music.mcgill.ca/\"><span style=\" text-decoration: underline; color:#0057ae;\">web site</span></a>.</p><p>Funding for ELVIS was provided by the following organizations:<br/>- SSHRC (Social Sciences and Humanities Research Council) of Canada<br/>- NEH (National Endowment for the Humanities) of the United States of America<br/>- The Digging into Data Challenge</p><p>vis is written in the Python programming language, and relies on the following<br/>software, all released under free licences:<br/>- <a href=\"http://mit.edu/music21/\"><span style=\" text-decoration: underline; color:#0057ae;\">music21<br/></span></a>- <a href=\"http://www.riverbankcomputing.co.uk/software/pyqt/download\"><span style=\" text-decoration: underline; color:#0057ae;\">PyQt4</span></a><br/>- <a href=\"http://www.oxygen-icons.org/\"><span style=\" text-decoration: underline; color:#0057ae;\">Oxygen Icons</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
 import icons_rc
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    MainWindow = QtGui.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
+

@@ -202,7 +202,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -897,7 +897,7 @@
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="icons.qrc">
+                   <iconset>
                     <normaloff>:/icons/icons/list-add.png</normaloff>:/icons/icons/list-add.png</iconset>
                   </property>
                   <property name="flat">
@@ -928,7 +928,7 @@
                    <string/>
                   </property>
                   <property name="icon">
-                   <iconset resource="icons.qrc">
+                   <iconset>
                     <normaloff>:/icons/icons/list-add.png</normaloff>:/icons/icons/list-add.png</iconset>
                   </property>
                   <property name="flat">
@@ -1089,6 +1089,16 @@
          <widget class="QProgressBar" name="progress_bar">
           <property name="value">
            <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lbl_currently_processing">
+          <property name="text">
+           <string>(processing)</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
          </widget>
         </item>
