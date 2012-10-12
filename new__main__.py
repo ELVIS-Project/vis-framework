@@ -254,6 +254,9 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Go through all the files/directories.
       for piece in self.analysis_pieces.iterate_rows():
+         # Duration for this piece
+         it_took = 0.0
+
          # Find the name of this piece
          this_piece_name = piece[self.model_score].metadata.title
 
@@ -264,67 +267,52 @@ class Vis_MainWindow( Ui_MainWindow ):
          # Make the basso seguente part, if needed
          seguente_part = None
 
+         # List of part combinations (filled out later)
+         comboz = None
+
          # DEBUGGING
          print( str(piece[self.model_compare_parts]) )
 
          # Try to analyze this file
          if 'all' == piece[self.model_compare_parts]:
-            pass
-            ## We have to examine all combinations of parts.
-            ## How many parts are in this piece?
-            #number_of_parts = len(the_score.parts)
-            ## Get a list of all the part-combinations to examine.
-            #parts_to_examine = calculate_all_combis( number_of_parts - 1 )
-            ## "Zero" it_took
-            #it_took = 0.0
-            ## Analyze every part combination.
-            #for set_of_parts in parts_to_examine:
-               #higher = the_score.parts[set_of_parts[0]]
-               #lower = the_score.parts[set_of_parts[1]]
-               #this_took, ly, error = vis_these_parts( [higher,lower], \
-                                                #self.settings, \
-                                                #self.statistics, \
-                                                #piece_name, \
-                                                #targeted_output )
-               #it_took += this_took
-            ## Add this duration to the cumulative duration.
-            #cumulative_analysis_duration += it_took
-            ## Print how long it took
-            #self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
-         else:
-            # Duration for this piece
-            it_took = 0.0
+            # We have to examine all combinations of parts
 
+            # How many parts are in this piece?
+            number_of_parts = len(the_score.parts)
+
+            # Get a list of all the part-combinations to examine
+            comboz = calculate_all_combis( number_of_parts - 1 )
+         else:
             # Turn the str specification of parts into a list of int (or str)
             # NOTE: Later, we should do this in a safer way
             comboz = eval( piece[self.model_compare_parts] )
 
-            # We should analyze all the specified part combinations
-            for combo in comboz:
-               # Get the two parts
-               higher = piece[self.model_score].parts[combo[0]]
-               lower = None
+         # Analyze all the specified part combinations
+         for combo in comboz:
+            # Get the two parts
+            higher = piece[self.model_score].parts[combo[0]]
+            lower = None
 
-               if 'bs' == lower:
-                  if basso_seguente is None:
-                     basso_seguente = make_basso_seguente( piece[self.model_score] )
-                  else:
-                     lower = basso_seguente
+            if 'bs' == lower:
+               if basso_seguente is None:
+                  basso_seguente = make_basso_seguente( piece[self.model_score] )
                else:
-                  lower = piece[self.model_score][combo[1]]
+                  lower = basso_seguente
+            else:
+               lower = piece[self.model_score][combo[1]]
 
-               # DEBUGGING
-               print( str(type(higher)) )
-               print( str(type(lower)) )
+            # DEBUGGING
+            print( str(type(higher)) )
+            print( str(type(lower)) )
 
-               # Run the analysis
-               voices_took, ly, error = vis_these_parts( [higher,lower], \
-                                              self.settings, \
-                                              self.statistics, \
-                                              this_piece_name )
+            # Run the analysis
+            voices_took, ly, error = vis_these_parts( [higher,lower], \
+                                           self.settings, \
+                                           self.statistics, \
+                                           this_piece_name )
 
-               it_took += voices_took
-            # (end of voice-pair loop)
+            it_took += voices_took
+         # (end of voice-pair loop)
 
             # Add this duration to the cumulative duration
             cumulative_analysis_duration += it_took
