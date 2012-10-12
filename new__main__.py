@@ -44,6 +44,8 @@ from gui_files.Ui_new_main_window import Ui_MainWindow
 #from gui_files.Ui_select_voices import Ui_select_voices
 from problems import NonsensicalInputError, MissingInformationError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
+from vis import VIS_Settings
+from analytic_engine import vis_these_parts, make_basso_seguente
 
 
 
@@ -54,8 +56,11 @@ class Vis_MainWindow( Ui_MainWindow ):
    #---------------
    # self.gui_file_list :
    # self.gui_pieces_list :
-   # self.statistics
-   # self.piece_checkboxes
+   # self.statistics :
+   # self.settings :
+   # self.piece_checkboxes :
+   # self.analysis_files :
+   # self.analysis_pieces :
    # -- Index values for columns in self.gui_pieces_list --
    # self.model_offset
 
@@ -64,6 +69,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.gui_file_list.setModel( self.analysis_files )
       self.gui_pieces_list.setModel( self.analysis_pieces )
       self.statistics = Vertical_Interval_Statistics()
+      self.settings = VIS_Settings()
       # Hold a list of checkboxes that represent the parts in a piece
       self.piece_checkboxes = None
 
@@ -104,6 +110,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.line_values_of_n.editingFinished.connect( self.update_values_of_n )
       self.line_offset_interval.editingFinished.connect( self.update_offset_interval )
       self.btn_choose_note.clicked.connect( self.launch_offset_selection )
+      self.btn_step2.clicked.connect( self.progress_to_show )
 
    # GUI Things (Main Menu Toolbar) ------------------------
    def tool_choose( self ):
@@ -222,6 +229,131 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_analyze.setEnabled( True )
       self.btn_analyze.setChecked( True )
       self.tool_analyze()
+
+      # Enable the arrow to move to the "Show" panel
+      self.btn_step2.setEnabled( True )
+
+   def progress_to_show( self ):
+      '''
+      Analyze a list of files and directories, supplementing with statistics
+      from any Vertical_Interval_Statistics objects if relevant.
+
+      Settings, files, directories, and stats will be used from the "self"
+      object.
+      '''
+      #-------------------------------------------------------
+      def calculate_all_combis( upto ):
+         # Calculate all combinations of integers between 0 and the argument.
+         #
+         # Includes a 0th item... the argument should be len(whatevs) - 1.
+         post = []
+         for left in xrange(upto):
+            for right in xrange(left+1,upto+1):
+               post.append( [left,right] )
+         return post
+      #-------------------------------------------------------
+
+      # Hold a list of pieces that failed during analysis.
+      files_not_analyzed = []
+
+      # Accumulate the length of time spent in vis_these_parts()
+      cumulative_analysis_duration = 0.0
+
+      # Go through all the files/directories.
+      for piece in self.analysis_pieces.iterate_rows():
+         # Find the name of this piece
+         this_piece_name = piece[self.model_score].metadata.title
+
+         # Update the status bar
+         self.lbl_currently_processing.setText( 'Now working on ' + \
+                                                 this_piece_name )
+
+         # Make the basso seguente part, if needed
+         seguente_part = None
+
+         # DEBUGGING
+         print( str(piece[self.model_compare_parts]) )
+
+         # Try to analyze this file
+         if 'all' == piece[self.model_compare_parts]:
+            pass
+            ## We have to examine all combinations of parts.
+            ## How many parts are in this piece?
+            #number_of_parts = len(the_score.parts)
+            ## Get a list of all the part-combinations to examine.
+            #parts_to_examine = calculate_all_combis( number_of_parts - 1 )
+            ## "Zero" it_took
+            #it_took = 0.0
+            ## Analyze every part combination.
+            #for set_of_parts in parts_to_examine:
+               #higher = the_score.parts[set_of_parts[0]]
+               #lower = the_score.parts[set_of_parts[1]]
+               #this_took, ly, error = vis_these_parts( [higher,lower], \
+                                                #self.settings, \
+                                                #self.statistics, \
+                                                #piece_name, \
+                                                #targeted_output )
+               #it_took += this_took
+            ## Add this duration to the cumulative duration.
+            #cumulative_analysis_duration += it_took
+            ## Print how long it took
+            #self.txt_filenames.appendPlainText( '   finished in ' + str(it_took) )
+         else:
+            # Duration for this piece
+            it_took = 0.0
+
+            # Turn the str specification of parts into a list of int (or str)
+            # NOTE: Later, we should do this in a safer way
+            comboz = eval( piece[self.model_compare_parts] )
+
+            # We should analyze all the specified part combinations
+            for combo in comboz:
+               # Get the two parts
+               higher = piece[self.model_score].parts[combo[0]]
+               lower = None
+
+               if 'bs' == lower:
+                  if basso_seguente is None:
+                     basso_seguente = make_basso_seguente( piece[self.model_score] )
+                  else:
+                     lower = basso_seguente
+               else:
+                  lower = piece[self.model_score][combo[1]]
+
+               # DEBUGGING
+               print( str(type(higher)) )
+               print( str(type(lower)) )
+
+               # Run the analysis
+               voices_took, ly, error = vis_these_parts( [higher,lower], \
+                                              self.settings, \
+                                              self.statistics, \
+                                              this_piece_name )
+
+               it_took += voices_took
+            # (end of voice-pair loop)
+
+            # Add this duration to the cumulative duration
+            cumulative_analysis_duration += it_took
+
+            # Print the duration of this piece
+            self.statusbar.showMessage( this_piece_name + ' analyzed in ' + \
+                                  str(it_took) + ' seconds', 3000 )
+      # (end of pieces loop)
+
+      # Print how long the entire analysis took
+      self.statusbar.showMessage( 'Everything analyzed in ' + \
+                                  str(cumulative_analysis_duration) + \
+                                  ' seconds', 3000 )
+
+      # If there are files we were asked to analyze, but we couldn't...
+      if len(files_not_analyzed) > 0:
+         # TODO: QDialog
+         pass
+
+      # Finally, move the GUI to the "show results" panel
+      self.main_screen.setCurrentWidget( self.page_show )
+   # End function progress_to_show() -------------------------------------------
 
    # GUI Things ("Assemble" Panel) -------------------------
    def load_statistics( self ):
@@ -779,6 +911,10 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
       self.beginRemoveRows( parent, row, row+count )
       self.pieces = self.pieces[:row] + self.pieces[row+count:]
       self.endRemoveRows()
+
+   def iterate_rows( self ):
+      for row in self.pieces:
+         yield row
 # End Class List_of_Pieces ------------------------------------------------------
 
 
