@@ -270,9 +270,6 @@ class Vis_MainWindow( Ui_MainWindow ):
          # List of part combinations (filled out later)
          comboz = None
 
-         # DEBUGGING
-         print( str(piece[self.model_compare_parts]) )
-
          # Try to analyze this file
          if 'all' == piece[self.model_compare_parts]:
             # We have to examine all combinations of parts
@@ -301,10 +298,6 @@ class Vis_MainWindow( Ui_MainWindow ):
             else:
                lower = piece[self.model_score][combo[1]]
 
-            # DEBUGGING
-            print( str(type(higher)) )
-            print( str(type(lower)) )
-
             # Run the analysis
             voices_took, ly, error = vis_these_parts( [higher,lower], \
                                            self.settings, \
@@ -314,12 +307,12 @@ class Vis_MainWindow( Ui_MainWindow ):
             it_took += voices_took
          # (end of voice-pair loop)
 
-            # Add this duration to the cumulative duration
-            cumulative_analysis_duration += it_took
+         # Add this duration to the cumulative duration
+         cumulative_analysis_duration += it_took
 
-            # Print the duration of this piece
-            self.statusbar.showMessage( this_piece_name + ' analyzed in ' + \
-                                  str(it_took) + ' seconds', 3000 )
+         # Print the duration of this piece
+         self.statusbar.showMessage( this_piece_name + ' analyzed in ' + \
+                               str(it_took) + ' seconds', 3000 )
       # (end of pieces loop)
 
       # Print how long the entire analysis took
@@ -334,6 +327,8 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Finally, move the GUI to the "show results" panel
       self.main_screen.setCurrentWidget( self.page_show )
+      self.btn_show.setEnabled( True )
+      self.btn_show.setChecked( True )
    # End function progress_to_show() -------------------------------------------
 
    # GUI Things ("Assemble" Panel) -------------------------
