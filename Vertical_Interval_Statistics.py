@@ -945,7 +945,7 @@ class Vertical_Interval_Statistics( object ):
       post = ''
       
       # (1) Figure out which values of 'n' we should output.
-      list_of_n = self.determine_list_of_n( the_settings, specs, post )
+      list_of_n = the_settings.get_property('showTheseNs')
       
       # If they want the total number of n-grams found.
       if 'total' in specs:
@@ -989,7 +989,7 @@ class Vertical_Interval_Statistics( object ):
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter )
       
       # (4.1) If some graphs are asked for, prepare them.
-      if 'graph' in specs:
+      if the_settings.get_property('outputFormat') == 'graph':
          grapharr = []
          for n in list_of_n:
             g = graph.GraphHistogram(doneAction=None,tickFontSize=12)

@@ -39,10 +39,12 @@ from PyQt4 import Qt, QtCore, QtGui
 # music21
 from music21 import converter
 from music21.converter import ConverterException, ConverterFileException
+from music21 import graph
 # vis
 from problems import NonsensicalInputWarning
 from gui_files.Ui_select_offset import Ui_Select_Offset
 from gui_files.Ui_new_main_window import Ui_MainWindow
+from gui_files.Ui_text_display import Ui_Text_Display
 #from gui_files.Ui_select_voices import Ui_select_voices
 from problems import NonsensicalInputError, MissingInformationError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
@@ -91,6 +93,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_about.clicked.connect( self.tool_about )
       self.btn_analyze.clicked.connect( self.tool_analyze )
       self.btn_show.clicked.connect( self.tool_show )
+      self.btn_show_results.clicked.connect( self.show_results )
       self.rdo_intervals.clicked.connect( self.choose_intervals )
       self.rdo_ngrams.clicked.connect( self.choose_ngrams )
       self.rdo_targeted_score.clicked.connect( self.update_output_format )
@@ -142,6 +145,23 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.main_screen.setCurrentWidget( self.page_about )
 
    # GUI Things ("Show" Panel) -----------------------------
+   def show_results( self ):
+      i_or_n = self.settings.get_property('intervalsOrNgrams')
+      formatted_output = None
+      if 'ngrams' == i_or_n:
+         formatted_output = self.statistics.get_formatted_ngrams(self.settings)
+      if 'intervals' == i_or_n:
+         formatted_output = self.statistics.get_formatted_intervals(self.settings)
+      if isinstance(formatted_output,basestring):
+         dialog = Vis_Text_Display()
+         dialog.set_text(formatted_output)
+         dialog.trigger()
+      elif isinstance(formatted_output,graph.Graph):
+         formatted_output.show()
+      else:
+         for g in formatted_output:
+            g.show()
+
    def choose_intervals( self ):
       self.groupBox_n.setEnabled( False )
       self.settings.set_property('intervalsOrNgrams intervals')
@@ -178,9 +198,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.groupBox_sorted_by.setEnabled( True )
       self.groupBox_sort_order.setEnabled( True )
       self.groupBox_targeted_score.setEnabled( False )
-
-   def show_results( self ):
-      pass
 
    def update_n_values_displayed( self ):
       s = str(self.line_show_these_ns.text())
@@ -994,6 +1011,30 @@ class Vis_Load_Piece(QtCore.QThread):
       self.error = None
       return
 # End Class Vis_Load_Piece
+
+class Vis_Text_Display( Ui_Text_Display ):
+   def __init__(self):
+      self.text_display = QtGui.QDialog()
+      self.setupUi( self.text_display )
+
+   def trigger( self ):
+      self.btn_save_as.clicked.connect( self.save_as )
+      self.btn_close.clicked.connect( self.close )
+
+      self.text_display.exec_()
+
+   def set_text( self, text ):
+      self.text = text
+      self.show_text.setPlainText(text)
+		
+   def save_as( self ):
+      filename = QtGui.QFileDialog.getSaveFileName(None,'Save As','','*.txt')
+      fp = open(filename,"w")
+      fp.write(self.text)
+      fp.close()
+
+   def close( self ):
+      self.text_display.done(0)
 
 class Vis_Select_Offset( Ui_Select_Offset ):
    '''
