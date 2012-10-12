@@ -54,6 +54,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    # "self" Objects
    #---------------
+   # app object
    # self.gui_file_list :
    # self.gui_pieces_list :
    # self.statistics :
@@ -80,8 +81,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.model_offset = 3 # offset Duration between vertical intervals
       self.model_n = 4 # values of "n" to find
       self.model_compare_parts = 5 # list of two-element lists of part indices
-
-
 
    # Link all the signals with their methods.
    def setup_signals( self ):
@@ -208,22 +207,16 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.progress_bar.setMinimum(0)
       self.progress_bar.setMaximum(self.analysis_files.rowCount())
       for i,fp in enumerate(list(self.analysis_files.iterator()),start=1):
-         self.lbl_status_text.setText("Please wait... importing "+fp)
-         score = None
-         try:
-            score = converter.parse(str(fp))
-         except (ConverterException,ConverterFileException) as e:
-            failed_files.append(fp)
-            continue
-         last = self.analysis_pieces.rowCount()
-         self.analysis_pieces.insertRows(last,1)
-         index = self.analysis_pieces.createIndex(last,0)
-         self.analysis_pieces.setData(index,fp,QtCore.Qt.EditRole)
-         index = self.analysis_pieces.createIndex(last,1)
-         self.analysis_pieces.setData(index,score,QtCore.Qt.EditRole)
-         index = self.analysis_pieces.createIndex(last,2)
-         self.analysis_pieces.setData(index,[p.id for p in score.parts],QtCore.Qt.EditRole)
+         self.lbl_currently_processing.setText("Importing "+fp+"...")
+         self.app.processEvents()
+         thread = Vis_Load_Piece()
+         thread.setup(fp,self)
+         thread.start()
+         thread.wait()
+         if thread.error is not None:
+            failed_files.append(thread.error)
          self.progress_bar.setValue(i)
+         self.app.processEvents()
 
       # finally, move the GUI to the "assemble" panel
       self.btn_analyze.setEnabled( True )
@@ -803,7 +796,7 @@ class List_of_Files( QtCore.QAbstractListModel ):
          return False
 
    def insertRows( self, row, count, parent=QtCore.QModelIndex() ):
-      self.beginInsertRows( parent, row, row+count )
+      self.beginInsertRows( parent, row, row+count-1 )
       new_files = self.files[:row]
       for zed in xrange( count ):
          new_files.append( '' )
@@ -822,7 +815,7 @@ class List_of_Files( QtCore.QAbstractListModel ):
          yield f
 
    def removeRows( self, row, count, parent=QtCore.QModelIndex() ):
-      self.beginRemoveRows( parent, row, row )
+      self.beginRemoveRows( parent, row, row+count-1 )
       self.files = self.files[:row] + self.files[row+count:]
       self.endRemoveRows()
 # End Class List_of_Files ------------------------------------------------------
@@ -871,9 +864,9 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
                   return QtCore.QVariant('')
             elif self.model_parts_list == index.column():
                # this is for the part names
-               return QtCore.QVariant( str([str(p) for p in self.pieces[index.row()][index.column()]])[1:-1] )
+               return QtCore.QVariant( str(self.pieces[index.row()][index.column()])[1:-1] )
             elif self.model_n == index.column():
-               return ",".join(str(n) for n in self.pieces[index.row()][index.column()])
+               return QtCore.QVariant(",".join(str(n) for n in self.pieces[index.row()][index.column()]))
             else:
                return QtCore.QVariant( self.pieces[index.row()][index.column()] )
          elif 'raw_list' == role:
@@ -902,13 +895,13 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
          return False
 
    def insertRows( self, row, count, parent=QtCore.QModelIndex() ):
-      self.beginInsertRows( parent, row, row+count )
+      self.beginInsertRows( parent, row, row+count-1 )
       for zed in xrange(count):
          self.pieces.insert(row,['',None,[],0.5,[2],[]])
       self.endInsertRows()
 
    def removeRows( self, row, count, parent=QtCore.QModelIndex() ):
-      self.beginRemoveRows( parent, row, row+count )
+      self.beginRemoveRows( parent, row, row+count-1 )
       self.pieces = self.pieces[:row] + self.pieces[row+count:]
       self.endRemoveRows()
 
@@ -917,7 +910,34 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
          yield row
 # End Class List_of_Pieces ------------------------------------------------------
 
+class Vis_Load_Piece(QtCore.QThread):
+   def setup( self, fp, widget ):
+      self.fp = fp
+      self.widget = widget
+      self.error = None
 
+   def run( self ):
+      widget = self.widget
+      fp = self.fp
+      score = None
+      try:
+         score = converter.parse(str(fp))
+      except (ConverterException,ConverterFileException) as e:
+         self.error = fp
+         return
+      pieces = widget.analysis_pieces
+      last = pieces.rowCount()
+      pieces.insertRows(last,1)
+      print "insertRows called!"
+      index = pieces.createIndex(last,pieces.model_filename)
+      pieces.setData(index,fp,QtCore.Qt.EditRole)
+      index = pieces.createIndex(last,pieces.model_score)
+      pieces.setData(index,score,QtCore.Qt.EditRole)
+      index = pieces.createIndex(last,pieces.model_parts_list)
+      pieces.setData(index,[str(p.id) for p in score.parts],QtCore.Qt.EditRole)
+      self.error = None
+      return
+# End Class Vis_Load_Piece
 
 class Vis_Select_Offset( Ui_Select_Offset ):
    '''
@@ -987,14 +1007,13 @@ class Vis_Select_Offset( Ui_Select_Offset ):
       self.line_music21_duration.setText( str(self.current_duration) )
 # End Class Vis_Select_Offset --------------------------------------------------
 
-
-
 # "Main" Method ----------------------------------------------------------------
 def main():
    # Standard stuff
    app = QtGui.QApplication( sys.argv )
    MainWindow = QtGui.QMainWindow()
    vis_ui = Vis_MainWindow()
+   vis_ui.app = app
    vis_ui.setupUi( MainWindow )
    # vis stuff
    vis_ui.analysis_files = List_of_Files( vis_ui.gui_file_list )
