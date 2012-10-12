@@ -50,12 +50,12 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    # "self" Objects
    #---------------
-   # self.analysis_files : a list of pathnames for analysis
-   # self.analysis_pieces : a List_of_Pieces object
-   # self.lilypond_version_numbers : the 3-tuplet of a LilyPond version
-   # self.settings : a VIS_Settings instance
-   # self.statistics : a Vertical_Interval_Statistics instance
-   # self.targeted_lily_options : options for "targeted LilyPond output"
+   # self.gui_file_list :
+   # self.gui_pieces_list :
+   # self.statistics
+   # self.piece_checkboxes
+   # -- Index values for columns in self.gui_pieces_list --
+   # self.model_offset
 
    # Create the settings and statistics objects for vis.
    def setup_vis( self ):
@@ -65,14 +65,15 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Hold a list of checkboxes that represent the parts in a piece
       self.piece_checkboxes = None
 
-      #self.settings = VIS_Settings()
+      # These be the index values for columns in the list-of-pieces model.
+      self.model_filename = 0 # filename of the piece
+      self.model_score = 1 # Score object and title
+      self.model_parts_list = 2 # list of names of parts
+      self.model_offset = 3 # offset Duration between vertical intervals
+      self.model_n = 4 # values of "n" to find
+      self.model_compare_parts = 5 # list of two-element lists of part indices
 
-      ## Hold the list of filenames to analyze.
-      #self.analysis_files = []
-      ## Hold the list of instructions for doing targeted analysis.
-      #self.targeted_lily_options = []
-      ## Hold a 3-tuplet of the LilyPond version number
-      #self.lilypond_version_numbers = None
+
 
    # Link all the signals with their methods.
    def setup_signals( self ):
@@ -368,7 +369,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # column(), set it to the thing specified
       selected_cells = self.gui_pieces_list.selectedIndexes()
       for cell in selected_cells:
-         if 5 == cell.column():
+         if self.model_compare_parts == cell.column():
             self.analysis_pieces.setData( cell, part_spec, QtCore.Qt.EditRole )
 
    def update_values_of_n( self ):
@@ -383,7 +384,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # column(), set it to the thing specified
       selected_cells = self.gui_pieces_list.selectedIndexes()
       for cell in selected_cells:
-         if 4 == cell.column():
+         if self.model_n == cell.column():
             self.analysis_pieces.setData( cell, new_n, QtCore.Qt.EditRole )
 
    def update_offset_interval( self ):
@@ -398,7 +399,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # column(), set it to the thing specified
       selected_cells = self.gui_pieces_list.selectedIndexes()
       for cell in selected_cells:
-         if 3 == cell.column():
+         if self.model_offset == cell.column():
             self.analysis_pieces.setData( cell, new_offset_interval, QtCore.Qt.EditRole )
 
    def update_pieces_selection( self ):
@@ -438,7 +439,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          # (2) if the pieces have the same part names, display them
          first_parts = None
          for cell in currently_selected:
-            if 2 == cell.column():
+            if self.model_parts_list == cell.column():
                if first_parts is None:
                   first_parts = self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject()
                elif first_parts == self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject():
@@ -458,7 +459,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          # (3) if the pieces have the same offset interval, display it
          first_offset = None
          for cell in currently_selected:
-            if 3 == cell.column():
+            if self.model_offset == cell.column():
                if first_offset is None:
                   first_offset = self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject()
                elif first_offset == self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject():
@@ -470,7 +471,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          # (4) if the pieces have the same values of n, display them
          first_n = None
          for cell in currently_selected:
-            if 4 == cell.column():
+            if self.model_n == cell.column():
                if first_n is None:
                   first_n = self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject()
                elif first_n == self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject():
@@ -482,7 +483,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          # (5) Update "Compare These Parts"
          first_comp = None
          for cell in currently_selected:
-            if 5 == cell.column():
+            if self.model_compare_parts == cell.column():
                if first_comp is None:
                   first_comp = self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject()
                elif first_comp == self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject():
@@ -513,12 +514,12 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.update_part_checkboxes( currently_selected )
          # (3) Update "values of n"
          for cell in currently_selected:
-            if 4 == cell.column():
+            if self.model_n == cell.column():
                self.line_values_of_n.setText( str(self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject()) )
                break
          # (4) Update "offset interval"
          for cell in currently_selected:
-            if 3 == cell.column():
+            if self.model_offset == cell.column():
                self.line_offset_interval.setText( str(self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject()) )
                break
          # (5) Update "Compare These Parts"
@@ -537,7 +538,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       '''
 
       for cell in currently_selected:
-         if 5 == cell.column():
+         if self.model_compare_parts == cell.column():
             comparison_parts = str(self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject())
             self.line_compare_these_parts.setText( comparison_parts )
             if '[all]' == comparison_parts:
@@ -581,7 +582,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # (2) Get the list of parts
       list_of_parts = None
       for cell in currently_selected:
-         if 2 == cell.column():
+         if self.model_parts_list == cell.column():
             list_of_parts = self.analysis_pieces.data( cell, 'raw_list' ).toPyObject()
             break
 
@@ -600,8 +601,18 @@ class Vis_MainWindow( Ui_MainWindow ):
    # End update_part_checkboxes() --------------------------
 
    def launch_offset_selection( self ):
-      self.testing123 = Vis_Select_Offset()
-      self.testing123.trigger()
+      # Launch the offset-selection QDialog
+      selector = Vis_Select_Offset()
+      chosen_offset = selector.trigger()
+
+      # Update the QLineEdit
+      self.line_offset_interval.setText( str(chosen_offset) )
+
+      # Set values in the model
+      selected_cells = self.gui_pieces_list.selectedIndexes()
+      for cell in selected_cells:
+         if self.model_offset == cell.column():
+            self.analysis_pieces.setData( cell, chosen_offset, QtCore.Qt.EditRole )
 
 # Model for "Choose Files" Panel -----------------------------------------------
 class List_of_Files( QtCore.QAbstractListModel ):
@@ -669,6 +680,15 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
 
    def __init__( self, parent=QtCore.QModelIndex() ):
       QtCore.QAbstractTableModel.__init__( self, parent )
+      # "Constant" values for what each column is and the index blah
+      # NOTE: When you change these, be sure to change them in Vis_MainWindow too!
+      self.model_filename = 0 # filename of the piece
+      self.model_score = 1 # Score object and title
+      self.model_parts_list = 2 # list of names of parts
+      self.model_offset = 3 # offset Duration between vertical intervals
+      self.model_n = 4 # values of "n" to find
+      self.model_compare_parts = 5 # list of two-element lists of part indices
+
       #self.pieces = []
       self.pieces = [['/home/asdf.mxl','Symphony',['S','A','T','B'],0.5,'2','[all,bs]'], \
                      ['/home/dd.midi','Chorale',['violin','tuba'],0.5,'2,3','[[0,1]]'], \
@@ -684,7 +704,7 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
    def data(self, index, role):
       if index.isValid():
          if QtCore.Qt.DisplayRole == role:
-            if 2 == index.column():
+            if self.model_parts_list == index.column():
                # this is for the part names
                return QtCore.QVariant( str(self.pieces[index.row()][2])[1:-1] )
             else:
@@ -732,6 +752,7 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
 # End Class List_of_Pieces ------------------------------------------------------
 
 
+
 class Vis_Select_Offset( Ui_Select_Offset ):
    '''
    Display and assign actions for the offset-selection window.
@@ -740,19 +761,65 @@ class Vis_Select_Offset( Ui_Select_Offset ):
    def trigger( self ):
       # UI setup stuff
       self.select_offset = QtGui.QDialog()
-      self.v_s_o = Vis_Select_Offset()
-      self.v_s_o.setupUi( self.select_offset )
+      self.setupUi( self.select_offset )
 
       # Setup signals
-      self.v_s_o.btn_submit.clicked.connect( self.submit_button )
+      self.btn_submit.clicked.connect( self.submit_button )
+      self.btn_8.clicked.connect( self.button_8 )
+      self.btn_4.clicked.connect( self.button_4 )
+      self.btn_2.clicked.connect( self.button_2 )
+      self.btn_1.clicked.connect( self.button_1 )
+      self.btn_0_5.clicked.connect( self.button_0_5 )
+      self.btn_0_25.clicked.connect( self.button_0_25 )
+      self.btn_0_125.clicked.connect( self.button_0_125 )
+      self.btn_0_0625.clicked.connect( self.button_0_0625 )
+
+      # Variable to hold the currently-selected duration
+      self.current_duration = 0.5
 
       # Show the form!
       self.select_offset.exec_()
 
-   def submit_button( self ):
-      self.v_s_o = None
-      self.select_offset = None
+      # (User chooses stuff)
 
+      # Return the currently-selected duration
+      return self.current_duration
+
+   def submit_button( self ):
+      self.select_offset.done( 0 )
+
+   def button_8( self ):
+      self.current_duration = 8.0
+      self.line_music21_duration.setText( str(self.current_duration) )
+
+   def button_4( self ):
+      self.current_duration = 4.0
+      self.line_music21_duration.setText( str(self.current_duration) )
+
+   def button_2( self ):
+      self.current_duration = 2.0
+      self.line_music21_duration.setText( str(self.current_duration) )
+
+   def button_1( self ):
+      self.current_duration = 1.0
+      self.line_music21_duration.setText( str(self.current_duration) )
+
+   def button_0_5( self ):
+      self.current_duration = 0.5
+      self.line_music21_duration.setText( str(self.current_duration) )
+
+   def button_0_25( self ):
+      self.current_duration = 0.25
+      self.line_music21_duration.setText( str(self.current_duration) )
+
+   def button_0_125( self ):
+      self.current_duration = 0.125
+      self.line_music21_duration.setText( str(self.current_duration) )
+
+   def button_0_0625( self ):
+      self.current_duration = 0.0625
+      self.line_music21_duration.setText( str(self.current_duration) )
+# End Class Vis_Select_Offset --------------------------------------------------
 
 
 

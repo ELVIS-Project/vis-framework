@@ -34,7 +34,17 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="lineEdit"/>
+       <widget class="QLineEdit" name="line_music21_duration">
+        <property name="inputMask">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>0.5</string>
+        </property>
+        <property name="maxLength">
+         <number>12</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

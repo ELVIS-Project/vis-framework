@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/select_offset.ui'
 #
-# Created: Fri Oct 12 12:15:42 2012
+# Created: Fri Oct 12 13:45:50 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -34,9 +34,11 @@ class Ui_Select_Offset(object):
         self.label = QtGui.QLabel(self.widget)
         self.label.setObjectName(_fromUtf8("label"))
         self.horizontalLayout.addWidget(self.label)
-        self.lineEdit = QtGui.QLineEdit(self.widget)
-        self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
-        self.horizontalLayout.addWidget(self.lineEdit)
+        self.line_music21_duration = QtGui.QLineEdit(self.widget)
+        self.line_music21_duration.setInputMask(_fromUtf8(""))
+        self.line_music21_duration.setMaxLength(12)
+        self.line_music21_duration.setObjectName(_fromUtf8("line_music21_duration"))
+        self.horizontalLayout.addWidget(self.line_music21_duration)
         self.verticalLayout.addWidget(self.widget)
         self.widget_2 = QtGui.QWidget(Select_Offset)
         self.widget_2.setObjectName(_fromUtf8("widget_2"))
@@ -127,6 +129,7 @@ class Ui_Select_Offset(object):
     def retranslateUi(self, Select_Offset):
         Select_Offset.setWindowTitle(QtGui.QApplication.translate("Select_Offset", "Choose an Offset Duration", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Select_Offset", "music21 Duration:", None, QtGui.QApplication.UnicodeUTF8))
+        self.line_music21_duration.setText(QtGui.QApplication.translate("Select_Offset", "0.5", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_0_125.setText(QtGui.QApplication.translate("Select_Offset", "32nd", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_all.setText(QtGui.QApplication.translate("Select_Offset", "all", None, QtGui.QApplication.UnicodeUTF8))
 
