@@ -93,10 +93,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_show.clicked.connect( self.tool_show )
       self.rdo_intervals.clicked.connect( self.choose_intervals )
       self.rdo_ngrams.clicked.connect( self.choose_ngrams )
-      self.rdo_targeted_score.clicked.connect( self.choose_targeted_score )
-      self.rdo_chart.clicked.connect( self.unchoose_targeted_score )
-      self.rdo_score.clicked.connect( self.unchoose_targeted_score )
-      self.rdo_list.clicked.connect( self.unchoose_targeted_score )
+      self.rdo_targeted_score.clicked.connect( self.update_output_format )
+      self.rdo_chart.clicked.connect( self.update_output_format )
+      self.rdo_score.clicked.connect( self.update_output_format )
+      self.rdo_list.clicked.connect( self.update_output_format )
       self.line_show_these_ns.editingFinished.connect( self.update_n_values_displayed )
       self.line_output_most_common.editingFinished.connect( self.update_top_x )
       self.line_threshold.editingFinished.connect( self.update_threshold )
@@ -144,12 +144,14 @@ class Vis_MainWindow( Ui_MainWindow ):
    # GUI Things ("Show" Panel) -----------------------------
    def choose_intervals( self ):
       self.groupBox_n.setEnabled( False )
+      self.settings.set_property('intervalsOrNgrams intervals')
       self.lbl_most_common.setText( 'most common intervals.' )
       self.lbl_exclude_if_fewer.setText( 'Exclude intervals with fewer than' )
       self.rdo_name.setText( 'interval' )
 
    def choose_ngrams( self ):
       self.groupBox_n.setEnabled( True )
+      self.settings.set_property('intervalsOrNgrams ngrams')
       self.lbl_most_common.setText( 'most common n-grams.' )
       self.lbl_exclude_if_fewer.setText( 'Exclude n-grams with fewer than' )
       self.rdo_name.setText( 'n-gram' )
@@ -159,10 +161,68 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.groupBox_sort_order.setEnabled( False )
       self.groupBox_targeted_score.setEnabled( True )
 
+   def update_output_format( self ):
+      if self.rdo_targeted_score.isChecked():
+         self.choose_targeted_score()
+         self.settings.set_property('outputFormat targeted_score')
+      else:
+         self.unchoose_targeted_score()
+         if self.rdo_score.isChecked():
+            self.settings.set_property('outputFormat score')
+         elif self.rdo_list.isChecked():
+            self.settings.set_property('outputFormat list')
+         elif self.rdo_chart.isChecked():
+            self.settings.set_property('outputFormat graph')
+
    def unchoose_targeted_score( self ):
       self.groupBox_sorted_by.setEnabled( True )
       self.groupBox_sort_order.setEnabled( True )
       self.groupBox_targeted_score.setEnabled( False )
+
+   def show_results( self ):
+      pass
+
+   def update_n_values_displayed( self ):
+      s = str(self.line_show_these_ns.text())
+      self.settings.set_property('showTheseNs '+s)
+
+   def update_top_x( self ):
+      s = str(self.line_output_most_common.text())
+      try:
+         self.settings.set_property('topX '+s)
+      except NonsensicalInputWarning:
+         self.line_output_most_common.setText(str(self.settings.get_property('topX')))
+
+   def update_threshold( self ):
+      s = str(self.line_threshold.text())
+      try:
+         self.settings.set_property('threshold '+s)
+      except NonsensicalInputWarning:
+         self.line_threshold.setText(str(self.settings.get_property('threshold')))
+
+   def update_simple_compound( self ):
+      if self.rdo_compound.isChecked():
+         self.settings.set_property('simpleOrCompound compound')
+      else:
+         self.settings.set_property('simpleOrCompound simple')
+
+   def update_heed_quality( self ):
+      if self.rdo_heedQuality.isChecked():
+         self.settings.set_property('heedQuality true')
+      else:
+         self.settings.set_property('heedQuality false')
+
+   def update_sorted_by( self ):
+      if self.rdo_frequency.isChecked():
+         self.settings.set_property('sortBy frequency')
+      else:
+         self.settings.set_property('sortBy name')
+
+   def update_sort_order( self ):
+      if self.rdo_descending.isChecked():
+         self.settings.set_property('sortOrder descending')
+      else:
+         self.settings.set_property('sortOrder ascending')
 
    # GUI Things ("Choose Files" Panel) ---------------------
    def add_dir( self ):
@@ -761,52 +821,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       for cell in selected_cells:
          if self.model_offset == cell.column():
             self.analysis_pieces.setData( cell, chosen_offset, QtCore.Qt.EditRole )
-
-# GUI stuff ("Show" Panel) ---------------------------------
-   def show_results( self ):
-      pass
-
-   def update_n_values_displayed( self ):
-      s = str(self.line_show_these_ns.text())
-      self.settings_set_property('showTheseNs '+s)
-
-   def update_top_x( self ):
-      s = str(self.line_output_most_common.text())
-      try:
-         self.settings.set_property('topX '+s)
-      except NonsensicalInputWarning:
-         self.line_threshold.setText(str(self.settings.get_property('topX')))
-
-   def update_threshold( self ):
-      s = str(self.line_threshold.text())
-      try:
-         self.settings.set_property('threshold '+s)
-      except NonsensicalInputWarning:
-         self.line_threshold.setText(str(self.settings.get_property('threshold')))
-
-   def update_simple_compound( self ):
-      if self.rdo_compound.isChecked():
-         self.settings.set_property('simpleOrCompound compound')
-      else:
-         self.settings.set_property('simpleOrCompound simple')
-
-   def update_heed_quality( self ):
-      if self.rdo_heedQuality.isChecked():
-         self.settings.set_property('heedQuality true')
-      else:
-         self.settings.set_property('heedQuality false')
-
-   def update_sorted_by( self ):
-      if self.rdo_frequency.isChecked():
-         self.settings.set_property('sortBy frequency')
-      else:
-         self.settings.set_property('sortBy name')
-
-   def update_sort_order( self ):
-      if self.rdo_descending.isChecked():
-         self.settings.set_property('sortOrder descending')
-      else:
-         self.settings.set_property('sortOrder ascending')
 
 # Model for "Choose Files" Panel -----------------------------------------------
 class List_of_Files( QtCore.QAbstractListModel ):
