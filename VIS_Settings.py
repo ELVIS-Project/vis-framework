@@ -66,6 +66,11 @@ class VIS_Settings:
       self._secret_settings_hash['lilypondVersion'] = res[1]
       self._secret_settings_hash['lilypondVersionNumbers'] = \
          make_lily_version_numbers( res[1] )
+      self._secret_settings_hash['topX'] = 10
+      self._secret_settings_hash['threshold'] = 1
+      self._secret_settings_hash['sortBy'] = 'frequency'
+      self._secret_settings_hash['sortOrder'] = 'descending'
+      self._secret_settings_hash['showTheseNs'] = [2]
 
    # Helper method to test whether a str contains a boolean value.
    @staticmethod
@@ -137,8 +142,15 @@ class VIS_Settings:
 
       # If the property is 'n' we need to parse the list of values into
       # a real list of int.
-      if 'lookForTheseNs' == setting:
+      if 'lookForTheseNs' == setting or 'showTheseNs' == setting:
          value = VIS_Settings._parse_list_of_n( value )
+
+      if 'threshold' == setting or 'topX' == setting:
+         try:
+            value = int(value)
+         except ValueError as vale:
+            msg = 'Invalid value for '+setting+'; ignoring'
+            raise NonsensicalInputWarning( msg )
 
       # If the property is 'offsetBetweenInterval' then make sure we have an
       # int for this, not a str

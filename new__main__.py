@@ -40,6 +40,7 @@ from PyQt4 import Qt, QtCore, QtGui
 from music21 import converter
 from music21.converter import ConverterException, ConverterFileException
 # vis
+from problems import NonsensicalInputWarning
 from gui_files.Ui_select_offset import Ui_Select_Offset
 from gui_files.Ui_new_main_window import Ui_MainWindow
 #from gui_files.Ui_select_voices import Ui_select_voices
@@ -766,25 +767,46 @@ class Vis_MainWindow( Ui_MainWindow ):
       pass
 
    def update_n_values_displayed( self ):
-      pass
+      s = str(self.line_show_these_ns.text())
+      self.settings_set_property('showTheseNs '+s)
 
    def update_top_x( self ):
-      pass
+      s = str(self.line_output_most_common.text())
+      try:
+         self.settings.set_property('topX '+s)
+      except NonsensicalInputWarning:
+         self.line_threshold.setText(str(self.settings.get_property('topX')))
 
    def update_threshold( self ):
-      pass
+      s = str(self.line_threshold.text())
+      try:
+         self.settings.set_property('threshold '+s)
+      except NonsensicalInputWarning:
+         self.line_threshold.setText(str(self.settings.get_property('threshold')))
 
    def update_simple_compound( self ):
-      pass
+      if self.rdo_compound.isChecked():
+         self.settings.set_property('simpleOrCompound compound')
+      else:
+         self.settings.set_property('simpleOrCompound simple')
 
    def update_heed_quality( self ):
-      pass
+      if self.rdo_heedQuality.isChecked():
+         self.settings.set_property('heedQuality true')
+      else:
+         self.settings.set_property('heedQuality false')
 
    def update_sorted_by( self ):
-      pass
+      if self.rdo_frequency.isChecked():
+         self.settings.set_property('sortBy frequency')
+      else:
+         self.settings.set_property('sortBy name')
 
    def update_sort_order( self ):
-      pass
+      if self.rdo_descending.isChecked():
+         self.settings.set_property('sortOrder descending')
+      else:
+         self.settings.set_property('sortOrder ascending')
 
 # Model for "Choose Files" Panel -----------------------------------------------
 class List_of_Files( QtCore.QAbstractListModel ):
