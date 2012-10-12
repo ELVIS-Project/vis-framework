@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>Select_Offset</class>
+ <widget class="QDialog" name="Select_Offset">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>417</width>
-    <height>315</height>
+    <width>246</width>
+    <height>330</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -29,7 +29,7 @@
       <item>
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>music21 Duration Value:</string>
+         <string>music21 Duration:</string>
         </property>
        </widget>
       </item>
@@ -44,43 +44,85 @@
      <layout class="QGridLayout" name="gridLayout">
       <item row="1" column="2">
        <widget class="QToolButton" name="btn_0_25">
-        <property name="text">
-         <string>sixteenth</string>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/icons/sixteenth.png</normaloff>:/icons/icons/sixteenth.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>64</height>
+         </size>
         </property>
        </widget>
       </item>
       <item row="0" column="2">
        <widget class="QToolButton" name="btn_2">
-        <property name="text">
-         <string>half</string>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/icons/half.png</normaloff>:/icons/icons/half.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>64</height>
+         </size>
         </property>
        </widget>
       </item>
       <item row="1" column="0">
        <widget class="QToolButton" name="btn_1">
-        <property name="text">
-         <string>quarter</string>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/icons/quarter.png</normaloff>:/icons/icons/quarter.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>64</height>
+         </size>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QToolButton" name="btn_4">
-        <property name="text">
-         <string>whole</string>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/icons/whole.png</normaloff>:/icons/icons/whole.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>64</height>
+         </size>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
        <widget class="QToolButton" name="btn_8">
-        <property name="text">
-         <string>double whole</string>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/icons/breve.png</normaloff>:/icons/icons/breve.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>64</height>
+         </size>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QToolButton" name="btn_0_5">
-        <property name="text">
-         <string>eighth</string>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/icons/eighth.png</normaloff>:/icons/icons/eighth.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>64</height>
+         </size>
         </property>
        </widget>
       </item>
@@ -89,17 +131,37 @@
         <property name="text">
          <string>32nd</string>
         </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/icons/thirty_second.png</normaloff>:/icons/icons/thirty_second.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>64</height>
+         </size>
+        </property>
        </widget>
       </item>
       <item row="2" column="1">
        <widget class="QToolButton" name="btn_0_0625">
-        <property name="text">
-         <string>64th</string>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/icons/icons/sixty_fourth.png</normaloff>:/icons/icons/sixty_fourth.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>32</width>
+          <height>64</height>
+         </size>
         </property>
        </widget>
       </item>
       <item row="2" column="2">
        <widget class="QToolButton" name="btn_all">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>all</string>
         </property>

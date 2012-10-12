@@ -37,8 +37,9 @@ from PyQt4 import Qt, QtCore, QtGui
 #from PyQt4.QtCore import pyqtSlot, QObject
 # music21
 # vis
+from gui_files.Ui_select_offset import Ui_Select_Offset
 from gui_files.Ui_new_main_window import Ui_MainWindow
-from gui_files.Ui_select_voices import Ui_select_voices
+#from gui_files.Ui_select_voices import Ui_select_voices
 from problems import NonsensicalInputError, MissingInformationError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 
@@ -99,6 +100,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.line_compare_these_parts.editingFinished.connect( self.add_parts_combo_by_lineEdit )
       self.line_values_of_n.editingFinished.connect( self.update_values_of_n )
       self.line_offset_interval.editingFinished.connect( self.update_offset_interval )
+      self.btn_choose_note.clicked.connect( self.launch_offset_selection )
 
    # GUI Things (Main Menu Toolbar) ------------------------
    def tool_choose( self ):
@@ -597,6 +599,10 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.verticalLayout_22.addWidget( part )
    # End update_part_checkboxes() --------------------------
 
+   def launch_offset_selection( self ):
+      self.testing123 = Vis_Select_Offset()
+      self.testing123.trigger()
+
 # Model for "Choose Files" Panel -----------------------------------------------
 class List_of_Files( QtCore.QAbstractListModel ):
    def __init__( self, parent=None, *args ):
@@ -724,6 +730,29 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
       #self.files = self.files[:row] + self.files[row+count:]
       #self.endRemoveRows()
 # End Class List_of_Pieces ------------------------------------------------------
+
+
+class Vis_Select_Offset( Ui_Select_Offset ):
+   '''
+   Display and assign actions for the offset-selection window.
+   '''
+
+   def trigger( self ):
+      # UI setup stuff
+      self.select_offset = QtGui.QDialog()
+      self.v_s_o = Vis_Select_Offset()
+      self.v_s_o.setupUi( self.select_offset )
+
+      # Setup signals
+      self.v_s_o.btn_submit.clicked.connect( self.submit_button )
+
+      # Show the form!
+      self.select_offset.exec_()
+
+   def submit_button( self ):
+      self.v_s_o = None
+      self.select_offset = None
+
 
 
 
