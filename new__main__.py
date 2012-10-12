@@ -268,15 +268,11 @@ class Vis_MainWindow( Ui_MainWindow ):
          return None
 
       # Hold indices of the selected checkboxes
-      selected_checkboxes = []
+      selected_checkboxes = [i for i,cb in enumerate(self.piece_checkboxes)
+                             if cb.isChecked()]
 
       # Hold the vis-format specification
       vis_format = None
-
-      # What are the index numbers of the currently-selected checkbox?
-      for i in xrange(len(self.piece_checkboxes)):
-         if self.piece_checkboxes[i].isChecked():
-            selected_checkboxes.append( i )
 
       # How many checkboxes are selected?
       if 1 == len(selected_checkboxes):
@@ -690,7 +686,7 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
          elif 'raw_list' == role:
             return QtCore.QVariant( self.pieces[index.row()][index.column()] )
          else:
-            return QtCore.QVariant(QtCore.QVariant.Invalid)
+            return QtCore.QVariant()
 
    def headerData( self, section, orientation, role ):
       header_names = ['Path', 'Title', 'List of Part Names', 'Offset', 'n', \
