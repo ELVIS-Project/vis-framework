@@ -596,6 +596,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       if self.piece_checkboxes is not None:
          for part in self.piece_checkboxes:
             self.verticalLayout_22.removeWidget( part )
+            part.destroy()
          self.piece_checkboxes = None
 
       # (2) Get the list of parts
@@ -792,7 +793,6 @@ class Vis_Load_Piece(QtCore.QThread):
       pieces = widget.analysis_pieces
       last = pieces.rowCount()
       pieces.insertRows(last,1)
-      print "insertRows called!"
       index = pieces.createIndex(last,pieces.model_filename)
       pieces.setData(index,fp,QtCore.Qt.EditRole)
       index = pieces.createIndex(last,pieces.model_score)
