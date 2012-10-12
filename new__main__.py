@@ -886,7 +886,7 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
    def insertRows( self, row, count, parent=QtCore.QModelIndex() ):
       self.beginInsertRows( parent, row, row+count-1 )
       for zed in xrange(count):
-         self.pieces.insert(row,['',None,[],0.5,[2],[]])
+         self.pieces.insert(row,['',None,[],0.5,[2],"(no selection)"])
       self.endInsertRows()
 
    def removeRows( self, row, count, parent=QtCore.QModelIndex() ):
