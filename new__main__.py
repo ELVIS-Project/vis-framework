@@ -324,17 +324,13 @@ class Vis_MainWindow( Ui_MainWindow ):
       Settings, files, directories, and stats will be used from the "self"
       object.
       '''
-      #-------------------------------------------------------
-      def calculate_all_combis( upto ):
-         # Calculate all combinations of integers between 0 and the argument.
-         #
-         # Includes a 0th item... the argument should be len(whatevs) - 1.
-         post = []
-         for left in xrange(upto):
-            for right in xrange(left+1,upto+1):
-               post.append( [left,right] )
-         return post
-      #-------------------------------------------------------
+
+      # Move to the "working"/"please wait" panel
+      self.tool_working()
+
+      # Prepare the progress_bar
+      self.progress_bar.setMinimum(0)
+      self.progress_bar.setMaximum( self.analysis_pieces.rowCount() )
 
       # Hold a list of pieces that failed during analysis.
       files_not_analyzed = []
@@ -343,72 +339,40 @@ class Vis_MainWindow( Ui_MainWindow ):
       cumulative_analysis_duration = 0.0
 
       # Go through all the files/directories.
-      for piece in self.analysis_pieces.iterate_rows():
+      for i, piece in enumerate( list(self.analysis_pieces.iterate_rows()), start=1 ):
          # Duration for this piece
-         it_took = 0.0
+         this_piece_time = 0.0
 
          # Find the name of this piece
-         this_piece_name = piece[self.model_score].metadata.title
+         this_piece_name = None
+         if piece[self.model_score].metadata is None:
+            this_piece_name = 'asdf!'
+         else:
+            this_piece_name = piece[self.model_score].metadata.title
 
          # Update the status bar
-         self.lbl_currently_processing.setText( 'Now working on ' + \
+         self.lbl_currently_processing.setText( 'Now analyzing ' + \
                                                  this_piece_name )
 
-         # Make the basso seguente part, if needed
-         seguente_part = None
-
-         # List of part combinations (filled out later)
-         comboz = None
-
-         # Try to analyze this file
-         if 'all' == piece[self.model_compare_parts]:
-            # We have to examine all combinations of parts
-
-            # How many parts are in this piece?
-            number_of_parts = len(the_score.parts)
-
-            # Get a list of all the part-combinations to examine
-            comboz = calculate_all_combis( number_of_parts - 1 )
-         else:
-            # Turn the str specification of parts into a list of int (or str)
-            # NOTE: Later, we should do this in a safer way
-            comboz = eval( piece[self.model_compare_parts] )
-
-         # Analyze all the specified part combinations
-         for combo in comboz:
-            # Get the two parts
-            higher = piece[self.model_score].parts[combo[0]]
-            lower = None
-
-            if 'bs' == lower:
-               if basso_seguente is None:
-                  basso_seguente = make_basso_seguente( piece[self.model_score] )
-               else:
-                  lower = basso_seguente
-            else:
-               lower = piece[self.model_score][combo[1]]
-
-            # Run the analysis
-            voices_took, ly, error = vis_these_parts( [higher,lower], \
-                                           self.settings, \
-                                           self.statistics, \
-                                           this_piece_name )
-
-            it_took += voices_took
-         # (end of voice-pair loop)
-
-         # Add this duration to the cumulative duration
-         cumulative_analysis_duration += it_took
+         # Run the multi-threading part
+         self.app.processEvents()
+         thread = Vis_Analyze_Piece()
+         thread.setup( piece, self, this_piece_name )
+         this_piece_time = 5.0
+         thread.start()
+         thread.wait()
+         self.progress_bar.setValue( i )
+         self.app.processEvents()
 
          # Print the duration of this piece
          self.statusbar.showMessage( this_piece_name + ' analyzed in ' + \
-                               str(it_took) + ' seconds', 3000 )
+                            str(this_piece_time) + ' seconds', 3000 )
       # (end of pieces loop)
 
       # Print how long the entire analysis took
       self.statusbar.showMessage( 'Everything analyzed in ' + \
                                   str(cumulative_analysis_duration) + \
-                                  ' seconds', 3000 )
+                                  ' seconds', 30000 )
 
       # If there are files we were asked to analyze, but we couldn't...
       if len(files_not_analyzed) > 0:
@@ -984,6 +948,8 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
          yield row
 # End Class List_of_Pieces ------------------------------------------------------
 
+
+
 class Vis_Load_Piece(QtCore.QThread):
    def setup( self, fp, widget ):
       self.fp = fp
@@ -991,50 +957,112 @@ class Vis_Load_Piece(QtCore.QThread):
       self.error = None
 
    def run( self ):
+      # Load all the pieces from the files list into the pieces list
+
+      # For convenience
       widget = self.widget
+      pieces = widget.analysis_pieces
       fp = self.fp
+      last = pieces.rowCount()
+
       score = None
+
       try:
          score = converter.parse(str(fp))
       except (ConverterException,ConverterFileException) as e:
          self.error = fp
          return
-      pieces = widget.analysis_pieces
-      last = pieces.rowCount()
-      pieces.insertRows(last,1)
-      index = pieces.createIndex(last,pieces.model_filename)
-      pieces.setData(index,fp,QtCore.Qt.EditRole)
-      index = pieces.createIndex(last,pieces.model_score)
-      pieces.setData(index,score,QtCore.Qt.EditRole)
-      index = pieces.createIndex(last,pieces.model_parts_list)
-      pieces.setData(index,[str(p.id) for p in score.parts],QtCore.Qt.EditRole)
+
+      # Move things into the List_of_Pieces
+      pieces.insertRows( last, 1 )
+      index = pieces.createIndex( last, pieces.model_filename )
+      pieces.setData( index, fp, QtCore.Qt.EditRole )
+      index = pieces.createIndex( last, pieces.model_score )
+      pieces.setData( index, score, QtCore.Qt.EditRole )
+      index = pieces.createIndex( last, pieces.model_parts_list )
+      pieces.setData( index, [str(p.id) for p in score.parts], \
+                      QtCore.Qt.EditRole )
       self.error = None
+
       return
 # End Class Vis_Load_Piece
 
-class Vis_Text_Display( Ui_Text_Display ):
-   def __init__(self):
-      self.text_display = QtGui.QDialog()
-      self.setupUi( self.text_display )
 
-   def trigger( self ):
-      self.btn_save_as.clicked.connect( self.save_as )
-      self.btn_close.clicked.connect( self.close )
 
-      self.text_display.exec_()
+class Vis_Analyze_Piece( QtCore.QThread ):
+   #-------------------------------------------------------
+   def calculate_all_combis( upto ):
+      # Calculate all combinations of integers between 0 and the argument.
+      #
+      # Includes a 0th item... the argument should be len(whatevs) - 1.
+      post = []
+      for left in xrange(upto):
+         for right in xrange(left+1,upto+1):
+            post.append( [left,right] )
+      return post
+   #-------------------------------------------------------
 
-   def set_text( self, text ):
-      self.text = text
-      self.show_text.setPlainText(text)
-		
-   def save_as( self ):
-      filename = QtGui.QFileDialog.getSaveFileName(None,'Save As','','*.txt')
-      fp = open(filename,"w")
-      fp.write(self.text)
-      fp.close()
+   def setup( self, piece_data, widget, this_piece_name ):
+      self.piece_data = piece_data # the row from the List_of_Pieces model
+      self.widget = widget # what was the "self" object in Vis_MainWindow
+      self.name = this_piece_name
 
-   def close( self ):
-      self.text_display.done(0)
+   def run( self ):
+      # "stats" is the V_I_S object
+      # Hold the basso seguente part, if needed
+      seguente_part = None
+
+      # List of part combinations (filled out later)
+      comboz = None
+
+      # How long this piece took
+      piece_duration = 0.0
+
+      # Try to analyze this file
+      if 'all' == self.piece_data[self.widget.model_compare_parts]:
+         # We have to examine all combinations of parts
+
+         # How many parts are in this piece?
+         number_of_parts = len(the_score.parts)
+
+         # Get a list of all the part-combinations to examine
+         comboz = Vis_Analyze_Piece.calculate_all_combis( number_of_parts - 1 )
+      else:
+         # Turn the str specification of parts into a list of int (or str)
+         # NOTE: Later, we should do this in a safer way
+         comboz = eval( self.piece_data[self.widget.model_compare_parts] )
+
+      # Analyze all the specified part combinations
+      for combo in comboz:
+         # DEBUGGING
+         print( str(len(self.piece_data[self.widget.model_score].parts)) )
+
+         # Get the two parts
+         higher = self.piece_data[self.widget.model_score].parts[combo[0]]
+         lower = None
+
+         if 'bs' == lower:
+            if basso_seguente is None:
+               basso_seguente = make_basso_seguente( self.piece_data[self.widget.model_score] )
+            else:
+               lower = basso_seguente
+         else:
+            lower = self.piece_data[self.widget.model_score][combo[1]]
+
+         # Run the analysis
+         voices_took, ly, error = vis_these_parts( [higher,lower], \
+                                        self.widget.settings, \
+                                        self.widget.statistics, \
+                                        self.name )
+
+         piece_duration += voices_took
+      # (end of voice-pair loop)
+
+      #return piece_duration
+      return
+# End Class Vis_Analyze_Piece --------------------------------------------------
+
+
 
 class Vis_Select_Offset( Ui_Select_Offset ):
    '''
@@ -1103,6 +1131,35 @@ class Vis_Select_Offset( Ui_Select_Offset ):
       self.current_duration = 0.0625
       self.line_music21_duration.setText( str(self.current_duration) )
 # End Class Vis_Select_Offset --------------------------------------------------
+
+
+
+class Vis_Text_Display( Ui_Text_Display ):
+   def __init__(self):
+      self.text_display = QtGui.QDialog()
+      self.setupUi( self.text_display )
+
+   def trigger( self ):
+      self.btn_save_as.clicked.connect( self.save_as )
+      self.btn_close.clicked.connect( self.close )
+
+      self.text_display.exec_()
+
+   def set_text( self, text ):
+      self.text = text
+      self.show_text.setPlainText(text)
+
+   def save_as( self ):
+      filename = QtGui.QFileDialog.getSaveFileName(None,'Save As','','*.txt')
+      fp = open(filename,"w")
+      fp.write(self.text)
+      fp.close()
+
+   def close( self ):
+      self.text_display.done(0)
+# End Class Vis_Text_Display ---------------------------------------------------
+
+
 
 # "Main" Method ----------------------------------------------------------------
 def main():
