@@ -41,10 +41,10 @@ if __name__ == '__main__':
    #unittest.TextTestRunner( verbosity = 2 ).run( Test_Sorting.suite ) # works
    #unittest.TextTestRunner( verbosity = 2 ).run( Test_NGram.suite ) # works
    #unittest.TextTestRunner( verbosity = 2 ).run( Test_Vertical_Interval_Statistics.suite ) # works
-   #unittest.TextTestRunner( verbosity = 2 ).run( Test_Output_Formatting.suite ) # works
+   #unittest.TextTestRunner( verbosity = 2 ).run( Test_Output_Formatting.suite ) # broken
 
    # Suites for the Analysis Engine
-   #unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Unit.suite ) # works
-   #unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Integration_Short.suite ) # works
-   #unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Integration_Long.suite ) # works
+   unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Unit.suite ) # works
+   unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Integration_Short.suite ) # works
+   unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Integration_Long.suite ) # works
    unittest.TextTestRunner( verbosity = 2 ).run( Test_Other_Analysis_Engine.suite ) # works

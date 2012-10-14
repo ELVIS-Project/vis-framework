@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project vis -->
-<!-- Saved: 2012-09-25, 21:16:30 -->
+<!-- Saved: 2012-10-12, 21:21:50 -->
 <!-- Copyright (C) 2012 Christopher Antila, Jamie Klassen, christopher.antila@mail.mcgill.ca -->
 <Project version="4.6">
   <Language>en</Language>
@@ -26,9 +26,7 @@
     <Source>test_corpus/test_theSixth.py</Source>
     <Source>Vertical_Interval_Statistics.py</Source>
     <Source>vis-test.py</Source>
-    <Source>qt/Ui_main_window.py</Source>
     <Source>__main__.py</Source>
-    <Source>qt/__init__.py</Source>
     <Source>vis_test/Test_Sorting.py</Source>
     <Source>vis_test/Test_Vertical_Interval_Statistics.py</Source>
     <Source>vis_test/__init__.py</Source>
@@ -38,27 +36,31 @@
     <Source>vis_test/Test_Output_Formatting.py</Source>
     <Source>vis_test/Test_NGram.py</Source>
     <Source>vis_test/Test_Analysis_Engine_Integration_Long.py</Source>
-    <Source>qt/Ui_select_voices.py</Source>
     <Source>vis_test/Test_Other_Analysis_Engine.py</Source>
-    <Source>qt/Ui_new_main_window.py</Source>
-    <Source>qt/icons_rc.py</Source>
     <Source>new__main__.py</Source>
+    <Source>gui_files/Ui_main_window.py</Source>
+    <Source>gui_files/icons_rc.py</Source>
+    <Source>gui_files/Ui_new_main_window.py</Source>
+    <Source>gui_files/Ui_select_voices.py</Source>
+    <Source>gui_files/__init__.py</Source>
+    <Source>gui_files/Ui_select_offset.py</Source>
+    <Source>gui_files/Ui_text_display.py</Source>
   </Sources>
   <Forms>
-    <Form>qt/main_window.ui</Form>
-    <Form>qt/select_voices.ui</Form>
-    <Form>qt/new_main_window.ui</Form>
-    <Form>qt/select_offset.ui</Form>
+    <Form>gui_files/main_window.ui</Form>
+    <Form>gui_files/new_main_window.ui</Form>
+    <Form>gui_files/select_offset.ui</Form>
+    <Form>gui_files/select_voices.ui</Form>
+    <Form>gui_files/text_display.ui</Form>
   </Forms>
   <Translations>
   </Translations>
   <Resources>
-    <Resource>qt/icons.qrc</Resource>
+    <Resource>gui_files/icons.qrc</Resource>
   </Resources>
   <Interfaces>
   </Interfaces>
   <Others>
-    <Other>qt/select_voices</Other>
   </Others>
   <MainScript>__main__.py</MainScript>
   <Vcs>
