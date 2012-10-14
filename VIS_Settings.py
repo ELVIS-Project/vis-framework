@@ -66,8 +66,8 @@ class VIS_Settings:
       self._secret_settings_hash['lilypondVersion'] = res[1]
       self._secret_settings_hash['lilypondVersionNumbers'] = \
          make_lily_version_numbers( res[1] )
-      self._secret_settings_hash['topX'] = 10
-      self._secret_settings_hash['threshold'] = 1
+      self._secret_settings_hash['topX'] = None
+      self._secret_settings_hash['threshold'] = None
       self._secret_settings_hash['sortBy'] = 'frequency'
       self._secret_settings_hash['sortOrder'] = 'descending'
       self._secret_settings_hash['showTheseNs'] = [2]

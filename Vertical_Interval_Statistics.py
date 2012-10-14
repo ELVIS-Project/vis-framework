@@ -657,6 +657,9 @@ class Vertical_Interval_Statistics( object ):
       all of the formatting properties.
       '''
 
+      # TODO: remove this temporary thing
+      specs = ''
+
       # If they want the total number of intervals found.
       if 'total' in specs:
          t_n_i = 0

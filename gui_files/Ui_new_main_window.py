@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/new_main_window.ui'
 #
-# Created: Sat Oct 13 22:31:43 2012
+# Created: Sun Oct 14 19:24:29 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -516,7 +516,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.main_screen.setCurrentIndex(3)
+        self.main_screen.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -560,6 +560,7 @@ class Ui_MainWindow(object):
         self.rdo_intervals.setText(QtGui.QApplication.translate("MainWindow", "Intervals", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_ngrams.setText(QtGui.QApplication.translate("MainWindow", "N-grams", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_n.setTitle(QtGui.QApplication.translate("MainWindow", "Values of N", None, QtGui.QApplication.UnicodeUTF8))
+        self.line_show_these_ns.setText(QtGui.QApplication.translate("MainWindow", "(all)", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_9.setTitle(QtGui.QApplication.translate("MainWindow", "Octaves", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_compound.setText(QtGui.QApplication.translate("MainWindow", "Compound Intervals", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_simple.setText(QtGui.QApplication.translate("MainWindow", "Simple Intervals", None, QtGui.QApplication.UnicodeUTF8))
