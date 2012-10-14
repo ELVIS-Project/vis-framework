@@ -390,6 +390,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Accumulate the length of time spent in vis_these_parts()
       self.analysis_start_time = time.time()
 
+      # Increase the maximum number of threads, so the GUI doesn't sit around
+      # occupying a core for itself the whole time.
+      QThreadPool.globalInstance().setMaxThreadCount( QThreadPool.globalInstance().maxThreadCount() + 1 )
+
       # Go through all the files/directories.
       for i, piece in enumerate( list(self.analysis_pieces.iterate_rows()), start=0 ):
          # Find the name of this piece
@@ -404,7 +408,6 @@ class Vis_MainWindow( Ui_MainWindow ):
          thread.setup( piece, self, this_piece_name )
          QThreadPool.globalInstance().start( thread )
       # (end of pieces loop)
-
 
       # NOTE: from here to the end of the method is stuff from before increment_analysis_progress()
       # Wait for all the analysis threads to finish
