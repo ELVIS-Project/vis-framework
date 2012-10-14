@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/new_main_window.ui'
 #
-# Created: Fri Oct 12 15:14:27 2012
+# Created: Sat Oct 13 22:31:43 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -482,7 +482,7 @@ class Ui_MainWindow(object):
         self.progress_bar.setObjectName(_fromUtf8("progress_bar"))
         self.verticalLayout_21.addWidget(self.progress_bar)
         self.lbl_currently_processing = QtGui.QLabel(self.page_working)
-        self.lbl_currently_processing.setAlignment(QtCore.Qt.AlignCenter)
+        self.lbl_currently_processing.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
         self.lbl_currently_processing.setObjectName(_fromUtf8("lbl_currently_processing"))
         self.verticalLayout_21.addWidget(self.lbl_currently_processing)
         spacerItem12 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)

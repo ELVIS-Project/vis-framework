@@ -35,6 +35,7 @@ from itertools import chain
 import re
 # PyQt4
 from PyQt4 import Qt, QtCore, QtGui
+from PyQt4.QtCore import QThreadPool
 #from PyQt4.QtCore import pyqtSlot, QObject
 # music21
 from music21 import converter
@@ -137,6 +138,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    def tool_working( self ):
       self.main_screen.setCurrentWidget( self.page_working )
+      self.app.processEvents()
 
    def tool_show( self ):
       self.main_screen.setCurrentWidget( self.page_show )
@@ -146,21 +148,32 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    # GUI Things ("Show" Panel) -----------------------------
    def show_results( self ):
-      i_or_n = self.settings.get_property('intervalsOrNgrams')
+      # Should we output 'i' (intervals) or 'n' (ngrams)?
+      i_or_n = self.settings.get_property( 'intervalsOrNgrams' )
+
+      # Hold the output
       formatted_output = None
+
+      # Get the output
       if 'ngrams' == i_or_n:
-         formatted_output = self.statistics.get_formatted_ngrams(self.settings)
-      if 'intervals' == i_or_n:
-         formatted_output = self.statistics.get_formatted_intervals(self.settings)
-      if isinstance(formatted_output,basestring):
+         formatted_output = self.statistics.get_formatted_ngrams( self.settings )
+      elif 'intervals' == i_or_n:
+         formatted_output = self.statistics.get_formatted_intervals( self.settings )
+
+      # Display the output
+      if isinstance( formatted_output, basestring ):
+         # If in "list"
          dialog = Vis_Text_Display()
-         dialog.set_text(formatted_output)
+         dialog.set_text( formatted_output )
          dialog.trigger()
-      elif isinstance(formatted_output,graph.Graph):
+      elif isinstance( formatted_output, graph.Graph ):
+         # If in "chart/graph"
          formatted_output.show()
       else:
+         # ??
          for g in formatted_output:
             g.show()
+   # End show_results() ------------------------------------
 
    def choose_intervals( self ):
       self.groupBox_n.setEnabled( False )
@@ -282,6 +295,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          i += 1
    # End add_files()
 
+
+
    def remove_files( self ):
       # get a list of QModelIndex objects to remove
       to_remove = self.gui_file_list.selectedIndexes()
@@ -290,31 +305,58 @@ class Vis_MainWindow( Ui_MainWindow ):
       for file in to_remove:
          self.analysis_files.removeRows( file.row(), 1 )
 
+
+
    def progress_to_assemble( self ):
-      # move the GUI to the "working" panel
-      failed_files = []
-      self.tool_working()
-      self.progress_bar.setMinimum(0)
-      self.progress_bar.setMaximum(self.analysis_files.rowCount())
-      for i,fp in enumerate(list(self.analysis_files.iterator()),start=1):
-         self.lbl_currently_processing.setText("Importing "+fp+"...")
-         self.app.processEvents()
-         thread = Vis_Load_Piece()
-         thread.setup(fp,self)
-         thread.start()
-         thread.wait()
-         if thread.error is not None:
-            failed_files.append(thread.error)
-         self.progress_bar.setValue(i)
-         self.app.processEvents()
+      # Move the GUI to the "working" panel by loading the pieces in the files
+      # list and putting their metadata into the pieces list.
 
-      # finally, move the GUI to the "assemble" panel
-      self.btn_analyze.setEnabled( True )
-      self.btn_analyze.setChecked( True )
-      self.tool_analyze()
+      # Make sure there are some files to load
+      if 0 == self.analysis_files.rowCount():
+         # Display a QMessageBox that we won't continue unless we got pieces!
+         QtGui.QMessageBox.warning(None,
+            "Cannot Continue without Files",
+            """Please select some symbolic music notation files to process.""",
+            QtGui.QMessageBox.StandardButtons(\
+               QtGui.QMessageBox.Ok),
+            QtGui.QMessageBox.Ok)
+      else:
+         # Hold a list of files that don't work
+         failed_files = []
 
-      # Enable the arrow to move to the "Show" panel
-      self.btn_step2.setEnabled( True )
+         # Move the GUI to the "working" panel and update the GUI
+         self.tool_working()
+         self.progress_bar.setMinimum(0)
+         self.progress_bar.setMaximum(self.analysis_files.rowCount())
+
+         # Go through all the pieces and try to import them
+         for i,fp in enumerate(list(self.analysis_files.iterator()),start=1):
+            # Update the GUI's label of what piece we're on
+            self.lbl_currently_processing.setText("Importing "+fp+"...")
+            self.progress_bar.setValue( i )
+            self.app.processEvents()
+
+            # Prepare and run the import thread
+            thread = Vis_Load_Piece()
+            thread.setup( fp, self )
+            thread.start()
+            thread.wait()
+            if thread.error is not None:
+               failed_files.append( thread.error )
+
+         # finally, move the GUI to the "assemble" panel
+         self.btn_analyze.setEnabled( True )
+         self.btn_analyze.setChecked( True )
+         self.tool_analyze()
+
+         # Enable the arrow to move to the "Show" panel
+         self.btn_step2.setEnabled( True )
+
+         # Return the "processing" label to its default value
+         self.lbl_currently_processing.setText( '(processing)' )
+   # End progress_to_assemble() ----------------------------
+
+
 
    def progress_to_show( self ):
       '''
@@ -325,12 +367,13 @@ class Vis_MainWindow( Ui_MainWindow ):
       object.
       '''
 
-      # Move to the "working"/"please wait" panel
-      self.tool_working()
-
       # Prepare the progress_bar
       self.progress_bar.setMinimum(0)
       self.progress_bar.setMaximum( self.analysis_pieces.rowCount() )
+      self.lbl_currently_processing.setText( 'Please wait...' )
+
+      # Move to the "working"/"please wait" panel
+      self.tool_working()
 
       # Hold a list of pieces that failed during analysis.
       files_not_analyzed = []
@@ -339,7 +382,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       cumulative_analysis_duration = 0.0
 
       # Go through all the files/directories.
-      for i, piece in enumerate( list(self.analysis_pieces.iterate_rows()), start=1 ):
+      for i, piece in enumerate( list(self.analysis_pieces.iterate_rows()), start=0 ):
          # Duration for this piece
          this_piece_time = 0.0
 
@@ -350,29 +393,29 @@ class Vis_MainWindow( Ui_MainWindow ):
          else:
             this_piece_name = piece[self.model_score].metadata.title
 
-         # Update the status bar
-         self.lbl_currently_processing.setText( 'Now analyzing ' + \
-                                                 this_piece_name )
-
-         # Run the multi-threading part
-         self.app.processEvents()
-         thread = Vis_Analyze_Piece()
-         thread.setup( piece, self, this_piece_name )
-         this_piece_time = 5.0
-         thread.start()
-         thread.wait()
+         # Update the status bar and progress bar
+         self.lbl_status_text.setText( 'Now analyzing ' + this_piece_name )
          self.progress_bar.setValue( i )
          self.app.processEvents()
+
+         # Run the multi-threading part
+         # this_piece_time = 5.0
+         thread = Vis_Analyze_Piece()
+         thread.setup( piece, self, this_piece_name )
+         QThreadPool.globalInstance().start( thread )
 
          # Print the duration of this piece
          self.statusbar.showMessage( this_piece_name + ' analyzed in ' + \
                             str(this_piece_time) + ' seconds', 3000 )
       # (end of pieces loop)
 
+      # Wait for all the analysis threads to finish
+      QThreadPool.globalInstance().waitForDone()
+
       # Print how long the entire analysis took
       self.statusbar.showMessage( 'Everything analyzed in ' + \
                                   str(cumulative_analysis_duration) + \
-                                  ' seconds', 30000 )
+                                  ' seconds', 10000 )
 
       # If there are files we were asked to analyze, but we couldn't...
       if len(files_not_analyzed) > 0:
@@ -384,6 +427,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_show.setEnabled( True )
       self.btn_show.setChecked( True )
    # End function progress_to_show() -------------------------------------------
+
+
 
    # GUI Things ("Assemble" Panel) -------------------------
    def load_statistics( self ):
@@ -989,8 +1034,7 @@ class Vis_Load_Piece(QtCore.QThread):
 
 
 
-class Vis_Analyze_Piece( QtCore.QThread ):
-   #-------------------------------------------------------
+class Vis_Analyze_Piece( QtCore.QRunnable ):
    def calculate_all_combis( upto ):
       # Calculate all combinations of integers between 0 and the argument.
       #
@@ -1000,12 +1044,11 @@ class Vis_Analyze_Piece( QtCore.QThread ):
          for right in xrange(left+1,upto+1):
             post.append( [left,right] )
       return post
-   #-------------------------------------------------------
 
    def setup( self, piece_data, widget, this_piece_name ):
-      self.piece_data = piece_data # the row from the List_of_Pieces model
-      self.widget = widget # what was the "self" object in Vis_MainWindow
-      self.name = this_piece_name
+      self.piece_data = piece_data
+      self.widget = widget
+      self.this_piece_name = this_piece_name
 
    def run( self ):
       # "stats" is the V_I_S object
@@ -1034,9 +1077,6 @@ class Vis_Analyze_Piece( QtCore.QThread ):
 
       # Analyze all the specified part combinations
       for combo in comboz:
-         # DEBUGGING
-         print( str(len(self.piece_data[self.widget.model_score].parts)) )
-
          # Get the two parts
          higher = self.piece_data[self.widget.model_score].parts[combo[0]]
          lower = None
@@ -1053,13 +1093,10 @@ class Vis_Analyze_Piece( QtCore.QThread ):
          voices_took, ly, error = vis_these_parts( [higher,lower], \
                                         self.widget.settings, \
                                         self.widget.statistics, \
-                                        self.name )
+                                        self.this_piece_name )
 
          piece_duration += voices_took
       # (end of voice-pair loop)
-
-      #return piece_duration
-      return
 # End Class Vis_Analyze_Piece --------------------------------------------------
 
 

@@ -1098,7 +1098,7 @@
            <string>(processing)</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignHCenter|Qt::AlignTop</set>
           </property>
          </widget>
         </item>
