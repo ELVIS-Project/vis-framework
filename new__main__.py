@@ -1070,6 +1070,7 @@ class Vis_Load_Piece(QtCore.QThread):
 
 
 class Vis_Analyze_Piece( QtCore.QRunnable ):
+   @staticmethod
    def calculate_all_combis( upto ):
       # Calculate all combinations of integers between 0 and the argument.
       #
@@ -1097,11 +1098,11 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
       piece_duration = 0.0
 
       # Try to analyze this file
-      if 'all' == self.piece_data[self.widget.model_compare_parts]:
+      if '[all]' == self.piece_data[self.widget.model_compare_parts]:
          # We have to examine all combinations of parts
 
          # How many parts are in this piece?
-         number_of_parts = len(the_score.parts)
+         number_of_parts = len(self.piece_data[self.widget.model_score].parts)
 
          # Get a list of all the part-combinations to examine
          comboz = Vis_Analyze_Piece.calculate_all_combis( number_of_parts - 1 )
