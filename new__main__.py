@@ -720,10 +720,10 @@ class Vis_MainWindow( Ui_MainWindow ):
             self.update_part_checkboxes( currently_selected )
          else:
             # Then they don't all have the same name.
-            self.chk_all_voice_combos.setEnabled( False )
-            self.chk_basso_seguente.setEnabled( False )
-            #self.all_voice_combos()
+            self.chk_all_voice_combos.setEnabled( True )
+            self.chk_basso_seguente.setEnabled( True )
             self.adjust_bs()
+            self.update_part_checkboxes( 'erase' )
          # (3) if the pieces have the same offset interval, display it
          first_offset = None
          for cell in currently_selected:
@@ -839,6 +839,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       same part names (which is true when only one part is selected).
 
       The argument should be a list of the currently selected cells.
+
+      If the argument is == 'erase' then the method removes all current
+      checkboxes and stops.
       '''
 
       # (1) Remove previous checkboxes from the layout
@@ -847,6 +850,11 @@ class Vis_MainWindow( Ui_MainWindow ):
             self.verticalLayout_22.removeWidget( part )
             part.destroy()
          self.piece_checkboxes = None
+
+      # (1a) If currently_selected is "erase" then we should only erase the
+      # current checkboxes, and we should stop now.
+      if 'erase' == currently_selected:
+         return
 
       # (2) Get the list of parts
       list_of_parts = None
@@ -882,6 +890,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       for cell in selected_cells:
          if self.model_offset == cell.column():
             self.analysis_pieces.setData( cell, chosen_offset, QtCore.Qt.EditRole )
+# End Class Vis_MainWindow -----------------------------------------------------
+
+
 
 # Model for "Choose Files" Panel -----------------------------------------------
 class List_of_Files( QtCore.QAbstractListModel ):
