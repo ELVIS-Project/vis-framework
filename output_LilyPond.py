@@ -730,7 +730,7 @@ def detect_lilypond():
    - the version reported by that executable
    '''
 
-   if 'Windows' == which_os:
+   if 'Windows' == which_os():
       # TODO: properly detect this
       lily_path = 'lilypond.exe'
       lily_verzh = '2.0.0'
