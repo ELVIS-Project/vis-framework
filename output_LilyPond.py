@@ -28,6 +28,7 @@ import os # needed for writing the output file
 from subprocess import Popen, PIPE # for running bash things
 from string import letters as string_letters
 from random import choice as random_choice
+from platform import system as which_os
 # music21
 from music21 import note, clef, meter, key, stream, instrument, \
    metadata, layout, bar, humdrum, duration
@@ -728,11 +729,17 @@ def detect_lilypond():
    - the full path of the LilyPond executable
    - the version reported by that executable
    '''
-   proc = Popen( ['which', 'lilypond'], stdout=PIPE )
-   lily_path = proc.stdout.read()[:-1] # slice gets rid of terminating newline
-   proc = Popen( [lily_path, '--version'], stdout=PIPE )
-   lv = proc.stdout.read()
-   lily_verzh = lv[lv.find('LilyPond')+9:lv.find('\n')]
+
+   if 'Windows' == which_os:
+      # TODO: properly detect this
+      lily_path = 'lilypond.exe'
+      lily_verzh = '2.0.0'
+   else:
+      proc = Popen( ['which', 'lilypond'], stdout=PIPE )
+      lily_path = proc.stdout.read()[:-1] # slice gets rid of terminating newline
+      proc = Popen( [lily_path, '--version'], stdout=PIPE )
+      lv = proc.stdout.read()
+      lily_verzh = lv[lv.find('LilyPond')+9:lv.find('\n')]
 
    return ( lily_path, lily_verzh )
 #------------------------------------------------------------------------------
