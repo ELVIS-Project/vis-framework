@@ -65,9 +65,12 @@ class Vis_MainWindow( Ui_MainWindow ):
    # self.gui_pieces_list :
    # self.statistics :
    # self.settings :
-   # self.piece_checkboxes :
+   # self.piece_checkboxes : Hold a list of checkboxes that represent the parts in a piece for the "assemble" panel
    # self.analysis_files :
    # self.analysis_pieces :
+   # self.pairs_so_far : number of voice pairs analyzed so far
+   # self.total_pairs : total number of voice pairs being analyzed
+   # self.analysis_start_time : the time.time() when the analysis was started
    # -- Index values for columns in self.gui_pieces_list --
    # self.model_offset
 
@@ -77,8 +80,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.gui_pieces_list.setModel( self.analysis_pieces )
       self.statistics = Vertical_Interval_Statistics()
       self.settings = VIS_Settings()
-      # Hold a list of checkboxes that represent the parts in a piece
       self.piece_checkboxes = None
+      self.pairs_so_far = 0
+      self.total_pairs = 0
+      self.analysis_start_time = 0.0
 
       # These be the index values for columns in the list-of-pieces model.
       self.model_filename = 0 # filename of the piece
@@ -370,9 +375,9 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Prepare the progress_bar
       self.progress_bar.setMinimum( 0 )
-      self.progress_bar.setMaximum( 100 )
-      self.progress_bar.setValue( 42 )
-      self.lbl_currently_processing.setText( 'NB: The QProgressBar is meaningless.' )
+      self.progress_bar.setMaximum( 0 )
+      self.progress_bar.setValue( 0 )
+      self.lbl_currently_processing.setText( 'NB: The progress bar is only meaningless for now...' )
 
       # Move to the "working"/"please wait" panel
       self.tool_working()
@@ -383,7 +388,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # TODO: a way to know if a file fails
 
       # Accumulate the length of time spent in vis_these_parts()
-      total_analysis_duration = time.time()
+      self.analysis_start_time = time.time()
 
       # Go through all the files/directories.
       for i, piece in enumerate( list(self.analysis_pieces.iterate_rows()), start=0 ):
@@ -400,24 +405,63 @@ class Vis_MainWindow( Ui_MainWindow ):
          QThreadPool.globalInstance().start( thread )
       # (end of pieces loop)
 
+
+      # NOTE: from here to the end of the method is stuff from before increment_analysis_progress()
       # Wait for all the analysis threads to finish
       QThreadPool.globalInstance().waitForDone()
 
-      # Calculate and print how long the analysis took
-      total_analysis_duration = round( time.time() - total_analysis_duration, 2 )
+      # Calculate and display how long the analysis took
+      duration = round( time.time() - self.analysis_start_time, 2 )
       self.statusbar.showMessage( 'Everything analyzed in ' + \
-                                  str(total_analysis_duration) + \
+                                  str(duration) + \
                                   ' seconds', 10000 )
 
-      # If there are files we were asked to analyze, but we couldn't...
-      #if len(files_not_analyzed) > 0:
-         #pass
-
-      # Finally, move the GUI to the "show results" panel
+      # Move the GUI to the "show results" panel
       self.main_screen.setCurrentWidget( self.page_show )
       self.btn_show.setEnabled( True )
       self.btn_show.setChecked( True )
    # End function progress_to_show() -------------------------------------------
+
+
+
+   #@QtCore.pyqtSlot()
+   #def increment_analysis_progress( self ):
+      #'''
+      #Marks one voice pair as complete, then checks whether that means all the
+      #voice pairs are complete. If so, moves the GUI to the "show" panel.
+      #'''
+#
+      ## Increment the number of voice pairs so far calculated
+      #self.pairs_so_far += 1
+      #self.progress_bar.setValue( self.pairs_so_far )
+      #self.app.processEvents()
+#
+      ## Are we finished?
+      #if self.pairs_so_far == self.total_pairs:
+         ## Calculate and display how long the analysis took
+         #duration = round( time.time() - self.analysis_start_time, 2 )
+         #self.statusbar.showMessage( 'Everything analyzed in ' + \
+                                     #str(duration) + \
+                                     #' seconds', 10000 )
+#
+         ## Move the GUI to the "show results" panel
+         #self.main_screen.setCurrentWidget( self.page_show )
+         #self.btn_show.setEnabled( True )
+         #self.btn_show.setChecked( True )
+   ## End increment_analysis_progress() ---------------------
+
+
+
+   #@QtCore.pyqtSlot( int )
+   #def update_total_part_combos( self, add_these ):
+      #'''
+      #Add add_these number of parts to the total number of part combinations for
+      #analysis, stored in the variable "self.total_pairs," and also update the
+      #QProgressBar's "Maximum" value.
+      #'''
+#
+      #self.total_pairs += add_these
+      #self.progress_bar.setMaximum( self.total_pairs )
 
 
 
@@ -1066,35 +1110,24 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          # NOTE: Later, we should do this in a safer way
          comboz = eval( self.piece_data[self.widget.model_compare_parts] )
 
-      print( str(comboz) ) # DEBUGGING
+      # Tell the GUI how many part combinations we have
+      #self.widget.update_total_part_combos( len(comboz) )
+      #QtCore.QMetaObject.invokeMethod( self.widget, "update_total_part_combos", \
+                                       #QtCore.Q_ARG( int, len(comboz) ) )
 
       # Analyze all the specified part combinations
       for combo in comboz:
-         # DEBUGGING
-         print( str(combo) )
-         print( str(type(combo)) )
-         print( str(combo[0]) )
-         print( str(combo[1]) )
-         # END DEBUGGING
-
          # Get the two parts
          higher = self.piece_data[self.widget.model_score].parts[combo[0]]
          lower = None
 
          if 'bs' == lower:
-            print( 'using basso seguente!' ) # DEBUGGING
             if basso_seguente is None:
                basso_seguente = make_basso_seguente( self.piece_data[self.widget.model_score] )
 
             lower = basso_seguente
          else:
-            print( 'using lower part; index is ' + str(combo[1]) ) # DEBUGGING
             lower = self.piece_data[self.widget.model_score].parts[combo[1]]
-
-         # DEBUGGING
-         print( 'upper part is called "' + str(higher.id) + '" and lower is "' + \
-                str(lower.id) + '"' )
-         # END DEBUGGING
 
          # Run the analysis
          voices_took, ly, error = vis_these_parts( [higher,lower], \
@@ -1102,7 +1135,12 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
                                         self.widget.statistics, \
                                         self.this_piece_name )
 
+         # Update the duration-tracking thing
          piece_duration += voices_took
+
+         # Update the GUI
+         #QtCore.QMetaObject.invokeMethod( self.widget, "increment_analysis_progress" )
+         #self.widget.increment_analysis_progress()
       # (end of voice-pair loop)
 # End Class Vis_Analyze_Piece --------------------------------------------------
 
