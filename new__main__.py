@@ -33,6 +33,7 @@ from os.path import isfile, join, splitext
 from os import walk
 from itertools import chain
 import re
+import time
 # PyQt4
 from PyQt4 import Qt, QtCore, QtGui
 from PyQt4.QtCore import QThreadPool
@@ -368,24 +369,24 @@ class Vis_MainWindow( Ui_MainWindow ):
       '''
 
       # Prepare the progress_bar
-      self.progress_bar.setMinimum(0)
-      self.progress_bar.setMaximum( self.analysis_pieces.rowCount() )
-      self.lbl_currently_processing.setText( 'Please wait...' )
+      self.progress_bar.setMinimum( 0 )
+      self.progress_bar.setMaximum( 100 )
+      self.progress_bar.setValue( 42 )
+      self.lbl_currently_processing.setText( 'NB: The QProgressBar is meaningless.' )
 
       # Move to the "working"/"please wait" panel
       self.tool_working()
+      self.app.processEvents()
 
       # Hold a list of pieces that failed during analysis.
-      files_not_analyzed = []
+      #files_not_analyzed = []
+      # TODO: a way to know if a file fails
 
       # Accumulate the length of time spent in vis_these_parts()
-      cumulative_analysis_duration = 0.0
+      total_analysis_duration = time.time()
 
       # Go through all the files/directories.
       for i, piece in enumerate( list(self.analysis_pieces.iterate_rows()), start=0 ):
-         # Duration for this piece
-         this_piece_time = 0.0
-
          # Find the name of this piece
          this_piece_name = None
          if piece[self.model_score].metadata is None:
@@ -393,34 +394,24 @@ class Vis_MainWindow( Ui_MainWindow ):
          else:
             this_piece_name = piece[self.model_score].metadata.title
 
-         # Update the status bar and progress bar
-         self.lbl_status_text.setText( 'Now analyzing ' + this_piece_name )
-         self.progress_bar.setValue( i )
-         self.app.processEvents()
-
          # Run the multi-threading part
-         # this_piece_time = 5.0
          thread = Vis_Analyze_Piece()
          thread.setup( piece, self, this_piece_name )
          QThreadPool.globalInstance().start( thread )
-
-         # Print the duration of this piece
-         self.statusbar.showMessage( this_piece_name + ' analyzed in ' + \
-                            str(this_piece_time) + ' seconds', 3000 )
       # (end of pieces loop)
 
       # Wait for all the analysis threads to finish
       QThreadPool.globalInstance().waitForDone()
 
-      # Print how long the entire analysis took
+      # Calculate and print how long the analysis took
+      total_analysis_duration = round( time.time() - total_analysis_duration, 2 )
       self.statusbar.showMessage( 'Everything analyzed in ' + \
-                                  str(cumulative_analysis_duration) + \
+                                  str(total_analysis_duration) + \
                                   ' seconds', 10000 )
 
       # If there are files we were asked to analyze, but we couldn't...
-      if len(files_not_analyzed) > 0:
-         # TODO: QDialog
-         pass
+      #if len(files_not_analyzed) > 0:
+         #pass
 
       # Finally, move the GUI to the "show results" panel
       self.main_screen.setCurrentWidget( self.page_show )
@@ -1075,19 +1066,35 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          # NOTE: Later, we should do this in a safer way
          comboz = eval( self.piece_data[self.widget.model_compare_parts] )
 
+      print( str(comboz) ) # DEBUGGING
+
       # Analyze all the specified part combinations
       for combo in comboz:
+         # DEBUGGING
+         print( str(combo) )
+         print( str(type(combo)) )
+         print( str(combo[0]) )
+         print( str(combo[1]) )
+         # END DEBUGGING
+
          # Get the two parts
          higher = self.piece_data[self.widget.model_score].parts[combo[0]]
          lower = None
 
          if 'bs' == lower:
+            print( 'using basso seguente!' ) # DEBUGGING
             if basso_seguente is None:
                basso_seguente = make_basso_seguente( self.piece_data[self.widget.model_score] )
-            else:
-               lower = basso_seguente
+
+            lower = basso_seguente
          else:
-            lower = self.piece_data[self.widget.model_score][combo[1]]
+            print( 'using lower part; index is ' + str(combo[1]) ) # DEBUGGING
+            lower = self.piece_data[self.widget.model_score].parts[combo[1]]
+
+         # DEBUGGING
+         print( 'upper part is called "' + str(higher.id) + '" and lower is "' + \
+                str(lower.id) + '"' )
+         # END DEBUGGING
 
          # Run the analysis
          voices_took, ly, error = vis_these_parts( [higher,lower], \
