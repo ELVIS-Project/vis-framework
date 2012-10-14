@@ -47,7 +47,7 @@ import matplotlib.pyplot as plt
 class Vertical_Interval_Statistics( object ):
    '''
    Holds the statistics discovered by vis. Currently these are:
-   
+
    - number of occurrences of each Interval
    - number of occurrences of each n-gram
    '''
@@ -55,7 +55,7 @@ class Vertical_Interval_Statistics( object ):
    # quality/no-quality and simple/compound version of everything whenever you
    # want to just find the number of occurrences. Instead, we'll store all four
    # versions of that information. Memory is cheap!
-   
+
    ## Instance Data
    # _simple_interval_dict
    # _compound_interval_dict
@@ -71,10 +71,10 @@ class Vertical_Interval_Statistics( object ):
       self._simple_ngrams_dict = [{},{},{}]
       self._compound_ngrams_dict = [{},{},{}]
       self._pieces_analyzed = []
-   
+
    def __repr__( self ):
       return str(self)
-   
+
    def __str__( self ):
       # This should produce something like...
       # "<Vertical_Interval_Statistics for 1 piece with 14 intervals; 26 2-grams; 19 3-grams>"
@@ -87,7 +87,7 @@ class Vertical_Interval_Statistics( object ):
       for i in xrange(2,len(self._compound_ngrams_dict)):
          post += str(len(self._compound_ngrams_dict[i])) + ' ' + \
                  str(i) + '-grams; '
-      
+
       return post[:-2] + '>'
 
    def _validate( self ):
@@ -96,16 +96,16 @@ class Vertical_Interval_Statistics( object ):
       for s in self._pieces_analyzed:
          if not isinstance(s,str):
             raise NonsensicalInputError("_pieces_analyzed may contain only strings")
-      
+
       easy_atts = ["_simple_interval_dict","_compound_interval_dict"]
       ngram_dicts = ["_compound_ngrams_dict","_simple_ngrams_dict"]
-      
+
       def validate_values( vals,att_name ):
          for v in vals:
             if not isinstance(v,list):
                raise NonsensicalInputError(att_name+" values must be of type list")
             if len(v) != 2:
-	            raise NonsensicalInputError(att_name+" value does not have 2 items")
+               raise NonsensicalInputError(att_name+" value does not have 2 items")
             if not isinstance(v[1],list) or not isinstance(v[0],int):
                raise NonsensicalInputError(att_name+" values must be of the form [int,list]")
             for i in v[1]:
@@ -181,7 +181,7 @@ class Vertical_Interval_Statistics( object ):
             raise MissingInformationError("The dict supplied is missing the attribute "+att)
       if vis._validate():
          return vis
-   
+
    def add_interval( self, the_interval, piece_index=0 ):
       '''
       Adds a :class:`music21.interval.Interval` to the occurrences information
@@ -190,13 +190,13 @@ class Vertical_Interval_Statistics( object ):
       compound intervals. If given a compound interval, adds that to the table
       of compound intervals and the single-octave equivalent to the table of
       simple intervals.
-      
+
       Automatically accounts for tracking quality or not.
       '''
-      
+
       # NB: the "Automatically accounts for tracking quality or not" above
       # really means "it doesn't yet matter whether to track quality or not."
-      
+
       # Descending interval
 
       nbr_pieces = len(self._pieces_analyzed)
@@ -209,7 +209,7 @@ class Vertical_Interval_Statistics( object ):
             self._simple_interval_dict[simple_name] = [0,[0 for i in ran]]
          self._simple_interval_dict[simple_name][0] += 1
          self._simple_interval_dict[simple_name][1][piece_index] += 1
-            
+
          # For the dictionary of compound intervals
          compound_name = the_interval.name
          compound_name = compound_name[0] + '-' + compound_name[1:]
@@ -242,18 +242,18 @@ class Vertical_Interval_Statistics( object ):
    def get_interval_occurrences( self, which_interval, simple_or_compound='simple', piece_index=None ):
       '''
       Returns the number of occurrences of a particular
-      :class:`music21.interval.Interval` in a particular piece, 
+      :class:`music21.interval.Interval` in a particular piece,
       either (by default) from the table
       with compound intervals, or if the second argument is 'simple' then from
       the table with simple intervals.
-      
+
       Automatically accounts for tracking quality or not.
       '''
-      
+
       # str of things to help sort out what the user wants
       qualities = 'dmMPA'
       directions = '-+'
-      
+
       # Given a species (number), finds all the occurrences of any quality.
       # The second argument should be either self._simple_interval_dict or
       # self._compound_interval_dict
@@ -266,14 +266,14 @@ class Vertical_Interval_Statistics( object ):
                   post += db[quality+species][0]
                else:
                   post += db[quality+species][1][piece_index]
-         
+
          return post
       ##
-      
+
       errorstr = 'Second argument must be either "simple" or "compound"'
       #errorstr = "Vertical_Interval_Statistics.get_interval_occurrences(): " + \
             #"'simple_or_compound' must be set to either 'simple' or 'compound'"
-      
+
       # Are they ignoring quality? Yes, if the interval is just a digit or if
       # the first character is a direction
       if which_interval.isdigit() or which_interval[0] in directions:
@@ -304,13 +304,13 @@ class Vertical_Interval_Statistics( object ):
          else:
             raise NonsensicalInputError( errorstr )
    # end get_interval_occurrences()
-   
+
    def add_ngram( self, the_ngram, piece_index=0 ):
       '''
       Adds an n-gram to the occurrences information. Tracks quality, since quality
       can always be ignored, but not recovered.
       '''
-      
+
       # If there isn't yet a dictionary for this 'n' value, then we'll have to
       # make sure there is one.
       while len(self._compound_ngrams_dict) <= the_ngram._n:
@@ -320,8 +320,8 @@ class Vertical_Interval_Statistics( object ):
 
       nbr_pieces = len(self._pieces_analyzed)
       ran = range(nbr_pieces) if nbr_pieces > 0 else [0]
-      
-      # First add the compound version   
+
+      # First add the compound version
       index_ngram = Vertical_Interval_Statistics._set_heed_quality(the_ngram, False)
       detail_ngram = Vertical_Interval_Statistics._set_heed_quality(the_ngram, True)
       if index_ngram in self._compound_ngrams_dict[the_ngram._n]:
@@ -348,15 +348,15 @@ class Vertical_Interval_Statistics( object ):
          self._simple_ngrams_dict[the_ngram._n][index_ngram][detail_ngram][1][piece_index] = 1
 
    # end add_ngram()
-   
+
    def get_ngram_occurrences( self, which_ngram ):
       '''
       Returns the number of occurrences of a particular n-gram. Currently, all
       n-grams are treated as though they have compound intervals.
-      
+
       The first argument must be an NGram object or the output from either
       NGram.stringVersion or str(NGram) (which calls stringVersion() internally).
-      
+
       Automatically does or does not track quality, depending on the settings
       of the inputted NGram objects.
       '''
@@ -375,9 +375,9 @@ class Vertical_Interval_Statistics( object ):
       hq = ng._heed_quality
       the_dict = self.prepare_ngram_output_dict( VIS_Settings(), [n], 'compound'+hq )[n]
       return 0 if the_dict.get(ng) is None else the_dict[ng][0] #replace 0 with piece_index?
-      
+
    # end get_ngram_occurrences()
-   
+
    @staticmethod
    def _set_heed_quality( ngram, heed_quality ):
       ret = copy.deepcopy(ngram)
@@ -509,7 +509,7 @@ class Vertical_Interval_Statistics( object ):
 
       # (2) Decide whether to take 'quality' or 'no_quality'
       output_dict = self.prepare_ngram_output_dict(the_settings,list_of_n,specs)
-            
+
 
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -552,7 +552,7 @@ class Vertical_Interval_Statistics( object ):
                pair['n-gram'] = ngram_pairs[n][key][0]
                pair['retrograde'] = ngram_pairs[n][key][1]
                entry += (pair,)
-               data.append(entry) 
+               data.append(entry)
             g.setData(data)
             g.setTitle(str(n)+'-Grams')
             # this is a very slight edit of the music21.graph.GraphGroupedVerticalBar.process()
@@ -573,7 +573,7 @@ class Vertical_Interval_Statistics( object ):
             xVals = []
             yBundles = []
             for i, (a, b) in enumerate(getattr(g,'data')):
-               # create x vals from index values 
+               # create x vals from index values
                xVals.append(i)
                yBundles.append([b[key] for key in sorted(b.keys())])
 
@@ -588,7 +588,7 @@ class Vertical_Interval_Statistics( object ):
                   xValsShifted.append(x + (widthShift * i))
                colors = getattr(g,'colors')
 
-               rect = ax.bar(xValsShifted, yVals, width=widthShift, alpha=.8, 
+               rect = ax.bar(xValsShifted, yVals, width=widthShift, alpha=.8,
                    color=graph.getColor(colors[i % len(colors)]))
                rects.append(rect)
 
@@ -597,12 +597,12 @@ class Vertical_Interval_Statistics( object ):
                for j in range(len(rects[k])):
                   height = rects[k][j].get_height()
                   ax.text(rects[k][j].get_x()+rects[k][j].get_width()/2., height+.05, \
-                          '%s'%(str(keys[j][k])), rotation='vertical', ha='center', va='bottom', 
+                          '%s'%(str(keys[j][k])), rotation='vertical', ha='center', va='bottom',
                           fontsize=getattr(g,'tickFontSize'), family=getattr(g,'fontFamily'))
                colors.append(rects[k][0])
 
             font = matplotlib.font_manager.FontProperties(size=getattr(g,'tickFontSize'),
-                        family=getattr(g,'fontFamily')) 
+                        family=getattr(g,'fontFamily'))
             ax.legend(colors, subLabels, prop=font)
 
             g._adjustAxisSpines(ax)
@@ -618,16 +618,16 @@ class Vertical_Interval_Statistics( object ):
                post += str(ng[0]) + ': ' + str(ngram_pairs[n][ng][0]) +'; ' \
                        +str(ng[1])+': '+str(ngram_pairs[n][ng][1]) + '\n'
       return post
-      
+
    #end retrogrades()
 
    def power_law_analysis( self, the_settings ):
       post = ''
       list_of_n = self.determine_list_of_n( the_settings,'',post )
-      
+
       # (2) Decide whether to take 'quality' or 'no_quality'
       output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n, '' )
-      
+
       # (3) Sort the dictionary
       sorted_ngrams = []
       # We need to have enough 'n' places in sorted_ngrams to hold the
@@ -648,28 +648,15 @@ class Vertical_Interval_Statistics( object ):
       return post
    #end power_law_analysis()
 
-   def get_formatted_intervals( self, the_settings, specs = '' ):
+   def get_formatted_intervals( self, the_settings ):
       '''
       Returns a str with a nicely-formatted representation of the interval
       frequencies recoreded in this Vertical_Interval_Statistics() object.
-      
+
       The first argument is a VIS_Settings() object, from which we will use
-      the heedQuality and simpleOrCompound properties.
-      
-      The second argument is optional, and should be a str specifying how to
-      sort the list of intervals. The str can contain any words in any order,
-      because unrecognized words will be ignored.
-      
-      Useful list of things for the format str to contain:
-      - 'by interval' if you want to sort the list by intervals
-      - 'by frequency' if you want to sort the list by number of occurrences
-      - 'ascending' or 'low to high' if you want the lowest or least common
-         interval at the top of the list
-      - 'descending' or 'high to low' if you want the highest or most common
-         interval at the top of the list
-      - 'graph' if you want a graph instead of text
+      all of the formatting properties.
       '''
-      
+
       # If they want the total number of intervals found.
       if 'total' in specs:
          t_n_i = 0
@@ -677,22 +664,16 @@ class Vertical_Interval_Statistics( object ):
          # Use simple because there are fewer of them.
          for interv in self._simple_interval_dict.values():
             t_n_i += interv
-         
+
          return str(t_n_i)
       #--------
-      
+
       # (1) decide which dictionary to use and how to process the intervals.
       the_dict = None
-      
+
       # Does 'specs' specify whether they want compound or simple intervals?
-      s_or_c = None
-      if 'simple' in specs:
-         s_or_c = 'simple'
-      elif 'compound' in specs:
-         s_or_c = 'compound'
-      else:
-         s_or_c = the_settings.get_property( 'simpleOrCompound' )
-      
+      s_or_c = the_settings.get_property( 'simpleOrCompound' )
+
       # Do we need compound or simple intervals?
       # We need compound intervals.
       if 'compound' == s_or_c:
@@ -700,21 +681,20 @@ class Vertical_Interval_Statistics( object ):
       # We need simple intervals.
       else:
          the_dict = self._simple_interval_dict
-         
+
       # Do we need to remove quality?
-      if ('noQuality' in specs or not the_settings.get_property( 'heedQuality' )) \
-         and 'quality' not in specs:
+      if not the_settings.get_property( 'heedQuality' ):
          non_numeric = re.compile(r'[^\d-]+')
          #because, very occasionally, a regex actually does the trick.
          red = lambda k:non_numeric.sub('',k)
          keys = set(red(k) for k in the_dict.keys())
          keys = [(k,filter(lambda t:red(t[0])==k,the_dict.items())) for k in keys]
          the_dict = {k:[sum(v[0] for K,v in l),map(sum,zip(*[v[1] for K,v in l]))] for k,l in keys}
-      
+
       # (2) sort the results in the specified way.
-      if 'by frequency' in specs:         
+      if 'frequency' == the_settings.get_property( 'sortBy' ):
          # Sort the frequencies
-         if 'ascending' in specs or 'low to high' in specs:
+         if 'ascending' == the_settings.get_property( 'sortOrder' ):
             sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x] )
          else: # elif 'descending' in specs or 'high to low' in specs:
             # Default to 'descending'
@@ -722,14 +702,14 @@ class Vertical_Interval_Statistics( object ):
 
       else: # elif 'by interval' in specs:
          # Default to 'by interval'
-         if 'descending' in specs or 'high to low' in specs:
+         if 'descending' == the_settings.get_property( 'sortOrder' ):
             sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter, reverse=True )
          else: # elif 'ascending' in specs or 'low to high' in specs:
             # Default to 'ascending'
             sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter )
-      
+
       # (3.1) If a graph is asked for, return one.
-      if 'graph' in specs:
+      if 'graph' == the_settings.get_property( 'outputFormat' ):
          g = graph.GraphHistogram(doneAction=None)
          data = [(i,the_dict[interv][0]) for i, interv in enumerate(sorted_intervals)]
          g.setData(data)
@@ -790,7 +770,7 @@ class Vertical_Interval_Statistics( object ):
          row += "\n"
          post += row
       post += '\n'
-      
+
       # Done!
       return post
    # end get_formatted_intervals()
@@ -875,7 +855,7 @@ class Vertical_Interval_Statistics( object ):
                pair[file1] = table[key][0]
                pair[file2] = table[key][1]
                entry = ("bar%s"%str(k),pair)
-               data.append(entry) 
+               data.append(entry)
             g.setData(data)
             g.setTicks('x',[(k+0.4,key) for k, key in enumerate(keys)])
             g.xTickLabelRotation = 90
@@ -902,52 +882,30 @@ class Vertical_Interval_Statistics( object ):
                post += "\n{0:{1:n}}{2:{3:n}}{4}".format(ng.get_string_version(heed_quality,s_or_c),width1+2,\
                         str(table[ng][0]),width2+2,str(table[ng][1]))
             post += '\n'
-            totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()]) 
+            totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()])
             post += "\nTotal difference between "+str(n)+"-grams: "+str(totaldiff)+"\n"
       return post
    # end compare()
-   
-   def get_formatted_ngrams( self, the_settings, specs='' ):
+
+   def get_formatted_ngrams( self, the_settings ):
       '''
       Returns a str or music21.graph.Graph object with a nicely-formatted
       representation of the n-gram frequencies recoreded in this
       Vertical_Interval_Statistics() object.
-      
+
       The first argument is a VIS_Settings() object, from which we will use
-      the heedQuality property. For now, all n-grams use compound intervals.
-      
-      The second argument is optional, and should be a str specifying how to
-      sort the list of intervals and which value of 'n' to output. The str can
-      contain any words in any order, because unrecognized words are ignored.
-      
-      Useful list of things for the format str to contain:
-      - 'n=int,int' where "int" is an integer or a list of integers that are
-         the values of 'n' to output. The 'n' values should be separated by a
-         comma and end with a space or the end of the str. For example:
-            'n=4,5 ascending'
-            'n=3'
-         If you do not specify 'n=' then the method outputs all values in this
-         Vertical_Interval_Statistics instance. If you specify invalid values
-         of 'n' they will be ignored. If you specify only invalid values of 'n'
-         the method will raise a MissingInformationError().
-      - 'by ngram' or 'by n-gram' if you want to sort the list by intervals
-      - 'by frequency' if you want to sort the list by number of occurrences
-      - 'ascending' or 'low to high' if you want the lowest or least common
-         interval at the top of the list
-      - 'descending' or 'high to low' if you want the highest or most common
-         interval at the top of the list
-      - 'graph' if you want a graph displayed instead of text
-      
-      NOTE: If you specify n= values, you *must* end this with a space character
-      or it will not be properly detected. End-of-string is insufficient.
+      all of the formatting options.
       '''
-      
+
+      specs = '' # TODO: remove this temporary thing
+
       post = ''
-      
+
       # (1) Figure out which values of 'n' we should output.
       list_of_n = the_settings.get_property('showTheseNs')
-      
+
       # If they want the total number of n-grams found.
+      # TODO: figure out this does, and either add better comments or remove it
       if 'total' in specs:
          t_n_ng = 0
          # Add up the number of triangles for each 'n' value.
@@ -955,41 +913,41 @@ class Vertical_Interval_Statistics( object ):
             # Use 'no_quality' because there will be fewer to go through
             for triangle in self._compound_ngrams_dict[n].values():
                t_n_ng += triangle
-         
+
          return str(t_n_ng)
       #--------
-      
+
       # (2) Decide whether to take 'quality' or 'no_quality' and whether we're using
       # simple or compound
       output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n, specs )
-      
+
       # (3) Sort the dictionary
       sorted_ngrams = []
       # We need to have enough 'n' places in sorted_ngrams to hold the
       # sorted dictionaries.
       for n in xrange(max(list_of_n) + 1):
          sorted_ngrams.append( [] )
-      if 'by frequency' in specs:
+      if 'frequency' == the_settings.get_property( 'sortBy' ):
          # Sort the frequencies
          for n in list_of_n:
-            if 'ascending' in specs or 'low to high' in specs:
+            if 'ascending' == the_settings.get_property( 'sortOrder' ):
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng][0] )
             else: # elif 'descending' in specs or 'high to low' in specs:
                # Default to 'descending'
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng][0], reverse=True )
-            
+
       # We're now working with flipped_dicts
       else: # elif 'by ngram' in specs or 'by n-gram' in specs:
          # Default to 'by ngram'
          for n in list_of_n:
-            if 'descending' in specs or 'high to low' in specs:
+            if 'descending' == the_settings.get_property( 'sortOrder' ):
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter, reverse=True )
             else: # elif 'ascending' in specs or 'low to high' in specs:
                # Default to 'ascending'
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter )
-      
+
       # (4.1) If some graphs are asked for, prepare them.
-      if the_settings.get_property('outputFormat') == 'graph':
+      if 'graph' == the_settings.get_property('outputFormat'):
          grapharr = []
          for n in list_of_n:
             g = graph.GraphHistogram(doneAction=None,tickFontSize=12)
@@ -1024,7 +982,7 @@ class Vertical_Interval_Statistics( object ):
             g._applyFormatting(ax)
             ax.set_ylabel('Frequency', fontsize=g.labelFontSize, family=g.fontFamily, rotation='vertical')
             g.done()
-            grapharr.append(g)        
+            grapharr.append(g)
          post = grapharr
 
       # (4.2) Else make a nicely formatted list from the results.
@@ -1062,26 +1020,26 @@ class Vertical_Interval_Statistics( object ):
                post += row
             post += '\n\n'
          post = post[:-3] #forget the last extra newline
-      
+
       # Done!
       return post
    # end get_formatted_ngrams()
-   
+
    def get_formatted_ngram_dict( self, simple_or_compound, *args ):
       '''
       Returns a formatted version of the ngram dictionary.
-      
+
       Dictionary keys are
       stored internally as NGram objects, but these are difficult to read if,
       for example, you want to print the entire dictionary. This method returns
       a copy of the internally-stored dictionary, where keys are replaced with
       their str() output.
-      
+
       If you specify an int, a str with a list of int objects, or a list of int
       objects, then only that or those cardinalities will be returned.
-      
+
       If you specify no arguments, you will get an 'exact' copy of the internal
-      ngram dictionary (except keys will be replaced with strings), 
+      ngram dictionary (except keys will be replaced with strings),
       which is a list of dict objects of len() >= 3 , and
       where each cardinality is stored in its position in the list (i.e. 2-grams
       will be stored in get_formatted_ngram_dict('simple')[2] ).
@@ -1122,14 +1080,14 @@ class Vertical_Interval_Statistics( object ):
             post = post[0]
          return post
    # End get_formatted_ngram_dict()
-   
+
    def make_summary_score( self, settings, n=None, threshold=None, topX=None ):
       '''
       Returns a Score object with three Part objects. When you run the Score
       through process_score() in the output_LilyPond module, the result is a
       LilyPond file that gives summary results about the triangles recorded by
       this instance of Vertical_Interval_Statistics.
-      
+
       There are four arguments, three of which are optional:
       - settings : a VIS_Settings object, which is required
       - n : a list of int, specifying which "n" values for "n-gram" are to be
@@ -1156,18 +1114,18 @@ class Vertical_Interval_Statistics( object ):
             If there are multiple "n" values, and you want to specify different
          most common values for each, use a dict, where the key is the "n" value
          and the value is "X."
-      
+
       You can combine "threshold" and "topX" to limit further limit the number
       of triangles that appear. For example, if the top five triangles occurred
       50, 40, 15, 15, and 13 times, and you specify a threshold of 20, you will
       only receive the top two triangles because the others occurred less than
       20 times, and do not meet the threshold.
-      
+
       In the returned Score, index 0 holds a part intended for an upper staff,
       index 1 holds a part intended for a lower staff, and index 2 holds a part
       with LilyPond annotations, aligned with the upper voices.
       '''
-      
+
       # (1) What are the "n" values we need?
       #-----------------------------------------------------
       list_of_n = []
@@ -1187,22 +1145,22 @@ class Vertical_Interval_Statistics( object ):
          for enn in xrange( 2, len(self._compound_ngrams_dict) ):
             if 0 < len(self._compound_ngrams_dict[enn]):
                list_of_n.append( enn )
-      
+
       # Make sure we have "n" values to use
       if 0 == len(list_of_n):
          msg = 'make_summary_score(): There are no triangles with the "n" value(s) specified.'
          raise NonsensicalInputError( msg )
-      
+
       # (2) Initialize
       #-----------------------------------------------------
       # Hold the upper and lower, and the annotation parts that we'll use
       upper_part = stream.Part()
       lower_part = stream.Part()
       lily_part = stream.Part()
-      
+
       # Set up the analysis part
       lily_part.lily_analysis_voice = True
-      
+
       # (3) Go through each "n" value separately.
       #-----------------------------------------------------
       for n in list_of_n:
@@ -1213,10 +1171,10 @@ class Vertical_Interval_Statistics( object ):
          sorted_ngrams = sorted( self._compound_ngrams_dict[n].iterkeys(), \
                                  key = lambda ng: self._compound_ngrams_dict[n][ng], \
                                  reverse=True )
-         
+
          # Hold "the top" number of most frequent triangles for this "n"
          the_top = None
-         
+
          # (4) Calculate the_top
          #--------------------------------------------------
          # NB: We need to check the length, or else we may accidentally try to
@@ -1245,11 +1203,11 @@ class Vertical_Interval_Statistics( object ):
          else:
             # There's no "topX" so we'll analyze all of them.
             the_top = len(self._compound_ngrams_dict[n])
-         
+
          # Hold the threshold for this ngram. The default here is equivalent
          # to no threshold.
          this_threshold = 0
-         
+
          # (5) Figure out the threshold for this ngram
          #--------------------------------------------------
          if threshold is not None:
@@ -1259,7 +1217,7 @@ class Vertical_Interval_Statistics( object ):
             # User specified a "threshold" for this "n" specifically
             elif n in topX:
                this_threshold = threshold[n]
-         
+
          # (6) Iterate through the_top
          # This may take us through all the ngrams, but that's okay.
          for i in xrange(the_top):
@@ -1270,14 +1228,14 @@ class Vertical_Interval_Statistics( object ):
                # associated with this NGram, respectively.
                ints = sorted_ngrams[i].get_intervals()
                moves = sorted_ngrams[i].get_movements()
-               
+
                # Hold the measures for this round
                upper_measure = stream.Measure()
                #upper_measure.timeSignature = meter.TimeSignature( '4/4' )
                lower_measure = stream.Measure()
                #lower_measure.timeSignature = meter.TimeSignature( '4/4' )
                # Except the analysis part
-               
+
                # Are these the first objects in the streams?
                if 0 == len(upper_part):
                   # Add some starting-out stuff to the measures
@@ -1286,25 +1244,25 @@ class Vertical_Interval_Statistics( object ):
                   lower_measure.clef = clef.BassClef()
                   lower_measure.timeSignature = meter.TimeSignature( '4/4' )
                   # Except the analysis part
-               
+
                # Make the upper and lower notes
                for interv in ints:
                   # (6.1) Get the upper-part Note objects for this ngram
                   upper_measure.append( note.Note( interv.noteEnd.pitch, quarterLength=2.0 ) )
-                  
+
                   # (6.2) Get the lower-part Note objects for this ngram
                   lower_measure.append( note.Note( interv.noteStart.pitch, quarterLength=2.0 ) )
-                  
+
                # (6.3) Make the corresponding LilyPond analysis for this ngram
                lily_note = note.Note( 'C4', quarterLength=4.0 )
                lily_note.lily_markup = '^' + make_lily_triangle( str(sorted_ngrams[i]), \
                                                                  print_to_right=str(self._compound_ngrams_dict[n][sorted_ngrams[i]]) )
                lily_part.append( lily_note )
-               
+
                # (6.3.5) Append the Measure objects
                upper_part.append( upper_measure )
                lower_part.append( lower_measure )
-               
+
                # (6.4) Append some Rest objects to the end
                rest_measure = stream.Measure()
                rest_measure.lily_invisible = True
@@ -1314,7 +1272,7 @@ class Vertical_Interval_Statistics( object ):
                lily_part.append( note.Rest( quarterLength=4.0 ) )
             else:
                continue
-      
+
       # Finally, make a Score and return it
       return stream.Score( [upper_part, lower_part, lily_part] )
 #-------------------------------------------------------------------------------
@@ -1327,11 +1285,11 @@ def interval_sorter( x, y ):
    Returns -1 if the first argument is a smaller interval.
    Returns 1 if the second argument is a smaller interval.
    Returns 0 if both arguments are the same.
-   
+
    Input should be a str of the following form:
    - d, m, M, or A
    - an int
-   
+
    Examples:
    >>> from vis import interval_sorter
    >>> interval_sorter( 'm3', 'm3' )
@@ -1341,22 +1299,22 @@ def interval_sorter( x, y ):
    >>> interval_sorter( 'A4', 'd4' )
    -1
    '''
-   
+
    list_of_directions = ['+', '-']
-   
+
    # I want to sort based on generic size, so the direction is irrelevant. If
    # we have directions, they'll be removed with this. If we don't have
    # directions, this will have no effect.
    for direct in list_of_directions:
       x = x.replace( direct, '' )
       y = y.replace( direct, '' )
-   
+
    # If we have numbers with no qualities, we'll just add a 'P' to both, to
    # pretend they have the same quality (which, as far as we know, they do).
    if x[0] in string_digits and y[0] in string_digits:
       x = 'P' + x
       y = 'P' + y
-   
+
    # Comparisons!
    if x == y:
       return 0
@@ -1391,17 +1349,17 @@ def ngram_sorter( a, b ):
    Returns -1 if the first argument is a smaller n-gram.
    Returns 1 if the second argument is a smaller n-gram.
    Returns 0 if both arguments are the same.
-   
+
    If one n-gram is a subset of the other, starting at index 0, we consider the
    shorter n-gram to be the "smaller."
-   
+
    Input should be like this, at minimum with three non-white-space characters
    separated by at most one space character.
    3 +4 7
    m3 +P4 m7
    -3 +4 1
    m-3 +P4 P1
-   
+
    Examples:
    >>> from vis import ngram_sorter
    >>> ngram_sorter( '3 +4 7', '5 +2 4' )
@@ -1417,12 +1375,12 @@ def ngram_sorter( a, b ):
    >>> ngram_sorter( '3 -2 3 -2 3', '3 -2 3' )
    1
    '''
-   
+
    x,y = str(a), str(b)
    # Just in case there are some extra spaces
    x = x.strip()
    y = y.strip()
-   
+
    def calc_units_in_ngram( ng ):
       # Calculate the 'units' in the n-gram, which is the number of elements
       # separated by a space, which is sort of like finding 'n'.
@@ -1434,7 +1392,7 @@ def ngram_sorter( a, b ):
          units += 1
       return units
    #-------------------------------------------------------
-   
+
    # See if we have only one interval left. When there is only one interval,
    # the result of this will be -1
    x_find = x.find(' ')
@@ -1450,12 +1408,12 @@ def ngram_sorter( a, b ):
    elif -1 == y_find:
       # y has one interval left, but x has more than one, so y is shorter.
       return 1
-   
+
    # See if the first interval will differentiate
    possible_result = interval_sorter( x[:x_find], y[:y_find] )
    if 0 != possible_result:
       return possible_result
-   
+
    # If not, we'll rely on ourselves to solve the next mystery!
    return ngram_sorter( x[x_find+1:], y[y_find+1:] )
 #-------------------------------------------------------------------------------
