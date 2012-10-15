@@ -72,7 +72,7 @@ class VIS_Settings:
       self._secret_settings_hash['sortOrder'] = 'descending'
       self._secret_settings_hash['showTheseNs'] = [2]
       self._secret_settings_hash['outputFormat'] = 'graph'
-      self._secret_settings_hash['intervalsOrNgrams'] = 'ngrams'
+      self._secret_settings_hash['content'] = 'ngrams'
 
    # Helper method to test whether a str contains a boolean value.
    @staticmethod

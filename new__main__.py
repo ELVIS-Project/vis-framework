@@ -35,6 +35,8 @@ from itertools import chain
 import re
 import time
 # PyQt4
+import pickle
+import cPickle
 from PyQt4 import Qt, QtCore, QtGui
 from PyQt4.QtCore import QThreadPool
 #from PyQt4.QtCore import pyqtSlot, QObject
@@ -44,6 +46,7 @@ from music21.converter import ConverterException, ConverterFileException
 from music21 import graph
 # vis
 from problems import NonsensicalInputWarning
+from gui_files.Ui_compare_voice_pairs import Ui_Compare_Voice_Pairs
 from gui_files.Ui_select_offset import Ui_Select_Offset
 from gui_files.Ui_new_main_window import Ui_MainWindow
 from gui_files.Ui_text_display import Ui_Text_Display
@@ -103,6 +106,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_show_results.clicked.connect( self.show_results )
       self.rdo_intervals.clicked.connect( self.choose_intervals )
       self.rdo_ngrams.clicked.connect( self.choose_ngrams )
+      self.rdo_compare.clicked.connect( self.choose_compare )
       self.rdo_targeted_score.clicked.connect( self.update_output_format )
       self.rdo_chart.clicked.connect( self.update_output_format )
       self.rdo_score.clicked.connect( self.update_output_format )
@@ -154,43 +158,52 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    # GUI Things ("Show" Panel) -----------------------------
    def show_results( self ):
-      # Should we output 'i' (intervals) or 'n' (ngrams)?
-      i_or_n = self.settings.get_property( 'intervalsOrNgrams' )
+      # Should we output intervals or ngrams or comparison?
+      content = self.settings.get_property( 'content' )
 
       # Hold the output
       formatted_output = None
 
       # Get the output
-      if 'ngrams' == i_or_n:
+      if 'ngrams' == content:
          formatted_output = self.statistics.get_formatted_ngrams( self.settings )
-      elif 'intervals' == i_or_n:
+      elif 'intervals' == content:
          formatted_output = self.statistics.get_formatted_intervals( self.settings )
+      elif 'compare' == content:
+         dialog = Vis_Compare_Voice_Pairs(self)
+         v1,v2 = dialog.get_pairs()
+         formatted_output = "dummy output"
 
       # Display the output
       if isinstance( formatted_output, basestring ):
          # If in "list"
-         dialog = Vis_Text_Display()
-         dialog.set_text( formatted_output )
+         dialog = Vis_Text_Display(formatted_output)
          dialog.trigger()
       elif isinstance( formatted_output, graph.Graph ):
          # If in "chart/graph"
          formatted_output.show()
       else:
-         # ??
+         # array of graphs
          for g in formatted_output:
             g.show()
    # End show_results() ------------------------------------
 
    def choose_intervals( self ):
       self.groupBox_n.setEnabled( False )
-      self.settings.set_property('intervalsOrNgrams intervals')
+      self.settings.set_property('content intervals')
       self.lbl_most_common.setText( 'most common intervals.' )
       self.lbl_exclude_if_fewer.setText( 'Exclude intervals with fewer than' )
       self.rdo_name.setText( 'interval' )
 
    def choose_ngrams( self ):
       self.groupBox_n.setEnabled( True )
-      self.settings.set_property('intervalsOrNgrams ngrams')
+      self.settings.set_property('content ngrams')
+      self.lbl_most_common.setText( 'most common n-grams.' )
+      self.lbl_exclude_if_fewer.setText( 'Exclude n-grams with fewer than' )
+      self.rdo_name.setText( 'n-gram' )
+
+   def choose_compare( self ):
+      self.settings.set_property('content compare')
       self.lbl_most_common.setText( 'most common n-grams.' )
       self.lbl_exclude_if_fewer.setText( 'Exclude n-grams with fewer than' )
       self.rdo_name.setText( 'n-gram' )
@@ -1042,7 +1055,55 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
          yield row
 # End Class List_of_Pieces ------------------------------------------------------
 
+class List_of_Voice_Pairs( QtCore.QAbstractTableModel ):
+   def __init__( self, parent, data=[] ):
+      QtCore.QAbstractTableModel.__init__( self, parent )
+      self.model_name = 0
+      self.model_pair = 1
+      self.pairs = data
 
+   def headerData( self, section, orientation, role ):
+      header_names = ['Piece','Voice Pair']
+      if QtCore.Qt.Horizontal == orientation and QtCore.Qt.DisplayRole == role:
+         return header_names[section]
+      else:
+         return QtCore.QVariant()
+
+   def setData( self, index, value, role ):
+      if QtCore.Qt.EditRole == role:
+         self.pairs[index.row()][index.column()] = value
+         self.dataChanged.emit( index, index )
+         return True
+      else:
+         return False
+
+   def data( self, index, role ):
+      if index.isValid():
+         if QtCore.Qt.DisplayRole == role:
+            if index.column() == self.model_pair:
+               return QtCore.QVariant( str(self.pairs[index.row()][index.column()])[1:-1] )
+            else:
+               return QtCore.QVariant( self.pairs[index.row()][index.column()] )
+      else:
+         return QtCore.QVariant()
+
+   def columnCount( self, parent=None ):
+      return 2
+
+   def rowCount( self, parent=None ):
+      return len(self.pairs)
+
+   def insertRows( self, row, count, parent=QtCore.QModelIndex() ):
+      self.beginInsertRows( parent, row, row+count-1 )
+      for zed in xrange(count):
+         self.pairs.insert(row,['',[]])
+      self.endInsertRows()
+
+   def removeRows( self, row, count, parent=QtCore.QModelIndex() ):
+      self.beginRemoveRows( parent, row, row+count-1 )
+      self.data = self.pairs[:row] + self.pairs[row+count:]
+      self.endRemoveRows()
+# End Class List_of_Voice_Pairs -----------------------------------------------
 
 class Vis_Load_Piece(QtCore.QThread):
    def setup( self, fp, widget ):
@@ -1232,19 +1293,17 @@ class Vis_Select_Offset( Ui_Select_Offset ):
 
 
 class Vis_Text_Display( Ui_Text_Display ):
-   def __init__(self):
+   def __init__(self,text):
       self.text_display = QtGui.QDialog()
       self.setupUi( self.text_display )
+      self.text = text
+      self.show_text.setPlainText(text)
 
    def trigger( self ):
       self.btn_save_as.clicked.connect( self.save_as )
       self.btn_close.clicked.connect( self.close )
 
       self.text_display.exec_()
-
-   def set_text( self, text ):
-      self.text = text
-      self.show_text.setPlainText(text)
 
    def save_as( self ):
       filename = QtGui.QFileDialog.getSaveFileName(None,'Save As','','*.txt')
@@ -1256,7 +1315,99 @@ class Vis_Text_Display( Ui_Text_Display ):
       self.text_display.done(0)
 # End Class Vis_Text_Display ---------------------------------------------------
 
+class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
+   def __init__(self,parent):
+      self.compare_voice_pairs = QtGui.QDialog()
+      self.setupUi( self.compare_voice_pairs )
+      top_data = parent.analysis_pieces
+      data = []
+      for i,piece in enumerate(list(top_data.iterate_rows())):
+         index = top_data.createIndex(i,top_data.model_score)
+         piece_name = top_data.data(index,QtCore.Qt.DisplayRole).toPyObject()
+         index = top_data.createIndex(i,top_data.model_filename)
+         file_name = top_data.data(index,QtCore.Qt.DisplayRole).toPyObject()
+         name = file_name if piece_name == '' else piece_name
+         index = top_data.createIndex(i,top_data.model_compare_parts)
+         parts = eval(str(top_data.data(index,'raw_list').toPyObject()))
+         for pair in parts:
+            data.append([name,pair])
+      self.model_in_memory = List_of_Voice_Pairs(self.list_pairs_in_memory,data)
+      self.list_pairs_in_memory.setModel(self.model_in_memory)
+      self.model_compare_these = List_of_Voice_Pairs(self.list_compare_these)
+      self.list_compare_these.setModel(self.model_compare_these)
+      self.model_to_these = List_of_Voice_Pairs(self.list_to_these)
+      self.list_to_these.setModel(self.model_to_these)
+      self.list_pairs_in_memory.dragEnterEvent = self.drag
+      self.list_compare_these.dragMoveEvent = self.drag
+      self.list_compare_these.dragEnterEvent = self.drag
+      self.list_to_these.dragMoveEvent = self.drag
+      self.list_to_these.dragEnterEvent = self.drag
+      self.list_pairs_in_memory.mouseMoveEvent = self.start_drag_top
+      self.btn_submit.clicked.connect( self.submit )
+      self.list_compare_these.dropEvent = self.drop_these
+      self.list_to_these.dropEvent = self.drop_those
 
+   def drag( self, event ):
+      if event.mimeData().hasFormat("application/x-person"):
+         event.setDropAction(QtCore.Qt.MoveAction)
+         event.accept()
+      else:
+         event.ignore()
+
+   def start_drag_top( self,event ):
+      index = self.list_pairs_in_memory.indexAt(event.pos())
+      if not index.isValid():
+         return
+      i1 = self.model_in_memory.createIndex(index.row(),self.model_in_memory.model_name)
+      i2 = self.model_in_memory.createIndex(index.row(),self.model_in_memory.model_pair)
+      d1 = self.model_in_memory.data(i1,QtCore.Qt.DisplayRole).toPyObject()
+      d2 = self.model_in_memory.data(i2,QtCore.Qt.DisplayRole).toPyObject()
+      selected = [d1,d2]
+      bstream = pickle.dumps(selected)
+      mimeData = QtCore.QMimeData()
+      mimeData.setData("application/x-person",bstream)
+      drag = QtGui.QDrag(self.list_pairs_in_memory)
+      drag.setMimeData(mimeData)
+      #pixmap = QtGui.QPixmap()
+      #pixmap = pixmap.grabWidget(self.list_pairs_in_memory,self.list_pairs_in_memory.rectForIndex(index))
+      #drag.setPixmap(pixmap)
+      #drag.setHotSpot(QtCore.QPoint(pixmap.width()/2,pixmap.height()/2))
+      result = drag.start(QtCore.Qt.MoveAction)
+
+   def get_pairs( self ):
+      self.compare_voice_pairs.exec_()
+      return (0,1)
+
+   def drop_these( self, event ):
+      #TODO: can't add the same pair twice
+      data = event.mimeData()
+      bstream = data.retrieveData("application/x-person",QtCore.QVariant.ByteArray)
+      selected = pickle.loads(bstream.toByteArray())
+      length = self.model_compare_these.rowCount()
+      self.model_compare_these.insertRows(length,1)
+      ind = self.model_compare_these.createIndex(length,self.model_compare_these.model_name)
+      self.model_compare_these.setData(ind,selected[self.model_compare_these.model_name],QtCore.Qt.EditRole)
+      ind = self.model_compare_these.createIndex(length,self.model_compare_these.model_pair)
+      self.model_compare_these.setData(ind,selected[self.model_compare_these.model_pair],QtCore.Qt.EditRole)
+      event.accept()
+
+   def drop_those( self, event ):
+      #TODO: can't add the same pair twice
+      data = event.mimeData()
+      bstream = data.retrieveData("application/x-person",QtCore.QVariant.ByteArray)
+      selected = pickle.loads(bstream.toByteArray())
+      length = self.model_to_these.rowCount()
+      self.model_to_these.insertRows(length,1)
+      ind = self.model_to_these.createIndex(length,self.model_to_these.model_name)
+      self.model_to_these.setData(ind,selected[self.model_to_these.model_name],QtCore.Qt.EditRole)
+      ind = self.model_to_these.createIndex(length,self.model_to_these.model_pair)
+      self.model_to_these.setData(ind,selected[self.model_to_these.model_pair],QtCore.Qt.EditRole)
+      event.accept()
+
+   def submit( self ):
+      self.compare_voice_pairs.done(0)
+
+# End Class Vis_Compare_Voice_Pairs
 
 # "Main" Method ----------------------------------------------------------------
 def main():

@@ -670,6 +670,13 @@
                 </property>
                </widget>
               </item>
+              <item>
+               <widget class="QRadioButton" name="rdo_compare">
+                <property name="text">
+                 <string>N-gram comparison</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </item>
