@@ -1205,6 +1205,11 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          else:
             lower = self.piece_data[self.widget.model_score].parts[combo[1]]
 
+         # Change the settings object to hold the right "lookForTheseNs"
+         ns = str( self.piece_data[self.widget.model_n] )[1:-1]
+         print( '------> lookin\' for ' +  ns )
+         self.widget.settings.set_property( 'lookForTheseNs ' + ns )
+
          # Run the analysis
          voices_took, ly, error = vis_these_parts( [higher,lower], \
                                         self.widget.settings, \

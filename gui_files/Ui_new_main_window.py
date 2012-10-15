@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'gui_files/new_main_window.ui'
+# Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/new_main_window.ui'
 #
-# Created: Mon Oct 15 12:05:20 2012
-#      by: PyQt4 UI code generator 4.9.4
+# Created: Mon Oct 15 15:10:32 2012
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -564,7 +564,7 @@ class Ui_MainWindow(object):
         self.rdo_ngrams.setText(QtGui.QApplication.translate("MainWindow", "N-grams", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_compare.setText(QtGui.QApplication.translate("MainWindow", "N-gram comparison", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_n.setTitle(QtGui.QApplication.translate("MainWindow", "Values of N", None, QtGui.QApplication.UnicodeUTF8))
-        self.line_show_these_ns.setText(QtGui.QApplication.translate("MainWindow", "(all)", None, QtGui.QApplication.UnicodeUTF8))
+        self.line_show_these_ns.setText(QtGui.QApplication.translate("MainWindow", "2", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_9.setTitle(QtGui.QApplication.translate("MainWindow", "Octaves", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_compound.setText(QtGui.QApplication.translate("MainWindow", "Compound Intervals", None, QtGui.QApplication.UnicodeUTF8))
         self.rdo_simple.setText(QtGui.QApplication.translate("MainWindow", "Simple Intervals", None, QtGui.QApplication.UnicodeUTF8))
@@ -591,3 +591,13 @@ class Ui_MainWindow(object):
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p>vis was written as part of McGill University\'s contribution to the ELVIS project.<br/>For more information about ELVIS, please refer to our <a href=\"http://elvis.music.mcgill.ca/\"><span style=\" text-decoration: underline; color:#0057ae;\">web site</span></a>.</p><p>Funding for ELVIS was provided by the following organizations:<br/>- SSHRC (Social Sciences and Humanities Research Council) of Canada<br/>- NEH (National Endowment for the Humanities) of the United States of America<br/>- The Digging into Data Challenge</p><p>vis is written in the Python programming language, and relies on the following<br/>software, all released under free licences:<br/>- <a href=\"http://mit.edu/music21/\"><span style=\" text-decoration: underline; color:#0057ae;\">music21<br/></span></a>- <a href=\"http://www.riverbankcomputing.co.uk/software/pyqt/download\"><span style=\" text-decoration: underline; color:#0057ae;\">PyQt4</span></a><br/>- <a href=\"http://www.oxygen-icons.org/\"><span style=\" text-decoration: underline; color:#0057ae;\">Oxygen Icons</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
 import icons_rc
+
+if __name__ == "__main__":
+    import sys
+    app = QtGui.QApplication(sys.argv)
+    MainWindow = QtGui.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
+

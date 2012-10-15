@@ -689,7 +689,7 @@
               <item>
                <widget class="QLineEdit" name="line_show_these_ns">
                 <property name="text">
-                 <string>(all)</string>
+                 <string>2</string>
                 </property>
                </widget>
               </item>
