@@ -281,7 +281,7 @@ class Vis_MainWindow( Ui_MainWindow ):
           '',
           QtGui.QFileDialog.ShowDirsOnly)
       d = str(d)
-      extensions = ['.mid','.midi','.mxl','.krn','.xml','.md']
+      extensions = ['.nwc.', '.mid','.midi','.mxl','.krn','.xml','.md']
       possible_files = chain(*[[join(path,fp) for fp in files if
                               splitext(fp)[1] in extensions]
                              for path,names,files in walk(d)])
@@ -293,7 +293,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          None,
          "Choose Files to Analyze",
          '',
-         '*.mid *.midi *.mxl *.krn *.xml *.md',
+         '*.nwc *.mid *.midi *.mxl *.krn *.xml *.md',
          None)
       self.add_files(possible_files)
 
