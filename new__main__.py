@@ -398,7 +398,6 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Hold a list of pieces that failed during analysis.
       #files_not_analyzed = []
-      # TODO: a way to know if a file fails
 
       # Accumulate the length of time spent in vis_these_parts()
       self.analysis_start_time = time.time()
@@ -407,7 +406,13 @@ class Vis_MainWindow( Ui_MainWindow ):
       # occupying a core for itself the whole time.
       QThreadPool.globalInstance().setMaxThreadCount( QThreadPool.globalInstance().maxThreadCount() + 1 )
 
-      # Go through all the files/directories.
+      # Collect the total number of voice pairs to be analyzed
+      total_nr_of_voice_pairs = 0
+
+      # Collect "jobs" for the QThreadPool
+      jobs = []
+
+      # Iterate all the files
       for i, piece in enumerate( list(self.analysis_pieces.iterate_rows()), start=0 ):
          # Find the name of this piece
          this_piece_name = None
@@ -416,11 +421,36 @@ class Vis_MainWindow( Ui_MainWindow ):
          else:
             this_piece_name = piece[self.model_score].metadata.title
 
-         # Run the multi-threading part
-         thread = Vis_Analyze_Piece()
-         thread.setup( piece, self, this_piece_name )
-         QThreadPool.globalInstance().start( thread )
+         # Prepare the multi-threading part
+         job = Vis_Analyze_Piece()
+         total_nr_of_voice_pairs = job.setup( piece, self, this_piece_name )
+
+         # Make sure this piece has some parts selected
+         if 1 > total_nr_of_voice_pairs:
+            # For now at least, we'll stop the process and free all the memory
+            # and warn the user what happened
+            jobs = None
+            QtGui.QMessageBox.warning(None,
+               "You Must Choose Voice Pairs",
+               """Please select at least one voice pair for analysis in every piece.""",
+               QtGui.QMessageBox.StandardButtons(\
+                  QtGui.QMessageBox.Ok))
+            # Return to the "working/assemble" panel
+            self.tool_analyze()
+            # Return from this method
+            return
+
+         # Append this job to the list of jobs to calculate
+         jobs.append( job )
       # (end of pieces loop)
+
+      # Account for the number of voice pairs
+      self.progress_bar.setMaximum( total_nr_of_voice_pairs )
+      self.total_pairs = total_nr_of_voice_pairs
+
+      # Schedule the jobs with QThreadPool
+      for job in jobs:
+         QThreadPool.globalInstance().start( job )
 
       # NOTE: from here to the end of the method is stuff from before increment_analysis_progress()
       # Wait for all the analysis threads to finish
@@ -1160,19 +1190,10 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
       self.piece_data = piece_data
       self.widget = widget
       self.this_piece_name = this_piece_name
+      self.voice_combos = None
+      self.nr_of_voice_combos = 0
 
-   def run( self ):
-      # "stats" is the V_I_S object
-      # Hold the basso seguente part, if needed
-      seguente_part = None
-
-      # List of part combinations (filled out later)
-      comboz = None
-
-      # How long this piece took
-      piece_duration = 0.0
-
-      # Try to analyze this file
+      # Calculate the voice pairs to analyze
       if '[all]' == self.piece_data[self.widget.model_compare_parts]:
          # We have to examine all combinations of parts
 
@@ -1180,19 +1201,32 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          number_of_parts = len(self.piece_data[self.widget.model_score].parts)
 
          # Get a list of all the part-combinations to examine
-         comboz = Vis_Analyze_Piece.calculate_all_combis( number_of_parts - 1 )
+         self.voice_combos = Vis_Analyze_Piece.calculate_all_combis( number_of_parts - 1 )
       else:
          # Turn the str specification of parts into a list of int (or str)
-         # NOTE: Later, we should do this in a safer way
-         comboz = eval( self.piece_data[self.widget.model_compare_parts] )
+         if '(no selection)' == self.piece_data[self.widget.model_compare_parts]:
+            # This is what happens when no voice pairs were selected
+            return 0
+         else:
+            # NOTE: Later, we should do this in a safer way
+            self.voice_combos = eval( self.piece_data[self.widget.model_compare_parts] )
 
-      # Tell the GUI how many part combinations we have
-      #self.widget.update_total_part_combos( len(comboz) )
-      #QtCore.QMetaObject.invokeMethod( self.widget, "update_total_part_combos", \
-                                       #QtCore.Q_ARG( int, len(comboz) ) )
+      self.nr_of_voice_combos = len(self.voice_combos)
+
+      # Return the number of voice pairs
+      return self.nr_of_voice_combos
+   # End of setup() ---------------------------------------
+
+   def run( self ):
+      # "stats" is the V_I_S object
+      # Hold the basso seguente part, if needed
+      seguente_part = None
+
+      # How long this piece took
+      piece_duration = 0.0
 
       # Analyze all the specified part combinations
-      for combo in comboz:
+      for combo in self.voice_combos:
          # Get the two parts
          higher = self.piece_data[self.widget.model_score].parts[combo[0]]
          lower = None
@@ -1207,7 +1241,6 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
 
          # Change the settings object to hold the right "lookForTheseNs"
          ns = str( self.piece_data[self.widget.model_n] )[1:-1]
-         print( '------> lookin\' for ' +  ns )
          self.widget.settings.set_property( 'lookForTheseNs ' + ns )
 
          # Run the analysis
