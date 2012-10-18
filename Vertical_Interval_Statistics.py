@@ -32,7 +32,8 @@ from string import join
 from music21 import interval, graph, stream, clef, meter, note
 # vis
 from VIS_Settings import VIS_Settings
-from problems import NonsensicalInputError, MissingInformationError
+from problems import NonsensicalInputError, MissingInformationError, \
+   NonsensicalInputWarning
 from analytic_engine import make_lily_triangle
 from NGram import NGram
 # numpy
@@ -896,8 +897,11 @@ class Vertical_Interval_Statistics( object ):
       representation of the n-gram frequencies recoreded in this
       Vertical_Interval_Statistics() object.
 
-      The first argument is a VIS_Settings() object, from which we will use
-      all of the formatting options.
+      The argument is a VIS_Settings() object, from where we get
+      formatting options.
+
+      Throws NonsensicalInputWarning if one or more of the "showTheseNs" values has
+      no associated NGrams occurrences in the relevant statistics database.
       '''
 
       specs = '' # TODO: remove this temporary thing
@@ -923,6 +927,17 @@ class Vertical_Interval_Statistics( object ):
       # (2) Decide whether to take 'quality' or 'no_quality' and whether we're using
       # simple or compound
       output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n, specs )
+
+      # (2a) Make sure that we have ngrams at the values requested. If not,
+      # raise an exception saying which ones were not available.
+      error_enns = []
+      for enn in list_of_n:
+         if enn >= len(output_dict) or \
+            output_dict[enn] == {}:
+               error_enns.append( enn )
+
+      if 0 < len(error_enns):
+         raise NonsensicalInputWarning( "No " + str(error_enns) + "-grams available!" )
 
       # (3) Sort the dictionary
       sorted_ngrams = []

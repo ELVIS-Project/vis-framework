@@ -169,14 +169,23 @@ class Vis_MainWindow( Ui_MainWindow ):
       formatted_output = None
 
       # Get the output
-      if 'ngrams' == content:
-         formatted_output = self.statistics.get_formatted_ngrams( self.settings )
-      elif 'intervals' == content:
-         formatted_output = self.statistics.get_formatted_intervals( self.settings )
-      elif 'compare' == content:
-         dialog = Vis_Compare_Voice_Pairs(self)
-         v1,v2 = dialog.get_pairs()
-         formatted_output = "dummy output"
+      try:
+         if 'ngrams' == content:
+            formatted_output = self.statistics.get_formatted_ngrams( self.settings )
+         elif 'intervals' == content:
+            formatted_output = self.statistics.get_formatted_intervals( self.settings )
+         elif 'compare' == content:
+            dialog = Vis_Compare_Voice_Pairs(self)
+            v1,v2 = dialog.get_pairs()
+            formatted_output = "dummy output"
+      except NonsensicalInputWarning as niw:
+         QtGui.QMessageBox.warning(None,
+            "Unable to Display Those Results",
+            str(niw),
+            QtGui.QMessageBox.StandardButtons(\
+               QtGui.QMessageBox.Ok),
+            QtGui.QMessageBox.Ok)
+         return None
 
       # Display the output
       if isinstance( formatted_output, basestring ):
@@ -476,7 +485,6 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Are we finished?
       if self.pairs_so_far == self.total_pairs:
-         print( 'finished analysis' ) # DEBUGGING
          # Calculate and display how long the analysis took
          duration = round( time.time() - self.analysis_start_time, 2 )
          self.statusbar.showMessage( 'Everything analyzed in ' + \
