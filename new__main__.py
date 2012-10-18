@@ -39,7 +39,7 @@ import pickle
 import cPickle
 from PyQt4 import Qt, QtCore, QtGui
 from PyQt4.QtCore import QThreadPool
-#from PyQt4.QtCore import pyqtSlot, QObject
+from PyQt4.QtCore import pyqtSlot, pyqtSignal, QObject
 # music21
 from music21 import converter
 from music21.converter import ConverterException, ConverterFileException
@@ -96,6 +96,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.model_n = 4 # values of "n" to find
       self.model_compare_parts = 5 # list of two-element lists of part indices
 
+      # TEMP TODO: do I need this?
+      self.vsc = Vis_Signals_Class()
+
    # Link all the signals with their methods.
    def setup_signals( self ):
       self.tool_analyze()
@@ -137,6 +140,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.line_offset_interval.editingFinished.connect( self.update_offset_interval )
       self.btn_choose_note.clicked.connect( self.launch_offset_selection )
       self.btn_step2.clicked.connect( self.progress_to_show )
+      self.vsc.finishedVoicePair.connect( self.increment_analysis_progress )
 
    # GUI Things (Main Menu Toolbar) ------------------------
    def tool_choose( self ):
@@ -390,7 +394,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.progress_bar.setMinimum( 0 )
       self.progress_bar.setMaximum( 0 )
       self.progress_bar.setValue( 0 )
-      self.lbl_currently_processing.setText( 'NB: The progress bar is only meaningless for now...' )
+      self.lbl_currently_processing.setText( 'NB: The progress bar is the most important thing.' )
 
       # Move to the "working"/"please wait" panel
       self.tool_working()
@@ -440,6 +444,9 @@ class Vis_MainWindow( Ui_MainWindow ):
             # Return from this method
             return
 
+         # Connect the job's voice-pair-completion signal
+         #job.finishedVoicePair.connect( self.increment_analysis_progress )
+
          # Append this job to the list of jobs to calculate
          jobs.append( job )
       # (end of pieces loop)
@@ -451,63 +458,36 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Schedule the jobs with QThreadPool
       for job in jobs:
          QThreadPool.globalInstance().start( job )
-
-      # NOTE: from here to the end of the method is stuff from before increment_analysis_progress()
-      # Wait for all the analysis threads to finish
-      QThreadPool.globalInstance().waitForDone()
-
-      # Calculate and display how long the analysis took
-      duration = round( time.time() - self.analysis_start_time, 2 )
-      self.statusbar.showMessage( 'Everything analyzed in ' + \
-                                  str(duration) + \
-                                  ' seconds', 10000 )
-
-      # Move the GUI to the "show results" panel
-      self.main_screen.setCurrentWidget( self.page_show )
-      self.btn_show.setEnabled( True )
-      self.btn_show.setChecked( True )
    # End function progress_to_show() -------------------------------------------
 
 
 
-   #@QtCore.pyqtSlot()
-   #def increment_analysis_progress( self ):
-      #'''
-      #Marks one voice pair as complete, then checks whether that means all the
-      #voice pairs are complete. If so, moves the GUI to the "show" panel.
-      #'''
-#
-      ## Increment the number of voice pairs so far calculated
-      #self.pairs_so_far += 1
-      #self.progress_bar.setValue( self.pairs_so_far )
-      #self.app.processEvents()
-#
-      ## Are we finished?
-      #if self.pairs_so_far == self.total_pairs:
-         ## Calculate and display how long the analysis took
-         #duration = round( time.time() - self.analysis_start_time, 2 )
-         #self.statusbar.showMessage( 'Everything analyzed in ' + \
-                                     #str(duration) + \
-                                     #' seconds', 10000 )
-#
-         ## Move the GUI to the "show results" panel
-         #self.main_screen.setCurrentWidget( self.page_show )
-         #self.btn_show.setEnabled( True )
-         #self.btn_show.setChecked( True )
-   ## End increment_analysis_progress() ---------------------
+   @QtCore.pyqtSlot()
+   def increment_analysis_progress( self ):
+      '''
+      Marks one voice pair as complete, then checks whether that means all the
+      voice pairs are complete. If so, moves the GUI to the "show" panel.
+      '''
 
+      # Increment the number of voice pairs so far calculated
+      self.pairs_so_far += 1
+      self.progress_bar.setValue( self.pairs_so_far )
+      self.app.processEvents()
 
+      # Are we finished?
+      if self.pairs_so_far == self.total_pairs:
+         print( 'finished analysis' ) # DEBUGGING
+         # Calculate and display how long the analysis took
+         duration = round( time.time() - self.analysis_start_time, 2 )
+         self.statusbar.showMessage( 'Everything analyzed in ' + \
+                                     str(duration) + \
+                                     ' seconds', 10000 )
 
-   #@QtCore.pyqtSlot( int )
-   #def update_total_part_combos( self, add_these ):
-      #'''
-      #Add add_these number of parts to the total number of part combinations for
-      #analysis, stored in the variable "self.total_pairs," and also update the
-      #QProgressBar's "Maximum" value.
-      #'''
-#
-      #self.total_pairs += add_these
-      #self.progress_bar.setMaximum( self.total_pairs )
+         # Move the GUI to the "show results" panel
+         self.main_screen.setCurrentWidget( self.page_show )
+         self.btn_show.setEnabled( True )
+         self.btn_show.setChecked( True )
+   # End increment_analysis_progress() ---------------------
 
 
 
@@ -1174,6 +1154,11 @@ class Vis_Load_Piece(QtCore.QThread):
 
 
 
+class Vis_Signals_Class( QObject ):
+   # This is used by Vis_Analyze_Piece when it's finished analyzing
+   # a voice pair
+   finishedVoicePair = pyqtSignal()
+
 class Vis_Analyze_Piece( QtCore.QRunnable ):
    @staticmethod
    def calculate_all_combis( upto ):
@@ -1255,6 +1240,8 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          # Update the GUI
          #QtCore.QMetaObject.invokeMethod( self.widget, "increment_analysis_progress" )
          #self.widget.increment_analysis_progress()
+         #Vis_Signals_Class.finishedVoicePair.emit()
+         self.widget.vsc.finishedVoicePair.emit()
       # (end of voice-pair loop)
 # End Class Vis_Analyze_Piece --------------------------------------------------
 
