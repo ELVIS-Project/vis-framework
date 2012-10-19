@@ -438,7 +438,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
          # Prepare the multi-threading part
          job = Vis_Analyze_Piece()
-         total_nr_of_voice_pairs = job.setup( piece, self, this_piece_name )
+         total_nr_of_voice_pairs += job.setup( piece, self, this_piece_name )
 
          # Make sure this piece has some parts selected
          if 1 > total_nr_of_voice_pairs:
@@ -1279,9 +1279,6 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          piece_duration += voices_took
 
          # Update the GUI
-         #QtCore.QMetaObject.invokeMethod( self.widget, "increment_analysis_progress" )
-         #self.widget.increment_analysis_progress()
-         #Vis_Signals_Class.finishedVoicePair.emit()
          self.widget.vsc.finishedVoicePair.emit()
       # (end of voice-pair loop)
 # End Class Vis_Analyze_Piece --------------------------------------------------
