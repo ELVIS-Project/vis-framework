@@ -435,8 +435,10 @@ class Vertical_Interval_Statistics( object ):
          raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
 
       return list_of_n
+   # End determine_list_of_n() -----------------------------
 
    def extend( self, other_stats ):
+      # TODO: document what this method does, what the parameters are, and what everything does
       self_empty = [0,[0 for p in self._pieces_analyzed]]
       other_empty = [0,[0 for p in other_stats._pieces_analyzed]]
 
@@ -473,8 +475,10 @@ class Vertical_Interval_Statistics( object ):
 
       self._compound_ngrams_dict = merge_ngram_dict_list( self._compound_ngrams_dict, other_stats._compound_ngrams_dict )
       self._simple_ngrams_dict = merge_ngram_dict_list( self._simple_ngrams_dict, other_stats._simple_ngrams_dict )
+   # End extend() ------------------------------------------
 
    def prepare_ngram_output_dict( self, the_settings, list_of_n, specs ):
+      # TODO: document what this method does, what the parameters are, and what everything does
       # decide simple or compound
       data_dict = None
       if 'simple' in specs or the_settings.get_property( 'simpleOrCompound') == "simple":
@@ -501,6 +505,7 @@ class Vertical_Interval_Statistics( object ):
                        [sum(x) for x in zip(*[v[1] for v in d[ngram].values()])]] \
                        for ngram in d.keys()} for d in data_dict]
       return output_dict
+   # End prepare_ngram_output_dict() -----------------------
 
    def retrogrades( self, the_settings, specs='' ):
      #TODO: refactor the beginning of all the ngram methods
@@ -510,7 +515,6 @@ class Vertical_Interval_Statistics( object ):
 
       # (2) Decide whether to take 'quality' or 'no_quality'
       output_dict = self.prepare_ngram_output_dict(the_settings,list_of_n,specs)
-
 
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -619,7 +623,6 @@ class Vertical_Interval_Statistics( object ):
                post += str(ng[0]) + ': ' + str(ngram_pairs[n][ng][0]) +'; ' \
                        +str(ng[1])+': '+str(ngram_pairs[n][ng][1]) + '\n'
       return post
-
    #end retrogrades()
 
    def power_law_analysis( self, the_settings ):
@@ -647,7 +650,7 @@ class Vertical_Interval_Statistics( object ):
          post += 'The power law exponent for the '+str(n)+'-grams is '+str(-w[0])+ \
                  '; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
       return post
-   #end power_law_analysis()
+   # End power_law_analysis() ------------------------------
 
    def get_formatted_intervals( self, the_settings ):
       '''
@@ -658,20 +661,6 @@ class Vertical_Interval_Statistics( object ):
       all of the formatting properties.
       '''
 
-      # TODO: remove this temporary thing
-      specs = ''
-
-      # If they want the total number of intervals found.
-      if 'total' in specs:
-         t_n_i = 0
-         # Add up the number of intervals.
-         # Use simple because there are fewer of them.
-         for interv in self._simple_interval_dict.values():
-            t_n_i += interv
-
-         return str(t_n_i)
-      #--------
-
       # (1) decide which dictionary to use and how to process the intervals.
       the_dict = None
 
@@ -679,17 +668,15 @@ class Vertical_Interval_Statistics( object ):
       s_or_c = the_settings.get_property( 'simpleOrCompound' )
 
       # Do we need compound or simple intervals?
-      # We need compound intervals.
       if 'compound' == s_or_c:
          the_dict = self._compound_interval_dict
-      # We need simple intervals.
       else:
          the_dict = self._simple_interval_dict
 
       # Do we need to remove quality?
       if not the_settings.get_property( 'heedQuality' ):
+         # TODO: write comments
          non_numeric = re.compile(r'[^\d-]+')
-         #because, very occasionally, a regex actually does the trick.
          red = lambda k:non_numeric.sub('',k)
          keys = set(red(k) for k in the_dict.keys())
          keys = [(k,filter(lambda t:red(t[0])==k,the_dict.items())) for k in keys]
@@ -697,14 +684,13 @@ class Vertical_Interval_Statistics( object ):
 
       # (2) sort the results in the specified way.
       if 'frequency' == the_settings.get_property( 'sortBy' ):
-         # Sort the frequencies
+         # Sort by frequency
          if 'ascending' == the_settings.get_property( 'sortOrder' ):
             sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x] )
-         else: # elif 'descending' in specs or 'high to low' in specs:
+         else:
             # Default to 'descending'
             sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x], reverse=True )
-
-      else: # elif 'by interval' in specs:
+      else:
          # Default to 'by interval'
          if 'descending' == the_settings.get_property( 'sortOrder' ):
             sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter, reverse=True )
@@ -712,7 +698,7 @@ class Vertical_Interval_Statistics( object ):
             # Default to 'ascending'
             sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter )
 
-      # (3.1) If a graph is asked for, return one.
+      # (3A) Make a graph, if requested.
       if 'graph' == the_settings.get_property( 'outputFormat' ):
          g = graph.GraphHistogram(doneAction=None)
          data = [(i,the_dict[interv][0]) for i, interv in enumerate(sorted_intervals)]
@@ -747,7 +733,7 @@ class Vertical_Interval_Statistics( object ):
          g.done()
          return g
 
-      # (3.2) Else make a nicely formatted list from the results.
+      # (3B) Default to formatted list.
       post = ""
       widths = []
       heading = "Interval"
