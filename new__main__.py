@@ -34,23 +34,21 @@ from os import walk
 from itertools import chain
 import re
 import time
-# PyQt4
 import pickle
 import cPickle
+# PyQt4
 from PyQt4 import Qt, QtCore, QtGui
 from PyQt4.QtCore import QThreadPool
 from PyQt4.QtCore import pyqtSlot, pyqtSignal, QObject
 # music21
-from music21 import converter
+from music21 import converter, graph, metadata
 from music21.converter import ConverterException, ConverterFileException
-from music21 import graph
 # vis
 from problems import NonsensicalInputWarning
 from gui_files.Ui_compare_voice_pairs import Ui_Compare_Voice_Pairs
 from gui_files.Ui_select_offset import Ui_Select_Offset
 from gui_files.Ui_new_main_window import Ui_MainWindow
 from gui_files.Ui_text_display import Ui_Text_Display
-#from gui_files.Ui_select_voices import Ui_select_voices
 from problems import NonsensicalInputError, MissingInformationError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 from vis import VIS_Settings
@@ -140,6 +138,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.line_offset_interval.editingFinished.connect( self.update_offset_interval )
       self.btn_choose_note.clicked.connect( self.launch_offset_selection )
       self.btn_step2.clicked.connect( self.progress_to_show )
+      self.line_piece_title.editingFinished.connect( self.update_piece_title )
+      # This is for the QThreadPool threads to signal they've finished a
+      # voice pair
       self.vsc.finishedVoicePair.connect( self.increment_analysis_progress )
 
    # GUI Things (Main Menu Toolbar) ------------------------
@@ -562,6 +563,29 @@ class Vis_MainWindow( Ui_MainWindow ):
 
          self.update_parts_selection( part_spec )
 
+   def update_piece_title( self ):
+      '''
+      When users change the piece title on the "assemble" panel.
+      '''
+      # Which piece is/pieces are selected?
+      currently_selected = self.gui_pieces_list.selectedIndexes()
+
+      # Find the piece title and update it
+      for cell in currently_selected:
+         if self.model_score == cell.column():
+            # This is a little tricky, because we'll change the Score object's
+            # Metadata object directly
+
+            # Get the Score
+            piece = self.analysis_pieces.data( cell, 'raw_list' ).toPyObject()
+
+            # Make sure there's a Metadata object
+            if piece.metadata is None:
+               piece.insert( metadata.Metadata() )
+
+            # Update the title
+            piece.metadata.title = str(self.line_piece_title.text())
+
    def add_parts_combination( self ):
       '''
       When users choose the "Add Combination" button to add the currently
@@ -715,7 +739,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # in rows, so because each row has 6 things, if we have 6 cells, it means
       # we have only one row... but more than 6 cells means more than one row
       if len(currently_selected) == 0:
-         # (1) Enable all the controls
+         # (1) Disable all the controls
          self.line_values_of_n.setEnabled( False )
          self.line_offset_interval.setEnabled( False )
          self.btn_choose_note.setEnabled( False )
@@ -723,6 +747,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.chk_all_voice_combos.setEnabled( False )
          self.chk_basso_seguente.setEnabled( False )
          self.btn_add_check_combo.setEnabled( False )
+         self.line_piece_title.setEnabled( False )
          # (2) Remove the part list
          if self.piece_checkboxes is not None:
             for part in self.piece_checkboxes:
@@ -738,6 +763,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.chk_all_voice_combos.setEnabled( True )
          self.chk_basso_seguente.setEnabled( True )
          self.btn_add_check_combo.setEnabled( True )
+         self.line_piece_title.setEnabled( False ) # not applicable
          # (2) if the pieces have the same part names, display them
          first_parts = None
          for cell in currently_selected:
@@ -812,6 +838,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.chk_all_voice_combos.setEnabled( True )
          self.chk_basso_seguente.setEnabled( True )
          self.btn_add_check_combo.setEnabled( True )
+         self.line_piece_title.setEnabled( True )
          # (2) Populate the part list
          self.update_part_checkboxes( currently_selected )
          # (3) Update "values of n"
@@ -826,6 +853,11 @@ class Vis_MainWindow( Ui_MainWindow ):
                break
          # (5) Update "Compare These Parts"
          self.update_comparison_parts( currently_selected )
+         # (6) Update "Pice Title"
+         for cell in currently_selected:
+            if self.model_score == cell.column():
+               self.line_piece_title.setText( str(self.analysis_pieces.data( cell, QtCore.Qt.DisplayRole ).toPyObject()) )
+               break
    # End update_pieces_selection() -------------------------
 
    def update_comparison_parts( self, currently_selected ):
