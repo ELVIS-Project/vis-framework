@@ -53,6 +53,7 @@ from problems import NonsensicalInputError, MissingInformationError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 from vis import VIS_Settings
 from analytic_engine import vis_these_parts, make_basso_seguente
+from file_output import file_outputter, file_inputter
 
 
 
@@ -1367,14 +1368,21 @@ class Vis_Text_Display( Ui_Text_Display ):
    def trigger( self ):
       self.btn_save_as.clicked.connect( self.save_as )
       self.btn_close.clicked.connect( self.close )
-
       self.text_display.exec_()
 
    def save_as( self ):
-      filename = QtGui.QFileDialog.getSaveFileName(None,'Save As','','*.txt')
-      fp = open(filename,"w")
-      fp.write(self.text)
-      fp.close()
+      filename = str( QtGui.QFileDialog.getSaveFileName( None, \
+                                                         'Save As', \
+                                                         '', \
+                                                         '*.txt' ) )
+      result = file_outputter( self.text, filename, 'OVERWRITE' )
+      if result[1] is not None:
+         QtGui.QMessageBox.information(None,
+            self.trUtf8("File Output Failed"),
+            reuslt[1],
+            QtGui.QMessageBox.StandardButtons(\
+               QtGui.QMessageBox.Ok),
+            QtGui.QMessageBox.Ok)
 
    def close( self ):
       self.text_display.done(0)
