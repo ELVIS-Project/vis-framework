@@ -374,7 +374,10 @@ class Vertical_Interval_Statistics( object ):
       ng_no_hq = Vertical_Interval_Statistics._set_heed_quality(ng.False)
       n = ng.n()
       hq = ng._heed_quality
-      the_dict = self.prepare_ngram_output_dict( VIS_Settings(), [n], 'compound'+hq )[n]
+      settings = VIS_Settings()
+      settings.set_property('simpleOrCompound compound')
+      settings.set_property('heedQuality '+str(hq))
+      the_dict = self.prepare_ngram_output_dict( VIS_Settings(), [n] )[n]
       return 0 if the_dict.get(ng) is None else the_dict[ng][0] #replace 0 with piece_index?
 
    # end get_ngram_occurrences()
@@ -438,35 +441,79 @@ class Vertical_Interval_Statistics( object ):
    # End determine_list_of_n() -----------------------------
 
    def extend( self, other_stats ):
-      # TODO: document what this method does, what the parameters are, and what everything does
+      '''
+      Given a Vertical_Interval_Statistics instance, take all of its relevant data
+      and merge it into self.
+      '''
+
+      # the values in the ngram and interval dicts are lists which match
+      # up to the 'pieces_analyzed' list in a nice way; these values always
+      # take the form:
+      # [total occurrences in the whole V_I_S instance,
+      #  [occurences in piece 1, in piece 2,...]]
+
+      # this is a prototype of an entry for an interval/ngram which
+      # never appears, in the style of self
       self_empty = [0,[0 for p in self._pieces_analyzed]]
+      # the same, but in the style of other_stats
       other_empty = [0,[0 for p in other_stats._pieces_analyzed]]
 
-      #helper methods for merging the entries of the various dicts involved
       def merger(x,y):
+         '''
+         Given two integers or lists, sum them (concatenate in the
+         case of lists). The reason for handling None is because 
+         when map encounters two lists of different lengths in its *args,
+         it pairs any of the "extra" values in the longer list with None.
+         See merge() for why we care.
+         '''
          return merger(0,y) if x is None else \
                 merger(x,0) if y is None else \
                 x+y
 
       def merge( a,b ):
+         '''
+         Given two entries (of the form occurring in ngram/interval
+         dicts), sum them entrywise (so the totals are added, and
+         the lists containing the number of occurrences in each
+         piece are concatenated, resulting in a valid entry for
+         a V_I_S instance containing all the pieces)
+         '''
          return merge( self_empty, b ) if a is None else \
                 merge(a,other_empty) if b is None else \
                 map(merger,*[a,b])
 
       def merge_dicts( x,y ):
+         '''
+         This is used to combine the interval dicts, where the keys
+         are string representations of the intervals and the values
+         are lists of the magic form described above.
+         '''
          return merge_dicts({},y) if x is None else \
                 merge_dicts(x,{}) if y is None else \
                 dict((key,merge(x.get(key),y.get(key))) for key in set(x.keys()+y.keys()))
 
       def merge_lists(x,y):
+         '''
+         This helps with merging the ngram dicts, which are in fact
+         lists of dicts, in accordance with the behaviour of map
+         when it encounters lists of different lengths in its *args.
+         '''
          return merge_lists({},y) if x is None else \
                 (x,{}) if y is None else \
                 (x,y)
 
       def merge_ngram_dicts(x,y):
+         '''
+         Since the ngram dicts have ngrams for keys and dicts for values, we
+         just merge the values.
+         '''
          return dict((key,merge_dicts(x.get(key),y.get(key))) for key in set(x.keys()+y.keys()))
 
       def merge_ngram_dict_list( data_dict, other_dict ):
+         '''
+         Since the ngram dicts are actually lists of dicts, we play it safe
+         in case the two V_I_S instances contain data for disjoint values of N.
+         '''
          return [merge_ngram_dicts(a,b) for a,b in map(merge_lists,*[data_dict,other_dict])]
 
       self._pieces_analyzed += other_stats._pieces_analyzed
@@ -477,17 +524,29 @@ class Vertical_Interval_Statistics( object ):
       self._simple_ngrams_dict = merge_ngram_dict_list( self._simple_ngrams_dict, other_stats._simple_ngrams_dict )
    # End extend() ------------------------------------------
 
-   def prepare_ngram_output_dict( self, the_settings, list_of_n, specs ):
-      # TODO: document what this method does, what the parameters are, and what everything does
+   def prepare_ngram_output_dict( self, the_settings, list_of_n ):
+      '''
+      Since the ngram dicts are stored internally in an ugly way, as a list
+      of dicts with NGram keys and {NGram:list} dicts as values, this method
+      cleans them up to a presentable form, based on whether you want to
+      display quality or simple/compound, which can be more easily processed
+      when preparing output.
+      Takes a VIS_Settings object containing settings relevant to the query
+      and a list containing those N values that will be displayed.
+      '''
       # decide simple or compound
       data_dict = None
-      if 'simple' in specs or the_settings.get_property( 'simpleOrCompound') == "simple":
+      if the_settings.get_property( 'simpleOrCompound') == "simple":
          data_dict = self._simple_ngrams_dict
       else:
          data_dict = self._compound_ngrams_dict
+
+      # this will store the nicely formatted dict
       output_dict = None
-      if 'quality' in specs or ( the_settings.get_property( 'heedQuality' ) and \
-         'noQuality' not in specs ):
+
+      # if we need quality, we'll have to make the keys of the values
+      # of the ngram dict into the values we're going to use.
+      if the_settings.get_property( 'heedQuality' ):
          # We do need to include quality
          output_dict = []
          for n in list_of_n:
@@ -500,7 +559,8 @@ class Vertical_Interval_Statistics( object ):
                output_dict.append( {} )
             output_dict[n] = dict(zip(keys,values))
       else:
-         # We don't need to include quality
+         # We don't need to include quality, so just forget
+         # about the values of the ngram dict and sum up all their data.
          output_dict = [{ngram:[sum([v[0] for v in d[ngram].values()]), \
                        [sum(x) for x in zip(*[v[1] for v in d[ngram].values()])]] \
                        for ngram in d.keys()} for d in data_dict]
@@ -508,13 +568,12 @@ class Vertical_Interval_Statistics( object ):
    # End prepare_ngram_output_dict() -----------------------
 
    def retrogrades( self, the_settings, specs='' ):
-     #TODO: refactor the beginning of all the ngram methods
       # (1) Figure out which values of 'n' we should output.
       post = ''
       list_of_n = self.determine_list_of_n(the_settings,specs,post)
 
       # (2) Decide whether to take 'quality' or 'no_quality'
-      output_dict = self.prepare_ngram_output_dict(the_settings,list_of_n,specs)
+      output_dict = self.prepare_ngram_output_dict(the_settings,list_of_n)
 
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -630,7 +689,7 @@ class Vertical_Interval_Statistics( object ):
       list_of_n = self.determine_list_of_n( the_settings,'',post )
 
       # (2) Decide whether to take 'quality' or 'no_quality'
-      output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n, '' )
+      output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n )
 
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -675,11 +734,19 @@ class Vertical_Interval_Statistics( object ):
 
       # Do we need to remove quality?
       if not the_settings.get_property( 'heedQuality' ):
-         # TODO: write comments
+         # yes we do; this is done by removing any 'letters'
+         # from the interval's text representation -- voila,
+         # the quality-free version!
          non_numeric = re.compile(r'[^\d-]+')
+         # replace anything that isn't a number with the empty string
          red = lambda k:non_numeric.sub('',k)
+         # apply that sweet function to all of the intervals
          keys = set(red(k) for k in the_dict.keys())
+         # now for each new key, replace it with a tuple containing
+         # (key,[set of old keys which have this common quality-free form])
          keys = [(k,filter(lambda t:red(t[0])==k,the_dict.items())) for k in keys]
+         # now we make a dict with the new keys and values being the sum 
+         #over all the values associated to the old keys
          the_dict = {k:[sum(v[0] for K,v in l),map(sum,zip(*[v[1] for K,v in l]))] for k,l in keys}
 
       # (2) sort the results in the specified way.
@@ -773,7 +840,8 @@ class Vertical_Interval_Statistics( object ):
       '''
       settings = VIS_Settings()
       settings.set_property( "heedQuality "+str(heedQuality) )
-      the_dict = self.prepare_ngram_output_dict(settings,[n],simple_or_compound)[n]
+      settings.set_property( 'simpleOrCompound '+simple_or_compound )
+      the_dict = self.prepare_ngram_output_dict(settings,[n])[n]
       total_some = sum(sum(v[1][i] for i in some_pieces) for v in the_dict.values())
       total_other = sum(sum(v[1][i] for i in other_pieces) for v in the_dict.values())
       total_diff = sum(abs((sum(v[1][i] for i in some_pieces)*100)/total_some \
@@ -822,8 +890,10 @@ class Vertical_Interval_Statistics( object ):
       tables = {}
       for n in list_of_n:
          table = {}
-         self_dict = self.prepare_ngram_output_dict(the_settings,list_of_n,specs+' noQuality')[n]
-         other_dict = other_stats.prepare_ngram_output_dict(the_settings,list_of_n,specs+' noQuality')[n]
+         sett = copy.deepcopy(the_settings)
+         sett.set_property('heedQuality false')
+         self_dict = self.prepare_ngram_output_dict(sett,list_of_n)[n]
+         other_dict = other_stats.prepare_ngram_output_dict(sett,list_of_n)[n]
          for ng in self_dict.iterkeys():
             table[ng] = [self_dict[ng],0]
          for ng in other_dict.iterkeys():
@@ -890,29 +960,14 @@ class Vertical_Interval_Statistics( object ):
       no associated NGrams occurrences in the relevant statistics database.
       '''
 
-      specs = '' # TODO: remove this temporary thing
-
       post = ''
 
       # (1) Figure out which values of 'n' we should output.
       list_of_n = the_settings.get_property('showTheseNs')
 
-      # If they want the total number of n-grams found.
-      # TODO: figure out this does, and either add better comments or remove it
-      if 'total' in specs:
-         t_n_ng = 0
-         # Add up the number of triangles for each 'n' value.
-         for n in list_of_n:
-            # Use 'no_quality' because there will be fewer to go through
-            for triangle in self._compound_ngrams_dict[n].values():
-               t_n_ng += triangle
-
-         return str(t_n_ng)
-      #--------
-
       # (2) Decide whether to take 'quality' or 'no_quality' and whether we're using
       # simple or compound
-      output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n, specs )
+      output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n )
 
       # (2a) Make sure that we have ngrams at the values requested. If not,
       # raise an exception saying which ones were not available.
@@ -936,17 +991,17 @@ class Vertical_Interval_Statistics( object ):
          for n in list_of_n:
             if 'ascending' == the_settings.get_property( 'sortOrder' ):
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng][0] )
-            else: # elif 'descending' in specs or 'high to low' in specs:
+            else:
                # Default to 'descending'
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng][0], reverse=True )
 
       # We're now working with flipped_dicts
-      else: # elif 'by ngram' in specs or 'by n-gram' in specs:
+      else:
          # Default to 'by ngram'
          for n in list_of_n:
             if 'descending' == the_settings.get_property( 'sortOrder' ):
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter, reverse=True )
-            else: # elif 'ascending' in specs or 'low to high' in specs:
+            else:
                # Default to 'ascending'
                sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter )
 
@@ -1071,9 +1126,11 @@ class Vertical_Interval_Statistics( object ):
          if big_N >= len(self._compound_ngrams_dict):
             raise NonsensicalInputError("There are no N-Grams for N="+str(big_N))
          settings = VIS_Settings()
+         settings.set_property('simpleOrCompound '+simple_or_compound)
+         settings.set_property('heedQuality false')
          try:
             unformatted_dict = self.prepare_ngram_output_dict( settings, \
-                             self.determine_list_of_n( settings, "", "" ), "noQuality "+simple_or_compound )
+                             self.determine_list_of_n( settings, "", "" ) )
             formatted_dict = [{k:v[0] for k,v in d.iteritems()} \
                              for d in unformatted_dict]
          except MissingInformationError:
