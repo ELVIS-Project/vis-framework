@@ -23,7 +23,7 @@
 
 
 
-## Import:
+# Import:
 # python
 import re, copy, os.path, json
 from string import digits as string_digits
@@ -44,7 +44,6 @@ import matplotlib.pyplot as plt
 
 
 
-#-------------------------------------------------------------------------------
 class Vertical_Interval_Statistics( object ):
    '''
    Holds the statistics discovered by vis. Currently these are:
@@ -52,6 +51,7 @@ class Vertical_Interval_Statistics( object ):
    - number of occurrences of each Interval
    - number of occurrences of each n-gram
    '''
+
    # I suspect it's too much work to interactively try to find the
    # quality/no-quality and simple/compound version of everything whenever you
    # want to just find the number of occurrences. Instead, we'll store all four
@@ -73,8 +73,12 @@ class Vertical_Interval_Statistics( object ):
       self._compound_ngrams_dict = [{},{},{}]
       self._pieces_analyzed = []
 
+
+
    def __repr__( self ):
       return str(self)
+
+
 
    def __str__( self ):
       # This should produce something like...
@@ -90,6 +94,8 @@ class Vertical_Interval_Statistics( object ):
                  str(i) + '-grams; '
 
       return post[:-2] + '>'
+
+
 
    def _validate( self ):
       if not isinstance(self._pieces_analyzed,list):
@@ -146,6 +152,9 @@ class Vertical_Interval_Statistics( object ):
                validate_values( v.values(), att_name+" value" )
 
       return True
+   # End _validate() ---------------------------------------
+
+
 
    @staticmethod
    def _stringify( d ):
@@ -155,10 +164,14 @@ class Vertical_Interval_Statistics( object ):
              d if isinstance(d,int) else \
              str(d)
 
+
+
    def to_json( self ):
       # _stringify ensures that the dict is JSON-serializable,
       # since all keys in a JSONObject must be strings
       return json.JSONEncoder().encode(Vertical_Interval_Statistics._stringify(self.__dict__))
+
+
 
    @classmethod
    def from_json( cls,json_string ):
@@ -182,6 +195,8 @@ class Vertical_Interval_Statistics( object ):
             raise MissingInformationError("The dict supplied is missing the attribute "+att)
       if vis._validate():
          return vis
+
+
 
    def add_interval( self, the_interval, piece_index=0 ):
       '''
@@ -232,13 +247,19 @@ class Vertical_Interval_Statistics( object ):
             self._compound_interval_dict[compound_name] = [0,[0 for i in ran]]
          self._compound_interval_dict[compound_name][0] += 1
          self._compound_interval_dict[compound_name][1][piece_index] += 1
-   # end add_interval()
+   # End add_interval() ------------------------------------
+
+
 
    def get_simple_interval_summary_dict( self ):
       return {k:v[0] for k,v in self._simple_interval_dict.iteritems()}
 
+
+
    def get_compound_interval_summary_dict( self ):
       return {k:v[0] for k,v in self._compound_interval_dict.iteritems()}
+
+
 
    def get_interval_occurrences( self, which_interval, simple_or_compound='simple', piece_index=None ):
       '''
@@ -269,11 +290,8 @@ class Vertical_Interval_Statistics( object ):
                   post += db[quality+species][1][piece_index]
 
          return post
-      ##
 
       errorstr = 'Second argument must be either "simple" or "compound"'
-      #errorstr = "Vertical_Interval_Statistics.get_interval_occurrences(): " + \
-            #"'simple_or_compound' must be set to either 'simple' or 'compound'"
 
       # Are they ignoring quality? Yes, if the interval is just a digit or if
       # the first character is a direction
@@ -304,7 +322,9 @@ class Vertical_Interval_Statistics( object ):
                return 0
          else:
             raise NonsensicalInputError( errorstr )
-   # end get_interval_occurrences()
+   # End get_interval_occurrences() ------------------------
+
+
 
    def add_ngram( self, the_ngram, piece_index=0 ):
       '''
@@ -347,8 +367,9 @@ class Vertical_Interval_Statistics( object ):
          self._simple_ngrams_dict[the_ngram._n][index_ngram] = {}
          self._simple_ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = [1,[0 for i in ran]]
          self._simple_ngrams_dict[the_ngram._n][index_ngram][detail_ngram][1][piece_index] = 1
+   # End add_ngram() ---------------------------------------
 
-   # end add_ngram()
+
 
    def get_ngram_occurrences( self, which_ngram ):
       '''
@@ -379,14 +400,17 @@ class Vertical_Interval_Statistics( object ):
       settings.set_property('heedQuality '+str(hq))
       the_dict = self.prepare_ngram_output_dict( VIS_Settings(), [n] )[n]
       return 0 if the_dict.get(ng) is None else the_dict[ng][0] #replace 0 with piece_index?
+   # End get_ngram_occurrences() ---------------------------
 
-   # end get_ngram_occurrences()
+
 
    @staticmethod
    def _set_heed_quality( ngram, heed_quality ):
       ret = copy.deepcopy(ngram)
       ret.set_heed_quality(heed_quality)
       return ret
+
+
 
    @staticmethod
    def _get_simple_version( ngram ):
@@ -399,6 +423,8 @@ class Vertical_Interval_Statistics( object ):
       ng._simple_or_compound = 'simple'
       ng._string = ng.get_string_version(ng._heed_quality,ng._simple_or_compound)
       return ng
+
+
 
    def determine_list_of_n( self, the_settings, specs, post ):
       if 'n=' in specs:
@@ -440,6 +466,8 @@ class Vertical_Interval_Statistics( object ):
       return list_of_n
    # End determine_list_of_n() -----------------------------
 
+
+
    def extend( self, other_stats ):
       '''
       Given a Vertical_Interval_Statistics instance, take all of its relevant data
@@ -461,7 +489,7 @@ class Vertical_Interval_Statistics( object ):
       def merger(x,y):
          '''
          Given two integers or lists, sum them (concatenate in the
-         case of lists). The reason for handling None is because 
+         case of lists). The reason for handling None is because
          when map encounters two lists of different lengths in its *args,
          it pairs any of the "extra" values in the longer list with None.
          See merge() for why we care.
@@ -524,6 +552,8 @@ class Vertical_Interval_Statistics( object ):
       self._simple_ngrams_dict = merge_ngram_dict_list( self._simple_ngrams_dict, other_stats._simple_ngrams_dict )
    # End extend() ------------------------------------------
 
+
+
    def prepare_ngram_output_dict( self, the_settings, list_of_n ):
       '''
       Since the ngram dicts are stored internally in an ugly way, as a list
@@ -566,6 +596,8 @@ class Vertical_Interval_Statistics( object ):
                        for ngram in d.keys()} for d in data_dict]
       return output_dict
    # End prepare_ngram_output_dict() -----------------------
+
+
 
    def retrogrades( self, the_settings, specs='' ):
       # (1) Figure out which values of 'n' we should output.
@@ -682,7 +714,9 @@ class Vertical_Interval_Statistics( object ):
                post += str(ng[0]) + ': ' + str(ngram_pairs[n][ng][0]) +'; ' \
                        +str(ng[1])+': '+str(ngram_pairs[n][ng][1]) + '\n'
       return post
-   #end retrogrades()
+   # End retrogrades() -------------------------------------
+
+
 
    def power_law_analysis( self, the_settings ):
       post = ''
@@ -710,6 +744,8 @@ class Vertical_Interval_Statistics( object ):
                  '; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
       return post
    # End power_law_analysis() ------------------------------
+
+
 
    def get_formatted_intervals( self, the_settings ):
       '''
@@ -745,11 +781,11 @@ class Vertical_Interval_Statistics( object ):
          # now for each new key, replace it with a tuple containing
          # (key,[set of old keys which have this common quality-free form])
          keys = [(k,filter(lambda t:red(t[0])==k,the_dict.items())) for k in keys]
-         # now we make a dict with the new keys and values being the sum 
+         # now we make a dict with the new keys and values being the sum
          #over all the values associated to the old keys
          the_dict = {k:[sum(v[0] for K,v in l),map(sum,zip(*[v[1] for K,v in l]))] for k,l in keys}
 
-      # (2) sort the results in the specified way.
+      # (2) Sort the results in the specified way.
       if 'frequency' == the_settings.get_property( 'sortBy' ):
          # Sort by frequency
          if 'ascending' == the_settings.get_property( 'sortOrder' ):
@@ -828,9 +864,10 @@ class Vertical_Interval_Statistics( object ):
          post += row
       post += '\n'
 
-      # Done!
       return post
-   # end get_formatted_intervals()
+   # end get_formatted_intervals() -------------------------
+
+
 
    def similarity( self, some_pieces, other_pieces, n, simple_or_compound="compound", heedQuality=False ):
       '''
@@ -849,103 +886,7 @@ class Vertical_Interval_Statistics( object ):
                        for v in the_dict.values())
       return 1.0 - float(total_diff)/200
 
-   def compare( self, the_settings, other_stats, file1, file2, specs='' ):
-      '''
-      Compares the relative frequencies of n-grams in two different files,
-      displaying a text chart or graph, as well as computing the "total metric"
-      difference between the two.
-      '''
-      # (1) Figure out which 'n' values to display
-      post = ''
-      list_of_n = []
-      if 'n=' in specs:
-         list_of_n = specs[specs.find('n=')+2:]
-         list_of_n = list_of_n[:list_of_n.find(' ')]
-         list_of_n = sorted(set([int(n) for n in re.findall('(\d+)', list_of_n)]))
-         # Check those n values are acceptable/present
-         for n in list_of_n:
-            # First check we have that index and it's potentially filled with
-            # n-gram values
-            if n < 2 or (n > (len(self._compound_ngrams_dict) - 1) and n > (len(other_stats._compound_ngrams_dict) - 1)):
-               # throw it out
-               list_of_n.remove( n )
-               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
-               continue # to avoid the next test
-            # Now check if there are actually n-grams in that position. If we
-            # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
-            # valid in the n-gram dictionary, but they won't actually hold
-            # any n-grams.
-            if {} == self._compound_ngrams_dict[n] and {} == other_stats._compound_ngrams_dict[n]:
-               # throw it out
-               list_of_n.remove( n )
-               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
-      else:
-         list_of_n = [i for i in range(max(len(self._compound_ngrams_dict),len(other_stats._compound_ngrams_dict))) if \
-                     self._compound_ngrams_dict[i] != {} or other_stats._compound_ngrams_dict[i] != {}]
-      # What if we end up with no n values?
-      if 0 == len(list_of_n):
-         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
 
-      # (2) Organize the results
-      tables = {}
-      for n in list_of_n:
-         table = {}
-         sett = copy.deepcopy(the_settings)
-         sett.set_property('heedQuality false')
-         self_dict = self.prepare_ngram_output_dict(sett,list_of_n)[n]
-         other_dict = other_stats.prepare_ngram_output_dict(sett,list_of_n)[n]
-         for ng in self_dict.iterkeys():
-            table[ng] = [self_dict[ng],0]
-         for ng in other_dict.iterkeys():
-            if ng in self_dict:
-               table[ng][1] = other_dict[ng]
-            else:
-               table[ng] = [0,other_dict[ng]]
-         tables[n] = table
-      # (3.1) If some graphs are asked for, prepare them
-      if 'graph' in specs:
-         grapharr = []
-         for n in list_of_n:
-            table = tables[n]
-            keys = table.keys()
-            g = graph.GraphGroupedVerticalBar(doneAction=None)
-            data = []
-            for k, key in enumerate(keys):
-               pair = {}
-               pair[file1] = table[key][0]
-               pair[file2] = table[key][1]
-               entry = ("bar%s"%str(k),pair)
-               data.append(entry)
-            g.setData(data)
-            g.setTicks('x',[(k+0.4,key) for k, key in enumerate(keys)])
-            g.xTickLabelRotation = 90
-            g.xTickLabelVerticalAlignment='top'
-            g.setTitle(str(n)+'-Grams')
-            g.setTicks('y',[(k,k) for k in xrange(max([max(int(v[0]),int(v[1])) for v in table.values()]))])
-            g.process()
-            grapharr.append(g)
-         post = grapharr
-
-      # (3.2) Otherwise make a nicely formatted list of the results
-      else:
-         s_or_c = the_settings.get_property( 'simpleOrCompound' )
-         heed_quality = the_settings.get_property( 'heedQuality' )
-         for n in list_of_n:
-            table = tables[n]
-            width1 = max([len(ng.get_string_version(heed_quality,s_or_c)) for ng in table.keys()])
-            total1 = sum([t[0] for t in table.values()])
-            width2 = max([len(str(t[0])) for t in table.values()]+[len(file1)+2])
-            total2 = sum([t[1] for t in table.values()])
-            post += "{0:{1:n}}{2:{3:n}}{4}".format(str(n)+"-Gram",width1+2,"# "+file1,width2+2,"# "+file2)
-            post += "\n"+("-"*(width1+width2+len(file2)+6))
-            for ng in table.iterkeys():
-               post += "\n{0:{1:n}}{2:{3:n}}{4}".format(ng.get_string_version(heed_quality,s_or_c),width1+2,\
-                        str(table[ng][0]),width2+2,str(table[ng][1]))
-            post += '\n'
-            totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()])
-            post += "\nTotal difference between "+str(n)+"-grams: "+str(totaldiff)+"\n"
-      return post
-   # end compare()
 
    def get_formatted_ngrams( self, the_settings ):
       '''
@@ -1080,9 +1021,110 @@ class Vertical_Interval_Statistics( object ):
             post += '\n\n'
          post = post[:-3] #forget the last extra newline
 
-      # Done!
       return post
-   # end get_formatted_ngrams()
+   # end get_formatted_ngrams() ----------------------------
+
+
+
+   def compare( self, the_settings, other_stats, file1, file2, specs='' ):
+      '''
+      Compares the relative frequencies of n-grams in two different files,
+      displaying a text chart or graph, as well as computing the "total metric"
+      difference between the two.
+      '''
+      # (1) Figure out which 'n' values to display
+      post = ''
+      list_of_n = []
+      if 'n=' in specs:
+         list_of_n = specs[specs.find('n=')+2:]
+         list_of_n = list_of_n[:list_of_n.find(' ')]
+         list_of_n = sorted(set([int(n) for n in re.findall('(\d+)', list_of_n)]))
+         # Check those n values are acceptable/present
+         for n in list_of_n:
+            # First check we have that index and it's potentially filled with
+            # n-gram values
+            if n < 2 or (n > (len(self._compound_ngrams_dict) - 1) and n > (len(other_stats._compound_ngrams_dict) - 1)):
+               # throw it out
+               list_of_n.remove( n )
+               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
+               continue # to avoid the next test
+            # Now check if there are actually n-grams in that position. If we
+            # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
+            # valid in the n-gram dictionary, but they won't actually hold
+            # any n-grams.
+            if {} == self._compound_ngrams_dict[n] and {} == other_stats._compound_ngrams_dict[n]:
+               # throw it out
+               list_of_n.remove( n )
+               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
+      else:
+         list_of_n = [i for i in range(max(len(self._compound_ngrams_dict),len(other_stats._compound_ngrams_dict))) if \
+                     self._compound_ngrams_dict[i] != {} or other_stats._compound_ngrams_dict[i] != {}]
+      # What if we end up with no n values?
+      if 0 == len(list_of_n):
+         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
+
+      # (2) Organize the results
+      tables = {}
+      for n in list_of_n:
+         table = {}
+         sett = copy.deepcopy(the_settings)
+         sett.set_property('heedQuality false')
+         self_dict = self.prepare_ngram_output_dict(sett,list_of_n)[n]
+         other_dict = other_stats.prepare_ngram_output_dict(sett,list_of_n)[n]
+         for ng in self_dict.iterkeys():
+            table[ng] = [self_dict[ng],0]
+         for ng in other_dict.iterkeys():
+            if ng in self_dict:
+               table[ng][1] = other_dict[ng]
+            else:
+               table[ng] = [0,other_dict[ng]]
+         tables[n] = table
+      # (3.1) If some graphs are asked for, prepare them
+      if 'graph' in specs:
+         grapharr = []
+         for n in list_of_n:
+            table = tables[n]
+            keys = table.keys()
+            g = graph.GraphGroupedVerticalBar(doneAction=None)
+            data = []
+            for k, key in enumerate(keys):
+               pair = {}
+               pair[file1] = table[key][0]
+               pair[file2] = table[key][1]
+               entry = ("bar%s"%str(k),pair)
+               data.append(entry)
+            g.setData(data)
+            g.setTicks('x',[(k+0.4,key) for k, key in enumerate(keys)])
+            g.xTickLabelRotation = 90
+            g.xTickLabelVerticalAlignment='top'
+            g.setTitle(str(n)+'-Grams')
+            g.setTicks('y',[(k,k) for k in xrange(max([max(int(v[0]),int(v[1])) for v in table.values()]))])
+            g.process()
+            grapharr.append(g)
+         post = grapharr
+
+      # (3.2) Otherwise make a nicely formatted list of the results
+      else:
+         s_or_c = the_settings.get_property( 'simpleOrCompound' )
+         heed_quality = the_settings.get_property( 'heedQuality' )
+         for n in list_of_n:
+            table = tables[n]
+            width1 = max([len(ng.get_string_version(heed_quality,s_or_c)) for ng in table.keys()])
+            total1 = sum([t[0] for t in table.values()])
+            width2 = max([len(str(t[0])) for t in table.values()]+[len(file1)+2])
+            total2 = sum([t[1] for t in table.values()])
+            post += "{0:{1:n}}{2:{3:n}}{4}".format(str(n)+"-Gram",width1+2,"# "+file1,width2+2,"# "+file2)
+            post += "\n"+("-"*(width1+width2+len(file2)+6))
+            for ng in table.iterkeys():
+               post += "\n{0:{1:n}}{2:{3:n}}{4}".format(ng.get_string_version(heed_quality,s_or_c),width1+2,\
+                        str(table[ng][0]),width2+2,str(table[ng][1]))
+            post += '\n'
+            totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()])
+            post += "\nTotal difference between "+str(n)+"-grams: "+str(totaldiff)+"\n"
+      return post
+   # end compare() -----------------------------------------
+
+
 
    def get_formatted_ngram_dict( self, simple_or_compound, *args ):
       '''
@@ -1140,7 +1182,9 @@ class Vertical_Interval_Statistics( object ):
          if len(args) == 1:
             post = post[0]
          return post
-   # End get_formatted_ngram_dict()
+   # End get_formatted_ngram_dict() ------------------------
+
+
 
    def make_summary_score( self, settings, n=None, threshold=None, topX=None ):
       '''
@@ -1332,15 +1376,16 @@ class Vertical_Interval_Statistics( object ):
                lower_part.append( rest_measure )
                lily_part.append( note.Rest( quarterLength=4.0 ) )
             else:
+               # Number of occurrences doesn't meet the threshold; skip it.
                continue
 
       # Finally, make a Score and return it
       return stream.Score( [upper_part, lower_part, lily_part] )
-#-------------------------------------------------------------------------------
+   # End make_summary_score()-------------------------------
+# End class Vertical_Interval_Statistics ---------------------------------------
 
 
 
-#-------------------------------------------------------------------------------
 def interval_sorter( x, y ):
    '''
    Returns -1 if the first argument is a smaller interval.
@@ -1400,11 +1445,10 @@ def interval_sorter( x, y ):
          return 1
       else:
          return 0
-#-------------------------------------------------------------------------------
+# End interval_sorter() ------------------------------------
 
 
 
-#-------------------------------------------------------------------------------
 def ngram_sorter( a, b ):
    '''
    Returns -1 if the first argument is a smaller n-gram.
@@ -1452,7 +1496,6 @@ def ngram_sorter( a, b ):
       else:
          units += 1
       return units
-   #-------------------------------------------------------
 
    # See if we have only one interval left. When there is only one interval,
    # the result of this will be -1
@@ -1477,4 +1520,4 @@ def ngram_sorter( a, b ):
 
    # If not, we'll rely on ourselves to solve the next mystery!
    return ngram_sorter( x[x_find+1:], y[y_find+1:] )
-#-------------------------------------------------------------------------------
+# End ngram_sorter() ---------------------------------------
