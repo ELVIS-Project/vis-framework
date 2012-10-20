@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project vis -->
-<!-- Saved: 2012-10-12, 21:21:50 -->
+<!-- Saved: 2012-10-20, 15:11:13 -->
 <!-- Copyright (C) 2012 Christopher Antila, Jamie Klassen, christopher.antila@mail.mcgill.ca -->
 <Project version="4.6">
   <Language>en</Language>
@@ -37,7 +37,6 @@
     <Source>vis_test/Test_NGram.py</Source>
     <Source>vis_test/Test_Analysis_Engine_Integration_Long.py</Source>
     <Source>vis_test/Test_Other_Analysis_Engine.py</Source>
-    <Source>new__main__.py</Source>
     <Source>gui_files/Ui_main_window.py</Source>
     <Source>gui_files/icons_rc.py</Source>
     <Source>gui_files/Ui_new_main_window.py</Source>
@@ -45,6 +44,8 @@
     <Source>gui_files/__init__.py</Source>
     <Source>gui_files/Ui_select_offset.py</Source>
     <Source>gui_files/Ui_text_display.py</Source>
+    <Source>gui_files/Ui_compare_voice_pairs.py</Source>
+    <Source>old__main__.py</Source>
   </Sources>
   <Forms>
     <Form>gui_files/main_window.ui</Form>
@@ -52,6 +53,7 @@
     <Form>gui_files/select_offset.ui</Form>
     <Form>gui_files/select_voices.ui</Form>
     <Form>gui_files/text_display.ui</Form>
+    <Form>gui_files/compare_voice_pairs.ui</Form>
   </Forms>
   <Translations>
   </Translations>
