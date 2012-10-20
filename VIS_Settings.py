@@ -110,72 +110,87 @@ class VIS_Settings:
       return sorted(set([int(n) for n in re.findall('(\d+)', ns)]))
    #-----
 
-   def set_property( self, property_str ):
-      # Parses 'property_str' and sets the specified property to the specified
-      # value. Might later raise an exception if the property doesn't exist or
-      # if the value is invalid.
-      #
-      # Examples:
-      # a.set_property( 'chordLabelVerbosity concise' )
-      # a.set_property( 'set chordLabelVerbosity concise' )
+   def set_property( self, property_str, property_val='default nothing' ):
+      '''
+      Parses 'property_str' and sets the specified property to the specified
+      value. If 'property_val' is not None, then the property specified in
+      'property_str' is set directly to the value in 'property_val'.
 
-      # If the str starts with "set " then remove that
-      if 'set ' == property_str[:4]:
-         property_str = property_str[4:]
+      Examples:
+      >>> a.set_property( 'chordLabelVerbosity concise' )
+      >>> a.set_property( 'set chordLabelVerbosity concise' )
+      >>> a.set_property( 'topX', 10 )
+      '''
 
-      # Check to make sure we have a setting and a value
-      setting = property_str[:property_str.find(' ')]
-      value = property_str[property_str.find(' ')+1:]
+      if property_val == 'default nothing':
+         # We don't have a separate value, so we'll parse it from the string
 
-      if 0 == len(setting):
-         raise NonsensicalInputWarning( 'Unable to find setting name in "' + property_str + '"' )
-      if 0 == len(value):
-         raise NonsensicalInputWarning( 'Unable to find value in "' + property_str + '"' )
+         # If the str starts with "set " then remove that
+         if 'set ' == property_str[:4]:
+            property_str = property_str[4:]
 
-      # If the property requires a boolean value, make sure we have one
-      if 'heedQuality' == setting or 'produceLabeledScore' == setting or \
-            'produceLabelledScore' == setting or 'recurse' == setting:
-         if not VIS_Settings._is_t_or_f( value ):
-            raise NonsensicalInputWarning( \
-                  'Value must be either True or False, but we got "' + \
-                  str(value) + '"' )
+         # Check to make sure we have a setting and a value
+         setting = property_str[:property_str.find(' ')]
+         value = property_str[property_str.find(' ')+1:]
+
+         if 0 == len(setting):
+            raise NonsensicalInputWarning( 'Unable to find setting name in "' + property_str + '"' )
+         if 0 == len(value):
+            raise NonsensicalInputWarning( 'Unable to find value in "' + property_str + '"' )
+
+         # If the property requires a boolean value, make sure we have one
+         if 'heedQuality' == setting or 'produceLabeledScore' == setting or \
+               'produceLabelledScore' == setting or 'recurse' == setting:
+            if not VIS_Settings._is_t_or_f( value ):
+               raise NonsensicalInputWarning( \
+                     'Value must be either True or False, but we got "' + \
+                     str(value) + '"' )
+            else:
+               value = VIS_Settings._str_to_bool( value )
+
+         # If the property is 'n' we need to parse the list of values into
+         # a real list of int.
+         if 'lookForTheseNs' == setting or 'showTheseNs' == setting:
+            value = VIS_Settings._parse_list_of_n( value )
+
+         if 'threshold' == setting or 'topX' == setting:
+            try:
+               value = int(value)
+            except ValueError as vale:
+               msg = 'Invalid value for '+setting+'; ignoring'
+               raise NonsensicalInputWarning( msg )
+
+         # If the property is 'offsetBetweenInterval' then make sure we have an
+         # int for this, not a str
+         if 'offsetBetweenInterval' == setting:
+            try:
+               value = float(value)
+            except ValueError as vale:
+               msg = 'Invalid value for offsetBetweenInterval; ignoring'
+               raise NonsensicalInputWarning( msg )
+
+         # If the property is 'outputResultsToFile' and the value is 'None' then
+         # the value should actually be ''
+         if 'outputResultsToFile' == setting and 'None' == value:
+            value = ''
+
+         # now match the property
+         if setting in self._secret_settings_hash:
+            self._secret_settings_hash[setting] = value
+         elif 'produceLabelledScore' == setting:
+            self._secret_settings_hash['produceLabeledScore'] = value
+         # We don't have that setting
          else:
-            value = VIS_Settings._str_to_bool( value )
-
-      # If the property is 'n' we need to parse the list of values into
-      # a real list of int.
-      if 'lookForTheseNs' == setting or 'showTheseNs' == setting:
-         value = VIS_Settings._parse_list_of_n( value )
-
-      if 'threshold' == setting or 'topX' == setting:
-         try:
-            value = int(value)
-         except ValueError as vale:
-            msg = 'Invalid value for '+setting+'; ignoring'
-            raise NonsensicalInputWarning( msg )
-
-      # If the property is 'offsetBetweenInterval' then make sure we have an
-      # int for this, not a str
-      if 'offsetBetweenInterval' == setting:
-         try:
-            value = float(value)
-         except ValueError as vale:
-            msg = 'Invalid value for offsetBetweenInterval; ignoring'
-            raise NonsensicalInputWarning( msg )
-
-      # If the property is 'outputResultsToFile' and the value is 'None' then
-      # the value should actually be ''
-      if 'outputResultsToFile' == setting and 'None' == value:
-         value = ''
-
-      # now match the property
-      if setting in self._secret_settings_hash:
-         self._secret_settings_hash[setting] = value
-      elif 'produceLabelledScore' == setting:
-         self._secret_settings_hash['produceLabeledScore'] = value
-      # We don't have that setting
+            raise NonsensicalInputWarning( "Unrecognized setting name: " + setting )
       else:
-         raise NonsensicalInputWarning( "Unrecognized setting name: " + setting )
+         # We do have a specific value, so we just need to set like that
+
+         # Match the property
+         if property_str in self._secret_settings_hash:
+            self._secret_settings_hash[property_str] = property_val
+         else:
+            # We don't have that setting
+            raise NonsensicalInputWarning( "Unrecognized setting name: " + setting )
    # end set_propety() ------------------------------------
 
    def get_property( self, property_str ):

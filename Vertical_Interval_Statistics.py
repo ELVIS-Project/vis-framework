@@ -398,7 +398,8 @@ class Vertical_Interval_Statistics( object ):
       settings = VIS_Settings()
       settings.set_property('simpleOrCompound compound')
       settings.set_property('heedQuality '+str(hq))
-      the_dict = self.prepare_ngram_output_dict( VIS_Settings(), [n] )[n]
+      settings.set_property( 'showTheseNs', [n] )
+      the_dict = self.prepare_ngram_output_dict( VIS_Settings() )[n]
       return 0 if the_dict.get(ng) is None else the_dict[ng][0] #replace 0 with piece_index?
    # End get_ngram_occurrences() ---------------------------
 
@@ -554,46 +555,57 @@ class Vertical_Interval_Statistics( object ):
 
 
 
-   def prepare_ngram_output_dict( self, the_settings, list_of_n ):
+   def prepare_ngram_output_dict( self, settings ):
       '''
-      Since the ngram dicts are stored internally in an ugly way, as a list
-      of dicts with NGram keys and {NGram:list} dicts as values, this method
-      cleans them up to a presentable form, based on whether you want to
-      display quality or simple/compound, which can be more easily processed
-      when preparing output.
-      Takes a VIS_Settings object containing settings relevant to the query
-      and a list containing those N values that will be displayed.
+      Prepares a list of dictionaries where the list index corresponds to the
+      cardinality of the n-grams stored in that dictionary. In each dictionary,
+      the keys are a n-grams, and the values are the occurrences of that n-gram.
+
+      Accepts a VIS_Settings object, and follows these properties:
+      - heedQuality
+      - simpleOrCompound
+      - showTheseNs
+
+      If you wish to use "topX" or "threshold," use the method
+      "get_formatted_ngram_dict()"
       '''
-      # decide simple or compound
+
+      # Do we take simple or compound intervals?
       data_dict = None
-      if the_settings.get_property( 'simpleOrCompound') == "simple":
+      if settings.get_property( 'simpleOrCompound') == 'simple':
          data_dict = self._simple_ngrams_dict
       else:
          data_dict = self._compound_ngrams_dict
 
-      # this will store the nicely formatted dict
+      # Hold the output
       output_dict = None
 
-      # if we need quality, we'll have to make the keys of the values
-      # of the ngram dict into the values we're going to use.
-      if the_settings.get_property( 'heedQuality' ):
+      # Do we need to include quality?
+      if settings.get_property( 'heedQuality' ):
+         # Find the "list_of_n"
+         list_of_n = settings.get_property( 'showTheseNs' )
+
          # We do need to include quality
-         output_dict = []
+         output_dict = [{} for i in xrange(max(list_of_n) + 1)]
+
          for n in list_of_n:
             keys = []
             values = []
             for ng in data_dict[n].iterkeys():
-               keys.extend(data_dict[n][ng].keys())
-               values.extend(data_dict[n][ng].values())
-            while len(output_dict) < n+1:
+               keys.extend( data_dict[n][ng].keys() )
+               values.extend( data_dict[n][ng].values() )
+            while len(output_dict) < n + 1:
                output_dict.append( {} )
-            output_dict[n] = dict(zip(keys,values))
+            output_dict[n] = dict( zip( keys, values ) )
       else:
          # We don't need to include quality, so just forget
          # about the values of the ngram dict and sum up all their data.
          output_dict = [{ngram:[sum([v[0] for v in d[ngram].values()]), \
                        [sum(x) for x in zip(*[v[1] for v in d[ngram].values()])]] \
                        for ngram in d.keys()} for d in data_dict]
+
+      # Go through the dicts and turn the keys into strings
+
       return output_dict
    # End prepare_ngram_output_dict() -----------------------
 
@@ -602,10 +614,11 @@ class Vertical_Interval_Statistics( object ):
    def retrogrades( self, the_settings, specs='' ):
       # (1) Figure out which values of 'n' we should output.
       post = ''
-      list_of_n = self.determine_list_of_n(the_settings,specs,post)
+      list_of_n = self.determine_list_of_n( the_settings, specs, post )
+      the_settings.set_property( 'showTheseNs', list_of_n )
 
       # (2) Decide whether to take 'quality' or 'no_quality'
-      output_dict = self.prepare_ngram_output_dict(the_settings,list_of_n)
+      output_dict = self.prepare_ngram_output_dict( the_settings )
 
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -720,10 +733,11 @@ class Vertical_Interval_Statistics( object ):
 
    def power_law_analysis( self, the_settings ):
       post = ''
-      list_of_n = self.determine_list_of_n( the_settings,'',post )
+      list_of_n = self.determine_list_of_n( the_settings, '', post )
+      the_settings.set_property( 'showTheseNs', list_of_n )
 
       # (2) Decide whether to take 'quality' or 'no_quality'
-      output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n )
+      output_dict = self.prepare_ngram_output_dict( the_settings )
 
       # (3) Sort the dictionary
       sorted_ngrams = []
@@ -876,9 +890,10 @@ class Vertical_Interval_Statistics( object ):
       the similarity between the N-Grams in the two samples.
       '''
       settings = VIS_Settings()
-      settings.set_property( "heedQuality "+str(heedQuality) )
-      settings.set_property( 'simpleOrCompound '+simple_or_compound )
-      the_dict = self.prepare_ngram_output_dict(settings,[n])[n]
+      settings.set_property( 'heedQuality', heedQuality )
+      settings.set_property( 'simpleOrCompound', simple_or_compound )
+      settings.set_property( 'showTheseNs', [n] )
+      the_dict = self.prepare_ngram_output_dict( settings )[n]
       total_some = sum(sum(v[1][i] for i in some_pieces) for v in the_dict.values())
       total_other = sum(sum(v[1][i] for i in other_pieces) for v in the_dict.values())
       total_diff = sum(abs((sum(v[1][i] for i in some_pieces)*100)/total_some \
@@ -908,7 +923,7 @@ class Vertical_Interval_Statistics( object ):
 
       # (2) Decide whether to take 'quality' or 'no_quality' and whether we're using
       # simple or compound
-      output_dict = self.prepare_ngram_output_dict( the_settings, list_of_n )
+      output_dict = self.prepare_ngram_output_dict( the_settings )
 
       # (2a) Make sure that we have ngrams at the values requested. If not,
       # raise an exception saying which ones were not available.
@@ -987,30 +1002,44 @@ class Vertical_Interval_Statistics( object ):
 
       # (4.2) Else make a nicely formatted list from the results.
       else:
-         post = ""
-         for k, piece in enumerate(self._pieces_analyzed,start=1):
-            post += "p"+str(k)+" = "+os.path.split(piece)[1]+"\n"
-         post += "\n"
+         # Start with an empty string
+         post = ''
+
+         # Piece Title and Part Combination Assignments
+         for k, piece in enumerate( self._pieces_analyzed, start=1 ):
+            post += 'p' + str(k) + " = " + os.path.split(piece)[1] + '\n'
+
+         post += '\n'
+
+         # Print all requested values of n
          for n in list_of_n:
             the_dict = output_dict[n]
             sorted_ngrams = sorted_ngrams[n]
             widths = []
-            heading = str(n)+"-Gram"
-            width = max([len(str(k)) for k in sorted_ngrams]+[len(heading)])+2
-            widths.append(width)
-            for i, piece in enumerate(self._pieces_analyzed):
-               width = max([len(str(the_dict[k][1][i])) for k in sorted_ngrams]+[len("p"+str(i+1))+3])
-               widths.append(width)
+            heading = str(n) + "-gram"
+            width = max( [ len(str(k)) for k in sorted_ngrams ] + \
+                         [ len(heading) ] ) + 2
+            widths.append( width )
+
+            # Go through each piece (for this value of n)
+            for i, piece in enumerate( self._pieces_analyzed ):
+               width = max( [ len( str( the_dict[k][1][i] ) ) \
+                       for k in sorted_ngrams] + [ len( 'p' + str( i + 1 ) ) + 3 ] )
+               widths.append( width )
+
             width_total = max([len(str(the_dict[k][0])) for k in sorted_ngrams]+[len("Total")])+2
             widths.append(width_total)
             row = "{0:{1:n}}".format(heading, widths[0])
+
             for i, piece in enumerate(self._pieces_analyzed,start=1):
                row += "{0:{1:n}}".format("# p"+str(i)+" ", widths[i])
+
             row += "{0:{1:n}}".format("# Total", widths[-1])
             row += "\n"
             post += row
             row = "-"*sum(widths)+"\n"
             post += row
+
             for ngram in sorted_ngrams:
                row = "{0:{1:n}}".format(str(ngram), widths[0])
                for i, piece in enumerate(self._pieces_analyzed):
@@ -1018,8 +1047,11 @@ class Vertical_Interval_Statistics( object ):
                row += "{0:{1:n}}".format(str(the_dict[ngram][0]), widths[-1])
                row += "\n"
                post += row
+
             post += '\n\n'
-         post = post[:-3] #forget the last extra newline
+
+         # Remove the final newline, which we don't really need
+         post = post[:-3]
 
       return post
    # end get_formatted_ngrams() ----------------------------
@@ -1069,8 +1101,9 @@ class Vertical_Interval_Statistics( object ):
          table = {}
          sett = copy.deepcopy(the_settings)
          sett.set_property('heedQuality false')
-         self_dict = self.prepare_ngram_output_dict(sett,list_of_n)[n]
-         other_dict = other_stats.prepare_ngram_output_dict(sett,list_of_n)[n]
+         sett.set_property( 'showTheseNs', list_of_n )
+         self_dict = self.prepare_ngram_output_dict( sett )[n]
+         other_dict = other_stats.prepare_ngram_output_dict( sett )[n]
          for ng in self_dict.iterkeys():
             table[ng] = [self_dict[ng],0]
          for ng in other_dict.iterkeys():
@@ -1126,62 +1159,89 @@ class Vertical_Interval_Statistics( object ):
 
 
 
-   def get_formatted_ngram_dict( self, simple_or_compound, *args ):
+   def get_formatted_ngram_dict( self, settings ):
       '''
-      Returns a formatted version of the ngram dictionary.
+      Returns a formatted version of the n-gram dictionaries, where the keys are
+      replaced with their str() version. The output is a list, where each 'n'
+      value you request is stored in the corresponding index number of the list.
 
-      Dictionary keys are
-      stored internally as NGram objects, but these are difficult to read if,
-      for example, you want to print the entire dictionary. This method returns
-      a copy of the internally-stored dictionary, where keys are replaced with
-      their str() output.
+      Accepts a VIS_Settings instance, and modifies output according to:
+      - heedQuality
+      - simpleOrCompound
+      - topX
+      - threshold
+      - showTheseNs
 
-      If you specify an int, a str with a list of int objects, or a list of int
-      objects, then only that or those cardinalities will be returned.
-
-      If you specify no arguments, you will get an 'exact' copy of the internal
-      ngram dictionary (except keys will be replaced with strings),
-      which is a list of dict objects of len() >= 3 , and
-      where each cardinality is stored in its position in the list (i.e. 2-grams
-      will be stored in get_formatted_ngram_dict('simple')[2] ).
+      Raises NonsensicalInputWarning if "showTheseNs" contains values for which
+      there are no statistics.
       '''
 
-      if simple_or_compound != 'simple' and simple_or_compound != 'compound':
-         raise NonsensicalInputError("simple_or_compound argument must be 'simple' or 'compound")
-      # With no argument, we return a copy of the entire dict.
-      if args is ():
-         the_dict = self._simple_ngrams_dict if simple_or_compound == 'simple' \
-                    else self._compound_ngrams_dict
-         return self.get_formatted_ngram_dict(simple_or_compound, *range(len(the_dict)))
-      elif len(args) == 1 and isinstance(args[0],basestring):
-         try:
-            new_args = map(int,args.split())
-            return self.get_formatted_ngram_dict(simple_or_compound, *new_args)
-         except ValueError: #if your string is badly formatted
-            raise NonsensicalInputError("string input does not contain a list of ints")
-      # With an argument, we have to make a copy of only a specific dict.
+      # Find out which 'n' values we should process; sort the list
+      enns = settings.get_property( 'showTheseNs' )
+      enns.sort()
+
+      # (1) Make sure there are statistics for all the 'n' values
+      for enn in enns:
+         if enn < 2 or enn >= len(self._simple_ngrams_dict) or \
+            self._simple_ngrams_dict[enn] == {}:
+            raise NonsensicalInputWarning( "No statistics for n=" + str(enn) )
+
+      # (2) Have the simple/compound and no//quality done for us
+      start_dict = self.prepare_ngram_output_dict( settings )
+
+      # (3) Convert the NGram objects to strings, and take only the
+      # total occurrences of each n-gram, removing the "per-piece" information
+      strings_dict = [{} for i in xrange(len(start_dict))]
+      for enn in enns:
+         for k in start_dict[enn].iterkeys():
+            strings_dict[enn][str(k)] = start_dict[enn][k][0]
+
+      # (4) Do the filtering for "top X"
+      topX = settings.get_property( 'topX' ) # the "X"
+      topX_dict = None # Hold the "top X-ed" records
+      if topX is not None:
+         # The we have to do some work
+
+         # Make a list with n-grams sorted from most occurrences to least.
+         sorted_lists = [{} for i in xrange(len(strings_dict))]
+         for enn in enns:
+            # The first argument means we go over all the keys in start_dict
+            # "key" is the thing by which n-grams are sorted (i.e. occurrences)
+            # "reverse" means we're going from high-to-low
+            sorted_dict[enn] = sorted( strings_dict[enn].iterkeys(), \
+                                       key = lambda ng: strings_dict[enn][ng], \
+                                       reverse = True )
+
+         # Fill out the topX_dict
+         topX_dict = [{} for i in xrange(len(threshold_dict))]
+
+         # Copy over only the first "X" n-grams
+         for enn in enns:
+            for i in xrange(topX):
+               for k in sorted_lists:
+                  topX_dict[enn][k] = strings_dict[enn][k]
       else:
-         for n in args:
-            if not isinstance(n,int):
-               raise NonsensicalInputError("must input a list of int objects")
-         big_N = max(args)
-         if big_N >= len(self._compound_ngrams_dict):
-            raise NonsensicalInputError("There are no N-Grams for N="+str(big_N))
-         settings = VIS_Settings()
-         settings.set_property('simpleOrCompound '+simple_or_compound)
-         settings.set_property('heedQuality false')
-         try:
-            unformatted_dict = self.prepare_ngram_output_dict( settings, \
-                             self.determine_list_of_n( settings, "", "" ) )
-            formatted_dict = [{k:v[0] for k,v in d.iteritems()} \
-                             for d in unformatted_dict]
-         except MissingInformationError:
-            #if there are no ngrams, just return an empty dict.
-            return {}
-         post = [{str(k):v for k,v in formatted_dict[n].items()} for n in args]
-         if len(args) == 1:
-            post = post[0]
-         return post
+         # Then we just copy the threshold-ed dict
+         topX_dict = strings_dict
+
+      # (5) Do the filtering for "threshold" (n-grams with fewer occurrences
+      # "threshold" should not be included
+      thresh = settings.get_property( 'threshold' ) # the threshold
+      threshold_dict = None # Hold the "thresholded" records
+      if thresh is not None:
+         # The we have to do some work
+
+         # Fill out the threshold_dict
+         threshold_dict = [{} for i in xrange(len(topX_dict))]
+
+         # Copy over only those n-grams that meet the threshold
+         for enn in enns:
+            threshold_dict[enn] = filter( lambda x: x >= thresh, topX_dict[enn] )
+      else:
+         # Then we just copy the sorted dict
+         threshold_dict = topX_dict
+
+      return topX_dict
    # End get_formatted_ngram_dict() ------------------------
 
 
