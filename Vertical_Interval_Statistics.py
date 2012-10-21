@@ -98,6 +98,7 @@ class Vertical_Interval_Statistics( object ):
 
 
    def _validate( self ):
+      # TODO: what does this actually do, and how?
       if not isinstance(self._pieces_analyzed,list):
          raise NonsensicalInputError("_pieces_analyzed must be of type list")
       for s in self._pieces_analyzed:
@@ -174,7 +175,7 @@ class Vertical_Interval_Statistics( object ):
 
 
    @classmethod
-   def from_json( cls,json_string ):
+   def from_json( cls, json_string ):
       vis = Vertical_Interval_Statistics()
       # use _stringify since JSONDecoder interprets all strings as unicode.
       d = None
@@ -222,7 +223,7 @@ class Vertical_Interval_Statistics( object ):
          simple_name = the_interval.semiSimpleName
          simple_name = simple_name[0] + '-' + simple_name[1:]
          if simple_name not in self._simple_interval_dict:
-            self._simple_interval_dict[simple_name] = [0,[0 for i in ran]]
+            self._simple_interval_dict[simple_name] = [0, [0 for i in ran]]
          self._simple_interval_dict[simple_name][0] += 1
          self._simple_interval_dict[simple_name][1][piece_index] += 1
 
@@ -230,7 +231,7 @@ class Vertical_Interval_Statistics( object ):
          compound_name = the_interval.name
          compound_name = compound_name[0] + '-' + compound_name[1:]
          if compound_name not in self._compound_interval_dict:
-            self._compound_interval_dict[compound_name] = [0,[0 for i in ran]]
+            self._compound_interval_dict[compound_name] = [0, [0 for i in ran]]
          self._compound_interval_dict[compound_name][0] += 1
          self._compound_interval_dict[compound_name][1][piece_index] += 1
       # Ascending or unison interval
@@ -382,6 +383,8 @@ class Vertical_Interval_Statistics( object ):
       Automatically does or does not track quality, depending on the settings
       of the inputted NGram objects.
       '''
+
+      # TODO: write comments for this method
       ng = None
       if isinstance(which_ngram,NGram):
          ng = which_ngram
@@ -415,14 +418,18 @@ class Vertical_Interval_Statistics( object ):
 
    @staticmethod
    def _get_simple_version( ngram ):
-      ng = copy.deepcopy(ngram)
-      l = ng._list_of_intervals
-      for i in l:
+      # TODO: description
+      ng = copy.deepcopy( ngram )
+
+      for i in ng._list_of_intervals:
          ns = i.noteStart
-         i = interval.Interval(i.semiSimpleName)
+         i = interval.Interval( i.semiSimpleName )
          i.noteStart = ns
+
       ng._simple_or_compound = 'simple'
-      ng._string = ng.get_string_version(ng._heed_quality,ng._simple_or_compound)
+      ng._string = ng.get_string_version( ng._heed_quality, \
+                                          ng._simple_or_compound )
+
       return ng
 
 
