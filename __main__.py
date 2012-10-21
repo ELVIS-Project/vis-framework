@@ -54,6 +54,8 @@ from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 from vis import VIS_Settings
 from analytic_engine import vis_these_parts, make_basso_seguente
 from file_output import file_outputter, file_inputter
+from output_LilyPond import LilyPond_Settings
+from output_LilyPond import process_score as lily_process_score
 
 
 
@@ -163,7 +165,38 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.main_screen.setCurrentWidget( self.page_about )
 
    # GUI Things ("Show" Panel) -----------------------------
+   def generate_summary_score( self ):
+      # This is the one where we have to make a score. Must set the formatting
+      # options correctly for LilyPond!
+
+      # Get a settings instance
+      l_sets = LilyPond_Settings()
+
+      # Set all the settings
+      # - no indent
+      l_sets.set_property( 'indent 0\cm' )
+
+      # Make the score
+      summary_score = self.statistics.make_summary_score( self.settings )
+
+      # Ask where to save the LilyPond file
+      out_file = str(QtGui.QFileDialog.getSaveFileName(\
+         None,
+         "Save LilyPond File Where?",
+         "Statistics Summary.ly",
+         '',
+         None))
+
+      # Pass the score to output_LilyPond for processing.
+      lily_process_score( summary_score, the_settings=l_sets, filename=out_file )
+   # End generate_summary_score() --------------------------
+
    def show_results( self ):
+      # For LilyPond, we'll have an "early interception"
+      if 'score' == self.settings.get_property( 'outputFormat' ):
+         self.generate_summary_score()
+         return
+
       # Should we output intervals or ngrams or comparison?
       content = self.settings.get_property( 'content' )
 
@@ -182,7 +215,7 @@ class Vis_MainWindow( Ui_MainWindow ):
             formatted_output = "dummy output"
       except NonsensicalInputWarning as niw:
          QtGui.QMessageBox.warning(None,
-            "Unable to Display Those Results",
+            "Cannot Display Results",
             str(niw),
             QtGui.QMessageBox.StandardButtons(\
                QtGui.QMessageBox.Ok),
