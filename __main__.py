@@ -548,6 +548,10 @@ class Vis_MainWindow( Ui_MainWindow ):
                                      str(duration) + \
                                      ' seconds', 10000 )
 
+         # Wait for all the threads to finish. This shouldn't really be
+         # necessary, but I'm adding this to try to deal with Issue #96.
+         QThreadPool.globalInstance().waitForDone()
+
          # Move the GUI to the "show results" panel
          self.main_screen.setCurrentWidget( self.page_show )
          self.btn_show.setEnabled( True )
