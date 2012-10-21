@@ -114,8 +114,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.rdo_score.clicked.connect( self.update_output_format )
       self.rdo_list.clicked.connect( self.update_output_format )
       self.line_show_these_ns.editingFinished.connect( self.update_n_values_displayed )
-      self.line_output_most_common.editingFinished.connect( self.update_top_x )
-      self.line_threshold.editingFinished.connect( self.update_threshold )
       self.rdo_compound.clicked.connect( self.update_simple_compound )
       self.rdo_simple.clicked.connect( self.update_simple_compound )
       self.rdo_heedQuality.clicked.connect( self.update_heed_quality )
@@ -140,6 +138,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.btn_choose_note.clicked.connect( self.launch_offset_selection )
       self.btn_step2.clicked.connect( self.progress_to_show )
       self.line_piece_title.editingFinished.connect( self.update_piece_title )
+      self.line_output_most_common.editingFinished.connect( self.update_most_common )
+      self.line_threshold.editingFinished.connect( self.update_threshold )
       # This is for the QThreadPool threads to signal they've finished a
       # voice pair
       self.vsc.finishedVoicePair.connect( self.increment_analysis_progress )
@@ -250,20 +250,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       s = str(self.line_show_these_ns.text())
       self.settings.set_property('showTheseNs '+s)
 
-   def update_top_x( self ):
-      s = str(self.line_output_most_common.text())
-      try:
-         self.settings.set_property('topX '+s)
-      except NonsensicalInputWarning:
-         self.line_output_most_common.setText(str(self.settings.get_property('topX')))
-
-   def update_threshold( self ):
-      s = str(self.line_threshold.text())
-      try:
-         self.settings.set_property('threshold '+s)
-      except NonsensicalInputWarning:
-         self.line_threshold.setText(str(self.settings.get_property('threshold')))
-
    def update_simple_compound( self ):
       if self.rdo_compound.isChecked():
          self.settings.set_property('simpleOrCompound compound')
@@ -287,6 +273,42 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.settings.set_property('sortOrder descending')
       else:
          self.settings.set_property('sortOrder ascending')
+
+   def update_most_common( self ):
+      '''
+      Updates the VIS_Settings object with the proper setting for "topX"
+      '''
+
+      # Get the possible X
+      candidate_X = str(self.line_output_most_common.text())
+
+      # Does it turn into an int?
+      try:
+         candidate_X = int(candidate_X)
+      except ValueError:
+         # If not, we'll just use "None"
+         candidate_X = None
+
+      # Then set it!
+      self.settings.set_property( 'topX', candidate_X )
+
+   def update_threshold( self ):
+      '''
+      Updates the VIS_Settings object with the proper setting for "threshold"
+      '''
+
+      # Get the possible threshold
+      candidate_thresh = str(self.line_threshold.text())
+
+      # Does it turn into an int?
+      try:
+         candidate_thresh = int(candidate_thresh)
+      except ValueError:
+         # If not, we'll just use "None"
+         candidate_thresh = None
+
+      # Then set it!
+      self.settings.set_property( 'threshold', candidate_thresh )
 
    # GUI Things ("Choose Files" Panel) ---------------------
    def add_dir( self ):
@@ -563,6 +585,8 @@ class Vis_MainWindow( Ui_MainWindow ):
             part_spec = '[all]'
 
          self.update_parts_selection( part_spec )
+
+
 
    def update_piece_title( self ):
       '''

@@ -919,11 +919,11 @@ class Vertical_Interval_Statistics( object ):
       post = ''
 
       # (1) Figure out which values of 'n' we should output.
-      list_of_n = the_settings.get_property('showTheseNs')
+      list_of_n = the_settings.get_property( 'showTheseNs' )
 
       # (2) Decide whether to take 'quality' or 'no_quality' and whether we're using
       # simple or compound
-      output_dict = self.prepare_ngram_output_dict( the_settings )
+      output_dict = self.get_formatted_ngram_dict( the_settings, True )
 
       # (2a) Make sure that we have ngrams at the values requested. If not,
       # raise an exception saying which ones were not available.
@@ -934,32 +934,35 @@ class Vertical_Interval_Statistics( object ):
                error_enns.append( enn )
 
       if 0 < len(error_enns):
-         raise NonsensicalInputWarning( "No " + str(error_enns) + "-grams available!" )
+         raise NonsensicalInputWarning( 'No ' + str(error_enns) + '-grams available!' )
 
       # (3) Sort the dictionary
-      sorted_ngrams = []
-      # We need to have enough 'n' places in sorted_ngrams to hold the
-      # sorted dictionaries.
-      for n in xrange(max(list_of_n) + 1):
-         sorted_ngrams.append( [] )
-      if 'frequency' == the_settings.get_property( 'sortBy' ):
-         # Sort the frequencies
-         for n in list_of_n:
-            if 'ascending' == the_settings.get_property( 'sortOrder' ):
-               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng][0] )
-            else:
-               # Default to 'descending'
-               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng][0], reverse=True )
+      # Make enough indices to hold the sorted keys
+      sorted_ngrams = [[] for i in xrange( max(list_of_n ) + 1 )]
 
-      # We're now working with flipped_dicts
-      else:
-         # Default to 'by ngram'
+      if 'frequency' == the_settings.get_property( 'sortBy' ):
+         # Sort the keys by frequency
          for n in list_of_n:
-            if 'descending' == the_settings.get_property( 'sortOrder' ):
-               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter, reverse=True )
+            rev = None
+            if 'ascending' == the_settings.get_property( 'sortOrder' ):
+               rev = False
             else:
-               # Default to 'ascending'
-               sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), cmp=ngram_sorter )
+               rev = True
+            sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), \
+                                       key = lambda ng: output_dict[n][ng][0], \
+                                       reverse = rev )
+      else:
+         # We're now working with flipped_dicts
+         # Default to sorting by n-gram
+         for n in list_of_n:
+            rev = None
+            if 'descending' == the_settings.get_property( 'sortOrder' ):
+               rev = True
+            else:
+               rev = False
+            sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), \
+                                       cmp = ngram_sorter, \
+                                       reverse = rev )
 
       # (4.1) If some graphs are asked for, prepare them.
       if 'graph' == the_settings.get_property('outputFormat'):
@@ -1159,7 +1162,7 @@ class Vertical_Interval_Statistics( object ):
 
 
 
-   def get_formatted_ngram_dict( self, settings ):
+   def get_formatted_ngram_dict( self, settings, leave_pieces = False ):
       '''
       Returns a formatted version of the n-gram dictionaries, where the keys are
       replaced with their str() version. The output is a list, where each 'n'
@@ -1171,6 +1174,9 @@ class Vertical_Interval_Statistics( object ):
       - topX
       - threshold
       - showTheseNs
+
+      The second argument, "leaves_pieces," is a boolean that means whether to
+      leave piece-specific statistics in the new dictionary. Default is False.
 
       Raises NonsensicalInputWarning if "showTheseNs" contains values for which
       there are no statistics.
@@ -1190,11 +1196,17 @@ class Vertical_Interval_Statistics( object ):
       start_dict = self.prepare_ngram_output_dict( settings )
 
       # (3) Convert the NGram objects to strings, and take only the
-      # total occurrences of each n-gram, removing the "per-piece" information
+      # total occurrences of each n-gram, removing the "per-piece" information,
+      # if this was requested
       strings_dict = [{} for i in xrange(len(start_dict))]
-      for enn in enns:
-         for k in start_dict[enn].iterkeys():
-            strings_dict[enn][str(k)] = start_dict[enn][k][0]
+      if leave_pieces:
+         for enn in enns:
+            for k in start_dict[enn].iterkeys():
+               strings_dict[enn][str(k)] = start_dict[enn][k]
+      else:
+         for enn in enns:
+            for k in start_dict[enn].iterkeys():
+               strings_dict[enn][str(k)] = start_dict[enn][k][0]
 
       # (4) Do the filtering for "top X"
       topX = settings.get_property( 'topX' ) # the "X"
@@ -1208,18 +1220,17 @@ class Vertical_Interval_Statistics( object ):
             # The first argument means we go over all the keys in start_dict
             # "key" is the thing by which n-grams are sorted (i.e. occurrences)
             # "reverse" means we're going from high-to-low
-            sorted_dict[enn] = sorted( strings_dict[enn].iterkeys(), \
+            sorted_lists[enn] = sorted( strings_dict[enn].iterkeys(), \
                                        key = lambda ng: strings_dict[enn][ng], \
                                        reverse = True )
 
          # Fill out the topX_dict
-         topX_dict = [{} for i in xrange(len(threshold_dict))]
+         topX_dict = [{} for i in xrange(len(strings_dict))]
 
          # Copy over only the first "X" n-grams
          for enn in enns:
-            for i in xrange(topX):
-               for k in sorted_lists:
-                  topX_dict[enn][k] = strings_dict[enn][k]
+            for k in sorted_lists[enn][:topX]:
+               topX_dict[enn][k] = strings_dict[enn][k]
       else:
          # Then we just copy the threshold-ed dict
          topX_dict = strings_dict
@@ -1228,6 +1239,17 @@ class Vertical_Interval_Statistics( object ):
       # "threshold" should not be included
       thresh = settings.get_property( 'threshold' ) # the threshold
       threshold_dict = None # Hold the "thresholded" records
+
+      def shoop( x, enn ):
+         '''
+         This helper function returns "True" if the n-gram specified in "x"
+         meets the "threshold."
+         '''
+         if topX_dict[enn][x][0] >= thresh:
+            return True
+         else:
+            return False
+
       if thresh is not None:
          # The we have to do some work
 
@@ -1236,13 +1258,17 @@ class Vertical_Interval_Statistics( object ):
 
          # Copy over only those n-grams that meet the threshold
          for enn in enns:
-            threshold_dict[enn] = filter( lambda x: x >= thresh, topX_dict[enn] )
+            list_of_keys = filter( lambda x: shoop( x, enn ), topX_dict[enn] )
+            for k in list_of_keys:
+               threshold_dict[enn][k] = topX_dict[enn][k]
       else:
          # Then we just copy the sorted dict
          threshold_dict = topX_dict
 
-      return topX_dict
+      return threshold_dict
    # End get_formatted_ngram_dict() ------------------------
+
+
 
 
 
