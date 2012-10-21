@@ -559,6 +559,13 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.btn_show.setEnabled( True )
          self.btn_show.setChecked( True )
          self.btn_step2.setChecked( False )
+
+         # Disable the file-selection panel and the arrows to "progress" from
+         # one stage of an analysis to the next. At this point, if somebody
+         # wants different pieces in the analysis, they must restart.
+         self.btn_choose_files.setEnabled( False )
+         self.btn_step1.setEnabled( False )
+         self.btn_step2.setEnabled( False )
    # End increment_analysis_progress() ---------------------
 
 
