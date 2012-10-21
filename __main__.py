@@ -441,6 +441,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.lbl_currently_processing.setText( '(processing)' )
 
          self.btn_step1.setChecked( False )
+
+         self.update_piece_settings_visibility( False )
    # End progress_to_assemble() ----------------------------
 
 
@@ -791,6 +793,28 @@ class Vis_MainWindow( Ui_MainWindow ):
          if self.model_offset == cell.column():
             self.analysis_pieces.setData( cell, new_offset_interval, QtCore.Qt.EditRole )
 
+   def update_piece_settings_visibility( self, set_to ):
+      '''
+      Given True or False, calls .setVisible() on all the widgets in the
+      "Settings for Piece" QGroupBox with that value, and with the opposite
+      value for self.lbl_select_piece
+      '''
+
+      self.line_values_of_n.setVisible( set_to )
+      self.line_offset_interval.setVisible( set_to )
+      self.btn_choose_note.setVisible( set_to )
+      self.line_compare_these_parts.setVisible( set_to )
+      self.chk_all_voice_combos.setVisible( set_to )
+      self.chk_basso_seguente.setVisible( set_to )
+      self.btn_add_check_combo.setVisible( set_to )
+      self.line_piece_title.setVisible( set_to )
+      self.lbl_piece_title.setVisible( set_to )
+      self.lbl_compare_these_parts.setVisible( set_to )
+      self.lbl_piece_title.setVisible( set_to )
+      self.lbl_values_of_n.setVisible( set_to )
+      self.lbl_offset_interval.setVisible( set_to )
+      self.lbl_select_piece.setVisible( not set_to )
+
    def update_pieces_selection( self ):
       # TODO: finish the other things for this method
       # When the user changes the piece(s) selected in self.gui_pieces_list
@@ -811,6 +835,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.chk_basso_seguente.setEnabled( False )
          self.btn_add_check_combo.setEnabled( False )
          self.line_piece_title.setEnabled( False )
+         update_piece_settings_visibility( False )
          # (2) Remove the part list
          if self.piece_checkboxes is not None:
             for part in self.piece_checkboxes:
@@ -827,6 +852,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.chk_basso_seguente.setEnabled( True )
          self.btn_add_check_combo.setEnabled( True )
          self.line_piece_title.setEnabled( False ) # not applicable
+         self.update_piece_settings_visibility( True )
          # (2) if the pieces have the same part names, display them
          first_parts = None
          for cell in currently_selected:
@@ -902,6 +928,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.chk_basso_seguente.setEnabled( True )
          self.btn_add_check_combo.setEnabled( True )
          self.line_piece_title.setEnabled( True )
+         self.update_piece_settings_visibility( True )
          # (2) Populate the part list
          self.update_part_checkboxes( currently_selected )
          # (3) Update "values of n"
