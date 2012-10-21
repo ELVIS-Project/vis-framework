@@ -936,7 +936,8 @@ class Vertical_Interval_Statistics( object ):
 
       # (2) Decide whether to take 'quality' or 'no_quality' and whether we're using
       # simple or compound
-      output_dict = self.get_formatted_ngram_dict( the_settings, True )
+      output_dict = self.get_formatted_ngram_dict( the_settings, \
+                                                   leave_pieces = True )
 
       # (2a) Make sure that we have ngrams at the values requested. If not,
       # raise an exception saying which ones were not available.
@@ -1322,7 +1323,8 @@ class Vertical_Interval_Statistics( object ):
       list_of_n = settings.get_property( 'showTheseNs' )
 
       # (1B) Get the formatted list of n-grams
-      ngrams_dicts = self.get_formatted_ngram_dict( settings, leave_ngrams=True )
+      ngrams_dicts = self.get_formatted_ngram_dict( settings, \
+                                                    leave_ngrams = True )
 
       # (2) Initialize Stream objects
 
