@@ -62,32 +62,25 @@ from output_LilyPond import process_score as lily_process_score
 # Subclass for Signal Handling -------------------------------------------------
 class Vis_MainWindow( Ui_MainWindow ):
 
-   # "self" Objects
-   #---------------
-   # app object
-   # self.gui_file_list :
-   # self.gui_pieces_list :
-   # self.statistics :
-   # self.settings :
-   # self.piece_checkboxes : Hold a list of checkboxes that represent the parts in a piece for the "assemble" panel
-   # self.analysis_files :
-   # self.analysis_pieces :
-   # self.pairs_so_far : number of voice pairs analyzed so far
-   # self.total_pairs : total number of voice pairs being analyzed
-   # self.analysis_start_time : the time.time() when the analysis was started
-   # -- Index values for columns in self.gui_pieces_list --
-   # self.model_offset
-
    # Create the settings and statistics objects for vis.
    def setup_vis( self ):
       self.gui_file_list.setModel( self.analysis_files )
       self.gui_pieces_list.setModel( self.analysis_pieces )
       self.statistics = Vertical_Interval_Statistics()
       self.settings = VIS_Settings()
+      # Hold a list of checkboxes that represent the parts in a piece for
+      # the "assemble" panel
       self.piece_checkboxes = None
+      # number of voice pairs analyzed so far
       self.pairs_so_far = 0
+      # total number of voice pairs being analyzed
       self.total_pairs = 0
+      # the time.time() when the analysis was started
       self.analysis_start_time = 0.0
+      # a list of pathnames of files currently loaded
+      self.loaded_files = []
+      # Holds the signal emitted when a QRunnable finishes a voice pair
+      self.vsc = Vis_Signals_Class()
 
       # These be the index values for columns in the list-of-pieces model.
       self.model_filename = 0 # filename of the piece
@@ -96,9 +89,6 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.model_offset = 3 # offset Duration between vertical intervals
       self.model_n = 4 # values of "n" to find
       self.model_compare_parts = 5 # list of two-element lists of part indices
-
-      # TEMP TODO: do I need this?
-      self.vsc = Vis_Signals_Class()
 
    # Link all the signals with their methods.
    def setup_signals( self ):
@@ -150,6 +140,8 @@ class Vis_MainWindow( Ui_MainWindow ):
    def tool_choose( self ):
       self.main_screen.setCurrentWidget( self.page_choose )
       self.btn_analyze.setEnabled( False )
+      self.btn_show.setEnabled( False )
+      self.btn_step2.setEnabled( False )
 
    def tool_analyze( self ):
       self.main_screen.setCurrentWidget( self.page_analyze )
@@ -410,6 +402,8 @@ class Vis_MainWindow( Ui_MainWindow ):
                QtGui.QMessageBox.Ok),
             QtGui.QMessageBox.Ok)
       else:
+         self.btn_step1.setChecked( True )
+
          # Hold a list of files that don't work
          failed_files = []
 
@@ -419,15 +413,17 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.progress_bar.setMaximum(self.analysis_files.rowCount())
 
          # Go through all the pieces and try to import them
-         for i,fp in enumerate(list(self.analysis_files.iterator()),start=1):
+         for i, pathname in enumerate( list(self.analysis_files.iterator()), \
+                                       start=1 ):
             # Update the GUI's label of what piece we're on
-            self.lbl_currently_processing.setText("Importing "+fp+"...")
+            self.lbl_currently_processing.setText( "Importing " + pathname + \
+                                                   "..." )
             self.progress_bar.setValue( i )
             self.app.processEvents()
 
             # Prepare and run the import thread
             thread = Vis_Load_Piece()
-            thread.setup( fp, self )
+            thread.setup( pathname, self )
             thread.start()
             thread.wait()
             if thread.error is not None:
@@ -443,6 +439,8 @@ class Vis_MainWindow( Ui_MainWindow ):
 
          # Return the "processing" label to its default value
          self.lbl_currently_processing.setText( '(processing)' )
+
+         self.btn_step1.setChecked( False )
    # End progress_to_assemble() ----------------------------
 
 
@@ -455,6 +453,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       Settings, files, directories, and stats will be used from the "self"
       object.
       '''
+
+      self.btn_step2.setChecked( True )
 
       # Prepare the progress_bar
       self.progress_bar.setMinimum( 0 )
@@ -552,6 +552,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.main_screen.setCurrentWidget( self.page_show )
          self.btn_show.setEnabled( True )
          self.btn_show.setChecked( True )
+         self.btn_step2.setChecked( False )
    # End increment_analysis_progress() ---------------------
 
 
@@ -1213,39 +1214,53 @@ class List_of_Voice_Pairs( QtCore.QAbstractTableModel ):
       self.endRemoveRows()
 # End Class List_of_Voice_Pairs -----------------------------------------------
 
-class Vis_Load_Piece(QtCore.QThread):
-   def setup( self, fp, widget ):
-      self.fp = fp
+class Vis_Load_Piece( QtCore.QThread ):
+   def setup( self, pathname, widget ):
+      self.pathname = pathname
       self.widget = widget
       self.error = None
 
    def run( self ):
-      # Load all the pieces from the files list into the pieces list
+      '''
+      Load all the pieces from the files list into the pieces list
+      '''
 
       # For convenience
-      widget = self.widget
-      pieces = widget.analysis_pieces
-      fp = self.fp
-      last = pieces.rowCount()
+      pieces = self.widget.analysis_pieces
+      row_count = pieces.rowCount()
 
+      # Hold the imported Score object
       score = None
 
-      try:
-         score = converter.parse(str(fp))
-      except (ConverterException,ConverterFileException) as e:
-         self.error = fp
+      # Check whether this filename was already loaded
+      if self.pathname in self.widget.loaded_files:
          return
 
-      # Move things into the List_of_Pieces
-      pieces.insertRows( last, 1 )
-      index = pieces.createIndex( last, pieces.model_filename )
-      pieces.setData( index, fp, QtCore.Qt.EditRole )
-      index = pieces.createIndex( last, pieces.model_score )
+      # Try to import the score
+      try:
+         score = converter.parse( str(self.pathname) )
+      except ( ConverterException, ConverterFileException ) as e:
+         self.error = self.pathname
+         return
+
+      # Add a new row in the list of pieces
+      pieces.insertRows( row_count, 1 )
+
+      # Add pathname data to the list of pieces
+      index = pieces.createIndex( row_count, pieces.model_filename )
+      pieces.setData( index, self.pathname, QtCore.Qt.EditRole )
+
+      # Add the score to the list of pieces
+      index = pieces.createIndex( row_count, pieces.model_score )
       pieces.setData( index, score, QtCore.Qt.EditRole )
-      index = pieces.createIndex( last, pieces.model_parts_list )
-      pieces.setData( index, [str(p.id) for p in score.parts], \
-                      QtCore.Qt.EditRole )
-      self.error = None
+
+      # Add a list of parts to the list of pieces
+      index = pieces.createIndex( row_count, pieces.model_parts_list )
+      parts_list = [str(part.id) for part in score.parts]
+      pieces.setData( index, parts_list, QtCore.Qt.EditRole )
+
+      # Add this pathname to the list of files loaded
+      self.widget.loaded_files.append( self.pathname )
 
       return
 # End Class Vis_Load_Piece
