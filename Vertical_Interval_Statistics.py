@@ -1267,7 +1267,7 @@ class Vertical_Interval_Statistics( object ):
          This helper function returns "True" if the n-gram specified in "x"
          meets the "threshold."
          '''
-         if topX_dict[enn][x][0] >= thresh:
+         if topX_dict[enn][x] >= thresh:
             return True
          else:
             return False
