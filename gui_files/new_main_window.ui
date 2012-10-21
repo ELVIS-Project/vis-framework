@@ -65,6 +65,9 @@
            <height>32</height>
           </size>
          </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
          <property name="autoRaise">
           <bool>true</bool>
          </property>
@@ -119,6 +122,9 @@
            <width>32</width>
            <height>32</height>
           </size>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
          </property>
          <property name="autoRaise">
           <bool>true</bool>
@@ -202,7 +208,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -629,6 +635,9 @@
               </item>
               <item>
                <widget class="QRadioButton" name="rdo_targeted_score">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="text">
                  <string>Targeted Score</string>
                 </property>

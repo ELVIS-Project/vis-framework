@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/new_main_window.ui'
 #
-# Created: Thu Oct 18 21:10:21 2012
+# Created: Sat Oct 20 23:25:14 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -44,6 +44,7 @@ class Ui_MainWindow(object):
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/icons/right-arrow.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_step1.setIcon(icon1)
         self.btn_step1.setIconSize(QtCore.QSize(32, 32))
+        self.btn_step1.setCheckable(True)
         self.btn_step1.setAutoRaise(True)
         self.btn_step1.setObjectName(_fromUtf8("btn_step1"))
         self.horizontalLayout.addWidget(self.btn_step1)
@@ -63,6 +64,7 @@ class Ui_MainWindow(object):
         self.btn_step2.setEnabled(False)
         self.btn_step2.setIcon(icon1)
         self.btn_step2.setIconSize(QtCore.QSize(32, 32))
+        self.btn_step2.setCheckable(False)
         self.btn_step2.setAutoRaise(True)
         self.btn_step2.setObjectName(_fromUtf8("btn_step2"))
         self.horizontalLayout.addWidget(self.btn_step2)
@@ -275,6 +277,7 @@ class Ui_MainWindow(object):
         self.rdo_score.setObjectName(_fromUtf8("rdo_score"))
         self.verticalLayout_9.addWidget(self.rdo_score)
         self.rdo_targeted_score = QtGui.QRadioButton(self.groupBox_5)
+        self.rdo_targeted_score.setEnabled(False)
         self.rdo_targeted_score.setObjectName(_fromUtf8("rdo_targeted_score"))
         self.verticalLayout_9.addWidget(self.rdo_targeted_score)
         self.rdo_list = QtGui.QRadioButton(self.groupBox_5)
@@ -527,7 +530,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.main_screen.setCurrentIndex(1)
+        self.main_screen.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
