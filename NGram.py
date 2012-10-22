@@ -53,7 +53,8 @@ class NGram( object ):
    # _simple_or_compound
    # _string
    # _has_voice_crossing
-   def __init__( self, some_intervals, heed_quality=False, simple_or_compound='compound' ):
+   def __init__( self, some_intervals, heed_quality=False, \
+                 simple_or_compound='compound' ):
       '''
       Create a new n-gram when given a list of the
       :class:`music21.interval.Interval` objects that are part of the n-gram.
@@ -83,7 +84,9 @@ class NGram( object ):
       The second argument could also be a VIS_Settings object, in which case
       the third argument is ignored.
       '''
+
       # Deal with the settings
+      # TODO: this whole "settings" business will have to go, eventually
       if isinstance( heed_quality, VIS_Settings ):
          self._heed_quality = heed_quality.get_property( 'heedQuality' )
          self._simple_or_compound = heed_quality.get_property( 'simpleOrCompound' )
@@ -109,22 +112,27 @@ class NGram( object ):
       self._calculate_movements()
 
       # Generate the str representation of this NGram
-      self._string = self.get_string_version( self._heed_quality, self._simple_or_compound )
+      self._string = self.get_string_version( self._heed_quality, \
+                                              self._simple_or_compound )
    # End NGram() ------------------------------------------
 
    # internal method
    def _calculate_movements( self ):
-      # Calculates the movement of the lower part between adjacent Interval
-      # objects, then returns a list of them.
+      '''
+      Calculates the movement of the lower part between adjacent Interval
+      objects, then returns a list of them.
+      '''
 
       # This choice of iteration is a nice hack from
-      # http://stackoverflow.com/questions/914715/python-looping-through-all-but-the-last-item-of-a-list
+      # http://stackoverflow.com/questions/914715/
+      # python-looping-through-all-but-the-last-item-of-a-list
       post = []
-      z = zip(self._list_of_intervals,self._list_of_intervals[1:])
+      zipped = zip( self._list_of_intervals, self._list_of_intervals[1:] )
       try:
-         post = [interval.Interval( i.noteStart, j.noteStart ) for i,j in z]
+         post = [interval.Interval( i.noteStart, j.noteStart ) for i, j in zipped]
       except AttributeError:
-         raise MissingInformationError( 'NGram: Probably one of the intervals is missing a note.Note' )
+         msg = 'NGram: Probably one of the intervals is missing a note.Note'
+         raise MissingInformationError( msg )
 
       self._list_of_movements = post
    #-------------------------------------------------------
@@ -144,7 +152,8 @@ class NGram( object ):
 
    def set_heed_quality( self, heed_quality ):
       self._heed_quality = heed_quality
-      self._string = self.get_string_version( self._heed_quality, self._simple_or_compound )
+      self._string = self.get_string_version( self._heed_quality, \
+                                              self._simple_or_compound )
 
    def retrograde( self ):
       '''
@@ -160,7 +169,8 @@ class NGram( object ):
       True
       '''
       reversed_intervals = self._list_of_intervals[::-1]
-      return NGram(reversed_intervals, self._heed_quality, self._simple_or_compound)
+      return NGram( reversed_intervals, self._heed_quality, \
+                    self._simple_or_compound )
 
    def n( self ):
       '''
@@ -347,9 +357,11 @@ class NGram( object ):
       'M-10 +M2 M-9'
       '''
 
-      # Helper method to transform a quality-letter into the quality-letter
-      # needed for inversion
       def get_inverted_quality( start_spec ):
+         '''
+         "Inner function" to transform a quality-letter into the quality-letter
+         needed for inversion
+         '''
          if 'd' == start_spec:
             return 'A'
          elif 'm' == start_spec:
@@ -364,8 +376,11 @@ class NGram( object ):
             msg = 'Unexpected interval quality: ' + str(start_spec)
             raise MissingInformationError( msg )
 
-      # Helper method to check for stupid intervals like 'm4'
       def check_for_stupid( huh ):
+         '''
+         "Inner function" to check for stupid intervals like 'm4'
+         '''
+
          # Hold all the sizes that require "perfect," not "major" or "minor"
          perfect_sizes = ['1', '4', '5', '8', '11', '12', '15', '19', \
                           '20', '23']
@@ -405,7 +420,8 @@ class NGram( object ):
             trans_interv = check_for_stupid( trans_interv )
 
             # Transpose it
-            new_start = old_interv.noteStart.transpose( interval.Interval( trans_interv ) )
+            trans_interv = interval.Interval( trans_interv )
+            new_start = old_interv.noteStart.transpose( trans_interv )
 
             # Make the new interval
             new_interv = interval.Interval( new_start, old_interv.noteEnd )
@@ -419,7 +435,8 @@ class NGram( object ):
             trans_interv = check_for_stupid( trans_interv )
 
             # Transpose it
-            new_end = old_interv.noteEnd.transpose( interval.Interval( trans_interv ) )
+            trans_interv = interval.Interval( trans_interv )
+            new_end = old_interv.noteEnd.transpose( trans_interv )
 
             # Make the new interval
             new_interv = interval.Interval( old_interv.noteStart, new_end )
@@ -439,59 +456,64 @@ class NGram( object ):
    # End get_inversion_at_the() ------------------------------------------------
 
    @classmethod
-   def make_from_str(cls,string):
-      vertical = re.compile(r'([MmAdP]?)([-]?)([\d]+)')
-      horizontal = re.compile(r'([+-]?)([MmAdP]?)([\d]+)')
+   def make_from_str( cls, string ):
+      # TODO: write documentation and follow style guidelines
+      # TODO: docstring
+      # TODO: refactor this method to use better variable names
+      vertical = re.compile( r'([MmAdP]?)([-]?)([\d]+)')
+      horizontal = re.compile( r'([+-]?)([MmAdP]?)([\d]+)' )
 
-      def make_vert(s):
-         m = vertical.match(s)
-         if m is None:
-            raise NonsensicalInputError("cannot make N-Gram from badly formatted string")
-         if m.group(0) != s:
-            raise NonsensicalInputError("cannot make N-Gram from badly formatted string")
-         if m.group(1) == "":
-            try:
-               return interval.Interval("M"+s)
-            except:
-               return interval.Interval("P"+s)
-         else:
-            return interval.Interval(s)
+      # Error message used many times
+      err_msg = 'cannot make N-Gram from badly formatted string'
 
-      def make_horiz(s):
-         m = horizontal.match(s)
-         if m is None:
-            raise NonsensicalInputError("cannot make N-Gram from badly formatted string")
-         if m.group(0) != s:
-            NonsensicalInputError("cannot make N-Gram from badly formatted string")
-         sign = m.group(1) if m.group(1) == "-" else ""
-         if m.group(2) == "":
+      def make_vert( s ):
+         # TODO: docstring
+         m = vertical.match( s )
+         if m is None or m.group( 0 ) != s:
+            raise NonsensicalInputError( err_msg )
+         if m.group( 1 ) == "":
             try:
-               return interval.Interval("M"+sign+m.group(3))
+               return interval.Interval( 'M' + s )
             except:
-               return interval.Interval("P"+sign+m.group(3))
+               return interval.Interval( 'P' + s )
          else:
-            return interval.Interval(m.group(2)+sign+m.group(3))
+            return interval.Interval( s )
+
+      def make_horiz( s ):
+         # TODO: docstring
+         m = horizontal.match( s )
+         if m is None or m.group( 0 ) != s:
+            raise NonsensicalInputError( err_msg )
+         sign = m.group( 1 ) if m.group( 1 ) == "-" else ""
+         if m.group( 2 ) == "":
+            try:
+               return interval.Interval( 'M' + sign + m.group(3) )
+            except:
+               return interval.Interval( 'P' + sign + m.group(3) )
+         else:
+            return interval.Interval( m.group(2) + sign + m.group(3) )
 
       intervals = string.split(' ')
 
       if len(intervals) % 2 == 0 or len(intervals) < 3:
-         raise NonsensicalInputError("cannot make N-Gram from wrong number of intervals")
+         msg = 'cannot make N-Gram from wrong number of intervals'
+         raise NonsensicalInputError( msg )
 
-      nt = note.Note("C4")
+      nt = note.Note( 'C4' )
       l_i = []
       for i, interv in list(enumerate(intervals))[:-2:2]:
-         new_int = make_vert(interv)
+         new_int = make_vert( interv )
          new_int.noteStart = nt
-         l_i.append(new_int)
-         horiz = make_horiz(intervals[i+1])
+         l_i.append( new_int )
+         horiz = make_horiz( intervals[i+1] )
          horiz.noteStart = nt
          nt = horiz.noteEnd
-      last_int = make_vert(intervals[-1])
+      last_int = make_vert( intervals[-1] )
       last_int.noteStart = nt
-      l_i.append(last_int)
+      l_i.append( last_int )
 
-      ng = NGram(l_i)
-      ng.set_heed_quality(False if string[0].isdigit() else True)
+      ng = NGram( l_i )
+      ng.set_heed_quality( False if string[0].isdigit() else True )
       return ng
 
    def __str__( self ):
@@ -524,17 +546,16 @@ class NGram( object ):
          # the same, we're supposed to consider them equal.
          for i, interv in enumerate(self._list_of_intervals):
             if interv.generic.directed != \
-               other._list_of_intervals[i].generic.directed:
-                  return False
+            other._list_of_intervals[i].generic.directed:
+               return False
 
          for i, interv in enumerate(self._list_of_movements):
             if interv.generic.directed != \
-               other._list_of_movements[i].generic.directed:
-                  return False
+            other._list_of_movements[i].generic.directed:
+               return False
 
          return True
 
    def __ne__( self, other ):
       return not self == other
-
 #-------------------------------------------------------------------------------
