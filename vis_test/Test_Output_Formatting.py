@@ -26,7 +26,10 @@
 
 
 import unittest
-from vis import *
+from Vertical_Interval_Statistics import Vertical_Interval_Statistics
+from VIS_Settings import VIS_Settings
+from music21 import converter
+from analysis_engine import vis_these_parts
 
 
 
@@ -34,7 +37,7 @@ from vis import *
 class Test_Output_Formatting( unittest.TestCase ):
    def setUp( self ):
       self.vis = Vertical_Interval_Statistics()
-   
+
    def test_basic_formatted_intervals( self ):
        ##TODO: test negative intervals
        ##TODO: test with quality
@@ -93,7 +96,7 @@ class Test_Output_Formatting( unittest.TestCase ):
                         expected_descending_by_interval )
       self.assertEqual( self.vis.get_formatted_intervals( sets, 'descending by frequency' ), \
                         expected_descending_by_frequency )
-   
+
    def test_basic_formatted_ngrams( self ):
        ##TODO: test with voice crossing
        ##TODO: test with and without heedQuality
@@ -500,7 +503,7 @@ class Test_Output_Formatting( unittest.TestCase ):
                         ascending_by_frequency )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'descending by frequency' ), \
                         descending_by_frequency )
-   
+
    def test_with_negative_intervals( self ):
       ascending_by_interval = '''All the Intervals:
 ------------------
@@ -561,7 +564,7 @@ class Test_Output_Formatting( unittest.TestCase ):
                         ascending_by_frequency )
       self.assertEqual( self.vis.get_formatted_intervals( sets, 'descending by frequency' ), \
                         descending_by_frequency )
-   
+
    def test_with_negative_ngrams( self ):
       ascending_by_ngram = '''All the 2-grams:
 -----------------------------
@@ -1382,7 +1385,7 @@ class Test_Output_Formatting( unittest.TestCase ):
                         ascending_by_frequency )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'descending by frequency' ), \
                         descending_by_frequency )
-   
+
    def test_2_and_3_grams( self ):
       ascending_by_ngram = '''All the 2-grams:
 -----------------------------
@@ -1656,7 +1659,7 @@ All the 3-grams:
                         ascending_by_ngram )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'descending by frequency' ), \
                         descending_by_frequency )
-   
+
    def test_only_4_grams_with_negatives( self ):
       ascending_by_frequency = '''All the 4-grams:
 -----------------------------

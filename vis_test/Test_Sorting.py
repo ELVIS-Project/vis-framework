@@ -25,7 +25,7 @@
 
 
 import unittest
-from vis import *
+from Vertical_Interval_Statistics import interval_sorter, ngram_sorter
 
 
 
@@ -50,22 +50,22 @@ class Test_Sorting( unittest.TestCase ):
       self.assertEqual( interval_sorter( 'm3', 'm3' ), 0 )
       self.assertEqual( interval_sorter( 'd3', 'd3' ), 0 )
       self.assertEqual( interval_sorter( 'A3', 'A3' ), 0 )
-   
+
    def test_interval_no_qualities( self ):
       self.assertEqual( interval_sorter( '3', '3' ), 0 )
       self.assertEqual( interval_sorter( '3', '4' ), -1 )
       self.assertEqual( interval_sorter( '3', '2' ), 1 )
-   
+
    def test_interval_with_directions( self ):
       self.assertEqual( interval_sorter( '+3', '-3' ), 0 )
       self.assertEqual( interval_sorter( '+3', '-4' ), -1 )
       self.assertEqual( interval_sorter( '+3', '-2' ), 1 )
-   
+
    def test_interval_with_directions_and_quality( self ):
       self.assertEqual( interval_sorter( 'M+3', 'M-3' ), 0 )
       self.assertEqual( interval_sorter( 'm+3', 'P-4' ), -1 )
       self.assertEqual( interval_sorter( 'm+3', 'M-2' ), 1 )
-   
+
    def test_ngram( self ):
       # same as the doctests
       self.assertEqual( ngram_sorter( '3 +4 7', '5 +2 4' ), -1 )

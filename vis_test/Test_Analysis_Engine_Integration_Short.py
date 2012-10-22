@@ -26,7 +26,10 @@
 
 
 import unittest
-from vis import *
+from Vertical_Interval_Statistics import Vertical_Interval_Statistics
+from VIS_Settings import VIS_Settings
+from music21 import converter
+from analytic_engine import vis_these_parts
 
 
 
@@ -44,13 +47,13 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
    def setUp( self ):
       self.stats = Vertical_Interval_Statistics()
       self.settings = VIS_Settings()
-   
+
    def test_intervals_not_counted_multiple_times( self ):
       # BWV 7.7 (a chorale)
       # MusicXML
       # Soprano and Bass
       # Measures 1 through 4
-      
+
       # Process the excerpt
       filename = 'test_corpus/bwv77.mxl'
       the_piece = converter.parse( filename )
@@ -58,34 +61,34 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 13.0 is the fourth measure
       higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 12.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
-      
+
       # Prepare the findings
       # NB: these are the same as test_theFirst()
       expected_compound_intervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
             'm13':1, 'm17':1, 'M13':1, 'm10':4 }
-      
+
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-   
-   
+
+
    def test_theFirst( self ):
       # BWV 7.7 (a chorale)
       # MusicXML
       # Soprano and Bass
       # Measures 1 through 4
-      
+
       # Process the excerpt
       filename = 'test_corpus/bwv77.mxl'
       the_piece = converter.parse( filename )
       # offset 13.0 is the fourth measure
       higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 12.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 0.0, 12.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
-      
+
       # Prepare the findings
       expected_compound_intervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
             'm13':1, 'm17':1, 'M13':1, 'm10':4 }
@@ -93,13 +96,13 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '13 -2 17':1, '17 +6 12':1, '9 1 10':1, '12 +4 10':1, '12 -2 13':1, \
             '12 -3 13':1, '13 +2 12':1, '12 +4 8':1, '8 -4 10':1, \
             '10 +4 10':1, '10 -2 10':3 }
-      
+
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
-   
+
    def test_theSecond( self ):
       # Kyrie from "Missa Pro Defunctis" by Palestrina
       # **kern
@@ -112,7 +115,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 40.0 is the sixth measure
       higher_part = the_piece.parts[0].getElementsByOffset( 0.0, 39.9 )
       lower_part = the_piece.parts[1].getElementsByOffset( 0.0, 39.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       # Prepare the findings
@@ -142,7 +145,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 44.0 is the 12th measure
       higher_part = the_piece.parts[1].getElementsByOffset( 20.0, 43.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 20.0, 43.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -160,7 +163,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
-      
+
    def test_theSixthA( self ):
       # Two targeted testing excerpts.
       # A music21 Original
@@ -168,12 +171,12 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ## NB: This is designed to test an error that used to happen when one
       ## part has alternating notes and rests in a time when the other part has
       ## a note followed by a bunch of rests.
-      
+
       from test_corpus.test_theSixth import the_first_piece
       filename = "filename"
       higher_part = the_first_piece.parts[0]
       lower_part = the_first_piece.parts[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -188,7 +191,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
-   
+
    def test_theSixthB( self ):
       # Two targeted testing excerpts.
       # A music21 Original
@@ -198,16 +201,16 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ## a note followed by a bunch of rests. Unlike "SixthA," this test has a
       ## quantization quirk from the MIDI file that inspired this test, which
       ## is what caused the failure in the first place.
-      ## 
+      ##
       ## The problem is this: even though one part has a rest, the rest doesn't
       ## start on one of the offsets we're checking, so the program thinks the
       ## part still has a note sounding.
-      
+
       from test_corpus.test_theSixth import the_second_piece
       filename = "filename"
       higher_part = the_second_piece.parts[0]
       lower_part = the_second_piece.parts[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -222,19 +225,19 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
-   
+
    def test_theSixthC( self ):
       # Two targeted testing excerpts.
       # A music21 Original
       # Just 2 arbitrary parts
       ## NB: This test reverses theSixthB, so the bottom voice woudl cause the
       ## problem caused by the top voice in the previous test.
-      
+
       from test_corpus.test_theSixth import the_third_piece
       filename = "filename"
       higher_part = the_third_piece.parts[0]
       lower_part = the_third_piece.parts[1]
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
@@ -249,14 +252,14 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
-   
+
    def test_theSeventh( self ):
       # Joseph Haydn's String Quartet, Op.76/4, Movement 1
       # MIDI
       # Violin I and 'Cello
       # Measures 113 through 120
-      ## NB: 
-      
+      ## NB:
+
       ## Process the excerpt
       filename = 'test_corpus/sqOp76-4-i.midi'
       the_piece = converter.parse( filename )
@@ -264,12 +267,12 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # measure 120 is offset 480.0
       higher_part = the_piece.parts[0].getElementsByOffset( 448.0, 479.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 448.0, 479.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
-      
+
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       ##pprint.pprint( self.stats.get_formatted_ngram_dict('compound', 2) )
-      
+
       ## Prepare the findings
       expected_compound_intervals = { 'P15':7, 'A11':1, 'M13':2, \
             'd14':5, 'A18':1, 'd18':2, 'A12':1, 'd19':1, 'A16':4, 'm13':1, \
@@ -281,13 +284,13 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '13 +1 14':1, '13 +2 13':1, '21 -1 22':1, '22 -2 24':2, \
             '22 +4 17':1, '24 -2 26':3, '24 1 22':1, '26 -2 28':1, \
             '26 1 24':1, '28 1 26':1, '13 -9 21':1 }
-      
+
       ## Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
       self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
-   
+
    def test_theFourth( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
       # MusicXML
@@ -295,7 +298,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # Measures 6 through 16
       ## NB: Starts out the same as the previous test, but this excerpt is a
       ## little longer and ends with some voice crossing.
-      
+
       # Process the excerpt
       filename = 'test_corpus/madrigal51.mxl'
       the_piece = converter.parse( filename )
@@ -303,12 +306,12 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 64.0 is the 15th measure
       higher_part = the_piece.parts[1].getElementsByOffset( 20.0, 63.9 )
       lower_part = the_piece.parts[3].getElementsByOffset( 20.0, 63.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
-      
+
       #pprint.pprint( self.stats.get_compound_interval_summary_dict() )
       #pprint.pprint( self.stats.get_formatted_ngram_dict('compound', 2) )
-      
+
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':3, \
             'P1':2, 'M-2':1, 'm-3':2, 'P-4':1, 'P5':1 }
@@ -321,7 +324,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             #'M3 +M2 m3':1, 'm3 -P5 M6':1, 'P1 +M2 M-2':1, 'M-2 +m2 m-3':1, \
             #'P-4 -M2 m-3':1, 'm-3 -m3 P1':1, 'P1 -M2 P5':1, 'P5 +M3 m3':1, \
             #'m-3 P1 P-4':1 }
-      
+
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
@@ -331,7 +334,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # re-enable them later when that isn't true.
       #self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expected_quality2Grams) )
       #self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expected_quality2Grams )
-   
+
    def test_theFifth( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
       # MusicXML
@@ -346,7 +349,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # offset 64.0 is the 15th measure
       higher_part = the_piece.parts[1].getElementsByOffset( 0.0, 63.9 )
       lower_part = the_piece.parts[2].getElementsByOffset( 0.0, 63.9 )
-      analysis_time = vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
+      vis_these_parts( [higher_part,lower_part], self.settings, self.stats, filename )
       #print( '--> analysis took ' + str(analysis_time) + ' seconds' )
 
       # Prepare the findings
@@ -361,7 +364,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '6 -2 8':2, '6 +2 6':1, '6 -3 5':1, '5 +2 4':1, '4 +2 4':1, \
             '4 -2 6':1, '8 +5 3':1, '-3 -2 -2':1, '-2 -3 2':1, '2 -3 3':1, \
             '3 +2 2':1, '2 -2 3':1, '3 +2 5':1 }
-      
+
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
@@ -371,7 +374,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # re-enable them later when that isn't true.
       #self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expected_quality2Grams) )
       #self.assertEqual( self.stats._compound_quality_ngrams_dict[2], expected_quality2Grams )
-   
+
    #def test_triplet_bugA( self ):
       ## A targeted testing excerpt.
       ## A music21 Original
@@ -379,7 +382,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ### NB: This tests a possible bug in the Jos2308 longer excerpt, below. But
       ### this test is crafted specifically to have only the suspected problem
       ### area.
-      
+
       #from test_corpus.test_triplet_bug import triplet_test_piece
       #higher_part = triplet_test_piece.parts[0]
       #lower_part = triplet_test_piece.parts[1]
@@ -399,7 +402,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       #self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       ##self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
       #self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
-   
+
    #def test_triplet_bugB( self ):
       ## A targeted testing excerpt.
       ## A music21 Original
@@ -408,10 +411,10 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ### triplet. Instead, notes are "hidden" in non-triplet (ie. "simple sub-
       ### division") offsets that are, like the triplet offsets, not being
       ### counted directly.
-      ### 
-      ### I started this test as a way to help determine whether using the 
+      ###
+      ### I started this test as a way to help determine whether using the
       ### Decimal class might solve my problem.
-      
+
       #from test_corpus.test_triplet_bug import simple_test_piece
       #higher_part = simple_test_piece.parts[0]
       #lower_part = simple_test_piece.parts[1]
@@ -431,7 +434,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       #self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       ##self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
       #self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
-   
+
 # NOTE: compare NoQuality 2-gram dictionaries
 #for thing in self.stats.get_formatted_ngram_dict('compound', 2).iterkeys():
    #if thing in expected_no_quality2grams:

@@ -24,8 +24,10 @@
 
 
 import unittest
-from vis import *
 from music21 import interval, note
+from NGram import NGram
+from VIS_Settings import VIS_Settings
+from problems import MissingInformationError, NonsensicalInputError
 
 
 
@@ -137,13 +139,13 @@ class Test_NGram( unittest.TestCase ):
       # movement of the lower voice.
       try:
          self.g[2].noteEnd = None
-      except AttributeError as e:
+      except AttributeError:
          pass
       self.assertEqual( NGram( self.g )._list_of_movements, self.g_distance )
       # But this should fail
       try:
          self.g[2].noteStart = None
-      except AttributeError as e:
+      except AttributeError:
          pass
       self.assertRaises( MissingInformationError, NGram, self.g )
 
@@ -498,7 +500,7 @@ class Test_NGram( unittest.TestCase ):
       str_ng = NGram.make_from_str( 'M3 -M2 M3' )
       self.assertEqual( str(str_ng), 'M3 -M2 M3' )
 
-   # the following two tests currently fail... does it make sense for 
+   # the following two tests currently fail... does it make sense for
    # them to produce valid NGrams? Those are really weird looking
    # strings.
 

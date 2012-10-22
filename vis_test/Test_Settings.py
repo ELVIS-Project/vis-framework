@@ -22,7 +22,8 @@
 #-------------------------------------------------------------------------------
 
 import unittest
-from vis import *
+from VIS_Settings import VIS_Settings
+from problems import NonsensicalInputWarning
 
 #-------------------------------------------------------------------------------
 class Test_Settings( unittest.TestCase ):

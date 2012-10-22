@@ -24,8 +24,11 @@
 
 
 import unittest
-from vis import *
 from music21 import interval, note
+from NGram import NGram
+from problems import NonsensicalInputError
+from VIS_Settings import VIS_Settings
+from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 
 
 

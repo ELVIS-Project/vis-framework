@@ -26,7 +26,6 @@
 
 
 import unittest
-from vis import *
 from analytic_engine import fill_space_between_offsets, make_lily_triangle
 
 
