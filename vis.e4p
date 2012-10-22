@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project vis -->
-<!-- Saved: 2012-10-20, 15:11:13 -->
+<!-- Saved: 2012-10-22, 16:13:18 -->
 <!-- Copyright (C) 2012 Christopher Antila, Jamie Klassen, christopher.antila@mail.mcgill.ca -->
 <Project version="4.6">
   <Language>en</Language>
@@ -12,7 +12,6 @@
   <Author>Christopher Antila, Jamie Klassen</Author>
   <Email>christopher.antila@mail.mcgill.ca</Email>
   <Sources>
-    <Source>vis.py</Source>
     <Source>NGram.py</Source>
     <Source>VIS_Settings.py</Source>
     <Source>problems.py</Source>

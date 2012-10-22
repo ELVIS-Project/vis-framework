@@ -305,7 +305,17 @@ def vis_these_parts( these_parts, the_settings, the_statistics, the_piece, \
 
    # Create a statistics buffer
    statistics_buffer = Vertical_Interval_Statistics.Vertical_Interval_Statistics()
-   statistics_buffer._pieces_analyzed.append(the_piece+" "+str([str(p.id) for p in these_parts]))
+   # We'll make a string like "Concerto ['Violin', 'Viola']"
+   part_names = []
+   for part in these_parts:
+      # Ideally, we're using the "vis_part_name" property, because this is the
+      # string set by the data model in our GUI. The Part "id" property wouldn't
+      # have picked up any part-name customization.
+      if hasattr( part, 'vis_part_name' ):
+         part_names.append( part.vis_part_name )
+      else:
+         part_names.append( str(part.id) )
+   statistics_buffer._pieces_analyzed.append( the_piece + ' ' + str(part_names) )
 
    # Parse targeted_output ---------------------------------
    # Hold instructions from 'only annotate'

@@ -41,7 +41,7 @@ from PyQt4 import Qt, QtCore, QtGui
 from PyQt4.QtCore import QThreadPool
 from PyQt4.QtCore import pyqtSlot, pyqtSignal, QObject
 # music21
-from music21 import converter, graph, metadata
+from music21 import converter, graph, metadata, instrument
 from music21.converter import ConverterException, ConverterFileException
 # vis
 from problems import NonsensicalInputWarning
@@ -396,7 +396,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Make sure there are some files to load
       if 0 == self.analysis_files.rowCount():
-         # Display a QMessageBox that we won't continue unless we got pieces!
+         # Display a QMessageBox that we won't continue unless we have things
          QtGui.QMessageBox.warning(None,
             "Cannot Continue without Files",
             """Please select some symbolic music notation files to process.""",
@@ -411,12 +411,12 @@ class Vis_MainWindow( Ui_MainWindow ):
 
          # Move the GUI to the "working" panel and update the GUI
          self.tool_working()
-         self.progress_bar.setMinimum(0)
-         self.progress_bar.setMaximum(self.analysis_files.rowCount())
+         self.progress_bar.setMinimum( 0 )
+         self.progress_bar.setMaximum( self.analysis_files.rowCount() )
 
          # Go through all the pieces and try to import them
          for i, pathname in enumerate( list(self.analysis_files.iterator()), \
-                                       start=1 ):
+                                       start = 1 ):
             # Update the GUI's label of what piece we're on
             self.lbl_currently_processing.setText( "Importing " + pathname + \
                                                    "..." )
@@ -1008,23 +1008,29 @@ class Vis_MainWindow( Ui_MainWindow ):
          QtGui.QLineEdit.Normal,
          current_name)
 
-      new_name = str(new_name)
+      new_name = str(new_name[0])
 
       # Which piece is/pieces are selected?
       currently_selected = self.gui_pieces_list.selectedIndexes()
 
       # Find the parts lists and update them
       for cell in currently_selected:
-         if self.model_score == cell.column():
-            # This is a little tricky, because we'll change the Score object's
-            # Metadata object directly
+         if self.model_parts_list == cell.column():
+            # We're just going to change the part name in the model, not in the
+            # actual Score object itself (which would require re-loading)
 
             # Get the Score
-            piece = self.analysis_pieces.data( cell, 'raw_list' ).toPyObject()
+            parts_list = self.analysis_pieces.data( cell, 'raw_list' ).toPyObject()
 
-            # Update the part "id" property
-            piece.parts[part_index].id = new_name
-            print( 'done!\t' + new_name ) # DEBUGGING
+            # Update the part name as requested
+            parts_list[part_index] = new_name
+
+            # Convert the part names to str objects (from QString)
+            parts_list = [str(name) for name in parts_list]
+
+            # Update the data model and QCheckBox objects
+            self.analysis_pieces.setData( cell, parts_list, QtCore.Qt.EditRole )
+            self.update_pieces_selection()
    # End edit_part_name() ----------------------------------
 
    def zarr_0( self ):
@@ -1302,7 +1308,7 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
    def insertRows( self, row, count, parent=QtCore.QModelIndex() ):
       self.beginInsertRows( parent, row, row+count-1 )
       for zed in xrange(count):
-         self.pieces.insert(row,['',None,[],0.5,[2],"(no selection)"])
+         self.pieces.insert( row, ['', None, [], 0.5, [2], "(no selection)"] )
       self.endInsertRows()
 
    def removeRows( self, row, count, parent=QtCore.QModelIndex() ):
@@ -1323,7 +1329,7 @@ class List_of_Voice_Pairs( QtCore.QAbstractTableModel ):
       self.pairs = data
 
    def headerData( self, section, orientation, role ):
-      header_names = ['Piece','Voice Pair']
+      header_names = ['Piece', 'Voice Pair']
       if QtCore.Qt.Horizontal == orientation and QtCore.Qt.DisplayRole == role:
          return header_names[section]
       else:
@@ -1405,16 +1411,27 @@ class Vis_Load_Piece( QtCore.QThread ):
       index = pieces.createIndex( row_count, pieces.model_score )
       pieces.setData( index, score, QtCore.Qt.EditRole )
 
-      # Add a list of parts to the list of pieces
+      # Add a list of part names to the list of pieces
       index = pieces.createIndex( row_count, pieces.model_parts_list )
-      parts_list = [str(part.id) for part in score.parts]
+      parts_list = []
+      for part in score.parts:
+         # If the part has an Instrument object, we'll use its name. Or else
+         # we can just take the part's ID, which our user will hopefully
+         # replace later with a more suitable name.
+         le_nom = ''
+         if isinstance( part[0], instrument.Instrument ):
+            le_nom = part[0].bestName()
+         else:
+            le_nom = part.id
+         parts_list.append( le_nom )
+
       pieces.setData( index, parts_list, QtCore.Qt.EditRole )
 
       # Add this pathname to the list of files loaded
       self.widget.loaded_files.append( self.pathname )
 
       return
-# End Class Vis_Load_Piece
+# End Class Vis_Load_Piece -----------------------------------------------------
 
 
 
@@ -1474,6 +1491,11 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
       # How long this piece took
       piece_duration = 0.0
 
+      # Add the preferred part names to the part objects
+      for i in xrange(len(self.piece_data[self.widget.model_score].parts)):
+         self.piece_data[self.widget.model_score].parts[i].vis_part_name = \
+               self.piece_data[self.widget.model_parts_list][i]
+
       # Analyze all the specified part combinations
       for combo in self.voice_combos:
          # Get the two parts
@@ -1514,6 +1536,12 @@ class Vis_Select_Offset( Ui_Select_Offset ):
    '''
 
    def trigger( self ):
+      '''
+      Set up and get information from a window that asks the user for an offest
+      value. The return value corresponds to the quarterLength duration the
+      user chose.
+      '''
+
       # UI setup stuff
       self.select_offset = QtGui.QDialog()
       self.setupUi( self.select_offset )
@@ -1579,18 +1607,22 @@ class Vis_Select_Offset( Ui_Select_Offset ):
 
 
 class Vis_Text_Display( Ui_Text_Display ):
+   # TODO: what on earth does this do?!
    def __init__(self,text):
+      # TODO: what on earth does this do?!
       self.text_display = QtGui.QDialog()
       self.setupUi( self.text_display )
       self.text = text
       self.show_text.setPlainText(text)
 
    def trigger( self ):
+      # TODO: what on earth does this do?!
       self.btn_save_as.clicked.connect( self.save_as )
       self.btn_close.clicked.connect( self.close )
       self.text_display.exec_()
 
    def save_as( self ):
+      # TODO: what on earth does this do?!
       filename = str( QtGui.QFileDialog.getSaveFileName( None, \
                                                          'Save As', \
                                                          '', \
@@ -1605,11 +1637,16 @@ class Vis_Text_Display( Ui_Text_Display ):
             QtGui.QMessageBox.Ok)
 
    def close( self ):
+      # TODO: what on earth does this do?!
       self.text_display.done(0)
 # End Class Vis_Text_Display ---------------------------------------------------
 
+
+
 class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
+   # TODO: what on earth does this do?!
    def __init__(self,parent):
+      # TODO: what on earth does this do?!
       self.compare_voice_pairs = QtGui.QDialog()
       self.setupUi( self.compare_voice_pairs )
       top_data = parent.analysis_pieces
@@ -1648,6 +1685,7 @@ class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
          event.ignore()
 
    def start_drag_top( self,event ):
+      # TODO: what on earth does this do?!
       index = self.list_pairs_in_memory.indexAt(event.pos())
       if not index.isValid():
          return
@@ -1673,6 +1711,7 @@ class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
 
    def drop_these( self, event ):
       #TODO: can't add the same pair twice
+      # TODO: what on earth does this do?!
       data = event.mimeData()
       bstream = data.retrieveData("application/x-person",QtCore.QVariant.ByteArray)
       selected = pickle.loads(bstream.toByteArray())
@@ -1686,6 +1725,7 @@ class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
 
    def drop_those( self, event ):
       #TODO: can't add the same pair twice
+      # TODO: what on earth does this do?!
       data = event.mimeData()
       bstream = data.retrieveData("application/x-person",QtCore.QVariant.ByteArray)
       selected = pickle.loads(bstream.toByteArray())
@@ -1699,8 +1739,9 @@ class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
 
    def submit( self ):
       self.compare_voice_pairs.done(0)
+# End Class Vis_Compare_Voice_Pairs --------------------------------------------
 
-# End Class Vis_Compare_Voice_Pairs
+
 
 # "Main" Method ----------------------------------------------------------------
 def main():
