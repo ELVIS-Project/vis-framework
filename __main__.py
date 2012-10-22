@@ -35,11 +35,10 @@ from itertools import chain
 import re
 import time
 import pickle
-import cPickle
 # PyQt4
-from PyQt4 import Qt, QtCore, QtGui
+from PyQt4 import QtCore, QtGui
 from PyQt4.QtCore import QThreadPool
-from PyQt4.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt4.QtCore import pyqtSignal, QObject
 # music21
 from music21 import converter, graph, metadata, instrument
 from music21.converter import ConverterException, ConverterFileException
@@ -53,7 +52,7 @@ from problems import NonsensicalInputError, MissingInformationError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 from VIS_Settings import VIS_Settings
 from analytic_engine import vis_these_parts, make_basso_seguente
-from file_output import file_outputter, file_inputter
+from file_output import file_outputter
 from output_LilyPond import LilyPond_Settings
 from output_LilyPond import process_score as lily_process_score
 
@@ -844,7 +843,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.chk_basso_seguente.setEnabled( False )
          self.btn_add_check_combo.setEnabled( False )
          self.line_piece_title.setEnabled( False )
-         update_piece_settings_visibility( False )
+         self.update_piece_settings_visibility( False )
          # (2) Remove the part list
          if self.part_checkboxes is not None:
             for part in self.part_checkboxes:
@@ -1396,7 +1395,7 @@ class Vis_Load_Piece( QtCore.QThread ):
       # Try to import the score
       try:
          score = converter.parse( str(self.pathname) )
-      except ( ConverterException, ConverterFileException ) as e:
+      except ( ConverterException, ConverterFileException ):
          self.error = self.pathname
          return
 
@@ -1503,10 +1502,10 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          lower = None
 
          if 'bs' == lower:
-            if basso_seguente is None:
-               basso_seguente = make_basso_seguente( self.piece_data[self.widget.model_score] )
+            if seguente_part is None:
+               seguente_part = make_basso_seguente( self.piece_data[self.widget.model_score] )
 
-            lower = basso_seguente
+            lower = seguente_part
          else:
             lower = self.piece_data[self.widget.model_score].parts[combo[1]]
 
@@ -1631,7 +1630,7 @@ class Vis_Text_Display( Ui_Text_Display ):
       if result[1] is not None:
          QtGui.QMessageBox.information(None,
             self.trUtf8("File Output Failed"),
-            reuslt[1],
+            result[1],
             QtGui.QMessageBox.StandardButtons(\
                QtGui.QMessageBox.Ok),
             QtGui.QMessageBox.Ok)
@@ -1703,6 +1702,7 @@ class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
       #pixmap = pixmap.grabWidget(self.list_pairs_in_memory,self.list_pairs_in_memory.rectForIndex(index))
       #drag.setPixmap(pixmap)
       #drag.setHotSpot(QtCore.QPoint(pixmap.width()/2,pixmap.height()/2))
+      # TODO: why is this assigned to "result"? What does this even do/mean?
       result = drag.start(QtCore.Qt.MoveAction)
 
    def get_pairs( self ):

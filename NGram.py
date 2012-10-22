@@ -26,15 +26,14 @@
 ## Import:
 # Python
 import re
-from string import lower as lowercase
-from string import digits as str_digits
-from string import replace as str_replace
+#from string import lower as lowercase
+#from string import digits as str_digits
+#from string import replace as str_replace
 # music21
 from music21 import interval
 from music21 import note
 # vis
-from problems import MissingInformationError, NonsensicalInputError, \
-                     NonsensicalInputWarning
+from problems import MissingInformationError, NonsensicalInputError
 from VIS_Settings import VIS_Settings
 
 
@@ -118,13 +117,13 @@ class NGram( object ):
       # Calculates the movement of the lower part between adjacent Interval
       # objects, then returns a list of them.
 
-      # This choice of iteration is a nice hack from 
+      # This choice of iteration is a nice hack from
       # http://stackoverflow.com/questions/914715/python-looping-through-all-but-the-last-item-of-a-list
       post = []
       z = zip(self._list_of_intervals,self._list_of_intervals[1:])
       try:
          post = [interval.Interval( i.noteStart, j.noteStart ) for i,j in z]
-      except AttributeError as attrerr:
+      except AttributeError:
          raise MissingInformationError( 'NGram: Probably one of the intervals is missing a note.Note' )
 
       self._list_of_movements = post
@@ -292,7 +291,7 @@ class NGram( object ):
          this_move = None
          try:
             this_move = self._list_of_movements[i]
-         except IndexError as inderr:
+         except IndexError:
             pass
 
          # Add the direction to the horizontal interval. The call to
@@ -351,7 +350,6 @@ class NGram( object ):
       # Helper method to transform a quality-letter into the quality-letter
       # needed for inversion
       def get_inverted_quality( start_spec ):
-         #start_spec = lowercase( start_spec )
          if 'd' == start_spec:
             return 'A'
          elif 'm' == start_spec:

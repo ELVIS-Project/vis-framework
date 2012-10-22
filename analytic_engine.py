@@ -24,13 +24,12 @@
 ## Import:
 # python standard library
 import time
-from decimal import *
 # music21
 from music21 import interval, stream, note, chord
 # vis
 from NGram import NGram
 import Vertical_Interval_Statistics
-from problems import NonsensicalInputError, IncompatibleSetupError
+from problems import NonsensicalInputError
 
 
 
@@ -121,10 +120,6 @@ def make_lily_triangle( ngram, which_colour=None, print_to_right=None ):
    NB: Currently only works for 2-grams.
    '''
 
-   # Find the locations of the two spaces in the n-gram representation.
-   first_space = ngram.find(' ')
-   second_space = first_space + ngram[first_space+1:].find(' ') + 1
-
    # Calculate the number of characters in thie ngrams width
    char_len = len(ngram) - 2 # 2 spaces!
 
@@ -194,7 +189,6 @@ def make_lily_triangle( ngram, which_colour=None, print_to_right=None ):
    # This is the top-right triangle node.
    x_pos = round( (char_len * 0.9) + 0.5, 2 )
    post += '(lineto ' + str(x_pos) + ' 1.5)'
-   #post += '(lineto ' + str(x_pos) + ' 1.5) '
    # Bottom-right triangle point
    # NB: This is 3.3 for 3 characters, 4.3 for 4 characters, etc.
    post += '(lineto ' + str(x_pos - 0.5) + ' 0.0))}'
