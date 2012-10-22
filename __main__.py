@@ -849,6 +849,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          if self.part_checkboxes is not None:
             for part in self.part_checkboxes:
                self.verticalLayout_22.removeWidget( part )
+               part.close()
             self.part_checkboxes = None
       elif len(currently_selected) > 6:
          # Multiple pieces selected... possible customization
@@ -1091,17 +1092,17 @@ class Vis_MainWindow( Ui_MainWindow ):
       # (1) Remove previous checkboxes from the layout
       # NOTE: the .destroy() calls seem to do nothing
       if self.part_layouts is not None:
-         for part in self.part_checkboxes:
-            for lay in self.part_layouts:
+         for lay in self.part_layouts:
+            for part in self.part_checkboxes:
                lay.removeWidget( part )
-            #part.destroy()
-         for button in self.edit_buttons:
-            for lay in self.part_layouts:
+               part.close()
+            for button in self.edit_buttons:
                lay.removeWidget( button )
-            #button.destroy()
-         self.edit_buttons = None
-         self.part_layouts = None
-         self.part_checkboxes = None
+               button.close()
+            self.verticalLayout_22.removeItem( lay )
+            lay.invalidate()
+
+      self.part_layouts, self.part_checkboxes, self.edit_buttons = None, None, None
 
       # (1a) If currently_selected is "erase" then we should only erase the
       # current checkboxes, and we should stop now.
