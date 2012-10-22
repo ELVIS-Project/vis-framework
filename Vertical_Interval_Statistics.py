@@ -157,6 +157,17 @@ class Vertical_Interval_Statistics( object ):
 
 
 
+   def add_analyzed_piece( self, piece_string ):
+      '''
+      Given a string in the format...
+      "Piece_title [part_name, part_name]"
+      ... add this to the list of analyses in this V_I_S instance.
+      '''
+
+      self._pieces_analyzed.append( piece_string )
+
+
+
    @staticmethod
    def _stringify( d ):
       return {Vertical_Interval_Statistics._stringify(k):Vertical_Interval_Statistics._stringify(v) \
