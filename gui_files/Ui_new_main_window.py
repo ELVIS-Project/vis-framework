@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/new_main_window.ui'
 #
-# Created: Sun Oct 21 17:53:06 2012
+# Created: Sun Oct 21 18:20:52 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -223,20 +223,20 @@ class Ui_MainWindow(object):
         self.horizontalLayout_9.setObjectName(_fromUtf8("horizontalLayout_9"))
         spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_9.addItem(spacerItem5)
-        self.widget_5 = QtGui.QWidget(self.widget_2)
-        self.widget_5.setObjectName(_fromUtf8("widget_5"))
-        self.verticalLayout_22 = QtGui.QVBoxLayout(self.widget_5)
+        self.widget_part_boxes = QtGui.QWidget(self.widget_2)
+        self.widget_part_boxes.setObjectName(_fromUtf8("widget_part_boxes"))
+        self.verticalLayout_22 = QtGui.QVBoxLayout(self.widget_part_boxes)
         self.verticalLayout_22.setMargin(0)
         self.verticalLayout_22.setObjectName(_fromUtf8("verticalLayout_22"))
-        self.chk_all_voice_combos = QtGui.QCheckBox(self.widget_5)
+        self.chk_all_voice_combos = QtGui.QCheckBox(self.widget_part_boxes)
         self.chk_all_voice_combos.setEnabled(False)
         self.chk_all_voice_combos.setObjectName(_fromUtf8("chk_all_voice_combos"))
         self.verticalLayout_22.addWidget(self.chk_all_voice_combos)
-        self.chk_basso_seguente = QtGui.QCheckBox(self.widget_5)
+        self.chk_basso_seguente = QtGui.QCheckBox(self.widget_part_boxes)
         self.chk_basso_seguente.setEnabled(False)
         self.chk_basso_seguente.setObjectName(_fromUtf8("chk_basso_seguente"))
         self.verticalLayout_22.addWidget(self.chk_basso_seguente)
-        self.horizontalLayout_9.addWidget(self.widget_5)
+        self.horizontalLayout_9.addWidget(self.widget_part_boxes)
         self.gridLayout_3.addWidget(self.widget_2, 7, 0, 1, 3)
         self.line_piece_title = QtGui.QLineEdit(self.grp_settings_for_piece)
         self.line_piece_title.setObjectName(_fromUtf8("line_piece_title"))
@@ -534,7 +534,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.main_screen.setCurrentIndex(1)
+        self.main_screen.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

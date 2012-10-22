@@ -51,7 +51,7 @@ from gui_files.Ui_new_main_window import Ui_MainWindow
 from gui_files.Ui_text_display import Ui_Text_Display
 from problems import NonsensicalInputError, MissingInformationError
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
-from vis import VIS_Settings
+from VIS_Settings import VIS_Settings
 from analytic_engine import vis_these_parts, make_basso_seguente
 from file_output import file_outputter, file_inputter
 from output_LilyPond import LilyPond_Settings
@@ -68,9 +68,11 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.gui_pieces_list.setModel( self.analysis_pieces )
       self.statistics = Vertical_Interval_Statistics()
       self.settings = VIS_Settings()
-      # Hold a list of checkboxes that represent the parts in a piece for
-      # the "assemble" panel
-      self.piece_checkboxes = None
+      # Hold a lists of checkboxes, "Edit" buttons, and layouts that represent
+      # the parts in a piece for the "assemble" panel
+      self.part_checkboxes = None
+      self.edit_buttons = None
+      self.part_layouts = None
       # number of voice pairs analyzed so far
       self.pairs_so_far = 0
       # total number of voice pairs being analyzed
@@ -604,8 +606,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       if self.chk_all_voice_combos.isChecked():
          # Enabling
          # Are there specific part names? If so, disable those checkboxes
-         if self.piece_checkboxes is not None:
-            for box in self.piece_checkboxes:
+         if self.part_checkboxes is not None:
+            for box in self.part_checkboxes:
                box.setEnabled( False )
 
          self.btn_add_check_combo.setEnabled( False )
@@ -613,8 +615,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       else:
          # Disabling
          # Are there specific part names? If so, enable those checkboxes
-         if self.piece_checkboxes is not None:
-            for box in self.piece_checkboxes:
+         if self.part_checkboxes is not None:
+            for box in self.part_checkboxes:
                box.setEnabled( True )
 
          self.btn_add_check_combo.setEnabled( True )
@@ -665,11 +667,11 @@ class Vis_MainWindow( Ui_MainWindow ):
       '''
 
       # If there are no named parts, we can't do this
-      if self.piece_checkboxes is None:
+      if self.part_checkboxes is None:
          return None
 
       # Hold indices of the selected checkboxes
-      selected_checkboxes = [i for i,cb in enumerate(self.piece_checkboxes)
+      selected_checkboxes = [i for i,cb in enumerate(self.part_checkboxes)
                              if cb.isChecked()]
 
       # Hold the vis-format specification
@@ -742,7 +744,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Also clear the part-selection checkboxes
       self.chk_basso_seguente.setChecked( False )
-      for box in self.piece_checkboxes:
+      for box in self.part_checkboxes:
          box.setChecked( False )
    # End add_parts_combination() ---------------------------
 
@@ -844,10 +846,10 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.line_piece_title.setEnabled( False )
          update_piece_settings_visibility( False )
          # (2) Remove the part list
-         if self.piece_checkboxes is not None:
-            for part in self.piece_checkboxes:
+         if self.part_checkboxes is not None:
+            for part in self.part_checkboxes:
                self.verticalLayout_22.removeWidget( part )
-            self.piece_checkboxes = None
+            self.part_checkboxes = None
       elif len(currently_selected) > 6:
          # Multiple pieces selected... possible customization
          # (1) Enable all the controls
@@ -993,6 +995,85 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.adjust_bs()
    # End update_comparison_parts() -------------------------
 
+   def edit_part_name( self, part_index = None ):
+      # Get the current part name from the checkbox...
+      current_name = str(self.part_checkboxes[part_index].text())
+
+      # Get the new name
+      new_name = QtGui.QInputDialog.getText(\
+         None,
+         "Part Name!",
+         "Choose New Part Name",
+         QtGui.QLineEdit.Normal,
+         current_name)
+
+      new_name = str(new_name)
+
+      # Which piece is/pieces are selected?
+      currently_selected = self.gui_pieces_list.selectedIndexes()
+
+      # Find the parts lists and update them
+      for cell in currently_selected:
+         if self.model_score == cell.column():
+            # This is a little tricky, because we'll change the Score object's
+            # Metadata object directly
+
+            # Get the Score
+            piece = self.analysis_pieces.data( cell, 'raw_list' ).toPyObject()
+
+            # Update the part "id" property
+            piece.parts[part_index].id = new_name
+            print( 'done!\t' + new_name ) # DEBUGGING
+   # End edit_part_name() ----------------------------------
+
+   def zarr_0( self ):
+      self.edit_part_name( 0 )
+
+   def zarr_1( self ):
+      self.edit_part_name( 1 )
+
+   def zarr_2( self ):
+      self.edit_part_name( 2 )
+
+   def zarr_3( self ):
+      self.edit_part_name( 3 )
+
+   def zarr_4( self ):
+      self.edit_part_name( 4 )
+
+   def zarr_5( self ):
+      self.edit_part_name( 5 )
+
+   def zarr_6( self ):
+      self.edit_part_name( 6 )
+
+   def zarr_7( self ):
+      self.edit_part_name( 7 )
+
+   def zarr_8( self ):
+      self.edit_part_name( 8 )
+
+   def zarr_9( self ):
+      self.edit_part_name( 9 )
+
+   def zarr_10( self ):
+      self.edit_part_name( 10 )
+
+   def zarr_11( self ):
+      self.edit_part_name( 11 )
+
+   def zarr_12( self ):
+      self.edit_part_name( 12 )
+
+   def zarr_13( self ):
+      self.edit_part_name( 13 )
+
+   def zarr_14( self ):
+      self.edit_part_name( 14 )
+
+   def zarr_15( self ):
+      self.edit_part_name( 15 )
+
    def update_part_checkboxes( self, currently_selected ):
       '''
       Update the part-selection QCheckBox objects to reflect the currently
@@ -1008,11 +1089,19 @@ class Vis_MainWindow( Ui_MainWindow ):
       '''
 
       # (1) Remove previous checkboxes from the layout
-      if self.piece_checkboxes is not None:
-         for part in self.piece_checkboxes:
-            self.verticalLayout_22.removeWidget( part )
-            part.destroy()
-         self.piece_checkboxes = None
+      # NOTE: the .destroy() calls seem to do nothing
+      if self.part_layouts is not None:
+         for part in self.part_checkboxes:
+            for lay in self.part_layouts:
+               lay.removeWidget( part )
+            #part.destroy()
+         for button in self.edit_buttons:
+            for lay in self.part_layouts:
+               lay.removeWidget( button )
+            #button.destroy()
+         self.edit_buttons = None
+         self.part_layouts = None
+         self.part_checkboxes = None
 
       # (1a) If currently_selected is "erase" then we should only erase the
       # current checkboxes, and we should stop now.
@@ -1027,17 +1116,40 @@ class Vis_MainWindow( Ui_MainWindow ):
             break
 
       # (3) Put up a checkbox for each part
-      self.piece_checkboxes = []
-      for part_name in list_of_parts:
-         # "n_c_b" means "new check box"
-         n_c_b = QtGui.QCheckBox( self.widget_5 )
-         n_c_b.setObjectName( "chk_" + part_name )
+      self.part_checkboxes = []
+      self.edit_buttons = []
+      self.part_layouts = []
+      for i in xrange(len(list_of_parts)):
+         part_name = list_of_parts[i]
+         # This is the New CheckBox to select this part
+         n_c_b = QtGui.QCheckBox( self.widget_part_boxes )
+         n_c_b.setObjectName( 'chk_' + part_name )
          n_c_b.setText( part_name )
-         self.piece_checkboxes.append( n_c_b )
+
+         # This is the New BuTtoN to "Edit" this part's name
+         n_btn = QtGui.QPushButton( self.widget_part_boxes )
+         n_btn.setObjectName( 'btn_' + part_name )
+         n_btn.setText( 'Edit Part Name' )
+         # NOTE: this should be improved later
+         n_btn.clicked.connect( eval( 'self.zarr_' + str(i) ) )
+         # This would have been better, but it always passes the *last* "i"
+         # value of the method
+         # n_btn.clicked.connect( lambda : self.edit_part_name( i ) )
+
+         # Add the checkbox and button to the horizontal layout
+         lay = QtGui.QHBoxLayout()
+         lay.addWidget( n_c_b )
+         lay.addWidget( n_btn )
+
+         # Add the layout to the list of part-name checkboxes
+         self.edit_buttons.append( n_btn )
+         self.part_checkboxes.append( n_c_b )
+         self.part_layouts.append( lay )
 
       # (4) Add all the widgets to the layout
-      for part in self.piece_checkboxes:
-         self.verticalLayout_22.addWidget( part )
+      for part in self.part_layouts:
+         #self.verticalLayout_22.addWidget( part )
+         self.verticalLayout_22.addLayout( part )
    # End update_part_checkboxes() --------------------------
 
    def launch_offset_selection( self ):

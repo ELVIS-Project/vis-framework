@@ -208,7 +208,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -511,7 +511,7 @@
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QWidget" name="widget_5" native="true">
+                  <widget class="QWidget" name="widget_part_boxes" native="true">
                    <layout class="QVBoxLayout" name="verticalLayout_22">
                     <item>
                      <widget class="QCheckBox" name="chk_all_voice_combos">
