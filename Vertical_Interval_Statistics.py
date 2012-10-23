@@ -98,7 +98,19 @@ class Vertical_Interval_Statistics( object ):
 
 
    def _validate( self ):
-      # TODO: what does this actually do, and how?
+      '''
+      This is essentially a helper method for V_I_S.from_json,
+      since from_json basically converts a dict directly into
+      a V_I_S instance without checking the logic of doing so.
+      This method makes sure the current V_I_S instance is
+      internally consistent, by checking the existence, type
+      and purpose of all the attributes of a standard V_I_S
+      instance. It's possible this is not necessary and it
+      would be better to have from_json call all the add_*()
+      methods to guarantee a logical V_I_S instance.
+
+      Christopher, your call.
+      '''
       if not isinstance(self._pieces_analyzed,list):
          raise NonsensicalInputError("_pieces_analyzed must be of type list")
       for s in self._pieces_analyzed:
@@ -170,6 +182,11 @@ class Vertical_Interval_Statistics( object ):
 
    @staticmethod
    def _stringify( d ):
+      '''
+      Given a dict or list, convert its contents into something
+      which gets accurately JSON-serialized -- basically just convert
+      the keys of any dict which crosses your path into strings.
+      '''
       return {Vertical_Interval_Statistics._stringify(k):Vertical_Interval_Statistics._stringify(v) \
                 for k,v in d.items()} if isinstance(d,dict) else \
              map(Vertical_Interval_Statistics._stringify,d) if isinstance(d,list) else \
@@ -179,6 +196,10 @@ class Vertical_Interval_Statistics( object ):
 
 
    def to_json( self ):
+      '''
+      Returns a string containing the JSON-serialization of this
+      Vertical_Interval_Statistics instance.
+      '''
       # _stringify ensures that the dict is JSON-serializable,
       # since all keys in a JSONObject must be strings
       return json.JSONEncoder().encode(Vertical_Interval_Statistics._stringify(self.__dict__))
@@ -187,6 +208,12 @@ class Vertical_Interval_Statistics( object ):
 
    @classmethod
    def from_json( cls, json_string ):
+      '''
+      Given a string containing the JSON version of a V_I_S instance,
+      convert it to a python object containing the V_I_S instance and
+      then check it for internal consistency (see _validate()) and
+      return the object.
+      '''
       vis = Vertical_Interval_Statistics()
       # use _stringify since JSONDecoder interprets all strings as unicode.
       d = None
@@ -264,11 +291,23 @@ class Vertical_Interval_Statistics( object ):
 
 
    def get_simple_interval_summary_dict( self ):
+      '''
+      Since the interval dicts normally keep track of the occurrences
+      of an interval in each piece, this method returns the "summary"
+      version which matches a simple interval to the total number of
+      its occurrences in this V_I_S instance.
+      '''
       return {k:v[0] for k,v in self._simple_interval_dict.iteritems()}
 
 
 
    def get_compound_interval_summary_dict( self ):
+      '''
+      Since the interval dicts normally keep track of the occurrences
+      of an interval in each piece, this method returns the "summary"
+      version which matches a compound interval to the total number of
+      its occurrences in this V_I_S instance.
+      '''
       return {k:v[0] for k,v in self._compound_interval_dict.iteritems()}
 
 
@@ -352,17 +391,24 @@ class Vertical_Interval_Statistics( object ):
       while len(self._simple_ngrams_dict) <= the_ngram._n:
          self._simple_ngrams_dict.append( {} )
 
-      # TODO: what is this?
+      # this is an iterator which is just a shorthand
+      # for the number of pieces in this V_I_S instance,
+      # designed to make sure interval/ngram dict values are 
+      # the correct length
       ran = range(len(self._pieces_analyzed))
       if [] == ran:
          ran = [0]
 
-      # (1) Add the compound version
-      # TODO: what are "index_ngram" and "detail_ngram"?
+      # index_ngram is the quality-free version of the ngram; the "first level"
+      # of precision in the ngram dict
       index_ngram = Vertical_Interval_Statistics._set_heed_quality( the_ngram, \
                                                                     False )
+      # detail_ngram includes quality for the key at the deepest level of the
+      # ngram dict.
       detail_ngram = Vertical_Interval_Statistics._set_heed_quality( the_ngram,\
                                                                      True )
+
+      # (1) Add the compound version
       if index_ngram in self._compound_ngrams_dict[the_ngram._n]:
          if detail_ngram not in self._compound_ngrams_dict[the_ngram._n][index_ngram]:
             self._compound_ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = [0,[0 for i in ran]]
@@ -427,6 +473,10 @@ class Vertical_Interval_Statistics( object ):
 
    @staticmethod
    def _set_heed_quality( ngram, heed_quality ):
+      '''
+      Given an NGram, return a version of it with
+      the desired heedQuality attribute.
+      '''
       ret = copy.deepcopy(ngram)
       ret.set_heed_quality(heed_quality)
       return ret
@@ -435,61 +485,29 @@ class Vertical_Interval_Statistics( object ):
 
    @staticmethod
    def _get_simple_version( ngram ):
-      # TODO: description
+      '''
+      Given an NGram (which generally contains compound intervals)
+      return the version with all simple intervals
+      '''
+      # Since we're going to return an NGram with different
+      # values and python variables are all references,
+      # allocate new memory for the NGram to be returned
       ng = copy.deepcopy( ngram )
 
+      # convert the intervals to their simple form
       for i in ng._list_of_intervals:
          ns = i.noteStart
          i = interval.Interval( i.semiSimpleName )
          i.noteStart = ns
 
+      # set the internal properties so that the simple
+      # NGram displays properly and interacts with V_I_S
+      # properly.
       ng._simple_or_compound = 'simple'
       ng._string = ng.get_string_version( ng._heed_quality, \
                                           ng._simple_or_compound )
 
       return ng
-
-
-
-   def determine_list_of_n( self, the_settings, specs, post ):
-      if 'n=' in specs:
-         # Which values of 'n' did they specify?
-         list_of_n = specs[specs.find('n=')+2:]
-         list_of_n = list_of_n[:list_of_n.find(' ')]
-         list_of_n = sorted(set([int(n) for n in re.findall('(\d+)', list_of_n)]))
-         # Check those n values are acceptable/present
-         for n in list_of_n:
-            # First check we have that index and it's potentially filled with
-            # n-gram values
-            if n < 2 or n > (len(self._compound_ngrams_dict) - 1):
-               # throw it out
-               list_of_n.remove( n )
-               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
-               continue # to avoid the next test
-            # Now check if there are actually n-grams in that position. If we
-            # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
-            # valid in the n-gram dictionary, but they won't actually hold
-            # any n-grams.
-            if {} == self._compound_ngrams_dict[n]:
-               # throw it out
-               list_of_n.remove( n )
-               post += 'Not printing ' + str(n) + '-grams; there are none for that "n" value.\n'
-      else:
-         # Which values of 'n' are present in this V_I_S instance?
-         list_of_n = []
-         # Check every index between 2 and however many possibilities there are,
-         # and see which of these potential n values has n-grams associated.
-         for n in xrange( 2, len(self._compound_ngrams_dict) ):
-            if {} != self._compound_ngrams_dict[n]:
-               list_of_n.append( n )
-      #-----
-
-      # What if we end up with no n values?
-      if 0 == len(list_of_n):
-         raise MissingInformationError( "All of the 'n' values appear to have no n-grams" )
-
-      return list_of_n
-   # End determine_list_of_n() -----------------------------
 
 
 
@@ -634,12 +652,11 @@ class Vertical_Interval_Statistics( object ):
    # End prepare_ngram_output_dict() -----------------------
 
 
-
+   # NB: this method does NOT get used in the GUI
    def retrogrades( self, the_settings, specs='' ):
       # (1) Figure out which values of 'n' we should output.
       post = ''
-      list_of_n = self.determine_list_of_n( the_settings, specs, post )
-      the_settings.set_property( 'showTheseNs', list_of_n )
+      list_of_n = the_settings.get_property('showTheseNs')
 
       # (2) Decide whether to take 'quality' or 'no_quality'
       output_dict = self.prepare_ngram_output_dict( the_settings )
@@ -754,11 +771,9 @@ class Vertical_Interval_Statistics( object ):
    # End retrogrades() -------------------------------------
 
 
-
+   # NB: This method does NOT get used in the GUI
    def power_law_analysis( self, the_settings ):
-      post = ''
-      list_of_n = self.determine_list_of_n( the_settings, '', post )
-      the_settings.set_property( 'showTheseNs', list_of_n )
+      list_of_n = the_settings.get_property('showTheseNs')
 
       # (2) Decide whether to take 'quality' or 'no_quality'
       output_dict = self.prepare_ngram_output_dict( the_settings )
