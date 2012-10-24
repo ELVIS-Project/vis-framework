@@ -529,6 +529,10 @@ def process_stream( the_stream, the_settings ):
          the_settings._analysis_notation_parts.append( call_this_part )
          post += '\t%% vis annotated analysis\n'
          post += process_analysis_voice( the_stream )
+      # Custom settings for bar numbers
+      if the_settings.get_property( 'bar numbers' ) is not None:
+         post += "\n\t\override Score.BarNumber #'break-visibility = " + \
+                 the_settings.get_property( 'bar numbers' ) + '\n'
       #----
 
       # If it's an analysis-annotation part, we'll handle this differently.
@@ -562,7 +566,11 @@ def process_stream( the_stream, the_settings ):
       post += "\header {\n"
 
       if the_stream.composer is not None:
-         post += '\tcomposer = \markup{ "' + the_stream.composer.name + '" }\n'
+         # TODO: test this
+         # NOTE: this commented line is what I used to have... unsure whether
+         # I need it
+         #post += '\tcomposer = \markup{ "' + the_stream.composer.name + '" }\n'
+         post += '\tcomposer = \markup{ "' + the_stream.composer + '" }\n'
       if the_stream.composers is not None:
          # I don't really know what to do with non-composer contributors
          pass
@@ -641,11 +649,11 @@ class LilyPond_Settings:
       # Hold the other settings for this Score
       self._secret_settings = {}
       # Establish default values for settings in this Score
-      self._secret_settings['bar_numbers'] = 'system' # TODO: implement this
+      self._secret_settings['bar numbers'] = None # TODO: test this; it's in the "Part" section of process_stream()
       self._secret_settings['tagline'] = ''
          # empty string means "default tagline"
          # None means "no tagline"
-      self._secret_settings['indent'] = None
+      self._secret_settings['indent'] = None # TODO: test this
       self._secret_settings['print_instrument_names'] = True # TODO: implement
       self._secret_settings['paper_size'] = 'letter'
       # Deal with the LilyPond path and version
@@ -693,7 +701,7 @@ def output_the_file( contents, filename='test_output/lily_output' ):
    else:
       extension = '.ly'
 
-   return file_outputter( contents, filename, extension )
+   return file_outputter( contents, filename, 'OVERWRITE' ) # TODO: probably shouldn't do that
 
 
 
@@ -703,9 +711,17 @@ def run_lilypond( filename, the_settings ):
    LilyPond_Settings object.
    '''
 
+   # Make the PDF filename: if "filename" ends with ".ly" then remove it so
+   # we don't output to ".ly.pdf"
+   pdf_filename = ''
+   if 3 < len(filename) and '.ly' == filename[-3:]:
+      pdf_filename = filename[:-3]
+   else:
+      pdf_filename = filename
+
    # NB: this method returns something that might be interesting
    Popen( [the_settings.get_property('lilypond_path'), '--pdf', '-o', \
-           filename, filename], stdout=PIPE, stderr=PIPE )
+           pdf_filename, filename], stdout=PIPE, stderr=PIPE )
 
 
 
