@@ -38,7 +38,7 @@ from music21.note import Note, Rest
 from music21.instrument import Instrument
 # output_LilyPond
 from file_output import file_outputter
-from problems import UnidentifiedObjectError, ImpossibleToProcessError
+from LilyPondProblems import UnidentifiedObjectError, ImpossibleToProcessError
 
 
 
@@ -49,8 +49,8 @@ def string_of_n_letters( n ):
 
    post = ""
 
-   for letter in repeat( random_choice( string_letters ), n ):
-      post += letter
+   for i in xrange(n):
+      post += random_choice( string_letters )
 
    return post
 
@@ -657,9 +657,9 @@ class LilyPond_Settings:
 
 
 
-   def set_property( self, setting_name, setting_value=None ):
+   def set_property( self, setting_name, setting_value ):
       '''
-      Modify the value of a setting. There are two forms:
+      Modify the value of a setting.
 
       >>> from output_LilyPond import *
       >>> the_settings = LilyPond_Settings()

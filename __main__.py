@@ -167,7 +167,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Set all the settings
       # - no indent
-      l_sets.set_property( 'indent 0\cm' )
+      l_sets.set_property( 'indent', '0\cm' )
 
       # Make the score
       summary_score = self.statistics.make_summary_score( self.settings )
