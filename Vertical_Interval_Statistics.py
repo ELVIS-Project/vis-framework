@@ -30,6 +30,7 @@ from string import digits as string_digits
 from string import join
 # music21
 from music21 import interval, graph, stream, clef, meter, note
+from music21.metadata import Metadata
 # vis
 from VIS_Settings import VIS_Settings
 from problems import NonsensicalInputError, MissingInformationError, \
@@ -393,7 +394,7 @@ class Vertical_Interval_Statistics( object ):
 
       # this is an iterator which is just a shorthand
       # for the number of pieces in this V_I_S instance,
-      # designed to make sure interval/ngram dict values are 
+      # designed to make sure interval/ngram dict values are
       # the correct length
       ran = range(len(self._pieces_analyzed))
       if [] == ran:
@@ -1413,8 +1414,13 @@ class Vertical_Interval_Statistics( object ):
             lower_part.append( rest_measure )
             lily_part.append( note.Rest( quarterLength=4.0 ) )
 
+      # Make a Metadata object
+      metad = Metadata()
+      metad.composer = 'Output from vis'
+      metad.title = 'N-Gram Statistics Summary'
+
       # Finally, make a Score and return it
-      return stream.Score( [upper_part, lower_part, lily_part] )
+      return stream.Score( [metad, upper_part, lower_part, lily_part] )
    # End make_summary_score()-------------------------------
 # End class Vertical_Interval_Statistics ---------------------------------------
 
