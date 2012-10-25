@@ -760,7 +760,7 @@ def detect_lilypond():
    # and again different on 32-bit, probably
    # HKLM/SOFTWARE/LilyPond/Install_Dir
 
-   if 'Windows' == which_os:
+   if 'Windows' == which_os():
       # NOTE: this is just a temporary hack that allows vis to load on Windows
       # computers, but likely without enabling LilyPond supprt
       return ( 'lilypond.exe', '2.0.0' )
