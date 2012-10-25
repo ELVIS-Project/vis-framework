@@ -1,7 +1,7 @@
 vis
 ===
 
-A "vertical interval sequences" analysis program for music21.
+A "vertical interval series" analysis program for music21.
 
 Copyright Information:
 
@@ -11,6 +11,19 @@ All other content is subject to the CC-BY-SA Unported 3.0 Licence. A copy of thi
 
 All content in the test_corpus directory is subject to the licence in the file test_corpus/test_corpus_licence.txt
 
+Software Dependencies
+=====================
+vis uses many software libraries to help with analysis. The following version numbers are the versions we use for development, but you may be able to use earlier and later versions too.
+
+- Python 2.7.3
+- SciPy 0.9.0
+- NumPy 1.6.1
+- matplotlib 1.1.0
+- PyQt4 4.9.1
+- music21 1.3.0
+
 How to Use
 ==========
-vis has an extensive built-in help function. Type "help" at any time to view relevant documentation and instructions to find further assistance.
+After you installed the dependencies listed in the previous section, open a terminal in the same directory as this README file, and run this command:
+
+$ python __main__.py
