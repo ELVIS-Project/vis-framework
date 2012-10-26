@@ -622,9 +622,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                # Finish making the n-gram
                if enough_non_rests:
                   # Make an NGram object, then add it to the statistics database
-                  this_ngram = NGram( list_of_intervals, \
-                                 settings.get_property( 'heedQuality' ), \
-                                 settings.get_property( 'simpleOrCompound' ) )
+                  this_ngram = NGram( list_of_intervals )
                   statistics_buffer.add_ngram( this_ngram, the_pair_name )
                else:
                   # There aren't enough non-rests, so we won't be putting a

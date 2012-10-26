@@ -49,12 +49,9 @@ class NGram( object ):
    # _n
    # _list_of_intervals
    # _list_of_movements
-   # _heed_quality
-   # _simple_or_compound
    # _string
    # _has_voice_crossing
-   def __init__( self, some_intervals, heed_quality=False, \
-                 simple_or_compound='compound' ):
+   def __init__( self, some_intervals ):
       '''
       Create a new n-gram when given a list of the
       :class:`music21.interval.Interval` objects that are part of the n-gram.
@@ -63,37 +60,9 @@ class NGram( object ):
       objects embedded, to calculate the "distance" between adjacent
       vertical intervals.
 
-      The third argument is a str, either 'simple' or 'compound' depending on
-      which type of str output you want.
-
       If an Interval is descending, this is considered to be a voice crossing.
       The lower voice is assumed to be the .noteStart property of every Interval.
-
-      The second argument, called 'heed_quality,' determines whether to consider
-      intervals with their qualities, or just their species (the number). If
-      possible, when calling NGram from within a program, you should use an
-      visSettings instance to specify heed_quality directly, like this:
-      >>> from music21 import *
-      >>> from vis import *
-      >>> s = visSettings()
-      >>> a = interval.Interval( note.Note('C4'), note.Note('E4') )
-      >>> b = interval.Interval( note.Note('D4'), note.Note('E4') )
-      >>> ng = NGram( [a, b], s )
-      NGram( [music21.interval.Interval( music21.note.Note('C4'), music21.note.Note('E4') ),music21.interval.Interval( music21.note.Note('D4'), music21.note.Note('E4') )], False )
-
-      The second argument could also be a VIS_Settings object, in which case
-      the third argument is ignored.
       '''
-
-      # Deal with the settings
-      # TODO: this whole "settings" business will have to go, eventually
-      if isinstance( heed_quality, VIS_Settings ):
-         self._heed_quality = heed_quality.get_property( 'heedQuality' )
-         self._simple_or_compound = heed_quality.get_property( 'simpleOrCompound' )
-      else:
-         self._heed_quality = heed_quality
-         self._simple_or_compound = simple_or_compound
-
       # How many intervals are in this triangle/n-gram?
       self._n = len(some_intervals)
 
@@ -110,10 +79,6 @@ class NGram( object ):
 
       # Calculate melodic intervals between vertical intervals.
       self._calculate_movements()
-
-      # Generate the str representation of this NGram
-      self._string = self.get_string_version( self._heed_quality, \
-                                              self._simple_or_compound )
    # End NGram() ------------------------------------------
 
    # internal method
@@ -150,11 +115,6 @@ class NGram( object ):
       '''
       return self._list_of_movements
 
-   def set_heed_quality( self, heed_quality ):
-      self._heed_quality = heed_quality
-      self._string = self.get_string_version( self._heed_quality, \
-                                              self._simple_or_compound )
-
    def retrograde( self ):
       '''
       Returns the retrograde (backwards) n-gram of self.
@@ -168,9 +128,7 @@ class NGram( object ):
       >>> ng.retrograde() == NGram( [b, a], s )
       True
       '''
-      reversed_intervals = self._list_of_intervals[::-1]
-      return NGram( reversed_intervals, self._heed_quality, \
-                    self._simple_or_compound )
+      return NGram( self._list_of_intervals[::-1] )
 
    def n( self ):
       '''
@@ -214,7 +172,7 @@ class NGram( object ):
       - etc.
       These are not necessarily experientially similar.
       '''
-      post = str(self).replace( '-', '' )
+      post = self.get_string_version(True, 'compound').replace( '-', '' )
       return post.replace( '+', '' )
 
    def voice_crossing( self ):
@@ -224,36 +182,26 @@ class NGram( object ):
       '''
       return self._has_voice_crossing
 
-   def get_string_version( self, heed_quality=None, simple_or_compound=None ):
+   def get_string_version( self, heed_quality=False, simple_or_compound='compound' ):
       '''
       Return a string-format representation of this NGram object. With no
-      arguments, the intervals are compound, and quality is heeded or not as
-      per the setting of this NGram object.
+      arguments, the intervals are compound, and quality not heeded. If the 
+      first argument is a VIS_Settings object, the parameters are taken
+      from it and the second argument is ignored.
 
-      This function is called internally by str(vis.NGram) so the following
-      should be true of any NGram object:
-      str(vis.NGram) == NGram.get_string_version()
-
-      You can also call this method directly for different formatting options
-      than those at NGram-creation time. If you do this, specify the new
-      formatting options either directly or through a VIS_Settings object.
+      Example:
 
       >>> from music21 import *
       >>> from vis import *
       >>> s = VIS_Settings()
       >>> a = interval.Interval( note.Note('C4'), note.Note('E5') )
       >>> b = interval.Interval( note.Note('D4'), note.Note('E5') )
-      >>> ng = NGram( [a, b], s )
-      >>> ng.get_string_version()
-      'M10 +M2 M9'
-      >>> ng.get_string_version( heed_quality=False, simple_or_compound='simple )
+      >>> ng = NGram( [a, b] )
+      >>> ng.get_string_version( heed_quality=False, simple_or_compound='simple' )
       '3 +2 2'
       >>> s.set_property( 'heedQuality False' )
       >>> ng.get_string_version( s )
       '10 +2 9'
-
-      Note that calling this method does not change the internally-stored
-      str representation or the internally-stored settings.
       '''
 
       # Deal with the settings.
@@ -263,11 +211,6 @@ class NGram( object ):
          # settings from it.
          simple_or_compound = heed_quality.get_property( 'simpleOrCompound' )
          heed_quality = heed_quality.get_property( 'heedQuality' )
-      else:
-         if simple_or_compound is None:
-            simple_or_compound = self._simple_or_compound
-         if heed_quality is None:
-            heed_quality = self._heed_quality
 
       # Hold the str we're making.
       post = ''
@@ -352,7 +295,7 @@ class NGram( object ):
       >>> from vis import *
       >>> i1 = interval.Interval( note.Note( 'A4' ), note.Note( 'C5' ) )
       >>> i2 = interval.Interval( note.Note( 'B4' ), note.Note( 'E5' ) )
-      >>> ng = NGram( [i1,i2], True )
+      >>> ng = NGram( [i1,i2] )
       >>> str(ng.get_inversion_at_the( 12, 'up' ))
       'M-10 +M2 M-9'
       '''
@@ -450,9 +393,7 @@ class NGram( object ):
          inverted_intervals.append( new_interv )
 
       # Make a new NGram object to return
-      return NGram( inverted_intervals, \
-                    self._heed_quality, \
-                    self._simple_or_compound )
+      return NGram( inverted_intervals )
    # End get_inversion_at_the() ------------------------------------------------
 
    @classmethod
@@ -467,7 +408,12 @@ class NGram( object ):
       err_msg = 'cannot make N-Gram from badly formatted string'
 
       def make_vert( s ):
-         # TODO: docstring
+         '''
+         Given a string s representing a vertical
+         interval (no + or - before it) with or
+         without quality, return a music21
+         Interval object corresponding to it.
+         '''
          m = vertical.match( s )
          if m is None or m.group( 0 ) != s:
             raise NonsensicalInputError( err_msg )
@@ -480,7 +426,11 @@ class NGram( object ):
             return interval.Interval( s )
 
       def make_horiz( s ):
-         # TODO: docstring
+         '''
+         Given a string s representing a horizontal
+         interval (with + or - out front), return
+         an appropriate music21 Interval object.
+         '''
          m = horizontal.match( s )
          if m is None or m.group( 0 ) != s:
             raise NonsensicalInputError( err_msg )
@@ -513,48 +463,15 @@ class NGram( object ):
       l_i.append( last_int )
 
       ng = NGram( l_i )
-      ng.set_heed_quality( False if string[0].isdigit() else True )
       return ng
 
    def __str__( self ):
-      return self._string
-
-   def __hash__( self):
-      return hash(self._string)
+      return repr(self)
 
    def __eq__( self, other ):
-      # If they have different heed_quality settings, different 'n' value, or
-      # a different number of vertical intervals, then they're not equal.
-      if self._heed_quality != other._heed_quality or \
-         self._n != other._n or \
-         len(self._list_of_intervals) != len(other._list_of_intervals):
-         return False
-
-      # If we pay attention to quality...
-      elif self._heed_quality:
-         # Then we just need to know that the _list_of_itnervals and the
-         # _list_of_movements are the same.
-         if self._list_of_intervals == other._list_of_intervals and \
-            self._list_of_movements == other._list_of_movements:
-            return True
-         else:
-            return False
-
-      # If we don't pay attention to quality...
-      else:
-         # ... things are more difficult because, as long as the numbers are
-         # the same, we're supposed to consider them equal.
-         for i, interv in enumerate(self._list_of_intervals):
-            if interv.generic.directed != \
-            other._list_of_intervals[i].generic.directed:
-               return False
-
-         for i, interv in enumerate(self._list_of_movements):
-            if interv.generic.directed != \
-            other._list_of_movements[i].generic.directed:
-               return False
-
-         return True
+      # an NGram is purely a list of intervals and list of movements
+      return self._list_of_intervals == other._list_of_intervals and \
+             self._list_of_movements == other._list_of_movements
 
    def __ne__( self, other ):
       return not self == other
