@@ -318,7 +318,8 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
          part_names.append( part.vis_part_name )
       else:
          part_names.append( str(part.id) )
-   statistics_buffer.add_analyzed_piece( the_piece + ' ' + str(part_names) )
+   the_pair_name = the_piece + ' ' + str(part_names)
+   statistics_buffer.add_analyzed_piece( the_pair_name )
 
    # Parse targeted_output ---------------------------------
    # Hold instructions from 'only annotate'
@@ -578,7 +579,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                      contin = False
                # else # This is a new thing, so we should keep processing.
                if contin:
-                  statistics_buffer.add_interval( this_interval )
+                  statistics_buffer.add_interval( this_interval, the_pair_name )
                   interval_history.append( this_interval )
                   # Update the current offset, because we added a new thing.
                   current_offset = max( higher_part[current_higher_index].offset, \
@@ -624,7 +625,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                   this_ngram = NGram( list_of_intervals, \
                                  settings.get_property( 'heedQuality' ), \
                                  settings.get_property( 'simpleOrCompound' ) )
-                  statistics_buffer.add_ngram( this_ngram )
+                  statistics_buffer.add_ngram( this_ngram, the_pair_name )
                else:
                   # There aren't enough non-rests, so we won't be putting a
                   # triangle here. We need to set 'contin' to False so that we

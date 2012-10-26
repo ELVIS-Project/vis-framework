@@ -28,6 +28,7 @@
 import re, copy, os.path, json
 from string import digits as string_digits
 from string import join
+from collections import defaultdict
 # music21
 from music21 import interval, graph, stream, clef, meter, note
 # vis
@@ -42,7 +43,7 @@ from numpy import array, linalg, ones, log, corrcoef
 import matplotlib
 import matplotlib.pyplot as plt
 
-
+   
 
 class Vertical_Interval_Statistics( object ):
    '''
@@ -67,10 +68,10 @@ class Vertical_Interval_Statistics( object ):
       '''
       Create a new, "empty" statistics database for a piece.
       '''
-      self._simple_interval_dict = {}
-      self._compound_interval_dict = {}
-      self._simple_ngrams_dict = [{},{},{}]
-      self._compound_ngrams_dict = [{},{},{}]
+      self._simple_interval_dict = defaultdict(lambda:defaultdict(int))
+      self._compound_interval_dict = defaultdict(lambda:defaultdict(int))
+      self._simple_ngrams_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:defaultdict(int))))
+      self._compound_ngrams_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:defaultdict(int))))
       self._pieces_analyzed = []
 
 
@@ -89,9 +90,9 @@ class Vertical_Interval_Statistics( object ):
          pieces = " piece"
       post = '<Vertical_Interval_Statistics for '+str(nbr_pieces)+pieces+' with ' + \
             str(len(self._compound_interval_dict)) + ' intervals; '
-      for i in xrange(2,len(self._compound_ngrams_dict)):
-         post += str(len(self._compound_ngrams_dict[i])) + ' ' + \
-                 str(i) + '-grams; '
+      for n in self._compound_ngrams_dict.iterkeys():
+         post += str(len(self._compound_ngrams_dict[n])) + ' ' + \
+                 str(n) + '-grams; '
 
       return post[:-2] + '>'
 
@@ -149,19 +150,19 @@ class Vertical_Interval_Statistics( object ):
 
       for att_name in ngram_dicts:
          att = getattr(self,att_name)
-         if not isinstance(att,list):
-            raise NonsensicalInputError(att_name+" must be of type list")
-         for d in att:
+         if not isinstance(att,dict):
+            raise NonsensicalInputError(att_name+" must be of type dict")
+         for d in att.values():
             if not isinstance(d,dict):
-               raise NonsensicalInputError(att_name+" items must be of type dict")
+               raise NonsensicalInputError(att_name+" values must be of type dict")
             for k,v in d.items():
                if not isinstance(k,NGram):
-                  raise NonsensicalInputError(att_name+" keys must be of type NGram")
+                  raise NonsensicalInputError(att_name+" value keys must be of type NGram")
                if not isinstance(v,dict):
-                  raise NonsensicalInputError(att_name+" values must be of type dict")
+                  raise NonsensicalInputError(att_name+" value values must be of type dict")
                for key in v.keys():
                   if not isinstance(key,NGram):
-                     raise NonsensicalInputError(att_name+" value keys must be of type NGram")
+                     raise NonsensicalInputError(att_name+" value value keys must be of type NGram")
                validate_values( v.values(), att_name+" value" )
 
       return True
@@ -194,6 +195,13 @@ class Vertical_Interval_Statistics( object ):
              str(d)
 
 
+   @staticmethod
+   def dictify( d ):
+      '''
+      Converts a nested defaultdict into a regular dict.
+      '''
+      return {k:Vertical_Interval_Statistics.dictify(v) for k,v in d.items()} if isinstance(d,defaultdict) else d
+
 
    def to_json( self ):
       '''
@@ -222,13 +230,17 @@ class Vertical_Interval_Statistics( object ):
       except Exception as e:
          raise NonsensicalInputError("JSON data could not be parsed: "+str(e))
       def fix_keys( ngd ):
+         '''
+         since JSON objects have string keys, convert the
+         strings to NGrams for the ngram dict ngd.
+         '''
          return {NGram.make_from_str(k):fix_keys(v) for k,v in ngd.items()} if isinstance(ngd,dict) \
                 else ngd
       easy_atts = ["_pieces_analyzed","_simple_interval_dict","_compound_interval_dict"]
       ngram_dicts = ["_compound_ngrams_dict","_simple_ngrams_dict"]
       for att in easy_atts+ngram_dicts:
          if d.get(att) is not None:
-            val = d[att] if att in easy_atts else [fix_keys(ngd) for ngd in d[att]]
+            val = d[att] if att in easy_atts else {k:fix_keys(ngd) for k,ngd in d[att].items()}
             setattr(vis,att,val)
          else:
             raise MissingInformationError("The dict supplied is missing the attribute "+att)
@@ -237,7 +249,7 @@ class Vertical_Interval_Statistics( object ):
 
 
 
-   def add_interval( self, the_interval, piece_index=0 ):
+   def add_interval( self, the_interval, the_piece ):
       '''
       Adds a :class:`music21.interval.Interval` to the occurrences information
       for the piece of the given index.
@@ -260,32 +272,24 @@ class Vertical_Interval_Statistics( object ):
          # For the dictionary of simple intervals
          simple_name = the_interval.semiSimpleName
          simple_name = simple_name[0] + '-' + simple_name[1:]
-         if simple_name not in self._simple_interval_dict:
-            self._simple_interval_dict[simple_name] = [0, [0 for i in ran]]
-         self._simple_interval_dict[simple_name][0] += 1
-         self._simple_interval_dict[simple_name][1][piece_index] += 1
+         self._simple_interval_dict[simple_name][the_piece] += 1
+         self._simple_interval_dict[simple_name]['Total'] += 1
 
          # For the dictionary of compound intervals
          compound_name = the_interval.name
          compound_name = compound_name[0] + '-' + compound_name[1:]
-         if compound_name not in self._compound_interval_dict:
-            self._compound_interval_dict[compound_name] = [0, [0 for i in ran]]
-         self._compound_interval_dict[compound_name][0] += 1
-         self._compound_interval_dict[compound_name][1][piece_index] += 1
+         self._compound_interval_dict[compound_name][the_piece] += 1
+         self._compound_interval_dict[compound_name]['Total'] += 1
       # Ascending or unison interval
       else:
          # For the dictionary of simple intervals
          simple_name = the_interval.semiSimpleName
-         if simple_name not in self._simple_interval_dict:
-            self._simple_interval_dict[simple_name] = [0,[0 for i in ran]]
-         self._simple_interval_dict[simple_name][0] += 1
-         self._simple_interval_dict[simple_name][1][piece_index] += 1
+         self._simple_interval_dict[simple_name][the_piece] += 1
+         self._simple_interval_dict[simple_name]['Total'] += 1
          # For the dictionary of compound intervals
          compound_name = the_interval.name
-         if compound_name not in self._compound_interval_dict:
-            self._compound_interval_dict[compound_name] = [0,[0 for i in ran]]
-         self._compound_interval_dict[compound_name][0] += 1
-         self._compound_interval_dict[compound_name][1][piece_index] += 1
+         self._compound_interval_dict[compound_name][the_piece] += 1
+         self._compound_interval_dict[compound_name]['Total'] += 1
    # End add_interval() ------------------------------------
 
 
@@ -297,7 +301,7 @@ class Vertical_Interval_Statistics( object ):
       version which matches a simple interval to the total number of
       its occurrences in this V_I_S instance.
       '''
-      return {k:v[0] for k,v in self._simple_interval_dict.iteritems()}
+      return {k:v['Total'] for k,v in self._simple_interval_dict.iteritems()}
 
 
 
@@ -308,11 +312,11 @@ class Vertical_Interval_Statistics( object ):
       version which matches a compound interval to the total number of
       its occurrences in this V_I_S instance.
       '''
-      return {k:v[0] for k,v in self._compound_interval_dict.iteritems()}
+      return {k:v['Total'] for k,v in self._compound_interval_dict.iteritems()}
 
 
 
-   def get_interval_occurrences( self, which_interval, simple_or_compound='simple', piece_index=None ):
+   def get_interval_occurrences( self, which_interval, simple_or_compound='simple', piece=None ):
       '''
       Returns the number of occurrences of a particular
       :class:`music21.interval.Interval` in a particular piece,
@@ -330,15 +334,15 @@ class Vertical_Interval_Statistics( object ):
       # Given a species (number), finds all the occurrences of any quality.
       # The second argument should be either self._simple_interval_dict or
       # self._compound_interval_dict
-      def get_all_qualities( species, db, piece_index ):
+      def get_all_qualities( species, db, piece ):
          post = 0
          for quality in qualities:
             if ( quality + species ) in db:
-               if piece_index is None:
+               if piece is None:
                   #then the total number of occurrences
-                  post += db[quality+species][0]
+                  post += db[quality+species]['Total']
                else:
-                  post += db[quality+species][1][piece_index]
+                  post += db[quality+species][piece]
 
          return post
 
@@ -348,27 +352,27 @@ class Vertical_Interval_Statistics( object ):
       # the first character is a direction
       if which_interval.isdigit() or which_interval[0] in directions:
          if 'simple' == simple_or_compound:
-            return get_all_qualities( which_interval, self._simple_interval_dict, piece_index )
+            return get_all_qualities( which_interval, self._simple_interval_dict, piece )
          elif 'compound' == simple_or_compound:
-            return get_all_qualities( which_interval, self._compound_interval_dict, piece_index )
+            return get_all_qualities( which_interval, self._compound_interval_dict, piece )
          else:
             raise NonsensicalInputError( errorstr )
       # Otherwise they are paying attention to quality.
       else:
          if 'simple' == simple_or_compound:
             if which_interval in self._simple_interval_dict:
-               if piece_index is None:
-                  return self._simple_interval_dict[which_interval][0]
+               if piece is None:
+                  return self._simple_interval_dict[which_interval]['Total']
                else:
-                  return self._simple_interval_dict[which_interval][1][piece_index]
+                  return self._simple_interval_dict[which_interval][piece]
             else:
                return 0
          elif 'compound' == simple_or_compound:
             if which_interval in self._compound_interval_dict:
-               if piece_index is None:
-                  return self._compound_interval_dict[which_interval][0]
+               if piece is None:
+                  return self._compound_interval_dict[which_interval]['Total']
                else:
-                  return self._compound_interval_dict[which_interval][1][piece_index]
+                  return self._compound_interval_dict[which_interval][piece]
             else:
                return 0
          else:
@@ -377,60 +381,33 @@ class Vertical_Interval_Statistics( object ):
 
 
 
-   def add_ngram( self, the_ngram, piece_index = 0 ):
-      # TODO: better docs
-      # TODO: this should be faster
+   def add_ngram( self, the_ngram, the_piece ):
       '''
       Adds an n-gram to the occurrences information.
       '''
 
-      # If there isn't yet a dictionary for this 'n' value, then we'll have to
-      # make sure there is one.
-      while len(self._compound_ngrams_dict) <= the_ngram._n:
-         self._compound_ngrams_dict.append( {} )
-      while len(self._simple_ngrams_dict) <= the_ngram._n:
-         self._simple_ngrams_dict.append( {} )
+      # set up the keys for the various nested compound-ngram dicts
+      compound_no_quality_version = the_ngram.get_string_version(False, 'compound')
+      compound_quality_version = the_ngram.get_string_version(True, 'compound')
+      
+      # add the occurrence to the compound-ngram dict
+      self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version]\
+         [compound_quality_version][the_piece] += 1
+      self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version]\
+         [compound_quality_version]['Total'] += 1
 
-      # this is an iterator which is just a shorthand
-      # for the number of pieces in this V_I_S instance,
-      # designed to make sure interval/ngram dict values are 
-      # the correct length
-      ran = range(len(self._pieces_analyzed))
-      if [] == ran:
-         ran = [0]
+      # set up the keys for the various nested simple-ngram dicts
+      simple_version = Vertical_Interval_Statistics._get_simple_version(the_ngram)
+      simple_no_quality_version = the_ngram.get_string_version(False, 'simple')
+      simple_quality_version = the_ngram.get_string_version(True, 'simple')
 
-      # index_ngram is the quality-free version of the ngram; the "first level"
-      # of precision in the ngram dict
-      index_ngram = Vertical_Interval_Statistics._set_heed_quality( the_ngram, \
-                                                                    False )
-      # detail_ngram includes quality for the key at the deepest level of the
-      # ngram dict.
-      detail_ngram = Vertical_Interval_Statistics._set_heed_quality( the_ngram,\
-                                                                     True )
-
-      # (1) Add the compound version
-      if index_ngram in self._compound_ngrams_dict[the_ngram._n]:
-         if detail_ngram not in self._compound_ngrams_dict[the_ngram._n][index_ngram]:
-            self._compound_ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = [0,[0 for i in ran]]
-         self._compound_ngrams_dict[the_ngram._n][index_ngram][detail_ngram][0] += 1
-         self._compound_ngrams_dict[the_ngram._n][index_ngram][detail_ngram][1][piece_index] += 1
-      else:
-         self._compound_ngrams_dict[the_ngram._n][index_ngram] = {}
-         self._compound_ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = [1,[0 for i in ran]]
-         self._compound_ngrams_dict[the_ngram._n][index_ngram][detail_ngram][1][piece_index] = 1
-
-      # (2) Add the simple version
-      index_ngram = Vertical_Interval_Statistics._get_simple_version(index_ngram)
-      detail_ngram = Vertical_Interval_Statistics._get_simple_version(detail_ngram)
-      if index_ngram in self._simple_ngrams_dict[the_ngram._n]:
-         if detail_ngram not in self._simple_ngrams_dict[the_ngram._n][index_ngram]:
-            self._simple_ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = [0,[0 for i in ran]]
-         self._simple_ngrams_dict[the_ngram._n][index_ngram][detail_ngram][0] += 1
-         self._simple_ngrams_dict[the_ngram._n][index_ngram][detail_ngram][1][piece_index] += 1
-      else:
-         self._simple_ngrams_dict[the_ngram._n][index_ngram] = {}
-         self._simple_ngrams_dict[the_ngram._n][index_ngram][detail_ngram] = [1,[0 for i in ran]]
-         self._simple_ngrams_dict[the_ngram._n][index_ngram][detail_ngram][1][piece_index] = 1
+      # add the occurrence to the simple-ngram dict
+      self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version]\
+         [simple_quality_version][the_piece] += 1
+      self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version]\
+         [simple_quality_version]['Total'] += 1
+      
+      
    # End add_ngram() ---------------------------------------
 
 
@@ -458,14 +435,14 @@ class Vertical_Interval_Statistics( object ):
             raise
       else:
          raise NonsensicalInputError("Input must be of type NGram or string")
-      ng_no_hq = Vertical_Interval_Statistics._set_heed_quality(ng.False)
+      ng_no_hq = Vertical_Interval_Statistics._set_heed_quality(ng,False)
       n = ng.n()
       hq = ng._heed_quality
       settings = VIS_Settings()
       settings.set_property('simpleOrCompound compound')
       settings.set_property('heedQuality '+str(hq))
       settings.set_property( 'showTheseNs', [n] )
-      the_dict = self.prepare_ngram_output_dict( VIS_Settings() )[n]
+      the_dict = self.prepare_ngram_output_dict( settings )[n]
       return 0 if the_dict.get(ng) is None else the_dict[ng][0] #replace 0 with piece_index?
    # End get_ngram_occurrences() ---------------------------
 
@@ -517,82 +494,25 @@ class Vertical_Interval_Statistics( object ):
       and merge it into self.
       '''
 
-      # the values in the ngram and interval dicts are lists which match
-      # up to the 'pieces_analyzed' list in a nice way; these values always
-      # take the form:
-      # [total occurrences in the whole V_I_S instance,
-      #  [occurences in piece 1, in piece 2,...]]
-
-      # this is a prototype of an entry for an interval/ngram which
-      # never appears, in the style of self
-      self_empty = [0,[0 for p in self._pieces_analyzed]]
-      # the same, but in the style of other_stats
-      other_empty = [0,[0 for p in other_stats._pieces_analyzed]]
-
-      def merger(x,y):
+      def merge_default_dicts(x,y):
          '''
-         Given two integers or lists, sum them (concatenate in the
-         case of lists). The reason for handling None is because
-         when map encounters two lists of different lengths in its *args,
-         it pairs any of the "extra" values in the longer list with None.
-         See merge() for why we care.
+         Given two nested defaultdicts, return a defaultdict
+         which has all of the keys of both and values which are
+         the sums of the corresponding values in each.
          '''
-         return merger(0,y) if x is None else \
-                merger(x,0) if y is None else \
-                x+y
-
-      def merge( a,b ):
-         '''
-         Given two entries (of the form occurring in ngram/interval
-         dicts), sum them entrywise (so the totals are added, and
-         the lists containing the number of occurrences in each
-         piece are concatenated, resulting in a valid entry for
-         a V_I_S instance containing all the pieces)
-         '''
-         return merge( self_empty, b ) if a is None else \
-                merge(a,other_empty) if b is None else \
-                map(merger,*[a,b])
-
-      def merge_dicts( x,y ):
-         '''
-         This is used to combine the interval dicts, where the keys
-         are string representations of the intervals and the values
-         are lists of the magic form described above.
-         '''
-         return merge_dicts({},y) if x is None else \
-                merge_dicts(x,{}) if y is None else \
-                dict((key,merge(x.get(key),y.get(key))) for key in set(x.keys()+y.keys()))
-
-      def merge_lists(x,y):
-         '''
-         This helps with merging the ngram dicts, which are in fact
-         lists of dicts, in accordance with the behaviour of map
-         when it encounters lists of different lengths in its *args.
-         '''
-         return merge_lists({},y) if x is None else \
-                (x,{}) if y is None else \
-                (x,y)
-
-      def merge_ngram_dicts(x,y):
-         '''
-         Since the ngram dicts have ngrams for keys and dicts for values, we
-         just merge the values.
-         '''
-         return dict((key,merge_dicts(x.get(key),y.get(key))) for key in set(x.keys()+y.keys()))
-
-      def merge_ngram_dict_list( data_dict, other_dict ):
-         '''
-         Since the ngram dicts are actually lists of dicts, we play it safe
-         in case the two V_I_S instances contain data for disjoint values of N.
-         '''
-         return [merge_ngram_dicts(a,b) for a,b in map(merge_lists,*[data_dict,other_dict])]
+         new_keys = set(x.keys()+y.keys())
+         if x.default_factory == int:
+            return defaultdict(int,((key,x[key]+y[key]) for key in new_keys))
+         else:
+            return defaultdict(x.default_factory,((key,merge_default_dicts(x[key],y[key]))
+                               for key in new_keys))
 
       self._pieces_analyzed += other_stats._pieces_analyzed
-      self._simple_interval_dict = merge_dicts(self._simple_interval_dict,other_stats._simple_interval_dict)
-      self._compound_interval_dict = merge_dicts(self._compound_interval_dict,other_stats._compound_interval_dict)
+      self._simple_interval_dict = merge_default_dicts(self._simple_interval_dict, other_stats._simple_interval_dict)
+      self._compound_interval_dict = merge_default_dicts(self._compound_interval_dict, other_stats._compound_interval_dict)
 
-      self._compound_ngrams_dict = merge_ngram_dict_list( self._compound_ngrams_dict, other_stats._compound_ngrams_dict )
-      self._simple_ngrams_dict = merge_ngram_dict_list( self._simple_ngrams_dict, other_stats._simple_ngrams_dict )
+      self._compound_ngrams_dict = merge_default_dicts( self._compound_ngrams_dict, other_stats._compound_ngrams_dict )
+      self._simple_ngrams_dict = merge_default_dicts( self._simple_ngrams_dict, other_stats._simple_ngrams_dict )
    # End extend() ------------------------------------------
 
 
@@ -620,31 +540,31 @@ class Vertical_Interval_Statistics( object ):
          data_dict = self._compound_ngrams_dict
 
       # Hold the output
-      output_dict = None
+      output_dict = {}
+
+      # Find the "list_of_n"
+      list_of_n = settings.get_property( 'showTheseNs' )
 
       # Do we need to include quality?
       if settings.get_property( 'heedQuality' ):
-         # Find the "list_of_n"
-         list_of_n = settings.get_property( 'showTheseNs' )
-
-         # We do need to include quality
-         output_dict = [{} for i in xrange(max(list_of_n) + 1)]
-
+         # we do need to include quality
          for n in list_of_n:
             keys = []
             values = []
             for ng in data_dict[n].iterkeys():
                keys.extend( data_dict[n][ng].keys() )
                values.extend( data_dict[n][ng].values() )
-            while len(output_dict) < n + 1:
-               output_dict.append( {} )
             output_dict[n] = dict( zip( keys, values ) )
       else:
          # We don't need to include quality, so just forget
          # about the values of the ngram dict and sum up all their data.
-         output_dict = [{ngram:[sum([v[0] for v in d[ngram].values()]), \
-                       [sum(x) for x in zip(*[v[1] for v in d[ngram].values()])]] \
-                       for ngram in d.keys()} for d in data_dict]
+         output_dict = {n:
+                          {ng:
+                              {p:sum(d[v][p] for v in d.keys())
+                               for p in self._pieces_analyzed+['Total']}
+                           for ng, d in data_dict[n].items()}
+                        for n in list_of_n}
+               
 
       # Go through the dicts and turn the keys into strings
 
@@ -836,7 +756,10 @@ class Vertical_Interval_Statistics( object ):
          keys = [(k,filter(lambda t:red(t[0])==k,the_dict.items())) for k in keys]
          # now we make a dict with the new keys and values being the sum
          #over all the values associated to the old keys
-         the_dict = {k:[sum(v[0] for K,v in l),map(sum,zip(*[v[1] for K,v in l]))] for k,l in keys}
+         piece_list = self._pieces_analyzed+['Total']
+         the_dict = {k:
+                       {p:sum(v[p] for K,v in l) for p in piece_list}
+                     for k,l in keys}
 
       # (2) Sort the results in the specified way.
       if 'frequency' == the_settings.get_property( 'sortBy' ):
@@ -857,14 +780,14 @@ class Vertical_Interval_Statistics( object ):
       # (3A) Make a graph, if requested.
       if 'graph' == the_settings.get_property( 'outputFormat' ):
          g = graph.GraphHistogram(doneAction=None)
-         data = [(i,the_dict[interv][0]) for i, interv in enumerate(sorted_intervals)]
+         data = [(i,the_dict[interv]['Total']) for i, interv in enumerate(sorted_intervals)]
          g.setData(data)
          g.setTitle("Intervals in "+join([str(os.path.split(p)[1])+", " for p in self._pieces_analyzed])[:-2])
          g.setTicks('x',[(i+0.4,interv) for i,interv in enumerate(sorted_intervals)])
          g.xTickLabelHorizontalAlignment='center'
          setattr(g,'xTickLabelRotation',45)
          g.setAxisLabel('x','Interval')
-         max_height = max([the_dict[interv][0] for interv in sorted_intervals])+1
+         max_height = max([the_dict[interv]['Total'] for interv in sorted_intervals])+1
          tick_dist = max(max_height/10,1)
          ticks = []
          k = 0
@@ -896,9 +819,9 @@ class Vertical_Interval_Statistics( object ):
       width = max([len(str(k)) for k in sorted_intervals]+[len(heading)+2])
       widths.append(width)
       for i, piece in enumerate(self._pieces_analyzed):
-         width = max([len(str(the_dict[k][1][i])) for k in sorted_intervals]+[len(os.path.split(piece)[1])+3])
+         width = max([len(str(the_dict[k][piece])) for k in sorted_intervals]+[len(os.path.split(piece)[1])+3])
          widths.append(width)
-      width_total = max([len(str(the_dict[k][0])) for k in sorted_intervals]+[len("Total")])+2
+      width_total = max([len(str(the_dict[k]['Total'])) for k in sorted_intervals]+[len("Total")])+2
       widths.append(width_total)
       row = "{0:{1:n}}".format(heading, widths[0])
       for i, piece in enumerate(self._pieces_analyzed):
@@ -910,9 +833,9 @@ class Vertical_Interval_Statistics( object ):
       post += row
       for interv in sorted_intervals:
          row = "{0:{1:n}}".format(str(interv), widths[0])
-         for i, piece in enumerate(self._pieces_analyzed):
-            row += "{0:{1:n}}".format(str(the_dict[interv][1][i]), widths[i+1])
-         row += "{0:{1:n}}".format(str(the_dict[interv][0]), widths[-1])
+         for i, piece in enumerate(self._pieces_analyzed,start=1):
+            row += "{0:{1:n}}".format(str(the_dict[interv][piece]), widths[i])
+         row += "{0:{1:n}}".format(str(the_dict[interv]['Total']), widths[-1])
          row += "\n"
          post += row
       post += '\n'
@@ -969,8 +892,7 @@ class Vertical_Interval_Statistics( object ):
       # raise an exception saying which ones were not available.
       error_enns = []
       for enn in list_of_n:
-         if enn >= len(output_dict) or \
-            output_dict[enn] == {}:
+         if output_dict[enn] == {}:
                error_enns.append( enn )
 
       if 0 < len(error_enns):
@@ -983,23 +905,15 @@ class Vertical_Interval_Statistics( object ):
       if 'frequency' == the_settings.get_property( 'sortBy' ):
          # Sort the keys by frequency
          for n in list_of_n:
-            rev = None
-            if 'ascending' == the_settings.get_property( 'sortOrder' ):
-               rev = False
-            else:
-               rev = True
+            rev = 'ascending' != the_settings.get_property( 'sortOrder' )
             sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), \
-                                       key = lambda ng: output_dict[n][ng][0], \
+                                       key = lambda ng: output_dict[n][ng]['Total'], \
                                        reverse = rev )
       else:
          # We're now working with flipped_dicts
          # Default to sorting by n-gram
          for n in list_of_n:
-            rev = None
-            if 'descending' == the_settings.get_property( 'sortOrder' ):
-               rev = True
-            else:
-               rev = False
+            rev = 'descending' == the_settings.get_property( 'sortOrder' )
             sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), \
                                        cmp = ngram_sorter, \
                                        reverse = rev )
@@ -1009,7 +923,7 @@ class Vertical_Interval_Statistics( object ):
          grapharr = []
          for n in list_of_n:
             g = graph.GraphHistogram(doneAction=None,tickFontSize=12)
-            data = [(k,output_dict[n][key][0]) for k, key in enumerate(sorted_ngrams[n])]
+            data = [(k,output_dict[n][key]['Total']) for k, key in enumerate(sorted_ngrams[n])]
             g.setData(data)
             g.setTicks('x',[(k+0.7,key) for k, key in enumerate(sorted_ngrams[n])])
             g.setAxisLabel('x',str(n)+"-Gram")
@@ -1017,7 +931,7 @@ class Vertical_Interval_Statistics( object ):
             g.xTickLabelVerticalAlignment='top'
             g.xTickLabelHorizontalAlignment='right'
             g.setTitle(str(n)+"-Grams in "+join([str(os.path.split(p)[1])+", " for p in self._pieces_analyzed])[:-2])
-            max_height = max([output_dict[n][key][0] for key in sorted_ngrams[n]])+1
+            max_height = max([output_dict[n][key]['Total'] for key in sorted_ngrams[n]])+1
             tick_dist = max(max_height/10,1)
             ticks = []
             k = 0
@@ -1066,11 +980,11 @@ class Vertical_Interval_Statistics( object ):
 
             # Go through each piece (for this value of n)
             for i, piece in enumerate( self._pieces_analyzed ):
-               width = max( [ len( str( the_dict[k][1][i] ) ) \
+               width = max( [ len( str( the_dict[k][piece] ) ) \
                        for k in sorted_ngrams] + [ len( 'p' + str( i + 1 ) ) + 3 ] )
                widths.append( width )
 
-            width_total = max([len(str(the_dict[k][0])) for k in sorted_ngrams]+[len("Total")])+2
+            width_total = max([len(str(the_dict[k]['Total'])) for k in sorted_ngrams]+[len("Total")])+2
             widths.append(width_total)
             row = "{0:{1:n}}".format(heading, widths[0])
 
@@ -1086,8 +1000,8 @@ class Vertical_Interval_Statistics( object ):
             for ngram in sorted_ngrams:
                row = "{0:{1:n}}".format(str(ngram), widths[0])
                for i, piece in enumerate(self._pieces_analyzed):
-                  row += "{0:{1:n}}".format(str(the_dict[ngram][1][i]), widths[i+1])
-               row += "{0:{1:n}}".format(str(the_dict[ngram][0]), widths[-1])
+                  row += "{0:{1:n}}".format(str(the_dict[ngram][piece]), widths[i+1])
+               row += "{0:{1:n}}".format(str(the_dict[ngram]['Total']), widths[-1])
                row += "\n"
                post += row
 
@@ -1228,8 +1142,7 @@ class Vertical_Interval_Statistics( object ):
 
       # (1) Make sure there are statistics for all the 'n' values
       for enn in enns:
-         if enn < 2 or enn >= len(self._simple_ngrams_dict) or \
-            self._simple_ngrams_dict[enn] == {}:
+         if enn < 2 or self._simple_ngrams_dict[enn] == {}:
             raise NonsensicalInputWarning( "No statistics for n=" + str(enn) )
 
       # (2) Have the simple/compound and no//quality done for us
@@ -1238,32 +1151,26 @@ class Vertical_Interval_Statistics( object ):
       # (3) Convert the NGram objects to strings, and take only the
       # total occurrences of each n-gram, removing the "per-piece" information,
       # if this was requested
-      strings_dict = [{} for i in xrange(len(start_dict))]
+      strings_dict = None
       if leave_ngrams:
          if leave_pieces:
             strings_dict = start_dict
          else:
-            for enn in enns:
-               for k in start_dict[enn].iterkeys():
-                  strings_dict[enn][k] = start_dict[enn][k][0]
+            strings_dict = {n:{ng:v['Total'] for ng,v in start_dict[n].items()} for n in enns}
       else:
          if leave_pieces:
-            for enn in enns:
-               for k in start_dict[enn].iterkeys():
-                  strings_dict[enn][str(k)] = start_dict[enn][k]
+            strings_dict = {n:{str(ng):v for ng,v in start_dict[n].items()} for n in enns}
          else:
-            for enn in enns:
-               for k in start_dict[enn].iterkeys():
-                  strings_dict[enn][str(k)] = start_dict[enn][k][0]
+            strings_dict = {n:{str(ng):v['Total'] for ng,v in start_dict[n].items()} for n in enns}
 
       # (4) Do the filtering for "top X"
       topX = settings.get_property( 'topX' ) # the "X"
-      topX_dict = None # Hold the "top X-ed" records
+      topX_dict = {} # Hold the "top X-ed" records
       if topX is not None:
          # The we have to do some work
 
          # Make a list with n-grams sorted from most occurrences to least.
-         sorted_lists = [{} for i in xrange(len(strings_dict))]
+         sorted_lists = {}
          for enn in enns:
             # The first argument means we go over all the keys in start_dict
             # "key" is the thing by which n-grams are sorted (i.e. occurrences)
@@ -1272,11 +1179,9 @@ class Vertical_Interval_Statistics( object ):
                                        key = lambda ng: strings_dict[enn][ng], \
                                        reverse = True )
 
-         # Fill out the topX_dict
-         topX_dict = [{} for i in xrange(len(strings_dict))]
-
          # Copy over only the first "X" n-grams
          for enn in enns:
+            topX_dict[enn] = {}
             for k in sorted_lists[enn][:topX]:
                topX_dict[enn][k] = strings_dict[enn][k]
       else:
@@ -1286,7 +1191,7 @@ class Vertical_Interval_Statistics( object ):
       # (5) Do the filtering for "threshold" (n-grams with fewer occurrences
       # "threshold" should not be included
       thresh = settings.get_property( 'threshold' ) # the threshold
-      threshold_dict = None # Hold the "thresholded" records
+      threshold_dict = {} # Hold the "thresholded" records
 
       def shoop( x, enn ):
          '''
@@ -1301,11 +1206,9 @@ class Vertical_Interval_Statistics( object ):
       if thresh is not None:
          # The we have to do some work
 
-         # Fill out the threshold_dict
-         threshold_dict = [{} for i in xrange(len(topX_dict))]
-
          # Copy over only those n-grams that meet the threshold
          for enn in enns:
+            threshold_dict[enn] = {}
             list_of_keys = filter( lambda x: shoop( x, enn ), topX_dict[enn] )
             for k in list_of_keys:
                threshold_dict[enn][k] = topX_dict[enn][k]
