@@ -755,10 +755,10 @@ class Vertical_Interval_Statistics( object ):
       if 'frequency' == the_settings.get_property( 'sortBy' ):
          # Sort by frequency
          if 'ascending' == the_settings.get_property( 'sortOrder' ):
-            sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x] )
+            sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x]['Total'] )
          else:
             # Default to 'descending'
-            sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x], reverse=True )
+            sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x]['Total'], reverse=True )
       else:
          # Default to 'by interval'
          if 'descending' == the_settings.get_property( 'sortOrder' ):
