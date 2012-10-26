@@ -85,88 +85,88 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    # get_formatted_ngram_dict() ---------------------------
    # TODO: make these not fail
    #def test_get_formatted_ngram_dict_1( self ):
-      #self.vis.add_ngram( self.nga )
-      #self.vis.add_ngram( self.ngh )
+      #self.vis.add_ngram( self.nga, "piece" )
+      #self.vis.add_ngram( self.ngh, "piece" )
       #check = self.vis.get_formatted_ngram_dict('compound')
       #expected = [{}, {}, {'3 1 3':1}, {}, {'3 +4 2 -6 5 +2 -3':1}]
       #self.assertEqual( check, expected )
 #
    #def test_get_formatted_ngram_dict_2( self ):
-      #self.vis.add_ngram( self.nga )
-      #self.vis.add_ngram( self.ngh )
+      #self.vis.add_ngram( self.nga, "piece" )
+      #self.vis.add_ngram( self.ngh, "piece" )
       #check = self.vis.get_formatted_ngram_dict('compound',  2 )
       #expected = {'3 1 3':1}
       #self.assertEqual( check, expected )
 #
    #def test_get_formatted_ngram_dict_3( self ):
-      #self.vis.add_ngram( self.nga )
-      #self.vis.add_ngram( self.ngh )
+      #self.vis.add_ngram( self.nga, "piece" )
+      #self.vis.add_ngram( self.ngh, "piece" )
       #check = self.vis.get_formatted_ngram_dict('compound',  4 )
       #expected = {'3 +4 2 -6 5 +2 -3':1}
       #self.assertEqual( check, expected )
 
    # add_interval() ---------------------------------------
    def test_addUpInterval( self ):
-      self.vis.add_interval( self.m3 )
+      self.vis.add_interval( self.m3 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m3'], 1 )
-      self.vis.add_interval( self.m10 )
+      self.vis.add_interval( self.m10 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m10'], 1 )
-      self.vis.add_interval( self.M3 )
+      self.vis.add_interval( self.M3 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['M3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['M3'], 1 )
-      self.vis.add_interval( self.d_m3 )
+      self.vis.add_interval( self.d_m3 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m3'], 1 )
-      self.vis.add_interval( self.d_m10 )
+      self.vis.add_interval( self.d_m10 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m10'], 1 )
 
    def test_addDownInterval( self ):
-      self.vis.add_interval( self.d_m3 )
+      self.vis.add_interval( self.d_m3 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m-3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-3'], 1 )
-      self.vis.add_interval( self.d_m10 )
+      self.vis.add_interval( self.d_m10 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m-3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-10'], 1 )
-      self.vis.add_interval( self.d_M3 )
+      self.vis.add_interval( self.d_M3 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['M-3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['M-3'], 1 )
-      self.vis.add_interval( self.m3 )
+      self.vis.add_interval( self.m3 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m-3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-3'], 1 )
-      self.vis.add_interval( self.m10 )
+      self.vis.add_interval( self.m10 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m-3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-10'], 1 )
 
    def test_addUpDownIntervals( self ):
-      self.vis.add_interval( self.m3 )
-      self.vis.add_interval( self.d_m3 )
+      self.vis.add_interval( self.m3 , "piece" )
+      self.vis.add_interval( self.d_m3 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m3'], 1 )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m-3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-3'], 1 )
-      self.vis.add_interval( self.m10 )
-      self.vis.add_interval( self.d_m10 )
+      self.vis.add_interval( self.m10 , "piece" )
+      self.vis.add_interval( self.d_m10 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m10'], 1 )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m-3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m-10'], 1 )
-      self.vis.add_interval( self.M3 )
-      self.vis.add_interval( self.d_M3 )
+      self.vis.add_interval( self.M3 , "piece" )
+      self.vis.add_interval( self.d_M3 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['M3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['M3'], 1 )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['M-3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['M-3'], 1 )
-      self.vis.add_interval( self.M10 )
-      self.vis.add_interval( self.d_M10 )
+      self.vis.add_interval( self.M10 , "piece" )
+      self.vis.add_interval( self.d_M10 , "piece" )
       self.assertEqual( self.vis.get_simple_interval_summary_dict()['m3'], 2 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m3'], 1 )
       self.assertEqual( self.vis.get_compound_interval_summary_dict()['m10'], 1 )
@@ -182,16 +182,16 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
 
    # get_interval_occurrences() ---------------------------
    def test_get_interval_occurrences_heed_quality_Up( self ):
-      self.vis.add_interval( self.m3 )
-      self.vis.add_interval( self.m10 )
-      self.vis.add_interval( self.M3 )
+      self.vis.add_interval( self.m3 , "piece" )
+      self.vis.add_interval( self.m10 , "piece" )
+      self.vis.add_interval( self.M3 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'simple' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm10', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 0 )
-      self.vis.add_interval( self.M10 )
+      self.vis.add_interval( self.M10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm3', 'compound' ), 1 )
@@ -200,16 +200,16 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 1 )
 
    def test_get_interval_occurrences_heed_quality_Down( self ):
-      self.vis.add_interval( self.d_m3 )
-      self.vis.add_interval( self.d_m10 )
-      self.vis.add_interval( self.d_M3 )
+      self.vis.add_interval( self.d_m3 , "piece" )
+      self.vis.add_interval( self.d_m10 , "piece" )
+      self.vis.add_interval( self.d_M3 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-10', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-10', 'compound' ), 0 )
-      self.vis.add_interval( self.d_M10 )
+      self.vis.add_interval( self.d_M10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
@@ -218,10 +218,10 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_interval_occurrences( 'M-10', 'compound' ), 1 )
 
    def test_get_interval_occurrences_heed_quality_Both( self ):
-      self.vis.add_interval( self.d_m3 )
-      self.vis.add_interval( self.d_m10 )
-      self.vis.add_interval( self.d_M3 )
-      self.vis.add_interval( self.d_M10 )
+      self.vis.add_interval( self.d_m3 , "piece" )
+      self.vis.add_interval( self.d_m10 , "piece" )
+      self.vis.add_interval( self.d_M3 , "piece" )
+      self.vis.add_interval( self.d_M10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
@@ -234,10 +234,10 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_interval_occurrences( 'M3', 'compound' ), 0 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm10', 'compound' ), 0 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 0 )
-      self.vis.add_interval( self.m3 )
-      self.vis.add_interval( self.m10 )
-      self.vis.add_interval( self.M3 )
-      self.vis.add_interval( self.M10 )
+      self.vis.add_interval( self.m3 , "piece" )
+      self.vis.add_interval( self.m10 , "piece" )
+      self.vis.add_interval( self.M3 , "piece" )
+      self.vis.add_interval( self.M10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'M-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( 'm-3', 'compound' ), 1 )
@@ -252,50 +252,50 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.assertEqual( self.vis.get_interval_occurrences( 'M10', 'compound' ), 1 )
 
    def test_get_interval_occurrences_noHeedQuality_Up( self ):
-      self.vis.add_interval( self.m3 )
+      self.vis.add_interval( self.m3 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 0 )
-      self.vis.add_interval( self.m10 )
+      self.vis.add_interval( self.m10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 1 )
-      self.vis.add_interval( self.M3 )
+      self.vis.add_interval( self.M3 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 3 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 1 )
-      self.vis.add_interval( self.M10 )
+      self.vis.add_interval( self.M10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'simple' ), 4 )
       self.assertEqual( self.vis.get_interval_occurrences( '3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '10', 'compound' ), 2 )
 
    def test_get_interval_occurrences_noHeedQuality_Down( self ):
-      self.vis.add_interval( self.d_m3 )
+      self.vis.add_interval( self.d_m3 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 0 )
-      self.vis.add_interval( self.d_m10 )
+      self.vis.add_interval( self.d_m10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 1 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 1 )
-      self.vis.add_interval( self.d_M3 )
+      self.vis.add_interval( self.d_M3 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 3 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 1 )
-      self.vis.add_interval( self.d_M10 )
+      self.vis.add_interval( self.d_M10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 4 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 2 )
 
    def test_get_interval_occurrences_noHeedQuality_Both( self ):
-      self.vis.add_interval( self.m3 )
-      self.vis.add_interval( self.m10 )
-      self.vis.add_interval( self.M3 )
-      self.vis.add_interval( self.M10 )
-      self.vis.add_interval( self.d_m3 )
-      self.vis.add_interval( self.d_m10 )
-      self.vis.add_interval( self.d_M3 )
-      self.vis.add_interval( self.d_M10 )
+      self.vis.add_interval( self.m3 , "piece" )
+      self.vis.add_interval( self.m10 , "piece" )
+      self.vis.add_interval( self.M3 , "piece" )
+      self.vis.add_interval( self.M10 , "piece" )
+      self.vis.add_interval( self.d_m3 , "piece" )
+      self.vis.add_interval( self.d_m10 , "piece" )
+      self.vis.add_interval( self.d_M3 , "piece" )
+      self.vis.add_interval( self.d_M10 , "piece" )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'simple' ), 4 )
       self.assertEqual( self.vis.get_interval_occurrences( '-3', 'compound' ), 2 )
       self.assertEqual( self.vis.get_interval_occurrences( '-10', 'compound' ), 2 )
@@ -315,10 +315,10 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.assertRaises( NonsensicalInputError, self.vis.get_interval_occurrences, 'P4', self.m3 )
 
    # add_ngram() ------------------------------------------
-   # TODO: make these work for testing add_ngram()
+   # TODO: make these work for testing add_ngram(, "piece" )
    #def test_add_ngram_1( self ):
       ## basic 2-gram
-      #self.vis.add_ngram( self.ngc ) # m3 +P4 m3
+      #self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       #settings = VIS_Settings()
       #settings.set_property( 'simpleOrCompound', 'compound' )
       #settings.set_property( 'heedQuality', False )
@@ -330,20 +330,20 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
 
    #def test_add_ngram_2( self ):
       ## two of a basic 2-gram
-      #self.vis.add_ngram( self.ngc ) # m3 +P4 m3
+      #self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       ##self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2} )
       #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 2} )
 #
    #def test_add_ngram_3( self ):
       ## add one of a similar 2-gram
-      #self.vis.add_ngram( self.ngd ) # m3 +d4 M3
+      #self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
       ##self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
       #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 3} )
 #
    #def test_add_ngram_4( self ):
       ## add a 4-gram, 16 times
       #for i in xrange(16):
-         #self.vis.add_ngram( self.ngg ) # m3 +P4 M2 -m6 P5 -m2 M-10
+         #self.vis.add_ngram( self.ngg, "piece" ) # m3 +P4 M2 -m6 P5 -m2 M-10
       ##self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
       ##self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  4 ), {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
       #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 3} )
@@ -351,7 +351,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
 #
    #def test_simple_vs_compound_ngrams_dict_1( self ):
       #self.vis._pieces_analyzed.append("piece")
-      #self.vis.add_ngram( self.ngi )
+      #self.vis.add_ngram( self.ngi, "piece" )
       #expected = {'10 1 10':1}
       #self.assertEqual( expected,self.vis.get_formatted_ngram_dict('compound',2) )
       #expected = {'3 1 3':1}
@@ -362,7 +362,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    #def test_prepare_ngram_output_dict_1( self ):
       ## basic 2-gram
       ## (1) Prepare
-      #self.vis.add_ngram( self.ngc ) # m3 +P4 m3
+      #self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       #settings = VIS_Settings()
       #settings.set_property( 'simpleOrCompound', 'compound' )
       #settings.set_property( 'heedQuality', False )
@@ -381,20 +381,20 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
 
    #def test_prepare_ngram_output_dict_2( self ):
       ## two of a basic 2-gram
-      #self.vis.add_ngram( self.ngc ) # m3 +P4 m3
+      #self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       ##self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2} )
       #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 2} )
 #
    #def test_prepare_ngram_output_dict_3( self ):
       ## add one of a similar 2-gram
-      #self.vis.add_ngram( self.ngd ) # m3 +d4 M3
+      #self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
       ##self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
       #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 3} )
 #
    #def test_prepare_ngram_output_dict_4( self ):
       ## add a 4-gram, 16 times
       #for i in xrange(16):
-         #self.vis.add_ngram( self.ngg ) # m3 +P4 M2 -m6 P5 -m2 M-10
+         #self.vis.add_ngram( self.ngg, "piece" ) # m3 +P4 M2 -m6 P5 -m2 M-10
       ##self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'m3 +P4 m3': 2, 'm3 +d4 M3': 1} )
       ##self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  4 ), {'m3 +P4 M2 -m6 P5 +A9 M-10': 16} )
       #self.assertEqual( self.vis.get_formatted_ngram_dict('compound',  2 ), {'3 +4 3': 3} )
@@ -404,7 +404,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_get_formatted_ngram_dict_1( self ):
       # basic 2-gram
       # (1) Prepare
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       settings = VIS_Settings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', False )
@@ -413,7 +413,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'topX', None )
 
       # (2) Run
-      expected = [{}, {}, {'3 +4 3': 1}]
+      expected = {2:{'3 +4 3': 1}}
       actual = self.vis.get_formatted_ngram_dict( settings )
 
       # (3) Verify
@@ -422,7 +422,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_get_formatted_ngram_dict_2( self ):
       # basic 2-gram
       # (1) Prepare
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       settings = VIS_Settings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', True )
@@ -431,7 +431,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'topX', None )
 
       # (2) Run
-      expected = [{}, {}, {'m3 +P4 m3': 1}]
+      expected = {2:{'m3 +P4 m3': 1}}
       actual = self.vis.get_formatted_ngram_dict( settings )
 
       # (3) Verify
@@ -440,9 +440,9 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_get_formatted_ngram_dict_3( self ):
       # Two of a 2-gram; one of a similar 2-gram
       # (1) Prepare
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngd ) # m3 +d4 M3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
       settings = VIS_Settings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', False )
@@ -451,7 +451,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'topX', None )
 
       # (2) Run
-      expected = [{}, {}, {'3 +4 3': 3}]
+      expected = {2:{'3 +4 3': 3}}
       actual = self.vis.get_formatted_ngram_dict( settings )
 
       # (3) Verify
@@ -460,9 +460,9 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_get_formatted_ngram_dict_4( self ):
       # Two of a 2-gram; one of a similar 2-gram
       # (1) Prepare
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngd ) # m3 +d4 M3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
       settings = VIS_Settings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', True )
@@ -471,7 +471,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'topX', None )
 
       # (2) Run
-      expected = [{}, {}, {'m3 +P4 m3': 2, 'm3 +d4 M3': 1}]
+      expected = {2:{'m3 +P4 m3': 2, 'm3 +d4 M3': 1}}
       actual = self.vis.get_formatted_ngram_dict( settings )
 
       # (3) Verify
@@ -480,10 +480,10 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_get_formatted_ngram_dict_5( self ):
       # Two of a 2-gram; one of a similar 2-gram; a similar with compound
       # (1) Prepare
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngd ) # m3 +d4 M3
-      self.vis.add_ngram( self.ngj ) # m10 +P4 m10
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
+      self.vis.add_ngram( self.ngj, "piece" ) # m10 +P4 m10
       settings = VIS_Settings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', False )
@@ -492,7 +492,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'topX', None )
 
       # (2) Run
-      expected = [{}, {}, {'3 +4 3': 3, '10 +4 10': 1}]
+      expected = {2:{'3 +4 3': 3, '10 +4 10': 1}}
       actual = self.vis.get_formatted_ngram_dict( settings )
 
       # (3) Verify
@@ -501,10 +501,10 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_get_formatted_ngram_dict_6( self ):
       # Two of a 2-gram; one of a similar 2-gram; a similar with compound
       # (1) Prepare
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngd ) # m3 +d4 M3
-      self.vis.add_ngram( self.ngj ) # m10 +P4 m10
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
+      self.vis.add_ngram( self.ngj, "piece" ) # m10 +P4 m10
       settings = VIS_Settings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', True )
@@ -513,7 +513,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'topX', None )
 
       # (2) Run
-      expected = [{}, {}, {'m3 +P4 m3': 2, 'm3 +d4 M3': 1, 'm10 +P4 m10': 1}]
+      expected = {2:{'m3 +P4 m3': 2, 'm3 +d4 M3': 1, 'm10 +P4 m10': 1}}
       actual = self.vis.get_formatted_ngram_dict( settings )
 
       # (3) Verify
@@ -522,10 +522,10 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_get_formatted_ngram_dict_7( self ):
       # Two of a 2-gram; one of a similar 2-gram; a similar with compound
       # (1) Prepare
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngd ) # m3 +d4 M3
-      self.vis.add_ngram( self.ngj ) # m10 +P4 m10
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
+      self.vis.add_ngram( self.ngj, "piece" ) # m10 +P4 m10
       settings = VIS_Settings()
       settings.set_property( 'simpleOrCompound', 'simple' )
       settings.set_property( 'heedQuality', False )
@@ -534,7 +534,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'topX', None )
 
       # (2) Run
-      expected = [{}, {}, {'3 +4 3': 4}]
+      expected = {2:{'3 +4 3': 4}}
       actual = self.vis.get_formatted_ngram_dict( settings )
 
       # (3) Verify
@@ -543,10 +543,10 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    def test_get_formatted_ngram_dict_8( self ):
       # Two of a 2-gram; one of a similar 2-gram; a similar with compound
       # (1) Prepare
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngc ) # m3 +P4 m3
-      self.vis.add_ngram( self.ngd ) # m3 +d4 M3
-      self.vis.add_ngram( self.ngj ) # m10 +P4 m10
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
+      self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
+      self.vis.add_ngram( self.ngj, "piece" ) # m10 +P4 m10
       settings = VIS_Settings()
       settings.set_property( 'simpleOrCompound', 'simple' )
       settings.set_property( 'heedQuality', True )
@@ -555,7 +555,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'topX', None )
 
       # (2) Run
-      expected = [{}, {}, {'m3 +P4 m3': 3, 'm3 +d4 M3': 1}]
+      expected = {2:{'m3 +P4 m3': 3, 'm3 +d4 M3': 1}}
       actual = self.vis.get_formatted_ngram_dict( settings )
 
       # (3) Verify
@@ -573,9 +573,9 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       ## self.nge:  m3 -P4 m3
       #self.vis = Vertical_Interval_Statistics()
       #for i in xrange(12):
-         #self.vis.add_ngram( self.ngd )
+         #self.vis.add_ngram( self.ngd, "piece" )
       #for i in xrange(8):
-         #self.vis.add_ngram( self.nge )
+         #self.vis.add_ngram( self.nge, "piece" )
       #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +d4 M3' ), 12 )
       #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 3' ), 12 )
       #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 -P4 m3' ), 8 )
@@ -585,14 +585,14 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       ## self.ngg  m3 +P4 M2 -m6 P5 -m2 M10
       #self.vis = Vertical_Interval_Statistics()
       #for i in xrange(10):
-         #self.vis.add_ngram( self.ngg )
+         #self.vis.add_ngram( self.ngg, "piece" )
       #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10' ), 10 )
       #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10' ), 10 )
       #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3' ), 0 )
       #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -3' ), 0 )
       ## self.ngh  m3 +P4 M2 -m6 P5 -m2 M3
       #for i in xrange(7):
-         #self.vis.add_ngram( self.ngh )
+         #self.vis.add_ngram( self.ngh, "piece" )
       #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10' ), 10 )
       #self.assertEqual( self.vis.get_ngram_occurrences( '3 +4 2 -6 5 +9 -10' ), 10 )
       #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A2 M-3' ), 7 )
@@ -610,13 +610,13 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
 #Total difference between 2-grams: 0.8
 #'''
       #settings.set_property( 'heedQuality false')
-      #other_stats.add_ngram( self.ngc )
+      #other_stats.add_ngram( self.ngc, "piece" )
       #for i in xrange(2):
-         #self.vis.add_ngram( self.nga )
+         #self.vis.add_ngram( self.nga, "piece" )
       #for i in xrange(3):
-         #self.vis.add_ngram( self.ngc )
+         #self.vis.add_ngram( self.ngc, "piece" )
       #for i in xrange(4):
-         #other_stats.add_ngram( self.nga )
+         #other_stats.add_ngram( self.nga, "piece" )
       #self.assertEqual( self.vis.compare( settings, other_stats, "settings1", "settings2", ""), output )
 #
    #def test_compare_heedQuality( self ):
@@ -630,13 +630,13 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
 #Total difference between 2-grams: 0.8
 #'''
       #settings.set_property( 'heedQuality true')
-      #other_stats.add_ngram( self.ngc )
+      #other_stats.add_ngram( self.ngc, "piece" )
       #for i in xrange(2):
-         #self.vis.add_ngram( self.nga )
+         #self.vis.add_ngram( self.nga, "piece" )
       #for i in xrange(3):
-         #self.vis.add_ngram( self.ngc )
+         #self.vis.add_ngram( self.ngc, "piece" )
       #for i in xrange(4):
-         #other_stats.add_ngram( self.nga )
+         #other_stats.add_ngram( self.nga, "piece" )
       #self.assertEqual( self.vis.compare( settings, other_stats, "settings1", "settings2", ""), output )
 
 

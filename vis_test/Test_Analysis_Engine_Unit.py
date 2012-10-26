@@ -130,7 +130,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm6':1 }
-      expected_no_quality2grams = [{}, {}, {'8 +2 6':1}]
+      expected_no_quality2grams = {2: {'8 +2 6':1}}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
@@ -149,7 +149,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':1 }
-      expected_no_quality2grams = [{}, {}, { '8 +2 7':1 }]
+      expected_no_quality2grams = {2: { '8 +2 7':1 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
@@ -169,7 +169,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':2, 'd5':1 }
-      expected_no_quality2grams = [{}, {}, { '7 -3 8':1, '8 +2 7':1, '7 +2 5':1 }]
+      expected_no_quality2grams = {2: { '7 -3 8':1, '8 +2 7':1, '7 +2 5':1 }}
 
       # Verify the findings
       #self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
@@ -188,7 +188,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':1 }
-      expected_no_quality2grams = [{}, {}, { '8 +2 7':1 }]
+      expected_no_quality2grams = {2: { '8 +2 7':1 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
@@ -208,7 +208,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':1, 'm6':1 }
-      expected_no_quality2grams = [{}, {}, { '8 +2 7':1, '7 +2 6':1 }]
+      expected_no_quality2grams = {2: { '8 +2 7':1, '7 +2 6':1 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
@@ -227,7 +227,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'm7':1 }
-      expected_no_quality2grams = [{}, {}, { '8 +2 7':1 }]
+      expected_no_quality2grams = {2: {'8 +2 7': 1}}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
@@ -336,7 +336,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'M10':1, 'P12':1 }
-      expected_no_quality2grams = [{}, {}, { '10 -2 12':1 }]
+      expected_no_quality2grams = {2: { '10 -2 12':1 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
@@ -354,8 +354,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':2, 'M10':1, 'm7':1, 'M6':1 }
-      expected_no_quality2grams = [{}, {}, { '8 +2 8':1, '8 -3 10':1, \
-         '10 +2 7':1, '7 1 6':1 }]
+      expected_no_quality2grams = {2: {'8 +2 8':1, '8 -3 10':1, \
+         '10 +2 7':1, '7 1 6':1 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )

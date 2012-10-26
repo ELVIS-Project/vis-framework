@@ -28,6 +28,7 @@
 import unittest
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 from VIS_Settings import VIS_Settings
+from problems import NonsensicalInputWarning
 from music21 import converter
 from analytic_engine import vis_these_parts
 
@@ -92,16 +93,16 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # Prepare the findings
       expected_compound_intervals = { 'P8':2, 'M9':1, 'M10':3, 'P12':4, \
             'm13':1, 'm17':1, 'M13':1, 'm10':4 }
-      expected_no_quality2grams = { '8 1 9':1, '10 -2 12':1, '10 -4 12':1, \
+      expected_no_quality2grams = {2: { '8 1 9':1, '10 -2 12':1, '10 -4 12':1, \
             '13 -2 17':1, '17 +6 12':1, '9 1 10':1, '12 +4 10':1, '12 -2 13':1, \
             '12 -3 13':1, '13 +2 12':1, '12 +4 8':1, '8 -4 10':1, \
-            '10 +4 10':1, '10 -2 10':3 }
+            '10 +4 10':1, '10 -2 10':3 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
 
    def test_theSecond( self ):
       # Kyrie from "Missa Pro Defunctis" by Palestrina
@@ -121,14 +122,14 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # Prepare the findings
       expected_compound_intervals = { 'm3':3, 'M3':2, 'P4':1, 'd5':2, 'm6':2, \
             'M6':2, 'M2':1, 'P5':1 }
-      expected_no_quality2grams = { '3 +2 3':2, '3 1 4':1, '4 -2 5':1, '5 -2 6':2, \
-            '6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }
+      expected_no_quality2grams = {2: { '3 +2 3':2, '3 1 4':1, '4 -2 5':1, '5 -2 6':2, \
+            '6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
 
    def test_theThird( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
@@ -153,16 +154,16 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
 
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':2 }
-      expected_no_quality2grams = { '8 +2 6':1, '4 1 3':1, '4 -3 3':1, \
-            '6 +2 4':1, '3 1 4':2, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1}#, \
+      expected_no_quality2grams = {2: { '8 +2 6':1, '4 1 3':1, '4 -3 3':1, \
+            '6 +2 4':1, '3 1 4':2, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1}}#, \
             #'1 +2 2':1, '4 -2 3':1, '2 -2 1':1, '2 +2 1':1, '5 +3 3':1, \
             #'2 +2 3':1, '3 -2 2':1, '1 -2 2':1, '1 -2 5':1 }
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
 
    def test_theSixthA( self ):
       # Two targeted testing excerpts.
@@ -184,13 +185,12 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
 
       ## Prepare the findings
       expected_compound_intervals = { 'P11':1, 'm14':1 }
-      expected_no_quality2grams = {}
+      #expected_no_quality2grams = {}
 
       ## Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertRaises(NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings)
 
    def test_theSixthB( self ):
       # Two targeted testing excerpts.
@@ -223,8 +223,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ## Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertRaises(NonsensicalInputWarning,self.stats.get_formatted_ngram_dict, self.settings)
 
    def test_theSixthC( self ):
       # Two targeted testing excerpts.
@@ -250,8 +249,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       ## Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertRaises(NonsensicalInputWarning,self.stats.get_formatted_ngram_dict, self.settings)
 
    def test_theSeventh( self ):
       # Joseph Haydn's String Quartet, Op.76/4, Movement 1
@@ -277,19 +275,19 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       expected_compound_intervals = { 'P15':7, 'A11':1, 'M13':2, \
             'd14':5, 'A18':1, 'd18':2, 'A12':1, 'd19':1, 'A16':4, 'm13':1, \
             'm21':1, 'P22':4, 'm24':3, 'P26':5, 'm28':1, 'M24':1, 'M17':1, }
-      expected_no_quality2grams = { '16 +2 15':3, '16 -4 18':1, '15 +1 14':3, \
+      expected_no_quality2grams = {2: { '16 +2 15':3, '16 -4 18':1, '15 +1 14':3, \
             '15 -2 16':2, '15 +2 12':1, '15 -3 18':1, '14 +3 11':1, \
             '14 -1 15':2, '14 -1 13':2, '11 -3 14':1, '18 +1 18':1, \
             '18 +3 15':1, '18 -3 19':1, '12 -2 15':1, '19 +2 16':1, \
             '13 +1 14':1, '13 +2 13':1, '21 -1 22':1, '22 -2 24':2, \
             '22 +4 17':1, '24 -2 26':3, '24 1 22':1, '26 -2 28':1, \
-            '26 1 24':1, '28 1 26':1, '13 -9 21':1 }
+            '26 1 24':1, '28 1 26':1, '13 -9 21':1 }}
 
       ## Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
 
    def test_theFourth( self ):
       # Monteverdi's "Cruda amarilli" (a madrigal)
@@ -315,10 +313,10 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # Prepare the findings
       expected_compound_intervals = { 'P8':1, 'M6':2, 'P4':3, 'M3':2, 'm3':3, \
             'P1':2, 'M-2':1, 'm-3':2, 'P-4':1, 'P5':1 }
-      expected_no_quality2grams = { '8 +2 6':1, '6 +2 4':1, '4 1 3':1, '3 1 4':2, \
+      expected_no_quality2grams = {2: { '8 +2 6':1, '6 +2 4':1, '4 1 3':1, '3 1 4':2, \
             '4 -3 3':1, '4 +3 3':1, '3 +2 3':1, '3 -5 6':1, '1 +2 -2':1, \
             '-2 +2 -3':1, '-4 -2 -3':1, '-3 -3 1':1, '1 -2 5':1, '5 +3 3':1, \
-            '-3 1 -4':1 }
+            '-3 1 -4':1 }}
       #expected_quality2Grams = { 'P8 +m2 M6':1, 'M6 +M2 P4':1, 'P4 P1 M3':1, \
             #'M3 P1 P4':1, 'P4 -m3 m3':1, 'm3 P1 P4':1, 'P4 +m3 M3':1, \
             #'M3 +M2 m3':1, 'm3 -P5 M6':1, 'P1 +M2 M-2':1, 'M-2 +m2 m-3':1, \
@@ -328,8 +326,8 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
       # TODO: these tests would currently require a second analysis; I'll
       # re-enable them later when that isn't true.
       #self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expected_quality2Grams) )
@@ -360,16 +358,16 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             #'P5 +M2 P4':1, 'P4 +M2 P4':1, 'P4 -M2 M6':1, 'P8 +P5 M3':1, \
             #'m-3 -M2 m-2':1, 'm-2 -m3 M2':1, 'M2 -m3 m3':1, 'm3 +m2 M2':1, \
             #'M2 -m2 m3':1, 'm3 +m2 P5':1 }
-      expected_no_quality2grams = { '6 -5 10':2, '10 1 9':2, '9 1 8':2, '8 +2 6':2, \
+      expected_no_quality2grams = {2: { '6 -5 10':2, '10 1 9':2, '9 1 8':2, '8 +2 6':2, \
             '6 -2 8':2, '6 +2 6':1, '6 -3 5':1, '5 +2 4':1, '4 +2 4':1, \
             '4 -2 6':1, '8 +5 3':1, '-3 -2 -2':1, '-2 -3 2':1, '2 -3 3':1, \
-            '3 +2 2':1, '2 -2 3':1, '3 +2 5':1 }
+            '3 +2 2':1, '2 -2 3':1, '3 +2 5':1 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
       # TODO: these tests would currently require a second analysis; I'll
       # re-enable them later when that isn't true.
       #self.assertEqual( len(self.stats._compound_quality_ngrams_dict[2]), len(expected_quality2Grams) )

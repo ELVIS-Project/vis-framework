@@ -29,7 +29,7 @@ import unittest
 from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 from VIS_Settings import VIS_Settings
 from music21 import converter
-from analysis_engine import vis_these_parts
+from analytic_engine import vis_these_parts
 
 
 

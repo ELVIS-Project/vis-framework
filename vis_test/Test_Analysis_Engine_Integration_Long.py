@@ -68,7 +68,7 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
             'M10':2, 'M9':4, 'P11':3, 'M-2':1, 'm-3':1, 'P-12':1 }
 
       # If voice crossing means negative intervals.
-      expected_no_quality2grams = { '1 -2 6':1, '1 1 2':2, '1 -3 6':1, \
+      expected_no_quality2grams = {2: { '1 -2 6':1, '1 1 2':2, '1 -3 6':1, \
             '1 +2 -3':1, '1 1 5':1, '1 -2 2':1, '1 1 4':2, '1 1 -2':1, \
             '1 -2 3':1, '2 1 3':2, '2 +2 1':1, '2 1 1':3, '2 -2 6':1, \
             '2 1 5':1, '3 +2 3':1, '3 1 2':2, '3 1 1':1, '3 -3 6':1, \
@@ -85,13 +85,13 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
             '6 +2 6':4, '6 -6 8':1, '6 -3 6':1, '6 -5 8':1, '7 -2 8':2, \
             '7 -5 10':1, '7 +4 4':1, '8 +2 7':1, '8 -2 10':1, '8 -2 9':1, \
             '8 +6 6':2, '8 +4 6':1, '9 +5 6':1, '9 1 8':2, '9 -2 10':1, \
-            '9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }
+            '9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }}
 
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
+      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
 
    #def test_La_Plus_des_Plus( self ):
       ## Title: "La Plus des Plus" by Josquin
