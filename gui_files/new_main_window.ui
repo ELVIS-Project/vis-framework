@@ -208,7 +208,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -352,6 +352,9 @@
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="0" column="0">
             <widget class="QPushButton" name="btn_load_statistics">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="text">
               <string>Load Existing Statistics Database</string>
              </property>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/crantila/Documents/ELVIS/programs/vis/gui_files/new_main_window.ui'
 #
-# Created: Thu Oct 25 20:35:08 2012
+# Created: Thu Oct 25 21:43:09 2012
 #      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -169,6 +169,7 @@ class Ui_MainWindow(object):
         self.gridLayout_2 = QtGui.QGridLayout(self.groupBox)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.btn_load_statistics = QtGui.QPushButton(self.groupBox)
+        self.btn_load_statistics.setEnabled(False)
         self.btn_load_statistics.setObjectName(_fromUtf8("btn_load_statistics"))
         self.gridLayout_2.addWidget(self.btn_load_statistics, 0, 0, 1, 1)
         self.grp_settings_for_piece = QtGui.QGroupBox(self.groupBox)
@@ -513,7 +514,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.main_screen.setCurrentIndex(2)
+        self.main_screen.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
