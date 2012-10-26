@@ -914,20 +914,18 @@ class Vertical_Interval_Statistics( object ):
       # Make enough indices to hold the sorted keys
       sorted_ngrams = [[] for i in xrange( max(list_of_n ) + 1 )]
 
+      # first we sort by NGram...
+      rev = 'descending' == the_settings.get_property( 'sortOrder' )
+      for n in list_of_n:
+         sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), \
+                                    cmp = ngram_sorter, \
+                                    reverse = rev )
+
       if 'frequency' == the_settings.get_property( 'sortBy' ):
-         # Sort the keys by frequency
          for n in list_of_n:
-            rev = 'ascending' != the_settings.get_property( 'sortOrder' )
-            sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), \
+            # ...then, since python has stable sorting, sort by frequency
+            sorted_ngrams[n] = sorted( sorted_ngrams[n], \
                                        key = lambda ng: output_dict[n][ng]['Total'], \
-                                       reverse = rev )
-      else:
-         # We're now working with flipped_dicts
-         # Default to sorting by n-gram
-         for n in list_of_n:
-            rev = 'descending' == the_settings.get_property( 'sortOrder' )
-            sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), \
-                                       cmp = ngram_sorter, \
                                        reverse = rev )
 
       # (4.1) If some graphs are asked for, prepare them.
