@@ -645,11 +645,8 @@
               </item>
               <item>
                <widget class="QRadioButton" name="rdo_targeted_score">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
                 <property name="text">
-                 <string>Targeted Score</string>
+                 <string>Annotated Score</string>
                 </property>
                </widget>
               </item>
@@ -664,7 +661,7 @@
             </widget>
            </item>
            <item row="2" column="2" colspan="2">
-            <widget class="QGroupBox" name="groupBox_6">
+            <widget class="QGroupBox" name="groupBox_quality">
              <property name="title">
               <string>Interval Quality</string>
              </property>
@@ -729,17 +726,13 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_12">
               <item>
-               <widget class="QLineEdit" name="line_show_these_ns">
-                <property name="text">
-                 <string>2</string>
-                </property>
-               </widget>
+               <widget class="QLineEdit" name="line_show_these_ns"/>
               </item>
              </layout>
             </widget>
            </item>
            <item row="2" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_9">
+            <widget class="QGroupBox" name="groupBox_octaves">
              <property name="title">
               <string>Octaves</string>
              </property>
@@ -936,29 +929,11 @@
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_2">
-                <item>
-                 <widget class="QLineEdit" name="line_ngram_in_colour">
-                  <property name="alignment">
-                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="btn_ngram_in_colour">
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset>
-                    <normaloff>:/icons/icons/list-add.png</normaloff>:/icons/icons/list-add.png</iconset>
-                  </property>
-                  <property name="flat">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QLineEdit" name="line_ngram_in_colour">
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QLabel" name="label_10">
@@ -971,30 +946,12 @@
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_5">
-                <item>
-                 <widget class="QLineEdit" name="line_ngram_in_black"/>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="btn_ngram_in_black">
-                  <property name="text">
-                   <string/>
-                  </property>
-                  <property name="icon">
-                   <iconset>
-                    <normaloff>:/icons/icons/list-add.png</normaloff>:/icons/icons/list-add.png</iconset>
-                  </property>
-                  <property name="flat">
-                   <bool>true</bool>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QLineEdit" name="line_ngram_in_black"/>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_6">
                 <item>
-                 <widget class="QPushButton" name="pushButton_3">
+                 <widget class="QPushButton" name="btn_targeted_choose_colour">
                   <property name="text">
                    <string>Choose Colour</string>
                   </property>
@@ -1016,7 +973,7 @@
                </layout>
               </item>
               <item>
-               <widget class="QPlainTextEdit" name="plainTextEdit"/>
+               <widget class="QPlainTextEdit" name="txt_targeted_score"/>
               </item>
               <item>
                <spacer name="verticalSpacer_3">
@@ -1036,10 +993,10 @@
            </item>
           </layout>
           <zorder>groupBox_5</zorder>
-          <zorder>groupBox_6</zorder>
+          <zorder>groupBox_quality</zorder>
           <zorder>groupBox_7</zorder>
           <zorder>groupBox_n</zorder>
-          <zorder>groupBox_9</zorder>
+          <zorder>groupBox_octaves</zorder>
           <zorder>groupBox_10</zorder>
           <zorder>groupBox_11</zorder>
           <zorder>groupBox_sorted_by</zorder>
