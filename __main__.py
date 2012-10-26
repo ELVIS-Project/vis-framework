@@ -1128,7 +1128,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.edit_buttons = []
       self.part_layouts = []
       for i in xrange(len(list_of_parts)):
-         part_name = list_of_parts[i]
+         part_name = str(list_of_parts[i])
          # This is the New CheckBox to select this part
          n_c_b = QtGui.QCheckBox( self.widget_part_boxes )
          n_c_b.setObjectName( 'chk_' + part_name )
