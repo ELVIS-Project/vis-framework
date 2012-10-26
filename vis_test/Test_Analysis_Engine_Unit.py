@@ -63,7 +63,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
 
    def test_two( self ):
       # Test 2
@@ -81,8 +81,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
-#
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
+
    def test_three( self ):
       # Test 3
 
@@ -99,7 +99,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
 
    def test_four( self ):
       # Test 4
@@ -117,7 +117,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
 
    def test_five( self ):
       # Test 5
@@ -133,10 +133,11 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {2: {'8 +2 6':1}}
 
       # Verify the findings
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      #self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)[2]), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 
    def test_six( self ):
       # Test 6
@@ -152,10 +153,11 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {2: { '8 +2 7':1 }}
 
       # Verify the findings
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      #self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 
    def test_sixB( self ):
       # Test 6B
@@ -172,10 +174,11 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {2: { '7 -3 8':1, '8 +2 7':1, '7 +2 5':1 }}
 
       # Verify the findings
-      #self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
+      self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      #self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 
    def test_seven( self ):
       # Test 7
@@ -191,10 +194,11 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {2: { '8 +2 7':1 }}
 
       # Verify the findings
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      #self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 
    def test_sevenB( self ):
       # Test 7B
@@ -211,10 +215,11 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {2: { '8 +2 7':1, '7 +2 6':1 }}
 
       # Verify the findings
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      #self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 
    def test_eight( self ):
       # Test 8
@@ -230,10 +235,11 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {2: {'8 +2 7': 1}}
 
       # Verify the findings
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      #self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 
    def test_nine( self ):
       # Test 9
@@ -251,7 +257,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
 
    def test_ten( self ):
       # Test 10
@@ -269,7 +275,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
 
    def test_eleven( self ):
       # Test 11
@@ -287,7 +293,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
 
    def test_twelve( self ):
       # Test 12
@@ -305,7 +311,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
 
    def test_thirteen( self ):
       # Test 13
@@ -323,7 +329,7 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       # Verify the findings
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertRaises( NonsensicalInputWarning, self.stats.get_formatted_ngram_dict, self.settings )
+      self.assertRaises( NonsensicalInputWarning, self.stats.get_ngram_dict, self.settings )
 
    def test_fourteen( self ):
       # Test 14
@@ -339,10 +345,11 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
       expected_no_quality2grams = {2: { '10 -2 12':1 }}
 
       # Verify the findings
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 
    def test_fifteen( self ):
       # Test 15
@@ -358,10 +365,11 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
          '10 +2 7':1, '7 1 6':1 }}
 
       # Verify the findings
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 # End Test_Vis_These_Parts_Unit -----------------------------------------------
 
 

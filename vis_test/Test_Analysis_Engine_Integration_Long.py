@@ -88,10 +88,11 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
             '9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }}
 
       # Verify the findings
+      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      self.assertEqual( len(self.stats.get_formatted_ngram_dict(self.settings)), len(expected_no_quality2grams) )
-      self.assertEqual( self.stats.get_formatted_ngram_dict(self.settings), expected_no_quality2grams )
+      self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
+      self.assertEqual( ngram_dict, expected_no_quality2grams )
 
    #def test_La_Plus_des_Plus( self ):
       ## Title: "La Plus des Plus" by Josquin
@@ -116,8 +117,8 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
       ## Verify the findings
       #self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       #self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
-      #self.assertEqual( len(self.stats.get_formatted_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
-      #self.assertEqual( self.stats.get_formatted_ngram_dict('compound', 2), expected_no_quality2grams )
+      #self.assertEqual( len(self.stats.get_ngram_dict('compound', 2)), len(expected_no_quality2grams) )
+      #self.assertEqual( self.stats.get_ngram_dict('compound', 2), expected_no_quality2grams )
 
    #def test_Ave_Maris_Stella( self ):
       # NOTE: This test is postponed to Milestone 2, because it unearted a
