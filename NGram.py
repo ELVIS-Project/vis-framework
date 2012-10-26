@@ -182,11 +182,13 @@ class NGram( object ):
       '''
       return self._has_voice_crossing
 
-   def get_string_version( self, heed_quality=False, simple_or_compound='compound' ):
+   def get_string_version( self, heed_quality=False, \
+                           simple_or_compound='compound' ):
       '''
       Return a string-format representation of this NGram object. With no
-      arguments, the intervals are compound, and quality not heeded. If the 
-      first argument is a VIS_Settings object, the parameters are taken
+      arguments, the intervals are compound, and quality not heeded.
+
+      If the first argument is a VIS_Settings object, the parameters are taken
       from it and the second argument is ignored.
 
       Example:
@@ -204,7 +206,7 @@ class NGram( object ):
       '10 +2 9'
       '''
 
-      # Deal with the settings.
+      # Deal with the settings
       if isinstance( heed_quality, VIS_Settings ):
          # Extract settings from the VIS_Settings instance.
          # NB: We have to set heed_quality last, or we can't get further
@@ -212,7 +214,7 @@ class NGram( object ):
          simple_or_compound = heed_quality.get_property( 'simpleOrCompound' )
          heed_quality = heed_quality.get_property( 'heedQuality' )
 
-      # Hold the str we're making.
+      # Hold the str we're making
       post = ''
 
       # We need to consider every index of _list_of_intervals, which contains
@@ -230,7 +232,7 @@ class NGram( object ):
          else:
             this_interval = interv.directedName
 
-         # If we're ignoring quality, remove the quality.
+         # If we're ignoring quality, remove the quality
          if not heed_quality:
             this_interval = this_interval[1:]
 
@@ -272,7 +274,7 @@ class NGram( object ):
       # End the "for"
 
       return post
-   # end _calculate_string_version --------------------------------------------
+   # end get_string_version --------------------------------------------
 
    def get_inversion_at_the( self, interv, up_or_down='up' ):
       '''

@@ -418,7 +418,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
 
    # Go through all the things!
    # The highest valid index is one less than the len().
-   error = None
+   error = ''
    try:
       while current_lower_index < len_lower or \
       current_higher_index < len_higher:
@@ -551,7 +551,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                lower_part[current_lower_index+1].offset > potential_new_offset:
                   contin = True
 
-         # Process this moment for intervals. ----------------
+         # Process this moment for intervals ----------------
          if contin:
             # Does one or do both parts have a Rest or have Rests?
             if is_rest( higher_part[current_higher_index] ) or \
@@ -585,7 +585,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                   current_offset = max( higher_part[current_higher_index].offset, \
                                         lower_part[current_lower_index].offset )
 
-         # Process this moment for triangles. ----------------
+         # Process this moment for n-grams ----------------
          # Hold the NGram object we'll create.
          this_ngram = None
          if contin:
@@ -596,6 +596,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
             for n in find_these_ns:
                # Is the interval history long enough?
                if len(interval_history) < n:
+                  contin = False # TODO: re-evaluate this choice
                   continue
 
                # Hold a list of intervals that will make up this n-gram.
@@ -631,9 +632,9 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                   contin = False
 
          # Annotate the score for LilyPond.
-         if contin:
+         if contin and this_ngram:
             # Get the str representation of this n-gram.
-            str_this_ngram = str(this_ngram)
+            str_this_ngram = this_ngram.get_string_version( settings )
 
             # If there are restrictions on what to annotate...
             if 0 < len(list_to_annotate):
@@ -746,7 +747,8 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
       # End "while" loop -------------------------------------
       the_statistics.extend(statistics_buffer)
    except Exception as exc:
-      error = str(exc)
+      raise
+      #error = str(type(exc)) + ':\n' + str(exc)
 
 
    # Note the ending time of the analysis...

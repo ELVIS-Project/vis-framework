@@ -138,9 +138,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.line_piece_title.editingFinished.connect( self.update_piece_title )
       self.line_output_most_common.editingFinished.connect( self.update_most_common )
       self.line_threshold.editingFinished.connect( self.update_threshold )
-      self.line_ngram_in_colour.editingFinished.connect( self.targeted_add_colour ) # TODO
-      self.line_ngram_in_black.editingFinished.connect( self.targeted_add_black ) # TODO
-      self.btn_targeted_choose_colour.clicked.connect( self.targeted_colour_choose ) # TODO
+      self.line_ngram_in_colour.editingFinished.connect( self.targeted_add_colour )
+      self.line_ngram_in_black.editingFinished.connect( self.targeted_add_black )
+      self.btn_targeted_choose_colour.clicked.connect( self.targeted_colour_choose )
       # This is for the QThreadPool threads to signal they've finished a
       # voice pair
       self.vsc.finishedVoicePair.connect( self.increment_analysis_progress )
@@ -287,13 +287,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       with LilyPond.
       '''
 
-      # First warn the user that vis will be unresponsive
-      QtGui.QMessageBox.information(None,
-         'Attention',
-         """vis will not respond to input until annotation is complete!""",
-         QtGui.QMessageBox.StandardButtons(\
-            QtGui.QMessageBox.Ok),
-         QtGui.QMessageBox.Ok)
+      # Move to the "working" panel
+      self.tool_working()
+      self.lbl_currently_processing.setText( 'Status bar doesn\'t work!' )
+      self.app.processEvents()
 
       # Collect "jobs" for the QThreadPool
       jobs = []
@@ -326,6 +323,9 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Wait for the jobs to finish
       QThreadPool.globalInstance().waitForDone()
+
+      # Move back to the "Show" panel
+      self.tool_show()
    # End generate_targeted_score() -------------------------
 
 
@@ -729,12 +729,21 @@ class Vis_MainWindow( Ui_MainWindow ):
 
 
 
-   @QtCore.pyqtSlot()
-   def increment_analysis_progress( self ):
+   @QtCore.pyqtSlot( str )
+   def increment_analysis_progress( self, error='' ):
       '''
       Marks one voice pair as complete, then checks whether that means all the
       voice pairs are complete. If so, moves the GUI to the "show" panel.
       '''
+
+      # If there was an error in the voice pair, we must report it
+      if '' != error:
+         QtGui.QMessageBox.critical(None,
+            'Error during Analysis',
+            'The following error occurred:\n\n' + error,
+            QtGui.QMessageBox.StandardButtons(\
+               QtGui.QMessageBox.Ok),
+            QtGui.QMessageBox.Ok)
 
       # Increment the number of voice pairs so far calculated
       self.pairs_so_far += 1
@@ -1667,7 +1676,7 @@ class Vis_Load_Piece( QtCore.QThread ):
 class Vis_Signals_Class( QObject ):
    # This is used by Vis_Analyze_Piece when it's finished analyzing
    # a voice pair
-   finishedVoicePair = pyqtSignal()
+   finishedVoicePair = pyqtSignal( str )
 
 class Vis_Analyze_Piece( QtCore.QRunnable ):
    @staticmethod
@@ -1764,7 +1773,7 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          piece_duration += voices_took
 
          # Update the GUI
-         self.widget.vsc.finishedVoicePair.emit()
+         self.widget.vsc.finishedVoicePair.emit( error )
       # (end of voice-pair loop)
 # End Class Vis_Analyze_Piece --------------------------------------------------
 

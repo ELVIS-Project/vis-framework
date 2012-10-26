@@ -726,7 +726,7 @@ def run_lilypond( filename, the_settings ):
 
 
 def process_score( the_score, the_settings=None, \
-                   filename='test_output/lily_output' ):
+                   filename='test_output/lily_output.ly' ):
    '''
    Use this method to output an entire Score object. The second argument is
    an optional LilyPond_Settings object. The third argument is an optional
