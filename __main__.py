@@ -53,7 +53,8 @@ from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 from VIS_Settings import VIS_Settings
 from analytic_engine import vis_these_parts, make_basso_seguente
 from file_output import file_outputter
-from output_LilyPond import LilyPond_Settings
+from output_LilyPond import LilyPond_Settings, make_lily_version_numbers, \
+   detect_lilypond
 from output_LilyPond import process_score as lily_process_score
 
 
@@ -82,6 +83,10 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.loaded_files = []
       # Holds the signal emitted when a QRunnable finishes a voice pair
       self.vsc = Vis_Signals_Class()
+      # Holds a list of instructions for producing targeted LilyPond output
+      self.targeted_lily_options = []
+      # Holds the version number of LilyPond installed on this system
+      self.lilypond_version_numbers = None
 
       # These be the index values for columns in the list-of-pieces model.
       self.model_filename = 0 # filename of the piece
@@ -133,6 +138,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.line_piece_title.editingFinished.connect( self.update_piece_title )
       self.line_output_most_common.editingFinished.connect( self.update_most_common )
       self.line_threshold.editingFinished.connect( self.update_threshold )
+      self.line_ngram_in_colour.editingFinished.connect( self.targeted_add_colour ) # TODO
+      self.line_ngram_in_black.editingFinished.connect( self.targeted_add_black ) # TODO
+      self.btn_targeted_choose_colour.clicked.connect( self.targeted_colour_choose ) # TODO
       # This is for the QThreadPool threads to signal they've finished a
       # voice pair
       self.vsc.finishedVoicePair.connect( self.increment_analysis_progress )
@@ -167,7 +175,9 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Set all the settings
       # - no indent
-      l_sets.set_property( 'indent 0\cm' )
+      # - no bar numbers
+      l_sets.set_property( 'indent', '0\cm' )
+      l_sets.set_property( 'bar numbers', "#'#(#f #f #f)" )
 
       # Make the score
       summary_score = self.statistics.make_summary_score( self.settings )
@@ -184,10 +194,149 @@ class Vis_MainWindow( Ui_MainWindow ):
       lily_process_score( summary_score, the_settings=l_sets, filename=out_file )
    # End generate_summary_score() --------------------------
 
+
+
+   def update_targeted_output_window( self ):
+      self.txt_targeted_score.setPlainText( str(self.targeted_lily_options) )
+
+
+
+   def targeted_add_black( self ):
+      '''
+      When the user finishes editing the "Annotate this n-gram in black" box
+      '''
+
+      # Get the contents of the QLineEdit
+      the_ngram = str(self.line_ngram_in_black.text())
+
+      # Should we bother adding it? Then do
+      if '' != the_ngram:
+         self.targeted_lily_options.append( ['only annotate', the_ngram] )
+         self.update_targeted_output_window()
+         self.line_ngram_in_black.setText('')
+
+
+
+   def targeted_add_colour( self ):
+      '''
+      When the user finishes editing the "Annotate this n-gram in colour" box
+      '''
+
+      # Get the contents of the QLineEdit
+      the_ngram = str(self.line_ngram_in_colour.text())
+
+      # Should we bother adding it? Then do
+      if '' != the_ngram:
+         self.targeted_lily_options.append( ['only colour', the_ngram] )
+         self.targeted_lily_options.append( ['only annotate', the_ngram] )
+         self.update_targeted_output_window()
+         self.line_ngram_in_colour.setText('')
+
+
+
+   def targeted_colour_choose( self ):
+      '''
+      When the user wants to choose a colour in which to annotate some n-grams.
+      '''
+
+      # Get the colour the user wants.
+      user_colour = QtGui.QColorDialog.getColor()
+
+      # We need to know our LilyPond version.
+      if self.lilypond_version_numbers is None:
+         l_v = detect_lilypond()[1]
+         self.lilypond_version_numbers = make_lily_version_numbers( l_v )
+
+      # Make the str with the colour name
+      if 2 == self.lilypond_version_numbers[0] and \
+      14 >= self.lilypond_version_numbers[1]:
+         # If LilyPond 2.14.x or older
+         new_colour = '#(rgb-color '
+         new_colour += str(user_colour.red()) + ' '
+         new_colour += str(user_colour.green()) + ' '
+         new_colour += str(user_colour.blue()) + ')'
+
+      elif 2 == self.lilypond_version_numbers[0] and \
+      16 <= self.lilypond_version_numbers[1]:
+         # If LilyPond 2.16.x and newer?
+         new_colour = '#(rgb-color '
+         new_colour += str( float(user_colour.red()) / 255.0 ) + ' '
+         new_colour += str( float(user_colour.green()) / 255.0 ) + ' '
+         new_colour += str( float(user_colour.blue()) / 255.0 ) + ')'
+      else:
+         # If something else (3.x, 1.x, or 2.15.x)
+         msg = 'Cannot use LilyPond 2.15.x with colours; please upgrade to 2.16.0 or downgrade to 2.14.2'
+         raise IncompatibleSetupError( msg )
+
+      # See if there's already a spot for colour, then use it
+      for instr in self.targeted_lily_options:
+         if 'annotate colour' == instr[0]:
+            instr[1] = new_colour
+
+      # Otherwise, we'll have to add a new instruction
+      self.targeted_lily_options.append( ['annotate colour', new_colour] )
+
+      self.update_targeted_output_window()
+   # End targeted_colour_choose() --------------------------
+
+
+
+   def generate_targeted_score( self ):
+      '''
+      Called by show_results() when we need to generate an annotated score
+      with LilyPond.
+      '''
+
+      # First warn the user that vis will be unresponsive
+      QtGui.QMessageBox.information(None,
+         'Attention',
+         """vis will not respond to input until annotation is complete!""",
+         QtGui.QMessageBox.StandardButtons(\
+            QtGui.QMessageBox.Ok),
+         QtGui.QMessageBox.Ok)
+
+      # Collect "jobs" for the QThreadPool
+      jobs = []
+
+      # There should only be one piece, but for ease-of-use and similarity with
+      # the regular analysis thing, we'll use a loop here.
+      for i, piece in enumerate( list(self.analysis_pieces.iterate_rows()), \
+                                 start=0 ):
+         # Find the name of this piece
+         this_piece_name = None
+         if piece[self.model_score].metadata is None:
+            this_piece_name = 'asdf!'
+         else:
+            this_piece_name = piece[self.model_score].metadata.title
+
+         # Prepare the multi-threading part
+         job = Vis_Analyze_Piece()
+         job.setup( piece, self, this_piece_name, \
+                    targeted_output=self.targeted_lily_options )
+
+         # Append this job to the list of jobs to calculate
+         jobs.append( job )
+
+      # Set this very high so that vis won't interfere with the end of analysis
+      self.total_pairs = 5000
+
+      # Schedule the jobs with QThreadPool
+      for job in jobs:
+         QThreadPool.globalInstance().start( job )
+
+      # Wait for the jobs to finish
+      QThreadPool.globalInstance().waitForDone()
+   # End generate_targeted_score() -------------------------
+
+
+
    def show_results( self ):
       # For LilyPond, we'll have an "early interception"
       if 'score' == self.settings.get_property( 'outputFormat' ):
          self.generate_summary_score()
+         return
+      elif 'targeted score' == self.settings.get_property( 'outputFormat' ):
+         self.generate_targeted_score()
          return
 
       # Should we output intervals or ngrams or comparison?
@@ -236,6 +385,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.lbl_exclude_if_fewer.setText( 'Exclude intervals with fewer than' )
       self.rdo_name.setText( 'interval' )
 
+
+
    def choose_ngrams( self ):
       self.groupBox_n.setEnabled( True )
       self.settings.set_property('content ngrams')
@@ -243,38 +394,70 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.lbl_exclude_if_fewer.setText( 'Exclude n-grams with fewer than' )
       self.rdo_name.setText( 'n-gram' )
 
+
+
    def choose_compare( self ):
       self.settings.set_property('content compare')
       self.lbl_most_common.setText( 'most common n-grams.' )
       self.lbl_exclude_if_fewer.setText( 'Exclude n-grams with fewer than' )
       self.rdo_name.setText( 'n-gram' )
 
-   def choose_targeted_score( self ):
-      self.groupBox_sorted_by.setEnabled( False )
-      self.groupBox_sort_order.setEnabled( False )
-      self.groupBox_targeted_score.setEnabled( True )
+
 
    def update_output_format( self ):
       if self.rdo_targeted_score.isChecked():
          self.choose_targeted_score()
-         self.settings.set_property('outputFormat targeted_score')
+         self.settings.set_property('outputFormat', 'targeted score')
       else:
          self.unchoose_targeted_score()
          if self.rdo_score.isChecked():
-            self.settings.set_property('outputFormat score')
+            self.settings.set_property('outputFormat', 'score')
          elif self.rdo_list.isChecked():
-            self.settings.set_property('outputFormat list')
+            self.settings.set_property('outputFormat', 'list')
          elif self.rdo_chart.isChecked():
-            self.settings.set_property('outputFormat graph')
+            self.settings.set_property('outputFormat', 'graph')
+
+
+
+   def choose_targeted_score( self ):
+      '''
+      When "targeted score" is selected as an output format, this method enables
+      or disables things appropriately.
+      '''
+
+      self.groupBox_sorted_by.setEnabled( False )
+      self.groupBox_sort_order.setEnabled( False )
+      self.groupBox_targeted_score.setEnabled( True )
+      # these things will eventually work
+      self.line_output_most_common.setEnabled( False )
+      self.line_threshold.setEnabled( False )
+      self.groupBox_octaves.setEnabled( False )
+      self.groupBox_quality.setEnabled( False )
+
+
 
    def unchoose_targeted_score( self ):
+      '''
+      When "targeted score" is selected as an output format, this method enables
+      or disables things appropriately.
+      '''
+
       self.groupBox_sorted_by.setEnabled( True )
       self.groupBox_sort_order.setEnabled( True )
       self.groupBox_targeted_score.setEnabled( False )
+      # these things will eventually work
+      self.line_output_most_common.setEnabled( True )
+      self.line_threshold.setEnabled( True )
+      self.groupBox_octaves.setEnabled( True )
+      self.groupBox_quality.setEnabled( True )
+
+
 
    def update_n_values_displayed( self ):
       s = str(self.line_show_these_ns.text())
       self.settings.set_property('showTheseNs '+s)
+
+
 
    def update_simple_compound( self ):
       if self.rdo_compound.isChecked():
@@ -282,11 +465,15 @@ class Vis_MainWindow( Ui_MainWindow ):
       else:
          self.settings.set_property('simpleOrCompound simple')
 
+
+
    def update_heed_quality( self ):
       if self.rdo_heedQuality.isChecked():
          self.settings.set_property('heedQuality true')
       else:
          self.settings.set_property('heedQuality false')
+
+
 
    def update_sorted_by( self ):
       if self.rdo_frequency.isChecked():
@@ -294,11 +481,15 @@ class Vis_MainWindow( Ui_MainWindow ):
       else:
          self.settings.set_property('sortBy name')
 
+
+
    def update_sort_order( self ):
       if self.rdo_descending.isChecked():
          self.settings.set_property('sortOrder descending')
       else:
          self.settings.set_property('sortOrder ascending')
+
+
 
    def update_most_common( self ):
       '''
@@ -318,6 +509,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Then set it!
       self.settings.set_property( 'topX', candidate_X )
 
+
    def update_threshold( self ):
       '''
       Updates the VIS_Settings object with the proper setting for "threshold"
@@ -336,6 +528,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Then set it!
       self.settings.set_property( 'threshold', candidate_thresh )
 
+
+
    # GUI Things ("Choose Files" Panel) ---------------------
    def add_dir( self ):
       d = QtGui.QFileDialog.getExistingDirectory(\
@@ -350,6 +544,8 @@ class Vis_MainWindow( Ui_MainWindow ):
                              for path,names,files in walk(d)])
       self.add_files(possible_files)
 
+
+
    def get_files( self ):
       # Get the list of files to add
       possible_files = QtGui.QFileDialog.getOpenFileNames(\
@@ -359,6 +555,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          '*.nwc *.mid *.midi *.mxl *.krn *.xml *.md',
          None)
       self.add_files(possible_files)
+
+
 
    def add_files( self, possible_files ):
       # Make sure we don't add files that are already there
@@ -545,15 +743,21 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Are we finished?
       if self.pairs_so_far == self.total_pairs:
+         # Wait for all the threads to finish. This shouldn't really be
+         # necessary, but I'm adding this to try to deal with Issue #96.
+         QThreadPool.globalInstance().waitForDone()
+
          # Calculate and display how long the analysis took
          duration = round( time.time() - self.analysis_start_time, 2 )
          self.statusbar.showMessage( 'Everything analyzed in ' + \
                                      str(duration) + \
                                      ' seconds', 10000 )
 
-         # Wait for all the threads to finish. This shouldn't really be
-         # necessary, but I'm adding this to try to deal with Issue #96.
-         QThreadPool.globalInstance().waitForDone()
+         # If there is more than one piece, disable the "Annotated Score" output
+         if 1 < self.analysis_pieces.rowCount():
+            self.rdo_targeted_score.setEnabled( False )
+         else:
+            self.rdo_targeted_score.setEnabled( True )
 
          # Move the GUI to the "show results" panel
          self.main_screen.setCurrentWidget( self.page_show )
@@ -592,6 +796,8 @@ class Vis_MainWindow( Ui_MainWindow ):
             return
          self.statistics.extend(new_vis)
 
+
+
    def adjust_bs( self ):
       # Adjusts the "basso seguente" checkbox depending on whether "all
       # combinations" is selected
@@ -599,6 +805,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          self.chk_basso_seguente.setText( 'Every part against Basso Seguente' )
       else:
          self.chk_basso_seguente.setText( 'Basso Seguente' )
+
+
 
    def all_voice_combos( self ):
       # Are we enabling "all" or disabling?
@@ -622,6 +830,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          part_spec = '(no selection)'
 
       self.update_parts_selection( part_spec )
+
+
 
    def chose_bs( self ):
       # When somebody chooses the "basso seguente" checkbox, if "all" is also
@@ -658,6 +868,8 @@ class Vis_MainWindow( Ui_MainWindow ):
 
             # Update the title
             piece.metadata.title = str(self.line_piece_title.text())
+
+
 
    def add_parts_combination( self ):
       '''
@@ -747,12 +959,16 @@ class Vis_MainWindow( Ui_MainWindow ):
          box.setChecked( False )
    # End add_parts_combination() ---------------------------
 
+
+
    def add_parts_combo_by_lineEdit( self ):
       # TODO: input validation using QValidator
 
       # For now, just take the contents of the line_compare_these_parts and
       # put it in the pieces
       self.update_parts_selection( str(self.line_compare_these_parts.text()) )
+
+
 
    def update_parts_selection( self, part_spec ):
       '''
@@ -771,6 +987,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          if self.model_compare_parts == cell.column():
             self.analysis_pieces.setData( cell, part_spec, QtCore.Qt.EditRole )
 
+
+
    def update_values_of_n( self ):
       # TODO: input validation using QValidator
 
@@ -786,6 +1004,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          if self.model_n == cell.column():
             self.analysis_pieces.setData( cell, new_n, QtCore.Qt.EditRole )
 
+
+
    def update_offset_interval( self ):
       # TODO: input validation using QValidator
 
@@ -800,6 +1020,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       for cell in selected_cells:
          if self.model_offset == cell.column():
             self.analysis_pieces.setData( cell, new_offset_interval, QtCore.Qt.EditRole )
+
+
 
    def update_piece_settings_visibility( self, set_to ):
       '''
@@ -822,6 +1044,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.lbl_values_of_n.setVisible( set_to )
       self.lbl_offset_interval.setVisible( set_to )
       self.lbl_select_piece.setVisible( not set_to )
+
+
 
    def update_pieces_selection( self ):
       # TODO: finish the other things for this method
@@ -959,6 +1183,8 @@ class Vis_MainWindow( Ui_MainWindow ):
                break
    # End update_pieces_selection() -------------------------
 
+
+
    def update_comparison_parts( self, currently_selected ):
       '''
       When a different part combination is selected, call this method to update
@@ -994,6 +1220,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Adjust the text for "Basso Seguente," if needed
       self.adjust_bs()
    # End update_comparison_parts() -------------------------
+
+
 
    def edit_part_name( self, part_index = None ):
       # Get the current part name from the checkbox...
@@ -1126,7 +1354,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.edit_buttons = []
       self.part_layouts = []
       for i in xrange(len(list_of_parts)):
-         part_name = list_of_parts[i]
+         part_name = str(list_of_parts[i])
          # This is the New CheckBox to select this part
          n_c_b = QtGui.QCheckBox( self.widget_part_boxes )
          n_c_b.setObjectName( 'chk_' + part_name )
@@ -1157,6 +1385,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          #self.verticalLayout_22.addWidget( part )
          self.verticalLayout_22.addLayout( part )
    # End update_part_checkboxes() --------------------------
+
+
 
    def launch_offset_selection( self ):
       # Launch the offset-selection QDialog
@@ -1451,12 +1681,13 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
             post.append( [left,right] )
       return post
 
-   def setup( self, piece_data, widget, this_piece_name ):
+   def setup( self, piece_data, widget, this_piece_name, targeted_output=None ):
       self.piece_data = piece_data
       self.widget = widget
       self.this_piece_name = this_piece_name
       self.voice_combos = None
       self.nr_of_voice_combos = 0
+      self.targeted_output = targeted_output
 
       # Calculate the voice pairs to analyze
       if '[all]' == self.piece_data[self.widget.model_compare_parts]:
@@ -1503,7 +1734,8 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
 
          if 'bs' == lower:
             if seguente_part is None:
-               seguente_part = make_basso_seguente( self.piece_data[self.widget.model_score] )
+               seguente_part = \
+               make_basso_seguente( self.piece_data[self.widget.model_score] )
 
             lower = seguente_part
          else:
@@ -1514,10 +1746,19 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          self.widget.settings.set_property( 'lookForTheseNs ' + ns )
 
          # Run the analysis
-         voices_took, ly, error = vis_these_parts( [higher,lower], \
-                                        self.widget.settings, \
-                                        self.widget.statistics, \
-                                        self.this_piece_name )
+         voices_took, ly, error = vis_these_parts( these_parts=[higher,lower], \
+                                        settings=self.widget.settings, \
+                                        the_statistics=self.widget.statistics, \
+                                        the_piece=self.this_piece_name, \
+                                        targeted_output=self.targeted_output )
+
+         # Deal with annotated LilyPond score, if needed
+         if 'targeted score' == \
+         self.widget.settings.get_property( 'outputFormat' ):
+            # Add the annotated part to the score
+            self.piece_data[self.widget.model_score].append( ly )
+            # Send the score for processing
+            lily_process_score( self.piece_data[self.widget.model_score] )
 
          # Update the duration-tracking thing
          piece_duration += voices_took

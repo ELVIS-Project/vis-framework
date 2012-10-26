@@ -31,6 +31,7 @@ from string import join
 from collections import defaultdict
 # music21
 from music21 import interval, graph, stream, clef, meter, note
+from music21.metadata import Metadata
 # vis
 from VIS_Settings import VIS_Settings
 from problems import NonsensicalInputError, MissingInformationError, \
@@ -109,8 +110,6 @@ class Vertical_Interval_Statistics( object ):
       instance. It's possible this is not necessary and it
       would be better to have from_json call all the add_*()
       methods to guarantee a logical V_I_S instance.
-
-      Christopher, your call.
       '''
       if not isinstance(self._pieces_analyzed,list):
          raise NonsensicalInputError("_pieces_analyzed must be of type list")
@@ -813,31 +812,45 @@ class Vertical_Interval_Statistics( object ):
          return g
 
       # (3B) Default to formatted list.
-      post = ""
+      post = ''
       widths = []
-      heading = "Interval"
+      heading = 'Interval\n\n'
+
+      # Calculate the width of ???
       width = max([len(str(k)) for k in sorted_intervals]+[len(heading)+2])
-      widths.append(width)
+      widths.append( width )
+
       for i, piece in enumerate(self._pieces_analyzed):
          width = max([len(str(the_dict[k][piece])) for k in sorted_intervals]+[len(os.path.split(piece)[1])+3])
          widths.append(width)
       width_total = max([len(str(the_dict[k]['Total'])) for k in sorted_intervals]+[len("Total")])+2
       widths.append(width_total)
-      row = "{0:{1:n}}".format(heading, widths[0])
-      for i, piece in enumerate(self._pieces_analyzed):
-         row += "{0:{1:n}}".format("# "+os.path.split(piece)[1]+" ", widths[i+1])
+      row = "{0:{1:n}}".format( heading, widths[0] )
+      row += '\n'
+
+      # Add the header
       row += "{0:{1:n}}".format("# Total", widths[-1])
+      # Add the "#pN" index
+      for i, piece in enumerate(self._pieces_analyzed):
+         row += "{0:{1:n}}".format( '# ' + os.path.split(piece)[1] + ' ', widths[i + 1] )
       row += "\n"
       post += row
-      row = "-"*sum(widths)+"\n"
+      row = '=' * sum(widths) + '\n'
       post += row
+
+      # Add each interval
       for interv in sorted_intervals:
-         row = "{0:{1:n}}".format(str(interv), widths[0])
-         for i, piece in enumerate(self._pieces_analyzed,start=1):
-            row += "{0:{1:n}}".format(str(the_dict[interv][piece]), widths[i])
-         row += "{0:{1:n}}".format(str(the_dict[interv]['Total']), widths[-1])
+         # print the n-gram name
+         row = "{0:{1:n}}".format( str(interv), widths[0] )
+         # the total for all pieces and voice pairs
+         row += "{0:{1:n}}".format(str(the_dict[interv][0]), widths[-1])
+         # the totals by voice pair
+         for i, piece in enumerate(self._pieces_analyzed):
+            row += "{0:{1:n}}".format(str(the_dict[interv][1][i]), widths[i+1])
+         # end the row
          row += "\n"
          post += row
+
       post += '\n'
 
       return post
@@ -959,8 +972,8 @@ class Vertical_Interval_Statistics( object ):
 
       # (4.2) Else make a nicely formatted list from the results.
       else:
-         # Start with an empty string
-         post = ''
+         # Start with an empty string (and a title)
+         post = 'N-Grams\n\n'
 
          # Piece Title and Part Combination Assignments
          for k, piece in enumerate( self._pieces_analyzed, start=1 ):
@@ -988,17 +1001,22 @@ class Vertical_Interval_Statistics( object ):
             widths.append(width_total)
             row = "{0:{1:n}}".format(heading, widths[0])
 
-            for i, piece in enumerate(self._pieces_analyzed,start=1):
-               row += "{0:{1:n}}".format("# p"+str(i)+" ", widths[i])
+            row += "{0:{1:n}}".format( '# Total', widths[-1])
 
-            row += "{0:{1:n}}".format("# Total", widths[-1])
-            row += "\n"
+            for i, piece in enumerate( self._pieces_analyzed, start=1 ):
+               row += "{0:{1:n}}".format( '# p' + str(i) + ' ', widths[i] )
+
+            row += '\n'
             post += row
-            row = "-"*sum(widths)+"\n"
+            row = '=' * sum(widths) + '\n'
             post += row
 
             for ngram in sorted_ngrams:
+               # add the n-gram name
                row = "{0:{1:n}}".format(str(ngram), widths[0])
+               # add the total
+               row += "{0:{1:n}}".format(str(the_dict[ngram][0]), widths[-1])
+               # add the per-piece totals
                for i, piece in enumerate(self._pieces_analyzed):
                   row += "{0:{1:n}}".format(str(the_dict[ngram][piece]), widths[i+1])
                row += "{0:{1:n}}".format(str(the_dict[ngram]['Total']), widths[-1])
@@ -1316,8 +1334,13 @@ class Vertical_Interval_Statistics( object ):
             lower_part.append( rest_measure )
             lily_part.append( note.Rest( quarterLength=4.0 ) )
 
+      # Make a Metadata object
+      metad = Metadata()
+      metad.composer = 'Output from vis'
+      metad.title = 'N-Gram Statistics Summary'
+
       # Finally, make a Score and return it
-      return stream.Score( [upper_part, lower_part, lily_part] )
+      return stream.Score( [metad, upper_part, lower_part, lily_part] )
    # End make_summary_score()-------------------------------
 # End class Vertical_Interval_Statistics ---------------------------------------
 
