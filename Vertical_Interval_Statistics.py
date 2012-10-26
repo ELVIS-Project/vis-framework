@@ -983,6 +983,8 @@ class Vertical_Interval_Statistics( object ):
          # Print all requested values of n
          for n in list_of_n:
             the_dict = output_dict[n]
+            total_n = sum( v['Total'] for v in the_dict.values() )
+            post += "Total number of " + str(n) + "-grams: " + str(total_n) + "\n\n"
             sorted_ngrams = sorted_ngrams[n]
             widths = []
             heading = str(n) + "-gram"
@@ -996,11 +998,11 @@ class Vertical_Interval_Statistics( object ):
                        for k in sorted_ngrams] + [ len( 'p' + str( i + 1 ) ) + 3 ] )
                widths.append( width )
 
-            width_total = max([len(str(the_dict[k]['Total'])) for k in sorted_ngrams]+[len("Total")])+2
+            width_total = max([len(str(the_dict[k]['Total'])) for k in sorted_ngrams]+[len("Total ")])+2
             widths.append(width_total)
             row = "{0:{1:n}}".format(heading, widths[0])
 
-            row += "{0:{1:n}}".format( '# Total', widths[-1])
+            row += "{0:{1:n}}".format( '# Total ', widths[-1])
 
             for i, piece in enumerate( self._pieces_analyzed, start=1 ):
                row += "{0:{1:n}}".format( '# p' + str(i) + ' ', widths[i] )
