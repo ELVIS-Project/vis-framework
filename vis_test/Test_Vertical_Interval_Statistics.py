@@ -562,8 +562,49 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.assertEqual( actual, expected )
    # End Tests for get_ngram_dict() --------------
 
+   def test_threshold( self ):
+      [self.vis.add_ngram( self.nga, "piece" ) for x in xrange(1)] # m3 u m3
+      [self.vis.add_ngram( self.ngb, "piece") for x in xrange(2)] # m3 u M3
+      [self.vis.add_ngram( self.ngc, "piece") for x in xrange(5)] # m3 +P4 m3
+      [self.vis.add_ngram( self.ngd, "piece") for x in xrange(10)] # m3 +d4 M3
+      [self.vis.add_ngram( self.nge, "piece") for x in xrange(20)] # m3 -P4 m3
+      [self.vis.add_ngram( self.ngf, "piece") for x in xrange(50)] # m3 -m2 M-3
+      settings = VIS_Settings()
+      settings.set_property( 'simpleOrCompound', 'compound' )
+      settings.set_property( 'heedQuality', True )
+      settings.set_property( 'showTheseNs', [2] )
+      settings.set_property( 'threshold', None )
 
+      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      expected = {2: {'m3 P1 m3': 1, 'm3 P1 M3': 2, 'm3 +P4 m3': 5, 'm3 +d4 M3': 10,\
+                      'm3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
+      self.assertEqual( ngram_dict, expected )
 
+      settings.set_property( 'threshold', 2 )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      expected = {2: {'m3 P1 M3': 2, 'm3 +P4 m3': 5, 'm3 +d4 M3': 10,\
+                      'm3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
+      self.assertEqual( ngram_dict, expected )
+
+      settings.set_property( 'threshold', 5 )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      expected = {2: {'m3 +P4 m3': 5, 'm3 +d4 M3': 10, 'm3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
+      self.assertEqual( ngram_dict, expected )
+
+      settings.set_property( 'threshold', 10 )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      expected = {2: {'m3 +d4 M3': 10, 'm3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
+      self.assertEqual( ngram_dict, expected )
+
+      settings.set_property( 'threshold', 20 )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      expected = {2: {'m3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
+      self.assertEqual( ngram_dict, expected )
+
+      settings.set_property( 'threshold', 50 )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      expected = {2: {'m3 -m2 M-3': 50}}
+      self.assertEqual( ngram_dict, expected )
 
    # get_ngram_occurrences() ------------------------------
    # TODO: make these not fail
