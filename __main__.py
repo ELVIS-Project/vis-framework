@@ -385,6 +385,8 @@ class Vis_MainWindow( Ui_MainWindow ):
             g.show()
    # End show_results() ------------------------------------
 
+
+
    def choose_intervals( self ):
       self.groupBox_n.setEnabled( False )
       self.settings.set_property('content intervals')
@@ -412,6 +414,11 @@ class Vis_MainWindow( Ui_MainWindow ):
 
 
    def update_output_format( self ):
+      '''
+      When a user chooses a different output format, this method updates the
+      internal setting, and, if relevant, the GUI.
+      '''
+
       if self.rdo_targeted_score.isChecked():
          self.choose_targeted_score()
          self.settings.set_property('outputFormat', 'targeted score')

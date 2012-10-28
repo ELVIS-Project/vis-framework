@@ -70,9 +70,21 @@ class VIS_Settings:
       self._secret_settings_hash['threshold'] = None
       self._secret_settings_hash['sortBy'] = 'frequency'
       self._secret_settings_hash['sortOrder'] = 'descending'
+      # A list of integers representing the 'n' values the user wants to display
       self._secret_settings_hash['showTheseNs'] = [2]
+      # The format of output from an instance of Vertical_Interval_Statistics
+      # Possible choices include:
+      # - 'graph' : produces a music21 "Graph" (the default)
+      # - 'list' : produces a string with a textual list
+      # - 'score' : produces a "summary score" via LilyPond
+      # - 'targeted score' : produces an annotated score via LilyPond
+      # NOTE: the LilyPond outputs are currently only possible for n-grams.
       self._secret_settings_hash['outputFormat'] = 'graph'
+      # Either 'ngrams' or 'intervals' representing what the user wants
+      # to display
       self._secret_settings_hash['content'] = 'ngrams'
+      # Whether to leave voice-pair-specific data in whatever is returned. Bool
+      self._secret_settings_hash['leavePieces'] = True
 
    # Helper method to test whether a str contains a boolean value.
    @staticmethod

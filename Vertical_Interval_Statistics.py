@@ -293,10 +293,8 @@ class Vertical_Interval_Statistics( object ):
 
    def get_simple_interval_summary_dict( self ):
       '''
-      Since the interval dicts normally keep track of the occurrences
-      of an interval in each piece, this method returns the "summary"
-      version which matches a simple interval to the total number of
-      its occurrences in this V_I_S instance.
+      Returns a copy of the simple interval occurrences data, where all of the
+      pieces-specific data are summarized and removed.
       '''
       return {k:v['Total'] for k,v in self._simple_interval_dict.iteritems()}
 
@@ -304,16 +302,16 @@ class Vertical_Interval_Statistics( object ):
 
    def get_compound_interval_summary_dict( self ):
       '''
-      Since the interval dicts normally keep track of the occurrences
-      of an interval in each piece, this method returns the "summary"
-      version which matches a compound interval to the total number of
-      its occurrences in this V_I_S instance.
+      Returns a copy of the compound interval occurrences data, where all of the
+      pieces-specific data are summarized and removed.
       '''
       return {k:v['Total'] for k,v in self._compound_interval_dict.iteritems()}
 
 
 
-   def get_interval_occurrences( self, which_interval, simple_or_compound='simple', piece=None ):
+   def get_interval_occurrences( self, which_interval, \
+                                 simple_or_compound='simple', piece=None ):
+      # TODO: rewrite this method to use a VIS_Settings instance
       '''
       Returns the number of occurrences of a particular
       :class:`music21.interval.Interval` in a particular piece,
@@ -381,17 +379,23 @@ class Vertical_Interval_Statistics( object ):
    def add_ngram( self, the_ngram, the_piece ):
       '''
       Adds an n-gram to the occurrences information.
+
+      The first argument should be an NGram object, and the second should be
+      the string-format name associated with this piece-and-voice-pair
+      combination.
       '''
 
       # set up the keys for the various nested compound-ngram dicts
-      compound_no_quality_version = the_ngram.get_string_version(False, 'compound')
-      compound_quality_version = the_ngram.get_string_version(True, 'compound')
+      compound_no_quality_version = \
+            the_ngram.get_string_version( False, 'compound' )
+      compound_quality_version = \
+            the_ngram.get_string_version( True, 'compound' )
 
       # add the occurrence to the compound-ngram dict
       self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version]\
-         [compound_quality_version][the_piece] += 1
+            [compound_quality_version][the_piece] += 1
       self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version]\
-         [compound_quality_version]['Total'] += 1
+            [compound_quality_version]['Total'] += 1
 
       # set up the keys for the various nested simple-ngram dicts
       simple_no_quality_version = the_ngram.get_string_version(False, 'simple')
@@ -399,23 +403,21 @@ class Vertical_Interval_Statistics( object ):
 
       # add the occurrence to the simple-ngram dict
       self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version]\
-         [simple_quality_version][the_piece] += 1
+            [simple_quality_version][the_piece] += 1
       self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version]\
-         [simple_quality_version]['Total'] += 1
-
-
+            [simple_quality_version]['Total'] += 1
    # End add_ngram() ---------------------------------------
 
 
 
-   def get_ngram_dict( self, settings, leave_pieces = True ):
+   def get_ngram_dict( self, settings ):
       '''
       Given a VIS_Settings object, return a tuple with:
       - a dict including the n-gram specified statistics, and
       - a dict with a sorted list of keys for the required values of n
 
-      Set the "leave_pieces" argument to "False" to omit voice-pair-specific
-      data, outputting only the totals for all voice pairs.
+      In the VIS_Settings instance, set "leavePieces" to "False" to omit
+      voice-pair-specific data, outputting only the totals for all voice pairs.
 
       Note that each n-gram object is appears in the statistics dictionary as
       a string, as per the settings provided.
@@ -446,9 +448,10 @@ class Vertical_Interval_Statistics( object ):
       if settings.get_property( 'heedQuality' ):
          # We do need to include quality, so replace the no_quality
          # level of the dict with all of its sub-dicts
-         output_dict = {n:
-                       dict(chain(*[data_dict[n][ng].items() for ng in data_dict[n].keys()]))
-                     for n in list_of_n}
+         output_dict = \
+               {n:dict(chain(*[data_dict[n][ng].items() \
+               for ng in data_dict[n].keys()])) \
+               for n in list_of_n}
       else:
          # We don't need to include quality, so just forget
          # about the values of the ngram dict and sum up all their data.
@@ -465,19 +468,20 @@ class Vertical_Interval_Statistics( object ):
          for n in list_of_n:
             # sort the keys by frequency
             sorted_ngrams = sorted( output_dict[n].keys(), \
-                                    key = lambda ng: output_dict[n][ng]['Total'], \
-                                    reverse = True )
+                                   key = lambda ng: output_dict[n][ng]['Total'],
+                                   reverse = True )
             # accept only the top topX
             sorted_ngrams = sorted_ngrams[:topX]
             # filter the dict to only include the new keys
             output_dict[n] = {ng:output_dict[n][ng] for ng in sorted_ngrams}
 
-      # (3) Do the filtering for "threshold" (n-grams with fewer occurrences
-      # "threshold" should not be included)
+      # (3) Do the filtering for "threshold" (n-grams with fewer than
+      # "threshold" occurrences should not be included)
       thresh = settings.get_property( 'threshold' ) # the threshold
       if thresh is not None:
          for n in list_of_n:
-            keys = filter(lambda ng: output_dict[n][ng]['Total'] >= thresh, output_dict[n].keys())
+            keys = filter( lambda ng: output_dict[n][ng]['Total'] >= thresh, \
+                           output_dict[n].keys() )
             output_dict[n] = {ng:output_dict[n][ng] for ng in keys}
 
       # (4) Sort the keys according to the settings
@@ -493,227 +497,243 @@ class Vertical_Interval_Statistics( object ):
          keys = {n: sorted(keys[n], key = lambda ng: output_dict[n][ng]['Total'], reverse = rev)
                     for n in list_of_n}
       # should we forget the piece breakdown?
-      if leave_pieces is False:
+      if not settings.get_property( 'leavePieces' ):
          output_dict = {n:{ng:v['Total'] for ng,v in output_dict[n].items()} for n in list_of_n}
       return (output_dict,keys)
    # End get_ngram_dict() ----------------------------------
 
 
 
-   def get_ngram_occurrences( self, which_ngram ):
-      '''
-      Returns the number of occurrences of a particular n-gram. Currently, all
-      n-grams are treated as though they have compound intervals.
-
-      The first argument must be an NGram object or the output from either
-      NGram.stringVersion or str(NGram) (which calls stringVersion() internally).
-
-      Automatically does or does not track quality, depending on the settings
-      of the inputted NGram objects.
-      '''
-
-      # TODO: write comments for this method
-      ng = None
-      if isinstance(which_ngram,NGram):
-         ng = which_ngram
-      if isinstance(which_ngram,basestring):
-         try:
-            ng = NGram.make_from_str(which_ngram)
-         except NonsensicalInputError as nie:
-            raise
-      else:
-         raise NonsensicalInputError("Input must be of type NGram or string")
-      ng_key = ng.get_string_version(True,'compound')
-      n = ng.n()
-      settings = VIS_Settings()
-      settings.set_property('simpleOrCompound', 'compound')
-      settings.set_property('heedQuality', 'true')
-      settings.set_property( 'showTheseNs', [n] )
-      the_dict = self.get_ngram_dict( settings )[0][n]
-      return 0 if the_dict.get(ng_key) is None else the_dict[ng_key]['Total']
+   #def get_ngram_occurrences( self, which_ngram ):
+      #'''
+      #Returns the number of occurrences of a particular n-gram. Currently, all
+      #n-grams are treated as though they have compound intervals.
+#
+      #The first argument must be an NGram object or the output from either
+      #NGram.stringVersion or str(NGram) (which calls stringVersion() internally).
+#
+      #Automatically does or does not track quality, depending on the settings
+      #of the inputted NGram objects.
+      #'''
+#
+      ## TODO: determine whether we need this method; if so, write comments
+      #ng = None
+      #if isinstance(which_ngram,NGram):
+         #ng = which_ngram
+      #if isinstance(which_ngram,basestring):
+         #try:
+            #ng = NGram.make_from_str(which_ngram)
+         #except NonsensicalInputError as nie:
+            #raise
+      #else:
+         #raise NonsensicalInputError("Input must be of type NGram or string")
+      #ng_key = ng.get_string_version(True,'compound')
+      #n = ng.n()
+      #settings = VIS_Settings()
+      #settings.set_property('simpleOrCompound', 'compound')
+      #settings.set_property('heedQuality', 'true')
+      #settings.set_property( 'showTheseNs', [n] )
+      #the_dict = self.get_ngram_dict( settings )[0][n]
+      #return 0 if the_dict.get(ng_key) is None else the_dict[ng_key]['Total']
    # End get_ngram_occurrences() ---------------------------
 
 
 
-   def extend( self, other_stats ):
+   def extend( self, other):
       '''
-      Given a Vertical_Interval_Statistics instance, take all of its relevant data
-      and merge it into self.
+      Merge an other Vertical_Interval_Statistics instance with this one.
       '''
 
-      def merge_default_dicts(x,y):
+      def merge_default_dicts( x, y ):
          '''
-         Given two nested defaultdicts, return a defaultdict
-         which has all of the keys of both and values which are
-         the sums of the corresponding values in each.
+         Given two nested defaultdicts, return a new defaultdict with all the
+         keys of both, and values that correspond to summing the dicts together.
          '''
-         new_keys = set(x.keys()+y.keys())
+
+         # Here's a set with all of the keys belonging in the new defaultdict
+         new_keys = set( x.keys() + y.keys() )
+
+         # TODO: what's this "int" test for?
          if x.default_factory == int:
-            return defaultdict(int,((key,x[key]+y[key]) for key in new_keys))
+            # Assemble the new defaultdict by adding the values in x to
+            # the values in y.
+            contents = ( (key, x[key] + y[key]) for key in new_keys )
+            return defaultdict( int, contents )
          else:
-            return defaultdict(x.default_factory,((key,merge_default_dicts(x[key],y[key]))
-                               for key in new_keys))
+            # TODO: Assemble the new defaultdict by ... how?
+            contents = ( (key, merge_default_dicts( x[key], y[key] )) for \
+                  key in new_keys )
+            return defaultdict( x.default_factory, contents )
 
-      self._pieces_analyzed += other_stats._pieces_analyzed
-      self._simple_interval_dict = merge_default_dicts(self._simple_interval_dict, \
-                                      other_stats._simple_interval_dict)
-      self._compound_interval_dict = merge_default_dicts(self._compound_interval_dict, \
-                                        other_stats._compound_interval_dict)
+      # Deal with the record of voice pairs and pieces
+      self._pieces_analyzed += other._pieces_analyzed
 
-      self._compound_ngrams_dict = merge_default_dicts( self._compound_ngrams_dict, \
-                                      other_stats._compound_ngrams_dict )
-      self._simple_ngrams_dict = merge_default_dicts( self._simple_ngrams_dict, \
-                                    other_stats._simple_ngrams_dict )
+      # Deal with the intervals
+      self._simple_interval_dict = \
+            merge_default_dicts( self._simple_interval_dict, \
+                                 other._simple_interval_dict)
+      self._compound_interval_dict = \
+            merge_default_dicts( self._compound_interval_dict, \
+                                 other._compound_interval_dict)
+
+      # Deal with the n-grams
+      self._compound_ngrams_dict = \
+            merge_default_dicts( self._compound_ngrams_dict, \
+                                 other._compound_ngrams_dict )
+      self._simple_ngrams_dict = \
+            merge_default_dicts( self._simple_ngrams_dict, \
+                                 other._simple_ngrams_dict )
    # End extend() ------------------------------------------
 
 
 
-   # NB: this method does NOT get used in the GUI
-   def retrogrades( self, the_settings, specs='' ):
-      # (1) Figure out which values of 'n' we should output.
-      post = ''
-      list_of_n = the_settings.get_property('showTheseNs')
-
-      # (2) Decide whether to take 'quality' or 'no_quality'
-      output_dict = self.prepare_ngram_output_dict( the_settings )
-
-      # (3) Sort the dictionary
-      sorted_ngrams = []
-      # We need to have enough 'n' places in sorted_ngrams to hold the
-      # sorted dictionaries.
-      for n in xrange(max(list_of_n) + 1):
-         sorted_ngrams.append( [] )
-      for n in list_of_n:
-         sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng] )
-
-      # (4) Generate the results
-      ngram_pairs = []
-      for n in xrange(max(list_of_n) + 1):
-         ngram_pairs.append( {} )
-      for n in list_of_n:
-         for ng in sorted_ngrams[n]:
-            retrograde = ng.retrograde()
-            # this is an odd workaround; used to get KeyErrors, possibly because accessing the key
-            # wasn't using __hash__ correctly? Anyway, the problem seems to have to do with
-            # changing NGram.__repr__ to include the specific pitches in the NGram.
-            matches = [gram for gram in sorted_ngrams[n] if gram == retrograde]
-            if len(matches) > 0:
-               for ngram in matches:
-                  ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],output_dict[n][ngram])
-                  sorted_ngrams[n].remove(retrograde)
-            else:
-               ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],0)
-
-      # (5.1) If some graphs are asked for, prepare them
-      if 'graph' in specs:
-         grapharr = []
-         for n in list_of_n:
-            keys = sorted(ngram_pairs[n].keys(), key = lambda ng: \
-                          float(ngram_pairs[n][ng][1])/float(ngram_pairs[n][ng][0]), reverse=True)
-            g = graph.GraphGroupedVerticalBar(doneAction=None)
-            data = []
-            for key in keys:
-               entry = (str(key[0])+' '+str(key[1]),)
-               pair = {}
-               pair['n-gram'] = ngram_pairs[n][key][0]
-               pair['retrograde'] = ngram_pairs[n][key][1]
-               entry += (pair,)
-               data.append(entry)
-            g.setData(data)
-            g.setTitle(str(n)+'-Grams')
-            # this is a very slight edit of the music21.graph.GraphGroupedVerticalBar.process()
-            # and labelBars() methods
-            fig = plt.figure()
-            setattr(g,'fig', fig)
-            fig.subplots_adjust(bottom=.3)
-            ax = fig.add_subplot(1, 1, 1)
-
-            # b value is a list of values for each bar
-            for a, b in getattr(g,'data'):
-               barsPerGroup = len(b)
-               # get for legend
-               subLabels = sorted(b.keys())
-               break
-            widthShift = 1 / float(barsPerGroup)
-
-            xVals = []
-            yBundles = []
-            for i, (a, b) in enumerate(getattr(g,'data')):
-               # create x vals from index values
-               xVals.append(i)
-               yBundles.append([b[key] for key in sorted(b.keys())])
-
-            rects = []
-            for i in range(barsPerGroup):
-               yVals = []
-               for j, x in enumerate(xVals):
-                  # get position, then get bar group
-                  yVals.append(yBundles[j][i])
-               xValsShifted = []
-               for x in xVals:
-                  xValsShifted.append(x + (widthShift * i))
-               colors = getattr(g,'colors')
-
-               rect = ax.bar(xValsShifted, yVals, width=widthShift, alpha=.8,
-                   color=graph.getColor(colors[i % len(colors)]))
-               rects.append(rect)
-
-            colors = []
-            for k in range(len(rects)):
-               for j in range(len(rects[k])):
-                  height = rects[k][j].get_height()
-                  ax.text(rects[k][j].get_x()+rects[k][j].get_width()/2., height+.05, \
-                          '%s'%(str(keys[j][k])), rotation='vertical', ha='center', va='bottom',
-                          fontsize=getattr(g,'tickFontSize'), family=getattr(g,'fontFamily'))
-               colors.append(rects[k][0])
-
-            font = matplotlib.font_manager.FontProperties(size=getattr(g,'tickFontSize'),
-                        family=getattr(g,'fontFamily'))
-            ax.legend(colors, subLabels, prop=font)
-
-            g._adjustAxisSpines(ax)
-            g._applyFormatting(ax)
-            g.done()
-            grapharr.append(g)
-         post = grapharr
-      # (5.2) Else prepare a nicely formatted list of the results
-      else:
-         for n in list_of_n:
-            post += 'All the ' + str(n) + '-grams with retrogrades:\n-----------------------------\n'
-            for ng in ngram_pairs[n].keys():
-               post += str(ng[0]) + ': ' + str(ngram_pairs[n][ng][0]) +'; ' \
-                       +str(ng[1])+': '+str(ngram_pairs[n][ng][1]) + '\n'
-      return post
+   # TODO: decide whether we need this method, then remove or improve
+   #def retrogrades( self, the_settings, specs='' ):
+      ## (1) Figure out which values of 'n' we should output.
+      #post = ''
+      #list_of_n = the_settings.get_property('showTheseNs')
+#
+      ## (2) Decide whether to take 'quality' or 'no_quality'
+      #output_dict = self.prepare_ngram_output_dict( the_settings )
+#
+      ## (3) Sort the dictionary
+      #sorted_ngrams = []
+      ## We need to have enough 'n' places in sorted_ngrams to hold the
+      ## sorted dictionaries.
+      #for n in xrange(max(list_of_n) + 1):
+         #sorted_ngrams.append( [] )
+      #for n in list_of_n:
+         #sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng] )
+#
+      ## (4) Generate the results
+      #ngram_pairs = []
+      #for n in xrange(max(list_of_n) + 1):
+         #ngram_pairs.append( {} )
+      #for n in list_of_n:
+         #for ng in sorted_ngrams[n]:
+            #retrograde = ng.retrograde()
+            ## this is an odd workaround; used to get KeyErrors, possibly because accessing the key
+            ## wasn't using __hash__ correctly? Anyway, the problem seems to have to do with
+            ## changing NGram.__repr__ to include the specific pitches in the NGram.
+            #matches = [gram for gram in sorted_ngrams[n] if gram == retrograde]
+            #if len(matches) > 0:
+               #for ngram in matches:
+                  #ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],output_dict[n][ngram])
+                  #sorted_ngrams[n].remove(retrograde)
+            #else:
+               #ngram_pairs[n][(ng,retrograde)] = (output_dict[n][ng],0)
+#
+      ## (5.1) If some graphs are asked for, prepare them
+      #if 'graph' in specs:
+         #grapharr = []
+         #for n in list_of_n:
+            #keys = sorted(ngram_pairs[n].keys(), key = lambda ng: \
+                          #float(ngram_pairs[n][ng][1])/float(ngram_pairs[n][ng][0]), reverse=True)
+            #g = graph.GraphGroupedVerticalBar(doneAction=None)
+            #data = []
+            #for key in keys:
+               #entry = (str(key[0])+' '+str(key[1]),)
+               #pair = {}
+               #pair['n-gram'] = ngram_pairs[n][key][0]
+               #pair['retrograde'] = ngram_pairs[n][key][1]
+               #entry += (pair,)
+               #data.append(entry)
+            #g.setData(data)
+            #g.setTitle(str(n)+'-Grams')
+            ## this is a very slight edit of the music21.graph.GraphGroupedVerticalBar.process()
+            ## and labelBars() methods
+            #fig = plt.figure()
+            #setattr(g,'fig', fig)
+            #fig.subplots_adjust(bottom=.3)
+            #ax = fig.add_subplot(1, 1, 1)
+#
+            ## b value is a list of values for each bar
+            #for a, b in getattr(g,'data'):
+               #barsPerGroup = len(b)
+               ## get for legend
+               #subLabels = sorted(b.keys())
+               #break
+            #widthShift = 1 / float(barsPerGroup)
+#
+            #xVals = []
+            #yBundles = []
+            #for i, (a, b) in enumerate(getattr(g,'data')):
+               ## create x vals from index values
+               #xVals.append(i)
+               #yBundles.append([b[key] for key in sorted(b.keys())])
+#
+            #rects = []
+            #for i in range(barsPerGroup):
+               #yVals = []
+               #for j, x in enumerate(xVals):
+                  ## get position, then get bar group
+                  #yVals.append(yBundles[j][i])
+               #xValsShifted = []
+               #for x in xVals:
+                  #xValsShifted.append(x + (widthShift * i))
+               #colors = getattr(g,'colors')
+#
+               #rect = ax.bar(xValsShifted, yVals, width=widthShift, alpha=.8,
+                   #color=graph.getColor(colors[i % len(colors)]))
+               #rects.append(rect)
+#
+            #colors = []
+            #for k in range(len(rects)):
+               #for j in range(len(rects[k])):
+                  #height = rects[k][j].get_height()
+                  #ax.text(rects[k][j].get_x()+rects[k][j].get_width()/2., height+.05, \
+                          #'%s'%(str(keys[j][k])), rotation='vertical', ha='center', va='bottom',
+                          #fontsize=getattr(g,'tickFontSize'), family=getattr(g,'fontFamily'))
+               #colors.append(rects[k][0])
+#
+            #font = matplotlib.font_manager.FontProperties(size=getattr(g,'tickFontSize'),
+                        #family=getattr(g,'fontFamily'))
+            #ax.legend(colors, subLabels, prop=font)
+#
+            #g._adjustAxisSpines(ax)
+            #g._applyFormatting(ax)
+            #g.done()
+            #grapharr.append(g)
+         #post = grapharr
+      ## (5.2) Else prepare a nicely formatted list of the results
+      #else:
+         #for n in list_of_n:
+            #post += 'All the ' + str(n) + '-grams with retrogrades:\n-----------------------------\n'
+            #for ng in ngram_pairs[n].keys():
+               #post += str(ng[0]) + ': ' + str(ngram_pairs[n][ng][0]) +'; ' \
+                       #+str(ng[1])+': '+str(ngram_pairs[n][ng][1]) + '\n'
+      #return post
    # End retrogrades() -------------------------------------
 
 
-   # NB: This method does NOT get used in the GUI
-   def power_law_analysis( self, the_settings ):
-      list_of_n = the_settings.get_property('showTheseNs')
 
-      # (2) Decide whether to take 'quality' or 'no_quality'
-      output_dict = self.prepare_ngram_output_dict( the_settings )
-
-      # (3) Sort the dictionary
-      sorted_ngrams = []
-      # We need to have enough 'n' places in sorted_ngrams to hold the
-      # sorted dictionaries.
-      for n in xrange(max(list_of_n) + 1):
-         sorted_ngrams.append( [] )
-      post = ''
-      for n in list_of_n:
-         sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng], reverse=True )
-         # we do a power-law regression by instead looking at
-         # the logarithmic scales and doing linear regression
-         xi = [log(i) for i in range(1,len(sorted_ngrams[n])+1)]
-         A = array([ xi, ones(len(xi))])
-         y = [log(output_dict[n][ng]) for ng in sorted_ngrams[n]]
-         w = linalg.lstsq(A.T,y)[0] #least-squares regression on the data
-         # w[0] contains the slope of the line, and we'll just display
-         # positive numbers because that's nice.
-         post += 'The power law exponent for the '+str(n)+'-grams is '+str(-w[0])+ \
-                 '; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
-      return post
+   # TODO: decide whether we need this method, then remove or improve
+   #def power_law_analysis( self, the_settings ):
+      #list_of_n = the_settings.get_property('showTheseNs')
+#
+      ## (2) Decide whether to take 'quality' or 'no_quality'
+      #output_dict = self.prepare_ngram_output_dict( the_settings )
+#
+      ## (3) Sort the dictionary
+      #sorted_ngrams = []
+      ## We need to have enough 'n' places in sorted_ngrams to hold the
+      ## sorted dictionaries.
+      #for n in xrange(max(list_of_n) + 1):
+         #sorted_ngrams.append( [] )
+      #post = ''
+      #for n in list_of_n:
+         #sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng], reverse=True )
+         ## we do a power-law regression by instead looking at
+         ## the logarithmic scales and doing linear regression
+         #xi = [log(i) for i in range(1,len(sorted_ngrams[n])+1)]
+         #A = array([ xi, ones(len(xi))])
+         #y = [log(output_dict[n][ng]) for ng in sorted_ngrams[n]]
+         #w = linalg.lstsq(A.T,y)[0] #least-squares regression on the data
+         ## w[0] contains the slope of the line, and we'll just display
+         ## positive numbers because that's nice.
+         #post += 'The power law exponent for the '+str(n)+'-grams is '+str(-w[0])+ \
+                 #'; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
+      #return post
    # End power_law_analysis() ------------------------------
 
 
@@ -744,41 +764,48 @@ class Vertical_Interval_Statistics( object ):
          # yes we do; this is done by removing any 'letters'
          # from the interval's text representation -- voila,
          # the quality-free version!
-         non_numeric = re.compile(r'[^\d-]+')
+         non_numeric = re.compile( r'[^\d-]+' )
          # replace anything that isn't a number with the empty string
-         red = lambda k:non_numeric.sub('',k)
+         red = lambda k: non_numeric.sub( '', k )
          # apply that sweet function to all of the intervals
-         keys = set(red(k) for k in the_dict.keys())
-         # now for each new key, replace it with a tuple containing
-         # (key,[set of old keys which have this common quality-free form])
-         keys = [(k,filter(lambda t:red(t[0])==k,the_dict.items())) for k in keys]
+         keys = set( red(k) for k in the_dict.keys() )
+         # For each new key, replace it with a tuple containing:
+         # ( key, [set of old keys which have this common quality-free form] )
+         keys = [( k, filter( lambda t: red( t[0] ) == k, the_dict.items() ) )\
+                 for k in keys]
          # now we make a dict with the new keys and values being the sum
          #over all the values associated to the old keys
-         piece_list = self._pieces_analyzed+['Total']
-         the_dict = {k:
-                       {p:sum(v[p] for K,v in l) for p in piece_list}
-                     for k,l in keys}
+         piece_list = self._pieces_analyzed + ['Total']
+         the_dict = {k:{p:sum( v[p] for K, v in l) for p in piece_list} \
+                     for k, l in keys}
 
       # (2) Sort the results in the specified way.
       if 'frequency' == the_settings.get_property( 'sortBy' ):
          # Sort by frequency
          if 'ascending' == the_settings.get_property( 'sortOrder' ):
-            sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x]['Total'] )
+            sorted_intervals = sorted( the_dict.iterkeys(), \
+                                       key = lambda x: the_dict[x]['Total'] )
          else:
             # Default to 'descending'
-            sorted_intervals = sorted( the_dict.iterkeys(), key= lambda x: the_dict[x]['Total'], reverse=True )
+            sorted_intervals = sorted( the_dict.iterkeys(), \
+                                       key = lambda x: the_dict[x]['Total'], \
+                                       reverse = True )
       else:
          # Default to 'by interval'
          if 'descending' == the_settings.get_property( 'sortOrder' ):
-            sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter, reverse=True )
+            sorted_intervals = sorted( the_dict.iterkeys(), \
+                                       cmp = interval_sorter, \
+                                       reverse = True )
          else: # elif 'ascending' in specs or 'low to high' in specs:
             # Default to 'ascending'
-            sorted_intervals = sorted( the_dict.iterkeys(), cmp=interval_sorter )
+            sorted_intervals = sorted( the_dict.iterkeys(), \
+                                       cmp = interval_sorter )
 
       # (3A) Make a graph, if requested.
       if 'graph' == the_settings.get_property( 'outputFormat' ):
-         g = graph.GraphHistogram(doneAction=None)
-         data = [(i,the_dict[interv]['Total']) for i, interv in enumerate(sorted_intervals)]
+         g = graph.GraphHistogram( doneAction = None )
+         data = [(i, the_dict[interv]['Total'])\
+                 for i, interv in enumerate(sorted_intervals)]
          g.setData(data)
          g.setTitle("Intervals in "+join([str(os.path.split(p)[1])+", " for p in self._pieces_analyzed])[:-2])
          g.setTicks('x',[(i+0.4,interv) for i,interv in enumerate(sorted_intervals)])
@@ -886,57 +913,127 @@ class Vertical_Interval_Statistics( object ):
       formatting options.
       '''
 
-      graph = the_settings.get_property( 'outputFormat' ) == 'graph'
-      if graph:
+      # Which output format to they want?
+      output_format = the_settings.get_property( 'outputFormat' )
+
+      # Currently, this method only supports the text and Graph outputs
+      if 'graph' == output_format:
          return self.get_ngram_graph(the_settings)
-      else:
+      elif 'text' == output_format:
          return self.get_ngram_text(the_settings)
-   # end get_formatted_ngrams() ----------------------------
+      else:
+         msg = 'get_formatted_ngrams() can only currently prepare ' + \
+               'list or Graph output'
+         raise NonsensicalInputWarning( msg )
+
+
 
    def get_ngram_graph( self, settings ):
-      output_dict, keys = self.get_ngram_dict(settings)
-      grapharr = []
-      for n in output_dict.keys():
-         g = graph.GraphHistogram(doneAction=None,tickFontSize=12)
-         data = [(k,output_dict[n][key]['Total']) \
-                  for k, key in enumerate(keys[n])]
-         g.setData(data)
-         g.setTicks('x',[(k+0.7,key) for k, key in enumerate(keys[n])])
-         g.setAxisLabel('x',str(n)+"-Gram")
-         g.xTickLabelRotation = 45
-         g.xTickLabelVerticalAlignment='top'
-         g.xTickLabelHorizontalAlignment='right'
-         g.setTitle(str(n)+"-Grams in "+join([str(os.path.split(p)[1])+", " \
-                    for p in self._pieces_analyzed])[:-2])
-         max_height = max([output_dict[n][key]['Total'] for key in keys[n]])+1
-         tick_dist = max(max_height/10,1)
-         ticks = []
-         k = 0
-         while k*tick_dist <= max_height:
-            k += 1
-            ticks.append(k*tick_dist)
-         g.setTicks('y',[(k,k) for k in ticks])
-         g.fig = plt.figure()
-         g.fig.subplots_adjust(left=0.15, bottom=0.2)
-         ax = g.fig.add_subplot(1, 1, 1)
+      '''
+      Given a VIS_Settings object, prepare a music21 "Graph" object of n-grams
+      with corresponding results.
+      '''
 
+      # Get the statistics to show, and a sorted list of keys
+      output_dict, keys = self.get_ngram_dict(settings)
+
+      # Hold a list of the chart objects for every requested value of 'n'
+      grapharr = []
+
+      # Iterate through the requested values of 'n'
+      for n in output_dict.keys():
+         # This is what we'll return
+         chart = graph.GraphHistogram( doneAction = None, tickFontSize = 12 )
+
+         # Get the data corresponding to this 'n' value
+         data = [(k, output_dict[n][key]['Total']) \
+                  for k, key in enumerate(keys[n])]
+
+         # Set the chart's data
+         chart.setData( data )
+
+         # What does this do, and why does it seem to be done differently, and
+         # at a different time than "chart.setTick( 'y', ... )" ?
+         chart.setTicks( 'x', [( k + 0.7, key ) \
+                               for k, key in enumerate( keys[n] )])
+
+         # Set the label for the x axis
+         chart.setAxisLabel( 'x', str(n) + '-gram' )
+
+         # Adjust the rotation and alignment of the x-axis labels
+         chart.xTickLabelRotation = 45
+         chart.xTickLabelVerticalAlignment = 'top'
+         chart.xTickLabelHorizontalAlignment = 'right'
+
+         # Set the chart's title
+         chart.setTitle( str(n) + '-grams in ' + \
+                         join( [str( os.path.split(p)[1] ) + ', ' \
+                               for p in self._pieces_analyzed] )[:-2] )
+
+         # TODO: ?
+         max_height = max( [output_dict[n][key]['Total'] \
+                            for key in keys[n]] ) + 1
+
+         # TODO: ?
+         tick_dist = max( max_height / 10, 1 )
+
+         # TODO: what are ticks?
+         ticks = []
+
+         # TODO: what is k?
+         k = 0
+
+         # TODO: what does this do?
+         while k * tick_dist <= max_height:
+            k += 1
+            ticks.append( k * tick_dist )
+
+         # TODO: what do these four lines do?
+         chart.setTicks( 'y', [(k, k) for k in ticks] )
+         chart.fig = plt.figure()
+         chart.fig.subplots_adjust( left = 0.15, bottom = 0.2 )
+         ax = chart.fig.add_subplot( 1, 1, 1 )
+
+         # TODO: what are these, and can we give them better names?
          x = []
          y = []
-         for a, b in g.data:
-            x.append(a)
-            y.append(b)
-         ax.bar(x, y, alpha=.8, color=graph.getColor(g.colors[0]))
 
-         g._adjustAxisSpines(ax)
-         g._applyFormatting(ax)
-         ax.set_ylabel('Frequency', fontsize=g.labelFontSize, family=g.fontFamily, \
-                        rotation='vertical')
-         g.done()
-         grapharr.append(g)
+         # TODO: ?
+         for a, b in chart.data:
+            x.append( a )
+            y.append( b )
+
+         # TODO: ?
+         ax.bar( x, y, alpha = 0.8, color = graph.getColor( chart.colors[0] ) )
+
+         # TODO: what are these?
+         chart._adjustAxisSpines( ax )
+         chart._applyFormatting( ax )
+
+         # Set the y-axis label
+         ax.set_ylabel( 'Frequency', fontsize=chart.labelFontSize, \
+                        family=chart.fontFamily, rotation='vertical')
+
+         # TODO: signal that we're done preparing the chart?
+         chart.done()
+
+         # Appen this chart to the list of charts we'll return
+         grapharr.append( chart )
+
       return grapharr
+   # End get_ngram_graph() ---------------------------------
+
+
 
    def get_ngram_text( self, settings ):
+      '''
+      Given a VIS_Settings object, prepare text-based output in a string, with
+      corresponding n-grams.
+      '''
+
+      # TODO: comment this method as extensively as get_ngram_graph()
       output_dict, keys = self.get_ngram_dict(settings)
+
       # Start with a title
       post = 'N-Grams\n\n'
 
@@ -994,6 +1091,9 @@ class Vertical_Interval_Statistics( object ):
       # Remove the final newline, which we don't really need
       post = post[:-3]
       return post
+   # End get_ngram_text() ----------------------------------
+
+
 
    def compare( self, the_settings, other_stats, file1, file2, specs='' ):
       '''
@@ -1001,6 +1101,9 @@ class Vertical_Interval_Statistics( object ):
       displaying a text chart or graph, as well as computing the "total metric"
       difference between the two.
       '''
+      # TODO: comment this method as extensively as get_ngram_graph()
+      # TODO: remove duplication with get_ngram_text() and get_ngram_graph()
+
       # (1) Figure out which 'n' values to display
       post = ''
       list_of_n = []
@@ -1092,7 +1195,7 @@ class Vertical_Interval_Statistics( object ):
             totaldiff = sum([abs(float(a[0])/total1-float(a[1])/total2) for a in table.values()])
             post += "\nTotal difference between "+str(n)+"-grams: "+str(totaldiff)+"\n"
       return post
-   # end compare() -----------------------------------------
+   # End compare() -----------------------------------------
 
 
 
@@ -1124,9 +1227,11 @@ class Vertical_Interval_Statistics( object ):
       # (1A) What are the "n" values we need?
       list_of_n = settings.get_property( 'showTheseNs' )
 
-      # (1B) Get the formatted list of n-grams
-      ngrams_dicts, sorted_ngrams = self.get_ngram_dict( settings, \
-                                                         leave_pieces = False )
+      # (1B) Ensure settings are correct
+      settings.set_property( 'leavePieces', False )
+
+      # (1C) Get the formatted list of n-grams
+      ngrams_dicts, sorted_ngrams = self.get_ngram_dict( settings, )
 
       # (2) Initialize Stream objects
       # Hold the upper and lower, and the annotation parts that we'll use
@@ -1171,6 +1276,8 @@ class Vertical_Interval_Statistics( object ):
                # (6.1) Get the upper-part Note objects for this ngram
                u_note = note.Note( interv.noteEnd.pitch, quarterLength=1.0 )
                upper_measure.append( u_note )
+               # This next "invisible" note, which will turn into an "s" in the
+               # LilyPond string, is used to space out the quarter notes
                u_note = note.Note( interv.noteEnd.pitch, quarterLength=1.0 )
                u_note.lily_invisible = True
                upper_measure.append( u_note )
@@ -1178,6 +1285,8 @@ class Vertical_Interval_Statistics( object ):
                # (6.2) Get the lower-part Note objects for this ngram
                l_note = note.Note( interv.noteStart.pitch, quarterLength=1.0 )
                lower_measure.append( l_note )
+               # This next "invisible" note, which will turn into an "s" in the
+               # LilyPond string, is used to space out the quarter notes
                l_note = note.Note( interv.noteStart.pitch, quarterLength=1.0 )
                l_note.lily_invisible = True
                lower_measure.append( l_note )
@@ -1195,10 +1304,11 @@ class Vertical_Interval_Statistics( object ):
             # (6.4) Append some Rest objects to the end
             rest_measure = stream.Measure()
             rest_measure.lily_invisible = True
-            rest_measure.append( note.Rest( quarterLength=float( 2 * len(ints) ) ) )
+            the_rest = note.Rest( quarterLength = float( 2 * len(ints) ) )
+            rest_measure.append( the_rest )
             upper_part.append( rest_measure )
             lower_part.append( rest_measure )
-            lily_part.append( note.Rest( quarterLength=float( 2 * len(ints) ) ) )
+            lily_part.append( the_rest )
 
       # Make a Metadata object
       metad = Metadata()
