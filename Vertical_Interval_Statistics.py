@@ -419,6 +419,9 @@ class Vertical_Interval_Statistics( object ):
 
       Note that each n-gram object is appears in the statistics dictionary as
       a string, as per the settings provided.
+
+      The second element of the returned tuple looks like this, for example:
+      {2: ['6 -2 6', '5 4 1'], 3: ['4 1 5 1 6', '6 1 5 1 4']}
       '''
 
       # (1) Generate the dictionary
@@ -1122,14 +1125,18 @@ class Vertical_Interval_Statistics( object ):
       list_of_n = settings.get_property( 'showTheseNs' )
 
       # (1B) Get the formatted list of n-grams
-      ngrams_dicts, keys = self.get_ngram_dict( settings, leave_pieces = False )
+      ngrams_dicts, sorted_ngrams = self.get_ngram_dict( settings, \
+                                                         leave_pieces = False )
 
       # (2) Initialize Stream objects
-
       # Hold the upper and lower, and the annotation parts that we'll use
       upper_part = stream.Part()
       lower_part = stream.Part()
       lily_part = stream.Part()
+
+      # Set up the parts with notes; this instruction means no stems will show
+      upper_part.lily_instruction = "\t\override Stem #'transparent = ##t"
+      lower_part.lily_instruction = "\t\override Stem #'transparent = ##t"
 
       # Set up the analysis Part
       lily_part.lily_analysis_voice = True
@@ -1137,7 +1144,7 @@ class Vertical_Interval_Statistics( object ):
       # (3) Make the Score
       for n in list_of_n:
          # Go through all the n-grams for this value of n
-         for this_ngram in ngrams_dicts[n]:
+         for this_ngram in sorted_ngrams[n]:
             # Convert "this_ngram" into an NGram object
             ngram_obj = NGram.make_from_str( this_ngram )
 
@@ -1146,31 +1153,39 @@ class Vertical_Interval_Statistics( object ):
 
             # Hold the measures for this round
             upper_measure = stream.Measure()
-            #upper_measure.timeSignature = meter.TimeSignature( '4/4' )
             lower_measure = stream.Measure()
-            #lower_measure.timeSignature = meter.TimeSignature( '4/4' )
             # Except the analysis part
 
             # Are these the first objects in the streams?
             if 0 == len(upper_part):
                # Add some starting-out stuff to the measures
+               meter_str = str( 2 * len(ints) ) + '/4'
                upper_measure.clef = clef.TrebleClef()
-               upper_measure.timeSignature = meter.TimeSignature( '4/4' )
+               upper_measure.timeSignature = meter.TimeSignature( meter_str )
                lower_measure.clef = clef.BassClef()
-               lower_measure.timeSignature = meter.TimeSignature( '4/4' )
+               lower_measure.timeSignature = meter.TimeSignature( meter_str )
                # Except the analysis part
 
             # Make the upper and lower notes
             for interv in ints:
                # (6.1) Get the upper-part Note objects for this ngram
-               upper_measure.append( note.Note( interv.noteEnd.pitch, quarterLength=2.0 ) )
+               u_note = note.Note( interv.noteEnd.pitch, quarterLength=1.0 )
+               upper_measure.append( u_note )
+               u_note = note.Note( interv.noteEnd.pitch, quarterLength=1.0 )
+               u_note.lily_invisible = True
+               upper_measure.append( u_note )
 
                # (6.2) Get the lower-part Note objects for this ngram
-               lower_measure.append( note.Note( interv.noteStart.pitch, quarterLength=2.0 ) )
+               l_note = note.Note( interv.noteStart.pitch, quarterLength=1.0 )
+               lower_measure.append( l_note )
+               l_note = note.Note( interv.noteStart.pitch, quarterLength=1.0 )
+               l_note.lily_invisible = True
+               lower_measure.append( l_note )
 
             # (6.3) Make the corresponding LilyPond analysis for this ngram
-            lily_note = note.Note( 'C4', quarterLength=4.0 )
-            lily_note.lily_markup = '^' + make_lily_triangle( this_ngram, print_to_right=str(ngrams_dicts[n][this_ngram]) )
+            lily_note = note.Note( 'C4', quarterLength=float( 2 * len(ints) ) )
+            lily_note.lily_markup = '^' + make_lily_triangle( this_ngram, \
+                  print_to_right=str(ngrams_dicts[n][this_ngram]) )
             lily_part.append( lily_note )
 
             # (6.3.5) Append the Measure objects
@@ -1180,10 +1195,10 @@ class Vertical_Interval_Statistics( object ):
             # (6.4) Append some Rest objects to the end
             rest_measure = stream.Measure()
             rest_measure.lily_invisible = True
-            rest_measure.append( note.Rest( quarterLength=4.0 ) )
+            rest_measure.append( note.Rest( quarterLength=float( 2 * len(ints) ) ) )
             upper_part.append( rest_measure )
             lower_part.append( rest_measure )
-            lily_part.append( note.Rest( quarterLength=4.0 ) )
+            lily_part.append( note.Rest( quarterLength=float( 2 * len(ints) ) ) )
 
       # Make a Metadata object
       metad = Metadata()

@@ -180,6 +180,9 @@ def note_to_lily( lily_this, known_tuplet = False ):
       post = post[:-2]
    elif lily_this.isRest:
       post += "r" + duration_to_lily( lily_this.duration, known_tuplet )
+   elif hasattr( lily_this, 'lily_invisible' ) and \
+   True == lily_this.lily_invisible:
+      post += "s" + duration_to_lily( lily_this.duration, known_tuplet )
    else:
       post += pitch_to_lily( lily_this.pitch ) + \
               duration_to_lily( lily_this.duration, known_tuplet )
@@ -511,6 +514,11 @@ def process_stream( the_stream, the_settings ):
       call_this_part = string_of_n_letters( 8 )
       the_settings._parts_in_this_score.append( call_this_part )
       post += call_this_part + " =\n" + "{\n"
+
+      # If this part has the "lily_instruction" property set, this goes here
+      if hasattr( the_stream, 'lily_instruction' ):
+         post += the_stream.lily_instruction
+
       # If the part has a .bestName property set, we'll use it to generate
       # both the .instrumentName and .shortInstrumentName for LilyPond.
       instr_name = the_stream.getInstrument().partName
