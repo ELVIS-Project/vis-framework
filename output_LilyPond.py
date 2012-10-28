@@ -32,7 +32,8 @@ from random import choice as random_choice
 from itertools import repeat
 from platform import system as which_os
 # music21
-from music21 import clef, meter, key, stream, metadata, layout, bar, humdrum
+from music21 import clef, meter, key, stream, metadata, layout, bar, humdrum, \
+   tempo
 from music21.duration import Duration
 from music21.note import Note, Rest
 from music21.instrument import Instrument
@@ -172,7 +173,13 @@ def note_to_lily( lily_this, known_tuplet = False ):
    post = ''
 
    if len(lily_this.duration.components) > 1:
-      the_pitch = pitch_to_lily( lily_this.pitch )
+      # We obviously can't ask for the pitch of a Rest
+      the_pitch = None
+      if lily_this.isRest:
+         the_pitch = 'r'
+      else:
+         the_pitch = pitch_to_lily( lily_this.pitch )
+      # But this should be the same for everybody
       for durational_component in lily_this.duration.components:
          post += the_pitch + \
                  duration_to_lily( durational_component, known_tuplet ) + \
@@ -550,6 +557,8 @@ def process_stream( the_stream, the_settings ):
       # Otherwise, it's hopefully just a regular, everyday Part.
       else:
          # What's in the Part?
+         # TODO: break this into a separate method, process_part()
+         # TODO: make this less stupid
          for thing in the_stream:
             # Probably measures.
             if isinstance( thing, stream.Measure ):
@@ -558,6 +567,13 @@ def process_stream( the_stream, the_settings ):
                # We can safely ignore this (for now?) because we already dealt
                # with the part name earlier.
                pass
+            elif isinstance( thing, tempo.MetronomeMark ):
+               # TODO: at some point, we'll have to deal with this nicely
+               pass
+            elif isinstance( thing, meter.TimeSignature ):
+               pass
+            elif isinstance( thing, Note ) or isinstance( thing, Rest ):
+               post += note_to_lily( thing ) + ' '
             # **kern importer garbage... well, it's only garbage to us
             elif isinstance( thing, humdrum.spineParser.MiscTandem ):
                # http://mit.edu/music21/doc/html/moduleHumdrumSpineParser.html

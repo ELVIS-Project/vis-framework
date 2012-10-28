@@ -255,6 +255,10 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
    object, and a Vertical_Interval_Statistics object, calculate the n-grams
    specified in settings, then put the statistics in the_statistics.
 
+   If the Part objects have the property "vis_part_name" then its value will be
+   used as the part name in the statistics database and (in the future) in the
+   LilyPond annotations.
+
    Note that the parts must be specified so the higher part has index 0, and
    the lower part has index 1.
 
@@ -273,8 +277,38 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
    - the_statistics : a Vertical_Interval_Statistics instance
    - the_piece : str that identifies this piece (either title or path or
                  something; not displayed to user)
-   - targeted_output : the instructions given to (the GUI version of)
-                       analyze_this()
+   - targeted_output : the instructions for annotation in an annotated score
+
+   # TODO: confirm that all of these are true... they should be...
+
+   The argument, targeted_output, is a list of instructions for creating a
+   purpose-built LilyPond score. Each instruction is a list with a str and
+   the value, if any. You could have:
+   ['these parts', [int, int]]
+   ['only annotate', '3 1 3'] (the second element is a str == str(NGram) that you want to annotate; you can include many)
+   ['only colour', '3 1 3'] (the second element is a str == str(NGram) that you want to colour; you can include many; others remain #black)
+   ['annotate colour', '#blue'] (the second element is a str that is the name of the colour you want)
+      - #blue for "Normal colors"
+      - #(x11-color 'DarkRed) for "X color names"
+      - for a list of colours: http://lilypond.org/doc/v2.16/Documentation/notation/list-of-colors
+   ['part names', str, str, 'colour'/'no colour'] : If you wish to print a "legend" annotation
+      that contains the part names being compared, include the part names
+      here as two str objects. It doesn't really matter which part is which,
+      but the str at index 1 is printed first. If the third element is 'colour'
+      then the part names will be printed as per the instruction 'annotate colour'.
+      NOTE: the LilyPond legend doesn't yet pay attention to the "vis_part_name" property.
+
+   NB: If you do not specify only_annotate or only_colour, all annotations appear, and the colour is #black
+   NB: If you specify annotate_colour without only_colour, all annotations appear, and the colour is annotate_colour
+   NB: All annotations in only_colour should also appear in only_annotate.
+   NB: All annotations in only_annotate but not only_colour will appear, but with the colour #black
+
+   Therefore, if you want parts 0 and 3, and both '3 1 3' and '3 1 4' to be
+   annotated, but only '3 1 4' with the colour #darkred, you would do this:
+   >>> analyze_this( [['these parts', [0, 3], \
+                      ['only annotate', '3 1 3'], \
+                      ['only colour', '3 1 4'], \
+                      ['annotate colour', '#darkred']] )
    '''
 
    # Parameters:
@@ -349,7 +383,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
          elif 'annotate colour' == instruction[0]:
             annotation_colour = instruction[1]
          elif 'part names' == instruction[0]:
-            part_names = [instruction[1], instruction[2]]
+            part_names = [str(instruction[1]), str(instruction[2])]
             # Whether we are to analyze in colour
             if 'colour' == instruction[3]:
                part_names.append( True )
@@ -359,7 +393,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
       # Finally, check if we got an annotation_colour, and if not, then we
       # can't write the labels in colour either.
       if annotation_colour is None and part_names is not None:
-         part_names[3] = False
+         part_names[2] = False
    # End parsing of targeted_output ------------------------
 
    # Prepare the parts we're analyzing ---------------------

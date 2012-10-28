@@ -87,6 +87,8 @@ class Vis_MainWindow( Ui_MainWindow ):
       self.targeted_lily_options = []
       # Holds the version number of LilyPond installed on this system
       self.lilypond_version_numbers = None
+      # Used by pseudorandom_colour() to iterate through the colour list
+      self.colour_index = 0
 
       # These be the index values for columns in the list-of-pieces model.
       self.model_filename = 0 # filename of the piece
@@ -287,6 +289,9 @@ class Vis_MainWindow( Ui_MainWindow ):
       with LilyPond.
       '''
 
+      # TODO: see if I can unify this, at least somewhat, with the "actual"
+      # analysis thing
+
       # Move to the "working" panel
       self.tool_working()
       self.lbl_currently_processing.setText( 'Status bar doesn\'t work!' )
@@ -302,7 +307,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          # Find the name of this piece
          this_piece_name = None
          if piece[self.model_score].metadata is None:
-            this_piece_name = 'asdf!'
+            this_piece_name = 'Untitled'
          else:
             this_piece_name = piece[self.model_score].metadata.title
 
@@ -314,7 +319,9 @@ class Vis_MainWindow( Ui_MainWindow ):
          # Append this job to the list of jobs to calculate
          jobs.append( job )
 
-      # Set this very high so that vis won't interfere with the end of analysis
+      # Set this very high so that vis won't interfere with the end of analysis.
+      # If we use the standard voice-pair conclusion thing, vis wouldn't wait
+      # for LilyPond processing to finish before leaving the "working" panel.
       self.total_pairs = 5000
 
       # Schedule the jobs with QThreadPool
@@ -688,7 +695,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          # Find the name of this piece
          this_piece_name = None
          if piece[self.model_score].metadata is None:
-            this_piece_name = 'asdf!'
+            this_piece_name = 'Untitled'
          else:
             this_piece_name = piece[self.model_score].metadata.title
 
@@ -1410,6 +1417,43 @@ class Vis_MainWindow( Ui_MainWindow ):
       for cell in selected_cells:
          if self.model_offset == cell.column():
             self.analysis_pieces.setData( cell, chosen_offset, QtCore.Qt.EditRole )
+
+
+
+   def pseudorandom_colour( self ):
+      '''
+      Return a pseudorandom colour from an internally-stored list. The colour is
+      actually chosen from a list, stored in this method. There are 20ish
+      colours, and every time this method is called, the one assigned to the
+      next index is returned.
+
+      These colours are strings, suitable for use with a LilyPond score.
+      '''
+
+      # The list of colours
+      list_of_colours = ['IndianRed', 'NavyBlue', 'DarkViolet', 'DeepSkyBlue', \
+                         'SaddleBrown', 'DarkOrange', 'PaleVioletRed', \
+                         'SkyBlue', 'ForestGreen', 'DarkSalmon', 'BlueViolet', \
+                         'plum', 'DarkOliveGreen', 'OliveDrab', \
+                         'DarkGoldenrod', 'burlywood', 'DarkMagenta', \
+                         'firebrick']
+
+      # bad:
+      # - aquamarine
+      # - LightSeaGreen
+
+      # Is the "next" index too great? Then we'll "wrap around" the list.
+      if self.colour_index >= len(list_of_colours):
+         self.colour_index = 0
+
+      # Choose the colour at the specified index
+      post = "#(x11-color '" + list_of_colours[self.colour_index] + ")"
+
+      # Increment the index thing
+      self.colour_index += 1
+
+      # Return the colour
+      return post
 # End Class Vis_MainWindow -----------------------------------------------------
 
 
@@ -1753,6 +1797,36 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          # Change the settings object to hold the right "lookForTheseNs"
          ns = str( self.piece_data[self.widget.model_n] )[1:-1]
          self.widget.settings.set_property( 'lookForTheseNs ' + ns )
+
+         # If we're making an annotated score, add the part names and colours
+         # to the LilyPond instructions
+         if self.targeted_output is not None:
+            # First check if there is a "vis_part_name" property, and try to use
+            # it. Otherwise use the "id" property.
+            new_instruct = ['part names']
+            if hasattr( higher, 'vis_part_name' ):
+               new_instruct.append( higher.vis_part_name )
+            else:
+               new_instruct.append( str(higher.id) )
+
+            if hasattr( lower, 'vis_part_name' ):
+               new_instruct.append( lower.vis_part_name )
+            else:
+               new_instruct.append( str(lower.id) )
+
+            # Add the instruction to colour the annotations
+            new_instruct.append( 'colour' )
+
+            # Add the new instruction to the list of existing ones
+            self.targeted_output.append( new_instruct )
+
+            # If there will be more than one voice pair in this analysis, add
+            # an arbitrarily-chosen colour for the annotations.
+            if len(self.voice_combos) > 1:
+               # Choose a colour
+               colour = self.widget.pseudorandom_colour()
+               # Append the instruction
+               self.targeted_output.append( ['annotate colour', colour] )
 
          # Run the analysis
          voices_took, ly, error = vis_these_parts( these_parts=[higher,lower], \
