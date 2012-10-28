@@ -45,7 +45,7 @@ from numpy import array, linalg, ones, log, corrcoef
 import matplotlib
 import matplotlib.pyplot as plt
 
-   
+
 
 class Vertical_Interval_Statistics( object ):
    '''
@@ -386,7 +386,7 @@ class Vertical_Interval_Statistics( object ):
       # set up the keys for the various nested compound-ngram dicts
       compound_no_quality_version = the_ngram.get_string_version(False, 'compound')
       compound_quality_version = the_ngram.get_string_version(True, 'compound')
-      
+
       # add the occurrence to the compound-ngram dict
       self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version]\
          [compound_quality_version][the_piece] += 1
@@ -402,26 +402,30 @@ class Vertical_Interval_Statistics( object ):
          [simple_quality_version][the_piece] += 1
       self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version]\
          [simple_quality_version]['Total'] += 1
-      
-      
+
+
    # End add_ngram() ---------------------------------------
 
 
 
-   def get_ngram_dict( self, settings, leave_pieces=True ):
+   def get_ngram_dict( self, settings, leave_pieces = True ):
       '''
-      Given a VIS_Settings instance, return a tuple containing
-      a dict with the NGram data specified by the settings, as
-      well as a dict containing sorted lists of keys for the
-      required values of n, as specified by the settings.
-      The switch leave_pieces allows you to optionally
-      get a dictionary which simply contains ngrams and
-      their total number of occurrences, subject to the settings.
+      Given a VIS_Settings object, return a tuple with:
+      - a dict including the n-gram specified statistics, and
+      - a dict with a sorted list of keys for the required values of n
+
+      Set the "leave_pieces" argument to "False" to omit voice-pair-specific
+      data, outputting only the totals for all voice pairs.
+
+      Note that each n-gram object is appears in the statistics dictionary as
+      a string, as per the settings provided.
       '''
+
       # (1) Generate the dictionary
       # (1a) do we want simple or compound ngrams?
       simple = settings.get_property('simpleOrCompound') == 'simple'
-      data_dict = self._simple_ngrams_dict if simple else self._compound_ngrams_dict
+      data_dict = self._simple_ngrams_dict if simple else \
+                  self._compound_ngrams_dict
       # (1b) find the list of n
       list_of_n = settings.get_property( 'showTheseNs' )
       # (1c) Make sure that we have ngrams at the values requested. If not,
@@ -431,12 +435,12 @@ class Vertical_Interval_Statistics( object ):
          if data_dict[enn] == {}:
                error_enns.append( enn )
       if 0 < len(error_enns):
-         raise NonsensicalInputWarning( 'No ' + str(error_enns) + '-grams available!' )
-      # (1d) do we want to include quality?
-      hq = settings.get_property( 'heedQuality' )
+         msg = 'No ' + str(error_enns) + '-grams available!'
+         raise NonsensicalInputWarning( msg )
       # store the results
       output_dict = None
-      if hq:
+      # (1d) do we want to include quality?
+      if settings.get_property( 'heedQuality' ):
          # We do need to include quality, so replace the no_quality
          # level of the dict with all of its sub-dicts
          output_dict = {n:
@@ -463,7 +467,7 @@ class Vertical_Interval_Statistics( object ):
             # accept only the top topX
             sorted_ngrams = sorted_ngrams[:topX]
             # filter the dict to only include the new keys
-            output_dict[n] = {ng:output_dict[n][ng] for ng in sorted_ngrams}	
+            output_dict[n] = {ng:output_dict[n][ng] for ng in sorted_ngrams}
 
       # (3) Do the filtering for "threshold" (n-grams with fewer occurrences
       # "threshold" should not be included)
@@ -489,6 +493,7 @@ class Vertical_Interval_Statistics( object ):
       if leave_pieces is False:
          output_dict = {n:{ng:v['Total'] for ng,v in output_dict[n].items()} for n in list_of_n}
       return (output_dict,keys)
+   # End get_ngram_dict() ----------------------------------
 
 
 
@@ -695,13 +700,13 @@ class Vertical_Interval_Statistics( object ):
       post = ''
       for n in list_of_n:
          sorted_ngrams[n] = sorted( output_dict[n].iterkeys(), key = lambda ng: output_dict[n][ng], reverse=True )
-         # we do a power-law regression by instead looking at 
+         # we do a power-law regression by instead looking at
          # the logarithmic scales and doing linear regression
          xi = [log(i) for i in range(1,len(sorted_ngrams[n])+1)]
          A = array([ xi, ones(len(xi))])
          y = [log(output_dict[n][ng]) for ng in sorted_ngrams[n]]
          w = linalg.lstsq(A.T,y)[0] #least-squares regression on the data
-         # w[0] contains the slope of the line, and we'll just display 
+         # w[0] contains the slope of the line, and we'll just display
          # positive numbers because that's nice.
          post += 'The power law exponent for the '+str(n)+'-grams is '+str(-w[0])+ \
                  '; correlation coefficient '+str(-corrcoef(xi,y)[0,1])
@@ -1117,7 +1122,7 @@ class Vertical_Interval_Statistics( object ):
       list_of_n = settings.get_property( 'showTheseNs' )
 
       # (1B) Get the formatted list of n-grams
-      ngrams_dicts, keys = self.get_ngram_dict( settings )
+      ngrams_dicts, keys = self.get_ngram_dict( settings, leave_pieces = False )
 
       # (2) Initialize Stream objects
 
@@ -1133,10 +1138,11 @@ class Vertical_Interval_Statistics( object ):
       for n in list_of_n:
          # Go through all the n-grams for this value of n
          for this_ngram in ngrams_dicts[n]:
-            # Hold the list of vertical and horizontal Interval objects
-            # associated with this NGram, respectively.
-            ints = this_ngram.get_intervals()
-            moves = this_ngram.get_movements()
+            # Convert "this_ngram" into an NGram object
+            ngram_obj = NGram.make_from_str( this_ngram )
+
+            # Hold the list of vertical intervals in this n-gram
+            ints = ngram_obj.get_intervals()
 
             # Hold the measures for this round
             upper_measure = stream.Measure()
@@ -1164,8 +1170,7 @@ class Vertical_Interval_Statistics( object ):
 
             # (6.3) Make the corresponding LilyPond analysis for this ngram
             lily_note = note.Note( 'C4', quarterLength=4.0 )
-            lily_note.lily_markup = '^' + make_lily_triangle( str(this_ngram), \
-                                                              print_to_right=str(ngrams_dicts[n][this_ngram]) )
+            lily_note.lily_markup = '^' + make_lily_triangle( this_ngram, print_to_right=str(ngrams_dicts[n][this_ngram]) )
             lily_part.append( lily_note )
 
             # (6.3.5) Append the Measure objects
