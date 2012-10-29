@@ -25,7 +25,7 @@
 # python standard library
 import time
 # music21
-from music21 import interval, stream, note, chord
+from music21 import stream, note, chord
 from music21.interval import Interval
 # vis
 from NGram import NGram
@@ -781,8 +781,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
       # End "while" loop -------------------------------------
       the_statistics.extend(statistics_buffer)
    except Exception as exc:
-      raise
-      #error = str(type(exc)) + ':\n' + str(exc)
+      error = str(type(exc)) + ':\n' + str(exc)
 
 
    # Note the ending time of the analysis...

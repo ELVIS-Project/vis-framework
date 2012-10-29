@@ -29,7 +29,6 @@ import os # needed for writing the output file
 from subprocess import Popen, PIPE # for running bash things
 from string import letters as string_letters
 from random import choice as random_choice
-from itertools import repeat
 from platform import system as which_os
 # music21
 from music21 import clef, meter, key, stream, metadata, layout, bar, humdrum, \
@@ -721,9 +720,11 @@ def output_the_file( contents, filename='test_output/lily_output' ):
 
    # Is there already an extension?
    if 3 < len(filename) and '.ly' == filename[-3:]:
-      extension = ''
+      # No need to add one
+      pass
    else:
-      extension = '.ly'
+      # Add one
+      filename += '.ly'
 
    return file_outputter( contents, filename, 'OVERWRITE' ) # TODO: probably shouldn't do that
 

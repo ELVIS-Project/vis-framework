@@ -39,10 +39,13 @@ from problems import NonsensicalInputError, MissingInformationError, \
    NonsensicalInputWarning
 from analytic_engine import make_lily_triangle
 from NGram import NGram
+
+# NOTE: We don't need these for now, because the methods that use them are
+# commented out, because they're currently not connected to the GUI
 # numpy
-from numpy import array, linalg, ones, log, corrcoef
+#from numpy import array, linalg, ones, log, corrcoef
 # matplotlib
-import matplotlib
+#import matplotlib
 import matplotlib.pyplot as plt
 
 
@@ -55,12 +58,8 @@ class Vertical_Interval_Statistics( object ):
    - number of occurrences of each n-gram
    '''
 
-   # I suspect it's too much work to interactively try to find the
-   # quality/no-quality and simple/compound version of everything whenever you
-   # want to just find the number of occurrences. Instead, we'll store all four
-   # versions of that information. Memory is cheap!
-
-   ## Instance Data
+   # Instance Data
+   # TODO: write what these hold, and how they do it
    # _simple_interval_dict
    # _compound_interval_dict
    # _simple_ngrams_dict
@@ -70,22 +69,30 @@ class Vertical_Interval_Statistics( object ):
       '''
       Create a new, "empty" statistics database for a piece.
       '''
-      self._simple_interval_dict = defaultdict(lambda:defaultdict(int))
-      self._compound_interval_dict = defaultdict(lambda:defaultdict(int))
-      self._simple_ngrams_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:defaultdict(int))))
-      self._compound_ngrams_dict = defaultdict(lambda:defaultdict(lambda:defaultdict(lambda:defaultdict(int))))
+      self._simple_interval_dict = defaultdict( lambda: defaultdict( int ))
+      self._compound_interval_dict = defaultdict( lambda: defaultdict( int ))
+      self._simple_ngrams_dict = defaultdict( lambda: defaultdict( lambda: defaultdict( lambda: defaultdict( int ))))
+      self._compound_ngrams_dict = defaultdict( lambda: defaultdict( lambda: defaultdict( lambda: defaultdict( int ))))
       self._pieces_analyzed = []
 
 
 
    def __repr__( self ):
+      '''
+      Currently returns the string-format representation of this statistics
+      instance.
+      '''
+
       return str(self)
 
 
 
    def __str__( self ):
-      # This should produce something like...
-      # "<Vertical_Interval_Statistics for 1 piece with 14 intervals; 26 2-grams; 19 3-grams>"
+      '''
+      This should produce something like:
+      "<Vertical_Interval_Statistics for 1 piece with 14 intervals; 26 2-grams>"
+      '''
+
       nbr_pieces = len(self._pieces_analyzed)
       pieces = " pieces"
       if 1 == nbr_pieces:
@@ -112,58 +119,61 @@ class Vertical_Interval_Statistics( object ):
       would be better to have from_json call all the add_*()
       methods to guarantee a logical V_I_S instance.
       '''
-      if not isinstance(self._pieces_analyzed,list):
-         raise NonsensicalInputError("_pieces_analyzed must be of type list")
+
+      # TODO: write what to expect from this method, and write internal docs
+
+      if not isinstance( self._pieces_analyzed, list ):
+         raise NonsensicalInputError( '_pieces_analyzed must be of type list' )
       for s in self._pieces_analyzed:
-         if not isinstance(s,str):
-            raise NonsensicalInputError("_pieces_analyzed may contain only strings")
+         if not isinstance( s, str ):
+            raise NonsensicalInputError( '_pieces_analyzed may contain only strings' )
 
-      easy_atts = ["_simple_interval_dict","_compound_interval_dict"]
-      ngram_dicts = ["_compound_ngrams_dict","_simple_ngrams_dict"]
+      easy_atts = ['_simple_interval_dict', '_compound_interval_dict']
+      ngram_dicts = ['_compound_ngrams_dict', '_simple_ngrams_dict']
 
-      def validate_values( vals,att_name ):
+      def validate_values( vals, att_name ):
          for v in vals:
-            if not isinstance(v,list):
-               raise NonsensicalInputError(att_name+" values must be of type list")
+            if not isinstance( v, list ):
+               raise NonsensicalInputError( att_name + ' values must be of type list' )
             if len(v) != 2:
-               raise NonsensicalInputError(att_name+" value does not have 2 items")
-            if not isinstance(v[1],list) or not isinstance(v[0],int):
-               raise NonsensicalInputError(att_name+" values must be of the form [int,list]")
+               raise NonsensicalInputError( att_name + ' value does not have 2 items' )
+            if not isinstance( v[1], list ) or not isinstance( v[0], int ):
+               raise NonsensicalInputError( att_name + ' values must be of the form [int,list]' )
             for i in v[1]:
-               if not isinstance(i,int):
-                  raise NonsensicalInputError("second part of "+att_name+" values must be list of ints")
+               if not isinstance( i, int ):
+                  raise NonsensicalInputError( 'second part of ' + att_name + ' values must be list of ints' )
             if v[0] != sum(v[1]):
-               raise NonsensicalInputError("first part of "+att_name+" values must equal sum of second part")
+               raise NonsensicalInputError( 'first part of ' + att_name + ' values must equal sum of second part' )
             if len(v[1]) != len(self._pieces_analyzed):
-               raise NonsensicalInputError("second part of "+att_name+" must have as many elements as pieces analyzed")
+               raise NonsensicalInputError( 'second part of ' + att_name + ' must have as many elements as pieces analyzed' )
 
       for att_name in easy_atts:
-         att = getattr(self,att_name)
-         if not isinstance(att,dict):
-            raise NonsensicalInputError(att_name+" must be of type dict")
+         att = getattr( self, att_name )
+         if not isinstance( att, dict ):
+            raise NonsensicalInputError( att_name + ' must be of type dict' )
          for k in att.keys():
             try:
-               i = interval.Interval(k)
+               interval.Interval( k )
             except: #music21 error if not a proper interval string
-               raise NonsensicalInputError(k+" is not a valid interval")
+               raise NonsensicalInputError( k + ' is not a valid interval' )
          validate_values( att.values(), att_name )
 
       for att_name in ngram_dicts:
-         att = getattr(self,att_name)
-         if not isinstance(att,dict):
-            raise NonsensicalInputError(att_name+" must be of type dict")
+         att = getattr( self, att_name )
+         if not isinstance( att, dict ):
+            raise NonsensicalInputError( att_name + ' must be of type dict' )
          for d in att.values():
-            if not isinstance(d,dict):
-               raise NonsensicalInputError(att_name+" values must be of type dict")
-            for k,v in d.items():
-               if not isinstance(k,NGram):
-                  raise NonsensicalInputError(att_name+" value keys must be of type NGram")
-               if not isinstance(v,dict):
-                  raise NonsensicalInputError(att_name+" value values must be of type dict")
+            if not isinstance( d, dict ):
+               raise NonsensicalInputError( att_name + ' values must be of type dict' )
+            for k, v in d.items():
+               if not isinstance( k, NGram ):
+                  raise NonsensicalInputError( att_name + ' value keys must be of type NGram' )
+               if not isinstance( v, dict ):
+                  raise NonsensicalInputError( att_name + ' value values must be of type dict')
                for key in v.keys():
-                  if not isinstance(key,NGram):
-                     raise NonsensicalInputError(att_name+" value value keys must be of type NGram")
-               validate_values( v.values(), att_name+" value" )
+                  if not isinstance( key, NGram ):
+                     raise NonsensicalInputError( att_name + ' value value keys must be of type NGram' )
+               validate_values( v.values(), att_name + ' value' )
 
       return True
    # End _validate() ---------------------------------------
@@ -347,9 +357,13 @@ class Vertical_Interval_Statistics( object ):
       # the first character is a direction
       if which_interval.isdigit() or which_interval[0] in directions:
          if 'simple' == simple_or_compound:
-            return get_all_qualities( which_interval, self._simple_interval_dict, piece )
+            return get_all_qualities( which_interval, \
+                                      self._simple_interval_dict, \
+                                      piece )
          elif 'compound' == simple_or_compound:
-            return get_all_qualities( which_interval, self._compound_interval_dict, piece )
+            return get_all_qualities( which_interval, \
+                                      self._compound_interval_dict, \
+                                      piece )
          else:
             raise NonsensicalInputError( errorstr )
       # Otherwise they are paying attention to quality.
@@ -392,19 +406,19 @@ class Vertical_Interval_Statistics( object ):
             the_ngram.get_string_version( True, 'compound' )
 
       # add the occurrence to the compound-ngram dict
-      self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version]\
+      self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version] \
             [compound_quality_version][the_piece] += 1
-      self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version]\
+      self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version] \
             [compound_quality_version]['Total'] += 1
 
       # set up the keys for the various nested simple-ngram dicts
-      simple_no_quality_version = the_ngram.get_string_version(False, 'simple')
-      simple_quality_version = the_ngram.get_string_version(True, 'simple')
+      simple_no_quality_version = the_ngram.get_string_version( False, 'simple')
+      simple_quality_version = the_ngram.get_string_version( True, 'simple' )
 
       # add the occurrence to the simple-ngram dict
-      self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version]\
+      self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version] \
             [simple_quality_version][the_piece] += 1
-      self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version]\
+      self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version] \
             [simple_quality_version]['Total'] += 1
    # End add_ngram() ---------------------------------------
 
@@ -428,7 +442,7 @@ class Vertical_Interval_Statistics( object ):
 
       # (1) Generate the dictionary
       # (1a) do we want simple or compound ngrams?
-      simple = settings.get_property('simpleOrCompound') == 'simple'
+      simple = settings.get_property( 'simpleOrCompound' ) == 'simple'
       data_dict = self._simple_ngrams_dict if simple else \
                   self._compound_ngrams_dict
       # (1b) find the list of n

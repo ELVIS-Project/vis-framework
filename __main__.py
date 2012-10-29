@@ -43,7 +43,7 @@ from PyQt4.QtCore import pyqtSignal, QObject
 from music21 import converter, graph, metadata, instrument
 from music21.converter import ConverterException, ConverterFileException
 # vis
-from problems import NonsensicalInputWarning
+from problems import NonsensicalInputWarning, IncompatibleSetupError
 from gui_files.Ui_compare_voice_pairs import Ui_Compare_Voice_Pairs
 from gui_files.Ui_select_offset import Ui_Select_Offset
 from gui_files.Ui_new_main_window import Ui_MainWindow
@@ -53,6 +53,7 @@ from Vertical_Interval_Statistics import Vertical_Interval_Statistics
 from VIS_Settings import VIS_Settings
 from analytic_engine import vis_these_parts, make_basso_seguente
 from file_output import file_outputter
+# output_LilyPond
 from output_LilyPond import LilyPond_Settings, make_lily_version_numbers, \
    detect_lilypond
 from output_LilyPond import process_score as lily_process_score
@@ -267,7 +268,8 @@ class Vis_MainWindow( Ui_MainWindow ):
          new_colour += str( float(user_colour.blue()) / 255.0 ) + ')'
       else:
          # If something else (3.x, 1.x, or 2.15.x)
-         msg = 'Cannot use LilyPond 2.15.x with colours; please upgrade to 2.16.0 or downgrade to 2.14.2'
+         msg = 'Cannot use LilyPond 2.15.x with colours; please upgrade to ' + \
+               '2.16.0 or downgrade to 2.14.2'
          raise IncompatibleSetupError( msg )
 
       # See if there's already a spot for colour, then use it
@@ -2033,8 +2035,7 @@ class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
       #pixmap = pixmap.grabWidget(self.list_pairs_in_memory,self.list_pairs_in_memory.rectForIndex(index))
       #drag.setPixmap(pixmap)
       #drag.setHotSpot(QtCore.QPoint(pixmap.width()/2,pixmap.height()/2))
-      # TODO: why is this assigned to "result"? What does this even do/mean?
-      result = drag.start(QtCore.Qt.MoveAction)
+      drag.start(QtCore.Qt.MoveAction)
 
    def get_pairs( self ):
       self.compare_voice_pairs.exec_()
