@@ -48,6 +48,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
    def setUp( self ):
       self.stats = Vertical_Interval_Statistics()
       self.settings = VIS_Settings()
+      self.settings.set_property( 'leavePieces', False )
 
    def test_intervals_not_counted_multiple_times( self ):
       # BWV 7.7 (a chorale)
@@ -99,7 +100,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '10 +4 10':1, '10 -2 10':3 }}
 
       # Verify the findings
-      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
+      ngram_dict, keys = self.stats.get_ngram_dict( self.settings )
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
@@ -127,7 +128,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '6 -2 6':2, '6 +4 3':1, '3 1 2':1, '2 -2 3':1, '3 -2 5':1, '6 1 5':1 }}
 
       # Verify the findings
-      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
+      ngram_dict, keys = self.stats.get_ngram_dict( self.settings )
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
@@ -162,7 +163,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             #'2 +2 3':1, '3 -2 2':1, '1 -2 2':1, '1 -2 5':1 }
 
       # Verify the findings
-      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
+      ngram_dict, keys = self.stats.get_ngram_dict( self.settings )
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
@@ -287,7 +288,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '26 1 24':1, '28 1 26':1, '13 -9 21':1 }}
 
       ## Verify the findings
-      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
+      ngram_dict, keys = self.stats.get_ngram_dict( self.settings )
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
@@ -328,7 +329,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             #'m-3 P1 P-4':1 }
 
       # Verify the findings
-      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
+      ngram_dict, keys = self.stats.get_ngram_dict( self.settings )
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
@@ -369,7 +370,7 @@ class Test_Analysis_Engine_Integration_Short( unittest.TestCase ):
             '3 +2 2':1, '2 -2 3':1, '3 +2 5':1 }}
 
       # Verify the findings
-      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
+      ngram_dict, keys = self.stats.get_ngram_dict( self.settings )
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )

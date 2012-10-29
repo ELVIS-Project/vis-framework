@@ -411,10 +411,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
       settings.set_property( 'topX', None )
+      settings.set_property( 'leavePieces', False )
 
       # (2) Run
       expected = {2:{'3 +4 3': 1}}
-      actual, keys = self.vis.get_ngram_dict( settings, False )
+      actual, keys = self.vis.get_ngram_dict( settings )
 
       # (3) Verify
       self.assertEqual( actual, expected )
@@ -429,10 +430,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
       settings.set_property( 'topX', None )
+      settings.set_property( 'leavePieces', False )
 
       # (2) Run
       expected = {2:{'m3 +P4 m3': 1}}
-      actual, keys = self.vis.get_ngram_dict( settings, False )
+      actual, keys = self.vis.get_ngram_dict( settings )
 
       # (3) Verify
       self.assertEqual( actual, expected )
@@ -449,10 +451,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
       settings.set_property( 'topX', None )
+      settings.set_property( 'leavePieces', False )
 
       # (2) Run
       expected = {2:{'3 +4 3': 3}}
-      actual, keys = self.vis.get_ngram_dict( settings, False )
+      actual, keys = self.vis.get_ngram_dict( settings )
 
       # (3) Verify
       self.assertEqual( actual, expected )
@@ -469,10 +472,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
       settings.set_property( 'topX', None )
+      settings.set_property( 'leavePieces', False )
 
       # (2) Run
       expected = {2:{'m3 +P4 m3': 2, 'm3 +d4 M3': 1}}
-      actual, keys = self.vis.get_ngram_dict( settings, False )
+      actual, keys = self.vis.get_ngram_dict( settings )
 
       # (3) Verify
       self.assertEqual( actual, expected )
@@ -490,10 +494,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
       settings.set_property( 'topX', None )
+      settings.set_property( 'leavePieces', False )
 
       # (2) Run
       expected = {2:{'3 +4 3': 3, '10 +4 10': 1}}
-      actual, keys = self.vis.get_ngram_dict( settings, False )
+      actual, keys = self.vis.get_ngram_dict( settings )
 
       # (3) Verify
       self.assertEqual( actual, expected )
@@ -511,10 +516,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
       settings.set_property( 'topX', None )
+      settings.set_property( 'leavePieces', False )
 
       # (2) Run
       expected = {2:{'m3 +P4 m3': 2, 'm3 +d4 M3': 1, 'm10 +P4 m10': 1}}
-      actual, keys = self.vis.get_ngram_dict( settings, False )
+      actual, keys = self.vis.get_ngram_dict( settings )
 
       # (3) Verify
       self.assertEqual( actual, expected )
@@ -532,10 +538,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
       settings.set_property( 'topX', None )
+      settings.set_property( 'leavePieces', False )
 
       # (2) Run
       expected = {2:{'3 +4 3': 4}}
-      actual, keys = self.vis.get_ngram_dict( settings, False )
+      actual, keys = self.vis.get_ngram_dict( settings )
 
       # (3) Verify
       self.assertEqual( actual, expected )
@@ -553,10 +560,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
       settings.set_property( 'topX', None )
+      settings.set_property( 'leavePieces', False )
 
       # (2) Run
       expected = {2:{'m3 +P4 m3': 3, 'm3 +d4 M3': 1}}
-      actual, keys = self.vis.get_ngram_dict( settings, False )
+      actual, keys = self.vis.get_ngram_dict( settings )
 
       # (3) Verify
       self.assertEqual( actual, expected )
@@ -574,35 +582,36 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       settings.set_property( 'heedQuality', True )
       settings.set_property( 'showTheseNs', [2] )
       settings.set_property( 'threshold', None )
+      settings.set_property( 'leavePieces', False )
 
-      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings )
       expected = {2: {'m3 P1 m3': 1, 'm3 P1 M3': 2, 'm3 +P4 m3': 5, 'm3 +d4 M3': 10,\
                       'm3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
       self.assertEqual( ngram_dict, expected )
 
       settings.set_property( 'threshold', 2 )
-      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings )
       expected = {2: {'m3 P1 M3': 2, 'm3 +P4 m3': 5, 'm3 +d4 M3': 10,\
                       'm3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
       self.assertEqual( ngram_dict, expected )
 
       settings.set_property( 'threshold', 5 )
-      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings )
       expected = {2: {'m3 +P4 m3': 5, 'm3 +d4 M3': 10, 'm3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
       self.assertEqual( ngram_dict, expected )
 
       settings.set_property( 'threshold', 10 )
-      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings )
       expected = {2: {'m3 +d4 M3': 10, 'm3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
       self.assertEqual( ngram_dict, expected )
 
       settings.set_property( 'threshold', 20 )
-      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings )
       expected = {2: {'m3 -P4 m3': 20, 'm3 -m2 M-3': 50}}
       self.assertEqual( ngram_dict, expected )
 
       settings.set_property( 'threshold', 50 )
-      ngram_dict, keys = self.vis.get_ngram_dict( settings, False )
+      ngram_dict, keys = self.vis.get_ngram_dict( settings )
       expected = {2: {'m3 -m2 M-3': 50}}
       self.assertEqual( ngram_dict, expected )
 

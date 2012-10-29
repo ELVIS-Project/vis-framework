@@ -44,6 +44,7 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
    def setUp( self ):
       self.stats = Vertical_Interval_Statistics()
       self.settings = VIS_Settings()
+      self.settings.set_property( 'leavePieces', False )
 
    def test_Messiah( self ):
       # Title: "Sinfony" from "Messiah" by Handel
@@ -88,7 +89,7 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
             '9 -3 10':1, '10 1 9':2, '10 1 6':1, '10 1 11':3, '11 +7 3':1 }}
 
       # Verify the findings
-      ngram_dict, keys = self.stats.get_ngram_dict(self.settings, False)
+      ngram_dict, keys = self.stats.get_ngram_dict( self.settings )
       self.assertEqual( len(self.stats.get_compound_interval_summary_dict()), len(expected_compound_intervals) )
       self.assertEqual( self.stats.get_compound_interval_summary_dict(), expected_compound_intervals )
       self.assertEqual( len(ngram_dict), len(expected_no_quality2grams) )
