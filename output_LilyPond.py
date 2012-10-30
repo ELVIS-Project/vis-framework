@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         outputLilypond.py
+# Name:         output_LilyPond.py
 # Purpose:      Outputs music21 Objects into LilyPond Format
 #
 # Copyright (C) 2012 Christopher Antila
@@ -20,6 +20,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+'''
+The output_LilyPond module converts music21 objects into a LilyPond notation
+file, then tries to run LilyPond to convert that into a PDF score.
+
+output_LilyPond is a python library that uses music21; it's intended for use
+with music research software.
+'''
 
 
 
@@ -30,6 +37,7 @@ from subprocess import Popen, PIPE # for running bash things
 from string import letters as string_letters
 from random import choice as random_choice
 from platform import system as which_os
+from itertools import repeat
 # music21
 from music21 import clef, meter, key, stream, metadata, layout, bar, humdrum, \
    tempo
@@ -49,7 +57,7 @@ def string_of_n_letters( n ):
 
    post = ""
 
-   for i in xrange(n):
+   for _ in repeat( None, n ):
       post += random_choice( string_letters )
 
    return post
@@ -152,8 +160,9 @@ def duration_to_lily( dur, known_tuplet = False ): # "dur" means "duration"
             post += dictionary_of_durations[durat]
             break
 
-      for dot in xrange(dur.dots):
-         post += "."
+      # For every dot in this Duration, append a '.' to "post"
+      for _ in repeat( None, dur.dots ):
+         post += '.'
 
       return post
 # End duration_to_lily() -------------------------------------------------------
@@ -294,7 +303,8 @@ def process_measure( the_meas ):
             post += '\\times ' + str(in_the_space_of) + '/' + \
                str(number_of_tuplet_components) + ' { ' + \
                note_to_lily( obj, True ) + " "
-            for tuplet_component in xrange( number_of_tuplet_components - 1 ):
+            # For every tuplet component...
+            for _ in repeat( None, number_of_tuplet_components - 1 ):
                post += note_to_lily( next(the_meas), True ) + " "
             post += '} '
          # It's just a regular note or rest
@@ -485,6 +495,7 @@ def process_stream( the_stream, the_settings ):
             post += '\t\t\\new Staff = "' + each_part + '" \\' + \
                     each_part + '\n'
       post += '\t>>\n'
+
       # Output the \layout{} block
       post += '\t\\layout{\n'
       if the_settings.get_property( 'indent' ) is not None:
@@ -672,7 +683,8 @@ class LilyPond_Settings:
       # Hold the other settings for this Score
       self._secret_settings = {}
       # Establish default values for settings in this Score
-      self._secret_settings['bar numbers'] = None # TODO: test this; it's in the "Part" section of process_stream()
+      # TODO: test this; it's in the "Part" section of process_stream()
+      self._secret_settings['bar numbers'] = None
       self._secret_settings['tagline'] = ''
          # empty string means "default tagline"
          # None means "no tagline"
@@ -726,7 +738,8 @@ def output_the_file( contents, filename='test_output/lily_output' ):
       # Add one
       filename += '.ly'
 
-   return file_outputter( contents, filename, 'OVERWRITE' ) # TODO: probably shouldn't do that
+   # TODO: probably shouldn't do this "force overwrite" thing
+   return file_outputter( contents, filename, 'OVERWRITE' )
 
 
 
