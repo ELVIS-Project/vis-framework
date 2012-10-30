@@ -74,11 +74,11 @@ class Vertical_Interval_Statistics( object ):
       '''
       self._simple_interval_dict = defaultdict( lambda: defaultdict( int ))
       self._compound_interval_dict = defaultdict( lambda: defaultdict( int ))
-      self._simple_ngrams_dict = defaultdict( lambda: defaultdict( \
-                                 lambda: defaultdict( \
+      self._simple_ngrams_dict = defaultdict( lambda: defaultdict(
+                                 lambda: defaultdict(
                                  lambda: defaultdict( int ))))
-      self._compound_ngrams_dict = defaultdict( lambda: defaultdict( \
-                                   lambda: defaultdict( \
+      self._compound_ngrams_dict = defaultdict( lambda: defaultdict(
+                                   lambda: defaultdict(
                                    lambda: defaultdict( int ))))
       self._pieces_analyzed = []
 
@@ -541,15 +541,15 @@ class Vertical_Interval_Statistics( object ):
       if settings.get_property( 'heedQuality' ):
          # We do need to include quality, so replace the no_quality
          # level of the dict with all of its sub-dicts
-         output_dict = {n: dict( chain( *[data_dict[n][ng].items() \
-                                        for ng in data_dict[n].keys()])) \
+         output_dict = {n: dict( chain( *[data_dict[n][ng].items()
+                                        for ng in data_dict[n].keys()]))
                         for n in list_of_n}
       else:
          # We don't need to include quality, so just forget
          # about the values of the ngram dict and sum up all their data.
-         output_dict = {n: \
-                          {ng: \
-                              {p: sum( d[v][p] for v in d.keys() ) \
+         output_dict = {n:
+                          {ng:
+                              {p: sum( d[v][p] for v in d.keys() )
                                for p in self._pieces_analyzed + ['Total'] }
                            for ng, d in data_dict[n].items()}
                         for n in list_of_n}
@@ -1054,7 +1054,7 @@ class Vertical_Interval_Statistics( object ):
       # Currently, this method only supports the text and Graph outputs
       if 'graph' == output_format:
          return self.get_ngram_graph(the_settings)
-      elif 'text' == output_format:
+      elif 'list' == output_format:
          return self.get_ngram_text(the_settings)
       else:
          msg = 'get_formatted_ngrams() can only currently prepare ' + \
