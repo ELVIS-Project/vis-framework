@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Filename: problems.py
+# Filename: LilyPondProblems.py
 # Purpose: Exceptions and Errors for output_LilyPond
 #
 # Copyright (C) 2012 Christopher Antila
@@ -20,47 +20,34 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+'''
+The LilyPondProblems module contains error and warning classes for the
+output_LilyPond program.
+'''
 
 
-
-#-------------------------------------------------------------------------------
 class BadFileError( Exception ):
    '''
    output_LilyPond uses this error when there is a problem loading or handling
    a file, not related to a more specific musical element.
    '''
 
-   # NB: This class has a name in camel case so it fits in with the built-in
-   # Python exceptions and errors.
-
-   def __init__( self, val ):
-      self.value = val
-   def __str__( self ):
-      return repr( self.value )
-#-------------------------------------------------------------------------------
+   pass
 
 
 
-#-------------------------------------------------------------------------------
 class UnidentifiedObjectError( Exception ):
    '''
    When something can't be identified.
    '''
-   def __init__( self, val ):
-      self.value = val
-   def __str__( self ):
-      return repr( self.value )
-#-------------------------------------------------------------------------------
+
+   pass
 
 
 
-#-------------------------------------------------------------------------------
 class ImpossibleToProcessError( Exception ):
    '''
    When something is identified, but for some reason cannot be processed.
    '''
-   def __init__( self, val ):
-      self.value = val
-   def __str__( self ):
-      return repr( self.value )
-#-------------------------------------------------------------------------------
+
+   pass

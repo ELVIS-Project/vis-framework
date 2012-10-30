@@ -19,6 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+'''
+The file_output module has methods for writing and reading files.
+'''
 
 # Import:
 # python standard library
@@ -72,7 +75,8 @@ def file_outputter( contents, filename, extension='' ):
    try:
       output_file = open( filename+extension, 'w' )
    except IOError as ioe:
-      return_error = 'Unable to open file for writing (' + filename + extension + ') because of exception: '+str(ioe)
+      return_error = 'Unable to open file for writing (' + filename + \
+                     extension + ') because of exception: '+str(ioe)
       return [filename, return_error]
 
    # Write the file.

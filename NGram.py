@@ -20,7 +20,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-
+'''
+This module presents a class-based representation of an n-gram containing
+vertical intervals connected by the horizontal intervals between the "lower
+voice" in adjacent vertical intervals.
+'''
 
 
 ## Import:
@@ -30,39 +34,41 @@ import re
 #from string import digits as str_digits
 #from string import replace as str_replace
 # music21
-from music21 import interval
-from music21 import note
+from music21.interval import Interval
+from music21.note import Note
 # vis
 from problems import MissingInformationError, NonsensicalInputError
 from VIS_Settings import VIS_Settings
 
 
 
-#-------------------------------------------------------------------------------
 class NGram( object ):
    '''
    Represents an n-gram. In other words, holds 'n'
-   :class:`music21.interval.Interval` objects and information about the voice
+   :class:`music21.Interval` objects and information about the voice
    movement between them.
    '''
+
    ## Instance Data
    # _n
    # _list_of_intervals
    # _list_of_movements
    # _string
    # _has_voice_crossing
+
    def __init__( self, some_intervals ):
       '''
       Create a new n-gram when given a list of the
-      :class:`music21.interval.Interval` objects that are part of the n-gram.
+      :class:`music21.Interval` objects that are part of the n-gram.
 
-      Note that all the Interval objects must have :class:`music21.note.Note`
+      Note that all the Interval objects must have :class:`music21.Note`
       objects embedded, to calculate the "distance" between adjacent
       vertical intervals.
 
       If an Interval is descending, this is considered to be a voice crossing.
       The lower voice is assumed to be the .noteStart property of every Interval.
       '''
+
       # How many intervals are in this triangle/n-gram?
       self._n = len(some_intervals)
 
@@ -78,10 +84,11 @@ class NGram( object ):
          self._list_of_intervals.append( interv )
 
       # Calculate melodic intervals between vertical intervals.
-      self._calculate_movements()
-   # End NGram() ------------------------------------------
+      self._list_of_movements = self._calculate_movements()
+   # End __init__() ------------------------------------------
 
-   # internal method
+
+
    def _calculate_movements( self ):
       '''
       Calculates the movement of the lower part between adjacent Interval
@@ -94,19 +101,22 @@ class NGram( object ):
       post = []
       zipped = zip( self._list_of_intervals, self._list_of_intervals[1:] )
       try:
-         post = [interval.Interval( i.noteStart, j.noteStart ) for i, j in zipped]
+         post = [Interval( i.noteStart, j.noteStart ) for i, j in zipped]
       except AttributeError:
-         msg = 'NGram: Probably one of the intervals is missing a note.Note'
+         msg = 'NGram: Probably one of the intervals is missing a Note'
          raise MissingInformationError( msg )
 
-      self._list_of_movements = post
-   #-------------------------------------------------------
+      return post
+
+
 
    def get_intervals( self ):
       '''
       Returns a list of the vertical Interval objects of this NGram.
       '''
       return self._list_of_intervals
+
+
 
    def get_movements( self ):
       '''
@@ -115,6 +125,8 @@ class NGram( object ):
       '''
       return self._list_of_movements
 
+
+
    def retrograde( self ):
       '''
       Returns the retrograde (backwards) n-gram of self.
@@ -122,13 +134,15 @@ class NGram( object ):
       >>> from music21 import *
       >>> from vis import *
       >>> s = visSettings()
-      >>> a = interval.Interval( note.Note('C4'), note.Note('E4') )
-      >>> b = interval.Interval( note.Note('D4'), note.Note('E4') )
+      >>> a = Interval( Note('C4'), Note('E4') )
+      >>> b = Interval( Note('D4'), Note('E4') )
       >>> ng = NGram( [a, b], s )
       >>> ng.retrograde() == NGram( [b, a], s )
       True
       '''
       return NGram( self._list_of_intervals[::-1] )
+
+
 
    def n( self ):
       '''
@@ -137,7 +151,13 @@ class NGram( object ):
       '''
       return self._n
 
+
+
    def __repr__( self ):
+      '''
+      Return the code that could be used to re-create this NGram object.
+      '''
+
       # The Python standard suggests the return value from this method should
       # be sufficient to re-create the object. This is a little more complicated
       # than the music21 core classes make it seem.
@@ -158,6 +178,8 @@ class NGram( object ):
 
       return post
 
+
+
    def canonical( self ):
       '''
       Return the "canonical non-crossed" str representation of this NGram
@@ -175,12 +197,16 @@ class NGram( object ):
       post = self.get_string_version(True, 'compound').replace( '-', '' )
       return post.replace( '+', '' )
 
+
+
    def voice_crossing( self ):
       '''
       Returns True if the NGram object has voice crossing (meaning that one
       or more of the Interval objects has a negative direction) or else False.
       '''
       return self._has_voice_crossing
+
+
 
    def get_string_version( self, heed_quality=False, \
                            simple_or_compound='compound' ):
@@ -196,8 +222,8 @@ class NGram( object ):
       >>> from music21 import *
       >>> from vis import *
       >>> s = VIS_Settings()
-      >>> a = interval.Interval( note.Note('C4'), note.Note('E5') )
-      >>> b = interval.Interval( note.Note('D4'), note.Note('E5') )
+      >>> a = Interval( Note('C4'), Note('E5') )
+      >>> b = Interval( Note('D4'), Note('E5') )
       >>> ng = NGram( [a, b] )
       >>> ng.get_string_version( heed_quality=False, simple_or_compound='simple' )
       '3 +2 2'
@@ -252,7 +278,7 @@ class NGram( object ):
          # Add the direction to the horizontal interval. The call to
          # isinstance() means we won't try to find the direction of None, which
          # is what would happen for the final horizontal interval.
-         if isinstance( this_move, interval.Interval ):
+         if isinstance( this_move, Interval ):
             if 1 == this_move.direction:
                post += ' +'
             elif -1 == this_move.direction:
@@ -271,10 +297,11 @@ class NGram( object ):
             post += zzz
 
             this_move = None
-      # End the "for"
 
       return post
    # end get_string_version --------------------------------------------
+
+
 
    def get_inversion_at_the( self, interv, up_or_down='up' ):
       '''
@@ -295,8 +322,8 @@ class NGram( object ):
 
       >>> from music21 import *
       >>> from vis import *
-      >>> i1 = interval.Interval( note.Note( 'A4' ), note.Note( 'C5' ) )
-      >>> i2 = interval.Interval( note.Note( 'B4' ), note.Note( 'E5' ) )
+      >>> i1 = Interval( Note( 'A4' ), Note( 'C5' ) )
+      >>> i2 = Interval( Note( 'B4' ), Note( 'E5' ) )
       >>> ng = NGram( [i1,i2] )
       >>> str(ng.get_inversion_at_the( 12, 'up' ))
       'M-10 +M2 M-9'
@@ -365,11 +392,11 @@ class NGram( object ):
             trans_interv = check_for_stupid( trans_interv )
 
             # Transpose it
-            trans_interv = interval.Interval( trans_interv )
+            trans_interv = Interval( trans_interv )
             new_start = old_interv.noteStart.transpose( trans_interv )
 
             # Make the new interval
-            new_interv = interval.Interval( new_start, old_interv.noteEnd )
+            new_interv = Interval( new_start, old_interv.noteEnd )
          # We're transposing the top note down
          elif 'down' == up_or_down:
             # Make the str representing the interval of transposition.
@@ -380,14 +407,14 @@ class NGram( object ):
             trans_interv = check_for_stupid( trans_interv )
 
             # Transpose it
-            trans_interv = interval.Interval( trans_interv )
+            trans_interv = Interval( trans_interv )
             new_end = old_interv.noteEnd.transpose( trans_interv )
 
             # Make the new interval
-            new_interv = interval.Interval( old_interv.noteStart, new_end )
+            new_interv = Interval( old_interv.noteStart, new_end )
          else:
-            msg = 'Inversion direction must be either "up" or "down"; received ' + \
-                  str(up_or_down)
+            msg = 'Inversion direction must be either "up" or "down"; ' + \
+                  'received ' + str(up_or_down)
             raise NonsensicalInputError( msg )
 
          # Append the new Interval to the list that will be sent to the NGram
@@ -398,8 +425,19 @@ class NGram( object ):
       return NGram( inverted_intervals )
    # End get_inversion_at_the() ------------------------------------------------
 
+
+
    @classmethod
    def make_from_str( cls, string ):
+      '''
+      Returns an NGram object with the specifications of the given string-format
+      representation. A valid string would be of the format provided by
+      get_string_version().
+
+      If interval quality is not specified, it is assumed to be Major or
+      Perfect, as appropriate.
+      '''
+
       # TODO: write documentation and follow style guidelines
       # TODO: docstring
       # TODO: refactor this method to use better variable names
@@ -421,11 +459,11 @@ class NGram( object ):
             raise NonsensicalInputError( err_msg )
          if m.group( 1 ) == "":
             try:
-               return interval.Interval( 'M' + s )
+               return Interval( 'M' + s )
             except:
-               return interval.Interval( 'P' + s )
+               return Interval( 'P' + s )
          else:
-            return interval.Interval( s )
+            return Interval( s )
 
       def make_horiz( s ):
          '''
@@ -439,11 +477,11 @@ class NGram( object ):
          sign = m.group( 1 ) if m.group( 1 ) == "-" else ""
          if m.group( 2 ) == "":
             try:
-               return interval.Interval( 'M' + sign + m.group(3) )
+               return Interval( 'M' + sign + m.group(3) )
             except:
-               return interval.Interval( 'P' + sign + m.group(3) )
+               return Interval( 'P' + sign + m.group(3) )
          else:
-            return interval.Interval( m.group(2) + sign + m.group(3) )
+            return Interval( m.group(2) + sign + m.group(3) )
 
       intervals = string.split(' ')
 
@@ -451,7 +489,7 @@ class NGram( object ):
          msg = 'cannot make N-Gram from wrong number of intervals'
          raise NonsensicalInputError( msg )
 
-      nt = note.Note( 'C4' )
+      nt = Note( 'C4' )
       l_i = []
       for i, interv in list(enumerate(intervals))[:-2:2]:
          new_int = make_vert( interv )
@@ -466,15 +504,31 @@ class NGram( object ):
 
       ng = NGram( l_i )
       return ng
+   # End make_from_str() -----------------------------------
+
+
 
    def __str__( self ):
-      return repr(self)
+      '''
+      Returns a string-format representation of this NGram object.
+      '''
+      return self.get_string_version()
+
+
 
    def __eq__( self, other ):
-      # an NGram is purely a list of intervals and list of movements
+      '''
+      Test whether this NGram object is the same as another.
+      '''
+      # an NGram is just a list of intervals and list of movements
       return self._list_of_intervals == other._list_of_intervals and \
              self._list_of_movements == other._list_of_movements
 
+
+
    def __ne__( self, other ):
+      '''
+      Test whether this NGram object and another are not equal.
+      '''
       return not self == other
-#-------------------------------------------------------------------------------
+# End class NGram() ------------------------------------------------------------

@@ -279,8 +279,6 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                  something; not displayed to user)
    - targeted_output : the instructions for annotation in an annotated score
 
-   # TODO: confirm that all of these are true... they should be...
-
    The argument, targeted_output, is a list of instructions for creating a
    purpose-built LilyPond score. Each instruction is a list with a str and
    the value, if any. You could have:
@@ -305,10 +303,10 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
 
    Therefore, if you want parts 0 and 3, and both '3 1 3' and '3 1 4' to be
    annotated, but only '3 1 4' with the colour #darkred, you would do this:
-   >>> analyze_this( [['these parts', [0, 3], \
-                      ['only annotate', '3 1 3'], \
-                      ['only colour', '3 1 4'], \
-                      ['annotate colour', '#darkred']] )
+   >>> targeted_output= [['these parts', [0, 3], \
+                         ['only annotate', '3 1 3'], \
+                         ['only colour', '3 1 4'], \
+                         ['annotate colour', '#darkred']]
    '''
 
    # Parameters:
@@ -321,16 +319,26 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
    #                   analyze_this()
 
    # Helper Methods ---------------------------------------
-   # Is 'thing' a Rest?
    def is_rest( thing ):
+      '''
+      Is a thing a music21.note.Rest object?
+      '''
       return isinstance( thing, note.Rest )
 
-   # Rounds n to the nearest "precision". For instance...
-   # round_to( 12.6, 0.5 ) ==> 12.5
-   #
-   # My thanks to the Internet:
-   # http://stackoverflow.com/questions/4265546/python-round-to-nearest-05
    def round_to( n, precision ):
+      '''
+      Rounds a float to the nearest "precision."
+
+      Thanks to...
+      http://stackoverflow.com/questions/4265546/python-round-to-nearest-05
+
+      >>> round_to( 12.6, 0.5 )
+      12.5
+      >>> round_to( 12.3, 0.25 )
+      12.25
+      >>> round_to( 12.4, 0.25 )
+      12.5
+      '''
       correction = 0.5 if n >= 0 else -0.5
       return int( n / precision + correction ) * precision
    # End Helper Methods -----------------------------------
@@ -590,8 +598,8 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
             # Does one or do both parts have a Rest or have Rests?
             if is_rest( higher_part[current_higher_index] ) or \
                   is_rest( lower_part[current_lower_index] ):
-               # It doesn't really matter which part; we just have to add this as
-               # a "this moment has a Rest" moment.
+               # It doesn't really matter which part; we just have to add this
+               # as a "this moment has a Rest" moment.
                interval_history.append( 'rest' )
                contin = False
             # Otherwise, we're "go" for adding this as an Interval.
@@ -616,8 +624,9 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                   statistics_buffer.add_interval( this_interval, the_pair_name )
                   interval_history.append( this_interval )
                   # Update the current offset, because we added a new thing.
-                  current_offset = max( higher_part[current_higher_index].offset, \
-                                        lower_part[current_lower_index].offset )
+                  current_offset = \
+                  max( higher_part[current_higher_index].offset, \
+                       lower_part[current_lower_index].offset )
 
          # Process this moment for n-grams ----------------
          # Hold the NGram object we'll create.
@@ -630,7 +639,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
             for n in find_these_ns:
                # Is the interval history long enough?
                if len(interval_history) < n:
-                  contin = False # TODO: re-evaluate this choice
+                  contin = False
                   continue
 
                # Hold a list of intervals that will make up this n-gram.

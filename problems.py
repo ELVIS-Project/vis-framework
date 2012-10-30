@@ -20,10 +20,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+'''
+This module contains errors and warnings for the "vis" program.
+'''
 
 
 
-#-------------------------------------------------------------------------------
 class NonsensicalInputError( Exception ):
    '''
    VIS uses this error for situations where a user-provided value does not
@@ -33,19 +35,11 @@ class NonsensicalInputError( Exception ):
    or not to pay attention to interval quality, and they tell us 'cheese'.
    '''
 
-   # NB: This class has a name in camel case so it fits in with the built-in
-   # Python exceptions and errors.
-
-   def __init__( self, val ):
-      self.value = val
-   def __str__( self ):
-      return repr( self.value )
-#-------------------------------------------------------------------------------
+   pass
 
 
 
-#-------------------------------------------------------------------------------
-class NonsensicalInputWarning( Exception ):
+class NonsensicalInputWarning( Warning ):
    '''
    VIS uses this error for situations where an argument does not make sense,
    but we can somehow continue execution.
@@ -53,18 +47,10 @@ class NonsensicalInputWarning( Exception ):
    For example: setting a property to an invalid value. It'll just be ignored.
    '''
 
-   # NB: This class has a name in camel case so it fits in with the built-in
-   # Python exceptions and errors.
-
-   def __init__( self, val ):
-      self.value = val
-   def __str__( self ):
-      return repr( self.value )
-#-------------------------------------------------------------------------------
+   pass
 
 
 
-#-------------------------------------------------------------------------------
 class MissingInformationError( Exception ):
    '''
    VIS uses this error when there is insufficient information to continue
@@ -75,36 +61,20 @@ class MissingInformationError( Exception ):
    associated, and therefore could be any distance apart.
    '''
 
-   # NB: This class has a name in camel case so it fits in with the built-in
-   # Python exceptions and errors.
-
-   def __init__( self, val ):
-      self.value = val
-   def __str__( self ):
-      return repr( self.value )
-#-------------------------------------------------------------------------------
+   pass
 
 
 
-#-------------------------------------------------------------------------------
 class BadFileError( Exception ):
    '''
    VIS uses this error when there is a problem loading or handling a file, not
    related to a more specific musical element.
    '''
 
-   # NB: This class has a name in camel case so it fits in with the built-in
-   # Python exceptions and errors.
-
-   def __init__( self, val ):
-      self.value = val
-   def __str__( self ):
-      return repr( self.value )
-#-------------------------------------------------------------------------------
+   pass
 
 
 
-#-------------------------------------------------------------------------------
 class IncompatibleSetupError( Exception ):
    '''
    VIS uses this error when there is a problem with either the setup of VIS
@@ -115,11 +85,4 @@ class IncompatibleSetupError( Exception ):
    with LilyPond 2.15.x is an incompatible setup.
    '''
 
-   # NB: This class has a name in camel case so it fits in with the built-in
-   # Python exceptions and errors.
-
-   def __init__( self, val ):
-      self.value = val
-   def __str__( self ):
-      return repr( self.value )
-#-------------------------------------------------------------------------------
+   pass
