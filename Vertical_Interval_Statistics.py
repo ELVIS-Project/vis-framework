@@ -29,7 +29,7 @@ stores, and reports statistics for analyses with NGram objects.
 
 # Import:
 # python
-import re, copy, os.path, json
+import re, os.path, json
 from string import digits as string_digits
 from string import join
 from collections import defaultdict
@@ -38,7 +38,6 @@ from itertools import chain
 from music21 import interval, graph, stream, clef, meter, note
 from music21.metadata import Metadata
 # vis
-from VIS_Settings import VIS_Settings
 from problems import NonsensicalInputError, MissingInformationError, \
    NonsensicalInputWarning
 from analytic_engine import make_lily_triangle
@@ -414,10 +413,12 @@ class Vertical_Interval_Statistics( object ):
       qualities = 'dmMPA'
       directions = '-+'
 
-      # Given a species (number), finds all the occurrences of any quality.
-      # The second argument should be either self._simple_interval_dict or
-      # self._compound_interval_dict
       def get_all_qualities( species, db, piece ):
+         '''
+         Given a species (number), finds all the occurrences of any quality.
+         The second argument should be either self._simple_interval_dict or
+         self._compound_interval_dict
+         '''
          post = 0
          for quality in qualities:
             if ( quality + species ) in db:
@@ -484,9 +485,9 @@ class Vertical_Interval_Statistics( object ):
             the_ngram.get_string_version( True, 'compound' )
 
       # add the occurrence to the compound-ngram dict
-      self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version] \
+      self._compound_ngrams_dict[the_ngram.n()][compound_no_quality_version] \
             [compound_quality_version][the_piece] += 1
-      self._compound_ngrams_dict[the_ngram._n][compound_no_quality_version] \
+      self._compound_ngrams_dict[the_ngram.n()][compound_no_quality_version] \
             [compound_quality_version]['Total'] += 1
 
       # set up the keys for the various nested simple-ngram dicts
@@ -494,9 +495,9 @@ class Vertical_Interval_Statistics( object ):
       simple_quality_version = the_ngram.get_string_version( True, 'simple' )
 
       # add the occurrence to the simple-ngram dict
-      self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version] \
+      self._simple_ngrams_dict[the_ngram.n()][simple_no_quality_version] \
             [simple_quality_version][the_piece] += 1
-      self._simple_ngrams_dict[the_ngram._n][simple_no_quality_version] \
+      self._simple_ngrams_dict[the_ngram.n()][simple_no_quality_version] \
             [simple_quality_version]['Total'] += 1
    # End add_ngram() ---------------------------------------
 
@@ -554,17 +555,17 @@ class Vertical_Interval_Statistics( object ):
                         for n in list_of_n}
 
       # (2) Do the filtering for "top X"
-      topX = settings.get_property( 'topX' ) # the "X"
-      if topX is not None:
+      top_x = settings.get_property( 'topX' ) # the "X"
+      if top_x is not None:
          for n in list_of_n:
             # sort the keys by frequency
             sorted_ngrams = sorted( output_dict[n].keys(), \
                                    key = lambda ng: output_dict[n][ng]['Total'],
                                    reverse = True )
-            # accept only the top topX
-            sorted_ngrams = sorted_ngrams[:topX]
+            # accept only the top top_x
+            sorted_ngrams = sorted_ngrams[:top_x]
             # filter the dict to only include the new keys
-            output_dict[n] = {ng:output_dict[n][ng] for ng in sorted_ngrams}
+            output_dict[n] = {ng: output_dict[n][ng] for ng in sorted_ngrams}
 
       # (3) Do the filtering for "threshold" (n-grams with fewer than
       # "threshold" occurrences should not be included)
@@ -573,7 +574,7 @@ class Vertical_Interval_Statistics( object ):
          for n in list_of_n:
             keys = filter( lambda ng: output_dict[n][ng]['Total'] >= thresh, \
                            output_dict[n].keys() )
-            output_dict[n] = {ng:output_dict[n][ng] for ng in keys}
+            output_dict[n] = {ng: output_dict[n][ng] for ng in keys}
 
       # (4) Sort the keys according to the settings
       # will we have to reverse our sorts?
@@ -639,26 +640,26 @@ class Vertical_Interval_Statistics( object ):
       Merge an other Vertical_Interval_Statistics instance with this one.
       '''
 
-      def merge_default_dicts( x, y ):
+      def merge_default_dicts( left, right ):
          '''
          Given two nested defaultdicts, return a new defaultdict with all the
          keys of both, and values that correspond to summing the dicts together.
          '''
 
          # Here's a set with all of the keys belonging in the new defaultdict
-         new_keys = set( x.keys() + y.keys() )
+         new_keys = set( left.keys() + right.keys() )
 
          # TODO: what's this "int" test for?
-         if x.default_factory == int:
+         if left.default_factory == int:
             # Assemble the new defaultdict by adding the values in x to
             # the values in y.
-            contents = ( (key, x[key] + y[key]) for key in new_keys )
+            contents = ( (key, left[key] + right[key]) for key in new_keys )
             return defaultdict( int, contents )
          else:
             # TODO: Assemble the new defaultdict by ... how?
-            contents = ( (key, merge_default_dicts( x[key], y[key] )) for \
+            contents = ( (key, merge_default_dicts( left[key], right[key] )) for \
                   key in new_keys )
-            return defaultdict( x.default_factory, contents )
+            return defaultdict( left.default_factory, contents )
 
       # Deal with the record of voice pairs and pieces
       self._pieces_analyzed += other._pieces_analyzed
@@ -855,6 +856,7 @@ class Vertical_Interval_Statistics( object ):
       The first argument is a VIS_Settings() object, from which we will use
       all of the formatting properties.
       '''
+      # TODO: there are too many single-letter variable names here
 
       # (1) decide which dictionary to use and how to process the intervals.
       the_dict = None
@@ -943,6 +945,7 @@ class Vertical_Interval_Statistics( object ):
             y.append( b )
          ax.bar( x, y, alpha=.8, color = graph.getColor( g.colors[0] ) )
 
+         # TODO: not access these class members
          g._adjustAxisSpines( ax )
          g._applyFormatting( ax )
          ax.set_ylabel( 'Frequency', fontsize = g.labelFontSize, \
@@ -1235,130 +1238,132 @@ class Vertical_Interval_Statistics( object ):
 
 
 
-   def compare( self, the_settings, other_stats, file1, file2, specs='' ):
-      '''
-      Compares the relative frequencies of n-grams in two different files,
-      displaying a text chart or graph, as well as computing the "total metric"
-      difference between the two.
-      '''
+   # TODO: uncomment this method and revise it as required... I commented it out
+   # for AMS/SMT/SEM 2012 because it's not fully connected to the GUI.
+   #def compare( self, the_settings, other_stats, file1, file2, specs='' ):
+      #'''
+      #Compares the relative frequencies of n-grams in two different files,
+      #displaying a text chart or graph, as well as computing the "total metric"
+      #difference between the two.
+      #'''
       # TODO: comment this method as extensively as get_ngram_graph()
       # TODO: remove duplication with get_ngram_text() and get_ngram_graph()
 
       # (1) Figure out which 'n' values to display
-      post = ''
-      list_of_n = []
-      if 'n=' in specs:
-         list_of_n = specs[specs.find('n=') + 2:]
-         list_of_n = list_of_n[:list_of_n.find(' ')]
-         list_of_n = sorted(set([int(n) \
-                     for n in re.findall( '(\d+)', list_of_n )]))
-         # Check those n values are acceptable/present
-         for n in list_of_n:
-            # First check we have that index and it's potentially filled with
-            # n-gram values
-            if n < 2 or (n > (len(self._compound_ngrams_dict) - 1) and \
-               n > (len(other_stats._compound_ngrams_dict) - 1)):
-               # throw it out
-               list_of_n.remove( n )
-               post += 'Not printing ' + str(n) + \
-                       '-grams; there are none for that "n" value.\n'
-               continue # to avoid the next test
-            # Now check if there are actually n-grams in that position. If we
-            # analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
-            # valid in the n-gram dictionary, but they won't actually hold
-            # any n-grams.
-            if {} == self._compound_ngrams_dict[n] and \
-               {} == other_stats._compound_ngrams_dict[n]:
-               # throw it out
-               list_of_n.remove( n )
-               post += 'Not printing ' + str(n) + \
-                       '-grams; there are none for that "n" value.\n'
-      elif self._compound_ngrams_dict[i] != {} or \
-      other_stats._compound_ngrams_dict[i] != {}:
-         list_of_n = [i for i in \
-                      xrange(max( len(self._compound_ngrams_dict), \
-                      len(other_stats._compound_ngrams_dict) )) ]
+      #post = ''
+      #list_of_n = []
+      #if 'n=' in specs:
+         #list_of_n = specs[specs.find('n=') + 2:]
+         #list_of_n = list_of_n[:list_of_n.find(' ')]
+         #list_of_n = sorted(set([int(n) \
+                     #for n in re.findall( '(\d+)', list_of_n )]))
+         ## Check those n values are acceptable/present
+         #for n in list_of_n:
+            ## First check we have that index and it's potentially filled with
+            ## n-gram values
+            #if n < 2 or (n > (len(self._compound_ngrams_dict) - 1) and \
+               #n > (len(other_stats._compound_ngrams_dict) - 1)):
+               ## throw it out
+               #list_of_n.remove( n )
+               #post += 'Not printing ' + str(n) + \
+                       #'-grams; there are none for that "n" value.\n'
+               #continue # to avoid the next test
+            ## Now check if there are actually n-grams in that position. If we
+            ## analyzed only for 5-grams, for instance, then 2, 3, and 4 will be
+            ## valid in the n-gram dictionary, but they won't actually hold
+            ## any n-grams.
+            #if {} == self._compound_ngrams_dict[n] and \
+               #{} == other_stats._compound_ngrams_dict[n]:
+               ## throw it out
+               #list_of_n.remove( n )
+               #post += 'Not printing ' + str(n) + \
+                       #'-grams; there are none for that "n" value.\n'
+      #elif self._compound_ngrams_dict[i] != {} or \
+      #other_stats._compound_ngrams_dict[i] != {}:
+         #list_of_n = [i for i in \
+                      #xrange(max( len(self._compound_ngrams_dict), \
+                      #len(other_stats._compound_ngrams_dict) )) ]
 
-      # What if we end up with no n values?
-      if 0 == len(list_of_n):
-         msg = "All of the 'n' values appear to have no n-grams"
-         raise MissingInformationError( msg )
+      ## What if we end up with no n values?
+      #if 0 == len(list_of_n):
+         #msg = "All of the 'n' values appear to have no n-grams"
+         #raise MissingInformationError( msg )
 
-      # (2) Organize the results
-      tables = {}
-      for n in list_of_n:
-         table = {}
-         sett = copy.deepcopy( the_settings )
-         sett.set_property( 'heedQuality', False )
-         sett.set_property( 'showTheseNs', list_of_n )
-         self_dict = self.prepare_ngram_output_dict( sett )[n]
-         other_dict = other_stats.prepare_ngram_output_dict( sett )[n]
-         for ng in self_dict.iterkeys():
-            table[ng] = [self_dict[ng],0]
-         for ng in other_dict.iterkeys():
-            if ng in self_dict:
-               table[ng][1] = other_dict[ng]
-            else:
-               table[ng] = [0, other_dict[ng]]
-         tables[n] = table
-      # (3.1) If some graphs are asked for, prepare them
-      if 'graph' in specs:
-         grapharr = []
-         for n in list_of_n:
-            table = tables[n]
-            keys = table.keys()
-            g = graph.GraphGroupedVerticalBar( doneAction=None )
-            data = []
-            for k, key in enumerate(keys):
-               pair = {}
-               pair[file1] = table[key][0]
-               pair[file2] = table[key][1]
-               entry = ( 'bar%s' % str(k), pair )
-               data.append( entry )
-            g.setData( data )
-            g.setTicks( 'x', [(k + 0.4, key) for k, key in enumerate(keys)])
-            g.xTickLabelRotation = 90
-            g.xTickLabelVerticalAlignment = 'top'
-            g.setTitle( str(n) + '-grams' )
-            g.setTicks( 'y', [(k,k) \
-                            for k in xrange(max([max( int(v[0]), int(v[1]) )\
-                            for v in table.values()]))])
-            g.process()
-            grapharr.append( g )
-         post = grapharr
+      ## (2) Organize the results
+      #tables = {}
+      #for n in list_of_n:
+         #table = {}
+         #sett = copy.deepcopy( the_settings )
+         #sett.set_property( 'heedQuality', False )
+         #sett.set_property( 'showTheseNs', list_of_n )
+         #self_dict = self.prepare_ngram_output_dict( sett )[n]
+         #other_dict = other_stats.prepare_ngram_output_dict( sett )[n]
+         #for ng in self_dict.iterkeys():
+            #table[ng] = [self_dict[ng],0]
+         #for ng in other_dict.iterkeys():
+            #if ng in self_dict:
+               #table[ng][1] = other_dict[ng]
+            #else:
+               #table[ng] = [0, other_dict[ng]]
+         #tables[n] = table
+      ## (3.1) If some graphs are asked for, prepare them
+      #if 'graph' in specs:
+         #grapharr = []
+         #for n in list_of_n:
+            #table = tables[n]
+            #keys = table.keys()
+            #g = graph.GraphGroupedVerticalBar( doneAction=None )
+            #data = []
+            #for k, key in enumerate(keys):
+               #pair = {}
+               #pair[file1] = table[key][0]
+               #pair[file2] = table[key][1]
+               #entry = ( 'bar%s' % str(k), pair )
+               #data.append( entry )
+            #g.setData( data )
+            #g.setTicks( 'x', [(k + 0.4, key) for k, key in enumerate(keys)])
+            #g.xTickLabelRotation = 90
+            #g.xTickLabelVerticalAlignment = 'top'
+            #g.setTitle( str(n) + '-grams' )
+            #g.setTicks( 'y', [(k,k) \
+                            #for k in xrange(max([max( int(v[0]), int(v[1]) )\
+                            #for v in table.values()]))])
+            #g.process()
+            #grapharr.append( g )
+         #post = grapharr
 
-      # (3.2) Otherwise make a nicely formatted list of the results
-      else:
-         s_or_c = the_settings.get_property( 'simpleOrCompound' )
-         heed_quality = the_settings.get_property( 'heedQuality' )
-         for n in list_of_n:
-            table = tables[n]
-            width1 = max( [len(ng.get_string_version( heed_quality, s_or_c )) \
-                          for ng in table.keys()] )
-            total1 = sum( [t[0] for t in table.values()] )
-            width2 = max( [len(str(t[0])) for t in table.values()] + \
-                          [len(file1) + 2] )
-            total2 = sum([t[1] for t in table.values()])
-            post += '{0:{1:n}}{2:{3:n}}{4}'.format( str(n) + '-gram', \
-                                                    width1 + 2, \
-                                                    '# ' + file1, \
-                                                    width2 + 2, \
-                                                    '# ' + file2 )
-            post += '\n' + ( '-' * (width1 + width2 + len(file2) + 6) )
-            for ng in table.iterkeys():
-               post += '\n{0:{1:n}}{2:{3:n}}{4}'.format( \
-                              ng.get_string_version( heed_quality, s_or_c ), \
-                              width1 + 2,\
-                              str(table[ng][0]), \
-                              width2 + 2, \
-                              str(table[ng][1]))
-            post += '\n'
-            totaldiff = sum([abs( float(a[0]) / total1 - float(a[1]) / total2 )\
-                              for a in table.values()])
-            post += '\nTotal difference between ' + str(n) + '-grams: ' + \
-                    str(totaldiff) + '\n'
+      ## (3.2) Otherwise make a nicely formatted list of the results
+      #else:
+         #s_or_c = the_settings.get_property( 'simpleOrCompound' )
+         #heed_quality = the_settings.get_property( 'heedQuality' )
+         #for n in list_of_n:
+            #table = tables[n]
+            #width1 = max( [len(ng.get_string_version( heed_quality, s_or_c )) \
+                          #for ng in table.keys()] )
+            #total1 = sum( [t[0] for t in table.values()] )
+            #width2 = max( [len(str(t[0])) for t in table.values()] + \
+                          #[len(file1) + 2] )
+            #total2 = sum([t[1] for t in table.values()])
+            #post += '{0:{1:n}}{2:{3:n}}{4}'.format( str(n) + '-gram', \
+                                                    #width1 + 2, \
+                                                    #'# ' + file1, \
+                                                    #width2 + 2, \
+                                                    #'# ' + file2 )
+            #post += '\n' + ( '-' * (width1 + width2 + len(file2) + 6) )
+            #for ng in table.iterkeys():
+               #post += '\n{0:{1:n}}{2:{3:n}}{4}'.format( \
+                              #ng.get_string_version( heed_quality, s_or_c ), \
+                              #width1 + 2,\
+                              #str(table[ng][0]), \
+                              #width2 + 2, \
+                              #str(table[ng][1]))
+            #post += '\n'
+            #totaldiff = sum([abs( float(a[0]) / total1 - float(a[1]) / total2 )\
+                              #for a in table.values()])
+            #post += '\nTotal difference between ' + str(n) + '-grams: ' + \
+                    #str(totaldiff) + '\n'
 
-      return post
+      #return post
    # End compare() -----------------------------------------
 
 
@@ -1486,7 +1491,7 @@ class Vertical_Interval_Statistics( object ):
 
 
 
-def interval_sorter( x, y ):
+def interval_sorter( left, right ):
    '''
    Returns -1 if the first argument is a smaller interval.
    Returns 1 if the second argument is a smaller interval.
@@ -1512,44 +1517,46 @@ def interval_sorter( x, y ):
    # we have directions, they'll be removed with this. If we don't have
    # directions, this will have no effect.
    for direct in list_of_directions:
-      x = x.replace( direct, '' )
-      y = y.replace( direct, '' )
+      left = left.replace( direct, '' )
+      right = right.replace( direct, '' )
 
    # If we have numbers with no qualities, we'll just add a 'P' to both, to
    # pretend they have the same quality (which, as far as we know, they do).
-   if x[0] in string_digits and y[0] in string_digits:
-      x = 'P' + x
-      y = 'P' + y
+   if left[0] in string_digits and right[0] in string_digits:
+      left = 'P' + left
+      right = 'P' + right
 
    # Comparisons!
-   if x == y:
-      return 0
-   elif int(x[1:]) < int(y[1:]): # if x is generically smaller
-      return -1
-   elif int(x[1:]) > int(y[1:]): # if y is generically smaller
-      return 1
+   if left == right:
+      post = 0
+   elif int(left[1:]) < int(right[1:]): # if x is generically smaller
+      post = -1
+   elif int(left[1:]) > int(right[1:]): # if y is generically smaller
+      post = 1
    else: # otherwise, we're down to the species/quality
-      x_qual = x[0]
-      y_qual = y[0]
-      if x_qual == 'd':
-         return -1
-      elif y_qual == 'd':
-         return 1
-      elif x_qual == 'A':
-         return 1
-      elif y_qual == 'A':
-         return -1
-      elif x_qual == 'm':
-         return -1
-      elif y_qual == 'm':
-         return 1
+      left_qual = left[0]
+      right_qual = right[0]
+      if left_qual == 'd':
+         post = -1
+      elif right_qual == 'd':
+         post = 1
+      elif left_qual == 'A':
+         post = 1
+      elif right_qual == 'A':
+         post = -1
+      elif left_qual == 'm':
+         post = -1
+      elif right_qual == 'm':
+         post = 1
       else:
-         return 0
+         post = 0
+
+   return post
 # End interval_sorter() ------------------------------------
 
 
 
-def ngram_sorter( a, b ):
+def ngram_sorter( left, right ):
    '''
    Returns -1 if the first argument is a smaller n-gram.
    Returns 1 if the second argument is a smaller n-gram.
@@ -1581,43 +1588,37 @@ def ngram_sorter( a, b ):
    1
    '''
 
-   x,y = str(a), str(b)
-   # Just in case there are some extra spaces
-   x = x.strip()
-   y = y.strip()
+   # We need the string version for this
+   left = str(left)
+   right = str(right)
 
-   def calc_units_in_ngram( ng ):
-      # Calculate the 'units' in the n-gram, which is the number of elements
-      # separated by a space, which is sort of like finding 'n'.
-      units = 0
-      while len(ng) > 0 and ng.find(' ') != -1:
-         ng = ng[ng.find(' ')+1:]
-         units += 1
-      else:
-         units += 1
-      return units
+   # Just in case there are some extra spaces
+   left = left.strip()
+   right = right.strip()
 
    # See if we have only one interval left. When there is only one interval,
    # the result of this will be -1
-   x_find = x.find(' ')
-   y_find = y.find(' ')
-   if -1 == x_find:
-      if -1 == y_find:
+   left_find = left.find(' ')
+   right_find = right.find(' ')
+
+   if -1 == left_find:
+      if -1 == right_find:
          # Both x and y have only one interval left, so the best we can do is
          # the output from intervalSorter()
-         return interval_sorter( x, y )
+         return interval_sorter( left, right )
       else:
          # x has one interval left, but y has more than one, so x is shorter.
          return -1
-   elif -1 == y_find:
+   elif -1 == right_find:
       # y has one interval left, but x has more than one, so y is shorter.
       return 1
 
    # See if the first interval will differentiate
-   possible_result = interval_sorter( x[:x_find], y[:y_find] )
+   possible_result = interval_sorter( left[:left_find], right[:right_find] )
+
    if 0 != possible_result:
       return possible_result
 
    # If not, we'll rely on ourselves to solve the next mystery!
-   return ngram_sorter( x[x_find+1:], y[y_find+1:] )
+   return ngram_sorter( left[left_find + 1:], right[right_find + 1:] )
 # End ngram_sorter() ---------------------------------------
