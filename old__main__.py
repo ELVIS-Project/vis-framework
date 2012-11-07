@@ -45,32 +45,32 @@ from music21.converter import ConverterFileException # for analyze_this()
 # vis
 from gui_files.Ui_main_window import Ui_MainWindow
 from gui_files.Ui_select_voices import Ui_select_voices
-from vis import VIS_Settings
-from vis import Vertical_Interval_Statistics
+from vis import VISSettings
+from vis import VerticalIntervalStatistics
 from analytic_engine import vis_these_parts, make_basso_seguente
 from problems import MissingInformationError, NonsensicalInputWarning
 from file_output import file_outputter, file_inputter
-from output_LilyPond import process_score as lily_process_score
-from output_LilyPond import LilyPond_Settings, detect_lilypond, \
+from OutputLilyPond import process_score as lily_process_score
+from OutputLilyPond import LilyPondSettings, detect_lilypond, \
                             make_lily_version_numbers
 
 
 
 # Subclass for Signal Handling -------------------------------------------------
-class Vis_MainWindow( Ui_MainWindow ):
+class VisMainWindow( Ui_MainWindow ):
 
    # "self" Objects
    #---------------
    # self.analysis_files : a list of pathnames for analysis
    # self.lilypond_version_numbers : the 3-tuplet of a LilyPond version
-   # self.settings : a VIS_Settings instance
-   # self.statistics : a Vertical_Interval_Statistics instance
+   # self.settings : a VISSettings instance
+   # self.statistics : a VerticalIntervalStatistics instance
    # self.targeted_lily_options : options for "targeted LilyPond output"
 
    # Create the settings and statistics objects for vis.
    def setup_vis( self ):
-      self.settings = VIS_Settings()
-      self.statistics = Vertical_Interval_Statistics()
+      self.settings = VISSettings()
+      self.statistics = VerticalIntervalStatistics()
       # Hold the list of filenames to analyze.
       self.analysis_files = []
       # Hold the list of instructions for doing targeted analysis.
@@ -393,7 +393,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # options correctly for LilyPond!
 
       # Get a settings instance
-      l_sets = LilyPond_Settings()
+      l_sets = LilyPondSettings()
 
       # Set all the settings
       # - no indent
@@ -402,7 +402,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # TODO: if we didn't process any pieces, stop processing
 
       # Get the values of 'n' we need.
-      enns = VIS_Settings._parse_list_of_n( str(self.line_summary_n.text()) )
+      enns = VISSettings._parse_list_of_n( str(self.line_summary_n.text()) )
 
       # Get the threshold.
       try:
@@ -433,7 +433,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          '',
          None))
 
-      # Pass the score to output_LilyPond for processing.
+      # Pass the score to OutputLilyPond for processing.
       lily_process_score( summary_score, the_settings=l_sets, filename=out_file )
 
 
@@ -987,7 +987,7 @@ def main():
    # Standard stuff
    app = QtGui.QApplication( sys.argv )
    MainWindow = QtGui.QMainWindow()
-   vis_ui = Vis_MainWindow()
+   vis_ui = VisMainWindow()
    vis_ui.setupUi( MainWindow )
    # vis stuff
    vis_ui.setup_vis()

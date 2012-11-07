@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Test_Output_Formatting.py
+# Name:         TestOutputFormatting.py
 # Purpose:      Unit tests for the get_formatted_ngrams() and
-#               get_formatted_intervals() in the Vertical_Interval_Statistics
+#               get_formatted_intervals() in the VerticalIntervalStatistics
 #               module.
 #
 # Copyright (C) 2012 Christopher Antila
@@ -27,15 +27,15 @@
 
 import unittest
 from test_corpus import vis_these_parts_unit_tests
-from Vertical_Interval_Statistics import Vertical_Interval_Statistics
-from VIS_Settings import VIS_Settings
+from VerticalIntervalStatistics import VerticalIntervalStatistics
+from VISSettings import VISSettings
 from analytic_engine import vis_these_parts
 from problems import NonsensicalInputWarning
 
 
 
 #------------------------------------------------------------------------------
-class Test_Analysis_Engine_Unit( unittest.TestCase ):
+class TestAnalysisEngineUnit( unittest.TestCase ):
    '''
    Contains unit tests for vis_these_parts(). These tests are small fragments
    to help ensure vis_these_parts() functions correctly, before integration
@@ -44,8 +44,8 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
    '''
 
    def setUp( self ):
-      self.stats = Vertical_Interval_Statistics()
-      self.settings = VIS_Settings()
+      self.stats = VerticalIntervalStatistics()
+      self.settings = VISSettings()
       self.settings.set_property( 'leavePieces', False )
 
    def test_one( self ):
@@ -378,4 +378,4 @@ class Test_Analysis_Engine_Unit( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_Analysis_Engine_Unit )
+suite = unittest.TestLoader().loadTestsFromTestCase( TestAnalysisEngineUnit )

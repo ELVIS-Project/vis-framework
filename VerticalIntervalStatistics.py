@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Vertical_Interval_Statistics.py
+# Name:         VerticalIntervalStatistics.py
 # Purpose:      Stores statistics for "vis"
 #
 # Copyright (C) 2012 Christopher Antila, Jamie Klassen
@@ -21,7 +21,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-This module implements the Vertical_Interval_Statistics class, which collects,
+This module implements the VerticalIntervalStatistics class, which collects,
 stores, and reports statistics for analyses with NGram objects.
 '''
 
@@ -53,7 +53,7 @@ import matplotlib.pyplot as plt
 
 
 
-class Vertical_Interval_Statistics( object ):
+class VerticalIntervalStatistics( object ):
    '''
    Holds the statistics discovered by vis. Currently these are:
 
@@ -97,7 +97,7 @@ class Vertical_Interval_Statistics( object ):
    def __str__( self ):
       '''
       This should produce something like:
-      "<Vertical_Interval_Statistics for 1 piece with 14 intervals; 26 2-grams>"
+      "<VerticalIntervalStatistics for 1 piece with 14 intervals; 26 2-grams>"
       '''
       # TODO: comment this method
 
@@ -105,7 +105,7 @@ class Vertical_Interval_Statistics( object ):
       pieces = " pieces"
       if 1 == nbr_pieces:
          pieces = " piece"
-      post = '<Vertical_Interval_Statistics for ' + str(nbr_pieces) + \
+      post = '<VerticalIntervalStatistics for ' + str(nbr_pieces) + \
              pieces + ' with ' + str(len(self._compound_interval_dict)) + \
              ' intervals; '
       for n in self._compound_ngrams_dict.iterkeys():
@@ -229,11 +229,11 @@ class Vertical_Interval_Statistics( object ):
       post = None
 
       if isinstance( d, dict ):
-         post = {Vertical_Interval_Statistics._stringify( k ): \
-                 Vertical_Interval_Statistics._stringify( v ) \
+         post = {VerticalIntervalStatistics._stringify( k ): \
+                 VerticalIntervalStatistics._stringify( v ) \
                  for k, v in d.items()}
       elif isinstance( d, list ):
-         post = map( Vertical_Interval_Statistics._stringify, d )
+         post = map( VerticalIntervalStatistics._stringify, d )
       elif isinstance( d, int ):
          post = d
       else:
@@ -253,7 +253,7 @@ class Vertical_Interval_Statistics( object ):
       post = None
 
       if isinstance( d, defaultdict ):
-         post = {k: Vertical_Interval_Statistics.dictify( v ) \
+         post = {k: VerticalIntervalStatistics.dictify( v ) \
                  for k, v in d.items()}
       else:
          post = d
@@ -265,12 +265,12 @@ class Vertical_Interval_Statistics( object ):
    def to_json( self ):
       '''
       Returns a string containing the JSON-serialization of this
-      Vertical_Interval_Statistics instance.
+      VerticalIntervalStatistics instance.
       '''
       # _stringify ensures that the dict is JSON-serializable,
       # since all keys in a JSONObject must be strings
       return json.JSONEncoder().encode( \
-      Vertical_Interval_Statistics._stringify( self.__dict__ ) )
+      VerticalIntervalStatistics._stringify( self.__dict__ ) )
 
 
 
@@ -294,12 +294,12 @@ class Vertical_Interval_Statistics( object ):
          else:
             return ngd
 
-      vis = Vertical_Interval_Statistics()
+      vis = VerticalIntervalStatistics()
 
       # use _stringify since JSONDecoder interprets all strings as unicode.
       d = None
       try:
-         d = Vertical_Interval_Statistics._stringify( \
+         d = VerticalIntervalStatistics._stringify( \
             json.JSONDecoder().decode( json_string ) )
       except Exception as e:
          # TODO: this won't work. We need to catch specific exceptions
@@ -398,7 +398,7 @@ class Vertical_Interval_Statistics( object ):
 
    def get_interval_occurrences( self, which_interval, \
                                  simple_or_compound = 'simple', piece = None ):
-      # TODO: rewrite this method to use a VIS_Settings instance
+      # TODO: rewrite this method to use a VISSettings instance
       '''
       Returns the number of occurrences of a particular
       :class:`music21.interval.Interval` in a particular piece,
@@ -505,11 +505,11 @@ class Vertical_Interval_Statistics( object ):
 
    def get_ngram_dict( self, settings ):
       '''
-      Given a VIS_Settings object, return a tuple with:
+      Given a VISSettings object, return a tuple with:
       - a dict including the n-gram specified statistics, and
       - a dict with a sorted list of keys for the required values of n
 
-      In the VIS_Settings instance, set "leavePieces" to "False" to omit
+      In the VISSettings instance, set "leavePieces" to "False" to omit
       voice-pair-specific data, outputting only the totals for all voice pairs.
 
       Note that each n-gram object is appears in the statistics dictionary as
@@ -625,7 +625,7 @@ class Vertical_Interval_Statistics( object ):
          #raise NonsensicalInputError("Input must be of type NGram or string")
       #ng_key = ng.get_string_version(True,'compound')
       #n = ng.n()
-      #settings = VIS_Settings()
+      #settings = VISSettings()
       #settings.set_property('simpleOrCompound', 'compound')
       #settings.set_property('heedQuality', 'true')
       #settings.set_property( 'showTheseNs', [n] )
@@ -637,7 +637,7 @@ class Vertical_Interval_Statistics( object ):
 
    def extend( self, other):
       '''
-      Merge an other Vertical_Interval_Statistics instance with this one.
+      Merge an other VerticalIntervalStatistics instance with this one.
       '''
 
       def merge_default_dicts( left, right ):
@@ -851,9 +851,9 @@ class Vertical_Interval_Statistics( object ):
    def get_formatted_intervals( self, the_settings ):
       '''
       Returns a str with a nicely-formatted representation of the interval
-      frequencies recoreded in this Vertical_Interval_Statistics() object.
+      frequencies recoreded in this VerticalIntervalStatistics() object.
 
-      The first argument is a VIS_Settings() object, from which we will use
+      The first argument is a VISSettings() object, from which we will use
       all of the formatting properties.
       '''
       # TODO: there are too many single-letter variable names here
@@ -1018,10 +1018,10 @@ class Vertical_Interval_Statistics( object ):
       #the similarity between the N-Grams in the two samples.
       #'''
       ## TODO: write internal documentation
-      ## TODO: rewrite this to use a VIS_Settings instance, rather than take
+      ## TODO: rewrite this to use a VISSettings instance, rather than take
       ## arguments
 
-      #settings = VIS_Settings()
+      #settings = VISSettings()
       #settings.set_property( 'heedQuality', heedQuality )
       #settings.set_property( 'simpleOrCompound', simple_or_compound )
       #settings.set_property( 'showTheseNs', [n] )
@@ -1042,9 +1042,9 @@ class Vertical_Interval_Statistics( object ):
       '''
       Returns a str or music21.graph.Graph object with a nicely-formatted
       representation of the n-gram frequencies recoreded in this
-      Vertical_Interval_Statistics() object.
+      VerticalIntervalStatistics() object.
 
-      The argument is a VIS_Settings() object, from which we get
+      The argument is a VISSettings() object, from which we get
       formatting options.
       '''
 
@@ -1065,7 +1065,7 @@ class Vertical_Interval_Statistics( object ):
 
    def get_ngram_graph( self, settings ):
       '''
-      Given a VIS_Settings object, prepare a music21 "Graph" object of n-grams
+      Given a VISSettings object, prepare a music21 "Graph" object of n-grams
       with corresponding results.
       '''
 
@@ -1162,7 +1162,7 @@ class Vertical_Interval_Statistics( object ):
 
    def get_ngram_text( self, settings ):
       '''
-      Given a VIS_Settings object, prepare text-based output in a string, with
+      Given a VISSettings object, prepare text-based output in a string, with
       corresponding n-grams.
       '''
 
@@ -1371,11 +1371,11 @@ class Vertical_Interval_Statistics( object ):
    def make_summary_score( self, settings ):
       '''
       Returns a Score object with three Part objects. When you run the Score
-      through process_score() in the output_LilyPond module, the result is a
+      through process_score() in the OutputLilyPond module, the result is a
       LilyPond file that gives summary results about the triangles recorded by
-      this instance of Vertical_Interval_Statistics.
+      this instance of VerticalIntervalStatistics.
 
-      Accepts a VIS_Settings instance, and modifies output according to:
+      Accepts a VISSettings instance, and modifies output according to:
       - heedQuality
       - simpleOrCompound
       - topX
@@ -1487,7 +1487,7 @@ class Vertical_Interval_Statistics( object ):
       # Finally, make a Score and return it
       return stream.Score( [metad, upper_part, lower_part, lily_part] )
    # End make_summary_score()-------------------------------
-# End class Vertical_Interval_Statistics ---------------------------------------
+# End class VerticalIntervalStatistics ---------------------------------------
 
 
 

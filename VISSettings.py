@@ -5,7 +5,7 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: VIS_Settings.py
+# Filename: VISSettings.py
 # Purpose: Provide a settings object for vis
 #
 # Attribution:  Based on the 'harrisonHarmony.py' module available at...
@@ -27,7 +27,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-This module has the VIS_Settings class, which manages various preference choices
+This module has the VISSettings class, which manages various preference choices
 for the "vis" program.
 '''
 
@@ -38,11 +38,11 @@ import re
 from problems import NonsensicalInputWarning
 import string
 from file_output import file_outputter, file_inputter
-from output_LilyPond import detect_lilypond, make_lily_version_numbers
+from OutputLilyPond import detect_lilypond, make_lily_version_numbers
 
 
 
-class VIS_Settings:
+class VISSettings:
    '''
    An internal class that holds settings for stuff.
       - produceLabeledScore : whether to produce a score showing interval
@@ -67,7 +67,7 @@ class VIS_Settings:
       self._secret_settings_hash['sortOrder'] = 'descending'
       # A list of integers representing the 'n' values the user wants to display
       self._secret_settings_hash['showTheseNs'] = [2]
-      # The format of output from an instance of Vertical_Interval_Statistics
+      # The format of output from an instance of VerticalIntervalStatistics
       # Possible choices include:
       # - 'graph' : produces a music21 "Graph" (the default)
       # - 'list' : produces a string with a textual list
@@ -91,7 +91,7 @@ class VIS_Settings:
 
    def __init__( self ):
       '''
-      Instantiate a VIS_Settings object with the default settings.
+      Instantiate a VISSettings object with the default settings.
       '''
 
       self._secret_settings_hash = {}
@@ -113,7 +113,7 @@ class VIS_Settings:
       self._secret_settings_hash['sortOrder'] = 'descending'
       # A list of integers representing the 'n' values the user wants to display
       self._secret_settings_hash['showTheseNs'] = [2]
-      # The format of output from an instance of Vertical_Interval_Statistics
+      # The format of output from an instance of VerticalIntervalStatistics
       # Possible choices include:
       # - 'graph' : produces a music21 "Graph" (the default)
       # - 'list' : produces a string with a textual list
@@ -205,17 +205,17 @@ class VIS_Settings:
          # If the property requires a boolean value, make sure we have one
          if 'heedQuality' == setting or 'produceLabeledScore' == setting or \
                'produceLabelledScore' == setting or 'recurse' == setting:
-            if not VIS_Settings._is_t_or_f( value ):
+            if not VISSettings._is_t_or_f( value ):
                raise NonsensicalInputWarning( \
                      'Value must be either True or False, but we got "' + \
                      str(value) + '"' )
             else:
-               value = VIS_Settings._str_to_bool( value )
+               value = VISSettings._str_to_bool( value )
 
          # If the property is 'n' we need to parse the list of values into
          # a real list of int.
          if 'lookForTheseNs' == setting or 'showTheseNs' == setting:
-            value = VIS_Settings._parse_list_of_n( value )
+            value = VISSettings._parse_list_of_n( value )
 
          if 'threshold' == setting or 'topX' == setting:
             try:
@@ -266,7 +266,7 @@ class VIS_Settings:
       Parses 'property_str' and returns the value of the specified property.
       Raises a NonsensicalInputWarning if the property does not exist.
 
-      >>> a = VIS_Settings()
+      >>> a = VISSettings()
       >>> a.get_property( 'topX' )
       None
       >>> a.set_property( 'topX', 12 )
@@ -299,7 +299,7 @@ class VIS_Settings:
    def import_settings( self, import_from ):
       '''
       Given a string with settings information, in the same format as outputted
-      by export_settings(), modify this VIS_Settings instance to have the same
+      by export_settings(), modify this VISSettings instance to have the same
       values.
       '''
 
@@ -342,7 +342,7 @@ class VIS_Settings:
 
    def export_settings( self ):
       '''
-      Return a string with all of the values for settings in this VIS_Settings
+      Return a string with all of the values for settings in this VISSettings
       instance. Each setting is separated by a newline character, with a
       semicolon separating the setting name (on the left) and the value (on the
       right).
@@ -374,4 +374,4 @@ class VIS_Settings:
       through self.import_settings().
       '''
       self.import_settings( file_inputter( filename ) )
-# End Class: VIS_Settings -----------------------------------------------------
+# End Class: VISSettings -----------------------------------------------------

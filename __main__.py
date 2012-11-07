@@ -49,26 +49,26 @@ from gui_files.Ui_select_offset import Ui_Select_Offset
 from gui_files.Ui_new_main_window import Ui_MainWindow
 from gui_files.Ui_text_display import Ui_Text_Display
 from problems import NonsensicalInputError, MissingInformationError
-from Vertical_Interval_Statistics import Vertical_Interval_Statistics
-from VIS_Settings import VIS_Settings
+from VerticalIntervalStatistics import VerticalIntervalStatistics
+from VISSettings import VISSettings
 from analytic_engine import vis_these_parts, make_basso_seguente
 from file_output import file_outputter
-# output_LilyPond
-from output_LilyPond import LilyPond_Settings, make_lily_version_numbers, \
+# OutputLilyPond
+from OutputLilyPond import LilyPondSettings, make_lily_version_numbers, \
    detect_lilypond
-from output_LilyPond import process_score as lily_process_score
+from OutputLilyPond import process_score as lily_process_score
 
 
 
 # Subclass for Signal Handling -------------------------------------------------
-class Vis_MainWindow( Ui_MainWindow ):
+class VisMainWindow( Ui_MainWindow ):
 
    # Create the settings and statistics objects for vis.
    def setup_vis( self ):
       self.gui_file_list.setModel( self.analysis_files )
       self.gui_pieces_list.setModel( self.analysis_pieces )
-      self.statistics = Vertical_Interval_Statistics()
-      self.settings = VIS_Settings()
+      self.statistics = VerticalIntervalStatistics()
+      self.settings = VISSettings()
       # Hold a lists of checkboxes, "Edit" buttons, and layouts that represent
       # the parts in a piece for the "assemble" panel
       self.part_checkboxes = None
@@ -83,7 +83,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # a list of pathnames of files currently loaded
       self.loaded_files = []
       # Holds the signal emitted when a QRunnable finishes a voice pair
-      self.vsc = Vis_Signals_Class()
+      self.vsc = VisSignalsClass()
       # Holds a list of instructions for producing targeted LilyPond output
       self.targeted_lily_options = []
       # Holds the version number of LilyPond installed on this system
@@ -174,7 +174,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # options correctly for LilyPond!
 
       # Get a settings instance
-      l_sets = LilyPond_Settings()
+      l_sets = LilyPondSettings()
 
       # Set all the settings
       # - no indent
@@ -193,7 +193,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          '',
          None))
 
-      # Pass the score to output_LilyPond for processing.
+      # Pass the score to OutputLilyPond for processing.
       lily_process_score( summary_score, the_settings=l_sets, filename=out_file )
    # End generate_summary_score() --------------------------
 
@@ -314,7 +314,7 @@ class Vis_MainWindow( Ui_MainWindow ):
             this_piece_name = piece[self.model_score].metadata.title
 
          # Prepare the multi-threading part
-         job = Vis_Analyze_Piece()
+         job = VisAnalyzePiece()
          job.setup( piece, self, this_piece_name, \
                     targeted_output=self.targeted_lily_options )
 
@@ -361,7 +361,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          elif 'intervals' == content:
             formatted_output = self.statistics.get_formatted_intervals( self.settings )
          elif 'compare' == content:
-            dialog = Vis_Compare_Voice_Pairs(self)
+            dialog = VisCompareVoicePairs(self)
             v1,v2 = dialog.get_pairs()
             formatted_output = "dummy output"
       except NonsensicalInputWarning as niw:
@@ -376,7 +376,7 @@ class Vis_MainWindow( Ui_MainWindow ):
       # Display the output
       if isinstance( formatted_output, basestring ):
          # If in "list"
-         dialog = Vis_Text_Display(formatted_output)
+         dialog = VisTextDisplay(formatted_output)
          dialog.trigger()
       elif isinstance( formatted_output, graph.Graph ):
          # If in "chart/graph"
@@ -509,7 +509,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    def update_most_common( self ):
       '''
-      Updates the VIS_Settings object with the proper setting for "topX"
+      Updates the VISSettings object with the proper setting for "topX"
       '''
 
       # Get the possible X
@@ -528,7 +528,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    def update_threshold( self ):
       '''
-      Updates the VIS_Settings object with the proper setting for "threshold"
+      Updates the VISSettings object with the proper setting for "threshold"
       '''
 
       # Get the possible threshold
@@ -637,7 +637,7 @@ class Vis_MainWindow( Ui_MainWindow ):
             self.app.processEvents()
 
             # Prepare and run the import thread
-            thread = Vis_Load_Piece()
+            thread = VisLoadPiece()
             thread.setup( pathname, self )
             thread.start()
             thread.wait()
@@ -665,7 +665,7 @@ class Vis_MainWindow( Ui_MainWindow ):
    def progress_to_show( self ):
       '''
       Analyze a list of files and directories, supplementing with statistics
-      from any Vertical_Interval_Statistics objects if relevant.
+      from any VerticalIntervalStatistics objects if relevant.
 
       Settings, files, directories, and stats will be used from the "self"
       object.
@@ -709,7 +709,7 @@ class Vis_MainWindow( Ui_MainWindow ):
             this_piece_name = piece[self.model_score].metadata.title
 
          # Prepare the multi-threading part
-         job = Vis_Analyze_Piece()
+         job = VisAnalyzePiece()
          total_nr_of_voice_pairs += job.setup( piece, self, this_piece_name )
 
          # Make sure this piece has some parts selected
@@ -813,7 +813,7 @@ class Vis_MainWindow( Ui_MainWindow ):
          json_string = fp.read()
          new_vis = None
          try:
-            new_vis = Vertical_Interval_Statistics.from_json(json_string)
+            new_vis = VerticalIntervalStatistics.from_json(json_string)
          except (NonsensicalInputError, MissingInformationError) as e:
             error_dialog = QtGui.QErrorMessage()
             error_dialog.showMessage('The selected statistics file is not valid: '+str(e))
@@ -1415,7 +1415,7 @@ class Vis_MainWindow( Ui_MainWindow ):
 
    def launch_offset_selection( self ):
       # Launch the offset-selection QDialog
-      selector = Vis_Select_Offset()
+      selector = VisSelectOffset()
       chosen_offset = selector.trigger()
 
       # Update the QLineEdit
@@ -1463,12 +1463,12 @@ class Vis_MainWindow( Ui_MainWindow ):
 
       # Return the colour
       return post
-# End Class Vis_MainWindow -----------------------------------------------------
+# End Class VisMainWindow -----------------------------------------------------
 
 
 
 # Model for "Choose Files" Panel -----------------------------------------------
-class List_of_Files( QtCore.QAbstractListModel ):
+class ListOfFiles( QtCore.QAbstractListModel ):
    def __init__( self, parent=None, *args ):
       QtCore.QAbstractListModel.__init__(self, parent, *args)
       self.files = []
@@ -1520,12 +1520,12 @@ class List_of_Files( QtCore.QAbstractListModel ):
       self.beginRemoveRows( parent, row, row+count-1 )
       self.files = self.files[:row] + self.files[row+count:]
       self.endRemoveRows()
-# End Class List_of_Files ------------------------------------------------------
+# End Class ListOfFiles ------------------------------------------------------
 
 
 
 # Model for "Assemble" Panel -----------------------------------------------
-class List_of_Pieces( QtCore.QAbstractTableModel ):
+class ListOfPieces( QtCore.QAbstractTableModel ):
    # Here's the data model:
    # self.pieces : a list of lists. For each sub-list...
    #    sublist[0] : filename
@@ -1538,7 +1538,7 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
    def __init__( self, parent=QtCore.QModelIndex() ):
       QtCore.QAbstractTableModel.__init__( self, parent )
       # "Constant" values for what each column is and the index blah
-      # NOTE: When you change these, be sure to change them in Vis_MainWindow too!
+      # NOTE: When you change these, be sure to change them in VisMainWindow too!
       self.model_filename = 0 # filename of the piece
       self.model_score = 1 # Score object and title
       self.model_parts_list = 2 # list of names of parts
@@ -1610,9 +1610,9 @@ class List_of_Pieces( QtCore.QAbstractTableModel ):
    def iterate_rows( self ):
       for row in self.pieces:
          yield row
-# End Class List_of_Pieces ------------------------------------------------------
+# End Class ListOfPieces ------------------------------------------------------
 
-class List_of_Voice_Pairs( QtCore.QAbstractTableModel ):
+class ListOfVoicePairs( QtCore.QAbstractTableModel ):
    def __init__( self, parent, data=[] ):
       QtCore.QAbstractTableModel.__init__( self, parent )
       self.model_name = 0
@@ -1660,9 +1660,9 @@ class List_of_Voice_Pairs( QtCore.QAbstractTableModel ):
       self.beginRemoveRows( parent, row, row+count-1 )
       self.data = self.pairs[:row] + self.pairs[row+count:]
       self.endRemoveRows()
-# End Class List_of_Voice_Pairs -----------------------------------------------
+# End Class ListOfVoicePairs -----------------------------------------------
 
-class Vis_Load_Piece( QtCore.QThread ):
+class VisLoadPiece( QtCore.QThread ):
    def setup( self, pathname, widget ):
       self.pathname = pathname
       self.widget = widget
@@ -1722,16 +1722,16 @@ class Vis_Load_Piece( QtCore.QThread ):
       self.widget.loaded_files.append( self.pathname )
 
       return
-# End Class Vis_Load_Piece -----------------------------------------------------
+# End Class VisLoadPiece -----------------------------------------------------
 
 
 
-class Vis_Signals_Class( QObject ):
-   # This is used by Vis_Analyze_Piece when it's finished analyzing
+class VisSignalsClass( QObject ):
+   # This is used by VisAnalyzePiece when it's finished analyzing
    # a voice pair
    finishedVoicePair = pyqtSignal( str )
 
-class Vis_Analyze_Piece( QtCore.QRunnable ):
+class VisAnalyzePiece( QtCore.QRunnable ):
    @staticmethod
    def calculate_all_combis( upto ):
       # Calculate all combinations of integers between 0 and the argument.
@@ -1759,7 +1759,7 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          number_of_parts = len(self.piece_data[self.widget.model_score].parts)
 
          # Get a list of all the part-combinations to examine
-         self.voice_combos = Vis_Analyze_Piece.calculate_all_combis( number_of_parts - 1 )
+         self.voice_combos = VisAnalyzePiece.calculate_all_combis( number_of_parts - 1 )
       else:
          # Turn the str specification of parts into a list of int (or str)
          if '(no selection)' == self.piece_data[self.widget.model_compare_parts]:
@@ -1858,11 +1858,11 @@ class Vis_Analyze_Piece( QtCore.QRunnable ):
          # Update the GUI
          self.widget.vsc.finishedVoicePair.emit( error )
       # (end of voice-pair loop)
-# End Class Vis_Analyze_Piece --------------------------------------------------
+# End Class VisAnalyzePiece --------------------------------------------------
 
 
 
-class Vis_Select_Offset( Ui_Select_Offset ):
+class VisSelectOffset( Ui_Select_Offset ):
    '''
    Display and assign actions for the offset-selection window.
    '''
@@ -1934,11 +1934,11 @@ class Vis_Select_Offset( Ui_Select_Offset ):
    def button_0_0625( self ):
       self.current_duration = 0.0625
       self.line_music21_duration.setText( str(self.current_duration) )
-# End Class Vis_Select_Offset --------------------------------------------------
+# End Class VisSelectOffset --------------------------------------------------
 
 
 
-class Vis_Text_Display( Ui_Text_Display ):
+class VisTextDisplay( Ui_Text_Display ):
    # TODO: what on earth does this do?!
    def __init__(self,text):
       # TODO: what on earth does this do?!
@@ -1971,11 +1971,11 @@ class Vis_Text_Display( Ui_Text_Display ):
    def close( self ):
       # TODO: what on earth does this do?!
       self.text_display.done(0)
-# End Class Vis_Text_Display ---------------------------------------------------
+# End Class VisTextDisplay ---------------------------------------------------
 
 
 
-class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
+class VisCompareVoicePairs( Ui_Compare_Voice_Pairs ):
    # TODO: what on earth does this do?!
    def __init__(self,parent):
       # TODO: what on earth does this do?!
@@ -1993,11 +1993,11 @@ class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
          parts = eval(str(top_data.data(index,'raw_list').toPyObject()))
          for pair in parts:
             data.append([name,pair])
-      self.model_in_memory = List_of_Voice_Pairs(self.list_pairs_in_memory,data)
+      self.model_in_memory = ListOfVoicePairs(self.list_pairs_in_memory,data)
       self.list_pairs_in_memory.setModel(self.model_in_memory)
-      self.model_compare_these = List_of_Voice_Pairs(self.list_compare_these)
+      self.model_compare_these = ListOfVoicePairs(self.list_compare_these)
       self.list_compare_these.setModel(self.model_compare_these)
-      self.model_to_these = List_of_Voice_Pairs(self.list_to_these)
+      self.model_to_these = ListOfVoicePairs(self.list_to_these)
       self.list_to_these.setModel(self.model_to_these)
       self.list_pairs_in_memory.dragEnterEvent = self.drag
       self.list_compare_these.dragMoveEvent = self.drag
@@ -2071,7 +2071,7 @@ class Vis_Compare_Voice_Pairs( Ui_Compare_Voice_Pairs ):
 
    def submit( self ):
       self.compare_voice_pairs.done(0)
-# End Class Vis_Compare_Voice_Pairs --------------------------------------------
+# End Class VisCompareVoicePairs --------------------------------------------
 
 
 
@@ -2080,12 +2080,12 @@ def main():
    # Standard stuff
    app = QtGui.QApplication( sys.argv )
    MainWindow = QtGui.QMainWindow()
-   vis_ui = Vis_MainWindow()
+   vis_ui = VisMainWindow()
    vis_ui.app = app
    vis_ui.setupUi( MainWindow )
    # vis stuff
-   vis_ui.analysis_files = List_of_Files( vis_ui.gui_file_list )
-   vis_ui.analysis_pieces = List_of_Pieces( vis_ui.gui_pieces_list )
+   vis_ui.analysis_files = ListOfFiles( vis_ui.gui_file_list )
+   vis_ui.analysis_pieces = ListOfPieces( vis_ui.gui_pieces_list )
    vis_ui.setup_vis()
    vis_ui.setup_signals()
    vis_ui.tool_choose()

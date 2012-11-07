@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Test_Sorting.py
+# Name:         TestSorting.py
 # Purpose:      Unit tests for interval_sorter() and ngram_sorter() in the
-#               Vertical_Interval_Statistics package.
+#               VerticalIntervalStatistics package.
 #
 # Copyright (C) 2012 Christopher Antila
 #
@@ -25,12 +25,12 @@
 
 
 import unittest
-from Vertical_Interval_Statistics import interval_sorter, ngram_sorter
+from VerticalIntervalStatistics import interval_sorter, ngram_sorter
 
 
 
 #-------------------------------------------------------------------------------
-class Test_Sorting( unittest.TestCase ):
+class TestSorting( unittest.TestCase ):
    def test_interval_simple_cases( self ):
       self.assertEqual( interval_sorter( 'M3', 'P5' ), -1 )
       self.assertEqual( interval_sorter( 'm7', 'd4' ), 1 )
@@ -83,4 +83,4 @@ class Test_Sorting( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_Sorting )
+suite = unittest.TestLoader().loadTestsFromTestCase( TestSorting )

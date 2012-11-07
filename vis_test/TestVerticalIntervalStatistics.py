@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Test_Sorting.py
-# Purpose:      Unit tests for the Vertical_Interval_Statistics class.
+# Name:         TestSorting.py
+# Purpose:      Unit tests for the VerticalIntervalStatistics class.
 #
 # Copyright (C) 2012 Christopher Antila
 #
@@ -27,15 +27,15 @@ import unittest
 from music21 import interval, note
 from NGram import NGram
 from problems import NonsensicalInputError
-from VIS_Settings import VIS_Settings
-from Vertical_Interval_Statistics import Vertical_Interval_Statistics
+from VISSettings import VISSettings
+from VerticalIntervalStatistics import VerticalIntervalStatistics
 
 
 
 #-------------------------------------------------------------------------------
-class Test_Vertical_Interval_Statistics( unittest.TestCase ):
+class TestVerticalIntervalStatistics( unittest.TestCase ):
    def setUp( self ):
-      self.vis = Vertical_Interval_Statistics()
+      self.vis = VerticalIntervalStatistics()
       self.m3 = interval.Interval( 'm3' )
       self.M3 = interval.Interval( 'M3' )
       self.m10 = interval.Interval( 'm10' )
@@ -319,7 +319,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
    #def test_add_ngram_1( self ):
       ## basic 2-gram
       #self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
-      #settings = VIS_Settings()
+      #settings = VISSettings()
       #settings.set_property( 'simpleOrCompound', 'compound' )
       #settings.set_property( 'heedQuality', False )
       #settings.set_property( 'showTheseNs', [2] )
@@ -363,7 +363,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       ## basic 2-gram
       ## (1) Prepare
       #self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
-      #settings = VIS_Settings()
+      #settings = VISSettings()
       #settings.set_property( 'simpleOrCompound', 'compound' )
       #settings.set_property( 'heedQuality', False )
       #settings.set_property( 'showTheseNs', [2] )
@@ -405,7 +405,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       # basic 2-gram
       # (1) Prepare
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', False )
       settings.set_property( 'showTheseNs', [2] )
@@ -424,7 +424,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       # basic 2-gram
       # (1) Prepare
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', True )
       settings.set_property( 'showTheseNs', [2] )
@@ -445,7 +445,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', False )
       settings.set_property( 'showTheseNs', [2] )
@@ -466,7 +466,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', True )
       settings.set_property( 'showTheseNs', [2] )
@@ -488,7 +488,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
       self.vis.add_ngram( self.ngj, "piece" ) # m10 +P4 m10
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', False )
       settings.set_property( 'showTheseNs', [2] )
@@ -510,7 +510,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
       self.vis.add_ngram( self.ngj, "piece" ) # m10 +P4 m10
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', True )
       settings.set_property( 'showTheseNs', [2] )
@@ -532,7 +532,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
       self.vis.add_ngram( self.ngj, "piece" ) # m10 +P4 m10
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'simple' )
       settings.set_property( 'heedQuality', False )
       settings.set_property( 'showTheseNs', [2] )
@@ -554,7 +554,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       self.vis.add_ngram( self.ngc, "piece" ) # m3 +P4 m3
       self.vis.add_ngram( self.ngd, "piece" ) # m3 +d4 M3
       self.vis.add_ngram( self.ngj, "piece" ) # m10 +P4 m10
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'simple' )
       settings.set_property( 'heedQuality', True )
       settings.set_property( 'showTheseNs', [2] )
@@ -577,7 +577,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       [self.vis.add_ngram( self.ngd, "piece") for x in xrange(10)] # m3 +d4 M3
       [self.vis.add_ngram( self.nge, "piece") for x in xrange(20)] # m3 -P4 m3
       [self.vis.add_ngram( self.ngf, "piece") for x in xrange(50)] # m3 -m2 M-3
-      settings = VIS_Settings()
+      settings = VISSettings()
       settings.set_property( 'simpleOrCompound', 'compound' )
       settings.set_property( 'heedQuality', True )
       settings.set_property( 'showTheseNs', [2] )
@@ -621,7 +621,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       ## test 2 n-grams
       ## self.ngd:  m3 +P4 M3
       ## self.nge:  m3 -P4 m3
-      #self.vis = Vertical_Interval_Statistics()
+      #self.vis = VerticalIntervalStatistics()
       #for i in xrange(12):
          #self.vis.add_ngram( self.ngd, "piece" )
       #for i in xrange(8):
@@ -633,7 +633,7 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
 #
       ## test distinct 4-grams with identical simple-interval representations
       ## self.ngg  m3 +P4 M2 -m6 P5 -m2 M10
-      #self.vis = Vertical_Interval_Statistics()
+      #self.vis = VerticalIntervalStatistics()
       #for i in xrange(10):
          #self.vis.add_ngram( self.ngg, "piece" )
       #self.assertEqual( self.vis.get_ngram_occurrences( 'm3 +P4 M2 -m6 P5 +A9 M-10' ), 10 )
@@ -650,8 +650,8 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
 
    #def test_compare_noHeedQuality( self ):
       # TODO: make these not fail
-      #other_stats = Vertical_Interval_Statistics()
-      #settings = VIS_Settings()
+      #other_stats = VerticalIntervalStatistics()
+      #settings = VISSettings()
       #output = '''2-Gram  # settings1  # settings2
 #--------------------------------
 #3 +4 3  3            1
@@ -670,8 +670,8 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       #self.assertEqual( self.vis.compare( settings, other_stats, "settings1", "settings2", ""), output )
 #
    #def test_compare_heedQuality( self ):
-      #other_stats = Vertical_Interval_Statistics()
-      #settings = VIS_Settings()
+      #other_stats = VerticalIntervalStatistics()
+      #settings = VISSettings()
       #output = '''2-Gram     # settings1  # settings2
 #-----------------------------------
 #m3 +P4 m3  3            1
@@ -690,11 +690,11 @@ class Test_Vertical_Interval_Statistics( unittest.TestCase ):
       #self.assertEqual( self.vis.compare( settings, other_stats, "settings1", "settings2", ""), output )
 
 
-# End TestVertical_Interval_Statistics ----------------------------------------
+# End TestVerticalIntervalStatistics ----------------------------------------
 
 
 
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_Vertical_Interval_Statistics )
+suite = unittest.TestLoader().loadTestsFromTestCase( TestVerticalIntervalStatistics )

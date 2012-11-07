@@ -37,15 +37,15 @@ if __name__ == '__main__':
    print( "###############################################################################" )
    print( "" )
    # Suite for the interface/background components
-   unittest.TextTestRunner( verbosity = 2 ).run( Test_Settings.suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( Test_Sorting.suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( Test_NGram.suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( Test_Vertical_Interval_Statistics.suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( TestSettings.suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( TestSorting.suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( TestNGram.suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( TestVerticalIntervalStatistics.suite )
    # NB: this one's broken, but all the other test suites should work
-   #unittest.TextTestRunner( verbosity = 2 ).run( Test_Output_Formatting.suite )
+   #unittest.TextTestRunner( verbosity = 2 ).run( TestOutputFormatting.suite )
 
    # Suites for the Analysis Engine
-   unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Unit.suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Integration_Short.suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( Test_Analysis_Engine_Integration_Long.suite )
-   unittest.TextTestRunner( verbosity = 2 ).run( Test_Other_Analysis_Engine.suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( TestAnalysisEngineUnit.suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( TestAnalysisEngineIntegrationShort.suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( TestAnalysisEngineIntegrationLong.suite )
+   unittest.TextTestRunner( verbosity = 2 ).run( TestOtherAnalysisEngine.suite )

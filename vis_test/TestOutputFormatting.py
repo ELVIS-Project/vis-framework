@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Test_Output_Formatting.py
+# Name:         TestOutputFormatting.py
 # Purpose:      Unit tests for the get_formatted_ngrams() and
-#               get_formatted_intervals() in the Vertical_Interval_Statistics
+#               get_formatted_intervals() in the VerticalIntervalStatistics
 #               module.
 #
 # Copyright (C) 2012 Christopher Antila
@@ -26,17 +26,17 @@
 
 
 import unittest
-from Vertical_Interval_Statistics import Vertical_Interval_Statistics
-from VIS_Settings import VIS_Settings
+from VerticalIntervalStatistics import VerticalIntervalStatistics
+from VISSettings import VISSettings
 from music21 import converter
 from analytic_engine import vis_these_parts
 
 
 
 #------------------------------------------------------------------------------
-class Test_Output_Formatting( unittest.TestCase ):
+class TestOutputFormatting( unittest.TestCase ):
    def setUp( self ):
-      self.vis = Vertical_Interval_Statistics()
+      self.vis = VerticalIntervalStatistics()
 
    def test_basic_formatted_intervals( self ):
        ##TODO: test negative intervals
@@ -86,7 +86,7 @@ class Test_Output_Formatting( unittest.TestCase ):
 
 '''
       score = converter.parse( 'test_corpus/bwv77.mxl' )
-      sets = VIS_Settings()
+      sets = VISSettings()
       vis_these_parts( [score.parts[0], score.parts[3]], sets, self.vis, 'test_corpus/bwv77.mxl' )
       self.assertEqual( self.vis.get_formatted_intervals( sets, 'ascending by interval' ), \
                         expected_ascending_by_interval )
@@ -493,7 +493,7 @@ class Test_Output_Formatting( unittest.TestCase ):
 
 '''
       score = converter.parse( 'test_corpus/Kyrie.krn' )
-      sets = VIS_Settings()
+      sets = VISSettings()
       vis_these_parts( [score.parts[0], score.parts[-1]], sets, self.vis, 'test_corpus/Kyrie.krn' )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by ngram' ), \
                         ascending_by_ngram )
@@ -554,7 +554,7 @@ class Test_Output_Formatting( unittest.TestCase ):
       ascending_by_frequency = 'All the Intervals:\n------------------\n-12: 1\n12: 1\n-4: 2\n13: 3\n-6: 5\n-5: 6\n-2: 7\n11: 8\n9: 9\n7: 13\n-3: 13\n10: 15\n2: 17\n8: 29\n1: 31\n5: 56\n3: 72\n4: 78\n6: 107\n\n'
       descending_by_frequency = 'All the Intervals:\n------------------\n6: 107\n4: 78\n3: 72\n5: 56\n1: 31\n8: 29\n2: 17\n10: 15\n7: 13\n-3: 13\n9: 9\n11: 8\n-2: 7\n-5: 6\n-6: 5\n13: 3\n-4: 2\n-12: 1\n12: 1\n\n'
       score = converter.parse( 'test_corpus/sinfony.md' )
-      sets = VIS_Settings()
+      sets = VISSettings()
       vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis, 'test_corpus/sinfony.md' )
       self.assertEqual( self.vis.get_formatted_intervals( sets, 'ascending by interval' ), \
                         ascending_by_interval )
@@ -1375,7 +1375,7 @@ class Test_Output_Formatting( unittest.TestCase ):
 
 '''
       score = converter.parse( 'test_corpus/sinfony.md' )
-      sets = VIS_Settings()
+      sets = VISSettings()
       vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis, 'test_corpus/sinfony.md' )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by ngram' ), \
                         ascending_by_ngram )
@@ -1652,7 +1652,7 @@ All the 3-grams:
 
 '''
       score = converter.parse( 'test_corpus/Jos2308.krn' )
-      sets = VIS_Settings()
+      sets = VISSettings()
       sets.set_property( 'lookForTheseNs 2,3' )
       vis_these_parts( [score.parts[0][:100], score.parts[-1][:100]], sets, self.vis, 'test_corpus/Jos2308.krn' )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by ngram' ), \
@@ -1952,16 +1952,16 @@ All the 3-grams:
 
 '''
       score = converter.parse( 'test_corpus/Jos2308.krn' )
-      sets = VIS_Settings()
+      sets = VISSettings()
       sets.set_property( 'lookForTheseNs 4' )
       vis_these_parts( [score.parts[0], score.parts[1]], sets, self.vis, 'test_corpus/Jos2308.krn' )
       self.assertEqual( self.vis.get_formatted_ngrams( sets, 'ascending by frequency' ), \
                         ascending_by_frequency )
-# End Test_Output_Formatting() ------------------------------------------------
+# End TestOutputFormatting() ------------------------------------------------
 
 
 
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_Output_Formatting )
+suite = unittest.TestLoader().loadTestsFromTestCase( TestOutputFormatting )

@@ -24,8 +24,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-import Test_Settings, Test_Sorting, Test_NGram, \
-       Test_Vertical_Interval_Statistics, Test_Output_Formatting, \
-       Test_Analysis_Engine_Integration_Short, \
-       Test_Analysis_Engine_Integration_Long, \
-       Test_Analysis_Engine_Unit, Test_Other_Analysis_Engine
+import TestSettings, TestSorting, TestNGram, \
+       TestVerticalIntervalStatistics, TestOutputFormatting, \
+       TestAnalysisEngineIntegrationShort, \
+       TestAnalysisEngineIntegrationLong, \
+       TestAnalysisEngineUnit, TestOtherAnalysisEngine

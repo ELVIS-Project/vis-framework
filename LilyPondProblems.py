@@ -3,7 +3,7 @@
 
 #-------------------------------------------------------------------------------
 # Filename: LilyPondProblems.py
-# Purpose: Exceptions and Errors for output_LilyPond
+# Purpose: Exceptions and Errors for OutputLilyPond
 #
 # Copyright (C) 2012 Christopher Antila
 #
@@ -22,13 +22,13 @@
 #-------------------------------------------------------------------------------
 '''
 The LilyPondProblems module contains error and warning classes for the
-output_LilyPond program.
+OutputLilyPond program.
 '''
 
 
 class BadFileError( Exception ):
    '''
-   output_LilyPond uses this error when there is a problem loading or handling
+   OutputLilyPond uses this error when there is a problem loading or handling
    a file, not related to a more specific musical element.
    '''
 

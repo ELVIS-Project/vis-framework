@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Test_Output_Formatting.py
+# Name:         TestOutputFormatting.py
 # Purpose:      Unit tests for the get_formatted_ngrams() and
-#               get_formatted_intervals() in the Vertical_Interval_Statistics
+#               get_formatted_intervals() in the VerticalIntervalStatistics
 #               module.
 #
 # Copyright (C) 2012 Christopher Antila
@@ -31,7 +31,7 @@ from analytic_engine import fill_space_between_offsets, make_lily_triangle
 
 
 #------------------------------------------------------------------------------
-class Test_Other_Analysis_Engine( unittest.TestCase ):
+class TestOtherAnalysisEngine( unittest.TestCase ):
    def test_fill_space_between_offsets_1( self ):
       self.assertEqual( fill_space_between_offsets( 0.0, 1.0 ), (1.0, []) )
 
@@ -87,4 +87,4 @@ class Test_Other_Analysis_Engine( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_Other_Analysis_Engine )
+suite = unittest.TestLoader().loadTestsFromTestCase( TestOtherAnalysisEngine )

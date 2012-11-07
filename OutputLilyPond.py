@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         output_LilyPond.py
+# Name:         OutputLilyPond.py
 # Purpose:      Outputs music21 Objects into LilyPond Format
 #
 # Copyright (C) 2012 Christopher Antila
@@ -21,10 +21,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-The output_LilyPond module converts music21 objects into a LilyPond notation
+The OutputLilyPond module converts music21 objects into a LilyPond notation
 file, then tries to run LilyPond to convert that into a PDF score.
 
-output_LilyPond is a python library that uses music21; it's intended for use
+OutputLilyPond is a python library that uses music21; it's intended for use
 with music research software.
 '''
 
@@ -44,7 +44,7 @@ from music21 import clef, meter, key, stream, metadata, layout, bar, humdrum, \
 from music21.duration import Duration
 from music21.note import Note, Rest
 from music21.instrument import Instrument
-# output_LilyPond
+# OutputLilyPond
 from file_output import file_outputter
 from LilyPondProblems import UnidentifiedObjectError, ImpossibleToProcessError
 
@@ -446,7 +446,7 @@ def process_stream( the_stream, the_settings ):
    - metadata.Metadata
    - layout.StaffGroup
 
-   The second argument is a LilyPond_Settings object.
+   The second argument is a LilyPondSettings object.
 
    Note that if a stream.Part has the attribute 'lily_analysis_voice' and it is
    set to True, then all Note objects will be turned into spacer objects that
@@ -460,7 +460,7 @@ def process_stream( the_stream, the_settings ):
    if isinstance( the_stream, stream.Score ):
       # Things Before Parts
       # Our mark!
-      post = '% LilyPond output from music21 via "output_LilyPond.py"\n'
+      post = '% LilyPond output from music21 via "OutputLilyPond.py"\n'
       # Version
       post += '\\version "' + \
          the_settings.get_property( 'lilypond_version' ) + \
@@ -656,7 +656,7 @@ def process_stream( the_stream, the_settings ):
 
 
 #------------------------------------------------------------------------------
-class LilyPond_Settings:
+class LilyPondSettings:
    '''
    Holds the settings relevant to output formatting of a LilyPond file.
 
@@ -704,8 +704,8 @@ class LilyPond_Settings:
       '''
       Modify the value of a setting.
 
-      >>> from output_LilyPond import *
-      >>> the_settings = LilyPond_Settings()
+      >>> from OutputLilyPond import *
+      >>> the_settings = LilyPondSettings()
       >>> the_settings.set_property( 'indent', '4\mm' )
       >>> the_settings.get_property( 'indent' )
       '4\mm'
@@ -716,7 +716,7 @@ class LilyPond_Settings:
 
    def get_property( self, setting_name ):
       return self._secret_settings[setting_name]
-# End Class LilyPond_Settings() -----------------------------------------------
+# End Class LilyPondSettings() -----------------------------------------------
 
 
 
@@ -746,7 +746,7 @@ def output_the_file( contents, filename='test_output/lily_output' ):
 def run_lilypond( filename, the_settings ):
    '''
    Arguments should be a str that is the file name followed by a
-   LilyPond_Settings object.
+   LilyPondSettings object.
    '''
 
    # Make the PDF filename: if "filename" ends with ".ly" then remove it so
@@ -767,12 +767,12 @@ def process_score( the_score, the_settings=None, \
                    filename='test_output/lily_output.ly' ):
    '''
    Use this method to output an entire Score object. The second argument is
-   an optional LilyPond_Settings object. The third argument is an optional
+   an optional LilyPondSettings object. The third argument is an optional
    filename.
    '''
 
    if the_settings is None:
-      the_settings = LilyPond_Settings()
+      the_settings = LilyPondSettings()
 
    score_to_write = process_stream( the_score, the_settings )
    output_result = output_the_file( score_to_write, filename )
@@ -831,4 +831,4 @@ def make_lily_version_numbers( version_str ):
 
 
 if __name__ == '__main__':
-   print( 'Sorry, but you cannot run output_LilyPond.py by itself!' )
+   print( 'Sorry, but you cannot run OutputLilyPond.py by itself!' )

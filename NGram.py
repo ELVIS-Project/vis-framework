@@ -38,7 +38,7 @@ from music21.interval import Interval
 from music21.note import Note
 # vis
 from problems import MissingInformationError, NonsensicalInputError
-from VIS_Settings import VIS_Settings
+from VISSettings import VISSettings
 
 
 
@@ -214,14 +214,14 @@ class NGram( object ):
       Return a string-format representation of this NGram object. With no
       arguments, the intervals are compound, and quality not heeded.
 
-      If the first argument is a VIS_Settings object, the parameters are taken
+      If the first argument is a VISSettings object, the parameters are taken
       from it and the second argument is ignored.
 
       Example:
 
       >>> from music21 import *
       >>> from vis import *
-      >>> s = VIS_Settings()
+      >>> s = VISSettings()
       >>> a = Interval( Note('C4'), Note('E5') )
       >>> b = Interval( Note('D4'), Note('E5') )
       >>> ng = NGram( [a, b] )
@@ -233,8 +233,8 @@ class NGram( object ):
       '''
 
       # Deal with the settings
-      if isinstance( heed_quality, VIS_Settings ):
-         # Extract settings from the VIS_Settings instance.
+      if isinstance( heed_quality, VISSettings ):
+         # Extract settings from the VISSettings instance.
          # NB: We have to set heed_quality last, or we can't get further
          # settings from it.
          simple_or_compound = heed_quality.get_property( 'simpleOrCompound' )

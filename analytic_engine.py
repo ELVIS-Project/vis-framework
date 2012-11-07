@@ -29,7 +29,7 @@ from music21 import stream, note, chord
 from music21.interval import Interval
 # vis
 from NGram import NGram
-import Vertical_Interval_Statistics
+import VerticalIntervalStatistics
 from problems import NonsensicalInputError
 
 
@@ -251,8 +251,8 @@ def make_basso_seguente( from_this ):
 def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
                      targeted_output = None ):
    '''
-   Given a list of two :class:`music21.stream.Part` objects, a VIS_Settings
-   object, and a Vertical_Interval_Statistics object, calculate the n-grams
+   Given a list of two :class:`music21.stream.Part` objects, a VISSettings
+   object, and a VerticalIntervalStatistics object, calculate the n-grams
    specified in settings, then put the statistics in the_statistics.
 
    If the Part objects have the property "vis_part_name" then its value will be
@@ -273,8 +273,8 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
 
    - these_parts : a two-element list of the parts to analyze, with the "upper
                    part" first
-   - settings : a VIS_Settings instance
-   - the_statistics : a Vertical_Interval_Statistics instance
+   - settings : a VISSettings instance
+   - the_statistics : a VerticalIntervalStatistics instance
    - the_piece : str that identifies this piece (either title or path or
                  something; not displayed to user)
    - targeted_output : the instructions for annotation in an annotated score
@@ -312,8 +312,8 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
    # Parameters:
    # these_parts : a two-element list of the parts to analyze, with the
    #               "upper part" first
-   # settings : a VIS_Settings instance
-   # the_statistics : a Vertical_Interval_Statistics instance
+   # settings : a VISSettings instance
+   # the_statistics : a VerticalIntervalStatistics instance
    # the_piece : str that is the title of the piece
    # targeted_output : the instructions given to (the GUI version of)
    #                   analyze_this()
@@ -349,7 +349,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
 
    # Create a statistics buffer
    statistics_buffer = \
-   Vertical_Interval_Statistics.Vertical_Interval_Statistics()
+   VerticalIntervalStatistics.VerticalIntervalStatistics()
    # We'll make a string like "Concerto ['Violin', 'Viola']"
    part_names = []
    for part in these_parts:
@@ -736,7 +736,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
 
                # Trouble is, I also have to fit in the right number of
                # measures and filler material, or it'll be too
-               # difficult for output_LilyPond to invent this stuff.
+               # difficult for OutputLilyPond to invent this stuff.
                list_of_lilypond_parts.insert( current_offset, this_n_lily )
 
             # If this is not the first annotation going into the score.
@@ -780,7 +780,7 @@ def vis_these_parts( these_parts, settings, the_statistics, the_piece, \
 
                # Trouble is, I also have to fit in the right number of
                # measures and filler material, or it'll be too
-               # difficult for output_LilyPond to invent this stuff.
+               # difficult for OutputLilyPond to invent this stuff.
                list_of_lilypond_parts.insert( current_offset, this_n_lily )
          # End LilyPond section ------------------------------
 

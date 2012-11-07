@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
 # Name:         file_output.py
-# Purpose:      Outputs files for vis and output_LilyPond
+# Purpose:      Outputs files for vis and OutputLilyPond
 #
 # Copyright (C) 2012 Christopher Antila
 #

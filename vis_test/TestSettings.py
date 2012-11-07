@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Test_Settings.py
-# Purpose:      Unit tests for VIS_Settings
+# Name:         TestSettings.py
+# Purpose:      Unit tests for VISSettings
 #
 # Copyright (C) 2012 Christopher Antila
 #
@@ -22,13 +22,13 @@
 #-------------------------------------------------------------------------------
 
 import unittest
-from VIS_Settings import VIS_Settings
+from VISSettings import VISSettings
 from problems import NonsensicalInputWarning
 
 #-------------------------------------------------------------------------------
-class Test_Settings( unittest.TestCase ):
+class TestSettings( unittest.TestCase ):
    def setUp( self ):
-      self.s = VIS_Settings()
+      self.s = VISSettings()
 
    def test_default_init( self ):
       # Ensure all the settings are initialized to the proper default value.
@@ -89,23 +89,23 @@ class Test_Settings( unittest.TestCase ):
    def test_n_parser( self ):
       # For the method _parse_list_of_n() which is called when users set the
       # "lookForTheseNs" property.
-      self.assertEqual( VIS_Settings._parse_list_of_n( '1, 2, 3, 4, 5' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '1, 2, 3, 4, 5' ), \
                         [1, 2, 3, 4, 5] )
-      self.assertEqual( VIS_Settings._parse_list_of_n( '[1,2,3,4,5]' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '[1,2,3,4,5]' ), \
                         [1, 2, 3, 4, 5] )
-      self.assertEqual( VIS_Settings._parse_list_of_n( '[1, 2, 3, 4, 5]' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '[1, 2, 3, 4, 5]' ), \
                         [1, 2, 3, 4, 5] )
-      self.assertEqual( VIS_Settings._parse_list_of_n( '[3, 2, 1, 4, 5]' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '[3, 2, 1, 4, 5]' ), \
                         [1, 2, 3, 4, 5] )
-      self.assertEqual( VIS_Settings._parse_list_of_n( '[1, 3, 3, 2, 1]' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '[1, 3, 3, 2, 1]' ), \
                         [1, 2, 3] )
-      self.assertEqual( VIS_Settings._parse_list_of_n( '8, 9, 10' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '8, 9, 10' ), \
                         [8, 9, 10] )
-      self.assertEqual( VIS_Settings._parse_list_of_n( '8-:!9nanana10' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '8-:!9nanana10' ), \
                         [8, 9, 10] )
-      self.assertEqual( VIS_Settings._parse_list_of_n( '42 6  12   ' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '42 6  12   ' ), \
                         [6, 12, 42] )
-      self.assertEqual( VIS_Settings._parse_list_of_n( '6278 9180 1019 2, 1123' ), \
+      self.assertEqual( VISSettings._parse_list_of_n( '6278 9180 1019 2, 1123' ), \
                         [2, 1019, 1123, 6278, 9180] )
 
    def test_export_settings( self ):
@@ -146,4 +146,4 @@ class Test_Settings( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_Settings )
+suite = unittest.TestLoader().loadTestsFromTestCase( TestSettings )

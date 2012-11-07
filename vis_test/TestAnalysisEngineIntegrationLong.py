@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Test_Output_Formatting.py
+# Name:         TestOutputFormatting.py
 # Purpose:      Unit tests for the get_formatted_ngrams() and
-#               get_formatted_intervals() in the Vertical_Interval_Statistics
+#               get_formatted_intervals() in the VerticalIntervalStatistics
 #               module.
 #
 # Copyright (C) 2012 Christopher Antila
@@ -26,15 +26,15 @@
 
 
 import unittest
-from Vertical_Interval_Statistics import Vertical_Interval_Statistics
-from VIS_Settings import VIS_Settings
+from VerticalIntervalStatistics import VerticalIntervalStatistics
+from VISSettings import VISSettings
 from music21 import converter
 from analytic_engine import vis_these_parts
 
 
 
 #-------------------------------------------------------------------------------
-class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
+class TestAnalysisEngineIntegrationLong( unittest.TestCase ):
    # vis_these_parts( theseParts, theSettings, theStatistics )
    #
    # This test suite expands on the TestVisTheseParts() by using longer
@@ -42,8 +42,8 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
    # how long longer excerpts take.
 
    def setUp( self ):
-      self.stats = Vertical_Interval_Statistics()
-      self.settings = VIS_Settings()
+      self.stats = VerticalIntervalStatistics()
+      self.settings = VISSettings()
       self.settings.set_property( 'leavePieces', False )
 
    def test_Messiah( self ):
@@ -190,4 +190,4 @@ class Test_Analysis_Engine_Integration_Long( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_Analysis_Engine_Integration_Long )
+suite = unittest.TestLoader().loadTestsFromTestCase( TestAnalysisEngineIntegrationLong )

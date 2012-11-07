@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         Test_Sorting.py
+# Name:         TestSorting.py
 # Purpose:      Unit tests for the NGram class.
 #
 # Copyright (C) 2012 Christopher Antila
@@ -26,13 +26,13 @@
 import unittest
 from music21 import interval, note
 from NGram import NGram
-from VIS_Settings import VIS_Settings
+from VISSettings import VISSettings
 from problems import MissingInformationError, NonsensicalInputError
 
 
 
 #-------------------------------------------------------------------------------
-class Test_NGram( unittest.TestCase ):
+class TestNGram( unittest.TestCase ):
    def setUp( self ):
       # 'm3 P1 m3'
       self.a = [interval.Interval(note.Note('A4'),note.Note('C5')), \
@@ -79,7 +79,7 @@ class Test_NGram( unittest.TestCase ):
    def test_constructor_assignment_1( self ):
       # We have to make sure the settings are properly set, and that it works
       # for n-grams of multiple sizes/lengths.
-      s = VIS_Settings()
+      s = VISSettings()
       s.set_property( 'heedQuality true' )
       s.set_property( 'simpleOrCompound simple' )
       x = NGram( self.a )
@@ -88,7 +88,7 @@ class Test_NGram( unittest.TestCase ):
    def test_constructor_assignment_2( self ):
       # We have to make sure the settings are properly set, and that it works
       # for n-grams of multiple sizes/lengths.
-      s = VIS_Settings()
+      s = VISSettings()
       s.set_property( 'heedQuality true' )
       s.set_property( 'simpleOrCompound simple' )
       x = NGram( self.a )
@@ -97,7 +97,7 @@ class Test_NGram( unittest.TestCase ):
    def test_constructor_assignment_3( self ):
       # We have to make sure the settings are properly set, and that it works
       # for n-grams of multiple sizes/lengths.
-      s = VIS_Settings()
+      s = VISSettings()
       s.set_property( 'heedQuality true' )
       s.set_property( 'simpleOrCompound simple' )
       y = NGram( self.g )
@@ -106,7 +106,7 @@ class Test_NGram( unittest.TestCase ):
    def test_constructor_assignment_4( self ):
       # We have to make sure the settings are properly set, and that it works
       # for n-grams of multiple sizes/lengths.
-      s = VIS_Settings()
+      s = VISSettings()
       s.set_property( 'heedQuality true' )
       s.set_property( 'simpleOrCompound simple' )
       y = NGram( self.g )
@@ -241,8 +241,8 @@ class Test_NGram( unittest.TestCase ):
       self.assertEqual( NGram(self.g).get_string_version(False,'simple'), '3 +4 2 -6 5 +2 -3' )
 
    def test_string_version_9( self ):
-      # Now test with a VIS_Settings object
-      s = VIS_Settings()
+      # Now test with a VISSettings object
+      s = VISSettings()
       s.set_property( 'heedQuality true' )
       s.set_property( 'simpleOrCompound compound' )
       self.assertEqual( NGram(self.g).get_string_version( s ), 'm3 +P4 M2 -m6 P5 +A9 M-10' )
@@ -461,4 +461,4 @@ class Test_NGram( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( Test_NGram )
+suite = unittest.TestLoader().loadTestsFromTestCase( TestNGram )

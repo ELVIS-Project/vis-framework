@@ -25,12 +25,12 @@
 #-------------------------------------------------------------------------------
 '''
 This module imports all modules of the "vis" program, including all of the
-"output_LilyPond" dependency.
+"OutputLilyPond" dependency.
 '''
 
 
 __all__ = ['test_corpus', 'analytic_engine', 'file_output', 'NGram', \
-           'output_LilyPond', 'problems', 'Vertical_Interval_Statistics', \
-           'vis', 'VIS_Settings',  'gui_files', 'vis-test', 'LilyPondProblems']
+           'OutputLilyPond', 'problems', 'VerticalIntervalStatistics', \
+           'vis', 'VISSettings',  'gui_files', 'vis-test', 'LilyPondProblems']
 
 import __all__
