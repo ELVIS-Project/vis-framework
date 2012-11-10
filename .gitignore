@@ -6,6 +6,7 @@ extra_trials/*
 *.kate-swp
 .eric4project/*
 *.e4p
+*.spec
 
 *.py[co]
 
