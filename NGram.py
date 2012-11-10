@@ -27,12 +27,9 @@ voice" in adjacent vertical intervals.
 '''
 
 
-## Import:
+
 # Python
 import re
-#from string import lower as lowercase
-#from string import digits as str_digits
-#from string import replace as str_replace
 # music21
 from music21.interval import Interval
 from music21.note import Note
@@ -49,64 +46,63 @@ class NGram( object ):
    movement between them.
    '''
 
+
+
    ## Instance Data
-   # _n
-   # _list_of_intervals
-   # _list_of_movements
-   # _string
-   # _has_voice_crossing
+   # _n : how many vertical intervals in this NGraM
+   # _list_of_intervals : list of the vertical Interval objects
+   # _list_of_movements : list of the lower-voice melodic Interval movements
+   # _string : string-format representation of this NGram
+   # _has_voice_crossing : True or False, whether this NGram has voice crossing
+
+
 
    def __init__( self, some_intervals ):
       '''
-      Create a new n-gram when given a list of the
-      :class:`music21.Interval` objects that are part of the n-gram.
+      Create a new n-gram when given a list of the vertical intervals that
+      constitute it.
 
       Note that all the Interval objects must have :class:`music21.Note`
-      objects embedded, to calculate the "distance" between adjacent
-      vertical intervals.
+      objects embedded, to calculate the lower-voice melodic intervals.
 
-      If an Interval is descending, this is considered to be a voice crossing.
-      The lower voice is assumed to be the .noteStart property of every Interval.
+      If the "direction" property of one of the vertical intervals is -1, then
+      the NGram is considered to have voice crossing.
       '''
 
-      # How many intervals are in this triangle/n-gram?
+      # How many intervals are in this n-gram?
       self._n = len(some_intervals)
 
-      # Assign the intervals. Check each one to see if there is a negative
-      # interval, which would signify voice crossing.
+      # Assign the intervals
+      self._list_of_intervals = some_intervals
+
+      # Set the default value for voice crossing; we'll check whether there is
+      # voice crossing below
       self._has_voice_crossing = False
-      self._list_of_intervals = []
-      for interv in some_intervals:
-         # Check direction
-         if -1 == interv.direction:
-            self._has_voice_crossing = True
-         # Assign to new NGram
-         self._list_of_intervals.append( interv )
 
       # Calculate melodic intervals between vertical intervals.
-      self._list_of_movements = self._calculate_movements()
-   # End __init__() ------------------------------------------
-
-
-
-   def _calculate_movements( self ):
-      '''
-      Calculates the movement of the lower part between adjacent Interval
-      objects, then returns a list of them.
-      '''
-
-      # This choice of iteration is a nice hack from
+      # This algorithm was inspired by...
       # http://stackoverflow.com/questions/914715/
       # python-looping-through-all-but-the-last-item-of-a-list
-      post = []
-      zipped = zip( self._list_of_intervals, self._list_of_intervals[1:] )
-      try:
-         post = [Interval( i.noteStart, j.noteStart ) for i, j in zipped]
-      except AttributeError:
-         msg = 'NGram: Probably one of the intervals is missing a Note'
-         raise MissingInformationError( msg )
+      self._list_of_movements = []
 
-      return post
+      # This holds pairs of vertical intervals, between which we will calculate
+      # lower-voice melodic movement.
+      zipped = zip(self._list_of_intervals, self._list_of_intervals[1:])
+
+      try:
+         for i, j in zipped:
+            # Add the horizontal interval
+            self._list_of_movements.append(Interval(i.noteStart, j.noteStart))
+            # Check for voice crossing
+            if -1 == i.direction:
+               self._has_voice_crossing = True
+         # Still need to check the last vertical interval
+         if -1 == j.direction:
+            self._has_voice_crossing = True
+      except AttributeError:
+         msg = 'NGram: One of the intervals is probably missing a Note'
+         raise MissingInformationError( msg )
+   # End __init__() ------------------------------------------
 
 
 
@@ -163,18 +159,18 @@ class NGram( object ):
       # than the music21 core classes make it seem.
 
       # Start out with NGram constructor.
-      post = __name__ + '( ['
+      post = __name__ + '(['
 
       # Add a constructor for every Interval.
       for each_int in self._list_of_intervals:
-         post += "Interval( Note( '" + each_int.noteStart.nameWithOctave + \
-               "' ), Note( '" + each_int.noteEnd.nameWithOctave + "' ) ), "
+         post += "Interval(Note('" + each_int.noteStart.nameWithOctave + \
+               "' ), Note('" + each_int.noteEnd.nameWithOctave + "')), "
 
       # Remove the final ", " from the list of Intervals
       post = post[:-2]
 
       # Append the final parenthesis.
-      post += "] )"
+      post += "])"
 
       return post
 
@@ -194,8 +190,8 @@ class NGram( object ):
       - etc.
       These are not necessarily experientially similar.
       '''
-      post = self.get_string_version(True, 'compound').replace( '-', '' )
-      return post.replace( '+', '' )
+      post = self.get_string_version(True, 'compound').replace('-', '')
+      return post.replace('+', '')
 
 
 
@@ -208,37 +204,29 @@ class NGram( object ):
 
 
 
-   def get_string_version( self, heed_quality=False, \
+   def get_string_version( self, show_quality=False, \
                            simple_or_compound='compound' ):
       '''
       Return a string-format representation of this NGram object. With no
-      arguments, the intervals are compound, and quality not heeded.
+      arguments, the intervals are compound, and quality not displayed.
 
-      If the first argument is a VISSettings object, the parameters are taken
-      from it and the second argument is ignored.
+      There are two keyword arguments:
+      - show_quality : boolean, whether to display interval quality
+      - simple_or_compound : 'simple' or 'compound' whether to reduce compound
+         intervals to their single-octave equivalent
 
       Example:
 
       >>> from music21 import *
       >>> from vis import *
-      >>> s = VISSettings()
-      >>> a = Interval( Note('C4'), Note('E5') )
-      >>> b = Interval( Note('D4'), Note('E5') )
-      >>> ng = NGram( [a, b] )
-      >>> ng.get_string_version( heed_quality=False, simple_or_compound='simple' )
-      '3 +2 2'
-      >>> s.set_property( 'heedQuality False' )
-      >>> ng.get_string_version( s )
+      >>> a = Interval(Note('C4'), Note('E5'))
+      >>> b = Interval(Note('D4'), Note('E5'))
+      >>> ng = NGram([a, b])
+      >>> ng.get_string_version(heed_quality=True, simple_or_compound='simple')
+      'M3 M+2 M2'
+      >>> ng.get_string_version(s)
       '10 +2 9'
       '''
-
-      # Deal with the settings
-      if isinstance( heed_quality, VISSettings ):
-         # Extract settings from the VISSettings instance.
-         # NB: We have to set heed_quality last, or we can't get further
-         # settings from it.
-         simple_or_compound = heed_quality.get_property( 'simpleOrCompound' )
-         heed_quality = heed_quality.get_property( 'heedQuality' )
 
       # Hold the str we're making
       post = ''
@@ -259,7 +247,7 @@ class NGram( object ):
             this_interval = interv.directedName
 
          # If we're ignoring quality, remove the quality
-         if not heed_quality:
+         if not show_quality:
             this_interval = this_interval[1:]
 
          # Append this interval
@@ -291,7 +279,7 @@ class NGram( object ):
             else:
                zzz = this_move.name
 
-            if not heed_quality:
+            if not show_quality:
                zzz = zzz[1:]
 
             post += zzz
@@ -510,9 +498,11 @@ class NGram( object ):
 
    def __str__( self ):
       '''
-      Returns a string-format representation of this NGram object.
+      Returns a string-format representation of this NGram object, using
+      compound intervals but not displaying quality.
       '''
-      return self.get_string_version()
+      return self.get_string_version(show_quality=False,
+                                     simple_or_compound='compound')
 
 
 
