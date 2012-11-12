@@ -1182,7 +1182,8 @@ class VerticalIntervalStatistics( object ):
       for n, the_dict in output_dict.items():
          total_n = sum( v['Total'] for v in the_dict.values() )
          post += "Total number of " + str(n) + "-grams: " + str(total_n) + \
-                  "\n\n"
+                  "\n"
+         post += "Total number of distinct {0:n}-grams: {1:n}\n\n".format(n,len(the_dict))
          sorted_ngrams = keys[n]
          widths = []
          heading = str(n) + "-gram"
