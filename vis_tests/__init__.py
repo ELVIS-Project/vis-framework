@@ -5,7 +5,7 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: vis-test/__init__.py
+# Filename: vis_tests/__init__.py
 # Purpose: Import the Automated Tests for vis
 #
 # Copyright (C) 2012 Christopher Antila

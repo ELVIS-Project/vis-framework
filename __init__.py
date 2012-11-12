@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
-#
+#from 
 # Filename: __init__.py
 # Purpose: Import all the VIS Files
 #
@@ -31,6 +31,6 @@ This module imports all modules of the "vis" program, including all of the
 
 __all__ = ['test_corpus', 'analytic_engine', 'file_output', 'NGram', \
            'OutputLilyPond', 'problems', 'VerticalIntervalStatistics', \
-           'vis', 'VISSettings',  'gui_files', 'vis-test', 'LilyPondProblems']
+           'vis', 'VISSettings', 'gui_files', 'vis_test', 'LilyPondProblems']
 
-import __all__
+#import __all__
