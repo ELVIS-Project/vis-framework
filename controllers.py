@@ -24,6 +24,7 @@
 #-------------------------------------------------------------------------------
 from multiprocessing import Pool, Process
 from models.data import Settings
+from views import VisMainWindow
 
 
 class VisController(object):
@@ -36,9 +37,13 @@ class VisController(object):
     """
     def __init__(self):
         super(VisController, self).__init__()
-        # start serving the application, initialize views,
-        # whatever.
     
+    def run(self):
+    	"""
+		Run the application through its lifecycle.
+		"""
+    	pass
+	
 
 class Importer(object):
     """

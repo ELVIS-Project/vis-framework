@@ -38,8 +38,8 @@ class VisFile(str):
 
 class PieceData(object):
     """
-    Contains metadata for a :class:`vis.models.data.VisFile`; title, filename
-    and a list of :class:`vis.models.data.VoicePair` objects.
+    Contains metadata for a VisFile; title, filename and a list of VoicePair
+    objects.
     """
     def __init__(self):
         super(PieceData, self).__init__()
