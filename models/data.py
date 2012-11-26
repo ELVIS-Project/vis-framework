@@ -28,59 +28,59 @@ from problems.coreproblems import NonsensicalInputError
 
 
 class VisFile(str):
-	"""
-	Simple subclass of str for filenames whose file formats which vis
-	can handle.
-	"""
-	def __init__(self, arg):
-		super(VisFile, self).__init__()
-	
+    """
+    Simple subclass of str for filenames whose file formats which vis
+    can handle.
+    """
+    def __init__(self, arg):
+        super(VisFile, self).__init__()
+    
 
 class PieceData(object):
-	"""
-	Contains metadata for a :class:`vis.models.data.VisFile`; title, filename
-	and a list of :class:`vis.models.data.VoicePair` objects.
-	"""
-	def __init__(self):
-		super(PieceData, self).__init__()
-	
+    """
+    Contains metadata for a :class:`vis.models.data.VisFile`; title, filename
+    and a list of :class:`vis.models.data.VoicePair` objects.
+    """
+    def __init__(self):
+        super(PieceData, self).__init__()
+    
 
 class VoicePair(object):
-	"""
-	Contains data for a pair of voices; the piece the come from, and their names.
-	"""
-	def __init__(self):
-		super(VoicePair, self).__init__()
-	
+    """
+    Contains data for a pair of voices; the piece the come from, and their names.
+    """
+    def __init__(self):
+        super(VoicePair, self).__init__()
+    
 
 class Record(object):
-	"""
-	Compact version of piece data; a list of simultaneities.
-	"""
-	def __init__(self):
-		super(Record, self).__init__()
-	
+    """
+    Compact version of piece data; a list of simultaneities.
+    """
+    def __init__(self):
+        super(Record, self).__init__()
+    
 
 class Settings(object):
-	"""
-	Base class for the various 'application settings' classes in vis.
-	Basically just an interface to a python dict with "typesafe" entries.
-	"""
-	def __init__(self, *args):
-		"""
-		Creates a new Settings instance.
-		
-		INPUTS:
-		Either a list of strings, one for each of the variable names
-		held by this Settings instance, or else each string as a 
-		separate argument.
-		"""
-		super(Settings, self).__init__()
-		# has a list been passed?
-		if 1 == len(args) and isinstance(args[0], list):
-			# yes, so read it in
-			self._data = {entry:None for entry in args[0]}
-		else:
-			# no, so read the entries individually
-			self._data = {entry:None for entry in args}
+    """
+    Base class for the various 'application settings' classes in vis.
+    Basically just an interface to a python dict with "typesafe" entries.
+    """
+    def __init__(self, *args):
+        """
+        Creates a new Settings instance.
+        
+        INPUTS:
+        Either a list of strings, one for each of the variable names
+        held by this Settings instance, or else each string as a 
+        separate argument.
+        """
+        super(Settings, self).__init__()
+        # has a list been passed?
+        if 1 == len(args) and isinstance(args[0], list):
+            # yes, so read it in
+            self._data = {entry:None for entry in args[0]}
+        else:
+            # no, so read the entries individually
+            self._data = {entry:None for entry in args}
 

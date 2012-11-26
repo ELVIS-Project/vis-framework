@@ -38,46 +38,46 @@ class VisController(object):
         super(VisController, self).__init__()
         # start serving the application, initialize views,
         # whatever.
-	
+    
 
 class Importer(object):
-	"""
-	This class handles input for a user's choice of files and handles
-	parsing them into PieceData instances.
-	"""
-	def __init__(self):
-		super(Importer, self).__init__()
-	
+    """
+    This class handles input for a user's choice of files and handles
+    parsing them into PieceData instances.
+    """
+    def __init__(self):
+        super(Importer, self).__init__()
+    
 
 class Analyzer(object):
-	"""
-	This class handles input for a user's choice of settings and voice
-	pairs, then uses these settings to analyze a list of VoicePair
-	objects into a list of Record objects.
-	"""
-	def __init__(self, pieces):
-		super(Analyzer, self).__init__()
-		self.pieces = pieces
-		self.settings = Settings()
-	
+    """
+    This class handles input for a user's choice of settings and voice
+    pairs, then uses these settings to analyze a list of VoicePair
+    objects into a list of Record objects.
+    """
+    def __init__(self, pieces):
+        super(Analyzer, self).__init__()
+        self.pieces = pieces
+        self.settings = Settings()
+    
 
 class Experimenter(object):
-	"""
-	This class handles input for a user's choice of Experiment and choice
-	of associated Settings, then performs the experiment, returning the
-	relevant Results object(s).
-	"""
-	def __init__(self):
-		super(Experimenter, self).__init__()
-	
+    """
+    This class handles input for a user's choice of Experiment and choice
+    of associated Settings, then performs the experiment, returning the
+    relevant Results object(s).
+    """
+    def __init__(self):
+        super(Experimenter, self).__init__()
+    
 
 class DisplayHandler(object):
-	"""
-	This class handles input for a user's choice of Settings and takes the
-	results of an Experiment, formats them according to the user's choices
-	and displays them in the appropriate view.
-	"""
-	def __init__(self, results):
-		super(DisplayHandler, self).__init__()
-		self.results = results
-		
+    """
+    This class handles input for a user's choice of Settings and takes the
+    results of an Experiment, formats them according to the user's choices
+    and displays them in the appropriate view.
+    """
+    def __init__(self, results):
+        super(DisplayHandler, self).__init__()
+        self.results = results
+        
