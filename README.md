@@ -26,4 +26,4 @@ How to Use
 ==========
 After you installed the dependencies listed in the previous section, open a terminal in the same directory as this README file, and run this command:
 
-$ python __main__.py
+`$ python __main__.py`
