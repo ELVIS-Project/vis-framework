@@ -1,0 +1,24 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/breve.png</file>
+    <file>icons/eighth.png</file>
+    <file>icons/half.png</file>
+    <file>icons/quarter.png</file>
+    <file>icons/sixteenth.png</file>
+    <file>icons/sixty_fourth.png</file>
+    <file>icons/thirty_second.png</file>
+    <file>icons/whole.png</file>
+    <file>icons/right-arrow.png</file>
+    <file>icons/choose_files.png</file>
+    <file>icons/working.png</file>
+    <file>icons/show_checkmark.png</file>
+    <file>icons/start-analysis.png</file>
+    <file>icons/add-dir.png</file>
+    <file>icons/add-file.png</file>
+    <file>icons/list-remove.png</file>
+    <file>icons/help-about.png</file>
+    <file>icons/show_results.png</file>
+    <file>icons/analyze.png</file>
+    <file>icons/settings.png</file>
+  </qresource>
+</RCC>
