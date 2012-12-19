@@ -60,33 +60,41 @@ class Record(object):
         super(Record, self).__init__()
     
 
-class Settings(object):
+class Setting(object):
     """
-    Base class for the various 'application settings' classes in vis.
-    Basically just an interface to a python dict with "typesafe" entries.
+    Base class for a particular setting of a particular type,
+    for any process which requires a static setting
     """
-    def __init__(self, *args):
+    def __init__(self, name, display_text, validator):
         """
-        Creates a new Settings instance.
+        Creates a Setting instance.
         
         INPUTS:
-        Either a list of strings, one for each of the variable names
-        held by this Settings instance, or else each string as a 
-        separate argument.
-
-        Ex:
-        
-        >>> s = Settings(['simpleOrCompound','heedQuality'])
-        >>> t = Settings('simpleOrCompound','heedQuality')
-        >>> s._data == t._data
-        True
+        -name: the internal `shorthand` name for the setting
+        -display_text: a detailed, user-readable description
+        of what the setting does.
+        -validator: a method which checks user input to ensure
+        the setting has a logical value.
         """
-        super(Settings, self).__init__()
-        # has a list been passed?
-        if 1 == len(args) and isinstance(args[0], list):
-            # yes, so read it in
-            self._data = {entry:None for entry in args[0]}
-        else:
-            # no, so read the entries individually
-            self._data = {entry:None for entry in args}
-
+        self.name = name
+        self.display_text = display_text
+        self.validate = validate
+        self.value = None
+        
+    def set_value(self, value):
+        if self.validate(value):
+            self.value = value
+        
+class PositiveIntSetting(Setting):
+    """
+    A setting which must be a positive integer, like
+    for the "n" value in an NGram query.
+    """
+    def __init__(self, name, display_text):
+        def v(self, value):
+            if not isinstance(value, int):
+                return False
+            if value <= 0:
+                return False
+            return True
+        super(PositiveIntSetting, self).__init__(name, display_text, v)

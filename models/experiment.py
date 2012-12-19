@@ -20,37 +20,48 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+from data import Settings
 
 
 class Experiment(object):
-	"""
-	Base class for all Experiments done in vis.
-	"""
-	def __init__(self, records):
-		"""
-		INPUTS:
-		-records: a list of Record objects; this is the data
-		which will be experimented with.
-		"""
-		super(Experiment, self).__init__()
-		self.inputs = []
-		self.settings = None
-		self.records = records
-	
-	def run():
-		"""
-		This method must be implemented in subclasses to be
-		where the main busines logic/processing for the
-		experiment is done.
-		"""
-		pass
-	
+    """
+    Base class for all Experiments done in vis.
+    """
+    def __init__(self, records):
+        """
+        INPUTS:
+        -records: a list of Record objects; this is the data
+        which will be experimented with.
+        """
+        super(Experiment, self).__init__()
+        self._settings = None
+        self._records = records
+    
+    def run():
+        """
+        This method must be implemented in subclasses to be
+        where the main busines logic/processing for the
+        experiment is done.
+        """
+        missing = [s for s in self._settings if s.value is None]
+        if missing:
+            raise Exception("settings " + str(missing) + " are missing")
+    
 
-class Entropy(Experiment):
-	"""
-	Computes the statistical entropy of some aspect of a dataset.
-	"""
-	def __init__(self, arg):
-		super(Entropy, self).__init__()
-		self.arg = arg
-		
+class NGramHistogram(Experiment):
+    """
+    Prepares a summary of all the NGrams in all the samples
+    which have been analyzed.
+    """
+    def __init__(self, arg):
+        super(NGramHistogram, self).__init__()
+        self._settings = [PositiveIntSetting('n','Length of NGram'),
+                          PositiveIntSetting('thresh', 'Exclude NGrams with fewer occurences than'),
+                          PositiveIntSetting('topX', 'Include these many different NGrams with the highest frequencies')]
+    
+    def run(self):
+        """
+        Finds all the N-Grams and prepares them into a histogram.
+        """
+        super(NGramHistogram, self).run()
+        

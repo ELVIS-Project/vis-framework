@@ -22,12 +22,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-from multiprocessing import Pool, Process
+from multiprocessing import Process
 from models.data import Settings
 from views.Ui_new_main_window import Ui_MainWindow
 
 
-class VisController(object):
+class Controller(object):
+    """
+    Base class for all vis controllers.
+    """
+    def __init__(self, stylesheet):
+        """
+        Creates a new instance, and assigns the appropriate widget.
+        """
+        # view = stylesheet[self.__class__.__name__]()
+        # self._view = view
+        
+    def setup_signals(self):
+        pass
+
+class VisController(Controller):
     """
     This class handles all the functions of vis, in particular all
     multiprocessing features. Any implementation should contain one
@@ -35,14 +49,21 @@ class VisController(object):
     
     TODO: put a nice doctest here with the usual implementation.
     """
-    def __init__(self):
-        super(VisController, self).__init__()
-        self.window = Ui_MainWindow()
-		# sub controllers
-		self.importer = Importer()
-		self.analyzer = Analyzer()
-		self.experimenter = Experimenter()
-		self.display_handler = DisplayHandler()
+    def __init__(self, *args):
+        """
+        Creates a new VisController instance.
+        
+        INPUTS:
+        -stylesheet: a stylesheet object containing the implementation
+        details for each View class.
+        """
+        super(VisController, self).__init__(*args)
+        self._stylesheet = stylesheet
+        # sub controllers
+        self.importer = Importer(stylesheet)
+        self.analyzer = Analyzer(stylesheet)
+        self.experimenter = Experimenter(stylesheet)
+        self.display_handler = DisplayHandler(stylesheet)
     
     def run(self):
         """
@@ -50,44 +71,66 @@ class VisController(object):
         """
     
 
-class Importer(object):
+class Importer(Controller):
     """
     This class handles input for a user's choice of files and handles
     parsing them into PieceData instances.
     """
-    def __init__(self):
-        super(Importer, self).__init__()
+    def __init__(self, *args):
+        """
+        Creates a new Importer instance.
+        """
+        super(Importer, self).__init__(*args)
+        self._widget.add_file.connect(self.add_file)
+        self.files = []
+        self.signals = [import_files, add_file, add_dir, remove_files]
     
+    def import_files():
+        """
+        Try to import the selected files
+        """
 
-class Analyzer(object):
+class Analyzer(Controller):
     """
     This class handles input for a user's choice of settings and voice
     pairs, then uses these settings to analyze a list of VoicePair
     objects into a list of Record objects.
     """
-    def __init__(self, pieces):
-        super(Analyzer, self).__init__()
+    def __init__(self, stylesheet, pieces):
+        super(Analyzer, self).__init__(stylesheet)
         self.pieces = pieces
         self.settings = Settings()
     
 
-class Experimenter(object):
+class Experimenter(Controller):
     """
     This class handles input for a user's choice of Experiment and choice
     of associated Settings, then performs the experiment, returning the
     relevant Results object(s).
     """
-    def __init__(self):
-        super(Experimenter, self).__init__()
+    def __init__(self, stylesheet):
+        super(Experimenter, self).__init__(stylesheet)
+        self._experiment = None
     
 
-class DisplayHandler(object):
+class DisplayHandler(Controller):
     """
     This class handles input for a user's choice of Settings and takes the
     results of an Experiment, formats them according to the user's choices
     and displays them in the appropriate view.
     """
-    def __init__(self, results):
+    def __init__(self, stylesheet, results):
+        """
+        Creates a new DisplayHandler instance
+        
+        INPUTS:
+        results - a Results object containing data for the results of an
+        Experiment
+        """
         super(DisplayHandler, self).__init__()
-        self.results = results
+        self._stylesheet = stylesheet
+        self._results = results
+    
+    # def setup_signals(self):
+    #   VisSignals.display_results.connect(self.display_results)
         
