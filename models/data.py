@@ -73,6 +73,13 @@ class Settings(object):
         Either a list of strings, one for each of the variable names
         held by this Settings instance, or else each string as a 
         separate argument.
+
+        Ex:
+        
+        >>> s = Settings(['simpleOrCompound','heedQuality'])
+        >>> t = Settings('simpleOrCompound','heedQuality')
+        >>> s._data == t._data
+        True
         """
         super(Settings, self).__init__()
         # has a list been passed?
