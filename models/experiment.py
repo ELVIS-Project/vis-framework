@@ -1,14 +1,9 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
-# Program Name:              vis
-# Program Description:       Measures sequences of vertical intervals.
-#
-# Filename: __main__.py
-# Purpose: Handle the application loop for vis's desktop views.
-#
-# Attribution:  Based on the 'harrisonHarmony.py' module available at...
-#               https://github.com/crantila/harrisonHarmony/
+# Name:         experiment.py
+# Purpose:      Describes the form of experiments done with vis
 #
 # Copyright (C) 2012 Christopher Antila, Jamie Klassen
 #
@@ -25,16 +20,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-import sys
-from controllers import VisController
 
 
-def main():
-    """
-    The main execution loop.
-    """
-    controller = VisController()
-    sys.exit(controller.run())
+class Experiment(object):
+	"""
+	Base class for all Experiments done in vis.
+	"""
+	def __init__(self, records):
+		"""
+		INPUTS:
+		-records: a list of Record objects; this is the data
+		which will be experimented with.
+		"""
+		super(Experiment, self).__init__()
+		self.inputs = []
+		self.settings = None
+		self.records = records
+	
+	def run():
+		"""
+		This method must be implemented in subclasses to be
+		where the main busines logic/processing for the
+		experiment is done.
+		"""
+		pass
+	
 
-if __name__ == "__main__":
-    main()
+class Entropy(Experiment):
+	"""
+	Computes the statistical entropy of some aspect of a dataset.
+	"""
+	def __init__(self, arg):
+		super(Entropy, self).__init__()
+		self.arg = arg
+		
