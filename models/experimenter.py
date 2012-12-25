@@ -36,7 +36,7 @@ class Experiment(object):
         super(Experiment, self).__init__()
         self._settings = None
         self._records = records
-    
+
     def run():
         """
         This method must be implemented in subclasses to be
@@ -46,7 +46,7 @@ class Experiment(object):
         missing = [s for s in self._settings if s.value is None]
         if missing:
             raise Exception("settings " + str(missing) + " are missing")
-    
+
 
 class NGramHistogram(Experiment):
     """
@@ -58,10 +58,9 @@ class NGramHistogram(Experiment):
         self._settings = [PositiveIntSetting('n','Length of NGram'),
                           PositiveIntSetting('thresh', 'Exclude NGrams with fewer occurences than'),
                           PositiveIntSetting('topX', 'Include these many different NGrams with the highest frequencies')]
-    
+
     def run(self):
         """
         Finds all the N-Grams and prepares them into a histogram.
         """
         super(NGramHistogram, self).run()
-        
