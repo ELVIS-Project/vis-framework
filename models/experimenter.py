@@ -64,3 +64,26 @@ class NGramHistogram(Experiment):
         Finds all the N-Grams and prepares them into a histogram.
         """
         super(NGramHistogram, self).run()
+
+class Results(object):
+	"""
+	Generic type for the results of an Experiment.
+	"""
+	def __init__(self):
+		super(Results, self).__init__()
+		self._data = None
+	
+	@property
+	def data(self):
+		return self._data
+	
+	@data.setter
+	def data(self, value):
+		self._data = value
+	
+	@data.deleter
+	def data(self):
+		del self._data
+	
+
+		
