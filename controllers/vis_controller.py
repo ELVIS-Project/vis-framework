@@ -138,4 +138,7 @@ class VisSignals(QObject):
    experimenter_experimented = pyqtSignal(tuple) # the result of experimenter_experiment; the result is a tuple, where the first element is the type of Display object to use, and the second is whatever the Display object needs
    experimenter_error = pyqtSignal(str) # description of an error in the Experimenter
    experimenter_status = pyqtSignal(str) # informs the GUI of the status for a currently-running experiment (if two or three characters followed by a '%' then it should try to update a progress bar, if available)
+
+   # DisplayHandler
+   display_shown = pyqtSignal(str) # when the user should be able to see the results of an experiment on the screen in a particular format
 # End class VisSignals ---------------------------------------------------------

@@ -37,21 +37,132 @@ from vis.controller.vis_controller import VisSignals
 
 class DisplayHandler(Controller):
    '''
-   This class handles input for a user's choice of Settings and takes the
-   results of an Experiment, formats them according to the user's choices
-   and displays them in the appropriate view.
-   '''
-   def __init__(self, stylesheet, results):
-      '''
-      Creates a new DisplayHandler instance
+   This class takes an ExperimentResults object, if relevant determines which
+   Display format to use and its DisplaySettings, then actually displays the
+   results for the user.
 
-      INPUTS:
-      results - a Results object containing data for the results of an
-      Experiment
+   Really, the DisplayHandler waits for a VisSignals.experimenter_experimented
+   signal, then processes it.
+   '''
+
+
+   def __init__(self):
       '''
-      super(DisplayHandler, self).__init__()
-      self._stylesheet = stylesheet
-      self._results = results
+      ???
+      '''
+      pass
+
+
 
    def setup_signals(self):
-      VisSignals.display_results.connect(self.display_results)
+      '''
+      Set the methods of DisplayHandler as slots for the relevant signals
+      emitted by the VisController.
+      '''
+      VisSignals.experimenter_experimented.connect(self.show_result)
+
+
+
+   @pyqtSlot(tuple)
+   def show_result(self, signal_result):
+      '''
+      Slot for the VisSignals.experimenter_experimented signal. This method is
+      called when the Experimenter controller has finished analysis.
+
+      The argument is a 2-tuple, where the first element specifies which Display
+      object to use for the results, and the second is the data needed by that
+      Display object.
+      '''
+
+      # (1) Make a new ___Display
+      # (2) Call its "show" method
+
+      pass
+# End class DisplayHandler -------------------------------------------------------
+
+
+
+class Display(object):
+   '''
+   Base class for all Displayss.
+   '''
+
+
+
+   def __init__(self, data, settings=None):
+      '''
+      Create a new Display.
+
+      There are two arguments, the first of which is mandatory:
+      - data : argument of any type, as required by the Display subclass
+      - settings : the optional ExperimentSettings object
+      '''
+      # NOTE: You do not need to reimplement this method for subclasses.
+      super(Experiment, self).__init__()
+      self._data = data
+      self._settings = settings
+
+
+
+   def setup_signals(self):
+      '''
+      If this Display uses signals, they should be connected in this method.
+      '''
+      # NOTE: You must reimplmement this method in subclasses.
+      pass
+
+
+
+   def show():
+      '''
+      Show the data in the display.
+
+      This method emits a VisSignals.display_shown signal when it finishes.
+      '''
+      # NOTE: You must reimplement this method in subclasses.
+      pass
+# End class Display ------------------------------------------------------------
+
+
+
+class SpreadsheetDisplay(object):
+   '''
+   Saves results in a CSV file (comma-separated values) so that they can be
+   imported by a spreadsheet program like LibreOffice Calc or Microsoft Excel.
+   '''
+
+
+
+   def __init__(self, data, settings=None):
+      '''
+      Create a new SpreadsheetDisplay.
+
+      There are two arguments, the first of which is mandatory:
+      - data : a string that should be the contents of the CSV file
+      - settings : the optional ExperimentSettings object
+      '''
+      # NOTE: You do not need to reimplement this method for subclasses.
+      super(Experiment, self).__init__()
+      self._data = data
+      self._settings = settings
+
+
+
+   def setup_signals(self):
+      '''
+      If this Display uses signals, they should be connected in this method.
+      '''
+      # NOTE: You must reimplmement this method in subclasses.
+      pass
+
+
+
+   def show():
+      '''
+      Saves the data in a file on the filesystem.
+
+      This method emits a VisSignals.display_shown signal when it finishes.
+      '''
+      # NOTE: You must reimplement this method in subclasses.
+      pass
+# End class Display ------------------------------------------------------------
