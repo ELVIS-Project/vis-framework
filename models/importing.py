@@ -4,7 +4,7 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: import.py
+# Filename: importing.py
 # Purpose: The model classes for the Importer controller.
 #
 # Copyright (C) 2012 Jamie Klassen, Christopher Antila
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-Holds the classes that are models for the Importer controller.
+The model classes for the Importer controller.
 '''
 
 

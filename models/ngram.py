@@ -1,9 +1,11 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
-
 #-------------------------------------------------------------------------------
-# Name:         ngram.py
-# Purpose:      Class-based representation of an n-gram of vertical intervals.
+# Program Name:              vis
+# Program Description:       Measures sequences of vertical intervals.ngram.py
+#
+# Fileame: ngram.py
+# Purpose: Class-based representation of an n-gram of vertical intervals.
 #
 # Copyright (C) 2012 Christopher Antila, Jamie Klassen
 #

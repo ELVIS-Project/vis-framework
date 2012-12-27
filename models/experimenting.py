@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
-# Name:         experiment.py
-# Purpose:      Describes the form of experiments done with vis
+# Program Name:              vis
+# Program Description:       Measures sequences of vertical intervals.
 #
-# Copyright (C) 2012 Christopher Antila, Jamie Klassen
+# Filename: experimenting.py
+# Purpose: The model classes for the Experimenter controller.
+#
+# Copyright (C) 2012 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +23,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+'''
+The model classes for the Experimenter controller.
+'''
 
 
 

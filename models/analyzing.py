@@ -4,7 +4,7 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: data.py
+# Filename: analyzing.py
 # Purpose: The model classes for the Analyzer controller.
 #
 # Copyright (C) 2012 Jamie Klassen, Christopher Antila
