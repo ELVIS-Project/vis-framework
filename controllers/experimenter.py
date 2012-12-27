@@ -46,7 +46,12 @@ class Experimenter(Controller):
 
 
    def __init__(self):
-      self.list_of_analyses = None
+      '''
+      ???
+      '''
+      self._list_of_analyses = None
+      self._analysis_settings = None
+      # Obiously, this method isn't finished
 
 
 
@@ -56,6 +61,8 @@ class Experimenter(Controller):
       by the VisController.
       '''
       VisSignals.analyzer_analyzed.connect(self.catch_analyses)
+      VisSignals.experimenter_experiment.connect(self.run_experiment)
+      VisSignals.experimenter_set.connect(self.change_setting)
 
 
 
@@ -69,5 +76,128 @@ class Experimenter(Controller):
       '''
       self.list_of_analyses = analyses_list
 
-   # TODO: etc.
+
+
+   @pyqtSlot(str)
+   def run_experiment(self):
+      '''
+      Runs the currently-configured experiment(s).
+      '''
+      pass
+
+
+
+   @pyqtSlot(tuple)
+   def change_setting(self, sett):
+      '''
+      Given a 2-tuple, where the first element is a string (setting name) and
+      the second element is any type (setting value), make that setting refer
+      to that value.
+      '''
+      pass
 # End class Experimenter -------------------------------------------------------
+
+
+
+class Experiment(object):
+   '''
+   Base class for all Experiments.
+   '''
+
+
+
+   def __init__(self, records, settings):
+      '''
+      Create a new Experiment.
+
+      There are two argument, both of which are mandatory:
+      - records : a list of AnalysisRecord objects
+      - settings : an ExperimentSettings object
+      '''
+      # NOTE: You do not need to reimplement this method for subclasses.
+      super(Experiment, self).__init__()
+      self._records = records
+      self._settings = settings
+
+
+
+   def setup_signals(self):
+      '''
+      If this Experiment uses signals, they should be connected in this method.
+      '''
+      # NOTE: You must reimplmement this method in subclasses.
+      pass
+
+
+
+   def perform():
+      '''
+      Perform the Experiment. This method is not called "run" to avoid possible
+      confusion with the multiprocessing nature of Experiment subclasses.
+
+      This method emits a VisSignals.experimenter_experimented signal when it
+      finishes.
+      '''
+      # NOTE: You must reimplement this method in subclasses.
+      pass
+# End class Experiment ---------------------------------------------------------
+
+
+
+class IntervalsLists(Experiment):
+   '''
+   Prepares two lists of intervals: one of harmonic intervals, and the other of
+   the melodic intervals that connect the lower voice of the harmonic intervals.
+
+   This Experiment is useful for these Display classes:
+   - spreadsheet
+   - LilyPond annotated score
+
+   Although the Experiment itself does not use NGram objects or deal with
+   n-grams (only intervals), both output formats are useful for visual
+   inspections that allow human to find n-grams.
+   '''
+
+
+
+   def __init__(self, records, settings):
+      '''
+      Create a new IntervalsLists
+
+      There are two argument, both of which are mandatory:
+      - records : a list of AnalysisRecord objects
+      - settings : an ExperimentSettings object
+
+      The IntervalsSpreadsheet uses these settings:
+      - 'quality' : boolean, whether to print or suppress quality
+      - 'simple or compound' : whether to print intervals in their single-octave
+         ('simple') or actual ('compound') form.
+      -
+      '''
+      # NOTE: You do not need to reimplement this method for subclasses.
+      super(Experiment, self).__init__()
+      self._records = records
+      self._settings = settings
+
+
+
+   def setup_signals(self):
+      '''
+      If this Experiment uses signals, they should be connected in this method.
+      '''
+      # NOTE: You must reimplmement this method in subclasses.
+      pass
+
+
+
+   def perform():
+      '''
+      Perform the Experiment. This method is not called "run" to avoid possible
+      confusion with the multiprocessing nature of Experiment subclasses.
+
+      This method emits a VisSignals.experimenter_experimented signal when it
+      finishes.
+      '''
+      # NOTE: You must reimplement this method in subclasses.
+      pass
+# End class Experiment ---------------------------------------------------------

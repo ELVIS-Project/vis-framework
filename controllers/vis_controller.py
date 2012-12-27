@@ -131,4 +131,11 @@ class VisSignals(QObject):
    analyzer_analyzed = pyqtSignal(list) # the result of analyzer_analyze; the result is a list of AnalysisRecord objects
    analyzer_error = pyqtSignal(str) # description of an error in the Analyzer
    analyzer_status = pyqtSignal(str) # informs the GUI of the status for a currently-running analysis (if two or three characters followed by a '%' then it should try to update a progress bar, if available)
+
+   # Experimenter
+   experimenter_set = pyqtSignal(tuple) # a 2-tuple: a string for a setting name and the value for the setting
+   experimenter_experiment = pyqtSignal(str) # tell the Experimenter controller to perform an experiment
+   experimenter_experimented = pyqtSignal(tuple) # the result of experimenter_experiment; the result is a tuple, where the first element is the type of Display object to use, and the second is whatever the Display object needs
+   experimenter_error = pyqtSignal(str) # description of an error in the Experimenter
+   experimenter_status = pyqtSignal(str) # informs the GUI of the status for a currently-running experiment (if two or three characters followed by a '%' then it should try to update a progress bar, if available)
 # End class VisSignals ---------------------------------------------------------
