@@ -4,8 +4,8 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: __init__.py
-# Purpose: Load the vis modules.
+# Filename: controllers/__init__.py
+# Purpose: Load the vis controllers modules.
 #
 # Attribution:  Based on the 'harrisonHarmony.py' module available at...
 #               https://github.com/crantila/harrisonHarmony/
@@ -28,6 +28,12 @@
 
 
 
-__all__ = ['controllers', 'models', 'views']
+__all__ = ['analyzer', 'controller', 'display_handler', 'experimenter',
+           'importer', 'vis_controller']
 
-from vis import *
+import vis_controller
+import analyzer
+import controller
+import display_handler
+import experimenter
+import importer

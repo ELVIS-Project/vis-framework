@@ -1,16 +1,14 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: __init__.py
-# Purpose: Load the vis modules.
+# Filename: experimenting.py
+# Purpose: The model classes for the Experimenter controller.
 #
-# Attribution:  Based on the 'harrisonHarmony.py' module available at...
-#               https://github.com/crantila/harrisonHarmony/
-#
-# Copyright (C) 2012 Christopher Antila, Jamie Klassen
+# Copyright (C) 2012 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,9 +23,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+'''
+The model classes for the Experimenter controller.
+'''
 
 
 
-__all__ = ['controllers', 'models', 'views']
-
-from vis import *
+pass
