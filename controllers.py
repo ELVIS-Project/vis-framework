@@ -236,6 +236,18 @@ class Importer(Controller):
       operation is completed.
       '''
       pass
+
+
+
+   @staticmethod
+   def _piece_getter(pathname):
+      '''
+      Load a file and import it to music21. Return the Score object.
+
+      This method should only be called by the Importer.import_pieces() method,
+      which coordinates multiprocessing.
+      '''
+      pass
 # End class Importer -----------------------------------------------------------
 
 
@@ -304,6 +316,39 @@ class Analyzer(Controller):
 
       Emits the VisSignal.analyzer_analyzed signal upon completion, with a list
       of the AnalysisRecord objects generated.
+      '''
+      pass
+
+
+
+   @staticmethod
+   def _event_finder(parts, types, offset, salami, record):
+      '''
+      Find events in parts.
+
+      These are the arguments:
+      - parts : a list of at least one music21 Part object
+      - types : a list of types that you want to count as an "event"
+      - offset : the minimum quarterLength offset between consecutive events
+      - salami : if True, all events will be the offset distance from each
+         other, even if this produces a series of identical events
+      - record : an AnalysisRecord object to use for recording this analysis
+
+      This method is intended to analyze more than one part, finding
+      simultaneous occurrences of "events," as determined by whether a thing
+      in the part is an instance of one of the classes or types supplied.
+
+      The method checks at every offset that is divisisble by "offset" without
+      remainder. If "salami" is True, every such offset will have an event--if
+      no new event has happened, the previous event is repeated. If "salami" is
+      False, no events will be repeated, leading to unequal offset intervals
+      between consecutive events in the AnalysisRecord.
+
+      If given only one Part object, event_finder() acts essentially like an
+      overly-complicated filter.
+
+      This method should only be called from the Analyzer.run_analysis() method,
+      which coordinates multiprocessing.
       '''
       pass
 # End class Analyzer -----------------------------------------------------------
