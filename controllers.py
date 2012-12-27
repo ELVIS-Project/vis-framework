@@ -33,10 +33,12 @@ Holds the "controllers" for the MVC architecture in vis.
 from multiprocessing import Process
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, QObject
+from PyQt4.QtGui import QMainWindow
 # vis
 from views.Ui_main_window import Ui_MainWindow
 from models.importer import ListOfFiles
 from models.analyzer import ListOfPieces
+from models.experimenter import Results
 
 
 
@@ -104,25 +106,39 @@ class VisController(Ui_MainWindow):
       # Setup things we need to know
       self.UI_type = interface
 
-      # Setup signals for GUI-only things
+      # Setup signals for GUI-only things.
+      stylesheet = None
+      if 'PyQt4' == self.UI_type:
+         self.window = QMainWindow()
+         self.setupUi(window)
+         stylesheet = {
+            self.btn_analyze.clicked: VisSignals.analyzer_analyze,
+         }
+
+      for ui_signal, vis_signal in stylesheet.iteritems():
+         ui_signal.connect(vis_signal.emit)
 
       # Create long-term sub-controllers
-      # self.importer = ?
-      # self.analyzer = ?
-      # self.experimenter = ?
-      # self.displayer = ?
+      self.importer = Importer()
+      self.analyzer = Analyzer()
+      self.experimenter = Experimenter()
+      self.displayer = DisplayHandler()
 
       # Setup signals TO the long-term sub-controllers
-      # self.importer.setup_signals()
-      # self.analyzer.setup_signals()
-      # self.experimenter.setup_signals()
-      # self.displayer.setup_signals()
+      self.importer.setup_signals()
+      self.analyzer.setup_signals()
+      self.experimenter.setup_signals()
+      self.displayer.setup_signals()
 
       # Setup signals FROM the long-term sub-controllers
 
       # Set the models for the table views.
       self.gui_file_list.setModel(self.importer.list_of_files)
       self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)
+
+      # Show!
+      if 'PyQt4' == self.UI_type:
+         self.window.show()
 # End class VisController ------------------------------------------------------
 
 
@@ -142,6 +158,14 @@ class VisSignals(QObject):
    # Create a signal like this:
    # signal_name = pyqtSignal(str)
 
+   # TODO: each of the controllers has a similar set of signals; there should be
+   # a way to refactor these; i.e. the controller base class registers its signals
+   # with VisSignals when it is defined, and the different subclasses can override
+   # the default signals depending on implementation -- basically VisSignals should
+   # be a kind of global static object which is modified at "compile time" -- when
+   # the python sources are imported into the interpreter. This is a good idea which
+   # I've used with great results with C++ and preprocessor macros.
+
    # Importer
    importer_add_pieces = pyqtSignal(list) # a list of str filenames
    importer_remove_pieces = pyqtSignal(list) # a list of str filenames
@@ -158,6 +182,12 @@ class VisSignals(QObject):
    analyzer_analyzed = pyqtSignal(list) # the result of analyzer_analyze; the result is a list of AnalysisRecord objects
    analyzer_error = pyqtSignal(str) # description of an error in the Analyzer
    analyzer_status = pyqtSignal(str) # informs the GUI of the status for a currently-running analysis (if two or three characters followed by a '%' then it should try to update a progress bar, if available)
+
+	# Experimenter
+	experimenter_experiment = pyqtSignal(str) # to tell the Experimenter controller to run the experiment
+	experimenter_done = pyqtSignal(Results) # the result of experimenter_experiment; data of some kind
+	experimenter_status = pyqtSignal(str) # informs the GUI of the status for a currently-running experiment (if two or three characters followed by a '%' then it should try to update a progress bar, if available)
+	experimenter_error = pyqtSignal(str) #description of an error in the Experimenter
 # End class VisSignals ---------------------------------------------------------
 
 
@@ -353,17 +383,26 @@ class DisplayHandler(Controller):
    results of an Experiment, formats them according to the user's choices
    and displays them in the appropriate view.
    '''
-   def __init__(self, stylesheet, results):
-      '''
-      Creates a new DisplayHandler instance
 
-      INPUTS:
-      results - a Results object containing data for the results of an
-      Experiment
-      '''
+
+   def __init__(self):
       super(DisplayHandler, self).__init__()
-      self._stylesheet = stylesheet
-      self._results = results
+      self.results = None
+
+
 
    def setup_signals(self):
-      VisSignals.display_results.connect(self.display_results)
+      VisSignals.experimenter_done.connect(self.catch_results)
+
+
+
+   @pyqtSlot(Results)
+   def catch_results(self, results):
+      '''
+      Slot for the VisSignals.experimenter_done signal. This method
+      is called when the Experimenter has finished running its Experiment.
+
+      The argument is a Results object.
+      '''
+      self.results = results
+#End class DisplayHandler ------------------------------------------------------
