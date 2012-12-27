@@ -32,8 +32,8 @@ Holds the VisController objects for the various GUIs.
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, QObject
 # vis
-from controller import Controller
-from views.Ui_main_window import Ui_MainWindow
+from vis.views.Ui_main_window import Ui_MainWindow
+from vis.models.analyzer import ListOfPieces
 
 
 
@@ -126,7 +126,7 @@ class VisSignals(QObject):
 
    # Analyzer
    # TODO: figure out what type "index" and "data" are
-   analyzer_change_settings = pyqtSignal(index, data) # change the data of a cell in the ListOfPieces; the GUI will know how to create an index based on which rows are selected and which data is being changed (cross-referenced with the ListOfPieces' declaration of column indices)
+   #analyzer_change_settings = pyqtSignal(index, data) # change the data of a cell in the ListOfPieces; the GUI will know how to create an index based on which rows are selected and which data is being changed (cross-referenced with the ListOfPieces' declaration of column indices)
    analyzer_analyze = pyqtSignal(str) # to tell the Analyzer controller to perform analysis
    analyzer_analyzed = pyqtSignal(list) # the result of analyzer_analyze; the result is a list of AnalysisRecord objects
    analyzer_error = pyqtSignal(str) # description of an error in the Analyzer

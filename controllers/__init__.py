@@ -4,10 +4,13 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: DisplayHandler.py
-# Purpose: Holds the DisplayHandler controller.
+# Filename: controllers/__init__.py
+# Purpose: Load the vis controllers modules.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Attribution:  Based on the 'harrisonHarmony.py' module available at...
+#               https://github.com/crantila/harrisonHarmony/
+#
+# Copyright (C) 2012 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,36 +25,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
-Holds the DisplayHandler controller.
-'''
 
 
 
-# Imports from...
-# vis
-from vis.controller import Controller
-from vis.controller.vis_controller import VisSignals
+__all__ = ['analyzer', 'controller', 'display_handler', 'experimenter',
+           'importer', 'vis_controller']
 
-
-
-class DisplayHandler(Controller):
-   '''
-   This class handles input for a user's choice of Settings and takes the
-   results of an Experiment, formats them according to the user's choices
-   and displays them in the appropriate view.
-   '''
-   def __init__(self, stylesheet, results):
-      '''
-      Creates a new DisplayHandler instance
-
-      INPUTS:
-      results - a Results object containing data for the results of an
-      Experiment
-      '''
-      super(DisplayHandler, self).__init__()
-      self._stylesheet = stylesheet
-      self._results = results
-
-   def setup_signals(self):
-      VisSignals.display_results.connect(self.display_results)
+import vis_controller
+import analyzer
+import controller
+import display_handler
+import experimenter
+import importer

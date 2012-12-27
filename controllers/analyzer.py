@@ -30,10 +30,11 @@ Holds the Analyzer controller.
 
 # Imports from...
 # PyQt4
-from PyQt4.QtCore import pyqtSignal, QObject
+from PyQt4.QtCore import pyqtSlot
 # vis
-from controller import Controller
-from models.analyzer import ListOfPieces
+from vis.controller.vis_controller import VisSignals
+from vis.controller import Controller
+from vis.models.analyzer import ListOfPieces
 
 
 

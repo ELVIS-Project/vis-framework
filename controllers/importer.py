@@ -29,12 +29,10 @@ Holds the Importer controller.
 
 
 # Imports from...
-# PyQt4
-from PyQt4.QtCore import pyqtSignal, QObject
 # vis
-from controller import Controller
-from models.importer import ListOfFiles
-from models.analyzer import ListOfPieces
+from vis.controller import Controller
+from vis.models.importer import ListOfFiles
+from vis.models.analyzer import ListOfPieces
 
 
 

@@ -34,7 +34,7 @@ import re
 from music21.interval import Interval
 from music21.note import Note
 # vis
-from problems import MissingInformationError, NonsensicalInputError
+from vis.models.problems import MissingInformationError, NonsensicalInputError
 from VISSettings import VISSettings
 
 
