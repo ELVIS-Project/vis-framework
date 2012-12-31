@@ -28,9 +28,9 @@
 
 
 
-__all__ = ['analyzer', 'experimenter', 'importer']#, 'ngram']
+__all__ = ['analyzing', 'experimenting', 'importing']#, 'ngram']
 
-import analyzer
-import experimenter
-import importer
+import analyzing
+import experimenting
+import importing
 #import ngram

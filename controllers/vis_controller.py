@@ -32,8 +32,8 @@ Holds the VisController objects for the various GUIs.
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, QObject
 # vis
-from vis.views.Ui_main_window import Ui_MainWindow
-from vis.models.analyzer import ListOfPieces
+from views.Ui_main_window import Ui_MainWindow
+from models.analyzing import ListOfPieces
 
 
 
@@ -94,8 +94,8 @@ class VisController(Ui_MainWindow):
       # Setup signals FROM the long-term sub-controllers
 
       # Set the models for the table views.
-      self.gui_file_list.setModel(self.importer.list_of_files)
-      self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)
+      #self.gui_file_list.setModel(self.importer.list_of_files)
+      #self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)
 # End class VisController ------------------------------------------------------
 
 

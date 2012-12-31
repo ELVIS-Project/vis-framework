@@ -30,9 +30,9 @@ Holds the Importer controller.
 
 # Imports from...
 # vis
-from vis.controller import Controller
-from vis.models.importer import ListOfFiles
-from vis.models.analyzer import ListOfPieces
+from controller import Controller
+from models.importing import ListOfFiles
+from models.analyzing import ListOfPieces
 
 
 

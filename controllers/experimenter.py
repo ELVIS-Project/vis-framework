@@ -32,8 +32,8 @@ Holds the Experimenter controller.
 # PyQt4
 from PyQt4.QtCore import pyqtSlot
 # vis
-from vis.controller import Controller
-from vis.controller.vis_controller import VisSignals
+from controller import Controller
+from vis_controller import VisSignals
 
 
 
