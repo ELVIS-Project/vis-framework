@@ -31,8 +31,7 @@ Holds the Importer controller.
 # Imports from...
 # vis
 from controller import Controller
-from models.importing import ListOfFiles
-from models.analyzing import ListOfPieces
+from models import importing, analyzing
 
 
 
@@ -107,7 +106,7 @@ class Importer(Controller):
       continues to import the rest of the files.
 
       Emits VisSignals.importer_imported with the ListOfPieces when the import
-      operation is completed.
+      operation is completed, and returns the ListOfPieces.
       '''
       pass
 
@@ -121,5 +120,24 @@ class Importer(Controller):
       This method should only be called by the Importer.import_pieces() method,
       which coordinates multiprocessing.
       '''
+      pass
+
+
+
+   @staticmethod
+   def _find_part_names(the_score):
+      '''
+      Returns a list with the names of the parts in the given Score.
+      '''
+      pass
+
+
+
+   @staticmethod
+   def _find_piece_title(the_score):
+      '''
+      Returns the title of this Score or an empty string.
+      '''
+      # if there's no title, use the_score.filePath ... but only the filename part, without directories, and without the extension
       pass
 # End class Importer -----------------------------------------------------------
