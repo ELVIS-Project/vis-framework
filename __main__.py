@@ -33,8 +33,8 @@ Starts vis with the PyQt4 interface.
 
 import sys
 from PyQt4 import QtGui
-from controllers import VisController
-
+from controllers.vis_controller import VisController
+#from controllers import VisController
 
 
 def main():
