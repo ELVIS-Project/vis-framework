@@ -79,6 +79,7 @@ class ListOfFiles(QAbstractListModel):
       self.endInsertRows()
 
    def alreadyThere( self, candidate ):
+      # TODO: do we still need this non-standard method?
       '''
       Tests whether 'candidate' is already present in this list of files.
       '''

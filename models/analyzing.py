@@ -59,6 +59,9 @@ class ListOfPieces(QAbstractTableModel):
    offset_intervals = 3
    parts_combinations = 4
 
+   # A role for data() that means to return the Score object rather than title
+   ScoreRole = 'This is an object for the ScoreRole'
+
    def __init__( self, parent=QModelIndex() ):
       #QAbstractTableModel.__init__(self, parent)
       #super.__init__(self, part) ??????????
@@ -75,6 +78,12 @@ class ListOfPieces(QAbstractTableModel):
       pass
 
    def data(self, index, role):
+      '''
+      Returns the data for the table cell corresponding to the index. The role
+      should always be Qt.DisplayRole except in the "score" column, in which
+      case Qt.DisplayRole returns a string representing the title, and the
+      ListOfPieces.ScoreRole returns the Score object.
+      '''
       #if index.isValid():
          #if Qt.DisplayRole == role:
             #if self.model_score == index.column():

@@ -49,7 +49,7 @@ class Importer(Controller):
       '''
       Create a new Importer instance.
       '''
-      self.list_of_files = ListOfFiles()
+      self._list_of_files = ListOfFiles()
 
 
 
@@ -109,6 +109,8 @@ class Importer(Controller):
       operation is completed, and returns the ListOfPieces.
       '''
       pass
+      # NB: I must initialize the offset_intervals field to [0.5]
+      # NB: I must initialize the parts_combinations field to []
 
 
 
