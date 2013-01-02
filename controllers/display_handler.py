@@ -86,7 +86,7 @@ class DisplayHandler(Controller):
 
 class Display(object):
    '''
-   Base class for all Displayss.
+   Base class for all Displays.
    '''
 
 

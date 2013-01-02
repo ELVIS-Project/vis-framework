@@ -32,12 +32,12 @@ Holds the VisController objects for the various GUIs.
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, QObject
 # vis
-from views.Ui_main_window import Ui_MainWindow
 from models.analyzing import ListOfPieces
+from controllers.controller import Controller
 
 
 
-class VisController(Ui_MainWindow):
+class VisController(Controller):
    '''
    Subclasses the automatically-generated python code in Ui_main_window that
    creates the GUI. Although there is a dependency on QtCore, for the PyQt
@@ -77,7 +77,18 @@ class VisController(Ui_MainWindow):
       # Setup things we need to know
       self.UI_type = interface
 
-      # Setup signals for GUI-only things
+      # Setup signals for GUI-only things.
+      stylesheet = None
+      if 'PyQt4' == self.UI_type:
+         from views.main import VisQtMainWindow
+         self.window = VisQtMainWindow()
+         ui = self.window.ui
+         stylesheet = {
+            ui.btn_analyze.clicked: VisSignals.analyzer_analyze, 
+         }
+
+      for ui_signal, vis_signal in stylesheet.iteritems():
+         ui_signal.connect(vis_signal)
 
       # Create long-term sub-controllers
       # self.importer = ?
