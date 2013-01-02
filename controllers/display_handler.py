@@ -32,8 +32,7 @@ Holds the DisplayHandler controller.
 # PyQt
 from PyQt4.QtCore import pyqtSlot
 # vis
-from controller import Controller
-from vis_controller import VisSignals
+from controller import Controller, VisSignals
 
 
 

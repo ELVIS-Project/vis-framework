@@ -49,7 +49,7 @@ class Importer(Controller):
       '''
       Create a new Importer instance.
       '''
-      self._list_of_files = ListOfFiles()
+      self._list_of_files = importing.ListOfFiles()
 
 
 

@@ -32,8 +32,7 @@ Holds the Analyzer controller.
 # PyQt4
 from PyQt4.QtCore import pyqtSlot
 # vis
-from vis_controller import VisSignals
-from controller import Controller
+from controller import Controller, VisSignals
 from models.analyzing import ListOfPieces
 
 
@@ -50,12 +49,9 @@ class Analyzer(Controller):
 
 
 
-   def __init__(self, pieces, *args):
+   def __init__(self):
       '''
       Create a new Analyzer instance.
-
-      The first arguent, "pieces", must be a ListOfPieces object, as created
-      by the Importer controller.
       '''
       self.list_of_pieces = None
 

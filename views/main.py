@@ -43,6 +43,9 @@ class VisQtMainWindow(QtGui.QMainWindow):
 	
 	def tool_working(self):
 		self.ui.main_screen.setCurrentWidget(self.ui.page_working)
-		
+	
+	def tool_about(self):
+		self.ui.main_screen.setCurrentWidget(self.ui.page_about)
+	
 	#def tool_experiment(self):
 	#	self.ui.main_screen.setCurrentWidget(self.ui.page_experiment)
