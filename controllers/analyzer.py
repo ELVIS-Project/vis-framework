@@ -32,12 +32,11 @@ Holds the Analyzer controller.
 # PyQt4
 from PyQt4.QtCore import pyqtSlot
 # vis
-from controller import Controller
 from models.analyzing import ListOfPieces
 
 
 
-class Analyzer(Controller):
+class Analyzer(object):
    '''
    This class performs analysis for series of vertical intervals, and manages
    the settings with which to analyze. Makes a list of AnalysisRecord objects

@@ -30,11 +30,10 @@ Holds the Experimenter controller.
 
 # Imports from...
 # vis
-from controller import Controller
 
 
 
-class Experimenter(Controller):
+class Experimenter(object):
    '''
    This class handles input for a user's choice of Experiment and choice
    of associated Settings, then performs the experiment, returning the

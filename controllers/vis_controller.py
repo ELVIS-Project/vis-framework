@@ -30,7 +30,6 @@ Holds the VisController objects for the various GUIs.
 
 # Imports from...
 # vis
-from controllers.controller import Controller
 from controllers.importer import Importer
 from controllers.analyzer import Analyzer
 from controllers.experimenter import Experimenter
@@ -38,7 +37,7 @@ from controllers.display_handler import DisplayHandler
 
 
 
-class VisController(Controller):
+class VisController(object):
    '''
    Subclasses the automatically-generated python code in Ui_main_window that
    creates the GUI. Although there is a dependency on QtCore, for the PyQt
@@ -78,36 +77,53 @@ class VisController(Controller):
       # Setup things we need to know
       self.UI_type = interface
 
-      # Setup signals for GUI-only things.
-      mapper = None
-      if 'PyQt4' == self.UI_type:
-         from views.main import VisQtMainWindow
-         self.window = VisQtMainWindow()
-         window = self.window
-         ui = window.ui
-         mapper = {
-            ui.btn_choose_files.clicked: window.tool_import,
-            ui.btn_about.clicked: window.tool_about,
-         }
-
-      for signal, slot in mapper.iteritems():
-         signal.connect(slot)
-
       # Create long-term sub-controllers
       self.importer = Importer()
       self.analyzer = Analyzer()
       self.experimenter = Experimenter()
       self.displayer = DisplayHandler()
 
-      # Setup signals TO the long-term sub-controllers
-      self.importer.setup_signals()
-      self.analyzer.setup_signals()
-      self.experimenter.setup_signals()
-      self.displayer.setup_signals()
+      # Setup signal mappings and set models
+      mapper = None
+      if 'PyQt4' == self.UI_type:
+         from views.main import VisQtMainWindow
+         from PyQt4.QtCore import QAbstractItemModel, QModelIndex
+         # the idea here is that our models should not depend
+         # on the PyQt4 structure, mainly because it is obviously
+         # a wrapper to C and it sucks. It may be somewhat tricky
+         # to create a QAbstractItemModel independent of the actual
+         # data it stores, but I think it's a worthwhile goal.
+         class VisQtModel(QAbstractItemModel):
+            def __init__(self, model):
+               super(VisQtModel, self).__init__()
+               self.model = model
+               self.model.data_changed.connect(self.emit)
+            def index(self, row, column, parent=QModelIndex()):
+               return self.createIndex(row, column, None)
+            def parent(self, child):
+               return QModelIndex()
+            def rowCount(self, parent=QModelIndex()):
+               return len(self.model.data)
+            def columnCount(self, parent=QModelIndex()):
+               return 1
+            def data(self, index, role=None):
+               return list(self.model.data)[index.row()]
+            def emit(self, *args):
+               self.dataChanged.emit(QModelIndex(), QModelIndex())
+         self.window = VisQtMainWindow()
+         window = self.window
+         ui = window.ui
+         mapper = [
+            (ui.btn_choose_files.clicked, window.tool_import),
+            (ui.btn_file_add.clicked, window.get_files),
+            (window.files_chosen, self.importer.add_pieces),
+            (ui.btn_about.clicked, window.tool_about),
+         ]
+         # Set the models for the table views.
+         ui.gui_file_list.setModel(VisQtModel(self.importer._list_of_files))
+         #self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)
 
-      # Setup signals FROM the long-term sub-controllers
-
-      # Set the models for the table views.
-      #self.gui_file_list.setModel(self.importer.list_of_files)
-      #self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)
+      # Setup signals
+      for signal, slot in mapper:
+         signal.connect(slot)
 # End class VisController ------------------------------------------------------
