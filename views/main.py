@@ -23,6 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 from PyQt4 import QtGui, uic
+from controllers.signals import VisSignal
 
 
 class VisQtMainWindow(QtGui.QMainWindow):
@@ -31,12 +32,23 @@ class VisQtMainWindow(QtGui.QMainWindow):
 		self.ui = uic.loadUi('views/ui/new_main_window.ui')
 		self.tool_import()
 		self.ui.show()
+		self.files_chosen = VisSignal()
 	
 	def tool_import(self):
 		self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
 		self.ui.btn_analyze.setEnabled(False)
 		self.ui.btn_show.setEnabled(False)
 		self.ui.btn_step2.setEnabled(False)
+		
+	def get_files(self):
+		files = QtGui.QFileDialog.getOpenFileNames(
+			None,
+			"Choose Files to Analyze",
+			'',
+			'*.nwc *.mid *.midi *.mxl *.krn *.xml *.md',
+			None)
+		if files:
+			self.files_chosen([str(f) for f in files])
 	
 	def tool_analyze(self):
 		self.ui.main_screen.setCurrentWidget(self.ui.page_analyze)
