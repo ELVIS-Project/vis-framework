@@ -53,18 +53,6 @@ class Importer(Controller):
 
 
 
-   def setup_signals(self):
-      '''
-      Set the methods of Importer as slots for the relevant methods emitted by
-      the VisController.
-      '''
-      # importer_add_pieces
-      # importer_remove_pieces
-      # importer_import
-      pass
-
-
-
    def add_pieces(self, pieces):
       '''
       Add the filenames to the list of filenames that should be imported. The
@@ -72,7 +60,7 @@ class Importer(Controller):
       in that directory (and its subdirectories) are added to the list.
 
       If a filename does not exist, this method emits the
-      VisSignals.importer_error signal, with a description of the error.
+      Importer.error signal, with a description of the error.
 
       Emits the VisSignals.importer_add_remove_success signal with True or
       False, depending on whether the operation succeeded.

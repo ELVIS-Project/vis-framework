@@ -32,7 +32,7 @@ Holds the DisplayHandler controller.
 # PyQt
 from PyQt4.QtCore import pyqtSlot
 # vis
-from controller import Controller, VisSignals
+from controller import Controller
 
 
 
@@ -42,7 +42,7 @@ class DisplayHandler(Controller):
    Display format to use and its DisplaySettings, then actually displays the
    results for the user.
 
-   Really, the DisplayHandler waits for a VisSignals.experimenter_experimented
+   Really, the DisplayHandler waits for an Experimenter.experimented
    signal, then processes it.
    '''
 
@@ -55,19 +55,9 @@ class DisplayHandler(Controller):
 
 
 
-   def setup_signals(self):
-      '''
-      Set the methods of DisplayHandler as slots for the relevant signals
-      emitted by the VisController.
-      '''
-      VisSignals.experimenter_experimented.connect(self.show_result)
-
-
-
-   @pyqtSlot(tuple)
    def show_result(self, signal_result):
       '''
-      Slot for the VisSignals.experimenter_experimented signal. This method is
+      Slot for the Experimenter.experimented signal. This method is
       called when the Experimenter controller has finished analysis.
 
       The argument is a 2-tuple, where the first element specifies which Display
@@ -105,15 +95,6 @@ class Display(object):
 
 
 
-   def setup_signals(self):
-      '''
-      If this Display uses signals, they should be connected in this method.
-      '''
-      # NOTE: You must reimplmement this method in subclasses.
-      pass
-
-
-
    def show():
       '''
       Show the data in the display.
@@ -146,15 +127,6 @@ class SpreadsheetDisplay(object):
       super(Experiment, self).__init__()
       self._data = data
       self._settings = settings
-
-
-
-   def setup_signals(self):
-      '''
-      If this Display uses signals, they should be connected in this method.
-      '''
-      # NOTE: You must reimplmement this method in subclasses.
-      pass
 
 
 

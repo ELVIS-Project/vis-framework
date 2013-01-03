@@ -30,7 +30,7 @@ Holds the VisController objects for the various GUIs.
 
 # Imports from...
 # vis
-from controllers.controller import Controller, VisSignals
+from controllers.controller import Controller
 from controllers.importer import Importer
 from controllers.analyzer import Analyzer
 from controllers.experimenter import Experimenter

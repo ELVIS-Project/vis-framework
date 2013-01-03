@@ -32,7 +32,7 @@ Holds the Analyzer controller.
 # PyQt4
 from PyQt4.QtCore import pyqtSlot
 # vis
-from controller import Controller, VisSignals
+from controller import Controller
 from models.analyzing import ListOfPieces
 
 
@@ -54,15 +54,6 @@ class Analyzer(Controller):
       Create a new Analyzer instance.
       '''
       self.list_of_pieces = None
-
-
-
-   def setup_signals(self):
-      '''
-      Set the methods of Analyzer as slots for the relevant methods emitted by
-      the VisController.
-      '''
-      VisSignals.importer_imported.connect(self.catch_import)
 
 
 

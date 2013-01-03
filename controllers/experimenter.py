@@ -29,10 +29,8 @@ Holds the Experimenter controller.
 
 
 # Imports from...
-# PyQt4
-from PyQt4.QtCore import pyqtSlot
 # vis
-from controller import Controller, VisSignals
+from controller import Controller
 
 
 
@@ -54,18 +52,6 @@ class Experimenter(Controller):
 
 
 
-   def setup_signals(self):
-      '''
-      Set the methods of Experimenter as slots for the relevant methods emitted
-      by the VisController.
-      '''
-      VisSignals.analyzer_analyzed.connect(self.catch_analyses)
-      VisSignals.experimenter_experiment.connect(self.run_experiment)
-      VisSignals.experimenter_set.connect(self.change_setting)
-
-
-
-   @pyqtSlot(list)
    def catch_analyses(self, analyses_list):
       '''
       Slot for the VisSignals.analyzer_analyzed signal. This method is called
@@ -77,7 +63,6 @@ class Experimenter(Controller):
 
 
 
-   @pyqtSlot(str)
    def run_experiment(self):
       '''
       Runs the currently-configured experiment(s).
@@ -86,7 +71,6 @@ class Experimenter(Controller):
 
 
 
-   @pyqtSlot(tuple)
    def change_setting(self, sett):
       '''
       Given a 2-tuple, where the first element is a string (setting name) and
@@ -120,21 +104,12 @@ class Experiment(object):
 
 
 
-   def setup_signals(self):
-      '''
-      If this Experiment uses signals, they should be connected in this method.
-      '''
-      # NOTE: You must reimplmement this method in subclasses.
-      pass
-
-
-
    def perform():
       '''
       Perform the Experiment. This method is not called "run" to avoid possible
       confusion with the multiprocessing nature of Experiment subclasses.
 
-      This method emits a VisSignals.experimenter_experimented signal when it
+      This method emits an Experimenter.experimented signal when it
       finishes.
       '''
       # NOTE: You must reimplement this method in subclasses.
@@ -180,21 +155,12 @@ class IntervalsLists(Experiment):
 
 
 
-   def setup_signals(self):
-      '''
-      If this Experiment uses signals, they should be connected in this method.
-      '''
-      # NOTE: You must reimplmement this method in subclasses.
-      pass
-
-
-
    def perform():
       '''
       Perform the Experiment. This method is not called "run" to avoid possible
       confusion with the multiprocessing nature of Experiment subclasses.
 
-      This method emits a VisSignals.experimenter_experimented signal when it
+      This method emits an Experimenter.experimented signal when it
       finishes.
       '''
       # NOTE: You must reimplement this method in subclasses.
