@@ -34,63 +34,158 @@ from PyQt4.QtCore import QAbstractListModel, QModelIndex, Qt, QVariant
 
 
 class ListOfFiles(QAbstractListModel):
-   # TODO: finish documenting this class
-   # TODO: rewrite this class for vis8
    '''
    This model represents a list of filenames that the Importer controller should
    import, find data from, and put into a ListOfPieces for the Analyzer
    controller.
    '''
-   def __init__( self, parent=None, *args ):
-      QAbstractListModel.__init__(self, parent, *args)
-      self.files = []
 
-   def rowCount( self, parent=QModelIndex() ):
-      return len( self.files )
+
+
+   def __init__(self, parent=None, *args):
+      '''
+      Create a new ListOfFiles instance. Best to use no arguments.
+      '''
+      QAbstractListModel.__init__(self, parent, *args)
+      self._files = []
+
+
+
+   def rowCount(self, parent=QModelIndex()):
+      '''
+      Return the number of files in the list.
+      '''
+      return len(self._files)
+
+
 
    def data(self, index, role):
+      '''
+      Return the filename with the specified index as a QVariant.
+
+      The first argument is the index to return. The second argument is the
+      role, which should be QtCore.Qt.DisplayRole.
+
+      >>> a = ListOfFiles()
+      >>> a.insertRows(0, 2)
+      >>> a.setData(a.createIndex(0), 'kyrie.krn', Qt.EditRole)
+      >>> a.setData(a.createIndex(1), 'sanctus.krn', Qt.EditRole)
+      >>> a.data(a.createIndex(1), Qt.DisplayRole)
+      'sanctus.krn'
+      >>> a.data(a.createIndex(0), Qt.DisplayRole)
+      'kyrie.krn'
+      '''
       if index.isValid() and Qt.DisplayRole == role:
-         return QVariant( self.files[index.row()] )
+         return QVariant(self._files[index.row()])
       else:
          return QVariant()
 
-   # NB: I *should* implement these, but I don't know how, so for now I won't
-   #def headerData( self ):
-      #pass
 
-   #def flags():
-      #pass
 
-   def setData( self, index, value, role ):
+   def headerData(self):
+      '''
+      Returns the table header data for this ListOfFiles. This is always
+      "filename".
+      '''
+      # TODO: what form is the return value for this?
+      pass
+
+
+
+   def flags():
+      # TODO: figure out what this is, then implement it
+      pass
+
+
+
+   def setData(self, index, value, role):
+      '''
+      Set the data for the given row to the given filename.
+
+      The first argument is the index to set. The second argument is the value
+      to set it to. The third argument should be QtCore.Qt.EditRole.
+
+      >>> a = ListOfFiles()
+      >>> a.insertRows(0, 2)
+      >>> a.setData(a.createIndex(0), 'kyrie.krn', Qt.EditRole)
+      >>> a.setData(a.createIndex(1), 'sanctus.krn', Qt.EditRole)
+      '''
       if Qt.EditRole == role:
-         self.files[index.row()] = value
-         self.dataChanged.emit( index, index )
+         self._files[index.row()] = value
+         self.dataChanged.emit(index, index)
          return True
       else:
          return False
 
-   def insertRows( self, row, count, parent=QModelIndex() ):
-      self.beginInsertRows( parent, row, row+count-1 )
-      new_files = self.files[:row]
-      for zed in xrange( count ):
-         new_files.append( '' )
-      new_files += self.files[row:]
-      self.files = new_files
+
+
+   def insertRows(self, row, count, parent=QModelIndex()):
+      '''
+      Insert a certain number of rows at a certain point in the ListOfFiles.
+
+      The first argument is the index you want for the first row to be inserted.
+      The second argument is the number of rows to insert.
+
+      The elements already in the list, with an index lower than "row" will
+      retain their index values. The elements at indices "row" and higher will
+      have an index value that is their original value plus "count".
+
+      For example:
+      >>> a = ListOfFiles()
+      >>> a.insertRows(0, 3)
+      >>> a.setData(a.createIndex(0), 'kyrie.krn', Qt.EditRole)
+      >>> a.setData(a.createIndex(1), 'sanctus.krn', Qt.EditRole)
+      >>> a.setData(a.createIndex(2), 'benedictus.krn', Qt.EditRole)
+      This is ['kyrie.krn', 'sanctus.krn', 'benedictus.krn']
+      >>> a.insertRows(1, 2)
+      This is ['kyrie.krn', '', '', 'sanctus.krn', 'benedictus.krn']
+      >>> a.setData(a.createIndex(1), 'gloria.krn', Qt.EditRole)
+      >>> a.setData(a.createIndex(2), 'credo.krn', Qt.EditRole)
+      This is ['kyrie.krn', 'gloria.krn', 'credo.krn', 'sanctus.krn',
+               'benedictus.krn']
+
+      Append files to the end of a list:
+      >>> a = ListOfFiles()
+      >>> a.insertRows(0, 1)
+      >>> a.setData(a.createIndex(0), 'kyrie.krn', Qt.EditRole)
+      This is ['kyrie.krn']
+      >>> a.insertRows(a.rowCount(), 1)
+      >>> a.setData(a.createIndex(a.rowCount()+0), 'gloria.krn', Qt.EditRole)
+      This is ['kyrie.krn', 'gloria.krn']
+      '''
+      self.beginInsertRows(parent, row, row+count-1)
+      new_files = self._files[:row]
+      for zed in xrange(count):
+         new_files.append('')
+      new_files += self._files[row:]
+      self._files = new_files
       self.endInsertRows()
 
-   def alreadyThere( self, candidate ):
-      # TODO: do we still need this non-standard method?
-      '''
-      Tests whether 'candidate' is already present in this list of files.
-      '''
-      return candidate in self.files
 
-   def iterator( self ):
-      for f in self.files:
+
+   def isPresent(self, candidate):
+      '''
+      Tests whether 'candidate' is present in this ListOfFiles.
+      '''
+      return candidate in self._files
+
+
+
+   def iterator(self):
+      '''
+      Create an iterator that returns each of the filenames in this ListOfFiles.
+      '''
+      for f in self._files:
          yield f
 
-   def removeRows( self, row, count, parent=QModelIndex() ):
+
+
+   def removeRows(self, row, count, parent=QModelIndex()):
+      '''
+      This is the opposite of insertRows(), and the arguments work in the same
+      way.
+      '''
       self.beginRemoveRows(parent, row, row+count-1)
-      self.files = self.files[:row] + self.files[row+count:]
+      self._files = self._files[:row] + self._files[row+count:]
       self.endRemoveRows()
 # End class ListOfFiles --------------------------------------------------------
