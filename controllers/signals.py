@@ -4,8 +4,8 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: controllers.py
-# Purpose: Holds the "controllers" for the MVC architecture in vis.
+# Filename: signals.py
+# Purpose: Holds the signal mechanism for the MVC architecture in vis.
 #
 # Copyright (C) 2012 Jamie Klassen, Christopher Antila
 #
@@ -23,30 +23,34 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-Holds the "controllers" for the MVC architecture in vis.
+Holds the signal mechanism for the MVC architecture in vis.
 '''
-from PyQt4.QtCore import pyqtSignal, QObject
-from models.analyzing import ListOfPieces
+from weakref import WeakValueDictionary
 
 
-class Controller(object):
-   '''
-   Base class for all vis controllers.
-   '''
+# VisSignal class directly copied from
+# http://code.activestate.com/recipes/
+# 576477-yet-another-signalslot-implementation-in-python/
 
+# NB: this is probably illegal?
 
-
+class VisSignal(object):
    def __init__(self):
-      '''
-      Creates a new instance, and assigns the appropriate widget.
-      '''
-      pass
+      self.__slots = WeakValueDictionary()
 
+   def __call__(self, *args, **kargs):
+      for key in self.__slots:
+         func, _ = key
+         func(self.__slots[key], *args, **kargs)
 
+   def connect(self, slot):
+      key = (slot.im_func, id(slot.im_self))
+      self.__slots[key] = slot.im_self
 
-   def setup_signals(self):
-      '''
-      Set methods of this controller as the slot for relevant signals emitted
-      by the GUI.
-      '''
-      pass
+   def disconnect(self, slot):
+      key = (slot.im_func, id(slot.im_self))
+      if key in self.__slots:
+         self.__slots.pop(key)
+
+   def clear(self):
+      self.__slots.clear()
