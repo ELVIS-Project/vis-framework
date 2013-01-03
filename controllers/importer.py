@@ -29,13 +29,15 @@ Holds the Importer controller.
 
 
 # Imports from...
+# python
+from os.path import isfile
 # vis
-from controller import Controller
-from models import importing, analyzing
+from controllers.signals import VisSignal
+from models import importing, analyzing, Model
 
 
 
-class Importer(Controller):
+class Importer(object):
    '''
    This class knows how to keep a list of filenames with pieces to be analyzed,
    and how to import the files with music21.
@@ -49,7 +51,11 @@ class Importer(Controller):
       '''
       Create a new Importer instance.
       '''
-      self._list_of_files = importing.ListOfFiles()
+      self.add_remove_success = VisSignal()
+      self.imported = VisSignal()
+      self.error = VisSignal()
+      self.status = VisSignal()
+      self._list_of_files = Model(set())
 
 
 
@@ -60,12 +66,20 @@ class Importer(Controller):
       in that directory (and its subdirectories) are added to the list.
 
       If a filename does not exist, this method emits the
-      Importer.error signal, with a description of the error.
+      error signal, with a description of the error.
 
-      Emits the VisSignals.importer_add_remove_success signal with True or
+      Emits the add_remove_success signal with True or
       False, depending on whether the operation succeeded.
       '''
-      pass
+      success = True
+      for piece in pieces:
+         if not isfile(piece):
+            self.error(piece+" does not exist!")
+            success = False
+         else:
+            self._list_of_files.data.add(piece)
+            self._list_of_files.data_changed()
+      self.add_remove_success(success)
 
 
 
