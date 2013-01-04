@@ -22,8 +22,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+
+
+
+# Imports from...
+# PyQt4
 from PyQt4 import QtGui, uic
+# vis
 from controllers.signals import VisSignal
+
 
 
 class VisQtMainWindow(QtGui.QMainWindow):
@@ -33,13 +40,13 @@ class VisQtMainWindow(QtGui.QMainWindow):
 		self.tool_import()
 		self.ui.show()
 		self.files_chosen = VisSignal()
-	
+
 	def tool_import(self):
 		self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
 		self.ui.btn_analyze.setEnabled(False)
 		self.ui.btn_show.setEnabled(False)
 		self.ui.btn_step2.setEnabled(False)
-		
+
 	def get_files(self):
 		files = QtGui.QFileDialog.getOpenFileNames(
 			None,
@@ -49,15 +56,15 @@ class VisQtMainWindow(QtGui.QMainWindow):
 			None)
 		if files:
 			self.files_chosen([str(f) for f in files])
-	
+
 	def tool_analyze(self):
 		self.ui.main_screen.setCurrentWidget(self.ui.page_analyze)
-	
+
 	def tool_working(self):
 		self.ui.main_screen.setCurrentWidget(self.ui.page_working)
-	
+
 	def tool_about(self):
 		self.ui.main_screen.setCurrentWidget(self.ui.page_about)
-	
+
 	#def tool_experiment(self):
 	#	self.ui.main_screen.setCurrentWidget(self.ui.page_experiment)

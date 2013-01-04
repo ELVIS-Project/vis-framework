@@ -71,7 +71,7 @@ class DisplayHandler(object):
 
 class Display(object):
    '''
-   Base class for all Displays.
+   Base class for all Displayss.
    '''
 
 

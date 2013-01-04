@@ -32,7 +32,7 @@ Starts vis with the PyQt4 interface.
 
 
 import sys
-from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QMainWindow, QApplication
 from controllers.vis_controller import VisController
 
 
@@ -42,7 +42,10 @@ def main():
    The main execution loop.
    '''
    app = QApplication(sys.argv)
-   controller = VisController()
+   MainWindow = QMainWindow()
+   gui_controller = VisController()
+   gui_controller.setupUi(MainWindow)
+   MainWindow.show()
    sys.exit(app.exec_())
 
 
