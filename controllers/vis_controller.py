@@ -32,6 +32,7 @@ Holds the VisController objects for the various GUIs.
 # vis
 from models.analyzing import ListOfPieces
 from views.Ui_main_window import Ui_MainWindow
+from controllers.controller import Controller
 from controllers.importer import Importer
 from controllers.analyzer import Analyzer
 from controllers.experimenter import Experimenter
@@ -92,6 +93,20 @@ class VisController(Ui_MainWindow):
       # self.analyzer.setup_signals()
       # self.experimenter.setup_signals()
       # self.displayer.setup_signals()
+
+      # Setup signals for GUI-only things.
+
+      # Create long-term sub-controllers
+      self.importer = Importer()
+      self.analyzer = Analyzer()
+      self.experimenter = Experimenter()
+      self.displayer = DisplayHandler()
+
+      # Setup signals TO the long-term sub-controllers
+      self.importer.setup_signals()
+      self.analyzer.setup_signals()
+      self.experimenter.setup_signals()
+      self.displayer.setup_signals()
 
       # Setup signals FROM the long-term sub-controllers
 

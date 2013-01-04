@@ -29,10 +29,14 @@ Holds the DisplayHandler controller.
 
 
 # Imports from...
+# PyQt
+from PyQt4.QtCore import pyqtSlot
+# vis
+from controller import Controller
 
 
 
-class DisplayHandler(object):
+class DisplayHandler(Controller):
    '''
    This class takes an ExperimentResults object, if relevant determines which
    Display format to use and its DisplaySettings, then actually displays the
