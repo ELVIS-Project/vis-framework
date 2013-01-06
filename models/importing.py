@@ -82,19 +82,19 @@ class ListOfFiles(QAbstractListModel):
 
 
 
-   def headerData(self):
-      '''
-      Returns the table header data for this ListOfFiles. This is always
-      "filename".
-      '''
-      # TODO: what form is the return value for this?
-      pass
+   #def headerData(self, section, orientation, role=Qt.DisplayRole):
+      # TODO: implement and test this later
+      #'''
+      #Returns the table header data for this ListOfFiles. This is always
+      #"filename".
+      #'''
+      #pass
 
 
 
-   def flags():
-      # TODO: figure out what this is, then implement it
-      pass
+   #def flags():
+      ## TODO: implement and test this later
+      #pass
 
 
 
@@ -171,12 +171,12 @@ class ListOfFiles(QAbstractListModel):
 
 
 
-   def iterator(self):
+   def iterateRows(self):
       '''
       Create an iterator that returns each of the filenames in this ListOfFiles.
       '''
-      for f in self._files:
-         yield f
+      for filename in self._files:
+         yield filename
 
 
 
