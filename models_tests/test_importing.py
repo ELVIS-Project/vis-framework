@@ -24,16 +24,17 @@
 
 
 # Imports from...
+# python
+import unittest
 # PyQt4
 from PyQt4.QtCore import Qt, QVariant
 # vis
-models.importing
+from models import importing
 
 
 
 class TestBasics(unittest.TestCase):
    # Test the constructor, rowCount(), headerData(), flags()
-   # TODO: test headerData() and flags()
    def setUp(self):
       self.lof = importing.ListOfFiles()
 
@@ -122,6 +123,51 @@ class TestSetData(unittest.TestCase):
       self.lof.setData(self.lof.createIndex(3), 'minuet.krn', Qt.EditRole)
       self.assertEqual(['', 'kyrie.krn', 'gloria.krn', 'minuet.krn', ''],
                        self.lof._files)
+# End TestSetData --------------------------------------------------------------
+
+
+
+class TestInsertRows(unittest.TestCase):
+   # Test insertRows()
+   def setUp(self):
+      self.lof = importing.ListOfFiles()
+
+
+
+   def test_insert_rows_1(self):
+      #self.lof._files = []
+      self.insertRows(0, 1)
+      self.assertEqual([''], self.lof._files)
+
+
+   def test_insert_rows_2(self):
+      #self.lof._files = []
+      self.insertRows(0, 2)
+      self.assertEqual(['', ''], self.lof._files)
+
+
+   def test_insert_rows_3(self):
+      #self.lof._files = []
+      self.insertRows(0, 5)
+      self.assertEqual(['', '', '', '', ''], self.lof._files)
+
+
+   def test_insert_rows_4(self):
+      self.lof._files = ['a']
+      self.insertRows(0, 1)
+      self.assertEqual(['', 'a'], self.lof._files)
+
+
+   def test_insert_rows_5(self):
+      self.lof._files = ['a', 'b', 'c', 'd']
+      self.insertRows(0, 2)
+      self.assertEqual(['', '', 'a', 'b', 'c', 'd'], self.lof._files)
+
+
+   def test_insert_rows_6(self):
+      self.lof._files = ['a', 'b', 'c', 'd']
+      self.insertRows(3, 1)
+      self.assertEqual(['a', 'b', 'c', '', 'd'], self.lof._files)
 # End TestInsertRows -----------------------------------------------------------
 
 
@@ -158,7 +204,7 @@ class TestIsPresent(unittest.TestCase):
 
 
 class TestIterator(unittest.TestCase):
-   # Test iterator()
+   # Test iterateRows()
    # TODO: how to test this?
    pass
 # End TestIterator -------------------------------------------------------------
@@ -211,7 +257,7 @@ class TestRemoveRows(unittest.TestCase):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-importing_init_suite = unittest.TestLoader().loadTestsFromTestCase(TestInit)
+importing_basics_suite = unittest.TestLoader().loadTestsFromTestCase(TestBasics)
 importing_data_suite = unittest.TestLoader().loadTestsFromTestCase(TestData)
 importing_set_data_suite = unittest.TestLoader().loadTestsFromTestCase(TestSetData)
 importing_insert_rows_suite = unittest.TestLoader().loadTestsFromTestCase(TestInsertRows)
