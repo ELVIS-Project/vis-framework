@@ -27,7 +27,7 @@
 # python
 import unittest
 # music21
-from music21 import converter
+from music21 import converter, metadata
 # PyQt4
 from PyQt4.QtCore import Qt, QVariant
 # vis
@@ -396,12 +396,113 @@ class TestListOfPiecesData(unittest.TestCase):
 
 
 
+# ------------------------------------------------------------------------------
+# AnalysisRecord ---------------------------------------------------------------
+# ------------------------------------------------------------------------------
+class TestAnalysisRecordInit(unittest.TestCase):
+   # Test __init__()
+   def test_init_1(self):
+      # Default values
+      tested = analyzing.AnalysisRecored()
+      self.assertEqual(metadata.Metadata(), tested.metadata)
+      self.assertEqual([''], tested._part_names)
+      self.assertEqual(0.5, tested._offset)
+      self.assertEqual(False, tested._salami)
+      self.assertEqual([], tested._record)
+
+
+
+   def test_init_2(self):
+      # Argued values
+      tested = analyzing.AnalysisRecord(metadata='hi5', part_names=['a', 'b'],
+                                        offset=1.0, salami=True)
+      self.assertEqual('hi5', tested.metadata)
+      self.assertEqual(['a', 'b'], tested._part_names)
+      self.assertEqual(1.0, tested._offset)
+      self.assertEqual(True, tested._salami)
+      self.assertEqual([], tested._record)
+# End TestAnalysisRecordInit ---------------------------------------------------
+
+
+
+class TestAnalysisRecordIter(unittest.TestCase):
+   # Test __iter__()
+   # TODO: figure out how to test this
+   pass
+# End TestAnalysisRecordIter ---------------------------------------------------
+
+
+
+class TestAnalysisRecordGetters(unittest.TestCase):
+   # Test part_names(), offset(), salami_sliced()
+   def setUp(self):
+      self.tester = analyzing.AnalysisRecord(metadata='hi5',
+                                             part_names=['a', 'b'],
+                                             offset=1.0,
+                                             salami=True)
+
+
+
+   def test_part_names_1(self):
+      self.assertEqual(self.tester.part_names(), ['a', 'b'])
+
+
+
+   def test_offset_1(self):
+      self.assertEqual(self.tester.offset(), 1.0)
+
+
+
+   def test_salami_sliced_1(self):
+      self.assertTrue(self.tester.salami_sliced())
+# End TestAnalysisRecordGetters ----------------------------------------------
+
+
+
+class TestAnalysisRecordAppendEvent(unittest.TestCase):
+   # Test append_event()
+   def setUp(self):
+      self.tested = analyzing.AnalysisRecord(metadata='hi5', part_names=['a', 'b'],
+                                        offset=1.0, salami=True)
+
+
+
+   def test_append_1(self):
+      self.tested.append_event(0.0, 'a')
+      self.assertEqual([(0.0, 'a')], self.tested._record)
+
+
+
+   def test_append_2(self):
+      self.tested.append_event(0.0, 'a')
+      self.tested.append_event(0.5, 'b')
+      self.tested.append_event(1.0, 'c')
+      self.tested.append_event(1.5, 'a')
+      self.tested.append_event(2.0, 'd')
+      self.tested.append_event(0.0, 'e')
+      self.tested.append_event(2.5, 'f')
+      self.tested.append_event(3.0, 'a')
+
+      expected = [(0.0, 'a'), (0.5, 'b'), (1.0, 'c'), (1.5, 'a'), (2.0, 'd'),
+                  (0.0, 'e'), (2.5, 'f'), (3.0, 'a')]
+
+      self.assertEqual(expected, self.tested._record)
+# End TestAnalysisRecordAppendEvent --------------------------------------------
+
+
+
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
+# ListOfPieces
 lop_basics_suite = unittest.TestLoader().loadTestsFromTestCase(TestListOfPiecesBasics)
 lop_insert_and_remove_suite = unittest.TestLoader().loadTestsFromTestCase(TestListOfPiecesInsertAndRemoveRows)
 lop_iterate_rows_suite = unittest.TestLoader().loadTestsFromTestCase(TestListOfPiecesIterateRows)
 lop_set_data_suite = unittest.TestLoader().loadTestsFromTestCase(TestListOfPiecesSetData)
 lop_header_data_suite = unittest.TestLoader().loadTestsFromTestCase(TestListOfPiecesHeaderData)
 lop_data_suite = unittest.TestLoader().loadTestsFromTestCase(TestListOfPiecesData)
+# AnalysisRecord
+ar_init_suite = unittest.TestLoader().loadTestsFromTestCase(TestAnalysisRecordInit)
+ar_iter_suite = unittest.TestLoader().loadTestsFromTestCase(TestAnalysisRecordIter)
+ar_getters_suite = unittest.TestLoader().loadTestsFromTestCase(TestAnalysisRecordGetters)
+ar_append_event_suite = unittest.TestLoader().loadTestsFromTestCase(TestAnalysisRecordAppendEvent)

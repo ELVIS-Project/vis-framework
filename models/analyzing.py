@@ -280,8 +280,8 @@ class AnalysisRecord(object):
    # _offset : the (minimum) offset value between events
    # _is_salami : whether the score was "salami sliced"
    # _record : a list representing a record of an analysis, such that:
-   #    _record[0] : holds the offset at which the event happened in the Score
-   #    _record[1] : holds the event itself
+   #    _record[x][0] : holds the offset at which the event happened
+   #    _record[x][1] : holds the event itself
 
 
 
@@ -290,16 +290,18 @@ class AnalysisRecord(object):
       Create a new AnalysisRecord. You should set the following keyword
       arguments when you make the AnalysisRecord:
       - metadata (with a music21 Metadata object)
-      - part_names (with a list of strings containing part names)
-      - offset (with a floating point number)
-      - salami (boolean)
+      - _part_names (with a list of strings containing part names)
+      - _offset (with a floating point number)
+      - _salami (boolean)
 
       If you do not provide this information, sensible defaults will be used:
       - empty Metadata
-      - part_names : ['']
-      - offset : 0.0
-      - salami : False
+      - _part_names : ['']
+      - _offset : 0.0
+      - _salami : False
       '''
+      self._record = []
+
       if metadata is None:
          self.metadata = Metadata()
       else:
