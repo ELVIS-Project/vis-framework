@@ -31,6 +31,7 @@ Holds the VisController objects for the various GUIs.
 # Imports from...
 # vis
 from models.analyzing import ListOfPieces
+#from vis.models import analyzing
 from views.Ui_main_window import Ui_MainWindow
 from controllers.controller import Controller
 from controllers.importer import Importer

@@ -31,13 +31,15 @@ Holds the Importer controller.
 # Imports from...
 # python
 from os.path import isfile
+# PyQt4
+from PyQt4.QtCore import pyqtSignal
 # vis
-from controllers.signals import VisSignal
-from models import importing, analyzing, Model
+from controllers.controller import Controller
+from models import importing, analyzing
 
 
 
-class Importer(object):
+class Importer(Controller):
    '''
    This class knows how to keep a list of filenames with pieces to be analyzed,
    and how to import the files with music21.
@@ -47,15 +49,19 @@ class Importer(object):
 
 
 
+   # PyQt4 Signals
+   add_remove_success = pyqtSignal()
+   imported = pyqtSignal()
+   error = pyqtSignal()
+   status = pyqtSignal()
+
+
+
    def __init__(self, *args):
       '''
       Create a new Importer instance.
       '''
-      self.add_remove_success = VisSignal()
-      self.imported = VisSignal()
-      self.error = VisSignal()
-      self.status = VisSignal()
-      self._list_of_files = Model(set())
+      self._list_of_files = importing.ListOfFiles
 
 
 
