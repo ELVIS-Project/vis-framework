@@ -26,7 +26,40 @@
 '''
 The model classes for the Experimenter controller.
 '''
+from PyQt4.QtCore import pyqtSignal
 
 
 
-pass
+# NOTE: if other Controllers require Settings like this, it
+# will probably be worthwhile to put this in a separate file.
+class Setting(object):
+	"""
+	Base class for any individual setting of a particular type,
+	for any process which requires a "static" parameter.
+	"""
+	# A signal which is emitted if the user inputs something invalid
+	invalid_value = pyqtSignal()
+	
+	def __init__(self, name, display_text, validator):
+		"""
+		Creates a Setting instance.
+		
+		INPUTS:
+		-name: the internal `shorthand` name for the setting.
+		-display_text: a detailed, user-readable description of
+		what the setting does.
+		-validator: a method which checks user input to ensure
+		the setting has a logical value; it must accept a single
+		argument and return a boolean value -- True if the value
+		is valid, and False otherwise.
+		"""
+		self.name = name
+		self.display_text = display_text
+		self.validator = validator
+		self.value = None
+		
+	def set_value(self, value):
+		if self.validator(value):
+			self.value = value
+		else:
+			self.invalid_value.emit(value)
