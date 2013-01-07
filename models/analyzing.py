@@ -76,7 +76,6 @@ class ListOfPieces(QAbstractTableModel):
       '''
       Create a new ListOfPieces instance. Best to use no arguments.
       '''
-      super.__init__(self, parent)
       self._pieces = []
 
 
@@ -89,7 +88,7 @@ class ListOfPieces(QAbstractTableModel):
 
 
 
-   def columnCount( self, parent=QModelIndex() ):
+   def columnCount(self, parent=QModelIndex()):
       '''
       Return the number of columns in this ListOfPieces.
       '''
@@ -121,26 +120,22 @@ class ListOfPieces(QAbstractTableModel):
          - ['all', 'bs']
          where 'all' means "all combinations" and 'bs' means "basso seguente."
       '''
-      #if index.isValid():
-         #if Qt.DisplayRole == role:
-            #if self.model_score == index.column():
-               #score = self._pieces[index.row()][index.column()]
-               #if score.metadata is not None:
-                  #return QVariant( score.metadata.title )
-               #else:
-                  #return QVariant('')
-            #elif self.model_parts_list == index.column():
-               ## this is for the part names
-               #return QVariant( str(self._pieces[index.row()][index.column()])[1:-1] )
-            #elif self.model_n == index.column():
-               #return QVariant(",".join(str(n) for n in self._pieces[index.row()][index.column()]))
-            #else:
-               #return QVariant( self._pieces[index.row()][index.column()] )
-         #elif 'raw_list' == role:
-            #return QVariant( self._pieces[index.row()][index.column()] )
-         #else:
-            #return QVariant()
-      pass
+      if index.isValid():
+         if Qt.DisplayRole == role:
+            # most things
+            if index.column() is ListOfPieces.score:
+               # must choose the right sub-index
+               return QVariant(self._pieces[index.row()][ListOfPieces.score][1])
+            else:
+               # just make sure it's a string, the return
+               return QVariant(str(self._pieces[index.row()][index.column()]))
+         elif role is ListOfPieces.ScoreRole and \
+         index.column() is ListOfPieces.score:
+            return QVariant(self._pieces[index.row()][index.column()][0])
+         else:
+            return QVariant()
+      else:
+         return QVariant() # is this right?
 
 
 
@@ -160,7 +155,7 @@ class ListOfPieces(QAbstractTableModel):
       # use the class name here, rather than "self," just in case they were
       # accidentally changed in this instance. We do not want to allow that.
       if Qt.Horizontal == orientation and Qt.DisplayRole == role and \
-      section < ListOfPieces._number_of_columns:
+      0 <= section < ListOfPieces._number_of_columns:
          return ListOfPieces._header_names[section]
       else:
          return QVariant()
@@ -195,13 +190,12 @@ class ListOfPieces(QAbstractTableModel):
 
       This method does not check your argument is the right type.
       '''
-      pass
-      #if Qt.EditRole == role:
-         #self._pieces[index.row()][index.column()] = value
-         #self.dataChanged.emit( index, index )
-         #return True
-      #else:
-         #return False
+      if Qt.EditRole == role:
+         self._pieces[index.row()][index.column()] = value
+         self.dataChanged.emit(index, index)
+         return True
+      else:
+         return False
 
 
 
@@ -219,27 +213,25 @@ class ListOfPieces(QAbstractTableModel):
       Each row is initialized with the following data:
       ['', None, [], [0.5], [2], '(no selection)']
       '''
-      pass
-      #self.beginInsertRows( parent, row, row+count-1 )
-      #for zed in xrange(count):
-         #self._pieces.insert( row, ['', None, [], 0.5, [2], '(no selection)'] )
-      #self.endInsertRows()
+      self.beginInsertRows(parent, row, row+count-1)
+      for zed in xrange(count):
+         self._pieces.insert(row, ['', None, [], [0.5], [2], '(no selection)'])
+      self.endInsertRows()
 
 
 
-   def removeRows( self, row, count, parent=QModelIndex() ):
+   def removeRows(self, row, count, parent=QModelIndex()):
       '''
       This is the opposite of insertRows(), and the arguments work in the same
       way.
       '''
-      pass
-      #self.beginRemoveRows( parent, row, row+count-1 )
-      #self._pieces = self._pieces[:row] + self._pieces[row+count:]
-      #self.endRemoveRows()
+      self.beginRemoveRows( parent, row, row+count-1 )
+      self._pieces = self._pieces[:row] + self._pieces[row+count:]
+      self.endRemoveRows()
 
 
 
-   def iterateRows( self ):
+   def iterateRows(self):
       '''
       Create an iterator that returns each of the filenames in this ListOfFiles.
       '''
@@ -387,7 +379,7 @@ class AnalysisRecord(object):
       >>> a.salami_sliced()
       False
       '''
-      return self._is_salami
+      return self._salami
 
 
 

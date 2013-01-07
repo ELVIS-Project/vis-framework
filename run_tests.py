@@ -27,6 +27,12 @@ Run the tests for the models
 '''
 
 
+
+# Verbosity
+verb = 2
+
+
+
 # Imports
 import unittest
 from models_tests.test_importing import *
@@ -35,25 +41,25 @@ from models_tests.test_analyzing import *
 
 
 # Models -----------------------------------------------------------------------
-# Importing
-unittest.TextTestRunner(verbosity=2).run(importing_basics_suite)
-unittest.TextTestRunner(verbosity=2).run(importing_data_suite)
-unittest.TextTestRunner(verbosity=2).run(importing_set_data_suite)
-unittest.TextTestRunner(verbosity=2).run(importing_insert_rows_suite)
-unittest.TextTestRunner(verbosity=2).run(importing_is_present_suite)
-unittest.TextTestRunner(verbosity=2).run(importing_iterator_suite)
-unittest.TextTestRunner(verbosity=2).run(importing_remove_rows_suite)
+# Importing -- all test pass
+unittest.TextTestRunner(verbosity=verb).run(importing_basics_suite)
+unittest.TextTestRunner(verbosity=verb).run(importing_data_suite)
+unittest.TextTestRunner(verbosity=verb).run(importing_set_data_suite)
+unittest.TextTestRunner(verbosity=verb).run(importing_insert_rows_suite)
+unittest.TextTestRunner(verbosity=verb).run(importing_is_present_suite)
+unittest.TextTestRunner(verbosity=verb).run(importing_iterator_suite)
+unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
 
 
 
 # Analyzing
-unittest.TextTestRunner(verbosity=2).run(lop_basics_suite)
-unittest.TextTestRunner(verbosity=2).run(lop_insert_and_remove_suite)
-unittest.TextTestRunner(verbosity=2).run(lop_iterate_rows_suite)
-unittest.TextTestRunner(verbosity=2).run(lop_set_data_suite)
-unittest.TextTestRunner(verbosity=2).run(lop_header_data_suite)
-unittest.TextTestRunner(verbosity=2).run(lop_data_suite)
-unittest.TextTestRunner(verbosity=2).run(ar_init_suite)
-unittest.TextTestRunner(verbosity=2).run(ar_iter_suite)
-unittest.TextTestRunner(verbosity=2).run(ar_getters_suite)
-unittest.TextTestRunner(verbosity=2).run(ar_append_event_suite)
+unittest.TextTestRunner(verbosity=verb).run(lop_basics_suite) # passes
+unittest.TextTestRunner(verbosity=verb).run(lop_insert_and_remove_suite) # fails (PyQt4 problem); but they all work without the call to beginInsertRows()
+unittest.TextTestRunner(verbosity=verb).run(lop_iterate_rows_suite) # passes
+unittest.TextTestRunner(verbosity=verb).run(lop_set_data_suite) # fails (PyQt4 problem)
+unittest.TextTestRunner(verbosity=verb).run(lop_header_data_suite) # passes
+unittest.TextTestRunner(verbosity=verb).run(lop_data_suite) # fails (PyQt4 problem)
+unittest.TextTestRunner(verbosity=verb).run(ar_init_suite) # passes
+unittest.TextTestRunner(verbosity=verb).run(ar_iter_suite) # passes (but empty)
+unittest.TextTestRunner(verbosity=verb).run(ar_getters_suite) # passes
+unittest.TextTestRunner(verbosity=verb).run(ar_append_event_suite) # passes

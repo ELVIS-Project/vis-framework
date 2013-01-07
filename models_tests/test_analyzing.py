@@ -32,6 +32,7 @@ from music21 import converter, metadata
 from PyQt4.QtCore import Qt, QVariant
 # vis
 from models import analyzing
+from models.analyzing import ListOfPieces
 
 
 
@@ -96,14 +97,14 @@ class TestListOfPiecesInsertAndRemoveRows(unittest.TestCase):
 
    def test_insert_1(self):
       #self.lop._pieces = []
-      self.insertRows(0, 1)
+      self.lop.insertRows(0, 1)
       self.assertEqual([self.default_row], self.lop._pieces)
 
 
 
    def test_insert_2(self):
       #self.lop._pieces = []
-      self.insertRows(0, 5)
+      self.lop.insertRows(0, 5)
       for each_row in self.lop._pieces:
          self.assertEqual(self.default_row, each_row)
 
@@ -111,24 +112,36 @@ class TestListOfPiecesInsertAndRemoveRows(unittest.TestCase):
 
    def test_insert_3(self):
       self.lop._pieces = ['a', 'b', 'c', 'd']
-      self.insertRows(0, 1)
+      self.lop.insertRows(0, 1)
       self.assertEqual([self.default_row, 'a', 'b', 'c', 'd'], self.lop._pieces)
 
 
 
    def test_insert_4(self):
       self.lop._pieces = ['a', 'b', 'c', 'd']
-      self.insertRows(2, 1)
+      self.lop.insertRows(2, 1)
       self.assertEqual(['a', 'b', self.default_row, 'c', 'd'], self.lop._pieces)
 
 
 
    def test_insert_5(self):
+      # append 5 rows to the end of the table
       self.lop._pieces = ['a', 'b', 'c', 'd']
-      self.insertRows(3, 5)
-      self.assertEqual(['a', 'b', 'c', 'd'], self.lop._pieces[:3])
+      self.lop.insertRows(4, 5)
+      self.assertEqual(['a', 'b', 'c', 'd'], self.lop._pieces[:4])
       for each_row in self.lop._pieces[4:]:
          self.assertEqual(self.default_row, each_row)
+
+
+
+   def test_insert_6(self):
+      # append 5 rows to the second-last position in the table
+      self.lop._pieces = ['a', 'b', 'c', 'd']
+      self.lop.insertRows(3, 5)
+      self.assertEqual(['a', 'b', 'c'], self.lop._pieces[:3])
+      for each_row in self.lop._pieces[4:-1]:
+         self.assertEqual(self.default_row, each_row)
+      self.assertEqual('d', self.lop._pieces[-1])
 # End TestListOfPiecesInsertAndRemoveRows --------------------------------------
 
 
@@ -151,7 +164,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
    def test_header_data_2(self):
       self.assertEqual('Title',
-                       self.lop.headerData(ListOfPieces.filename,
+                       self.lop.headerData(ListOfPieces.score,
                                            Qt.Horizontal,
                                            Qt.DisplayRole))
 
@@ -159,7 +172,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
    def test_header_data_3(self):
       self.assertEqual('List of Part Names',
-                       self.lop.headerData(ListOfPieces.filename,
+                       self.lop.headerData(ListOfPieces.parts_list,
                                            Qt.Horizontal,
                                            Qt.DisplayRole))
 
@@ -167,7 +180,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
    def test_header_data_4(self):
       self.assertEqual('Offset',
-                       self.lop.headerData(ListOfPieces.filename,
+                       self.lop.headerData(ListOfPieces.offset_intervals,
                                            Qt.Horizontal,
                                            Qt.DisplayRole))
 
@@ -175,7 +188,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
    def test_header_data_5(self):
       self.assertEqual('Part Combinations',
-                       self.lop.headerData(ListOfPieces.filename,
+                       self.lop.headerData(ListOfPieces.parts_combinations,
                                            Qt.Horizontal,
                                            Qt.DisplayRole))
 
@@ -206,7 +219,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
 
    def test_header_data_9(self):
-      self.assertEqual(QVariant,
+      self.assertEqual(QVariant(),
                        self.lop.headerData(1000,
                                            Qt.Horizontal,
                                            Qt.DisplayRole))
@@ -214,7 +227,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
 
    def test_header_data_10(self):
-      self.assertEqual(QVariant,
+      self.assertEqual(QVariant(),
                        self.lop.headerData(1,
                                            Qt.Vertical,
                                            Qt.DisplayRole))
@@ -222,7 +235,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
 
    def test_header_data_11(self):
-      self.assertEqual(QVariant,
+      self.assertEqual(QVariant(),
                        self.lop.headerData(1,
                                            Qt.Horizontal,
                                            Qt.EditRole))
@@ -403,10 +416,10 @@ class TestAnalysisRecordInit(unittest.TestCase):
    # Test __init__()
    def test_init_1(self):
       # Default values
-      tested = analyzing.AnalysisRecored()
-      self.assertEqual(metadata.Metadata(), tested.metadata)
+      tested = analyzing.AnalysisRecord()
+      #self.assertEqual(metadata.Metadata(), tested.metadata) # TODO: how can these be tested?
       self.assertEqual([''], tested._part_names)
-      self.assertEqual(0.5, tested._offset)
+      self.assertEqual(0.0, tested._offset)
       self.assertEqual(False, tested._salami)
       self.assertEqual([], tested._record)
 

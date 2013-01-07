@@ -72,21 +72,21 @@ class TestData(unittest.TestCase):
 
    def test_data_1(self):
       self.lof._files = ['a']
-      self.assertEqual('a', self.lof.data(self.lof.createIndex(0), Qt.DisplayRole))
+      self.assertEqual('a', self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
 
 
 
    def test_data_2(self):
       self.lof._files = ['a', 'b', 'c']
-      self.assertEqual('a', self.lof.data(self.lof.createIndex(0), Qt.DisplayRole))
-      self.assertEqual('b', self.lof.data(self.lof.createIndex(1), Qt.DisplayRole))
-      self.assertEqual('c', self.lof.data(self.lof.createIndex(2), Qt.DisplayRole))
-      self.assertEqual(QVariant(), self.lof.data(self.lof.createIndex(3), Qt.DisplayRole))
+      self.assertEqual('a', self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
+      self.assertEqual('b', self.lof.data(self.lof.createIndex(1, 0), Qt.DisplayRole))
+      self.assertEqual('c', self.lof.data(self.lof.createIndex(2, 0), Qt.DisplayRole))
+      self.assertEqual(QVariant(), self.lof.data(self.lof.createIndex(3, 0), Qt.DisplayRole))
 
 
 
    def test_data_4(self):
-      self.assertEqual(QVariant(), self.lof.data(self.lof.createIndex(0), Qt.DisplayRole))
+      self.assertEqual(QVariant(), self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
 # End TestData -----------------------------------------------------------------
 
 
@@ -100,27 +100,27 @@ class TestSetData(unittest.TestCase):
 
    def test_set_data_1(self):
       self.lof._files = ['']
-      self.lof.setData(self.lof.createIndex(0), 'kyrie.krn', Qt.EditRole)
+      self.lof.setData(self.lof.createIndex(0, 0), 'kyrie.krn', Qt.EditRole)
       self.assertEqual(['kyrie.krn'], self.lof._files)
 
 
    def test_set_data_2(self):
       self.lof._files = ['', '', '', '', '']
-      self.lof.setData(self.lof.createIndex(2), 'kyrie.krn', Qt.EditRole)
+      self.lof.setData(self.lof.createIndex(2, 0), 'kyrie.krn', Qt.EditRole)
       self.assertEqual(['', '', 'kyrie.krn', '', ''], self.lof._files)
 
 
    def test_set_data_3(self):
       self.lof._files = ['', '', '']
-      self.lof.setData(self.lof.createIndex(3), 'kyrie.krn', Qt.EditRole)
+      self.lof.setData(self.lof.createIndex(3, 0), 'kyrie.krn', Qt.EditRole)
       self.assertEqual(['', '', ''], self.lof._files)
 
 
    def test_set_data_4(self):
       self.lof._files = ['', '', '', '', '']
-      self.lof.setData(self.lof.createIndex(1), 'kyrie.krn', Qt.EditRole)
-      self.lof.setData(self.lof.createIndex(2), 'gloria.krn', Qt.EditRole)
-      self.lof.setData(self.lof.createIndex(3), 'minuet.krn', Qt.EditRole)
+      self.lof.setData(self.lof.createIndex(1, 0), 'kyrie.krn', Qt.EditRole)
+      self.lof.setData(self.lof.createIndex(2, 0), 'gloria.krn', Qt.EditRole)
+      self.lof.setData(self.lof.createIndex(3, 0), 'minuet.krn', Qt.EditRole)
       self.assertEqual(['', 'kyrie.krn', 'gloria.krn', 'minuet.krn', ''],
                        self.lof._files)
 # End TestSetData --------------------------------------------------------------
@@ -136,37 +136,37 @@ class TestInsertRows(unittest.TestCase):
 
    def test_insert_rows_1(self):
       #self.lof._files = []
-      self.insertRows(0, 1)
+      self.lof.insertRows(0, 1)
       self.assertEqual([''], self.lof._files)
 
 
    def test_insert_rows_2(self):
       #self.lof._files = []
-      self.insertRows(0, 2)
+      self.lof.insertRows(0, 2)
       self.assertEqual(['', ''], self.lof._files)
 
 
    def test_insert_rows_3(self):
       #self.lof._files = []
-      self.insertRows(0, 5)
+      self.lof.insertRows(0, 5)
       self.assertEqual(['', '', '', '', ''], self.lof._files)
 
 
    def test_insert_rows_4(self):
       self.lof._files = ['a']
-      self.insertRows(0, 1)
+      self.lof.insertRows(0, 1)
       self.assertEqual(['', 'a'], self.lof._files)
 
 
    def test_insert_rows_5(self):
       self.lof._files = ['a', 'b', 'c', 'd']
-      self.insertRows(0, 2)
+      self.lof.insertRows(0, 2)
       self.assertEqual(['', '', 'a', 'b', 'c', 'd'], self.lof._files)
 
 
    def test_insert_rows_6(self):
       self.lof._files = ['a', 'b', 'c', 'd']
-      self.insertRows(3, 1)
+      self.lof.insertRows(3, 1)
       self.assertEqual(['a', 'b', 'c', '', 'd'], self.lof._files)
 # End TestInsertRows -----------------------------------------------------------
 

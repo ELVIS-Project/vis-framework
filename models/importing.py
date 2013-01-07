@@ -75,7 +75,8 @@ class ListOfFiles(QAbstractListModel):
       >>> a.data(a.createIndex(0), Qt.DisplayRole)
       'kyrie.krn'
       '''
-      if index.isValid() and Qt.DisplayRole == role:
+      if index.isValid() and Qt.DisplayRole == role and \
+      0 <= index.row() < len(self._files):
          return QVariant(self._files[index.row()])
       else:
          return QVariant()
@@ -110,7 +111,7 @@ class ListOfFiles(QAbstractListModel):
       >>> a.setData(a.createIndex(0), 'kyrie.krn', Qt.EditRole)
       >>> a.setData(a.createIndex(1), 'sanctus.krn', Qt.EditRole)
       '''
-      if Qt.EditRole == role:
+      if Qt.EditRole == role and 0 <= index.row() < len(self._files):
          self._files[index.row()] = value
          self.dataChanged.emit(index, index)
          return True
