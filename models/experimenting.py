@@ -27,7 +27,7 @@
 The model classes for the Experimenter controller.
 '''
 from PyQt4.QtCore import pyqtSignal
-
+from PyQt4.QtGui import QComboBox, QCheckBox
 
 
 # NOTE: if other Controllers require Settings like this, it
@@ -63,3 +63,46 @@ class Setting(object):
 			self.value = value
 		else:
 			self.invalid_value.emit(value)
+	
+	# NB: the following method is just an on-the-spot solution.
+	# It may violate the MVC philosophy, but it's just easier to
+	# keep track of right now.	
+	def view_class(self):
+		"""
+		Abstract method. Subclasses must implement this method
+		to return a Python class which is used to create form
+		elements for this setting in views.
+		"""
+		pass
+			
+class ChoiceSetting(Setting):
+	"""
+	Setting which has a fixed discrete set of valid choices.
+	"""
+	def __init__(self, name, display_text, choices):
+		"""
+		Creates a ChoiceSetting instance.
+		
+		INPUTS:
+		-choices: a list of the valid choices..
+		"""
+		self.choices = choices
+		validate = lambda c: c in self.choices
+		super(ChoiceSetting, self).__init__(name, display_text, validate)
+	
+	def view_class(self):
+		return QComboBox
+
+class BooleanSetting(Setting):
+	"""
+	Setting which can be True or False.
+	"""
+	def __init__(self, name, display_text):
+		"""
+		Creates a BooleanSetting instance.
+		"""
+		validate = lambda c: isinstance(c, bool)
+		super(BooleanSetting, self).__init__(name, display_text, validate)
+	
+	def view_class(self):
+		return QCheckBox
