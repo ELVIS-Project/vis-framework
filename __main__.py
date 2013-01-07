@@ -42,10 +42,7 @@ def main():
    The main execution loop.
    '''
    app = QApplication(sys.argv)
-   MainWindow = QMainWindow()
    gui_controller = VisController()
-   gui_controller.setupUi(MainWindow)
-   MainWindow.show()
    sys.exit(app.exec_())
 
 

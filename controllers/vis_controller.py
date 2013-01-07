@@ -32,7 +32,7 @@ Holds the VisController objects for the various GUIs.
 # vis
 from models.analyzing import ListOfPieces
 #from vis.models import analyzing
-from views.Ui_main_window import Ui_MainWindow
+from views.main import VisQtMainWindow
 from controllers.controller import Controller
 from controllers.importer import Importer
 from controllers.analyzer import Analyzer
@@ -41,7 +41,7 @@ from controllers.display_handler import DisplayHandler
 
 
 
-class VisController(Ui_MainWindow):
+class VisController(Controller):
    '''
    Subclasses the automatically-generated python code in Ui_main_window that
    creates the GUI. Although there is a dependency on QtCore, for the PyQt
@@ -81,21 +81,8 @@ class VisController(Ui_MainWindow):
       # Setup things we need to know
       self.UI_type = interface
 
-      # Setup signals for GUI-only things
-
-      # Create long-term sub-controllers
-      # self.importer = ?
-      # self.analyzer = ?
-      # self.experimenter = ?
-      # self.displayer = ?
-
-      # Setup signals TO the long-term sub-controllers
-      # self.importer.setup_signals()
-      # self.analyzer.setup_signals()
-      # self.experimenter.setup_signals()
-      # self.displayer.setup_signals()
-
-      # Setup signals for GUI-only things.
+      # NOTE: this will change when we allow multiple interfaces
+      self.window = VisQtMainWindow()
 
       # Create long-term sub-controllers
       self.importer = Importer()
@@ -103,15 +90,26 @@ class VisController(Ui_MainWindow):
       self.experimenter = Experimenter()
       self.displayer = DisplayHandler()
 
-      # Setup signals TO the long-term sub-controllers
-      self.importer.setup_signals()
-      self.analyzer.setup_signals()
-      self.experimenter.setup_signals()
-      self.displayer.setup_signals()
-
-      # Setup signals FROM the long-term sub-controllers
-
+      # Setup signals
+      window = self.window
+      ui = window.ui
+      mapper = [
+         (ui.btn_choose_files.clicked, window.tool_import),
+         (ui.btn_about.clicked, window.tool_about),
+         (ui.btn_analyze.clicked, window.tool_analyze),
+         (ui.btn_show.clicked, window.tool_experiment),
+         (ui.btn_dir_add.clicked, window.add_dir),
+         (window.files_added, self.importer.add_pieces),
+         (ui.btn_file_add.clicked, window.add_files),
+         (ui.btn_file_remove.clicked, window.remove_files),
+         (window.files_removed, self.importer.remove_pieces),
+         (ui.btn_step1.clicked, window.tool_working),
+         (ui.btn_step1.clicked, self.importer.import_pieces),
+      ]
+      for signal, slot in mapper:
+         signal.connect(slot)
+      
       # Set the models for the table views.
-      #self.gui_file_list.setModel(self.importer.list_of_files)
+      ui.gui_file_list.setModel(self.importer._list_of_files)
       #self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)
 # End class VisController ------------------------------------------------------

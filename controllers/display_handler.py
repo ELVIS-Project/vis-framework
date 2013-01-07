@@ -75,7 +75,7 @@ class DisplayHandler(Controller):
 
 class Display(object):
    '''
-   Base class for all Displayss.
+   Base class for all Displays.
    '''
 
 
@@ -107,7 +107,7 @@ class Display(object):
 
 
 
-class SpreadsheetDisplay(object):
+class SpreadsheetDisplay(Display):
    '''
    Saves results in a CSV file (comma-separated values) so that they can be
    imported by a spreadsheet program like LibreOffice Calc or Microsoft Excel.
