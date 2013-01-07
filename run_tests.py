@@ -35,8 +35,19 @@ verb = 2
 
 # Imports
 import unittest
+from controllers_tests.test_importer import *
 from models_tests.test_importing import *
 from models_tests.test_analyzing import *
+
+
+
+# Controllers ------------------------------------------------------------------
+# Importing
+unittest.TextTestRunner(verbosity=verb).run(importer_piece_getter_suite)
+unittest.TextTestRunner(verbosity=verb).run(importer_part_and_titles_suite)
+unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite)
+unittest.TextTestRunner(verbosity=verb).run(importer_remove_pieces_suite)
+unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite)
 
 
 

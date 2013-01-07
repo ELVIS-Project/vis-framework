@@ -108,8 +108,8 @@ class ListOfFiles(QAbstractListModel):
 
       >>> a = ListOfFiles()
       >>> a.insertRows(0, 2)
-      >>> a.setData(a.createIndex(0), 'kyrie.krn', Qt.EditRole)
-      >>> a.setData(a.createIndex(1), 'sanctus.krn', Qt.EditRole)
+      >>> a.setData(a.createIndex(0, 0), 'kyrie.krn', Qt.EditRole)
+      >>> a.setData(a.createIndex(1, 0), 'sanctus.krn', Qt.EditRole)
       '''
       if Qt.EditRole == role and 0 <= index.row() < len(self._files):
          self._files[index.row()] = value
@@ -172,7 +172,7 @@ class ListOfFiles(QAbstractListModel):
 
 
 
-   def iterateRows(self):
+   def __iter__(self):
       '''
       Create an iterator that returns each of the filenames in this ListOfFiles.
       '''

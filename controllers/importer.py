@@ -30,9 +30,9 @@ Holds the Importer controller.
 
 # Imports from...
 # python
-from os.path import isfile
+from os import path
 # PyQt4
-from PyQt4.QtCore import pyqtSignal
+from PyQt4.QtCore import pyqtSignal, Qt
 # vis
 from controllers.controller import Controller
 from models import importing, analyzing
@@ -61,7 +61,15 @@ class Importer(Controller):
       '''
       Create a new Importer instance.
       '''
-      self._list_of_files = importing.ListOfFiles
+      self._list_of_files = importing.ListOfFiles()
+
+
+
+   def add_piece(self, piece):
+      '''
+      Call add_pieces() with the given argument.
+      '''
+      return self.add_pieces(piece)
 
 
 
@@ -71,21 +79,64 @@ class Importer(Controller):
       argument is a list of strings. If a filename is a directory, all the files
       in that directory (and its subdirectories) are added to the list.
 
-      If a filename does not exist, this method emits the
-      error signal, with a description of the error.
+      This method emits the Importer.error signal, with a description, in the
+      following situations:
+      - a pathname does not exist
+      - a pathname is already in the list
 
-      Emits the add_remove_success signal with True or
-      False, depending on whether the operation succeeded.
+      Emits the Importer.add_remove_success signal with True if there were no
+      errors, or with False if there was at least one error.
       '''
-      success = True
-      for piece in pieces:
-         if not isfile(piece):
-            self.error(piece+" does not exist!")
-            success = False
+      # Track whether there was an error
+      we_are_error_free = True
+
+      # Filter out paths that do not exist
+      paths_that_exist = []
+      for pathname in pieces:
+         if path.exists(pathname):
+            paths_that_exist.append(pathname)
          else:
-            self._list_of_files.data.add(piece)
-            self._list_of_files.data_changed()
-      self.add_remove_success(success)
+            # TODO: emit
+            #Importer.error.emit('Path does not exist: ' + str(pathname))
+            #print('**** path does not exist: ' + str(pathname))
+            we_are_error_free = False
+
+      # If there's a directory, expand to the files therein
+      directories_expanded = []
+      for pathname in paths_that_exist:
+         if path.isdir(pathname):
+            pass # TODO: ??
+         else:
+            directories_expanded.append(pathname)
+
+      # Ensure there will be no duplicates
+      no_duplicates_list = []
+      for pathname in directories_expanded:
+         if not self._list_of_files.isPresent(pathname):
+            no_duplicates_list.append(pathname)
+         else:
+            # TODO: emit
+            #Importer.error.emit('Filename already on the list: ' + str(pathname))
+            we_are_error_free = False
+            #print('++++ filename already in list: ' + str(pathname))
+
+      # If there are no remaining files in the list, just return now
+      if 0 == len(no_duplicates_list):
+         return we_are_error_free
+
+      # Add the number of rows we need
+      first_index = self._list_of_files.rowCount()
+      last_index = first_index + len(no_duplicates_list)
+      self._list_of_files.insertRows(first_index, len(no_duplicates_list))
+
+      # Add the files to the list
+      for list_index in xrange(first_index, last_index):
+         index = self._list_of_files.createIndex(list_index, 0)
+         self._list_of_files.setData(index,
+                                     no_duplicates_list[list_index-first_index],
+                                     Qt.EditRole)
+
+      return we_are_error_free
 
 
 
