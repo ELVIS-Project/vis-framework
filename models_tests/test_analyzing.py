@@ -261,8 +261,8 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_1(self):
       self.lop._pieces = [self.default_row]
-      index = self.lop.makeIndex(0, ListOfPieces.filename)
-      self.setData(index, 'test_corpus/Kyrie.krn', Qt.EditRole)
+      index = self.lop.createIndex(0, ListOfPieces.filename)
+      self.lop.setData(index, 'test_corpus/Kyrie.krn', Qt.EditRole)
       self.assertEqual('test_corpus/Kyrie.krn',
                        self.lop._pieces[0][ListOfPieces.filename])
 
@@ -270,9 +270,9 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_2(self):
       self.lop._pieces = [self.default_row]
-      index = self.lop.makeIndex(0, ListOfPieces.score)
+      index = self.lop.createIndex(0, ListOfPieces.score)
       test_score = converter.parse('test_corpus/bwv77.mxl')
-      self.setData(index, (test_score, 'Chorale!'), Qt.EditRole)
+      self.lop.setData(index, (test_score, 'Chorale!'), Qt.EditRole)
       self.assertEqual((test_score, 'Chorale!'),
                        self.lop._pieces[0][ListOfPieces.score])
 
@@ -280,8 +280,8 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_3(self):
       self.lop._pieces = [self.default_row]
-      index = self.lop.makeIndex(0, ListOfPieces.parts_list)
-      self.setData(index, ['a', 'b', 'c', 'd'], Qt.EditRole)
+      index = self.lop.createIndex(0, ListOfPieces.parts_list)
+      self.lop.setData(index, ['a', 'b', 'c', 'd'], Qt.EditRole)
       self.assertEqual(['a', 'b', 'c', 'd'],
                        self.lop._pieces[0][ListOfPieces.parts_list])
 
@@ -289,8 +289,8 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_4(self):
       self.lop._pieces = [self.default_row]
-      index = self.lop.makeIndex(0, ListOfPieces.offset_intervals)
-      self.setData(index, [0.25], Qt.EditRole)
+      index = self.lop.createIndex(0, ListOfPieces.offset_intervals)
+      self.lop.setData(index, [0.25], Qt.EditRole)
       self.assertEqual([0.25],
                        self.lop._pieces[0][ListOfPieces.offset_intervals])
 
@@ -298,8 +298,8 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_5(self):
       self.lop._pieces = [self.default_row]
-      index = self.lop.makeIndex(0, ListOfPieces.parts_combinations)
-      self.setData(index, [[0, 1], [0, 'bs']], Qt.EditRole)
+      index = self.lop.createIndex(0, ListOfPieces.parts_combinations)
+      self.lop.setData(index, [[0, 1], [0, 'bs']], Qt.EditRole)
       self.assertEqual([[0, 1], [0, 'bs']],
                        self.lop._pieces[0][ListOfPieces.parts_combinations])
 
@@ -307,8 +307,8 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_6(self):
       self.lop._pieces = [self.default_row, self.default_row, self.default_row]
-      index = self.lop.makeIndex(1, ListOfPieces.filename)
-      self.setData(index, 'test_corpus/madrigal51.mxl', Qt.EditRole)
+      index = self.lop.createIndex(1, ListOfPieces.filename)
+      self.lop.setData(index, 'test_corpus/madrigal51.mxl', Qt.EditRole)
       self.assertEqual('test_corpus/madrigal51.mxl',
                        self.lop._pieces[1][ListOfPieces.filename])
 # End TestListOfPiecesSetData --------------------------------------------------
@@ -327,7 +327,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [self.default_row]
       the_field = 'test_corpus/Kyrie.krn'
       self.lop._pieces[0][ListOfPieces.filename] = the_field
-      index = self.lop.makeIndex(0, ListOfPieces.filename)
+      index = self.lop.createIndex(0, ListOfPieces.filename)
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
 
 
@@ -336,7 +336,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [self.default_row]
       the_field = (converter.parse('test_corpus/bwv77.mxl'), 'Chorale!')
       self.lop._pieces[0][ListOfPieces.score] = the_field
-      index = self.lop.makeIndex(0, ListOfPieces.score)
+      index = self.lop.createIndex(0, ListOfPieces.score)
       self.assertEqual(the_field[1], self.lop.data(index, Qt.DisplayRole))
 
 
@@ -345,7 +345,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [self.default_row]
       the_field = (converter.parse('test_corpus/bwv77.mxl'), 'Chorale!')
       self.lop._pieces[0][ListOfPieces.score] = the_field
-      index = self.lop.makeIndex(0, ListOfPieces.score)
+      index = self.lop.createIndex(0, ListOfPieces.score)
       self.assertEqual(the_field[0],
                        self.lop.data(index, ListOfPieces.ScoreRole))
 
@@ -355,7 +355,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [self.default_row]
       the_field = ['a', 'b', 'c', 'd']
       self.lop._pieces[0][ListOfPieces.parts_list] = the_field
-      index = self.lop.makeIndex(0, ListOfPieces.parts_list)
+      index = self.lop.createIndex(0, ListOfPieces.parts_list)
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
 
 
@@ -364,7 +364,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [self.default_row]
       the_field = [0.25]
       self.lop._pieces[0][ListOfPieces.offset_intervals] = the_field
-      index = self.lop.makeIndex(0, ListOfPieces.offset_intervals)
+      index = self.lop.createIndex(0, ListOfPieces.offset_intervals)
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
 
 
@@ -373,7 +373,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [self.default_row]
       the_field = [[0, 1], [0, 'bs']]
       self.lop._pieces[0][ListOfPieces.parts_combinations] = the_field
-      index = self.lop.makeIndex(0, ListOfPieces.parts_combinations)
+      index = self.lop.createIndex(0, ListOfPieces.parts_combinations)
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
 
 
@@ -382,7 +382,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [self.default_row, self.default_row]
       the_field = 'test_corpus/madrigal51.mxl'
       self.lop._pieces[1][ListOfPieces.filename] = the_field
-      index = self.lop.makeIndex(1, ListOfPieces.filename)
+      index = self.lop.createIndex(1, ListOfPieces.filename)
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
 
 
@@ -392,7 +392,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [[], [], [], [], self.default_row, [], []]
       the_field = (converter.parse('test_corpus/bwv77.mxl'), 'Chorale!')
       self.lop._pieces[4][ListOfPieces.score] = the_field
-      index = self.lop.makeIndex(4, ListOfPieces.score)
+      index = self.lop.createIndex(4, ListOfPieces.score)
       self.assertEqual(the_field[1], self.lop.data(index, Qt.DisplayRole))
 
 
@@ -402,7 +402,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [[], [], [], [], self.default_row, [], []]
       the_field = (converter.parse('test_corpus/bwv77.mxl'), 'Chorale!')
       self.lop._pieces[4][ListOfPieces.score] = the_field
-      index = self.lop.makeIndex(4, ListOfPieces.score)
+      index = self.lop.createIndex(4, ListOfPieces.score)
       self.assertEqual(the_field[0],
                        self.lop.data(index, ListOfPieces.ScoreRole))
 # End TestListOfPiecesData -----------------------------------------------------
