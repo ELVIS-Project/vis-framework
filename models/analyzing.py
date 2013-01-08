@@ -76,6 +76,7 @@ class ListOfPieces(QAbstractTableModel):
       '''
       Create a new ListOfPieces instance. Best to use no arguments.
       '''
+      super(QAbstractTableModel, self).__init__() # required for QModelIndex
       self._pieces = []
 
 

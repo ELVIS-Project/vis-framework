@@ -46,7 +46,7 @@ class ListOfFiles(QAbstractListModel):
       '''
       Create a new ListOfFiles instance. Best to use no arguments.
       '''
-      QAbstractListModel.__init__(self, parent, *args)
+      super(QAbstractListModel, self).__init__() # required for QModelIndex
       self._files = []
 
 
