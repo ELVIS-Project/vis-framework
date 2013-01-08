@@ -43,11 +43,11 @@ from models_tests.test_analyzing import *
 
 # Controllers ------------------------------------------------------------------
 # Importing
-unittest.TextTestRunner(verbosity=verb).run(importer_piece_getter_suite)
-unittest.TextTestRunner(verbosity=verb).run(importer_part_and_titles_suite)
-unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite)
-unittest.TextTestRunner(verbosity=verb).run(importer_remove_pieces_suite)
-unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite)
+unittest.TextTestRunner(verbosity=verb).run(importer_piece_getter_suite) # doesn't work because there's no equality check for music21.stream objects
+unittest.TextTestRunner(verbosity=verb).run(importer_part_and_titles_suite) # passes
+unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite) # passes
+unittest.TextTestRunner(verbosity=verb).run(importer_remove_pieces_suite) # fails (PyQt4 problem); but they all work without the call to beginRemoveRows()
+unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite) # passes with PyQt4 sanctions
 
 
 
@@ -66,10 +66,10 @@ unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
 # Analyzing
 unittest.TextTestRunner(verbosity=verb).run(lop_basics_suite) # passes
 unittest.TextTestRunner(verbosity=verb).run(lop_insert_and_remove_suite) # fails (PyQt4 problem); but they all work without the call to beginInsertRows()
-unittest.TextTestRunner(verbosity=verb).run(lop_iterate_rows_suite) # passes
-unittest.TextTestRunner(verbosity=verb).run(lop_set_data_suite) # fails (PyQt4 problem)
+unittest.TextTestRunner(verbosity=verb).run(lop_iterate_rows_suite) # passes but empty
+unittest.TextTestRunner(verbosity=verb).run(lop_set_data_suite) # fails (PyQt4 problem: "underlying C/C++ object has been deleted")
 unittest.TextTestRunner(verbosity=verb).run(lop_header_data_suite) # passes
-unittest.TextTestRunner(verbosity=verb).run(lop_data_suite) # fails (PyQt4 problem)
+unittest.TextTestRunner(verbosity=verb).run(lop_data_suite) # fails (PyQt4 problem: "underlying C/C++ object has been deleted")
 unittest.TextTestRunner(verbosity=verb).run(ar_init_suite) # passes
 unittest.TextTestRunner(verbosity=verb).run(ar_iter_suite) # passes (but empty)
 unittest.TextTestRunner(verbosity=verb).run(ar_getters_suite) # passes
