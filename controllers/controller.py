@@ -25,11 +25,16 @@
 '''
 Holds the "controllers" for the MVC architecture in vis.
 '''
+
+
+
+# Imports
 from PyQt4.QtCore import pyqtSignal, QObject
 from models.analyzing import ListOfPieces
 
 
-class Controller(object):
+
+class Controller(QObject):
    '''
    Base class for all vis controllers.
    '''

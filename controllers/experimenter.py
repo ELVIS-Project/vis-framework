@@ -72,13 +72,14 @@ class Experimenter(Controller, QtCore.QObject):
       '''
       ???
       '''
+      super(Controller, self).__init__() # required for signals
       self._list_of_analyses = None
       self._analysis_settings = None
       # Obiously, this method isn't finished
 
 
 
-   @pyqtSlot(list)
+   @QtCore.pyqtSlot(list)
    def catch_analyses(self, analyses_list):
       '''
       Slot for the Analyzer.analysis_finished signal. This method is called

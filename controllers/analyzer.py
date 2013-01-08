@@ -30,7 +30,7 @@ Holds the Analyzer controller.
 
 # Imports from...
 # PyQt4
-from PyQt4.QtCore import pyqtSlot
+from PyQt4 import QtCore
 # vis
 from controller import Controller
 from models.analyzing import ListOfPieces
@@ -55,17 +55,17 @@ class Analyzer(Controller):
    # create an index based on which rows are selected and which data is being
    # changed (cross-referenced with the ListOfPieces' declaration of
    # column indices)
-   change_settings = pyqtSignal(index, data)
+   change_settings = QtCore.pyqtSignal(QtCore.QModelIndex, QtCore.QVariant)
    # description of an error in the Analyzer
-   error = pyqtSignal(str)
+   error = QtCore.pyqtSignal(str)
    # to tell the Analyzer controller to perform analysis
-   run_analysis = pyqtSignal()
+   run_analysis = QtCore.pyqtSignal()
    # the result of analyzer_analyze; the result is a list of AnalysisRecord objects
-   analysis_finished = pyqtSignal(list)
+   analysis_finished = QtCore.pyqtSignal(list)
    # informs the GUI of the status for a currently-running analysis (if two
    # or three characters followed by a '%' then it should try to update a
    # progress bar, if available)
-   status = pyqtSignal(str)
+   status = QtCore.pyqtSignal(str)
 
 
 
@@ -74,11 +74,12 @@ class Analyzer(Controller):
       '''
       Create a new Analyzer instance.
       '''
+      super(Controller, self).__init__() # required for signals
       self._list_of_pieces = None
 
 
 
-   @pyqtSlot(ListOfPieces)
+   @QtCore.pyqtSlot(ListOfPieces)
    def catch_import(self, pieces_list):
       '''
       Slot for the Importer.import_finished signal. This method is called

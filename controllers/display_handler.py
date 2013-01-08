@@ -60,7 +60,7 @@ class DisplayHandler(Controller):
       '''
       ???
       '''
-      pass
+      super(Controller, self).__init__() # required for signals
 
 
 

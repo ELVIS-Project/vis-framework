@@ -62,7 +62,7 @@ class Importer(Controller):
    # create a ListOfPieces from the ListOfFiles
    run_import = pyqtSignal()
    # the result of importer_import
-   import_finished = pyqtSignal(ListOfPieces)
+   import_finished = pyqtSignal(analyzing.ListOfPieces)
    # description of an error in the Importer
    error = pyqtSignal(str)
    # informs the GUI of the status for a currently-running import (if two or
@@ -76,6 +76,7 @@ class Importer(Controller):
       '''
       Create a new Importer instance.
       '''
+      super(Controller, self).__init__() # required for signals
       self._list_of_files = importing.ListOfFiles()
 
 
@@ -111,9 +112,7 @@ class Importer(Controller):
          if path.exists(pathname):
             paths_that_exist.append(pathname)
          else:
-            # TODO: emit
-            #Importer.error.emit('Path does not exist: ' + str(pathname))
-            #print('**** path does not exist: ' + str(pathname))
+            self.error.emit('Path does not exist: ' + str(pathname))
             we_are_error_free = False
 
       # If there's a directory, expand to the files therein
@@ -130,10 +129,8 @@ class Importer(Controller):
          if not self._list_of_files.isPresent(pathname):
             no_duplicates_list.append(pathname)
          else:
-            # TODO: emit
-            #Importer.error.emit('Filename already on the list: ' + str(pathname))
+            self.error.emit('Filename already on the list: ' + str(pathname))
             we_are_error_free = False
-            #print('++++ filename already in list: ' + str(pathname))
 
       # If there are no remaining files in the list, just return now
       if 0 == len(no_duplicates_list):
@@ -180,11 +177,10 @@ class Importer(Controller):
          piece_index = self._list_of_files.isPresent(piece_to_remove)
          if piece_index is not False:
             # if the piece is actually in the list, remove it
-            #print('**** removing row ' + str(piece_index.row())) # DEBUGGING
             self._list_of_files.removeRows(piece_index.row(), 1)
 
       # I don't yet know of a situation that warrants a failure, so...
-      Importer.add_remove_success.emit(True)
+      self.add_remove_success.emit(True)
       return True
 
 
@@ -228,7 +224,7 @@ class Importer(Controller):
                          Qt.EditRole)
             # Leave offset-interval and parts-combinations at defaults
       # return
-      #Importer.import_finished.emit(post) # commented for DEBUGGING
+      self.import_finished.emit(post)
       return post
 
 
@@ -246,11 +242,11 @@ class Importer(Controller):
       except ArchiveManagerException, PickleFilterException:
          # these are the exceptions I found in the music21 'converter.py' file
          post = None
-         #Importer.error.emit('Unable to import this file: ' + str(pathname)) # commented for DEBUGGING
+         self.error.emit('Unable to import this file: ' + str(pathname))
       except ConverterException, ConverterFileException:
          # these are the exceptions I found in the music21 'converter.py' file
          post = None
-         #Importer.error.emit('Unable to import this file: ' + str(pathname)) # commented for DEBUGGING
+         self.error.emit('Unable to import this file: ' + str(pathname))
 
       return post
 
@@ -297,10 +293,8 @@ class Importer(Controller):
       # First try to get the title from a Metadata object, but if it doesn't
       # exist, use the filename without directory.
       if the_score.metadata is not None:
-         #print('**** using metadata')
          post = the_score.metadata.title
       else:
-         #print('++++ using pathname')
          post = path.basename(the_score.filePath)
 
       # Now check that there is no file extension. This could happen either if
