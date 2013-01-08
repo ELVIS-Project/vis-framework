@@ -27,11 +27,22 @@
 
 
 
-class Test??(unittest.TestCase):
+class TestRunAnalysis(unittest.TestCase):
+   # Test run_analysis()
+   pass
+# End TestRunAnalysis ----------------------------------------------------------
+
+
+
+class TestEventFinder(unittest.TestCase):
+   # Test _event_finder()
+   pass
+# End TestEventFinder ----------------------------------------------------------
 
 
 
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase(Test???)
+run_analysis_suite = unittest.TestLoader().loadTestsFromTestCase(TestRunAnalysis)
+event_finder_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinder)
