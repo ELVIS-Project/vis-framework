@@ -31,15 +31,22 @@ Holds the Experimenter controller.
 # Imports from...
 # vis
 from controller import Controller
+from models.experimenting import BooleanSetting, ChoiceSetting
+# music21
+from music21.interval import Interval
+from music21.note import Note
+# PyQt4
+from PyQt4 import QtCore
 
 
 
-class Experimenter(Controller):
+class Experimenter(Controller, QtCore.QObject):
    '''
    This class handles input for a user's choice of Experiment and choice
    of associated Settings, then performs the experiment, returning the
    relevant Results object(s).
    '''
+   experimented = pyqtSignal()
 
 
    def __init__(self):
@@ -68,6 +75,16 @@ class Experimenter(Controller):
       Runs the currently-configured experiment(s).
       '''
       pass
+
+
+
+   def get_setting(self, sett):
+      '''
+      Returns the value of the setting whose `name` field is equal to `sett`.
+      '''
+      matches = [s for s in self._settings if s.name == sett]
+      if matches:
+         return matches[0].value
 
 
 
@@ -134,9 +151,9 @@ class IntervalsLists(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, records):
       '''
-      Create a new IntervalsLists
+      Create a new IntervalsLists.
 
       There are two argument, both of which are mandatory:
       - records : a list of AnalysisRecord objects
@@ -148,21 +165,38 @@ class IntervalsLists(Experiment):
          ('simple') or actual ('compound') form.
       -
       '''
-      # NOTE: You do not need to reimplement this method for subclasses.
-      super(Experiment, self).__init__()
-      self._records = records
-      self._settings = settings
-
+      settings = [BooleanSetting('quality','Include Quality'),
+                  ChoiceSetting('sc', 'Reduce Intervals to simple form?',
+                                ['Simple', 'Compound'])]
+      super(Experiment, self).__init__(records, settings)
 
 
    def perform():
-      '''
-      Perform the Experiment. This method is not called "run" to avoid possible
-      confusion with the multiprocessing nature of Experiment subclasses.
-
-      This method emits an Experimenter.experimented signal when it
-      finishes.
-      '''
-      # NOTE: You must reimplement this method in subclasses.
-      pass
+      data = []
+      for record in self._records:
+         for first, second in zip(record,list(record)[1:]):
+            offset, first_lower, upper = first
+            _ , second_lower, _ = second
+            vertical = Interval(Note(first_lower), Note(first_upper))
+            horizontal = Interval(Note(first_lower), Note(second_lower))
+            if self.get_setting('quality'):
+               if self.get_setting('sc') == 'simple':
+                  data.append((vertical.semiSimpleName,
+                               horizontal.semiSimpleName,
+                               offset))
+               else:
+                  data.append((vertical.name,
+                               horizontal.name,
+                               offset))
+            else:
+               if self.get_setting('sc') == 'simple':
+                  data.append((vertical.generic.semiSimpleDirected,
+                               horizontal.generic.semiSimpleDirected,
+                               offset))
+               else:
+                  data.append((vertical.generic.directed,
+                               horizontal.generic.directed,
+                               offset))
+         # TODO: Then add the last row
+      return data
 # End class Experiment ---------------------------------------------------------

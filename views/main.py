@@ -78,8 +78,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 	
 	def remove_files(self):
 		"""
-		Method which finds which files the user has selected and
-		emits a signal containing their names.
+		Method which finds which files the user has selected for
+		removal and emits a signal containing their names.
 		"""
 		pass
 	
