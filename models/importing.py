@@ -66,6 +66,9 @@ class ListOfFiles(QAbstractListModel):
       The first argument is the index to return. The second argument is the
       role, which should be QtCore.Qt.DisplayRole.
 
+      The first argument may also be an int indicating the row you wish to
+      view.
+
       >>> a = ListOfFiles()
       >>> a.insertRows(0, 2)
       >>> a.setData(a.createIndex(0), 'kyrie.krn', Qt.EditRole)
@@ -75,11 +78,18 @@ class ListOfFiles(QAbstractListModel):
       >>> a.data(a.createIndex(0), Qt.DisplayRole)
       'kyrie.krn'
       '''
-      if index.isValid() and Qt.DisplayRole == role and \
-      0 <= index.row() < len(self._files):
-         return QVariant(self._files[index.row()])
+      # Set the row
+      row = None
+      if isinstance(index, QModelIndex):
+         row = index.row()
       else:
-         return QVariant()
+         row = index[0]
+
+      # Return the requested data
+      if Qt.DisplayRole == role and 0 <= row < len(self._files):
+         return self._files[row]
+      else:
+         return None
 
 
 
@@ -106,13 +116,26 @@ class ListOfFiles(QAbstractListModel):
       The first argument is the index to set. The second argument is the value
       to set it to. The third argument should be QtCore.Qt.EditRole.
 
+      The first argument could also be an int indicating the row of the cell
+      you wish to modify.
+
       >>> a = ListOfFiles()
       >>> a.insertRows(0, 2)
       >>> a.setData(a.createIndex(0, 0), 'kyrie.krn', Qt.EditRole)
       >>> a.setData(a.createIndex(1, 0), 'sanctus.krn', Qt.EditRole)
       '''
-      if Qt.EditRole == role and 0 <= index.row() < len(self._files):
-         self._files[index.row()] = value
+      # Set the row
+      row = None
+      if isinstance(index, QModelIndex):
+         row = index.row()
+      else:
+         row = index[0]
+         # we still need a QModelIndex for the dataChanged signal
+         index = self.createIndex(row, 0)
+
+      # Set the data
+      if Qt.EditRole == role and 0 <= row < len(self._files):
+         self._files[row] = value
          self.dataChanged.emit(index, index)
          return True
       else:
@@ -167,8 +190,15 @@ class ListOfFiles(QAbstractListModel):
    def isPresent(self, candidate):
       '''
       Tests whether 'candidate' is present in this ListOfFiles.
+
+      Returns a QModelIndex that points to the filename or False.
       '''
-      return candidate in self._files
+      if candidate in self._files:
+         for index in xrange(len(self._files)):
+            if candidate == self._files[index]:
+               return self.createIndex(index, 0)
+      else:
+         return False
 
 
 

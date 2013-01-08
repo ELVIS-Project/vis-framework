@@ -120,22 +120,34 @@ class ListOfPieces(QAbstractTableModel):
          - ['all', 'bs']
          where 'all' means "all combinations" and 'bs' means "basso seguente."
       '''
-      if index.isValid():
+      # Set the row and column
+      row = None
+      column = None
+      if isinstance(index, QModelIndex):
+         # if the QModelIndex is invalid, we won't bother with it
+         if not index.isValid():
+            return None
+         # otherwise, get the row and column from the QModelIndex
+         row = index.row()
+         column = index.column()
+      else:
+         row = index[0]
+         column = index[1]
+
+      if 0 <= row < len(self._pieces) and 0 <= column < self._number_of_columns:
          if Qt.DisplayRole == role:
             # most things
-            if index.column() is ListOfPieces.score:
+            if column is ListOfPieces.score:
                # must choose the right sub-index
-               return QVariant(self._pieces[index.row()][ListOfPieces.score][1])
+               return self._pieces[row][ListOfPieces.score][1]
             else:
-               # just make sure it's a string, the return
-               return QVariant(str(self._pieces[index.row()][index.column()]))
-         elif role is ListOfPieces.ScoreRole and \
-         index.column() is ListOfPieces.score:
-            return QVariant(self._pieces[index.row()][index.column()][0])
+               return self._pieces[row][column]
+         elif role is ListOfPieces.ScoreRole and column is ListOfPieces.score:
+            return self._pieces[row][column][0]
          else:
-            return QVariant()
+            return None
       else:
-         return QVariant() # is this right?
+         return None # is this right?
 
 
 
@@ -190,8 +202,21 @@ class ListOfPieces(QAbstractTableModel):
 
       This method does not check your argument is the right type.
       '''
+      # Set the row and column
+      row = None
+      column = None
+      if isinstance(index, QModelIndex):
+         row = index.row()
+         column = index.column()
+      else:
+         row = index[0]
+         column = index[1]
+         # we still need a QModelIndex for the dataChanged signal
+         index = self.createIndex(row, column)
+
+      # Set the data
       if Qt.EditRole == role:
-         self._pieces[index.row()][index.column()] = value
+         self._pieces[row][column] = value
          self.dataChanged.emit(index, index)
          return True
       else:
@@ -215,7 +240,7 @@ class ListOfPieces(QAbstractTableModel):
       '''
       self.beginInsertRows(parent, row, row+count-1)
       for zed in xrange(count):
-         self._pieces.insert(row, ['', None, [], [0.5], [2], '(no selection)'])
+         self._pieces.insert(row, ['', None, [], [0.5], '(no selection)'])
       self.endInsertRows()
 
 
