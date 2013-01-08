@@ -46,7 +46,7 @@ class Experimenter(Controller, QtCore.QObject):
    of associated Settings, then performs the experiment, returning the
    relevant Results object(s).
    '''
-   experimented = pyqtSignal()
+   experimented = QtCore.pyqtSignal()
 
 
    def __init__(self):
