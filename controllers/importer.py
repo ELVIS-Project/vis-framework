@@ -52,10 +52,23 @@ class Importer(Controller):
 
 
    # PyQt4 Signals
-   add_remove_success = pyqtSignal()
-   imported = pyqtSignal()
-   error = pyqtSignal()
-   status = pyqtSignal()
+   # -------------
+   # a list of str filenames to add to the list of files to analyze
+   add_pieces = pyqtSignal(list)
+   # a list of str filenames to remove from the list of files to analyze
+   remove_pieces = pyqtSignal(list)
+   # whether the add/remove operation was successful
+   add_remove_success = pyqtSignal(bool)
+   # create a ListOfPieces from the ListOfFiles
+   run_import = pyqtSignal()
+   # the result of importer_import
+   import_finished = pyqtSignal(ListOfPieces)
+   # description of an error in the Importer
+   error = pyqtSignal(str)
+   # informs the GUI of the status for a currently-running import (if two or
+   # three characters followed by a '%' then it should try to update a
+   # progress bar, if available)
+   status = pyqtSignal(str)
 
 
 
@@ -181,10 +194,10 @@ class Importer(Controller):
       Transforms the current ListOfFiles into a ListOfPieces by importing the
       files specified, then extracting data as needed.
 
-      Emits VisSignals.importer_error if a file cannot be imported, but
-      continues to import the rest of the files.
+      Emits Importer.error if a file cannot be imported, but continues to
+      import the rest of the files.
 
-      Emits VisSignals.importer_imported with the ListOfPieces when the import
+      Emits Importer.import_finished with the ListOfPieces when the import
       operation is completed, and returns the ListOfPieces.
       '''
       # NB: I must initialize the offset_intervals field to [0.5]
@@ -215,7 +228,7 @@ class Importer(Controller):
                          Qt.EditRole)
             # Leave offset-interval and parts-combinations at defaults
       # return
-      #Importer.imported.emit(post) # commented for DEBUGGING
+      #Importer.import_finished.emit(post) # commented for DEBUGGING
       return post
 
 

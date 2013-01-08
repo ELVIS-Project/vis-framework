@@ -49,23 +49,44 @@ class Analyzer(Controller):
 
 
 
+   # PyQt4 Signals
+   # -------------
+   # Change the data of a cell in the ListOfPieces; the GUI will know how to
+   # create an index based on which rows are selected and which data is being
+   # changed (cross-referenced with the ListOfPieces' declaration of
+   # column indices)
+   change_settings = pyqtSignal(index, data)
+   # description of an error in the Analyzer
+   error = pyqtSignal(str)
+   # to tell the Analyzer controller to perform analysis
+   run_analysis = pyqtSignal()
+   # the result of analyzer_analyze; the result is a list of AnalysisRecord objects
+   analysis_finished = pyqtSignal(list)
+   # informs the GUI of the status for a currently-running analysis (if two
+   # or three characters followed by a '%' then it should try to update a
+   # progress bar, if available)
+   status = pyqtSignal(str)
+
+
+
+
    def __init__(self):
       '''
       Create a new Analyzer instance.
       '''
-      self.list_of_pieces = None
+      self._list_of_pieces = None
 
 
 
    @pyqtSlot(ListOfPieces)
    def catch_import(self, pieces_list):
       '''
-      Slot for the VisSignals.importer_imported signal. This method is called
+      Slot for the Importer.import_finished signal. This method is called
       when the Importer controller has finished importing the list of pieces.
 
       The argument is a ListOfPieces object.
       '''
-      self.list_of_pieces = pieces_list
+      self._list_of_pieces = pieces_list
 
 
 
@@ -75,7 +96,7 @@ class Analyzer(Controller):
 
       The arguments here should be the same as sent to ListOfPieces.setData().
       '''
-      pass
+      self._list_of_pieces.setData(index, change_to)
 
 
 
@@ -84,13 +105,28 @@ class Analyzer(Controller):
       Runs the analysis specified in the ListOfPieces. Produces an
       AnalysisRecord object for each voice pair analyzed.
 
-      Emits the VisSignal.analyzer_error signal if there is a problem, and
-      continues to process.
+      Emits the Analyzer.error signal if there is a problem, and continues to
+      process further pieces.
 
-      Emits the VisSignal.analyzer_analyzed signal upon completion, with a list
+      Emits the Analyzer.analysis_finished signal upon completion, with a list
       of the AnalysisRecord objects generated.
       '''
-      pass
+      # hold the list of AnalysisRecord objects to return
+      post = []
+
+      # Run the analyses
+      for each_piece in self._list_of_pieces:
+         results = None
+         try:
+            results = Analyzer._event_finder()
+         except Exception:
+            pass
+         else:
+            post.append(results)
+
+      # Return
+      Analyzer.analyzed.emit(post)
+      return post
 
 
 

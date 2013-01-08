@@ -46,7 +46,26 @@ class Experimenter(Controller, QtCore.QObject):
    of associated Settings, then performs the experiment, returning the
    relevant Results object(s).
    '''
-   experimented = QtCore.pyqtSignal()
+
+
+
+   # PyQt4 Signals
+   # -------------
+   # a 2-tuple: a string for a setting name and the value for the setting
+   set = QtCore.pyqtSignal(tuple)
+   # tell the Experimenter controller to perform an experiment
+   run_experiment = QtCore.pyqtSignal()
+   # the result of experimenter_experiment; the result is a tuple, where the
+   # first element is the type of Display object to use, and the second is
+   # whatever the Display object needs
+   experiment_finished = QtCore.pyqtSignal(tuple)
+   # description of an error in the Experimenter
+   error = QtCore.pyqtSignal(str)
+   # informs the GUI of the status for a currently-running experiment (if two
+   # or three characters followed by a '%' then it should try to update a
+   # progress bar, if available)
+   status = QtCore.pyqtSignal(str)
+
 
 
    def __init__(self):
@@ -59,9 +78,10 @@ class Experimenter(Controller, QtCore.QObject):
 
 
 
+   @pyqtSlot(list)
    def catch_analyses(self, analyses_list):
       '''
-      Slot for the VisSignals.analyzer_analyzed signal. This method is called
+      Slot for the Analyzer.analysis_finished signal. This method is called
       when the Analyzer controller has finished analysis.
 
       The argument is a list of AnalysisRecord objects.

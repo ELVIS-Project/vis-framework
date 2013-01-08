@@ -30,7 +30,7 @@ Holds the DisplayHandler controller.
 
 # Imports from...
 # PyQt
-from PyQt4.QtCore import pyqtSlot
+from PyQt4.QtCore import pyqtSignal
 # vis
 from controller import Controller
 
@@ -45,6 +45,15 @@ class DisplayHandler(Controller):
    Really, the DisplayHandler waits for an Experimenter.experimented
    signal, then processes it.
    '''
+
+
+
+   # PyQt4 Signals
+   # -------------
+   # when the user should be able to see the results of an experiment on the
+   # screen in a particular format
+   display_shown = pyqtSignal()
+
 
 
    def __init__(self):
