@@ -52,20 +52,29 @@ def markov(s):
 
 def random_chain(matrix, length):
 	def add_char(so_far):
-		dist = None
-		if len(so_far) == length:
-			return so_far
-		elif len(so_far) == 0:
-			dist = [(key, 1.0/len(matrix.keys())) for key in matrix.keys()]
-		else:
-			dist = matrix[so_far[-1]].items()
-		if dist:
-			k = random()
-			e = enumerate(dist)
-			land = [s for i,(s,p) in e if 0 < k - sum(pr for _,pr in dist[:i]) <= p]
-			return add_char(so_far+land[0])
-		else:
-			return add_char(so_far[:-1])
+		dont_try = [[None] for i in range(length)]
+		while len(so_far) < length:
+			print so_far
+			dist = None
+			if len(so_far) == 0:
+				dist = [(key, 1.0/len(matrix.keys())) for key in matrix.keys()]
+			else:
+				dist = matrix[so_far[-1]].items()
+			if dist:
+				ch = None
+				while ch in dont_try[len(so_far)]:
+					if [key for key,prob in dist if key not in dont_try[len(so_far)]]:
+						k = random()
+						e = enumerate(dist)
+						land = [s for i,(s,p) in e if 0 < k - sum(pr for _,pr in dist[:i]) <= p]
+						ch = land[0]
+					else:
+						so_far = so_far[:-1]
+				so_far += ch
+			else:
+				dont_try[len(so_far)-1].append(so_far[-1])
+				so_far = so_far[:-1]
+		return so_far
 	s = add_char('')
 	return s
 
