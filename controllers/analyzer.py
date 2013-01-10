@@ -150,7 +150,7 @@ class Analyzer(Controller):
          for combo in each_piece[4]:
             try:
                parts = [each_piece[1][0].parts[i] for i in combo]
-               results = self._event_finder(parts,[note.Note],1.0,False,AnalysisRecord(part_names=[p.id for p in parts]))
+               results = self._event_finder(parts,[note.Note, note.Rest],2.0,False,AnalysisRecord(part_names=[p.id for p in parts]))
             except Exception:
                pass
             else:

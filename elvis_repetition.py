@@ -27,11 +27,12 @@ def A_o(s):
 
 def A_e(s):
 	m = markov(s)
+	print 'estimating expectation'
 	ret = 0
 	diff = 1000.0
 	n = 0
 	while diff > 0.01:
-		print 'iterating monte carlo', ret, diff
+		print '...'
 		r = random_chain(m,len(s))
 		a = float(A_o(r) + n*ret)/(n+1)
 		diff = abs(a - ret)
@@ -60,16 +61,16 @@ def random_chain(matrix, length):
 			else:
 				dist = matrix[so_far[-1]].items()
 			if dist:
-				ch = None
-				while ch in dont_try[len(so_far)]:
-					if [key for key,prob in dist if key not in dont_try[len(so_far)]]:
-						k = random()
-						e = enumerate(dist)
-						land = [s for i,(s,p) in e if 0 < k - sum(pr for _,pr in dist[:i]) <= p]
-						ch = land[0]
-					else:
-						so_far = so_far[:-1]
-				so_far += ch
+				sensible = [(key,prob) for key,prob in dist if key not in dont_try[len(so_far)]]
+				if sensible:
+					tot = sum(p for k,p in sensible)
+					dist = [(k,p/tot) for k,p in sensible]
+					k = random()
+					e = enumerate(dist)
+					land = [s for i,(s,p) in e if 0 < k - sum(pr for _,pr in dist[:i]) <= p]
+					so_far += land[0]
+				else:
+					so_far = so_far[:-1]
 			else:
 				dont_try[len(so_far)-1].append(so_far[-1])
 				so_far = so_far[:-1]
@@ -82,10 +83,13 @@ def stringify(record):
 	for first, next in zip(record,list(record)[1:]):
 		_, (first_lower, first_upper) = first
 		_, (next_lower, next_upper) = next
-		first_vert = Interval(Note(first_lower), Note(first_upper)).generic.semiSimpleDirected
-		next_vert = Interval(Note(next_lower), Note(next_upper)).generic.semiSimpleDirected
-		horiz = Interval(Note(first_lower), Note(next_lower)).generic.semiSimpleDirected
-		tokens.append((first_vert, horiz, next_vert))
+		try:
+			first_vert = Interval(Note(first_lower), Note(first_upper)).generic.semiSimpleDirected
+			next_vert = Interval(Note(next_lower), Note(next_upper)).generic.semiSimpleDirected
+			horiz = Interval(Note(first_lower), Note(next_lower)).generic.semiSimpleDirected
+			tokens.append((first_vert, horiz, next_vert))
+		except:
+			continue
 	trans = {tok:unichr(i+100) for i,tok in enumerate(set(tokens))}
 	return "".join(trans[tok] for tok in tokens)
 

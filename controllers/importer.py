@@ -239,11 +239,11 @@ class Importer(Controller):
       '''
       try:
          post = converter.parseFile(pathname)
-      except ArchiveManagerException, PickleFilterException:
+      except converter.ArchiveManagerException, converter.PickleFilterException:
          # these are the exceptions I found in the music21 'converter.py' file
          post = None
          self.error.emit('Unable to import this file: ' + str(pathname))
-      except ConverterException, ConverterFileException:
+      except converter.ConverterException, converter.ConverterFileException:
          # these are the exceptions I found in the music21 'converter.py' file
          post = None
          self.error.emit('Unable to import this file: ' + str(pathname))
