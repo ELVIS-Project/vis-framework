@@ -36,6 +36,7 @@ verb = 2
 # Imports
 import unittest
 from controllers_tests.test_importer import *
+from controllers_tests.test_analyzer import *
 from models_tests.test_importing import *
 from models_tests.test_analyzing import *
 
@@ -43,10 +44,15 @@ from models_tests.test_analyzing import *
 
 # Controllers ------------------------------------------------------------------
 # Importer -- all tests pass
-unittest.TextTestRunner(verbosity=verb).run(importer_part_and_titles_suite) # passes
-unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite) # passes
-unittest.TextTestRunner(verbosity=verb).run(importer_remove_pieces_suite) # passes
-unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite) # passes
+unittest.TextTestRunner(verbosity=verb).run(importer_part_and_titles_suite)
+unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite)
+unittest.TextTestRunner(verbosity=verb).run(importer_remove_pieces_suite)
+unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite)
+
+
+
+# Analyzer
+unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_short_suite)
 
 
 

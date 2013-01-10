@@ -24,11 +24,14 @@
 
 
 # Imports from...
+# python
+import unittest
 # music21
 from music21 import note
 # vis
 from test_corpus import event_finder_short
 from models import analyzing
+from controllers import analyzer
 
 
 
@@ -42,14 +45,23 @@ class TestRunAnalysis(unittest.TestCase):
 class TestEventFinderShort(unittest.TestCase):
    # Test _event_finder() with short excerpts
    # NB: all of these have two parts
+
+
+
+   def setUp(self):
+      self.a = analyzer.Analyzer()
+
+
+
    def test_event_finder_short_1(self):
       expected = [(0.0, ('G3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_1
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
-                             types=[note.Note, note.Rest],
-                             salami=False,
-                             record=actual)
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
+                                    types=[note.Note, note.Rest],
+                                    offset=0.5,
+                                    salami=False,
+                                    record=actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -58,8 +70,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_2
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -70,8 +83,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_3
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -82,8 +96,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_4
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -94,8 +109,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'F4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_5
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -106,8 +122,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_6
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -119,8 +136,9 @@ class TestEventFinderShort(unittest.TestCase):
                   (1.0, ('A3', 'G4')), (1.5, ('B3', 'F4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_7
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -131,8 +149,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_8
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -144,8 +163,9 @@ class TestEventFinderShort(unittest.TestCase):
                   (1.0, ('B3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_9
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -153,11 +173,13 @@ class TestEventFinderShort(unittest.TestCase):
 
 
    def test_event_finder_short_10(self):
-      expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'G4'))]
+      # NOTE: the thing reported at 0.25 is for the 0.5 offset
+      expected = [(0.0, ('G3', 'G4')), (0.25, ('A3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_10
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -168,8 +190,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_11
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -180,8 +203,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_12
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -192,8 +216,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_13
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -204,8 +229,9 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_14
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -213,11 +239,12 @@ class TestEventFinderShort(unittest.TestCase):
 
 
    def test_event_finder_short_15(self):
-      expected = [(0.0, ('G3', 'G4'))] # different if salami=True
+      expected = [(0.0, ('G3', 'G4')), (1.0, ('Rest', 'G4')), (1.5, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_15
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -225,12 +252,14 @@ class TestEventFinderShort(unittest.TestCase):
 
 
    def test_event_finder_short_16(self):
+      # NOTE: the thing at 0.75 is for the 1.0 offset
       expected = [(0.0, ('G3', 'G4')), (0.5, ('Rest', 'A4')),
-                  (1.0, ('F3', 'A4')), (1.5, ('E3', 'B4'))]
+                  (0.75, ('F3', 'A4')), (1.5, ('E3', 'B4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_16
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -238,13 +267,16 @@ class TestEventFinderShort(unittest.TestCase):
 
 
    def test_event_finder_short_17(self):
-      expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'G4')),
-                  (1.0, ('F3', 'A4')), (1.5, ('G3', 'F4')),
+      # NOTE: the thing at 0.75 is for the 1.0 offset
+      # NOTE: the thing at 1.375 is for the 1.5 offset
+      expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'A4')),
+                  (0.75, ('F3', 'A4')), (1.375, ('G3', 'F4')),
                   (2.0, ('G3', 'E4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_17
-      Analyzer._event_finder(parts=[this_piece[0], this_piece[1]],
+      actual = self.a._event_finder(parts=[this_piece[0], this_piece[1]],
                              types=[note.Note, note.Rest],
+                             offset=0.5,
                              salami=False,
                              record=actual)
       self.assertEqual(expected, actual._record)
@@ -262,6 +294,6 @@ class TestEventFinderLong(unittest.TestCase):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-run_analysis_suite = unittest.TestLoader().loadTestsFromTestCase(TestRunAnalysis)
-event_finder_short_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderShort)
-event_finder_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderLong)
+#run_analysis_suite = unittest.TestLoader().loadTestsFromTestCase(TestRunAnalysis)
+analyzer_event_finder_short_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderShort)
+#event_finder_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderLong)
