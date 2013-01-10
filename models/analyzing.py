@@ -409,6 +409,12 @@ class AnalysisRecord(object):
 
 
 
+   def append(self, offset, event):
+      # TODO: replace append_event() with this
+      self.append_event(offset, event)
+
+
+
    def append_event(self, offset, event):
       '''
       Add an event to the end of this AnalysisRecord.
@@ -418,4 +424,19 @@ class AnalysisRecord(object):
       - event : the object being analyzed
       '''
       self._record.append((offset, event))
+
+
+
+   def most_recent_event(self):
+      '''
+      Returns the 2-tuple representing the most recently-recorded event's
+      offset and the event itself.
+
+      Returns (None, None) if no events have been recorded.
+      '''
+      # TODO: test this
+      if 0 < len(self._record):
+         return self._record[-1]
+      else:
+         return (None, None)
 # End class AnalysisRecord -----------------------------------------------------
