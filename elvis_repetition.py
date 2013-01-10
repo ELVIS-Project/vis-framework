@@ -67,7 +67,6 @@ def random_chain(matrix, length):
 		else:
 			return add_char(so_far[:-1])
 	s = add_char('')
-	print s
 	return s
 
 def stringify(record):
