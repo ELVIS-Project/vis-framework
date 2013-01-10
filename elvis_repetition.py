@@ -54,7 +54,6 @@ def random_chain(matrix, length):
 	def add_char(so_far):
 		dont_try = [[None] for i in range(length)]
 		while len(so_far) < length:
-			print so_far
 			dist = None
 			if len(so_far) == 0:
 				dist = [(key, 1.0/len(matrix.keys())) for key in matrix.keys()]
