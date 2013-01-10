@@ -121,7 +121,7 @@ class Analyzer(Controller):
 
       The arguments here should be the same as sent to ListOfPieces.setData().
       '''
-      self._list_of_pieces.setData(index, change_to)
+      self._list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
 
 
 
@@ -145,17 +145,19 @@ class Analyzer(Controller):
       post = []
 
       # Run the analyses
-      for each_piece in self._list_of_pieces:
+      for each_piece in self._list_of_pieces.iterateRows():
          results = None
-         try:
-            results = Analyzer._event_finder()
-         except Exception:
-            pass
-         else:
-            post.append(results)
+         for combo in each_piece[4]:
+            try:
+               parts = [each_piece[1][0].parts[i] for i in combo]
+               results = self._event_finder(parts,[note.Note],1.0,False,AnalysisRecord(part_names=[p.id for p in parts]))
+            except Exception:
+               pass
+            else:
+               post.append(results)
 
       # Return
-      self.analyzed.emit(post)
+      self.analysis_finished.emit(post)
       return post
 
 

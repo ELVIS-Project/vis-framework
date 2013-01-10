@@ -51,37 +51,24 @@ def markov(s):
 	return d
 
 def random_chain(matrix, length):
-	if [k for k,d in matrix.items() if not d]:
-		def add_leaves(d, l, p, path_name):
-			depth = len(path_name)
-			subtrees = None
-			if depth == length:
-				l.append((path_name, p))
-			elif depth == 0:
-				subtrees = [(key, 1.0/len(d.keys())) for key in d.keys()]
-			else:
-				subtrees = d[path_name[-1]].items()
-			if subtrees:
-				for key, prob in subtrees:
-					add_leaves(d, l, prob*p, path_name+key)
-		l = []
-		add_leaves(matrix, l, 1, '')
-		dist = [(k,p/sum(pr for _,pr in l)) for k,p in l]
-		r = random()
-		e = list(enumerate(dist))
-		land = [s for i,(s,p) in e if 0 < r - sum(pr for _,pr in dist[:i]) < p]
-		return land[0]
-	else:
-		r = int(random()*len(matrix))
-		string = matrix.keys()[r]
-		for j in range(length-1):
-			ch = string[-1]
+	def add_char(so_far):
+		dist = None
+		if len(so_far) == length:
+			return so_far
+		elif len(so_far) == 0:
+			dist = [(key, 1.0/len(matrix.keys())) for key in matrix.keys()]
+		else:
+			dist = matrix[so_far[-1]].items()
+		if dist:
 			k = random()
-			dist = matrix[ch].items()
-			e = list(enumerate(dist))
+			e = enumerate(dist)
 			land = [s for i,(s,p) in e if 0 < k - sum(pr for _,pr in dist[:i]) <= p]
-			string += land[0]
-		return string
+			return add_char(so_far+land[0])
+		else:
+			return add_char(so_far[:-1])
+	s = add_char('')
+	print s
+	return s
 
 def stringify(record):
 	tokens = []
@@ -92,7 +79,7 @@ def stringify(record):
 		next_vert = Interval(Note(next_lower), Note(next_upper)).generic.semiSimpleDirected
 		horiz = Interval(Note(first_lower), Note(next_lower)).generic.semiSimpleDirected
 		tokens.append((first_vert, horiz, next_vert))
-	trans = {tok:chr(i+100) for i,tok in enumerate(set(tokens))}
+	trans = {tok:unichr(i+100) for i,tok in enumerate(set(tokens))}
 	return "".join(trans[tok] for tok in tokens)
 
 if __name__ == "__main__":
