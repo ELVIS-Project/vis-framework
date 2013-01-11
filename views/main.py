@@ -32,25 +32,32 @@ from os import walk
 from os.path import splitext, join
 # PyQt4
 from PyQt4 import QtGui, uic, QtCore
-# vis
 
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
+   # Signals for connecting to the controllers
    files_added = QtCore.pyqtSignal(list)
    files_removed = QtCore.pyqtSignal(list)
+   show_import = QtCore.pyqtSignal()
+   show_analyze = QtCore.pyqtSignal()
+   show_working = QtCore.pyqtSignal()
+   show_about = QtCore.pyqtSignal()
+   show_experiment = QtCore.pyqtSignal()
 
    def __init__(self):
       super(VisQtMainWindow, self).__init__()
       self.ui = uic.loadUi('views/ui/new_main_window.ui')
       self.tool_import()
       self.ui.show()
+      # Connect signals
+      self.show_import.connect(self.tool_import)
+      self.show_analyze.connect(self.tool_analyze)
+      self.show_working.connect(self.tool_working)
+      self.show_about.connect(self.tool_about)
+      self.show_experiment.connect(self.tool_experiment)
 
-   def tool_import(self):
-      self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
-      self.ui.btn_analyze.setEnabled(False)
-      self.ui.btn_show.setEnabled(False)
-      self.ui.btn_step2.setEnabled(False)
+
 
    def add_files(self):
       files = QtGui.QFileDialog.getOpenFileNames(
@@ -82,17 +89,55 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       """
       pass
 
+   @QtCore.pyqtSlot()
+   def tool_import(self):
+      self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
+      self.ui.btn_about.setEnabled(True)
+      self.ui.btn_analyze.setEnabled(False)
+      self.ui.btn_experiment.setEnabled(False)
+      self.ui.btn_step1.setEnabled(True)
+      self.ui.btn_step2.setEnabled(False)
+
+   @QtCore.pyqtSlot()
    def tool_analyze(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_analyze)
+      self.ui.btn_analyze.setChecked(True)
+      self.ui.btn_about.setEnabled(True)
+      self.ui.btn_analyze.setEnabled(True)
+      self.ui.btn_experiment.setEnabled(False)
+      self.ui.btn_step1.setEnabled(False)
+      self.ui.btn_step2.setEnabled(True)
 
+   @QtCore.pyqtSlot()
    def tool_working(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_working)
+      # make sure nothing is enabled
+      self.ui.btn_about.setEnabled(False)
+      self.ui.btn_analyze.setEnabled(False)
+      self.ui.btn_experiment.setEnabled(False)
+      self.ui.btn_step1.setEnabled(False)
+      self.ui.btn_step2.setEnabled(False)
+      # make sure nothing is checked
+      self.ui.btn_about.setChecked(False)
+      self.ui.btn_analyze.setChecked(False)
+      self.ui.btn_choose_files.setChecked(False)
+      self.ui.btn_experiment.setChecked(False)
 
+   @QtCore.pyqtSlot()
    def tool_about(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_about)
+      # leave enabled/disabled as-is, but make sure only "about" is checked
+      self.ui.btn_about.setChecked(True)
+      self.ui.btn_analyze.setChecked(False)
+      self.ui.btn_choose_files.setChecked(False)
+      self.ui.btn_experiment.setChecked(False)
 
+   @QtCore.pyqtSlot()
    def tool_experiment(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_show)
-
-   #def tool_experiment(self):
-   #  self.ui.main_screen.setCurrentWidget(self.ui.page_experiment)
+      self.ui.btn_about.setEnabled(True)
+      self.ui.btn_analyze.setEnabled(True)
+      self.ui.btn_experiment.setEnabled(True)
+      self.ui.btn_experiment.setChecked(True)
+      self.ui.btn_step1.setEnabled(False)
+      self.ui.btn_step2.setEnabled(False)

@@ -97,7 +97,7 @@ class VisController(Controller):
          (ui.btn_choose_files.clicked, window.tool_import),
          (ui.btn_about.clicked, window.tool_about),
          (ui.btn_analyze.clicked, window.tool_analyze),
-         (ui.btn_show.clicked, window.tool_experiment),
+         (ui.btn_experiment.clicked, window.tool_experiment),
          (ui.btn_dir_add.clicked, window.add_dir),
          (window.files_added, self.importer.add_pieces),
          (ui.btn_file_add.clicked, window.add_files),
@@ -105,10 +105,11 @@ class VisController(Controller):
          (window.files_removed, self.importer.remove_pieces),
          (ui.btn_step1.clicked, window.tool_working),
          (ui.btn_step1.clicked, self.importer.import_pieces),
+         (self.importer.import_finished, window.show_analyze)
       ]
       for signal, slot in mapper:
          signal.connect(slot)
-      
+
       # Set the models for the table views.
       ui.gui_file_list.setModel(self.importer._list_of_files)
       #self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)

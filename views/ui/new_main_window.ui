@@ -66,7 +66,7 @@
           </size>
          </property>
          <property name="checkable">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="autoRaise">
           <bool>true</bool>
@@ -132,7 +132,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="btn_show">
+        <widget class="QToolButton" name="btn_experiment">
          <property name="enabled">
           <bool>false</bool>
          </property>
