@@ -213,8 +213,8 @@ class Importer(Controller):
          p.start()
          # Leave offset-interval and parts-combinations at defaults
       # return
-      self.import_finished.emit(post)
-      return post
+      self.import_finished.emit(self.post)
+      return self.post
 
 
 
