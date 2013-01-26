@@ -68,7 +68,7 @@ class Importer(Controller):
    # description of an error in the Importer
    error = pyqtSignal(str)
    # signal for each individual import
-   piece_getter_finished = pyqtSignal(Score)
+   piece_gotten = pyqtSignal(Score, str)
    # informs the GUI of the status for a currently-running import (if two or
    # three characters followed by a '%' then it should try to update a
    # progress bar, if available)
@@ -81,7 +81,10 @@ class Importer(Controller):
       Create a new Importer instance.
       '''
       super(Controller, self).__init__() # required for signals
+      self.piece_gotten.connect(self.catch_score)
       self._list_of_files = importing.ListOfFiles()
+      self.post = analyzing.ListOfPieces()
+      self.tasks_completed = 0
 
 
 
@@ -200,47 +203,67 @@ class Importer(Controller):
       Emits Importer.import_finished with the ListOfPieces when the import
       operation is completed, and returns the ListOfPieces.
       '''
-      # NB: I must initialize the offset_intervals field to [0.5]
-      # NB: I must initialize the parts_combinations field to []
-
       # hold the ListOfPieces that we'll return
       self.post = analyzing.ListOfPieces()
+      self.tasks_completed = 0
       jobs = []
       for each_path in self._list_of_files:
          # Try to import the piece
          p = Process(target=self._piece_getter, args=(each_path,))
          jobs.append(p)
          p.start()
-         # Leave offset-interval and parts-combinations at defaults
+      for job in jobs:
+         job.join()
       # return
       self.import_finished.emit(self.post)
       return self.post
 
 
 
-   @pyqtSlot(Score)
-   def catch_score(self, score):
+   @pyqtSlot(Score, str)
+   def catch_score(self, score, path):
       '''
       Slot for the Importer.piece_getter_finished signal. Adds the analyzed piece
       to the list of currently-imported pieces.
       '''
+      # NB: I must initialize the offset_intervals field to [0.5]
+      # NB: I must initialize the parts_combinations field to []
       # Did it fail? Report the error
-      if this_piece is None:
-         self.error.emit('Unable to import this file: ' + str(each_path))
+      if score is None:
+         self.error.emit('Unable to import this file: ' + str(path))
       # Otherwise keep working
       else:
          # prepare the ListOfPieces!
-         self.post.insertRows(post.rowCount(), 1)
+         self.post.insertRows(self.post.rowCount(), 1)
          new_row = self.post.rowCount() - 1
          self.post.setData((new_row, analyzing.ListOfPieces.filename),
-                      each_path,
+                      path,
                       Qt.EditRole)
          self.post.setData((new_row, analyzing.ListOfPieces.score),
-                      (this_piece, Importer._find_piece_title(this_piece)),
+                      (score, Importer._find_piece_title(score)),
                       Qt.EditRole)
          self.post.setData((new_row, analyzing.ListOfPieces.parts_list),
-                      Importer._find_part_names(this_piece),
+                      Importer._find_part_names(score),
                       Qt.EditRole)
+         # Leave offset-interval and parts-combinations at defaults
+      self.tasks_completed += 1
+      percentage = float(self.tasks_completed)/len([f for f in self._list_of_files])*100
+      self.status.emit('{0:f}%'.format(percentage))
+
+
+
+   def get_piece(self, pathname):
+      '''
+      Wrapper for _piece_getter to manage signals.
+      '''
+      post = None
+      try:
+         post = self._piece_getter(pathname)
+      except converter.ArchiveManagerException, converter.PickleFilterException:
+         self.error.emit('Unable to import this file: ' + str(pathname))
+      except converter.ConverterException, converter.ConverterFileException:
+         self.error.emit('Unable to import this file: ' + str(pathname))
+      self.piece_gotten.emit(post, pathname)
 
 
 
@@ -251,17 +274,7 @@ class Importer(Controller):
       This method should only be called by the Importer.import_pieces() method,
       which coordinates multiprocessing.
       '''
-      try:
-         post = converter.parseFile(pathname)
-      except converter.ArchiveManagerException, converter.PickleFilterException:
-         # these are the exceptions I found in the music21 'converter.py' file
-         post = None
-         self.error.emit('Unable to import this file: ' + str(pathname))
-      except converter.ConverterException, converter.ConverterFileException:
-         # these are the exceptions I found in the music21 'converter.py' file
-         post = None
-         self.error.emit('Unable to import this file: ' + str(pathname))
-      self.piece_getter_finished.emit(post)
+      post = converter.parseFile(pathname)
       return post
 
 

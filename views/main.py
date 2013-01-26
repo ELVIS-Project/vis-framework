@@ -89,6 +89,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       """
       pass
 
+   @QtCore.pyqtSlot(str)
+   def update_progress_bar(self, progress):
+      pass
+
    @QtCore.pyqtSlot()
    def tool_import(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_choose)

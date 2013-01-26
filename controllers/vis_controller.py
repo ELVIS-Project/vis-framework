@@ -38,6 +38,8 @@ from controllers.importer import Importer
 from controllers.analyzer import Analyzer
 from controllers.experimenter import Experimenter
 from controllers.display_handler import DisplayHandler
+# PyQt4
+from PyQt4.QtGui import QApplication
 
 
 
@@ -65,7 +67,7 @@ class VisController(Controller):
 
 
 
-   def __init__(self, interface='PyQt4', details=None):
+   def __init__(self, arg, interface='PyQt4', details=None):
       '''
       Create a new VisController instance.
 
@@ -79,6 +81,8 @@ class VisController(Controller):
       '''
       # Setup things we need to know
       self.UI_type = interface
+
+      self.app = QApplication(arg)
 
       # NOTE: this will change when we allow multiple interfaces
       self.window = VisQtMainWindow()
@@ -104,6 +108,8 @@ class VisController(Controller):
          (window.files_removed, self.importer.remove_pieces),
          (ui.btn_step1.clicked, window.tool_working),
          (ui.btn_step1.clicked, self.importer.import_pieces),
+         (self.importer.status, window.update_progress_bar),
+         (self.importer.status, self.processEvents),
          (self.importer.import_finished, window.show_analyze)
       ]
       for signal, slot in mapper:
@@ -112,4 +118,21 @@ class VisController(Controller):
       # Set the models for the table views.
       ui.gui_file_list.setModel(self.importer._list_of_files)
       #self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)
+
+
+
+   def processEvents(*args):
+      '''
+      This method is just an interface to 'forget' the arguments of a signal
+      which requires updating the GUI.
+      '''
+      self.app.processEvents()
+
+
+
+   def exec_(self):
+      '''
+      Runs the application.
+      '''
+      return self.app.exec_()
 # End class VisController ------------------------------------------------------
