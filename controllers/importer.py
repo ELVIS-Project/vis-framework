@@ -33,7 +33,7 @@ Holds the Importer controller.
 from os import path
 from multiprocessing import Process
 # PyQt4
-from PyQt4.QtCore import pyqtSignal, Qt
+from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 # music21
 from music21 import converter
 from music21.stream import Score
@@ -220,10 +220,10 @@ class Importer(Controller):
 
    @pyqtSlot(Score)
    def catch_score(self, score):
-   '''
-   Slot for the Importer.piece_getter_finished signal. Adds the analyzed piece
-   to the list of currently-imported pieces.
-   '''
+      '''
+      Slot for the Importer.piece_getter_finished signal. Adds the analyzed piece
+      to the list of currently-imported pieces.
+      '''
       # Did it fail? Report the error
       if this_piece is None:
          self.error.emit('Unable to import this file: ' + str(each_path))
