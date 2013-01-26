@@ -47,7 +47,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
    def __init__(self):
       super(VisQtMainWindow, self).__init__()
-      self.ui = uic.loadUi('views/ui/new_main_window.ui')
+      self.ui = uic.loadUi('views/ui/main_window.ui')
       self.tool_import()
       self.ui.show()
       # Connect signals
@@ -59,40 +59,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
 
-   def add_files(self):
-      files = QtGui.QFileDialog.getOpenFileNames(
-         None,
-         "Choose Files to Analyze",
-         '',
-         '*.nwc *.mid *.midi *.mxl *.krn *.xml *.md',
-         None)
-      if files:
-         self.files_added.emit([str(f) for f in files])
-
-   def add_dir(self):
-      d = QtGui.QFileDialog.getExistingDirectory(\
-         None,
-         "Choose Directory to Analyze",
-         '',
-         QtGui.QFileDialog.ShowDirsOnly)
-      d = str(d)
-      extensions = ['.nwc.', '.mid','.midi','.mxl','.krn','.xml','.md']
-      possible_files = chain(*[[join(path,fp) for fp in files if
-                        splitext(fp)[1] in extensions]
-                        for path,names,files in walk(d)])
-      self.files_added.emit(list(possible_files))
-
-   def remove_files(self):
-      """
-      Method which finds which files the user has selected for
-      removal and emits a signal containing their names.
-      """
-      pass
-
-   @QtCore.pyqtSlot(str)
-   def update_progress_bar(self, progress):
-      pass
-
+   # Methods Doing GUI Stuff ---------------------------------------------------
+   # Pressing Buttons in the Toolbar -----------------------
    @QtCore.pyqtSlot()
    def tool_import(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
@@ -126,6 +94,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.btn_analyze.setChecked(False)
       self.ui.btn_choose_files.setChecked(False)
       self.ui.btn_experiment.setChecked(False)
+      # Disable the details-selection until a particular piece is selected
+      self.ui.grp_settings_for_piece.setEnabled(False)
+      self.ui.grp_settings_for_piece.setVisible(False)
 
    @QtCore.pyqtSlot()
    def tool_about(self):
@@ -145,3 +116,42 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.btn_experiment.setChecked(True)
       self.ui.btn_step1.setEnabled(False)
       self.ui.btn_step2.setEnabled(False)
+
+   # Operations on the Importer panel ----------------------
+   @QtCore.pyqtSlot()
+   def add_files(self):
+      files = QtGui.QFileDialog.getOpenFileNames(
+         None,
+         "Choose Files to Analyze",
+         '',
+         '*.nwc *.mid *.midi *.mxl *.krn *.xml *.md',
+         None)
+      if files:
+         self.files_added.emit([str(f) for f in files])
+
+   @QtCore.pyqtSlot()
+   def add_dir(self):
+      d = QtGui.QFileDialog.getExistingDirectory(\
+         None,
+         "Choose Directory to Analyze",
+         '',
+         QtGui.QFileDialog.ShowDirsOnly)
+      d = str(d)
+      extensions = ['.nwc.', '.mid','.midi','.mxl','.krn','.xml','.md']
+      possible_files = chain(*[[join(path,fp) for fp in files if
+                        splitext(fp)[1] in extensions]
+                        for path,names,files in walk(d)])
+      self.files_added.emit(list(possible_files))
+
+   @QtCore.pyqtSlot()
+   def remove_files(self):
+      """
+      Method which finds which files the user has selected for
+      removal and emits a signal containing their names.
+      """
+      pass
+
+   # Other Things ------------------------------------------
+   @QtCore.pyqtSlot(str)
+   def update_progress_bar(self, progress):
+      pass
