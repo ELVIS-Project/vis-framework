@@ -27,7 +27,7 @@
 # python
 import unittest
 # music21
-from music21 import note
+from music21 import note, converter
 # vis
 from test_corpus import event_finder_short
 from models import analyzing
@@ -286,7 +286,335 @@ class TestEventFinderShort(unittest.TestCase):
 
 class TestEventFinderLong(unittest.TestCase):
    # Test _event_finder() with long excerpts
-   pass
+
+   def test_madrigal_1(self):
+      #tests madrigal51.mxl (cruda amarilli) offset = 0.5, we're salami slicing
+      the_analyzer = analyzer.Analyzer()
+      madrigal = converter.parse('test_corpus/madrigal51.mxl')
+      actual_result = analyzing.AnalysisRecord()
+      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
+                                            types=[note.Note,  note.Rest],
+                                            offset=0.5,
+                                            salami=True,
+                                            record=actual_result)
+      expected_result = [(0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 # m. 2
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (0.0, ('B4', 'D5')),
+                                 (6.0, ('A4', 'C5')),
+                                 (6.0, ('A4', 'C5')),
+                                 (7.0, ('G4', 'B4')),
+                                 (7.0, ('G4', 'B4')),
+                                 # m. 3
+                                 (8.0, ('F#4', 'A4')),
+                                 (8.0, ('F#4', 'A4')),
+                                 (8.0, ('F#4', 'A4')),
+                                 (8.0, ('F#4', 'A4')),
+                                 (8.0, ('F#4', 'A4')),
+                                 (8.0, ('F#4', 'A4')),
+                                 (8.0, ('F#4', 'A4')),
+                                 (8.0, ('F#4', 'A4')),
+                                 # m. 4
+                                 (12.0, ('G4', 'B4')),
+                                 (12.0, ('G4', 'B4')),
+                                 (12.0, ('G4', 'B4')),
+                                 (12.0, ('G4', 'B4')),
+                                 (14.0, ('G4', 'G5')),
+                                 (14.0, ('G4', 'G5')),
+                                 (14.0, ('G4', 'G5')),
+                                 (14.0, ('G4', 'G5')),
+                                 # m. 5
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 # m. 6
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (16.0, ('E5', 'G5')),
+                                 (22.0, ('D5', 'F5')),
+                                 (22.0, ('D5', 'F5')),
+                                 (23.0, ('C5', 'E5')),
+                                 (23.0, ('C5', 'E5')),
+                                 # m. 7
+                                 (24.0, ('B4', 'D5')),
+                                 (24.0, ('B4', 'D5')),
+                                 (24.0, ('B4', 'D5')),
+                                 (24.0, ('B4', 'D5')),
+                                 (24.0, ('B4', 'D5')),
+                                 (24.0, ('B4', 'D5')),
+                                 (24.0, ('B4', 'D5')),
+                                 (24.0, ('B4', 'D5')),
+                                 # m. 8
+                                 (28.0, ('C5', 'C5')),
+                                 (28.0, ('C5', 'C5')),
+                                 (28.0, ('C5', 'C5')),
+                                 (28.0, ('C5', 'C5')),
+                                 (28.0, ('C5', 'C5')),
+                                 (28.0, ('C5', 'C5')),
+                                 (28.0, ('C5', 'C5')),
+                                 (28.0, ('C5', 'C5')),
+                                 # m. 9
+                                 (32.0, ('G4', 'C5')),
+                                 (32.0, ('G4', 'C5')),
+                                 (32.0, ('G4', 'C5')),
+                                 (33.5, ('G4', 'C5')),
+                                 (34.0, ('A4', 'C5')),
+                                 (34.0, ('A4', 'C5')),
+                                 (35.0, ('B4', 'D5')),
+                                 (35.0, ('B4', 'D5')),
+                                 # m. 10
+                                 (36.0, ('C5', 'F5')),
+                                 (36.0, ('C5', 'F5')),
+                                 (36.0, ('C5', 'F5')),
+                                 (36.0, ('C5', 'F5')),
+                                 (38.0, ('C5', 'E5')),
+                                 (38.0, ('C5', 'E5')),
+                                 (39.0, ('C5', 'F#5')),
+                                 (39.0, ('C5', 'F#5'))]
+      self.assertEqual(expected_result,  actual_result._record[:80])
+
+
+
+#   def test_madrigal_2(self):
+#      #tests madrigal51.mxl (cruda amarilli) offset = 1.0, we're salami slicing
+#      the_analyzer = analyzer.Analyzer()
+#      madrigal = converter.parse('test_corpus/madrigal51.mxl')
+#      actual_result = analyzing.AnalysisRecord()
+#      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
+#                                            types=[note.Note,  note.Rest],
+#                                            offset=1.0,
+#                                            salami=True,
+#                                            record=actual_result)
+#      expected_result = [(0.0, ('B4', 'D5')),
+#                                 (0.0, ('B4', 'D5')),
+#                                 (0.0, ('B4', 'D5')),
+#                                 (0.0, ('B4', 'D5')),
+#                                 # m. 2
+#                                 (0.0, ('B4', 'D5')),
+#                                 (0.0, ('B4', 'D5')),
+#                                 (6.0, ('A4', 'C5')),
+#                                 (7.0, ('G4', 'B4')),
+#                                 # m. 3
+#                                 (8.0, ('F#4', 'A4')),
+#                                 (8.0, ('F#4', 'A4')),
+#                                 (8.0, ('F#4', 'A4')),
+#                                 (8.0, ('F#4', 'A4')),
+#                                 # m. 4
+#                                 (12.0, ('G4', 'B4')),
+#                                 (12.0, ('G4', 'B4')),
+#                                 (14.0, ('G4', 'G5')),
+#                                 (14.0, ('G4', 'G5')),
+#                                 # m. 5
+#                                 (16.0, ('E5', 'G5')),
+#                                 (16.0, ('E5', 'G5')),
+#                                 (16.0, ('E5', 'G5')),
+#                                 (16.0, ('E5', 'G5')),
+#                                 # m. 6
+#                                 (16.0, ('E5', 'G5')),
+#                                 (16.0, ('E5', 'G5')),
+#                                 (22.0, ('D5', 'F5')),
+#                                 (23.0, ('C5', 'E5')),
+#                                 # m. 7
+#                                 (24.0, ('B4', 'D5')),
+#                                 (24.0, ('B4', 'D5')),
+#                                 (24.0, ('B4', 'D5')),
+#                                 (24.0, ('B4', 'D5')),
+#                                 # m. 8
+#                                 (28.0, ('C5', 'C5')),
+#                                 (28.0, ('C5', 'C5')),
+#                                 (28.0, ('C5', 'C5')),
+#                                 (28.0, ('C5', 'C5')),
+#                                 # m. 9
+#                                 (32.0, ('G4', 'C5')),
+#                                 (32.0, ('G4', 'C5')),
+#                                 (34.0, ('A4', 'C5')),
+#                                 (35.0, ('B4', 'D5')),
+#                                 # m. 10
+#                                 (36.0, ('C5', 'F5')),
+#                                 (36.0, ('C5', 'F5')),
+#                                 (38.0, ('C5', 'E5')),
+#                                 (39.0, ('C5', 'F#5'))]
+#      self.assertEqual(expected_result,  actual_result._record[:40])
+#
+#
+#
+#
+#   def test_madrigal_3(self):
+#      #tests madrigal51.mxl (cruda amarilli) offset = 2.0, we're salami slicing
+#      the_analyzer = analyzer.Analyzer()
+#      madrigal = converter.parse('test_corpus/madrigal51.mxl')
+#      actual_result = analyzing.AnalysisRecord()
+#      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
+#                                            types=[note.Note,  note.Rest],
+#                                            offset=2.0,
+#                                            salami=True,
+#                                            record=actual_result)
+#      expected_result = [(0.0, ('B4', 'D5')),
+#                                 (0.0, ('B4', 'D5')),
+#                                 # m. 2
+#                                 (0.0, ('B4', 'D5')),
+#                                 (6.0, ('A4', 'C5')),
+#                                 # m. 3
+#                                 (8.0, ('F#4', 'A4')),
+#                                 (8.0, ('F#4', 'A4')),
+#                                 # m. 4
+#                                 (12.0, ('G4', 'B4')),
+#                                 (14.0, ('G4', 'G5')),
+#                                 # m. 5
+#                                 (16.0, ('E5', 'G5')),
+#                                 (16.0, ('E5', 'G5')),
+#                                 # m. 6
+#                                 (16.0, ('E5', 'G5')),
+#                                 (22.0, ('D5', 'F5')),
+#                                 # m. 7
+#                                 (24.0, ('B4', 'D5')),
+#                                 (24.0, ('B4', 'D5')),
+#                                 # m. 8
+#                                 (28.0, ('C5', 'C5')),
+#                                 (28.0, ('C5', 'C5')),
+#                                 # m. 9
+#                                 (32.0, ('G4', 'C5')),
+#                                 (34.0, ('A4', 'C5')),
+#                                 # m. 10
+#                                 (36.0, ('C5', 'F5')),
+#                                 (38.0, ('C5', 'E5'))]
+#      self.assertEqual(expected_result,  actual_result._record[:20])
+
+
+
+   def test_madrigal_4(self):
+      #tests madrigal51.mxl (cruda amarilli) offset = 0.5, we're NOT salami slicing
+      the_analyzer = analyzer.Analyzer()
+      madrigal = converter.parse('test_corpus/madrigal51.mxl')
+      actual_result = analyzing.AnalysisRecord()
+      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
+                                            types=[note.Note,  note.Rest],
+                                            offset=0.5,
+                                            salami=False,
+                                            record=actual_result)
+      expected_result = [(0.0, ('B4', 'D5')),
+                                 # m. 2
+                                 (6.0, ('A4', 'C5')),
+                                 (7.0, ('G4', 'B4')),
+                                 # m. 3
+                                 (8.0, ('F#4', 'A4')),
+                                 # m. 4
+                                 (12.0, ('G4', 'B4')),
+                                 (14.0, ('G4', 'G5')),
+                                 # m. 5
+                                 (16.0, ('E5', 'G5')),
+                                 # m. 6
+                                 (22.0, ('D5', 'F5')),
+                                 (23.0, ('C5', 'E5')),
+                                 # m. 7
+                                 (24.0, ('B4', 'D5')),
+                                 # m. 8
+                                 (28.0, ('C5', 'C5')),
+                                 # m. 9
+                                 (32.0, ('G4', 'C5')),
+                                 (34.0, ('A4', 'C5')),
+                                 (35.0, ('B4', 'D5')),
+                                 # m. 10
+                                 (36.0, ('C5', 'F5')),
+                                 (38.0, ('C5', 'E5')),
+                                 (39.0, ('C5', 'F#5'))]
+      self.assertEqual(expected_result,  actual_result._record[:17])
+
+
+
+
+   def test_madrigal_5(self):
+      #tests madrigal51.mxl (cruda amarilli) offset = 1.0, we're NOT salami slicing
+      the_analyzer = analyzer.Analyzer()
+      madrigal = converter.parse('test_corpus/madrigal51.mxl')
+      actual_result = analyzing.AnalysisRecord()
+      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
+                                            types=[note.Note,  note.Rest],
+                                            offset=1.0,
+                                            salami=False,
+                                            record=actual_result)
+      expected_result = [(0.0, ('B4', 'D5')),
+                                 # m. 2
+                                 (6.0, ('A4', 'C5')),
+                                 (7.0, ('G4', 'B4')),
+                                 # m. 3
+                                 (8.0, ('F#4', 'A4')),
+                                 # m. 4
+                                 (12.0, ('G4', 'B4')),
+                                 (14.0, ('G4', 'G5')),
+                                 # m. 5
+                                 (16.0, ('E5', 'G5')),
+                                 # m. 6
+                                 (22.0, ('D5', 'F5')),
+                                 (23.0, ('C5', 'E5')),
+                                 # m. 7
+                                 (24.0, ('B4', 'D5')),
+                                 # m. 8
+                                 (28.0, ('C5', 'C5')),
+                                 # m. 9
+                                 (32.0, ('G4', 'C5')),
+                                 (34.0, ('A4', 'C5')),
+                                 (35.0, ('B4', 'D5')),
+                                 # m. 10
+                                 (36.0, ('C5', 'F5')),
+                                 (38.0, ('C5', 'E5')),
+                                 (39.0, ('C5', 'F#5'))]
+      self.assertEqual(expected_result,  actual_result._record[:17])
+
+
+
+
+   def test_madrigal_6(self):
+      #tests madrigal51.mxl (cruda amarilli) offset = 2.0, we're NOT salami slicing
+      the_analyzer = analyzer.Analyzer()
+      madrigal = converter.parse('test_corpus/madrigal51.mxl')
+      actual_result = analyzing.AnalysisRecord()
+      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
+                                            types=[note.Note,  note.Rest],
+                                            offset=2.0,
+                                            salami=False,
+                                            record=actual_result)
+      expected_result = [(0.0, ('B4', 'D5')),
+                                 # m. 2
+                                 (6.0, ('A4', 'C5')),
+                                 # m. 3
+                                 (8.0, ('F#4', 'A4')),
+                                 # m. 4
+                                 (12.0, ('G4', 'B4')),
+                                 (14.0, ('G4', 'G5')),
+                                 # m. 5
+                                 (16.0, ('E5', 'G5')),
+                                 # m. 6
+                                 (22.0, ('D5', 'F5')),
+                                 # m. 7
+                                 (24.0, ('B4', 'D5')),
+                                 # m. 8
+                                 (28.0, ('C5', 'C5')),
+                                 # m. 9
+                                 (32.0, ('G4', 'C5')),
+                                 (34.0, ('A4', 'C5')),
+                                 # m. 10
+                                 (36.0, ('C5', 'F5')),
+                                 (38.0, ('C5', 'E5'))]
+      self.assertEqual(expected_result,  actual_result._record[:13])
+
+
+
 # End TestEventFinderLong ------------------------------------------------------
 
 
@@ -296,4 +624,4 @@ class TestEventFinderLong(unittest.TestCase):
 #-------------------------------------------------------------------------------
 #run_analysis_suite = unittest.TestLoader().loadTestsFromTestCase(TestRunAnalysis)
 analyzer_event_finder_short_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderShort)
-#event_finder_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderLong)
+analyzer_event_finder_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderLong)
