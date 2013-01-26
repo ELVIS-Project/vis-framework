@@ -97,27 +97,31 @@ class VisController(Controller):
       window = self.window
       ui = window.ui
       mapper = [
+         # GUI-only Signals
          (ui.btn_choose_files.clicked, window.tool_import),
          (ui.btn_about.clicked, window.tool_about),
          (ui.btn_analyze.clicked, window.tool_analyze),
          (ui.btn_experiment.clicked, window.tool_experiment),
          (ui.btn_dir_add.clicked, window.add_dir),
-         (window.files_added, self.importer.add_pieces),
          (ui.btn_file_add.clicked, window.add_files),
          (ui.btn_file_remove.clicked, window.remove_files),
-         (window.files_removed, self.importer.remove_pieces),
          (ui.btn_step1.clicked, window.tool_working),
+         # GUI-and-Controller Signals
+         (self.importer.import_finished, window.show_analyze),
          (ui.btn_step1.clicked, self.importer.import_pieces),
          (self.importer.status, window.update_progress_bar),
          (self.importer.status, self.processEvents),
-         (self.importer.import_finished, window.show_analyze)
+         (window.files_removed, self.importer.remove_pieces),
+         (window.files_added, self.importer.add_pieces),
+         # Inter-controller Signals
+         (self.importer.import_finished, self.analyzer.catch_import)
       ]
       for signal, slot in mapper:
          signal.connect(slot)
 
       # Set the models for the table views.
       ui.gui_file_list.setModel(self.importer._list_of_files)
-      #self.gui_pieces_list.setModel(self.analyzer.list_of_pieces)
+      ui.gui_pieces_list.setModel(self.analyzer._list_of_pieces)
 
 
 

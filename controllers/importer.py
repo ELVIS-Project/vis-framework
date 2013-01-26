@@ -192,6 +192,7 @@ class Importer(Controller):
 
 
 
+   @pyqtSlot()
    def import_pieces(self):
       '''
       Transforms the current ListOfFiles into a ListOfPieces by importing the
@@ -203,6 +204,10 @@ class Importer(Controller):
       Emits Importer.import_finished with the ListOfPieces when the import
       operation is completed, and returns the ListOfPieces.
       '''
+      # NB: I must initialize the offset_intervals field to [0.5]
+      # NB: I must initialize the parts_combinations field to []
+      print('Len of _list_of_files: ' + str(self._list_of_files.rowCount())) # DEBUGGING
+
       # hold the ListOfPieces that we'll return
       self.post = analyzing.ListOfPieces()
       self.tasks_completed = 0
@@ -215,6 +220,7 @@ class Importer(Controller):
       for job in jobs:
          job.join()
       # return
+      print('Len of pre-signal _list_of_pieces: ' + str(self.post.rowCount())) # DEBUGGING
       self.import_finished.emit(self.post)
       return self.post
 
