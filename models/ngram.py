@@ -98,7 +98,7 @@ class NGram(object):
       '''
       Returns the retrograde (backwards) n-gram of self.
       '''
-      return NGram( self._list_of_intervals[::-1] )
+      return NGram( self._list_of_events[::-1] )
 
 
 
@@ -200,13 +200,7 @@ class NGram(object):
 
 
 
-
-
-
-
-
-
-class IntervalNGram(object):
+class IntervalNGram(NGram):
    '''
    Represents an n-gram of vertical intervals connected by the horizontal
    interval of the lower voice.
@@ -346,7 +340,7 @@ class IntervalNGram(object):
       # Hold the str we're making
       post = ''
 
-      # We need to consider every index of _list_of_intervals, which contains
+      # We need to consider every index of _list_of_events, which contains
       # the vertical intervals of this IntervalNGram.
       for i, interv in enumerate(self._list_of_events):
          # If post isn't empty, this isn't the first interval added, so we need
