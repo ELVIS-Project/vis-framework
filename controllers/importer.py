@@ -31,10 +31,12 @@ Holds the Importer controller.
 # Imports from...
 # python
 from os import path
+from multiprocessing import Process
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, Qt
 # music21
 from music21 import converter
+from music21.stream import Score
 # vis
 from controllers.controller import Controller
 from models import importing, analyzing
@@ -65,6 +67,8 @@ class Importer(Controller):
    import_finished = pyqtSignal(analyzing.ListOfPieces)
    # description of an error in the Importer
    error = pyqtSignal(str)
+   # signal for each individual import
+   piece_getter_finished = pyqtSignal(Score)
    # informs the GUI of the status for a currently-running import (if two or
    # three characters followed by a '%' then it should try to update a
    # progress bar, if available)
@@ -200,37 +204,47 @@ class Importer(Controller):
       # NB: I must initialize the parts_combinations field to []
 
       # hold the ListOfPieces that we'll return
-      post = analyzing.ListOfPieces()
-
+      self.post = analyzing.ListOfPieces()
+      jobs = []
       for each_path in self._list_of_files:
          # Try to import the piece
-         this_piece = Importer._piece_getter(each_path)
-         # Did it fail? Report the error
-         if this_piece is None:
-            Importer.error.emit('Unable to import this file: ' + str(each_path))
-         # Otherwise keep working
-         else:
-            # prepare the ListOfPieces!
-            post.insertRows(post.rowCount(), 1)
-            new_row = post.rowCount() - 1
-            post.setData((new_row, analyzing.ListOfPieces.filename),
-                         each_path,
-                         Qt.EditRole)
-            post.setData((new_row, analyzing.ListOfPieces.score),
-                         (this_piece, Importer._find_piece_title(this_piece)),
-                         Qt.EditRole)
-            post.setData((new_row, analyzing.ListOfPieces.parts_list),
-                         Importer._find_part_names(this_piece),
-                         Qt.EditRole)
-            # Leave offset-interval and parts-combinations at defaults
+         p = Process(target=self._piece_getter, args=(each_path,))
+         jobs.append(p)
+         p.start()
+         # Leave offset-interval and parts-combinations at defaults
       # return
       self.import_finished.emit(post)
       return post
 
 
 
-   @staticmethod
-   def _piece_getter(pathname):
+   @pyqtSlot(Score)
+   def catch_score(self, score):
+   '''
+   Slot for the Importer.piece_getter_finished signal. Adds the analyzed piece
+   to the list of currently-imported pieces.
+   '''
+      # Did it fail? Report the error
+      if this_piece is None:
+         self.error.emit('Unable to import this file: ' + str(each_path))
+      # Otherwise keep working
+      else:
+         # prepare the ListOfPieces!
+         self.post.insertRows(post.rowCount(), 1)
+         new_row = self.post.rowCount() - 1
+         self.post.setData((new_row, analyzing.ListOfPieces.filename),
+                      each_path,
+                      Qt.EditRole)
+         self.post.setData((new_row, analyzing.ListOfPieces.score),
+                      (this_piece, Importer._find_piece_title(this_piece)),
+                      Qt.EditRole)
+         self.post.setData((new_row, analyzing.ListOfPieces.parts_list),
+                      Importer._find_part_names(this_piece),
+                      Qt.EditRole)
+
+
+
+   def _piece_getter(self, pathname):
       '''
       Load a file and import it to music21. Return the Score object.
 
@@ -247,7 +261,7 @@ class Importer(Controller):
          # these are the exceptions I found in the music21 'converter.py' file
          post = None
          self.error.emit('Unable to import this file: ' + str(pathname))
-
+      self.piece_getter_finished.emit(post)
       return post
 
 

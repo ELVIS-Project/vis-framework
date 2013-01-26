@@ -1,7 +1,7 @@
 from math import log
 from random import random
 from collections import defaultdict
-from suffix_tree import SuffixTree
+from suffix_tree import GeneralisedSuffixTree
 from music21.interval import Interval
 from music21.note import Note
 # NB: requires SuffixTree, from http://www.daimi.au.dk/~mailund/suffix_tree.html
@@ -18,42 +18,47 @@ will give the index of repetition, where `record` is an AnalysisRecord in the lo
 '''
 
 def I_r(record):
-	s = stringify(record)
+	s = stringify(record)[0]
 	return log(A_o(s)/A_e(s))
 
-def A_o(s):
-	t = SuffixTree(s)
+def A_o(*args):
+	t = GeneralisedSuffixTree(list(args))
 	return sum(n.parent.stringDepth + 1 for n in t.leaves) - 1
 
-def A_e(s):
-	m = markov(s)
+def A_e(*args):
+	m = markov(args)
+	print m
 	print 'estimating expectation'
 	ret = 0
 	diff = 1000.0
 	n = 0
+	donts = [[[None] for i in range(len(a))] for a in args]
 	while diff > 0.01:
 		print '...'
-		r = random_chain(m,len(s))
-		a = float(A_o(r) + n*ret)/(n+1)
+		chains = [random_chain(m,len(a),donts[i]) for i,a in enumerate(args)]
+		a = float(A_o(*chains) + n*ret)/(n+1)
 		diff = abs(a - ret)
 		ret = a
 		n += 1
 	return ret
-	
-def markov(s):
+
+def markov(*args):
 	print 'computing transition matrix'
 	d = {}
-	for ch in set(s):
+	print args
+	for ch in set("".join(*args)):
+		print ch
 		dd = defaultdict(float)
-		nexts = [j for i,j in zip(s,s[1:]) if i==ch]
-		for next in nexts:
-			dd[next] += 1.0/len(nexts)
+		for s in args:
+			nexts = [j for i,j in zip(s,s[1:]) if i==ch]
+			print nexts
+			for next in nexts:
+				dd[next] += 1.0
 		d[ch] = dict(dd)
 	return d
 
-def random_chain(matrix, length):
+def random_chain(matrix, length, dont_try, code):
 	def add_char(so_far):
-		dont_try = [[None] for i in range(length)]
 		while len(so_far) < length:
 			dist = None
 			if len(so_far) == 0:
@@ -70,6 +75,7 @@ def random_chain(matrix, length):
 					land = [s for i,(s,p) in e if 0 < k - sum(pr for _,pr in dist[:i]) <= p]
 					so_far += land[0]
 				else:
+					dont_try[len(so_far)-1].append(so_far[-1])
 					so_far = so_far[:-1]
 			else:
 				dont_try[len(so_far)-1].append(so_far[-1])
@@ -84,14 +90,14 @@ def stringify(record):
 		_, (first_lower, first_upper) = first
 		_, (next_lower, next_upper) = next
 		try:
-			first_vert = Interval(Note(first_lower), Note(first_upper)).generic.semiSimpleDirected
-			next_vert = Interval(Note(next_lower), Note(next_upper)).generic.semiSimpleDirected
-			horiz = Interval(Note(first_lower), Note(next_lower)).generic.semiSimpleDirected
+			first_vert = Interval(Note(first_lower), Note(first_upper)).generic.directed
+			next_vert = Interval(Note(next_lower), Note(next_upper)).generic.directed
+			horiz = Interval(Note(first_lower), Note(next_lower)).generic.directed
 			tokens.append((first_vert, horiz, next_vert))
 		except:
 			continue
 	trans = {tok:unichr(i+100) for i,tok in enumerate(set(tokens))}
-	return "".join(trans[tok] for tok in tokens)
+	return ("".join(trans[tok] for tok in tokens),trans)
 
 if __name__ == "__main__":
 	st = '''	Lose away off why half led have near bed. At engage simple father of period others except. My giving do summer of though narrow marked at. Spring formal no county ye waited. My whether cheered at regular it of promise blushes perhaps. Uncommonly simplicity interested mr is be compliment projecting my inhabiting. Gentleman he september in oh excellent. 

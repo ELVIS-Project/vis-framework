@@ -6,6 +6,15 @@ from math import log
 import csv
 import sys
 
+def piece_to_records(piece):
+	importer, analyzer = Importer(), Analyzer()
+	importer.add_pieces([piece])
+	importer.import_finished.connect(analyzer.catch_import)
+	l = importer.import_pieces()
+	analyzer.set_data(l.createIndex(0,ListOfPieces.parts_combinations), 
+						[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]])
+	return analyzer.run_analysis()
+
 if __name__ == '__main__':
 	pieces = sys.argv[1:]
 
@@ -19,14 +28,14 @@ if __name__ == '__main__':
 			l = importer.import_pieces()
 			print 'import finished.'
 			info = list(l.iterateRows())
-			analyzer.set_data(l.createIndex(0,ListOfPieces.parts_combinations), [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]])
+			analyzer.set_data(l.createIndex(0,ListOfPieces.parts_combinations), 
+								[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]])
 			print 'analyzing...'
 			writer.writerow([info[0][1][1]])
-			writer.writerow(['Parts', 'A_o', 'A_e (estimated)', 'I_r'])
-			for record in analyzer.run_analysis():
-				s = stringify(record)
-				n, d = A_o(s), A_e(s)
-				part1, part2 = tuple(record.part_names())
-				writer.writerow([str(part1)+" & "+str(part2), n, d, log(n/d)])
+			writer.writerow(['A_o', 'A_e (estimated)', 'I_r'])
+			strs = [stringify(r)[0] for r in analyzer.run_analysis()]
+			print strs
+			n, d = A_o(*strs), A_e(*strs)
+			writer.writerow([n, d, log(n/d)])
 			print 'analysis finished.'
 		print 'results written to "results.csv"'

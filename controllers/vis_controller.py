@@ -43,8 +43,7 @@ from controllers.display_handler import DisplayHandler
 
 class VisController(Controller):
    '''
-   Subclasses the automatically-generated python code in Ui_main_window that
-   creates the GUI. Although there is a dependency on QtCore, for the PyQt
+   Main GUI Controller. Although there is a dependency on QtCore, for the PyQt
    signals-and-slots mechanism, we must try to avoid using QtGui methods as
    much as possible, so that, in the future, we can use other GUIs without
    importing Ui_main_window from the PyQt GUI.

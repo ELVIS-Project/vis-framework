@@ -29,6 +29,8 @@ Holds the Analyzer controller.
 
 
 # Imports from...
+# Python
+from multiprocessing import Process
 # music21
 from music21 import note
 # PyQt4
@@ -98,8 +100,7 @@ class Analyzer(Controller):
       analyses, then emits Analyzer.status and, if appropriate,
       Analyzer.analysis_finished.
       '''
-      # TODO: write this method
-      pass
+      self.post.append(this_record)
 
 
 
@@ -142,23 +143,29 @@ class Analyzer(Controller):
       #   the _part_combo_finished() to do its job
 
       # hold the list of AnalysisRecord objects to return
-      post = []
+      self.post = []
 
+      jobs = []
       # Run the analyses
       for each_piece in self._list_of_pieces.iterateRows():
          results = None
          for combo in each_piece[4]:
             try:
                parts = [each_piece[1][0].parts[i] for i in combo]
-               results = self._event_finder(parts,[note.Note, note.Rest],2.0,False,AnalysisRecord(part_names=[p.id for p in parts]))
+               args = (parts,
+                       [note.Note, note.Rest],
+                       2.0,
+                       False,
+                       AnalysisRecord(part_names=[p.id for p in parts]))
+               p = Process(target=self._event_finder, args=args)
+               jobs.append(p)
+               p.start()
             except Exception:
                pass
-            else:
-               post.append(results)
 
       # Return
-      self.analysis_finished.emit(post)
-      return post
+      self.analysis_finished.emit(self.post)
+      return self.post
 
 
 
