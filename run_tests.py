@@ -44,6 +44,7 @@ from models_tests.test_analyzing import *
 
 # Controllers ------------------------------------------------------------------
 # Importer -- all tests pass
+unittest.TextTestRunner(verbosity=verb).run(importer_piece_getter_suite)
 unittest.TextTestRunner(verbosity=verb).run(importer_part_and_titles_suite)
 unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite)
 unittest.TextTestRunner(verbosity=verb).run(importer_remove_pieces_suite)
