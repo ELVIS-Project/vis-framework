@@ -39,6 +39,7 @@ from controllers_tests.test_importer import *
 from controllers_tests.test_analyzer import *
 from models_tests.test_importing import *
 from models_tests.test_analyzing import *
+from models_tests.test_ngram import *
 
 
 
@@ -54,6 +55,7 @@ unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite)
 
 # Analyzer
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_short_suite)
+unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_suite)
 
 
 
@@ -69,7 +71,7 @@ unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
 
 
 
-# Analyzing -- all tests pass
+# Analyzing
 unittest.TextTestRunner(verbosity=verb).run(lop_basics_suite)
 unittest.TextTestRunner(verbosity=verb).run(lop_insert_and_remove_suite)
 unittest.TextTestRunner(verbosity=verb).run(lop_iterate_rows_suite)
@@ -80,3 +82,4 @@ unittest.TextTestRunner(verbosity=verb).run(ar_init_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_iter_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_getters_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_append_event_suite)
+unittest.TextTestRunner(verbosity=verb).run(test_interval_ngram_suite) # doesn't work

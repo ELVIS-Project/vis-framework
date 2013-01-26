@@ -25,14 +25,14 @@
 
 import unittest
 from music21 import interval, note
-from NGram import NGram
-from VISSettings import VISSettings
-from problems import MissingInformationError, NonsensicalInputError
+from models import ngram
+#from VISSettings import VISSettings
+#from problems import MissingInformationError, NonsensicalInputError
 
 
 
 #-------------------------------------------------------------------------------
-class TestNGram( unittest.TestCase ):
+class TestIntervalNGram( unittest.TestCase ):
    def setUp( self ):
       # 'm3 P1 m3'
       self.a = [interval.Interval(note.Note('A4'),note.Note('C5')), \
@@ -461,4 +461,4 @@ class TestNGram( unittest.TestCase ):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-suite = unittest.TestLoader().loadTestsFromTestCase( TestNGram )
+test_interval_ngram_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalNGram)
