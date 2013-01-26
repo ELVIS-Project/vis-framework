@@ -208,7 +208,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -350,17 +350,23 @@
            <string>Assemble Results, Statistics, Analyses</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0">
-            <widget class="QPushButton" name="btn_load_statistics">
-             <property name="enabled">
-              <bool>false</bool>
+           <item row="0" column="4">
+            <spacer name="verticalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
              </property>
-             <property name="text">
-              <string>Load Existing Statistics Database</string>
+             <property name="sizeType">
+              <enum>QSizePolicy::Maximum</enum>
              </property>
-            </widget>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>5</height>
+              </size>
+             </property>
+            </spacer>
            </item>
-           <item row="0" column="2" rowspan="2">
+           <item row="5" column="4" rowspan="2">
             <widget class="QGroupBox" name="grp_settings_for_piece">
              <property name="title">
               <string>Settings for Piece</string>
@@ -571,20 +577,33 @@
                 </property>
                </spacer>
               </item>
-              <item row="3" column="0" colspan="3">
-               <widget class="QLabel" name="lbl_select_piece">
-                <property name="text">
-                 <string>Select piece(s) to see possible settings.</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
              </layout>
             </widget>
            </item>
-           <item row="0" column="1">
+           <item row="3" column="4">
+            <spacer name="verticalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="2" column="4">
+            <widget class="QLabel" name="lbl_select_piece">
+             <property name="text">
+              <string>Select piece(s) to see possible settings.</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
             <spacer name="horizontalSpacer_6">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -597,7 +616,30 @@
              </property>
             </spacer>
            </item>
-           <item row="1" column="0" colspan="2">
+           <item row="0" column="0">
+            <widget class="QPushButton" name="btn_load_statistics">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>Load Existing Statistics Database</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="4">
+            <spacer name="verticalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="0" rowspan="6" colspan="3">
             <widget class="QTableView" name="gui_pieces_list">
              <property name="selectionBehavior">
               <enum>QAbstractItemView::SelectRows</enum>
