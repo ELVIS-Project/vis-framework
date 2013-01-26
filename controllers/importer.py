@@ -31,7 +31,7 @@ Holds the Importer controller.
 # Imports from...
 # python
 from os import path
-from multiprocessing import Process
+from multiprocessing import Process, Value
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt
 # music21
@@ -214,7 +214,7 @@ class Importer(Controller):
       jobs = []
       for each_path in self._list_of_files:
          # Try to import the piece
-         p = Process(target=self._piece_getter, args=(each_path,))
+         p = Process(target=self.get_piece, args=(each_path,))
          jobs.append(p)
          p.start()
       for job in jobs:

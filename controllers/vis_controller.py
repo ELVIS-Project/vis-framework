@@ -125,7 +125,7 @@ class VisController(Controller):
 
 
 
-   def processEvents(*args):
+   def processEvents(self, *args):
       '''
       This method is just an interface to 'forget' the arguments of a signal
       which requires updating the GUI.
