@@ -134,7 +134,7 @@ class VisController(Controller):
       needed because the GUI doesn't have access to the Analyzer controller,
       and therefore can't know where the proper ListOfPieces is.
       '''
-      print('got here') # DEBUGGING
+      print('*** you are in prepare_import()') # DEBUGGING
       #self.window.ui.show_working.emit() # update the GUI
       self.importer.run_import.emit(self.analyzer._list_of_pieces) # run import
 

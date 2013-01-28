@@ -194,14 +194,12 @@ class Importer(Controller):
       return True
 
 
-
    @pyqtSlot(analyzing.ListOfPieces)
    def import_pieces(self, the_pieces):
+      # TODO: replace this with the following version, which uses multiprocessing
       '''
       Transforms the current ListOfFiles into a ListOfPieces by importing the
       files specified, then extracting data as needed.
-
-      The argument is the ListOfPieces into which to load the data.
 
       Emits Importer.error if a file cannot be imported, but continues to
       import the rest of the files.
@@ -211,61 +209,109 @@ class Importer(Controller):
       '''
       # NB: I must initialize the offset_intervals field to [0.5]
       # NB: I must initialize the parts_combinations field to []
-      print('Len of _list_of_files: ' + str(self._list_of_files.rowCount())) # DEBUGGING
 
       # hold the ListOfPieces that we'll return
-      #self.post = analyzing.ListOfPieces()
-      self.post = the_pieces
-      self.tasks_completed = 0
-      jobs = []
+      post = the_pieces
+
       for each_path in self._list_of_files:
          # Try to import the piece
-         p = Process(target=self.get_piece, args=(each_path,))
-         jobs.append(p)
-         p.start()
-      for job in jobs:
-         job.join()
+         this_piece = self._get_piece(each_path)
+         # Did it fail? Report the error
+         if this_piece is None:
+            self.error.emit('Unable to import this file: ' + str(each_path))
+         # Otherwise keep working
+         else:
+            # prepare the ListOfPieces!
+            post.insertRows(post.rowCount(), 1)
+            new_row = post.rowCount() - 1
+            post.setData((new_row, analyzing.ListOfPieces.filename),
+                         each_path,
+                         Qt.EditRole)
+            post.setData((new_row, analyzing.ListOfPieces.score),
+                         (this_piece, Importer._find_piece_title(this_piece)),
+                         Qt.EditRole)
+            post.setData((new_row, analyzing.ListOfPieces.parts_list),
+                         Importer._find_part_names(this_piece),
+                         Qt.EditRole)
+            # Leave offset-interval and parts-combinations at defaults
       # return
-      print('Len of pre-signal _list_of_pieces: ' + str(self.post.rowCount())) # DEBUGGING
-      #self.import_finished.emit(self.post) # commented for DEBUGGING
       self.import_finished.emit()
-      return self.post
+      return post
+
+   # TODO: make this version work (it's the one with multiprocessing)
+   #@pyqtSlot(analyzing.ListOfPieces)
+   #def import_pieces(self, the_pieces):
+      #'''
+      #Transforms the current ListOfFiles into a ListOfPieces by importing the
+      #files specified, then extracting data as needed.
+
+      #The argument is the ListOfPieces into which to load the data.
+
+      #Emits Importer.error if a file cannot be imported, but continues to
+      #import the rest of the files.
+
+      #Emits Importer.import_finished with the ListOfPieces when the import
+      #operation is completed, and returns the ListOfPieces.
+      #'''
+      ## NB: I must initialize the offset_intervals field to [0.5]
+      ## NB: I must initialize the parts_combinations field to []
+      #print('Len of _list_of_files: ' + str(self._list_of_files.rowCount())) # DEBUGGING
+
+      ## hold the ListOfPieces that we'll return
+      ##self.post = analyzing.ListOfPieces()
+      #self.post = the_pieces
+      #self.tasks_completed = 0
+      #jobs = []
+      #for each_path in self._list_of_files:
+         ## Try to import the piece
+         #p = Process(target=self._get_piece, args=(each_path,))
+         #jobs.append(p)
+         #p.start()
+      #for job in jobs:
+         #job.join()
+      ## return
+      #print('Len of pre-signal _list_of_pieces: ' + str(self.post.rowCount())) # DEBUGGING
+      ##self.import_finished.emit(self.post) # commented for DEBUGGING
+      #self.import_finished.emit()
+      #return self.post
 
 
 
+   # TODO: uncomment this when you need it, which will be for the multiprocessing version of import_pieces()
    @pyqtSlot(Score, str)
    def catch_score(self, score, path):
-      '''
-      Slot for the Importer.piece_getter_finished signal. Adds the analyzed piece
-      to the list of currently-imported pieces.
-      '''
-      # NB: I must initialize the offset_intervals field to [0.5]
-      # NB: I must initialize the parts_combinations field to []
-      # Did it fail? Report the error
-      if score is None:
-         self.error.emit('Unable to import this file: ' + str(path))
-      # Otherwise keep working
-      else:
-         # prepare the ListOfPieces!
-         self.post.insertRows(self.post.rowCount(), 1)
-         new_row = self.post.rowCount() - 1
-         self.post.setData((new_row, analyzing.ListOfPieces.filename),
-                      path,
-                      Qt.EditRole)
-         self.post.setData((new_row, analyzing.ListOfPieces.score),
-                      (score, Importer._find_piece_title(score)),
-                      Qt.EditRole)
-         self.post.setData((new_row, analyzing.ListOfPieces.parts_list),
-                      Importer._find_part_names(score),
-                      Qt.EditRole)
-         # Leave offset-interval and parts-combinations at defaults
-      self.tasks_completed += 1
-      percentage = float(self.tasks_completed)/len([f for f in self._list_of_files])*100
-      self.status.emit('{0:f}%'.format(percentage))
+      pass
+      #'''
+      #Slot for the Importer.piece_getter_finished signal. Adds the analyzed piece
+      #to the list of currently-imported pieces.
+      #'''
+      ## NB: I must initialize the offset_intervals field to [0.5]
+      ## NB: I must initialize the parts_combinations field to []
+      ## Did it fail? Report the error
+      #if score is None:
+         #self.error.emit('Unable to import this file: ' + str(path))
+      ## Otherwise keep working
+      #else:
+         ## prepare the ListOfPieces!
+         #self.post.insertRows(self.post.rowCount(), 1)
+         #new_row = self.post.rowCount() - 1
+         #self.post.setData((new_row, analyzing.ListOfPieces.filename),
+                      #path,
+                      #Qt.EditRole)
+         #self.post.setData((new_row, analyzing.ListOfPieces.score),
+                      #(score, Importer._find_piece_title(score)),
+                      #Qt.EditRole)
+         #self.post.setData((new_row, analyzing.ListOfPieces.parts_list),
+                      #Importer._find_part_names(score),
+                      #Qt.EditRole)
+         ## Leave offset-interval and parts-combinations at defaults
+      #self.tasks_completed += 1
+      #percentage = float(self.tasks_completed)/len([f for f in self._list_of_files])*100
+      #self.status.emit('{0:f}%'.format(percentage))
 
 
 
-   def get_piece(self, pathname):
+   def _get_piece(self, pathname):
       '''
       Wrapper for _piece_getter to manage signals.
       '''
@@ -277,10 +323,12 @@ class Importer(Controller):
       except converter.ConverterException, converter.ConverterFileException:
          self.error.emit('Unable to import this file: ' + str(pathname))
       self.piece_gotten.emit(post, pathname)
+      return post # TODO: we only need this for the non-multiprocessing version!
 
 
 
-   def _piece_getter(self, pathname):
+   @staticmethod
+   def _piece_getter(pathname):
       '''
       Load a file and import it to music21. Return the Score object.
 
