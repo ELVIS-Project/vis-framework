@@ -98,14 +98,8 @@ class VisController(Controller):
       ui = window.ui
       mapper = [
          # GUI-only Signals
-         (ui.btn_choose_files.clicked, window.tool_import),
-         (ui.btn_about.clicked, window.tool_about),
-         (ui.btn_analyze.clicked, window.tool_analyze),
-         (ui.btn_experiment.clicked, window.tool_experiment),
-         (ui.btn_dir_add.clicked, window.add_dir),
-         (ui.btn_file_add.clicked, window.add_files),
-         (ui.btn_file_remove.clicked, window.remove_files),
-         (ui.btn_step1.clicked, window.tool_working),
+         # NB: These belong in the VisQtMainWindow class, since they depend
+         #     on the particular GUI being used.
          # GUI-and-Controller Signals
          (self.importer.import_finished, window.show_analyze),
          (ui.btn_step1.clicked, self.importer.import_pieces),

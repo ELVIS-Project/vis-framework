@@ -50,12 +50,24 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui = uic.loadUi('views/ui/main_window.ui')
       self.tool_import()
       self.ui.show()
-      # Connect signals
-      self.show_import.connect(self.tool_import)
-      self.show_analyze.connect(self.tool_analyze)
-      self.show_working.connect(self.tool_working)
-      self.show_about.connect(self.tool_about)
-      self.show_experiment.connect(self.tool_experiment)
+      # Setup GUI-only Signals
+      mapper = [
+         (self.show_import, self.tool_import),
+         (self.show_analyze, self.tool_analyze),
+         (self.show_working, self.tool_working),
+         (self.show_about, self.tool_about),
+         (self.show_experiment, self.tool_experiment),
+         (self.ui.btn_choose_files.clicked, self.tool_import),
+         (self.ui.btn_about.clicked, self.tool_about),
+         (self.ui.btn_analyze.clicked, self.tool_analyze),
+         (self.ui.btn_experiment.clicked, self.tool_experiment),
+         (self.ui.btn_dir_add.clicked, self.add_dir),
+         (self.ui.btn_file_add.clicked, self.add_files),
+         (self.ui.btn_file_remove.clicked, self.remove_files),
+         (self.ui.btn_step1.clicked, self.tool_working),
+      ]
+      for signal, slot in mapper:
+         signal.connect(slot)
 
 
 
