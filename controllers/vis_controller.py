@@ -40,6 +40,7 @@ from controllers.experimenter import Experimenter
 from controllers.display_handler import DisplayHandler
 # PyQt4
 from PyQt4.QtGui import QApplication
+from PyQt4 import QtCore
 
 
 
@@ -67,6 +68,11 @@ class VisController(Controller):
 
 
 
+   # Signals
+   run_the_import = QtCore.pyqtSignal()
+
+
+
    def __init__(self, arg, interface='PyQt4', details=None):
       '''
       Create a new VisController instance.
@@ -79,13 +85,14 @@ class VisController(Controller):
       The second argument, "details", is a list of arguments specifying settings
       to be used when creating the specific interface. So far, there are none.
       '''
+      super(Controller, self).__init__() # required for signals
+
       # Setup things we need to know
       self.UI_type = interface
-
       self.app = QApplication(arg)
 
       # NOTE: this will change when we allow multiple interfaces
-      self.window = VisQtMainWindow()
+      self.window = VisQtMainWindow(self)
 
       # Create long-term sub-controllers
       self.importer = Importer()
@@ -94,28 +101,42 @@ class VisController(Controller):
       self.displayer = DisplayHandler()
 
       # Setup signals
-      window = self.window
-      ui = window.ui
+      #window = self.window
+      #ui = window.ui
       mapper = [
          # GUI-only Signals
          # NB: These belong in the VisQtMainWindow class, since they depend
          #     on the particular GUI being used.
          # GUI-and-Controller Signals
-         (self.importer.import_finished, window.show_analyze),
-         (ui.btn_step1.clicked, self.importer.import_pieces),
-         (self.importer.status, window.update_progress_bar),
+         (self.importer.import_finished, self.window.show_analyze),
+         (self.window.ui.btn_step1.clicked, self.prepare_import),
+         (self.importer.status, self.window.update_progress_bar),
          (self.importer.status, self.processEvents),
-         (window.files_removed, self.importer.remove_pieces),
-         (window.files_added, self.importer.add_pieces),
+         (self.window.files_removed, self.importer.remove_pieces),
+         (self.window.files_added, self.importer.add_pieces),
+         (self.run_the_import, self.prepare_import)
          # Inter-controller Signals
-         (self.importer.import_finished, self.analyzer.catch_import)
+         #(self.importer.import_finished, self.analyzer.catch_import) # DEBUGGING... probably don't need this
       ]
       for signal, slot in mapper:
          signal.connect(slot)
 
       # Set the models for the table views.
-      ui.gui_file_list.setModel(self.importer._list_of_files)
-      ui.gui_pieces_list.setModel(self.analyzer._list_of_pieces)
+      self.window.ui.gui_file_list.setModel(self.importer._list_of_files)
+      self.window.ui.gui_pieces_list.setModel(self.analyzer._list_of_pieces)
+
+
+
+   @QtCore.pyqtSlot()
+   def prepare_import(self):
+      '''
+      Emits the signal Importer.import_pieces with the proper argument. This is
+      needed because the GUI doesn't have access to the Analyzer controller,
+      and therefore can't know where the proper ListOfPieces is.
+      '''
+      print('got here') # DEBUGGING
+      #self.window.ui.show_working.emit() # update the GUI
+      self.importer.run_import.emit(self.analyzer._list_of_pieces) # run import
 
 
 

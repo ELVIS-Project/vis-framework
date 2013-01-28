@@ -62,9 +62,9 @@ class Importer(Controller):
    # whether the add/remove operation was successful
    add_remove_success = pyqtSignal(bool)
    # create a ListOfPieces from the ListOfFiles
-   run_import = pyqtSignal()
+   run_import = pyqtSignal(analyzing.ListOfPieces)
    # the result of importer_import
-   import_finished = pyqtSignal(analyzing.ListOfPieces)
+   import_finished = pyqtSignal()
    # description of an error in the Importer
    error = pyqtSignal(str)
    # signal for each individual import
@@ -80,8 +80,11 @@ class Importer(Controller):
       '''
       Create a new Importer instance.
       '''
+      # signals
       super(Controller, self).__init__() # required for signals
       self.piece_gotten.connect(self.catch_score)
+      self.run_import.connect(self.import_pieces)
+      # other things
       self._list_of_files = importing.ListOfFiles()
       self.post = analyzing.ListOfPieces()
       self.tasks_completed = 0
@@ -192,11 +195,13 @@ class Importer(Controller):
 
 
 
-   @pyqtSlot()
-   def import_pieces(self):
+   @pyqtSlot(analyzing.ListOfPieces)
+   def import_pieces(self, the_pieces):
       '''
       Transforms the current ListOfFiles into a ListOfPieces by importing the
       files specified, then extracting data as needed.
+
+      The argument is the ListOfPieces into which to load the data.
 
       Emits Importer.error if a file cannot be imported, but continues to
       import the rest of the files.
@@ -209,7 +214,8 @@ class Importer(Controller):
       print('Len of _list_of_files: ' + str(self._list_of_files.rowCount())) # DEBUGGING
 
       # hold the ListOfPieces that we'll return
-      self.post = analyzing.ListOfPieces()
+      #self.post = analyzing.ListOfPieces()
+      self.post = the_pieces
       self.tasks_completed = 0
       jobs = []
       for each_path in self._list_of_files:
@@ -221,7 +227,8 @@ class Importer(Controller):
          job.join()
       # return
       print('Len of pre-signal _list_of_pieces: ' + str(self.post.rowCount())) # DEBUGGING
-      self.import_finished.emit(self.post)
+      #self.import_finished.emit(self.post) # commented for DEBUGGING
+      self.import_finished.emit()
       return self.post
 
 

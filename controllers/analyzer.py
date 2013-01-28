@@ -80,8 +80,10 @@ class Analyzer(Controller):
       '''
       Create a new Analyzer instance.
       '''
+      # signals
       super(Controller, self).__init__() # required for signals
-      self._list_of_pieces = None
+      # other things
+      self._list_of_pieces = ListOfPieces()
       self._list_of_analyses = []
 
 
@@ -106,6 +108,7 @@ class Analyzer(Controller):
 
    @QtCore.pyqtSlot(ListOfPieces)
    def catch_import(self, pieces_list):
+      # TODO: I think this method is unnecessary and should be removed
       '''
       Slot for the Importer.import_finished signal. This method is called
       when the Importer controller has finished importing the list of pieces.

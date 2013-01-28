@@ -44,9 +44,15 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
    show_working = QtCore.pyqtSignal()
    show_about = QtCore.pyqtSignal()
    show_experiment = QtCore.pyqtSignal()
+   run_the_import = QtCore.pyqtSignal() # DEBUGGING
 
-   def __init__(self):
-      super(VisQtMainWindow, self).__init__()
+   def __init__(self, vis_controller):
+      '''
+      The argument is the instance of VisController controlling this class. It's
+      used to send signals.
+      '''
+      super(VisQtMainWindow, self).__init__() # required for signals
+      self.vis_controller = vis_controller
       self.ui = uic.loadUi('views/ui/main_window.ui')
       self.tool_import()
       self.ui.show()
@@ -57,6 +63,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          (self.show_working, self.tool_working),
          (self.show_about, self.tool_about),
          (self.show_experiment, self.tool_experiment),
+         # TODO: decide whether we need these, or we should just use the signals from the previous line
          (self.ui.btn_choose_files.clicked, self.tool_import),
          (self.ui.btn_about.clicked, self.tool_about),
          (self.ui.btn_analyze.clicked, self.tool_analyze),
@@ -109,6 +116,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # Disable the details-selection until a particular piece is selected
       self.ui.grp_settings_for_piece.setEnabled(False)
       self.ui.grp_settings_for_piece.setVisible(False)
+      # DEBUGGING: hope this works!
+      self.vis_controller.run_the_import.emit()
 
    @QtCore.pyqtSlot()
    def tool_about(self):
