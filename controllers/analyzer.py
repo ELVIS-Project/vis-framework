@@ -148,7 +148,9 @@ class Analyzer(Controller):
       # hold the list of AnalysisRecord objects to return
       self.post = []
 
-      jobs = []
+      # TODO: uncomment multiprocessing stuff, make it work
+
+      #jobs = []
       # Run the analyses
       for each_piece in self._list_of_pieces.iterateRows():
          for combo in each_piece[4]:
@@ -158,11 +160,12 @@ class Analyzer(Controller):
                     2.0,
                     False,
                     AnalysisRecord(part_names=[p.id for p in parts]))
-            p = Process(target=self._event_finder, args=args)
-            jobs.append(p)
-            p.start()
-      for job in jobs:
-         job.join()
+            self.post.append(self._event_finder(args))
+            #p = Process(target=self._event_finder, args=args)
+            #jobs.append(p)
+            #p.start()
+      #for job in jobs:
+      #   job.join()
       # Return
       self.analysis_finished.emit(self.post)
       return self.post
