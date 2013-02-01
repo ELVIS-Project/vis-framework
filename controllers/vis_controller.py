@@ -108,15 +108,15 @@ class VisController(Controller):
          # NB: These belong in the VisQtMainWindow class, since they depend
          #     on the particular GUI being used.
          # GUI-and-Controller Signals
+         # TODO: remove all of these... things touching the GUIs should be moved
+         #     into the GUIs themselves, and the GUIs should use signals to
+         #     communicate with the vis_controller
          (self.importer.import_finished, self.window.show_analyze),
-         (self.window.ui.btn_step1.clicked, self.prepare_import),
          (self.importer.status, self.window.update_progress_bar),
          (self.importer.status, self.processEvents),
          (self.window.files_removed, self.importer.remove_pieces),
          (self.window.files_added, self.importer.add_pieces),
          (self.run_the_import, self.prepare_import)
-         # Inter-controller Signals
-         #(self.importer.import_finished, self.analyzer.catch_import) # DEBUGGING... probably don't need this
       ]
       for signal, slot in mapper:
          signal.connect(slot)
@@ -134,9 +134,8 @@ class VisController(Controller):
       needed because the GUI doesn't have access to the Analyzer controller,
       and therefore can't know where the proper ListOfPieces is.
       '''
-      print('*** you are in prepare_import()') # DEBUGGING
-      #self.window.ui.show_working.emit() # update the GUI
-      self.importer.run_import.emit(self.analyzer._list_of_pieces) # run import
+      # Signal the Importer to run the import process
+      self.importer.run_import.emit(self.analyzer._list_of_pieces)
 
 
 

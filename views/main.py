@@ -44,7 +44,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
    show_working = QtCore.pyqtSignal()
    show_about = QtCore.pyqtSignal()
    show_experiment = QtCore.pyqtSignal()
-   run_the_import = QtCore.pyqtSignal() # DEBUGGING
 
    def __init__(self, vis_controller):
       '''
@@ -84,6 +83,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
    def tool_import(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
       self.ui.btn_about.setEnabled(True)
+      self.ui.btn_choose_files.setEnabled(True)
       self.ui.btn_analyze.setEnabled(False)
       self.ui.btn_experiment.setEnabled(False)
       self.ui.btn_step1.setEnabled(True)
@@ -92,6 +92,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
    @QtCore.pyqtSlot()
    def tool_analyze(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_analyze)
+      self.ui.btn_choose_files.setEnabled(False)
       self.ui.btn_analyze.setChecked(True)
       self.ui.btn_about.setEnabled(True)
       self.ui.btn_analyze.setEnabled(True)
@@ -104,6 +105,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.main_screen.setCurrentWidget(self.ui.page_working)
       # make sure nothing is enabled
       self.ui.btn_about.setEnabled(False)
+      self.ui.btn_choose_files.setEnabled(False)
       self.ui.btn_analyze.setEnabled(False)
       self.ui.btn_experiment.setEnabled(False)
       self.ui.btn_step1.setEnabled(False)
@@ -116,7 +118,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # Disable the details-selection until a particular piece is selected
       self.ui.grp_settings_for_piece.setEnabled(False)
       self.ui.grp_settings_for_piece.setVisible(False)
-      # DEBUGGING: hope this works!
+      # Tell the vis_controller to run the import process
       self.vis_controller.run_the_import.emit()
 
    @QtCore.pyqtSlot()
@@ -132,6 +134,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
    def tool_experiment(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_show)
       self.ui.btn_about.setEnabled(True)
+      self.ui.btn_choose_files.setEnabled(False)
       self.ui.btn_analyze.setEnabled(True)
       self.ui.btn_experiment.setEnabled(True)
       self.ui.btn_experiment.setChecked(True)
