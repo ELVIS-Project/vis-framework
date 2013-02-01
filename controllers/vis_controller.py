@@ -69,7 +69,11 @@ class VisController(Controller):
 
 
    # Signals
+   # When the GUI knows the user wants to import the files in the list
    run_the_import = QtCore.pyqtSignal()
+   # When a user adds or removes a file (or some files) to or from the list
+   import_files_added = QtCore.pyqtSignal(list)
+   import_files_removed = QtCore.pyqtSignal(list)
 
 
 
@@ -94,15 +98,19 @@ class VisController(Controller):
       # NOTE: this will change when we allow multiple interfaces
       self.window = VisQtMainWindow(self)
 
-      # Create long-term sub-controllers
+      # Create the sub-controllers
       self.importer = Importer()
       self.analyzer = Analyzer()
       self.experimenter = Experimenter()
       self.displayer = DisplayHandler()
 
+      # Setup the sub-controller signals
+      self.importer.setup_signals()
+      self.analyzer.setup_signals()
+      self.experimenter.setup_signals()
+      self.displayer.setup_signals()
+
       # Setup signals
-      #window = self.window
-      #ui = window.ui
       mapper = [
          # GUI-only Signals
          # NB: These belong in the VisQtMainWindow class, since they depend
@@ -111,12 +119,33 @@ class VisController(Controller):
          # TODO: remove all of these... things touching the GUIs should be moved
          #     into the GUIs themselves, and the GUIs should use signals to
          #     communicate with the vis_controller
+         # Signals Sent between Controllers/GUIs -------------------------------
          (self.importer.import_finished, self.window.show_analyze),
-         (self.importer.status, self.window.update_progress_bar),
+         # status
+         (self.importer.status, self.window.update_progress),
+         (self.analyzer.status, self.window.update_progress),
+         (self.experimenter.status, self.window.update_progress),
+         # error
+         (self.importer.error, self.window.report_error),
+         (self.analyzer.error, self.window.report_error),
+         (self.experimenter.error, self.window.report_error),
+         # others
+         (self.import_files_added, self.importer.add_pieces),
+         (self.import_files_removed, self.importer.remove_pieces),
+         # Signals Sent by GUIs (and Handled Here) -----------------------------
+         (self.run_the_import, self.prepare_import),
+         # Signals Sent by other Controllers (and Handled Here) ----------------
          (self.importer.status, self.processEvents),
-         (self.window.files_removed, self.importer.remove_pieces),
-         (self.window.files_added, self.importer.add_pieces),
-         (self.run_the_import, self.prepare_import)
+         (self.analyzer.status, self.processEvents),
+         (self.experimenter.status, self.processEvents),
+         # TODO: connect these signals
+         # self.importer.add_remove_success
+         # self.analyzer.analysis_finished
+         # self.analyzer.run_analysis
+         # self.change_settings
+         # self.experimenter.set
+         # self.experimenter.run_experiment
+         # self.experimenter.experiment_finished
       ]
       for signal, slot in mapper:
          signal.connect(slot)

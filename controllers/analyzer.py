@@ -90,6 +90,9 @@ class Analyzer(Controller):
 
    def setup_signals(self):
       self.event_finder_finished.connect(self._part_combo_finished)
+      self.run_analysis.connect(self.analyze_pieces)
+      self.change_settings.connect(self.set_data)
+
 
 
    @QtCore.pyqtSlot(AnalysisRecord)
@@ -119,6 +122,7 @@ class Analyzer(Controller):
 
 
 
+   @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QVariant)
    def set_data(self, index, change_to):
       '''
       Changes the data in a cell of the ListOfPieces model.
@@ -129,7 +133,8 @@ class Analyzer(Controller):
 
 
 
-   def run_analysis(self):
+   @QtCore.pyqtSlot()
+   def analyze_pieces(self):
       '''
       Runs the analysis specified in the ListOfPieces. Produces an
       AnalysisRecord object for each voice pair analyzed.
@@ -205,7 +210,6 @@ class Analyzer(Controller):
       to or less than the int with the same index in the second list,
       returns True.
       '''
-      #print('*** checking continue with ' + str(current_index))# DEBUGGING
       # TODO: test this method
       for index in xrange(len(current_index)):
          if current_index[index] <= last_index[index]:
@@ -261,7 +265,7 @@ class Analyzer(Controller):
       If given only one Part object, event_finder() acts essentially like an
       overly-complicated filter.
 
-      This method should only be called from the Analyzer.run_analysis() method,
+      This method should only be called from the Analyzer.analyze_pieces() method,
       which coordinates multiprocessing.
 
       Emits the Analyzer.event_finder_finished signal with the AnalysisRecord,
