@@ -135,20 +135,23 @@ class ListOfPieces(QAbstractTableModel):
          row = index[0]
          column = index[1]
 
+      # Return value
+      post = None
+
       if 0 <= row < len(self._pieces) and 0 <= column < self._number_of_columns:
          if Qt.DisplayRole == role:
             # most things
             if column is ListOfPieces.score:
                # must choose the right sub-index
-               return self._pieces[row][ListOfPieces.score][1]
+               post = self._pieces[row][ListOfPieces.score]
+               post = post.toPyObject()[1] if isinstance(post, QVariant) else post[1]
             else:
-               return self._pieces[row][column]
+               post = self._pieces[row][column]
          elif role is ListOfPieces.ScoreRole and column is ListOfPieces.score:
-            return self._pieces[row][column][0]
-         else:
-            return None
-      else:
-         return None # is this right?
+            post = self._pieces[row][ListOfPieces.score]
+            post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
+
+      return post
 
 
 

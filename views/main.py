@@ -295,7 +295,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # TODO: rewrite this using the self.vis_controller.analyzer.change_settings signal
 
       # Which piece is/pieces are selected?
-      currently_selected = self.gui_pieces_list.selectedIndexes()
+      currently_selected = self.ui.gui_pieces_list.selectedIndexes()
 
       # Find the piece title and update it
       for cell in currently_selected:
@@ -304,14 +304,19 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             # Metadata object directly
 
             # Get the Score
-            piece = self.analysis_pieces.data(cell, 'raw_list').toPyObject()
+            piece = self.vis_controller.analyzer._list_of_pieces.data(cell, ListOfPieces.ScoreRole)#.toPyObject()
 
             # Make sure there's a Metadata object
             if piece.metadata is None:
                piece.insert(metadata.Metadata())
 
             # Update the title
-            piece.metadata.title = str(self.line_piece_title.text())
+            piece.metadata.title = str(self.ui.line_piece_title.text())
+
+            # Put it back
+            # NB: the second argument has to be 2-tuple with the Score object
+            # and the string that is the title, as specified in ListOfPieces
+            self.vis_controller.analyzer.change_settings.emit(cell, (piece, piece.metadata.title))
 
 
 
@@ -325,7 +330,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # TODO: rewrite this to deal with a wide range of part selections
 
       # If there are no named parts, we can't do this
-      if self.ui.part_checkboxes is None:
+      if self.part_checkboxes is None:
          return None
 
       # Hold indices of the selected checkboxes
@@ -663,12 +668,12 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
       # Find the parts lists and update them
       for cell in currently_selected:
-         if ListOfPieces.parts_combinations == cell.column():
+         if ListOfPieces.parts_list == cell.column():
             # We're just going to change the part name in the model, not in the
             # actual Score object itself (which would require re-loading)
 
             # Get the Score
-            parts_list = self.vis_controller.analyzer._list_of_pieces.data(cell, 'raw_list')
+            parts_list = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole)
 
             # Update the part name as requested
             parts_list[part_index] = new_name
@@ -747,7 +752,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       '''
 
       # (1) Remove previous checkboxes from the layout
-      # NOTE: the .destroy() calls seem to do nothing
       if self.part_layouts is not None:
          for lay in self.part_layouts:
             for part in self.part_checkboxes:
@@ -756,7 +760,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             for button in self.edit_buttons:
                lay.removeWidget(button)
                button.close()
-            self.verticalLayout_22.removeItem(lay)
+            self.ui.verticalLayout_22.removeItem(lay)
             lay.invalidate()
 
       self.part_layouts = None
@@ -771,8 +775,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # (2) Get the list of parts
       list_of_parts = None
       for cell in currently_selected:
-         if ListOfPieces.parts_combinations == cell.column():
-            list_of_parts = self.vis_controller.analyzer._list_of_pieces.data(cell, 'raw_list')
+         if ListOfPieces.parts_list == cell.column():
+            list_of_parts = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole)
             break
 
       # (3) Put up a checkbox for each part
@@ -782,12 +786,12 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       for i in xrange(len(list_of_parts)):
          part_name = str(list_of_parts[i])
          # This is the New CheckBox to select this part
-         n_c_b = QtGui.QCheckBox(self.widget_part_boxes)
+         n_c_b = QtGui.QCheckBox(self.ui.widget_part_boxes)
          n_c_b.setObjectName('chk_' + part_name)
          n_c_b.setText(part_name)
 
          # This is the New BuTtoN to "Edit" this part's name
-         n_btn = QtGui.QPushButton(self.widget_part_boxes)
+         n_btn = QtGui.QPushButton(self.ui.widget_part_boxes)
          n_btn.setObjectName('btn_' + part_name)
          n_btn.setText('Edit Part Name')
          # NOTE: this should be improved later
@@ -808,7 +812,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
       # (4) Add all the widgets to the layout
       for part in self.part_layouts:
-         #self.verticalLayout_22.addWidget(part)
          self.ui.verticalLayout_22.addLayout(part)
    # End update_part_checkboxes() --------------------------
 
@@ -834,21 +837,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
    # Not a pyqtSlot
    def update_piece_settings_visibility(self, set_to):
       '''
-      Given True or False, calls .setVisible() on all the widgets in the
-      "Settings for Piece" QGroupBox with that value, and with the opposite
-      value for self.lbl_select_piece
+      Given True or False, makes visible and enables (or makes invisible and
+      disables) everything in the "Settings for Piece" QGroupBox (and the box
+      itself), and the opposite for self.lbl_select_piece
       '''
-      #self.ui.line_values_of_n.setVisible(set_to)
-      self.ui.line_offset_interval.setVisible(set_to)
-      self.ui.btn_choose_note.setVisible(set_to)
-      self.ui.line_compare_these_parts.setVisible(set_to)
-      self.ui.chk_all_voice_combos.setVisible(set_to)
-      self.ui.chk_basso_seguente.setVisible(set_to)
-      self.ui.btn_add_check_combo.setVisible(set_to)
-      self.ui.line_piece_title.setVisible(set_to)
-      self.ui.lbl_piece_title.setVisible(set_to)
-      self.ui.lbl_compare_these_parts.setVisible(set_to)
-      self.ui.lbl_piece_title.setVisible(set_to)
-      #self.ui.lbl_values_of_n.setVisible(set_to)
-      self.ui.lbl_offset_interval.setVisible(set_to)
+      self.ui.grp_settings_for_piece.setVisible(set_to)
+      self.ui.grp_settings_for_piece.setEnabled(set_to)
       self.ui.lbl_select_piece.setVisible(not set_to)
