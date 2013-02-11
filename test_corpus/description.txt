@@ -6,3 +6,5 @@ madrigal51.mxl : from the music21 corpus, the file 'monteverdi/madrigal.5.1.mxl'
 sqOp76-4-i.midi : first movement of Joseph Haydn's String Quartet, Op.76 (available on the ELVIS website at http://elvis.music.mcgill.ca/node/1567)
 symphony6-i.midi : first movement of Peter Tchaikovsky's sixth Symphony, Op.74 (available on the ELVIS website at http://elvis.music.mcgill.ca/node/5608)
 prolationum-sanctus.midi : Sanctus from Ockeghem's "Missa Prolationum" (available on the ELVIS website at http://elvis.music.mcgill.ca/node/672)
+
+The "score examples" directory contains images of the score excerpts appearing in the automated tests.
