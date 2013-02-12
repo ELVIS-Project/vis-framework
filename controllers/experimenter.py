@@ -31,7 +31,7 @@ Holds the Experimenter controller.
 # Imports from...
 # vis
 from controller import Controller
-from models.experimenting import BooleanSetting, ChoiceSetting
+from models.experimenting import ExperimentSettings
 # music21
 from music21.interval import Interval
 from music21.note import Note
@@ -135,7 +135,8 @@ class Experiment(object):
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
       '''
-      # NOTE: You do not need to reimplement this method for subclasses.
+      # NOTE: In subclasses, you should implement a check system to ensure the
+      #       ExperimentSettings object has the right settings in it.
       super(Experiment, self).__init__()
       self._records = records
       self._settings = settings
@@ -172,7 +173,7 @@ class IntervalsLists(Experiment):
 
 
 
-   def __init__(self, records):
+   def __init__(self, records, settings):
       '''
       Create a new IntervalsLists.
 
@@ -184,15 +185,18 @@ class IntervalsLists(Experiment):
       - 'quality' : boolean, whether to print or suppress quality
       - 'simple or compound' : whether to print intervals in their single-octave
          ('simple') or actual ('compound') form.
-      -
       '''
-      settings = [BooleanSetting('quality','Include Quality'),
-                  ChoiceSetting('sc', 'Reduce Intervals to simple form?',
-                                ['Simple', 'Compound'])]
-      super(Experiment, self).__init__(records, settings)
+      # Check the ExperimentSettings object has the right settings
+      if settings.has('quality') and settings.has('simple or compound'):
+         super(Experiment, self).__init__(records, settings)
+      else:
+         msg = 'IntervalsLists requires "quality" and "simple or compound" settings'
+         raise KeyError(msg)
+
 
 
    def perform():
+      # TODO: write documentation and comments
       data = []
       for record in self._records:
          for first, second in zip(record,list(record)[1:]):

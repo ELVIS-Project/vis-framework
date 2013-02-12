@@ -833,6 +833,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          if ListOfPieces.offset_intervals == cell.column():
             self.vis_controller.analyzer._list_of_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
 
+      # Just to make sure we get rid of this
+      selector = None
+
 
 
    # Not a pyqtSlot
