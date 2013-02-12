@@ -34,6 +34,7 @@ from os.path import splitext, join
 from PyQt4 import QtGui, uic, QtCore
 # vis
 from models.analyzing import ListOfPieces
+from views.VisOffsetSelector import VisOffsetSelector
 
 
 
@@ -451,7 +452,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
       Assumes, with no good reason, that the value put in the textbox is good.
       '''
-      new_offset_interval = str(self.line_offset_interval.text())
+      new_offset_interval = str(self.ui.line_offset_interval.text())
 
       # Update the selected pieces
       # get the list of selected cells... for each one that is the "n"
@@ -820,7 +821,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
    # Slot for self.ui.btn_choose_note.clicked
    def launch_offset_selection(self):
       # Launch the offset-selection QDialog
-      selector = VisSelectOffset()
+      selector = VisOffsetSelector()
       chosen_offset = selector.trigger()
 
       # Update the QLineEdit
