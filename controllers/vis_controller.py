@@ -95,9 +95,6 @@ class VisController(Controller):
       self.UI_type = interface
       self.app = QApplication(arg)
 
-      # NOTE: this will change when we allow multiple interfaces
-      self.window = VisQtMainWindow(self)
-
       # Create the sub-controllers
       self.importer = Importer()
       self.analyzer = Analyzer()
@@ -109,6 +106,11 @@ class VisController(Controller):
       self.analyzer.setup_signals()
       self.experimenter.setup_signals()
       self.displayer.setup_signals()
+
+      # NOTE: this will change when we allow multiple interfaces
+      # NOTE-2: this must be after the sub-controllers are setup, because the
+      #         VisQtMainWindow refers to them directly.
+      self.window = VisQtMainWindow(self)
 
       # Setup signals
       mapper = [

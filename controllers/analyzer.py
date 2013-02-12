@@ -157,6 +157,8 @@ class Analyzer(Controller):
 
       #jobs = []
       # Run the analyses
+      # TODO: figure out what the indices of each_piece are supposed to be,
+      #       then substitute the proper variable names from ListOfPieces
       for each_piece in self._list_of_pieces.iterateRows():
          for combo in each_piece[4]:
             parts = [each_piece[1][0].parts[i] for i in combo]

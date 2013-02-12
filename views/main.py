@@ -82,6 +82,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          (self.ui.btn_file_add.clicked, self.add_files),
          (self.ui.btn_file_remove.clicked, self.remove_files),
          (self.ui.btn_step1.clicked, self.tool_working),
+         (self.ui.btn_step1.clicked, self.vis_controller.run_the_import.emit),
+         (self.ui.btn_step2.clicked, self.tool_working),
+         (self.ui.btn_step2.clicked, self.vis_controller.analyzer.run_analysis.emit),
          # Things that operate the GUI
          (self.ui.chk_all_voice_combos.stateChanged, self.adjust_bs),
          (self.ui.chk_all_voice_combos.clicked, self.all_voice_combos),
@@ -110,6 +113,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.btn_step1.setEnabled(True)
       self.ui.btn_step2.setEnabled(False)
 
+
+
    @QtCore.pyqtSlot()
    def tool_analyze(self):
       self.ui.main_screen.setCurrentWidget(self.ui.page_analyze)
@@ -120,6 +125,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.btn_experiment.setEnabled(False)
       self.ui.btn_step1.setEnabled(False)
       self.ui.btn_step2.setEnabled(True)
+
+
 
    @QtCore.pyqtSlot()
    def tool_working(self):
@@ -139,8 +146,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # Disable the details-selection until a particular piece is selected
       self.ui.grp_settings_for_piece.setEnabled(False)
       self.ui.grp_settings_for_piece.setVisible(False)
-      # Tell the vis_controller to run the import process
-      self.vis_controller.run_the_import.emit()
+
+
 
    @QtCore.pyqtSlot()
    def tool_about(self):
@@ -150,6 +157,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.btn_analyze.setChecked(False)
       self.ui.btn_choose_files.setChecked(False)
       self.ui.btn_experiment.setChecked(False)
+
+
 
    @QtCore.pyqtSlot()
    def tool_experiment(self):
@@ -162,6 +171,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.btn_step1.setEnabled(False)
       self.ui.btn_step2.setEnabled(False)
 
+
+
    # Operations on the Importer panel ----------------------
    @QtCore.pyqtSlot()
    def add_files(self):
@@ -173,6 +184,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          None)
       if files:
          self.vis_controller.import_files_added.emit([str(f) for f in files])
+
+
 
    @QtCore.pyqtSlot()
    def add_dir(self):
@@ -188,6 +201,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
                         for path,names,files in walk(d)])
       self.vis_controller.import_files_added.emit(list(possible_files))
 
+
+
    @QtCore.pyqtSlot()
    def remove_files(self):
       '''
@@ -196,6 +211,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       '''
       # use the self.vis_controller.import_files_removed signal
       pass
+
+
 
    # Operations on the "Working" Panel ---------------------
    @QtCore.pyqtSlot(str)
@@ -209,6 +226,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         set to that string.
       '''
       pass
+
+
 
    # Other Things ------------------------------------------
    @QtCore.pyqtSlot(str)
