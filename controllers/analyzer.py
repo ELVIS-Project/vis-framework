@@ -133,6 +133,23 @@ class Analyzer(Controller):
 
 
 
+   @staticmethod
+   def calculate_all_combos(upto):
+      '''
+      Calculate all combinations of integers between 0 and the argument.
+
+      Includes a 0th item... the argument should be len(whatevs) - 1.
+      '''
+      post = []
+
+      for left in xrange(upto):
+         for right in xrange(left+1, upto+1):
+            post.append([left, right])
+
+      return post
+
+
+
    @QtCore.pyqtSlot()
    def analyze_pieces(self):
       '''
@@ -153,27 +170,59 @@ class Analyzer(Controller):
       # hold the list of AnalysisRecord objects to return
       self.post = []
 
-      # TODO: uncomment multiprocessing stuff, make it work
-
       #jobs = []
-      # Run the analyses
-      # TODO: figure out what the indices of each_piece are supposed to be,
-      #       then substitute the proper variable names from ListOfPieces
-      for each_piece in self._list_of_pieces.iterateRows():
-         for combo in each_piece[4]:
-            parts = [each_piece[1][0].parts[i] for i in combo]
-            args = (parts,
-                    [note.Note, note.Rest],
-                    2.0,
-                    False,
-                    AnalysisRecord(part_names=[p.id for p in parts]))
-            self.post.append(self._event_finder(*args))
-            #p = Process(target=self._event_finder, args=args)
-            #jobs.append(p)
-            #p.start()
-      #for job in jobs:
-      #   job.join()
-      # Return
+      # Run the Analyses
+      # loop through every piece
+      for each_piece in self._list_of_pieces:
+         # (1) Decode the part-combination specification
+         this_combos = each_piece[ListOfPieces.parts_combinations].toPyObject()
+         if '[all]' == this_combos:
+            # We have to examine all combinations of parts
+
+            # How many parts are in this piece?
+            number_of_parts = len(each_piece[ListOfPieces.score][0].parts)
+
+            # Get a list of all the part-combinations to examine
+            this_combos = Analyzer.calculate_all_combos(number_of_parts-1)
+         else:
+            # Turn the str specification of parts into a list of int (or str)
+            if '(no selection)' == this_combos:
+               # This is what happens when no voice pairs were selected
+               # TODO: raise an exception
+               pass
+            else:
+               # TODO: we should do this in a safer way, because, as it stands
+               #       any code put in here will be blindly executed
+               this_combos = eval(this_combos)
+
+         # calculate the number of voice combinations for this piece
+         nr_of_voice_combos = len(this_combos) # TODO: use this
+
+         # (2) Loop through every part combination
+         for combo in this_combos:
+            # select the two parts to analyze
+            this_parts = [each_piece[ListOfPieces.score][0].parts[i] for i in combo]
+            # prepare the metadata
+            this_metadata = each_piece[ListOfPieces.score][0].metadata
+            this_part_names = [each_piece[ListOfPieces.parts_list][i] for i in combo]
+            this_offset = each_piece[ListOfPieces.offset_intervals][0]
+            this_salami = False # TODO: figure this dynamically
+            this_types = [note.Note, note.Rest] # TODO: figure this dynamically
+            # prepare the AnalysisRecord object
+            this_record = AnalysisRecord(metadata=this_metadata,
+                                         part_names=this_part_names,
+                                         offset=this_offset,
+                                         salami=this_salami)
+            # run the analysis and append results to our results-collector
+            self.post.append(self._event_finder(parts=this_parts,
+                                                types=this_types,
+                                                offset=this_offset,
+                                                salami=this_salami,
+                                                record=this_record))
+
+      # Conclude
+      self.status.emit('100')
+      self.status.emit('I finished!')
       self.analysis_finished.emit(self.post)
       return self.post
 

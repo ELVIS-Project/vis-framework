@@ -48,7 +48,7 @@ class ListOfPieces(QAbstractTableModel):
    # Here's the data model:
    # self._pieces : a list of lists. For each sub-list...
    #    sublist[0] : filename
-   #    sublist[1] : a music21 score object OR piece title (depending on "role" when data() is called)
+   #    sublist[1] : a music21 score object (index 0) and piece title (index 1)
    #    sublist[2] : list of names of parts in the score
    #    sublist[3] : offset intervals to analyze
    #    sublist[4] : list of pairs of indices for part combinations to prepare
@@ -260,7 +260,7 @@ class ListOfPieces(QAbstractTableModel):
 
 
 
-   def iterateRows(self):
+   def __iter__(self):
       '''
       Create an iterator that returns each of the filenames in this ListOfFiles.
       '''

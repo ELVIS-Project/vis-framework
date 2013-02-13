@@ -56,9 +56,9 @@ class Importer(Controller):
    # PyQt4 Signals
    # -------------
    # a list of str filenames to add to the list of files to analyze
-   add_pieces = pyqtSignal(list)
+   add_pieces_signal = pyqtSignal(list)
    # a list of str filenames to remove from the list of files to analyze
-   remove_pieces = pyqtSignal(list)
+   remove_pieces_signal = pyqtSignal(list)
    # whether the add/remove operation was successful
    add_remove_success = pyqtSignal(bool)
    # create a ListOfPieces from the ListOfFiles
@@ -84,6 +84,8 @@ class Importer(Controller):
       super(Controller, self).__init__() # required for signals
       self.piece_gotten.connect(self.catch_score)
       self.run_import.connect(self.import_pieces)
+      self.add_pieces_signal.connect(self.add_pieces)
+      self.remove_pieces_signal.connect(self.remove_pieces)
       # other things
       self._list_of_files = importing.ListOfFiles()
       self.post = analyzing.ListOfPieces()
@@ -99,6 +101,7 @@ class Importer(Controller):
 
 
 
+   @pyqtSlot(list)
    def add_pieces(self, pieces):
       '''
       Add the filenames to the list of filenames that should be imported. The
@@ -162,6 +165,7 @@ class Importer(Controller):
 
 
 
+   @pyqtSlot(list)
    def remove_pieces(self, pieces):
       '''
       Remove the filenames from the list of filenames that should be imported.

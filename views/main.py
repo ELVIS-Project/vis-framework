@@ -82,9 +82,11 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          (self.ui.btn_file_add.clicked, self.add_files),
          (self.ui.btn_file_remove.clicked, self.remove_files),
          (self.ui.btn_step1.clicked, self.tool_working),
-         (self.ui.btn_step1.clicked, self.vis_controller.run_the_import.emit),
          (self.ui.btn_step2.clicked, self.tool_working),
-         (self.ui.btn_step2.clicked, self.vis_controller.analyzer.run_analysis.emit),
+         (self.ui.btn_show_results.clicked, self.prepare_experiment_submission),
+         # NB: these are connected to sub-controllers by VisController
+         (self.ui.btn_step1.clicked, self.vis_controller.run_the_import.emit),
+         (self.ui.btn_step2.clicked, self.vis_controller.run_the_analysis.emit),
          # Things that operate the GUI
          (self.ui.chk_all_voice_combos.stateChanged, self.adjust_bs),
          (self.ui.chk_all_voice_combos.clicked, self.all_voice_combos),
@@ -98,6 +100,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       ]
       for signal, slot in mapper:
          signal.connect(slot)
+      # Setup the progress bar
+      self.ui.progress_bar.setMinimum(0)
+      self.ui.progress_bar.setMaximum(100)
+      self.ui.progress_bar.setValue(42)
 
 
 
@@ -225,7 +231,19 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       - If the argument is another string, the text below the progress bar is
         set to that string.
       '''
-      pass
+      if not isinstance(progress, (str, QtCore.QString)):
+         return None
+      else:
+         if '100' == progress:
+            self.ui.progress_bar.setValue(100)
+         elif 3 > len(progress):
+            try:
+               new_val = int(progress)
+               self.ui.progress_bar.setValue(new_val)
+            except ValueError:
+               self.ui.lbl_currently_processing.setText(progress)
+         else:
+            self.ui.lbl_currently_processing.setText(progress)
 
 
 
@@ -867,3 +885,26 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.grp_settings_for_piece.setVisible(set_to)
       self.ui.grp_settings_for_piece.setEnabled(set_to)
       self.ui.lbl_select_piece.setVisible(not set_to)
+
+
+
+   # Slot for: self.ui.btn_show_results.clicked
+   @QtCore.pyqtSlot()
+   def prepare_experiment_submission(self):
+      '''
+      Make sure the Experimenter has a properly-configured ExperimentSettings
+      instance, then ask it to run the experiment.
+      '''
+      # (1) Figure out then set the settings
+      # TODO: ensure these are chosen dynamically, to correspond to the GUI
+      # hold a list of tuples to be signalled as settings
+      list_of_settings = []
+      # (1a) Figure out the settings
+      list_of_settings.append(('experiment', 'IntervalsList'))
+      list_of_settings.append(('quality', True))
+      list_of_settings.append(('simple or compound', 'compound'))
+      # (1b) Set the settings
+      for setting in list_of_settings:
+         self.vis_controller.experiment_setting.emit(setting)
+      # (2) Run the experiment
+      self.vis_controller.run_the_experiment.emit()

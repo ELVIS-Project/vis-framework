@@ -68,14 +68,21 @@ class Experimenter(Controller, QtCore.QObject):
 
 
 
+   # List of the experiments we have
+   experiments_we_have = ['IntervalsList']
+
+
+
    def __init__(self):
       '''
-      ???
+      Create a new Experimenter controller.
       '''
       super(Controller, self).__init__() # required for signals
       self._list_of_analyses = None
-      self._analysis_settings = None
-      # Obiously, this method isn't finished
+      self._experiment_settings = ExperimentSettings()
+      # Signals
+      self.set.connect(self._change_setting)
+      self.run_experiment.connect(self._run_experiment)
 
 
 
@@ -87,35 +94,44 @@ class Experimenter(Controller, QtCore.QObject):
 
       The argument is a list of AnalysisRecord objects.
       '''
-      self.list_of_analyses = analyses_list
+      self._list_of_analyses = analyses_list
 
 
 
-   def run_experiment(self):
+   @QtCore.pyqtSlot() # for Experimenter.run_experiment
+   def _run_experiment(self):
       '''
       Runs the currently-configured experiment(s).
       '''
-      pass
+      # Check there is an 'experiment' setting that refers to one we have
+      # TODO: plug it in
+      # Trigger that experiment
+      # TODO: run the right experiment
+      il = IntervalsLists(self._list_of_analyses, self._experiment_settings)
+      post = il.perform()
+      print('\n\n\n')
+      print(str(post))
 
 
 
-   def get_setting(self, sett):
-      '''
-      Returns the value of the setting whose `name` field is equal to `sett`.
-      '''
-      matches = [s for s in self._settings if s.name == sett]
-      if matches:
-         return matches[0].value
+   #def get_setting(self, sett):
+      #'''
+      #Returns the value of the setting whose `name` field is equal to `sett`.
+      #'''
+      #matches = [s for s in self._settings if s.name == sett]
+      #if matches:
+         #return matches[0].value
 
 
 
-   def change_setting(self, sett):
+   @QtCore.pyqtSlot(tuple) # for Experimenter.set
+   def _change_setting(self, sett):
       '''
       Given a 2-tuple, where the first element is a string (setting name) and
       the second element is any type (setting value), make that setting refer
       to that value.
       '''
-      pass
+      self._experiment_settings.set(sett[0], sett[1])
 # End class Experimenter -------------------------------------------------------
 
 
@@ -143,7 +159,7 @@ class Experiment(object):
 
 
 
-   def perform():
+   def perform(self):
       '''
       Perform the Experiment. This method is not called "run" to avoid possible
       confusion with the multiprocessing nature of Experiment subclasses.
@@ -188,40 +204,48 @@ class IntervalsLists(Experiment):
       '''
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound'):
-         super(Experiment, self).__init__(records, settings)
+         self._records = records
+         self._settings = settings
       else:
          msg = 'IntervalsLists requires "quality" and "simple or compound" settings'
+         print(msg) # DEBUGGING
          raise KeyError(msg)
 
 
 
-   def perform():
+   def perform(self):
       # TODO: write documentation and comments
-      data = []
+      data = ''
       for record in self._records:
          for first, second in zip(record,list(record)[1:]):
-            offset, first_lower, upper = first
-            _ , second_lower, _ = second
+            offset = first[0]
+            first_lower = first[1][0]
+            first_upper = first[1][1]
+            second_lower = second[1][0]
+
             vertical = Interval(Note(first_lower), Note(first_upper))
             horizontal = Interval(Note(first_lower), Note(second_lower))
-            if self.get_setting('quality'):
-               if self.get_setting('sc') == 'simple':
-                  data.append((vertical.semiSimpleName,
-                               horizontal.semiSimpleName,
-                               offset))
+            put_me = ''
+            if self._settings.get('quality'):
+               if self._settings.get('simple or compound') == 'simple':
+                  put_me = vertical.semiSimpleName + ', ' + \
+                           horizontal.semiSimpleName + ', ' + \
+                           str(offset) + '\n'
                else:
-                  data.append((vertical.name,
-                               horizontal.name,
-                               offset))
+                  put_me = vertical.name + ', ' + \
+                           horizontal.name + ', ' + \
+                           str(offset) + '\n'
             else:
-               if self.get_setting('sc') == 'simple':
-                  data.append((vertical.generic.semiSimpleDirected,
-                               horizontal.generic.semiSimpleDirected,
-                               offset))
+               if self._settings.get('simple or compound') == 'simple':
+                  put_me = vertical.generic.semiSimpleDirected + ', ' + \
+                           horizontal.generic.semiSimpleDirected + ', ' + \
+                           str(offset) + '\n'
                else:
-                  data.append((vertical.generic.directed,
-                               horizontal.generic.directed,
-                               offset))
+                  put_me = vertical.generic.directed + ', ' + \
+                           horizontal.generic.directed + ', ' + \
+                           str(offset) + '\n'
+
+            data += put_me
          # TODO: Then add the last row
       return data
 # End class Experiment ---------------------------------------------------------

@@ -74,6 +74,12 @@ class VisController(Controller):
    # When a user adds or removes a file (or some files) to or from the list
    import_files_added = QtCore.pyqtSignal(list)
    import_files_removed = QtCore.pyqtSignal(list)
+   # When the GUI knows the user wants to analyze the files
+   run_the_analysis = QtCore.pyqtSignal()
+   # When the GUI knows the user wants to run the experiment
+   run_the_experiment = QtCore.pyqtSignal()
+   # When the user changes a setting on the Experimenter's GUI representation
+   experiment_setting = QtCore.pyqtSignal(tuple)
 
 
 
@@ -95,6 +101,12 @@ class VisController(Controller):
       self.UI_type = interface
       self.app = QApplication(arg)
 
+      # NOTE: this will change when we allow multiple interfaces
+      # NOTE-2: we should do this before the sub-controllers are setup, because
+      #         the GUI shouldn't touch a sub-controller, and doing things in
+      #         this order means that any such attempt will fail.
+      self.window = VisQtMainWindow(self)
+
       # Create the sub-controllers
       self.importer = Importer()
       self.analyzer = Analyzer()
@@ -107,11 +119,6 @@ class VisController(Controller):
       self.experimenter.setup_signals()
       self.displayer.setup_signals()
 
-      # NOTE: this will change when we allow multiple interfaces
-      # NOTE-2: this must be after the sub-controllers are setup, because the
-      #         VisQtMainWindow refers to them directly.
-      self.window = VisQtMainWindow(self)
-
       # Setup signals
       mapper = [
          # GUI-only Signals
@@ -122,31 +129,34 @@ class VisController(Controller):
          #     into the GUIs themselves, and the GUIs should use signals to
          #     communicate with the vis_controller
          # Signals Sent between Controllers/GUIs -------------------------------
-         (self.importer.import_finished, self.window.show_analyze),
+         (self.importer.import_finished, self.window.show_analyze.emit),
+         (self.analyzer.analysis_finished, self.window.show_experiment.emit),
+         (self.analyzer.analysis_finished, self.experimenter.catch_analyses),
          # status
-         (self.importer.status, self.window.update_progress),
-         (self.analyzer.status, self.window.update_progress),
-         (self.experimenter.status, self.window.update_progress),
+         (self.importer.status, self.window.update_progress.emit),
+         (self.analyzer.status, self.window.update_progress.emit),
+         (self.experimenter.status, self.window.update_progress.emit),
          # error
-         (self.importer.error, self.window.report_error),
-         (self.analyzer.error, self.window.report_error),
-         (self.experimenter.error, self.window.report_error),
+         (self.importer.error, self.window.report_error.emit),
+         (self.analyzer.error, self.window.report_error.emit),
+         (self.experimenter.error, self.window.report_error.emit),
          # others
-         (self.import_files_added, self.importer.add_pieces),
-         (self.import_files_removed, self.importer.remove_pieces),
+         (self.import_files_added, self.importer.add_pieces_signal.emit),
+         (self.import_files_removed, self.importer.remove_pieces_signal.emit),
          # Signals Sent by GUIs (and Handled Here) -----------------------------
          (self.run_the_import, self.prepare_import),
+         (self.run_the_analysis, self.analyzer.run_analysis.emit),
+         (self.run_the_experiment, self.experimenter.run_experiment.emit),
+         (self.experiment_setting, self.experimenter.set.emit),
+         #(self.run_the_import, self.processEvents), # NOTE: does nothing?
+         #(self.run_the_analysis, self.processEvents), # NOTE: does nothing?
          # Signals Sent by other Controllers (and Handled Here) ----------------
          (self.importer.status, self.processEvents),
          (self.analyzer.status, self.processEvents),
          (self.experimenter.status, self.processEvents),
          # TODO: connect these signals
          # self.importer.add_remove_success
-         # self.analyzer.analysis_finished
-         # self.analyzer.run_analysis
-         # self.change_settings
-         # self.experimenter.set
-         # self.experimenter.run_experiment
+         # self.change_settings ????????
          # self.experimenter.experiment_finished
       ]
       for signal, slot in mapper:

@@ -28,11 +28,8 @@
 
 
 
-__all__ = ['Ui_compare_voice_pairs', 'Ui_main_window', 'Ui_select_offset',
-           'Ui_select_voices', 'Ui_text_display']
+__all__ = ['main', 'VisOffsetSelector', 'icons_rc']
 
-import Ui_compare_voice_pairs
-import Ui_main_window
-import Ui_select_offset
-import Ui_select_voices
-import Ui_text_display
+import main
+import VisOffsetSelector
+import icons_rc
