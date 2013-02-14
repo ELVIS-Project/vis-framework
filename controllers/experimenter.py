@@ -109,8 +109,12 @@ class Experimenter(Controller, QtCore.QObject):
       # TODO: run the right experiment
       il = IntervalsLists(self._list_of_analyses, self._experiment_settings)
       post = il.perform()
-      print('\n\n\n')
-      print(str(post))
+
+      # TODO: figure out the valid types of display, and put them in a list in
+      # the first element of this tuple
+      post = (['SpreadsheetDisplay'], post)
+
+      self.experiment_finished.emit(post)
 
 
 

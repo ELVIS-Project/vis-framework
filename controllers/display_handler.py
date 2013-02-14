@@ -30,9 +30,10 @@ Holds the DisplayHandler controller.
 
 # Imports from...
 # PyQt
-from PyQt4.QtCore import pyqtSignal
+from PyQt4 import QtCore, QtGui
 # vis
 from controller import Controller
+import file_output
 
 
 
@@ -52,32 +53,46 @@ class DisplayHandler(Controller):
    # -------------
    # when the user should be able to see the results of an experiment on the
    # screen in a particular format
-   display_shown = pyqtSignal()
+   display_shown = QtCore.pyqtSignal()
 
 
 
    def __init__(self):
       '''
-      ???
+      Create a new DisplayHandler instance.
       '''
       super(Controller, self).__init__() # required for signals
 
 
 
+   #@QtCore.pyqtSlot
    def show_result(self, signal_result):
       '''
-      Slot for the Experimenter.experimented signal. This method is
+      Slot for the Experimenter.experiment_finished signal. This method is
       called when the Experimenter controller has finished analysis.
 
-      The argument is a 2-tuple, where the first element specifies which Display
-      object to use for the results, and the second is the data needed by that
-      Display object.
+      The argument is a 2-tuple, where the first element is a list of the
+      possible Display objects to use for the results, and the second is the
+      data needed by that Display object.
+
+      If there is more than one possible display type, the DisplayHandler will
+      somehow choose.
       '''
 
       # (1) Make a new ___Display
       # (2) Call its "show" method
 
-      pass
+      # (1) Choose which display type to use
+      # TODO: write this section properly... note that signal_result is a
+      # 2-tuple, where index 0 has a list of possible Display objects
+      display_type = FileOutputDisplay
+
+      # (2) Instantiate and show the display
+      this_display = display_type(self, signal_result[1])
+      this_display.show()
+
+      # (3) Send the signal of success
+      self.display_shown.emit()
 # End class DisplayHandler -------------------------------------------------------
 
 
@@ -89,62 +104,83 @@ class Display(object):
 
 
 
-   def __init__(self, data, settings=None):
+   def __init__(self, controller, data, settings=None):
       '''
       Create a new Display.
 
-      There are two arguments, the first of which is mandatory:
+      There are three arguments, the first two of which are mandatory:
+      - controller : the DisplayHandler controller to which this Display belongs
       - data : argument of any type, as required by the Display subclass
       - settings : the optional ExperimentSettings object
       '''
-      # NOTE: You do not need to reimplement this method for subclasses.
-      super(Experiment, self).__init__()
+      # NOTE: You must re-implement this, and change "object" to "Display"
+      super(object, self).__init__()
+      self._controller = controller
       self._data = data
       self._settings = settings
 
 
 
-   def show():
+   def show(self):
       '''
       Show the data in the display.
 
       This method emits a VisSignals.display_shown signal when it finishes.
       '''
       # NOTE: You must reimplement this method in subclasses.
-      pass
+      self._controller.display_shown.emit()
 # End class Display ------------------------------------------------------------
 
 
 
-class SpreadsheetDisplay(Display):
+class FileOutputDisplay(Display):
    '''
-   Saves results in a CSV file (comma-separated values) so that they can be
-   imported by a spreadsheet program like LibreOffice Calc or Microsoft Excel.
+   Saves text-based results into a file.
    '''
 
 
 
-   def __init__(self, data, settings=None):
+   def __init__(self, controller, data, settings=None):
       '''
-      Create a new SpreadsheetDisplay.
+      Create a new FileOutputDisplay.
 
-      There are two arguments, the first of which is mandatory:
-      - data : a string that should be the contents of the CSV file
+      There are three arguments, the first two of which are mandatory:
+      - controller : the DisplayHandler controller to which this Display belongs
+      - data : a string that should be the contents of the text file
       - settings : the optional ExperimentSettings object
+
+      The filename is determined dynamically by the show() method.
       '''
       # NOTE: You do not need to reimplement this method for subclasses.
-      super(Experiment, self).__init__()
+      super(Display, self).__init__()
+      self._controller = controller
       self._data = data
       self._settings = settings
 
 
 
-   def show():
+   def show(self):
       '''
       Saves the data in a file on the filesystem.
 
       This method emits a VisSignals.display_shown signal when it finishes.
       '''
-      # NOTE: You must reimplement this method in subclasses.
-      pass
+      # (1) Ask for the filename
+      the_filename = QtGui.QFileDialog.getSaveFileName(\
+         None,
+         'vis: Enter filename for file output',
+         '',
+         '',
+         None,
+         QtGui.QFileDialog.Options(QtGui.QFileDialog.DontConfirmOverwrite))
+
+      # (2) Write out the file
+      output_result = file_output.file_outputter(self._data, the_filename)
+
+      # (3) Send the signal of success
+      if output_result[0] is None:
+         self._controller.display_shown.emit()
+      else:
+         # TODO: raise some exception!
+         pass
 # End class Display ------------------------------------------------------------
