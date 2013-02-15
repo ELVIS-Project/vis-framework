@@ -32,6 +32,16 @@ The model classes for the Experimenter controller.
 class ExperimentSettings(object):
    '''
    Hold settings relevant to performing experiments.
+
+   All the possible settings:
+   - experiment : name of the experiment to use
+   - quality : whether or not to display interval quality
+   - simple or compound : whether to use simple or compound intervals
+   - topX : display on the "top X" number of results
+   - threshold : stop displaying things after this point
+   - values of n : a list of ints that is the values of 'n' to display
+   - sort order : whether to sort things 'ascending' or 'descending'
+   - sort by : whether to sort things by 'frequency' or 'name'
    '''
 
 

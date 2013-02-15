@@ -219,7 +219,7 @@ class IntervalsLists(Experiment):
 
    def perform(self):
       # TODO: write documentation and comments
-      data = ''
+      data = 'vertical, horizontal, offset\n'
       for record in self._records:
          for first, second in zip(record,list(record)[1:]):
             offset = first[0]
@@ -241,12 +241,12 @@ class IntervalsLists(Experiment):
                            str(offset) + '\n'
             else:
                if self._settings.get('simple or compound') == 'simple':
-                  put_me = vertical.generic.semiSimpleDirected + ', ' + \
-                           horizontal.generic.semiSimpleDirected + ', ' + \
+                  put_me = str(vertical.generic.semiSimpleDirected) + ', ' + \
+                           str(horizontal.generic.semiSimpleDirected) + ', ' + \
                            str(offset) + '\n'
                else:
-                  put_me = vertical.generic.directed + ', ' + \
-                           horizontal.generic.directed + ', ' + \
+                  put_me = str(vertical.generic.directed) + ', ' + \
+                           str(horizontal.generic.directed) + ', ' + \
                            str(offset) + '\n'
 
             data += put_me

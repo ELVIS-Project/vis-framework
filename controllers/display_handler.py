@@ -172,10 +172,10 @@ class FileOutputDisplay(Display):
          '',
          '',
          None,
-         QtGui.QFileDialog.Options(QtGui.QFileDialog.DontConfirmOverwrite))
+         QtGui.QFileDialog.Options())#QtGui.QFileDialog.DontConfirmOverwrite)) # TODO: remove this if possible
 
       # (2) Write out the file
-      output_result = file_output.file_outputter(self._data, the_filename)
+      output_result = file_output.file_outputter(self._data, the_filename, 'OVERWRITE')
 
       # (3) Send the signal of success
       if output_result[0] is None:

@@ -656,6 +656,16 @@
                </widget>
               </item>
               <item>
+               <widget class="QRadioButton" name="rdo_list">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>List</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QRadioButton" name="rdo_chart">
                 <property name="enabled">
                  <bool>false</bool>
@@ -685,16 +695,6 @@
                 </property>
                 <property name="text">
                  <string>Annotated Score</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_list">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>List</string>
                 </property>
                </widget>
               </item>
@@ -736,20 +736,10 @@
               <item>
                <widget class="QRadioButton" name="rdo_intervals">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Intervals</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_ngrams">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>N-grams</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -757,12 +747,25 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rdo_compare">
+               <widget class="QRadioButton" name="rdo_interval_ngrams">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
                 <property name="text">
-                 <string>N-gram comparison</string>
+                 <string>Interval N-grams</string>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rdo_chord_ngrams">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Chord N-grams</string>
                 </property>
                </widget>
               </item>
@@ -776,7 +779,11 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_12">
               <item>
-               <widget class="QLineEdit" name="line_show_these_ns"/>
+               <widget class="QLineEdit" name="line_values_of_n">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -808,7 +815,10 @@
             </widget>
            </item>
            <item row="1" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_10">
+            <widget class="QGroupBox" name="groupBox_topX">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="title">
               <string/>
              </property>
@@ -830,7 +840,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="line_output_most_common"/>
+               <widget class="QLineEdit" name="line_output_most_common">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QLabel" name="lbl_most_common">
@@ -846,7 +860,10 @@
             </widget>
            </item>
            <item row="1" column="2" colspan="2">
-            <widget class="QGroupBox" name="groupBox_11">
+            <widget class="QGroupBox" name="groupBox_threshold">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="title">
               <string/>
              </property>
@@ -862,7 +879,11 @@
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="line_threshold"/>
+               <widget class="QLineEdit" name="line_threshold">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+               </widget>
               </item>
               <item>
                <widget class="QLabel" name="label_8">
@@ -879,6 +900,9 @@
            </item>
            <item row="3" column="0" colspan="2">
             <widget class="QGroupBox" name="groupBox_sorted_by">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="title">
               <string>Sorted by...</string>
              </property>
@@ -896,7 +920,7 @@
               <item>
                <widget class="QRadioButton" name="rdo_name">
                 <property name="text">
-                 <string>n-gram</string>
+                 <string>name</string>
                 </property>
                </widget>
               </item>
@@ -905,6 +929,9 @@
            </item>
            <item row="3" column="2" colspan="2">
             <widget class="QGroupBox" name="groupBox_sort_order">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="title">
               <string>Sort Order</string>
              </property>
@@ -1047,8 +1074,8 @@
           <zorder>groupBox_7</zorder>
           <zorder>groupBox_n</zorder>
           <zorder>groupBox_octaves</zorder>
-          <zorder>groupBox_10</zorder>
-          <zorder>groupBox_11</zorder>
+          <zorder>groupBox_topX</zorder>
+          <zorder>groupBox_threshold</zorder>
           <zorder>groupBox_sorted_by</zorder>
           <zorder>groupBox_sort_order</zorder>
           <zorder>btn_show_results</zorder>

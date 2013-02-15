@@ -895,16 +895,48 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       Make sure the Experimenter has a properly-configured ExperimentSettings
       instance, then ask it to run the experiment.
       '''
-      # (1) Figure out then set the settings
+      # (1) Figure out the settings
       # TODO: ensure these are chosen dynamically, to correspond to the GUI
       # hold a list of tuples to be signalled as settings
       list_of_settings = []
-      # (1a) Figure out the settings
+      # (1a) Which experiment?
       list_of_settings.append(('experiment', 'IntervalsList'))
-      list_of_settings.append(('quality', True))
-      list_of_settings.append(('simple or compound', 'compound'))
-      # (1b) Set the settings
+      # (1b) Print quality?
+      if self.ui.rdo_heedQuality.isChecked():
+         list_of_settings.append(('quality', True))
+      else:
+         list_of_settings.append(('quality', False))
+      # (1c) Simple or compound?
+      if self.ui.rdo_simple.isChecked():
+         list_of_settings.append(('simple or compound', 'simple'))
+      else:
+         list_of_settings.append(('simple or compound', 'compound'))
+      # (1d) Is there a "top X" value?
+      topX = str(self.ui.line_output_most_common.text())
+      if '' != topX:
+         list_of_settings.append(('topX', topX))
+      # (1e) Is there a "threshold" value?
+      threshold = str(self.ui.line_threshold.text())
+      if '' != threshold:
+         list_of_settings.append(('threshold', threshold))
+      # (1d) Is there a "values of n" value?
+      values_of_n = str(self.ui.line_values_of_n.text())
+      if '' != values_of_n:
+         list_of_settings.append(('values of n', values_of_n))
+      # (1e) What's the sort order?
+      if self.ui.rdo_ascending.isChecked():
+         list_of_settings.append(('sort order', 'ascending'))
+      else:
+         list_of_settings.append(('sort order', 'descending'))
+      # (1f) Sort by frequency or name of object?
+      if self.ui.rdo_name.isChecked():
+         list_of_settings.append(('sort by', 'name'))
+      else:
+         list_of_settings.append(('sort by', 'frequency'))
+
+      # (2) Set the settings
       for setting in list_of_settings:
          self.vis_controller.experiment_setting.emit(setting)
-      # (2) Run the experiment
+
+      # (3) Run the experiment
       self.vis_controller.run_the_experiment.emit()
