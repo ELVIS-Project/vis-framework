@@ -175,7 +175,7 @@ class Analyzer(Controller):
       # loop through every piece
       for each_piece in self._list_of_pieces:
          # (1) Decode the part-combination specification
-         this_combos = each_piece[ListOfPieces.parts_combinations].toPyObject()
+         this_combos = str(each_piece[ListOfPieces.parts_combinations].toPyObject())
          if '[all]' == this_combos:
             # We have to examine all combinations of parts
 
