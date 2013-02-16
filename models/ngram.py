@@ -40,6 +40,7 @@ import re
 # music21
 from music21.interval import Interval
 from music21.note import Note
+from music21.analysis.neoRiemannian import LRP_combinations as LRP
 # vis
 #from vis.models.problems import MissingInformationError, NonsensicalInputError
 #from VISSettings import VISSettings
@@ -47,6 +48,7 @@ from music21.note import Note
 
 
 class NGram(object):
+   # NOTE: when subclassing, you must change "object" to "NGram"
    '''
    Represents an n-gram of musical objects, optionally connected by other
    musical objects.
@@ -62,6 +64,10 @@ class NGram(object):
       '''
       Create a new n-gram when given a list of some events.
       '''
+
+      # Call the base class constructor
+      # NOTE: uncomment this in subclasses
+      #super(___NGram, self).__init__()
 
       # How many events are in this n-gram?
       self._n = len(some_events)
@@ -98,11 +104,11 @@ class NGram(object):
       '''
       Returns the retrograde (backwards) n-gram of self.
       '''
-      return NGram( self._list_of_events[::-1] )
+      return self.__class__(self._list_of_events[::-1])
 
 
 
-   def n( self ):
+   def n(self):
       '''
       Return the 'n' of this n-gram, which means the number of primary events.
       '''
@@ -110,7 +116,7 @@ class NGram(object):
 
 
 
-   def __repr__( self ):
+   def __repr__(self):
       '''
       Return the code that could be used to re-create this NGram object.
       '''
@@ -121,7 +127,7 @@ class NGram(object):
 
 
 
-   def get_string_version():
+   def get_string_version(self):
       '''
       Return a string-format representation of this NGram object. Unlike str(),
       this method allows different formatting options.
@@ -138,7 +144,7 @@ class NGram(object):
             post += ' '
 
          # Calculate/format this event
-         this_event = None
+         this_event = str(event)
 
          # (formatting goes here)
 
@@ -149,14 +155,10 @@ class NGram(object):
          # NB: The final event won't be followed by anything, and currently we
          # deal with this by simply catching the IndexError that would result,
          # and ignoring it. There's probably a more elegant way.
-         this_connection = None
          try:
-            this_connection = self._list_of_connections[i]
+            post += self._list_of_connections[i]
          except IndexError:
             pass
-
-         # (formatting goes here)
-         post += this_connection
 
       return post
    # end get_string_version --------------------------------------------
@@ -164,7 +166,7 @@ class NGram(object):
 
 
    @classmethod
-   def make_from_str(given_string):
+   def make_from_str(cls, given_string):
       '''
       Returns an NGram object corresponding to the given string
       '''
@@ -173,7 +175,7 @@ class NGram(object):
 
 
 
-   def __str__( self ):
+   def __str__(self):
       '''
       Returns a string-format representation of this NGram instance.
       '''
@@ -218,6 +220,9 @@ class IntervalNGram(NGram):
       Create a new n-gram when given a list of some events.
       '''
 
+      # Call the base class constructor
+      super(IntervalNGram, self).__init__(some_events)
+
       # How many events are in this n-gram?
       self._n = len(some_events)
 
@@ -252,7 +257,7 @@ class IntervalNGram(NGram):
             self._has_voice_crossing = True
       except AttributeError:
          msg = 'NGram: One of the intervals is probably missing a Note'
-         raise MissingInformationError( msg )
+         raise RuntimeError( msg )
    # End __init__() ------------------------------------------
 
 
@@ -267,12 +272,12 @@ class IntervalNGram(NGram):
       # than the music21 core classes make it seem.
 
       # Start out with IntervalNGram constructor.
-      post = __name__ + '(['
+      post = 'IntervalNGram(['
 
       # Add a constructor for every Interval.
       for each_int in self._list_of_events:
          post += "Interval(Note('" + each_int.noteStart.nameWithOctave + \
-               "' ), Note('" + each_int.noteEnd.nameWithOctave + "')), "
+               "'), Note('" + each_int.noteEnd.nameWithOctave + "')), "
 
       # Remove the final ", " from the list of Intervals
       post = post[:-2]
@@ -426,24 +431,25 @@ class IntervalNGram(NGram):
       'M-10 +M2 M-9'
       '''
 
-      def get_inverted_quality( start_spec ):
+      def get_inverted_quality(start_spec):
          '''
          "Inner function" to transform a quality-letter into the quality-letter
          needed for inversion
          '''
+         post = ''
+
          if 'd' == start_spec:
-            return 'A'
+            post = 'A'
          elif 'm' == start_spec:
-            return 'M'
+            post = 'M'
          elif 'P' == start_spec:
-            return 'P'
+            post = 'P'
          elif 'M' == start_spec:
-            return 'm'
+            post = 'm'
          elif 'A' == start_spec:
-            return 'd'
-         else:
-            msg = 'Unexpected interval quality: ' + str(start_spec)
-            raise MissingInformationError(msg)
+            post = 'd'
+
+         return post
 
       def check_for_stupid(huh):
          '''
@@ -474,7 +480,7 @@ class IntervalNGram(NGram):
       if isinstance(interv, int):
          interv = str(interv)
 
-      # Go through the intervals in this IntervalNGram instance and invert each one.
+      # Invert each interval in this IntervalNGram instance
       inverted_intervals = []
       for old_interv in self._list_of_events:
          # We are transposing the bottom note up
@@ -495,7 +501,7 @@ class IntervalNGram(NGram):
             # Make the new interval
             new_interv = Interval(new_start, old_interv.noteEnd)
          # We're transposing the top note down
-         elif 'down' == up_or_down:
+         else: # Assume 'down' == up_or_down
             # Make the str representing the interval of transposition.
             trans_interv = get_inverted_quality(old_interv.name[0]) + \
                            '-' + interv
@@ -509,13 +515,9 @@ class IntervalNGram(NGram):
 
             # Make the new interval
             new_interv = Interval(old_interv.noteStart, new_end)
-         else:
-            msg = 'Inversion direction must be either "up" or "down"; ' + \
-                  'received ' + str(up_or_down)
-            raise NonsensicalInputError(msg)
 
-         # Append the new Interval to the list that will be sent to the IntervalNGram
-         # constructor.
+         # Append the new Interval to the list that will be sent to the
+         # IntervalNGram constructor.
          inverted_intervals.append(new_interv)
 
       # Make a new IntervalNGram object to return
@@ -535,71 +537,224 @@ class IntervalNGram(NGram):
       Perfect, as appropriate.
       '''
 
-      # TODO: write documentation and follow style guidelines
-      # TODO: docstring
-      # TODO: refactor this method to use better variable names
-      vertical = re.compile(r'([MmAdP]?)([-]?)([\d]+)')
-      horizontal = re.compile(r'([+-]?)([MmAdP]?)([\d]+)')
+      vertical_re = re.compile(r'([MmAdP]?)([-]?)([\d]+)')
+      horizontal_re = re.compile(r'([+-]?)([MmAdP]?)([\d]+)')
 
       # Error message used many times
-      err_msg = 'cannot make N-Gram from badly formatted string'
+      err_msg = 'Cannot make IntevalNGram from the wrong number of intervals'
 
-      def make_vert(s):
+      def make_vert(int_str):
          '''
-         Given a string s representing a vertical
-         interval (no + or - before it) with or
-         without quality, return a music21
-         Interval object corresponding to it.
+         Return a music21 Interval object corresponding to the interval string
+         given as an argument. The interval string may have a quality or not,
+         but it should not have a + or - symbol.
          '''
-         m = vertical.match(s)
-         if m is None or m.group(0) != s:
-            raise NonsensicalInputError(err_msg)
-         if m.group(1) == "":
+         vert_match = vertical_re.match(int_str)
+         if vert_match is None or vert_match.group(0) != int_str:
+            raise RuntimeError(err_msg)
+         if vert_match.group(1) == "":
             try:
-               return Interval('M' + s)
+               return Interval('M' + int_str)
             except:
-               return Interval('P' + s)
+               return Interval('P' + int_str)
          else:
-            return Interval(s)
+            return Interval(int_str)
+      # End make_vert()
 
-      def make_horiz(s):
+      def make_horiz(int_str):
          '''
-         Given a string s representing a horizontal
-         interval (with + or - out front), return
-         an appropriate music21 Interval object.
+         Return a music21 Interval object corresponding to the interval string
+         given as an argument. The interval string may have a quality or not,
+         but it must have a + or - symbol.
          '''
-         m = horizontal.match(s)
-         if m is None or m.group(0) != s:
-            raise NonsensicalInputError(err_msg)
-         sign = m.group(1) if m.group(1) == "-" else ""
-         if m.group(2) == "":
+         horiz_match = horizontal_re.match(int_str)
+         if horiz_match is None or horiz_match.group(0) != int_str:
+            raise RuntimeError(err_msg)
+         sign = horiz_match.group(1) if horiz_match.group(1) == '-' else ''
+         if horiz_match.group(2) == '':
             try:
-               return Interval('M' + sign + m.group(3))
+               return Interval('M' + sign + horiz_match.group(3))
             except:
-               return Interval('P' + sign + m.group(3))
+               return Interval('P' + sign + horiz_match.group(3))
          else:
-            return Interval(m.group(2) + sign + m.group(3))
+            return Interval(horiz_match.group(2) + sign + horiz_match.group(3))
+      # End make_horiz()
 
       intervals = string.split(' ')
 
       if len(intervals) % 2 == 0 or len(intervals) < 3:
-         msg = 'cannot make N-Gram from wrong number of intervals'
-         raise NonsensicalInputError(msg)
+         raise RuntimeError(err_msg)
 
-      nt = Note('C4')
-      l_i = []
+      the_note = Note('C4')
+      list_of_ints = []
       for i, interv in list(enumerate(intervals))[:-2:2]:
          new_int = make_vert(interv)
-         new_int.noteStart = nt
-         l_i.append(new_int)
+         new_int.noteStart = the_note
+         list_of_ints.append(new_int)
          horiz = make_horiz(intervals[i+1])
-         horiz.noteStart = nt
-         nt = horiz.noteEnd
+         horiz.noteStart = the_note
+         the_note = horiz.noteEnd
       last_int = make_vert(intervals[-1])
-      last_int.noteStart = nt
-      l_i.append(last_int)
+      last_int.noteStart = the_note
+      list_of_ints.append(last_int)
 
-      ng = IntervalNGram(l_i)
-      return ng
+      return IntervalNGram(list_of_ints)
    # End make_from_str() -----------------------------------
 # End class IntervalNGram-------------------------------------------------------
+
+
+
+class ChordNGram(NGram):
+   '''
+   Represents an n-gram of simultaneities connected by neo-Riemannian
+   transformations.
+   '''
+
+   # Class Data
+   # This is a list of all the neo-Riemannian transformations we consider
+   list_of_transforms = ['L', 'P', 'R', 'LL', 'LP', 'LR', 'PL', 'PP', 'PR',
+                         'RL', 'RP', 'RR', 'LLL', 'LLP', 'LLR', 'LPL', 'LPP',
+                         'LPR', 'LRL', 'LRP', 'LRR', 'PLL', 'PLP', 'PLR', 'PPL',
+                         'PPP', 'PPR', 'PRL', 'PRP', 'PRR', 'RLL', 'RLP', 'RLR',
+                         'RPL', 'RPP', 'RPR', 'RRL', 'RRP', 'RRR', 'LLLL',
+                         'LLLP', 'LLLR', 'LLPL', 'LLPP', 'LLPR', 'LLRL', 'LLRP',
+                         'LLRR', 'LPLL', 'LPLP', 'LPLR', 'LPPL', 'LPPP', 'LPPR',
+                         'LPRL', 'LPRP', 'LPRR', 'LRLL', 'LRLP', 'LRLR', 'LRPL',
+                         'LRPP', 'LRPR', 'LRRL', 'LRRP', 'LRRR', 'PLLL', 'PLLP',
+                         'PLLR', 'PLPL', 'PLPP', 'PLPR', 'PLRL', 'PLRP', 'PLRR',
+                         'PPLL', 'PPLP', 'PPLR', 'PPPL', 'PPPP', 'PPPR', 'PPRL',
+                         'PPRP', 'PPRR', 'PRLL', 'PRLP', 'PRLR', 'PRPL', 'PRPP',
+                         'PRPR', 'PRRL', 'PRRP', 'PRRR', 'RLLL', 'RLLP', 'RLLR',
+                         'RLPL', 'RLPP', 'RLPR', 'RLRL', 'RLRP', 'RLRR', 'RPLL',
+                         'RPLP', 'RPLR', 'RPPL', 'RPPP', 'RPPR', 'RPRL', 'RPRP',
+                         'RPRR', 'RRLL', 'RRLP', 'RRLR', 'RRPL', 'RRPP', 'RRPR',
+                         'RRRL', 'RRRP', 'RRRR', 'PRPRP']
+
+   ## Instance Data
+   # _n : how many events are in this n-gram
+   # _list_of_events : list of the musical events
+   # _list_of_connections : list of the musical events that connect the others
+   # _string : string-format representation of this NGram
+   # _repr : string-format "reper" of this NGram
+
+   def __init__(self, some_events):
+      '''
+      Create a new n-gram when given a list of Chord objects.
+      '''
+
+      # Call the base class constructor
+      super(ChordNGram, self).__init__()
+
+      # Initialize the data for __repr__()
+      self._repr = None
+
+      # How many events are in this n-gram?
+      self._n = len(some_events)
+
+      # Assign the events
+      self._list_of_events = some_events
+
+      # Calculate connecting events between the primary events
+      self._list_of_connections = []
+
+      # (Calculation goes here)
+      for i in xrange(1, self._n):
+         # Are both of these chords just major or minor triads?
+         if 11 == some_events[i-1].forteClassNumber and \
+         11 == some_events[i].forteClassNumber:
+            # Are both of the chords already the same?
+            if some_events[i-1].orderedPitchClasses == \
+            some_events[i].orderedPitchClasses:
+               self._list_of_connections.append('is')
+            else:
+               # Then we'll try some trans formations
+               for transform in ChordNGram.list_of_transforms:
+                  if LRP(some_events[i-1], transform).orderedPitchClasses == \
+                  some_events[i].orderedPitchClasses:
+                     self._list_of_connections.append(transform)
+                     break
+               else:
+                  self._list_of_connections.append('?')
+         # They aren't just triads, so we can't calculate their connections
+         else:
+            self._list_of_connections.append('?')
+   # End __init__() ------------------------------------------
+
+
+
+   def __repr__(self):
+      '''
+      Return the code that could be used to re-create this NGram object.
+      '''
+      # The Python standard suggests the return value from this method should
+      # be sufficient to re-create the object. This is a little more complicated
+      # than the music21 core classes make it seem.
+
+      # Maybe we've previously calculated this...
+      if self._repr is not None:
+         return self._repr
+      else:
+         # Hold the string we'll return
+         post = 'ChordNGram(['
+
+         # Append all but the final Chord
+         for simultaneity in self._list_of_events[:-1]:
+            post += 'Chord(' + str(simultaneity)[21:-1] + '), '
+
+         # Append the final Chord
+         post += 'Chord(' + str(self._list_of_events[-1])[21:-1] + ')])'
+
+         # Save this for next time!
+         self._repr = post
+
+         return post
+
+
+
+   def get_string_version(self):
+      '''
+      Return a string-format representation of this NGram object. Unlike str(),
+      this method allows different formatting options.
+      '''
+
+      # Hold the str we're making
+      post = ''
+
+      # We need to consider every index of _list_of_events.
+      for i, event in enumerate(self._list_of_events):
+         # If post isn't empty, this isn't the first interval added, so we need
+         # to put a space between this and the previous int.
+         if len(post) > 0:
+            post += ' '
+
+         # Calculate/format this event
+         this_event = '<' + str(event)[21:]
+
+         # (formatting goes here)
+
+         # Append this interval
+         post += this_event
+
+         # Calculate the connection after this interval.
+         # NB: The final event won't be followed by anything, and currently we
+         # deal with this by simply catching the IndexError that would result,
+         # and ignoring it. There's probably a more elegant way.
+         try:
+            post +=  ' ==' + self._list_of_connections[i] + '=>'
+         except IndexError:
+            pass
+
+      return post
+   # end get_string_version --------------------------------------------
+
+
+
+   @classmethod
+   def make_from_str(cls, given_string):
+      '''
+      Returns an NGram object corresponding to the given string
+      '''
+      # TODO: write this method
+      pass
+   # End make_from_str() -----------------------------------
+# End class NGram------------------------------------------------------------
