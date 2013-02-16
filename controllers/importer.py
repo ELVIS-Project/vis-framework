@@ -81,7 +81,7 @@ class Importer(Controller):
       Create a new Importer instance.
       '''
       # signals
-      super(Controller, self).__init__() # required for signals
+      super(Importer, self).__init__() # required for signals
       self.piece_gotten.connect(self.catch_score)
       self.run_import.connect(self.import_pieces)
       self.add_pieces_signal.connect(self.add_pieces)

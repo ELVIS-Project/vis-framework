@@ -527,7 +527,8 @@ class TestImportPieces(unittest.TestCase):
       parts = [Importer._find_part_names(piece) for piece in pieces]
 
       # (3) Run the import
-      returned = control.import_pieces()
+      returned = analyzing.ListOfPieces()
+      returned = control.import_pieces(returned)
 
       # (4) Check for correctness
       self.assertEqual(6, returned.rowCount())

@@ -77,7 +77,7 @@ class Experimenter(Controller, QtCore.QObject):
       '''
       Create a new Experimenter controller.
       '''
-      super(Controller, self).__init__() # required for signals
+      super(Experimenter, self).__init__() # required for signals
       self._list_of_analyses = None
       self._experiment_settings = ExperimentSettings()
       # Signals
@@ -212,7 +212,6 @@ class IntervalsLists(Experiment):
          self._settings = settings
       else:
          msg = 'IntervalsLists requires "quality" and "simple or compound" settings'
-         print(msg) # DEBUGGING
          raise KeyError(msg)
 
 
@@ -220,6 +219,7 @@ class IntervalsLists(Experiment):
    def perform(self):
       # TODO: write documentation and comments
       data = 'vertical, horizontal, offset\n'
+      print('number of records: ' + str(len(self._records))) # DEBUGGING
       for record in self._records:
          for first, second in zip(record,list(record)[1:]):
             offset = first[0]

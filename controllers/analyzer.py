@@ -30,7 +30,7 @@ Holds the Analyzer controller.
 
 # Imports from...
 # Python
-from multiprocessing import Process
+#from multiprocessing import Process # NB: commented because we aren't multiprocessing yet
 # music21
 from music21 import note
 # PyQt4
@@ -81,7 +81,7 @@ class Analyzer(Controller):
       Create a new Analyzer instance.
       '''
       # signals
-      super(Controller, self).__init__() # required for signals
+      super(Analyzer, self).__init__() # required for signals
       # other things
       self._list_of_pieces = ListOfPieces()
       self._list_of_analyses = []
@@ -105,20 +105,7 @@ class Analyzer(Controller):
       analyses, then emits Analyzer.status and, if appropriate,
       Analyzer.analysis_finished.
       '''
-      self.post.append(this_record)
-
-
-
-   @QtCore.pyqtSlot(ListOfPieces)
-   def catch_import(self, pieces_list):
-      # TODO: I think this method is unnecessary and should be removed
-      '''
-      Slot for the Importer.import_finished signal. This method is called
-      when the Importer controller has finished importing the list of pieces.
-
-      The argument is a ListOfPieces object.
-      '''
-      self._list_of_pieces = pieces_list
+      self._list_of_analyses.append(this_record)
 
 
 
@@ -168,14 +155,15 @@ class Analyzer(Controller):
       #   the _part_combo_finished() to do its job
 
       # hold the list of AnalysisRecord objects to return
-      self.post = []
+      self._list_of_analyses = []
 
       #jobs = []
       # Run the Analyses
       # loop through every piece
       for each_piece in self._list_of_pieces:
          # (1) Decode the part-combination specification
-         this_combos = str(each_piece[ListOfPieces.parts_combinations].toPyObject())
+         this_combos = each_piece[ListOfPieces.parts_combinations].toPyObject()
+         this_combos = str(this_combos)
          if '[all]' == this_combos:
             # We have to examine all combinations of parts
 
@@ -214,7 +202,7 @@ class Analyzer(Controller):
                                          offset=this_offset,
                                          salami=this_salami)
             # run the analysis and append results to our results-collector
-            self.post.append(self._event_finder(parts=this_parts,
+            self._list_of_analyses.append(self._event_finder(parts=this_parts,
                                                 types=this_types,
                                                 offset=this_offset,
                                                 salami=this_salami,
@@ -223,8 +211,8 @@ class Analyzer(Controller):
       # Conclude
       self.status.emit('100')
       self.status.emit('I finished!')
-      self.analysis_finished.emit(self.post)
-      return self.post
+      self.analysis_finished.emit(self._list_of_analyses)
+      return self._list_of_analyses
 
 
 
@@ -359,24 +347,19 @@ class Analyzer(Controller):
 
       # 3.) Iterate
       while Analyzer._we_should_continue(current_index, last_index):
-         #print('++++ beginning the loop') # DEBUGGING
          # 3.1) Safety check: ensure "current index" isn't past the end of the
          # part. If so, we'll just use the last index in the part.
          for index in xrange(len(current_index)):
             if current_index[index] > last_index[index]:
-               #print('++ + decrementing index ' + str(index)) # DEBUGGING
                current_index[index] = last_index[index]
 
          # 3.2) If we're using the same indicess we started with last time,
          # that's a bad sign.
-         #print('!!!! last_time: ' + str(indices_from_last_time) + ' and current: ' + str(current_index)) # DEBUGGING
          if indices_from_last_time == current_index:
             msg = 'Error in controllers.Analyzer._event_finder, section 3.2'
             raise RuntimeError(msg)
          else:
             indices_from_last_time = [index for index in current_index]
-            #print('!!!! assigning... last_time is now ' + str(indices_from_last_time))
-
          # 3.3) If the events in all the parts don't have the same offset, we
          # need to use the previous event in every part except the one that
          # already has that offset.
@@ -414,16 +397,16 @@ class Analyzer(Controller):
          # The offset of the current simultaneity will be the highest
          # offset of all the objects involved.
          # NB: We need this for later steps.
-         potential_offset = max([parts[index][current_index[index]].offset for index in xrange(len(parts))])
+         potential_offset = max([parts[index][current_index[index]].offset \
+                           for index in xrange(len(parts))])
          # What is the next "yes-counting" offset after the most_recent_event?
-         next_offset_to_count = round_to(most_recent_event, offset) if most_recent_event is not None else 0.0
+         next_offset_to_count = round_to(most_recent_event, offset) \
+                                if most_recent_event is not None else 0.0
          next_offset_to_count += offset
 
          # 3.4.1) Does the event happen at an offset we're counting?
          if potential_offset % offset == 0.0:
             use_this_simultaneity = True
-            #print('**** True in 3.4.1') # DEBUGGING
-            #print('potential_offset % offset is ' + str(potential_offset) + ' % ' + str(offset)) # DEBUGGING
          # 3.4.2) If the object is after the next offset we're counting, we
          # have to re-count the most recent event. We only need to re-count
          # the same event if the "salami" flag is set; otherwise, we need to
@@ -437,7 +420,6 @@ class Analyzer(Controller):
             potential_offset = next_offset_to_count
             # 3.4.2.3) Set to use this simultaneity
             use_this_simultaneity = True
-            #print('**** True in 3.4.2.3') # DEBUGGING
          # 3.4.3) Does this event continue past an offset that we're counting?
          else:
             # Find the next offset to be counted that's after the
@@ -469,14 +451,14 @@ class Analyzer(Controller):
             # 3.4.3.2) If offset_of_next_event is strictly greater than the
             # next_offset_to_count, then we must count this event.
             if offset_of_next_event > next_offset_to_count:
-               #print('**** True in (3.4.3.2)') # DEBUGGING
                use_this_simultaneity = True
 
          # 3.5) Make this event
          if use_this_simultaneity:
             # For each of the things in the parts at this moment, run them
             # through _object_stringer() and add them to this list.
-            current_event = [Analyzer._object_stringer(parts[index][current_index[index]]) for index in xrange(len(parts))]
+            current_event = [Analyzer._object_stringer(parts[index][current_index[index]]) \
+                            for index in xrange(len(parts))]
             # Reverse the list, so it's lowest-voice-to-highest-voice, and
             # turn it into a tuple.
             current_event = tuple(reversed(current_event))

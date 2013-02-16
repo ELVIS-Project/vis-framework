@@ -61,7 +61,7 @@ class DisplayHandler(Controller):
       '''
       Create a new DisplayHandler instance.
       '''
-      super(Controller, self).__init__() # required for signals
+      super(DisplayHandler, self).__init__() # required for signals
 
 
 

@@ -45,7 +45,7 @@ class Controller(QObject):
       '''
       Creates a new instance, and assigns the appropriate widget.
       '''
-      pass
+      super(Controller, self).__init__()
 
 
 
