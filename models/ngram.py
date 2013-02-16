@@ -67,7 +67,7 @@ class NGram(object):
 
       # Call the base class constructor
       # NOTE: uncomment this in subclasses
-      #super(___NGram, self).__init__()
+      #super(___NGram, self).__init__(some_events)
 
       # How many events are in this n-gram?
       self._n = len(some_events)
@@ -628,7 +628,7 @@ class ChordNGram(NGram):
                          'RLPL', 'RLPP', 'RLPR', 'RLRL', 'RLRP', 'RLRR', 'RPLL',
                          'RPLP', 'RPLR', 'RPPL', 'RPPP', 'RPPR', 'RPRL', 'RPRP',
                          'RPRR', 'RRLL', 'RRLP', 'RRLR', 'RRPL', 'RRPP', 'RRPR',
-                         'RRRL', 'RRRP', 'RRRR', 'PRPRP']
+                         'RRRL', 'RRRP', 'RRRR', 'PRPRP', 'LRPRP']
 
    ## Instance Data
    # _n : how many events are in this n-gram
@@ -643,7 +643,7 @@ class ChordNGram(NGram):
       '''
 
       # Call the base class constructor
-      super(ChordNGram, self).__init__()
+      super(ChordNGram, self).__init__(some_events)
 
       # Initialize the data for __repr__()
       self._repr = None

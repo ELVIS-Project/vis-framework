@@ -82,4 +82,5 @@ unittest.TextTestRunner(verbosity=verb).run(ar_init_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_iter_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_getters_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_append_event_suite)
-unittest.TextTestRunner(verbosity=verb).run(test_interval_ngram_suite) # doesn't work
+unittest.TextTestRunner(verbosity=verb).run(test_interval_ngram_suite)
+unittest.TextTestRunner(verbosity=verb).run(test_chord_ngram_suite)

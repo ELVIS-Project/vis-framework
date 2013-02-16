@@ -24,8 +24,8 @@
 
 
 import unittest
-from music21 import interval, note
-from models.ngram import IntervalNGram
+from music21 import interval, note, chord
+from models.ngram import IntervalNGram, ChordNGram
 
 
 
@@ -417,7 +417,40 @@ class TestIntervalNGram(unittest.TestCase):
       # putting the '-' for negative intervals in all kinds of places
       #str_ng = IntervalNGram.make_from_str('M3 M2- M3')
       #self.assertEqual(str(str_ng), 'M3 -M2 M3')
-#------------------------------------------------------------------------------
+# End class TestIntervalNGram --------------------------------------------------
+
+
+
+class TestChordNGram(unittest.TestCase):
+   def test_finds_transformations(self):
+      '''
+      Whether the constructor correctly calculates the transformations from a
+      C major triad to every other minor and major triad.
+      '''
+      # each element in this list is a tuple, where the first is a string that
+      # will be passed to chord.Chord to create the second Chord object to be
+      # passed to the ChordNGram constructor, and the second is a string that
+      # represents the value of ChordNGram._list_of_connections[0]
+      correct_transforms = [('c# e g#', 'LPR'), ('c# e# g#', 'LPRP'),
+                            ('d f a', 'RLR'), ('d f# a', 'LRLR'),
+                            ('e- g- b-', 'PRP'), ('e- g b-', 'PR'),
+                            ('e g b', 'L'), ('e g# b', 'LP'),
+                            ('f a- c', 'PLR'), ('f a c', 'RL'),
+                            ('f# a c#', 'RPR'), ('f# a# c#', 'PRPR'),
+                            ('g b- d', 'LRP'), ('g b d', 'LR'),
+                            ('g# b d#', 'LPL'), ('a- c e-', 'PL'),
+                            ('a c e', 'R'), ('a c# e', 'RP'),
+                            ('b- d- f', 'LRPRP'), ('b- d f', 'LRPR'),
+                            ('b d f#', 'LRL'), ('b d# f#', 'LPLR'),
+                           ]
+
+      # Everybody's favourite triad
+      cmaj = chord.Chord('c e g')
+
+      for simultaneity, transform in correct_transforms:
+         this_ngram = ChordNGram([cmaj, chord.Chord(simultaneity)])
+         self.assertEqual(this_ngram._list_of_connections[0], transform)
+# End class TestChordNGram -----------------------------------------------------
 
 
 
@@ -425,3 +458,4 @@ class TestIntervalNGram(unittest.TestCase):
 # Definitions
 #-------------------------------------------------------------------------------
 test_interval_ngram_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalNGram)
+test_chord_ngram_suite = unittest.TestLoader().loadTestsFromTestCase(TestChordNGram)
