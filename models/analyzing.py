@@ -443,3 +443,56 @@ class AnalysisRecord(object):
       else:
          return (None, None)
 # End class AnalysisRecord -----------------------------------------------------
+
+
+
+class AnalysisSettings(object):
+   '''
+   Hold settings relevant to conducting analyses.
+
+   All the possible settings:
+   - types : a list of 2-tuples, where element 0 is a type you want to count as an "event,"
+             and element 1 is a function that produces a string version suitable for an
+             AnalysisRecord instance.
+   - offset : the minimum quarterLength offset between consecutive events
+   - salami : if True, all events will be the offset distance from each
+      other, even if this produces a series of identical events
+   '''
+
+
+
+   def __init__(self):
+      '''
+      Create an empty AnalysisSettings instance with no settings.
+      '''
+      self._settings = {}
+
+
+
+   def set(self, setting, value):
+      '''
+      Set the value of a setting. If the setting does not yet exist, it is
+      created and initialized to the value.
+      '''
+      self._settings[setting] = value
+
+
+
+   def has(self, setting):
+      '''
+      Returns True if a setting already exists in this AnalysisSettings
+      instance, or else False.
+      '''
+      return setting in self._settings
+
+
+
+   def get(self, setting):
+      '''
+      Return the value of a setting, or None if the setting does not exist.
+      '''
+      if self.has(setting):
+         return self._settings[setting]
+      else:
+         return None
+# End class AnalysisSettings -----------------------------------------------------------------------
