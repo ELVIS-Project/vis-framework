@@ -32,6 +32,8 @@ from os import walk
 from os.path import splitext, join
 # PyQt4
 from PyQt4 import QtGui, uic, QtCore
+# music21
+from music21 import metadata
 # vis
 from models.analyzing import ListOfPieces
 from views.VisOffsetSelector import VisOffsetSelector
@@ -900,7 +902,11 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # hold a list of tuples to be signalled as settings
       list_of_settings = []
       # (1a) Which experiment?
-      list_of_settings.append(('experiment', 'IntervalsList'))
+      # TODO: must revise these to account for both "Output Format" and "What to Display"
+      if self.ui.rdo_intervals.isChecked():
+         list_of_settings.append(('experiment', 'IntervalsList'))
+      elif self.ui.rdo_chord_ngrams.isChecked():
+         list_of_settings.append(('experiment', 'ChordsList'))
       # (1b) Print quality?
       if self.ui.rdo_heedQuality.isChecked():
          list_of_settings.append(('quality', True))

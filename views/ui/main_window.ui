@@ -762,7 +762,7 @@
               <item>
                <widget class="QRadioButton" name="rdo_chord_ngrams">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Chord N-grams</string>

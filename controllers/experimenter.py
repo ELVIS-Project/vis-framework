@@ -32,9 +32,11 @@ Holds the Experimenter controller.
 # vis
 from controller import Controller
 from models.experimenting import ExperimentSettings
+from models import ngram
 # music21
 from music21.interval import Interval
 from music21.note import Note
+from music21 import chord
 # PyQt4
 from PyQt4 import QtCore
 
@@ -107,8 +109,11 @@ class Experimenter(Controller, QtCore.QObject):
       # TODO: plug it in
       # Trigger that experiment
       # TODO: run the right experiment
-      il = IntervalsLists(self._list_of_analyses, self._experiment_settings)
-      post = il.perform()
+      if self._experiment_settings.get('experiment') == 'IntervalsList':
+         exper = IntervalsLists(self._list_of_analyses, self._experiment_settings)
+      elif self._experiment_settings.get('experiment') == 'ChordsList':
+         exper = ChordsLists(self._list_of_analyses, self._experiment_settings)
+      post = exper.perform()
 
       # TODO: figure out the valid types of display, and put them in a list in
       # the first element of this tuple
@@ -206,6 +211,9 @@ class IntervalsLists(Experiment):
       - 'simple or compound' : whether to print intervals in their single-octave
          ('simple') or actual ('compound') form.
       '''
+      # Call the superclass constructor
+      # TODO: call the superclass constructor
+
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound'):
          self._records = records
@@ -219,7 +227,7 @@ class IntervalsLists(Experiment):
    def perform(self):
       # TODO: write documentation and comments
       data = 'vertical, horizontal, offset\n'
-      print('number of records: ' + str(len(self._records))) # DEBUGGING
+      #print('number of records: ' + str(len(self._records))) # DEBUGGING
       for record in self._records:
          for first, second in zip(record,list(record)[1:]):
             offset = first[0]
@@ -249,6 +257,83 @@ class IntervalsLists(Experiment):
                            str(horizontal.generic.directed) + ', ' + \
                            str(offset) + '\n'
 
+            data += put_me
+         # TODO: Then add the last row
+      return data
+# End class Experiment ---------------------------------------------------------
+
+
+
+class ChordsLists(Experiment):
+   '''
+   Prepares two lists of chord-related information: one of chord names, and the other of the
+   neo-Riemannian transformations that connect the intervals.
+
+   This Experiment is useful for these Display classes:
+   - spreadsheet
+   - LilyPond annotated score
+
+   The experiment directly uses ChordNGram objects
+   '''
+
+
+
+   def __init__(self, records, settings):
+      '''
+      Create a new IntervalsLists.
+
+      There are two argument, both of which are mandatory:
+      - records : a list of AnalysisRecord objects
+      - settings : an ExperimentSettings object
+
+      The IntervalsSpreadsheet uses these settings:
+      - 'quality' : boolean, whether to print or suppress quality
+      - 'simple or compound' : whether to print intervals in their single-octave
+         ('simple') or actual ('compound') form.
+      '''
+      # Call the superclass constructor
+      # TODO: call the superclass constructor
+
+      self._records = records
+      self._settings = settings
+
+
+
+   def perform(self):
+      # TODO: write documentation and comments
+      data = 'chord, transformation, offset\n'
+      #print('number of records: ' + str(len(self._records))) # DEBUGGING
+      for record in self._records:
+         for first, second in zip(record,list(record)[1:]):
+            offset = first[0]
+            first_chord, second_chord = '', ''
+
+            for chord_member in first[1]:
+               first_chord += chord_member + ' '
+
+            for chord_member in second[1]:
+               second_chord += chord_member + ' '
+
+            transformer = ngram.ChordNGram([chord.Chord(first_chord), chord.Chord(second_chord)])
+
+            the_chord = chord.Chord(first_chord)
+            # TODO: this next line without violating the object
+            horizontal = transformer._list_of_connections[0]
+            put_me = ''
+
+            # add the chord
+            put_me += the_chord.root().name + ' ' + the_chord.commonName + ', '
+
+            # add the transformation
+            put_me += horizontal + ', '
+
+            # add the offset
+            put_me += str(offset)
+
+            # add the newline
+            put_me += '\n'
+
+            # add this chord-and-transformation to the list of all of them
             data += put_me
          # TODO: Then add the last row
       return data

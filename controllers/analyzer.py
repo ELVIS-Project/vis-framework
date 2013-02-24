@@ -188,12 +188,19 @@ class Analyzer(Controller):
 
          # (2) Loop through every part combination
          for combo in this_combos:
+            # hold the Score object for the whole piece
+            whole_piece = each_piece[ListOfPieces.score]
             # select the two parts to analyze
-            this_parts = [each_piece[ListOfPieces.score][0].parts[i] for i in combo]
+            # NOTE: the step used to look like this... but QVariants...
+            # this_parts = [each_piece[ListOfPieces.score][0].parts[i] for i in combo]
+            if isinstance(whole_piece, QtCore.QVariant):
+               whole_piece = whole_piece.toPyObject()
+            this_parts = [whole_piece[0].parts[i] for i in combo]
             # prepare the metadata
-            this_metadata = each_piece[ListOfPieces.score][0].metadata
+            this_metadata = whole_piece[0].metadata
             this_part_names = [each_piece[ListOfPieces.parts_list][i] for i in combo]
-            this_offset = each_piece[ListOfPieces.offset_intervals][0]
+            this_offset = float(each_piece[ListOfPieces.offset_intervals].toPyObject()[1:-1])
+            print(str(this_offset)) # DEBUGGINGS
             # TODO: figure this dynamically
             this_salami = False
              # TODO: figure this dynamically
