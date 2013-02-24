@@ -106,6 +106,8 @@ class ListOfPieces(QAbstractTableModel):
       case Qt.DisplayRole returns a string representing the title, and the
       ListOfPieces.ScoreRole returns the Score object.
 
+      NOTE: This method always returns a QVariant object
+
       data() should return the following formats, but only if this specification
       was followed when calling setData(). If the index is...
       - ListOfPieces.filename : string
@@ -150,6 +152,10 @@ class ListOfPieces(QAbstractTableModel):
          elif role is ListOfPieces.ScoreRole and column is ListOfPieces.score:
             post = self._pieces[row][ListOfPieces.score]
             post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
+
+      # Must always return a QVariant
+      if not isinstance(post, QVariant):
+         post = QVariant(post)
 
       return post
 

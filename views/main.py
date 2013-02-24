@@ -344,7 +344,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             # Metadata object directly
 
             # Get the Score
-            piece = self.vis_controller.analyzer._list_of_pieces.data(cell, ListOfPieces.ScoreRole)#.toPyObject()
+            piece = self.vis_controller.analyzer._list_of_pieces.data(cell, ListOfPieces.ScoreRole).toPyObject()
 
             # Make sure there's a Metadata object
             if piece.metadata is None:
@@ -552,8 +552,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          for cell in currently_selected:
             if ListOfPieces.parts_combinations == cell.column():
                if first_parts is None:
-                  first_parts = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole)#.toPyObject()
-               elif first_parts == self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole):#.toPyObject():
+                  first_parts = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
+               elif first_parts == self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject():
                   continue
                else:
                   first_parts = ''
@@ -580,26 +580,13 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
                   first_offset = ''
                   break
          self.ui.line_offset_interval.setText(str(first_offset))
-         # (4) if the pieces have the same values of n, display them
-         # TODO: this should all be remove-able, since we don't use 'n' at this stage any more
-         #first_n = None
-         #for cell in currently_selected:
-            #if self.model_n == cell.column():
-               #if first_n is None:
-                  #first_n = self.analysis_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
-               #elif first_n == self.analysis_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject():
-                  #continue
-               #else:
-                  #first_n = ''
-                  #break
-         #self.ui.line_values_of_n.setText(first_n)
-         # (5) Update "Compare These Parts"
+         # (4) Update "Compare These Parts"
          first_comp = None
          for cell in currently_selected:
             if ListOfPieces.parts_combinations == cell.column():
                if first_comp is None:
-                  first_comp = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole)#.toPyObject()
-               elif first_comp == self.analysis_pieces.data(cell, QtCore.Qt.DisplayRole):#.toPyObject():
+                  first_comp = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
+               elif first_comp == self.analysis_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject():
                   continue
                else:
                   first_comp = ''
@@ -627,23 +614,17 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          self.update_piece_settings_visibility(True)
          # (2) Populate the part list
          self.update_part_checkboxes(currently_selected)
-         # (3) Update "values of n"
-         # TODO: we shouldn't need this any more because we don't deal with values of 'n' at this stage
-         #for cell in currently_selected:
-            #if self.model_n == cell.column():
-               #self.ui.line_values_of_n.setText(str(self.analysis_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
-               #break
-         # (4) Update "offset interval"
+         # (3) Update "offset interval"
          for cell in currently_selected:
             if ListOfPieces.offset_intervals == cell.column():
-               self.ui.line_offset_interval.setText(str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole)))
+               self.ui.line_offset_interval.setText(str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                break
-         # (5) Update "Compare These Parts"
+         # (4) Update "Compare These Parts"
          self.update_comparison_parts(currently_selected)
-         # (6) Update "Pice Title"
+         # (5) Update "Pice Title"
          for cell in currently_selected:
             if ListOfPieces.score == cell.column():
-               self.ui.line_piece_title.setText(str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole)))
+               self.ui.line_piece_title.setText(str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                break
    # End update_pieces_selection() -------------------------
 
@@ -663,7 +644,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
       for cell in currently_selected:
          if ListOfPieces.parts_combinations == cell.column():
-            comparison_parts = str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole))
+            comparison_parts = str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject())
             self.ui.line_compare_these_parts.setText(comparison_parts)
             if '[all]' == comparison_parts:
                self.ui.chk_all_voice_combos.setChecked(True)
@@ -713,7 +694,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             # actual Score object itself (which would require re-loading)
 
             # Get the Score
-            parts_list = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole)
+            parts_list = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
 
             # Update the part name as requested
             parts_list[part_index] = new_name
@@ -816,7 +797,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       list_of_parts = None
       for cell in currently_selected:
          if ListOfPieces.parts_list == cell.column():
-            list_of_parts = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole)
+            list_of_parts = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
             break
 
       # (3) Put up a checkbox for each part

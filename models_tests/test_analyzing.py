@@ -347,7 +347,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces[0][ListOfPieces.score] = the_field
       index = self.lop.createIndex(0, ListOfPieces.score)
       self.assertEqual(the_field[0],
-                       self.lop.data(index, ListOfPieces.ScoreRole))
+                       self.lop.data(index, ListOfPieces.ScoreRole).toPyObject())
 
 
 
@@ -404,7 +404,29 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces[4][ListOfPieces.score] = the_field
       index = self.lop.createIndex(4, ListOfPieces.score)
       self.assertEqual(the_field[0],
-                       self.lop.data(index, ListOfPieces.ScoreRole))
+                       self.lop.data(index, ListOfPieces.ScoreRole).toPyObject())
+
+
+
+   def test_data_10(self):
+      # Ensure all the fields return as type QtCore.QVariant
+      # set the default row
+      self.lop._pieces = [self.default_row]
+      # put a real Score object in there
+      the_field = (converter.parse('test_corpus/bwv77.mxl'), 'Chorale!')
+      self.lop._pieces[0][ListOfPieces.score] = the_field
+      # create a list of QModelIndex instances to use
+      list_of_indices = []
+      list_of_columns = [ListOfPieces.filename, ListOfPieces.score, ListOfPieces.parts_list,
+                         ListOfPieces.offset_intervals, ListOfPieces.parts_combinations]
+      for each_column in list_of_columns:
+         list_of_indices.append(self.lop.createIndex(0, each_column))
+      # test everything with Qt.DisplayRole
+      for each_index in list_of_indices:
+         self.assertTrue(isinstance(self.lop.data(each_index, Qt.DisplayRole), QVariant))
+      # one final test
+      index = self.lop.createIndex(0, ListOfPieces.score)
+      self.assertTrue(isinstance(self.lop.data(index, ListOfPieces.ScoreRole), QVariant))
 # End TestListOfPiecesData -----------------------------------------------------
 
 
