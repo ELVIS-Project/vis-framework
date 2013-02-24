@@ -32,7 +32,7 @@ Holds the Analyzer controller.
 # Python
 #from multiprocessing import Process # NB: commented because we aren't multiprocessing yet
 # music21
-from music21 import note
+from music21 import note, chord
 # PyQt4
 from PyQt4 import QtCore
 # vis
@@ -160,10 +160,17 @@ class Analyzer(Controller):
       #jobs = []
       # Run the Analyses
       # loop through every piece
-      for each_piece in self._list_of_pieces:
+      for each_raw_piece in self._list_of_pieces:
+         # (1) Ensure all the things in "each_piece" are *not* a QVariant
+         each_piece = []
+         for each_column in each_raw_piece:
+            if isinstance(each_column, QtCore.QVariant):
+               each_piece.append(each_column.toPyObject())
+            else:
+               each_piece.append(each_column)
+
          # (1) Decode the part-combination specification
-         this_combos = each_piece[ListOfPieces.parts_combinations].toPyObject()
-         this_combos = str(this_combos)
+         this_combos = str(each_piece[ListOfPieces.parts_combinations])
          if '[all]' == this_combos:
             # We have to examine all combinations of parts
 
@@ -189,22 +196,26 @@ class Analyzer(Controller):
          # (2) Loop through every part combination
          for combo in this_combos:
             # hold the Score object for the whole piece
-            whole_piece = each_piece[ListOfPieces.score]
+            #whole_piece = each_piece[ListOfPieces.score]
             # select the two parts to analyze
             # NOTE: the step used to look like this... but QVariants...
-            # this_parts = [each_piece[ListOfPieces.score][0].parts[i] for i in combo]
-            if isinstance(whole_piece, QtCore.QVariant):
-               whole_piece = whole_piece.toPyObject()
-            this_parts = [whole_piece[0].parts[i] for i in combo]
+            this_parts = [each_piece[ListOfPieces.score][0].parts[i] for i in combo]
+            #if isinstance(whole_piece, QtCore.QVariant):
+               #whole_piece = whole_piece.toPyObject()
+            #this_parts = [whole_piece[0].parts[i] for i in combo]
             # prepare the metadata
-            this_metadata = whole_piece[0].metadata
+            this_metadata = each_piece[ListOfPieces.score][0].metadata
             this_part_names = [each_piece[ListOfPieces.parts_list][i] for i in combo]
-            this_offset = float(each_piece[ListOfPieces.offset_intervals].toPyObject()[1:-1])
-            print(str(this_offset)) # DEBUGGINGS
+            #print(str(each_piece[ListOfPieces.offset_intervals][1:-1])) # DEBUGGING
+            this_offset = float(each_piece[ListOfPieces.offset_intervals][1:-1])
             # TODO: figure this dynamically
             this_salami = False
-             # TODO: figure this dynamically
-            this_types = [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
+            # TODO: figure this dynamically
+            # TODO: formalize the lambda things somehow
+            # NOTE: 'c' is for 'Chord' and 'm' is for 'chord Member'
+            chords_lambda = lambda c: [m.nameWithOctave for m in c]
+            this_types = [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest'),
+                          (chord.Chord, chords_lambda)]
             # prepare the AnalysisRecord object
             this_record = AnalysisRecord(metadata=this_metadata,
                                          part_names=this_part_names,

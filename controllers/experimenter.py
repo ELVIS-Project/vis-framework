@@ -300,19 +300,44 @@ class ChordsLists(Experiment):
 
 
    def perform(self):
-      # TODO: write documentation and comments
-      data = 'chord, transformation, offset\n'
-      #print('number of records: ' + str(len(self._records))) # DEBUGGING
+      # this is what we'll return
+      post = 'chord, transformation, offset\n'
+
       for record in self._records:
-         for first, second in zip(record,list(record)[1:]):
+         for first, second in zip(record, list(record)[1:]):
+            # find the offset
             offset = first[0]
+
+            # DEBUGGING
+            #print(str(offset)+' offset before processing...')
+            #print('   1st chord: '+str(first))
+            #print('   2nd chord: '+str(second))
+            # END DEBUGGING
+
+            # hold the string-wise representation of the chords
             first_chord, second_chord = '', ''
 
+            # prepare the string-wise representation of the chords
+            # TODO: deduplicate this
+            # NOTE: we have the inner isinstance() call because, if a Chord object is put here,
+            #       it'll be as a tuple, rather than, like Note objects, as simply right there
             for chord_member in first[1]:
-               first_chord += chord_member + ' '
+               if isinstance(chord_member, list):
+                  for inner_chord_member in chord_member:
+                     first_chord += inner_chord_member + ' '
+               elif 'Rest' != chord_member:
+                  first_chord += chord_member + ' '
 
             for chord_member in second[1]:
-               second_chord += chord_member + ' '
+               if isinstance(chord_member, list):
+                  for inner_chord_member in chord_member:
+                     second_chord += inner_chord_member + ' '
+               elif 'Rest' != chord_member:
+                  second_chord += chord_member + ' '
+
+            # ensure neither of the chords is just a REST... if it is, we'll skip this loop
+            if '' == first_chord or '' == second_chord:
+               continue
 
             transformer = ngram.ChordNGram([chord.Chord(first_chord), chord.Chord(second_chord)])
 
@@ -334,7 +359,7 @@ class ChordsLists(Experiment):
             put_me += '\n'
 
             # add this chord-and-transformation to the list of all of them
-            data += put_me
-         # TODO: Then add the last row
-      return data
+            post += put_me
+         # TODO: Then add the last row (CRA: is it missing? Maybe)
+      return post
 # End class Experiment ---------------------------------------------------------
