@@ -22,7 +22,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-
+'''
+Holds the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt4 interface.
+'''
 
 
 # Imports from...
@@ -41,6 +43,9 @@ from views.VisOffsetSelector import VisOffsetSelector
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
+   '''
+   This class makes the GUI-controlling objects for vis' PyQt4 interface.
+   '''
    # Signals for connecting to the vis_controller
    show_import = QtCore.pyqtSignal()
    show_analyze = QtCore.pyqtSignal()
@@ -58,7 +63,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       super(VisQtMainWindow, self).__init__() # required for signals
       self.vis_controller = vis_controller
       self.ui = uic.loadUi('views/ui/main_window.ui')
-      self.tool_import()
+      self._tool_import()
       self.ui.show()
       # Hold a lists of checkboxes, "Edit" buttons, and layouts that represent
       # the parts in a piece for the "assemble" panel
@@ -68,37 +73,36 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # Setup GUI-only Signals
       mapper = [
          # Signals interacting with VISController
-         (self.show_import, self.tool_import),
-         (self.show_analyze, self.tool_analyze),
-         (self.show_working, self.tool_working),
-         (self.show_about, self.tool_about),
-         (self.show_experiment, self.tool_experiment),
+         (self.show_import, self._tool_import),
+         (self.show_analyze, self._tool_analyze),
+         (self.show_working, self._tool_working),
+         (self.show_about, self._tool_about),
+         (self.show_experiment, self._tool_experiment),
          (self.update_progress, self._update_progress_bar),
          (self.report_error, self._error_reporter),
-         # TODO: decide whether we need these, or we should just use the signals from the previous line
-         (self.ui.btn_choose_files.clicked, self.tool_import),
-         (self.ui.btn_about.clicked, self.tool_about),
-         (self.ui.btn_analyze.clicked, self.tool_analyze),
-         (self.ui.btn_experiment.clicked, self.tool_experiment),
-         (self.ui.btn_dir_add.clicked, self.add_dir),
-         (self.ui.btn_file_add.clicked, self.add_files),
-         (self.ui.btn_file_remove.clicked, self.remove_files),
-         (self.ui.btn_step1.clicked, self.tool_working),
-         (self.ui.btn_step2.clicked, self.tool_working),
-         (self.ui.btn_show_results.clicked, self.prepare_experiment_submission),
+         (self.ui.btn_choose_files.clicked, self._tool_import),
+         (self.ui.btn_about.clicked, self._tool_about),
+         (self.ui.btn_analyze.clicked, self._tool_analyze),
+         (self.ui.btn_experiment.clicked, self._tool_experiment),
+         (self.ui.btn_dir_add.clicked, self._add_dir),
+         (self.ui.btn_file_add.clicked, self._add_files),
+         (self.ui.btn_file_remove.clicked, self._remove_files),
+         (self.ui.btn_step1.clicked, self._tool_working),
+         (self.ui.btn_step2.clicked, self._tool_working),
+         (self.ui.btn_show_results.clicked, self._prepare_experiment_submission),
          # NB: these are connected to sub-controllers by VisController
          (self.ui.btn_step1.clicked, self.vis_controller.run_the_import.emit),
          (self.ui.btn_step2.clicked, self.vis_controller.run_the_analysis.emit),
          # Things that operate the GUI
-         (self.ui.chk_all_voice_combos.stateChanged, self.adjust_bs),
-         (self.ui.chk_all_voice_combos.clicked, self.all_voice_combos),
-         (self.ui.chk_basso_seguente.clicked, self.chose_bs),
-         (self.ui.line_piece_title.editingFinished, self.update_piece_title),
-         (self.ui.btn_add_check_combo.clicked, self.add_parts_combination),
-         (self.ui.line_compare_these_parts.editingFinished, self.add_parts_combo_by_lineEdit),
-         (self.ui.line_offset_interval.editingFinished, self.update_offset_interval),
-         (self.ui.gui_pieces_list.clicked, self.update_pieces_selection),
-         (self.ui.btn_choose_note.clicked, self.launch_offset_selection)
+         (self.ui.chk_all_voice_combos.stateChanged, self._adjust_bs),
+         (self.ui.chk_all_voice_combos.clicked, self._all_voice_combos),
+         (self.ui.chk_basso_seguente.clicked, self._chose_bs),
+         (self.ui.line_piece_title.editingFinished, self._update_piece_title),
+         (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
+         (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
+         (self.ui.line_offset_interval.editingFinished, self._update_offset_interval),
+         (self.ui.gui_pieces_list.clicked, self._update_pieces_selection),
+         (self.ui.btn_choose_note.clicked, self._launch_offset_selection)
       ]
       for signal, slot in mapper:
          signal.connect(slot)
@@ -112,7 +116,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
    # Methods Doing GUI Stuff ---------------------------------------------------
    # Pressing Buttons in the Toolbar -----------------------
    @QtCore.pyqtSlot()
-   def tool_import(self):
+   def _tool_import(self):
+      '''
+      Activate the "import" panel
+      '''
       self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
       self.ui.btn_about.setEnabled(True)
       self.ui.btn_choose_files.setEnabled(True)
@@ -124,7 +131,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    @QtCore.pyqtSlot()
-   def tool_analyze(self):
+   def _tool_analyze(self):
+      '''
+      Activate the "analyze" panel (corresponding to the Analyzer).
+      '''
       self.ui.main_screen.setCurrentWidget(self.ui.page_analyze)
       self.ui.btn_choose_files.setEnabled(False)
       self.ui.btn_analyze.setChecked(True)
@@ -137,7 +147,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    @QtCore.pyqtSlot()
-   def tool_working(self):
+   def _tool_working(self):
+      '''
+      Activate the "working" panel, for when vis is processing.
+      '''
       self.ui.main_screen.setCurrentWidget(self.ui.page_working)
       # make sure nothing is enabled
       self.ui.btn_about.setEnabled(False)
@@ -158,7 +171,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    @QtCore.pyqtSlot()
-   def tool_about(self):
+   def _tool_about(self):
+      '''
+      Activate the "about" panel.
+      '''
       self.ui.main_screen.setCurrentWidget(self.ui.page_about)
       # leave enabled/disabled as-is, but make sure only "about" is checked
       self.ui.btn_about.setChecked(True)
@@ -169,7 +185,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    @QtCore.pyqtSlot()
-   def tool_experiment(self):
+   def _tool_experiment(self):
+      '''
+      Activate the "show" panel, which corresponds to the Experimenter controller.
+      '''
       self.ui.main_screen.setCurrentWidget(self.ui.page_show)
       self.ui.btn_about.setEnabled(True)
       self.ui.btn_choose_files.setEnabled(False)
@@ -183,7 +202,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
    # Operations on the Importer panel ----------------------
    @QtCore.pyqtSlot()
-   def add_files(self):
+   def _add_files(self):
+      '''
+      Add files to the "importer" panel.
+      '''
       files = QtGui.QFileDialog.getOpenFileNames(
          None,
          "Choose Files to Analyze",
@@ -196,29 +218,35 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    @QtCore.pyqtSlot()
-   def add_dir(self):
+   def _add_dir(self):
+      '''
+      Add a directory to the "importer" panel.
+      '''
       d = QtGui.QFileDialog.getExistingDirectory(\
          None,
          "Choose Directory to Analyze",
          '',
          QtGui.QFileDialog.ShowDirsOnly)
       d = str(d)
-      extensions = ['.nwc.', '.mid','.midi','.mxl','.krn','.xml','.md']
-      possible_files = chain(*[[join(path,fp) for fp in files if
+      extensions = ['.nwc.', '.mid', '.midi', '.mxl', '.krn', '.xml', '.md']
+      possible_files = chain(*[[join(path, fp) for fp in files if
                         splitext(fp)[1] in extensions]
-                        for path,names,files in walk(d)])
+                        for path, ___, files in walk(d)])
       self.vis_controller.import_files_added.emit(list(possible_files))
 
 
 
    @QtCore.pyqtSlot()
-   def remove_files(self):
+   def _remove_files(self):
       '''
       Method which finds which files the user has selected for
       removal and emits a signal containing their names.
       '''
-      # use the self.vis_controller.import_files_removed signal
-      pass
+      # which indices are currently selected?
+      currently_selected = self.ui.gui_file_list.selectedIndexes()
+
+      # send this to the VISController
+      self.vis_controller.import_files_removed.emit(currently_selected)
 
 
 
@@ -250,33 +278,38 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    # Other Things ------------------------------------------
-   @QtCore.pyqtSlot(str)
+   @QtCore.pyqtSlot(str) # for self.report_error
    def _error_reporter(self, description):
       '''
       Notify the user that an error has happened. The argument should be a
       description of the error.
       '''
-      pass
+      QtGui.QMessageBox.warning(None,
+                                'Error in an Internal Component',
+                                description,
+                                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                                QtGui.QMessageBox.Ok)
 
 
 
-   # Signal for: self.ui.chk_all_voice_combos.stateChanged
+
+   # Signal for: self.ui.chk__all_voice_combos.stateChanged
    @QtCore.pyqtSlot()
-   def adjust_bs(self):
+   def _adjust_bs(self):
       '''
       Adjust the 'basso seguente' checkbox's text, depending on whether the
       "all combinations" checkbox is checked.
       '''
-      if self.ui.chk_all_voice_combos.isChecked():
+      if self.ui.chk__all_voice_combos.isChecked():
          self.ui.chk_basso_seguente.setText('Every part against Basso Seguente')
       else:
          self.ui.chk_basso_seguente.setText('Basso Seguente')
 
 
 
-   # Signal for: self.ui.chk_all_voice_combos.clicked
+   # Signal for: self.ui.chk__all_voice_combos.clicked
    @QtCore.pyqtSlot()
-   def all_voice_combos(self):
+   def _all_voice_combos(self):
       '''
       Deal with the situation when a user checks or unchecks the "all voice
       combinations" checkbox.
@@ -285,7 +318,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       part_spec = ''
 
       # Are we enabling "all" or disabling?
-      if self.ui.chk_all_voice_combos.isChecked():
+      if self.ui.chk__all_voice_combos.isChecked():
          # Enabling
          # Are there specific part names? If so, disable those checkboxes
          if self.part_checkboxes is not None:
@@ -304,31 +337,31 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          self.ui.btn_add_check_combo.setEnabled(True)
          part_spec = '(no selection)'
 
-      self.update_parts_selection(part_spec)
+      self._update_parts_selection(part_spec)
 
 
 
    # Signal for: self.ui.chk_basso_seguente.clicked
    @QtCore.pyqtSlot()
-   def chose_bs(self):
+   def _chose_bs(self):
       '''
       When somebody chooses the "basso seguente" checkbox, if "all" is also
       selected, we should update the QLineEdit
       '''
-      if self.ui.chk_all_voice_combos.isChecked():
+      if self.ui.chk__all_voice_combos.isChecked():
          part_spec = ''
          if self.ui.chk_basso_seguente.isChecked():
             part_spec = '[all,bs]'
          else:
             part_spec = '[all]'
 
-         self.update_parts_selection(part_spec)
+         self._update_parts_selection(part_spec)
 
 
 
    # Signal for: self.ui.line_piece_title.editingFinished
    @QtCore.pyqtSlot()
-   def update_piece_title(self):
+   def _update_piece_title(self):
       '''
       When users change the piece title on the "assemble" panel.
       '''
@@ -344,7 +377,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             # Metadata object directly
 
             # Get the Score
-            piece = self.vis_controller.analyzer._list_of_pieces.data(cell, ListOfPieces.ScoreRole).toPyObject()
+            piece = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole).toPyObject()
 
             # Make sure there's a Metadata object
             if piece.metadata is None:
@@ -362,7 +395,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
    # Signal for: self.ui.btn_add_check_combo.clicked
    @QtCore.pyqtSlot()
-   def add_parts_combination(self):
+   def _add_parts_combination(self):
       '''
       When users choose the "Add Combination" button to add the currently
       selected part combination to the list of parts to analyze.
@@ -432,7 +465,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             new_spec = '[' + vis_format + ']'
 
             # Update the parts selection
-            self.update_parts_selection(new_spec)
+            self._update_parts_selection(new_spec)
          # Does curr_spec contain vis_format?
          elif vis_format in curr_spec:
             pass
@@ -443,29 +476,29 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             new_spec = curr_spec[:-1] + ',' + vis_format + ']'
 
             # Update the parts selection
-            self.update_parts_selection(new_spec)
+            self._update_parts_selection(new_spec)
 
       # Also clear the part-selection checkboxes
       self.ui.chk_basso_seguente.setChecked(False)
       for box in self.part_checkboxes:
          box.setChecked(False)
-   # End add_parts_combination() ---------------------------
+   # End _add_parts_combination() ---------------------------
 
 
 
    # Signal for: self.ui.line_compare_these_parts.editingFinished
    @QtCore.pyqtSlot()
-   def add_parts_combo_by_lineEdit(self):
+   def _add_parts_combo_by_line_edit(self):
       '''
       Blindly put the contents of the part-specification QLineEdit into the
       table, trusting that the user knows what they're doing.
       '''
-      self.update_parts_selection(str(self.ui.line_compare_these_parts.text()))
+      self._update_parts_selection(str(self.ui.line_compare_these_parts.text()))
 
 
 
    # Not a pyqtSlot
-   def update_parts_selection(self, part_spec):
+   def _update_parts_selection(self, part_spec):
       '''
       Updates line_compare_these_parts and the model data for all selected
       pieces so that the "parts to compare" contains part_spec.
@@ -485,7 +518,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    # Signal for: self.ui.line_offset_interval.editingFinished
-   def update_offset_interval(self):
+   def _update_offset_interval(self):
       '''
       Take the value of the "offset interval" field, and sets it.
 
@@ -504,7 +537,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    # self.ui.gui_pieces_list.clicked
-   def update_pieces_selection(self):
+   def _update_pieces_selection(self):
       '''
       Update the detail-selection widgets when the user changes the pieces that
       are selected.
@@ -524,11 +557,11 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          self.ui.line_offset_interval.setEnabled(False)
          self.ui.btn_choose_note.setEnabled(False)
          self.ui.line_compare_these_parts.setEnabled(False)
-         self.ui.chk_all_voice_combos.setEnabled(False)
+         self.ui.chk__all_voice_combos.setEnabled(False)
          self.ui.chk_basso_seguente.setEnabled(False)
          self.ui.btn_add_check_combo.setEnabled(False)
          self.ui.line_piece_title.setEnabled(False)
-         self.update_piece_settings_visibility(False)
+         self._piece_settings_visibility(False)
          # (2) Remove the part list
          if self.part_checkboxes is not None:
             for part in self.part_checkboxes:
@@ -542,39 +575,43 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          self.ui.line_offset_interval.setEnabled(True)
          self.ui.btn_choose_note.setEnabled(True)
          self.ui.line_compare_these_parts.setEnabled(True)
-         self.ui.chk_all_voice_combos.setEnabled(True)
+         self.ui.chk__all_voice_combos.setEnabled(True)
          self.ui.chk_basso_seguente.setEnabled(True)
          self.ui.btn_add_check_combo.setEnabled(True)
          self.ui.line_piece_title.setEnabled(False) # not applicable
-         self.update_piece_settings_visibility(True)
+         self._piece_settings_visibility(True)
          # (2) if the pieces have the same part names, display them
          first_parts = None
          for cell in currently_selected:
             if ListOfPieces.parts_combinations == cell.column():
                if first_parts is None:
-                  first_parts = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
-               elif first_parts == self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject():
+                  first_parts = self.vis_controller.l_o_pieces.\
+                  data(cell, QtCore.Qt.DisplayRole).toPyObject()
+               elif first_parts == self.vis_controller.l_o_pieces.\
+               data(cell, QtCore.Qt.DisplayRole).toPyObject():
                   continue
                else:
                   first_parts = ''
                   break
          if '' != first_parts:
             # Then they all have the same name, so we can use them
-            self.update_part_checkboxes(currently_selected)
+            self._update_part_checkboxes(currently_selected)
          else:
             # Then they don't all have the same name.
-            self.ui.chk_all_voice_combos.setEnabled(True)
+            self.ui.chk__all_voice_combos.setEnabled(True)
             self.ui.chk_basso_seguente.setEnabled(True)
-            self.adjust_bs()
-            self.update_part_checkboxes('erase')
+            self._adjust_bs()
+            self._update_part_checkboxes('erase')
          # (3) if the pieces have the same offset interval, display it
          first_offset = None
          for cell in currently_selected:
             if ListOfPieces.offset_intervals == cell.column():
                if first_offset is None:
                   # TODO : whatever
-                  first_offset = self.analysis_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
-               elif first_offset == self.analysis_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject():
+                  first_offset = self.analysis_pieces.\
+                  data(cell, QtCore.Qt.DisplayRole).toPyObject()
+               elif first_offset == self.analysis_pieces.\
+               data(cell, QtCore.Qt.DisplayRole).toPyObject():
                   continue
                else:
                   first_offset = ''
@@ -585,8 +622,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          for cell in currently_selected:
             if ListOfPieces.parts_combinations == cell.column():
                if first_comp is None:
-                  first_comp = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
-               elif first_comp == self.analysis_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject():
+                  first_comp = self.vis_controller.l_o_pieces.\
+                  data(cell, QtCore.Qt.DisplayRole).toPyObject()
+               elif first_comp == self.analysis_pieces.\
+               data(cell, QtCore.Qt.DisplayRole).toPyObject():
                   continue
                else:
                   first_comp = ''
@@ -594,12 +633,12 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          if '' == first_comp:
             # Multiple parts have different specs
             self.ui.line_compare_these_parts.setText('')
-            self.ui.chk_all_voice_combos.setChecked(False)
+            self.ui.chk__all_voice_combos.setChecked(False)
             self.ui.chk_basso_seguente.setChecked(False)
-            self.adjust_bs()
+            self._adjust_bs()
          else:
             # Multiple parts have the same spec
-            self.update_comparison_parts(currently_selected)
+            self._update_comparison_parts(currently_selected)
       else:
          # Only one piece... customize for it
          # (1) Enable all the controls
@@ -607,31 +646,33 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          self.ui.line_offset_interval.setEnabled(True)
          self.ui.btn_choose_note.setEnabled(True)
          self.ui.line_compare_these_parts.setEnabled(True)
-         self.ui.chk_all_voice_combos.setEnabled(True)
+         self.ui.chk__all_voice_combos.setEnabled(True)
          self.ui.chk_basso_seguente.setEnabled(True)
          self.ui.btn_add_check_combo.setEnabled(True)
          self.ui.line_piece_title.setEnabled(True)
-         self.update_piece_settings_visibility(True)
+         self._piece_settings_visibility(True)
          # (2) Populate the part list
-         self.update_part_checkboxes(currently_selected)
+         self._update_part_checkboxes(currently_selected)
          # (3) Update "offset interval"
          for cell in currently_selected:
             if ListOfPieces.offset_intervals == cell.column():
-               self.ui.line_offset_interval.setText(str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
+               self.ui.line_offset_interval.setText(str(\
+               self.vis_controller.l_o_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                break
          # (4) Update "Compare These Parts"
-         self.update_comparison_parts(currently_selected)
+         self._update_comparison_parts(currently_selected)
          # (5) Update "Pice Title"
          for cell in currently_selected:
             if ListOfPieces.score == cell.column():
-               self.ui.line_piece_title.setText(str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
+               self.ui.line_piece_title.setText(\
+               str(self.vis_controller.l_o_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                break
-   # End update_pieces_selection() -------------------------
+   # End _update_pieces_selection() -------------------------
 
 
 
    # Not a pyqtSlot
-   def update_comparison_parts(self, currently_selected):
+   def _update_comparison_parts(self, currently_selected):
       '''
       When a different part combination is selected, call this method to update
       the "All Combinations" and "Basso Seguente" checkboxes.
@@ -644,33 +685,37 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
       for cell in currently_selected:
          if ListOfPieces.parts_combinations == cell.column():
-            comparison_parts = str(self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject())
+            comparison_parts = str(self.vis_controller.l_o_pieces.\
+            data(cell, QtCore.Qt.DisplayRole).toPyObject())
             self.ui.line_compare_these_parts.setText(comparison_parts)
             if '[all]' == comparison_parts:
-               self.ui.chk_all_voice_combos.setChecked(True)
+               self.ui.chk__all_voice_combos.setChecked(True)
                self.ui.chk_basso_seguente.setChecked(False)
                # Update the QCheckBox for "All Combinations" and "Basso Seguente"
-               self.all_voice_combos()
-               self.chose_bs()
+               self._all_voice_combos()
+               self._chose_bs()
             elif '[all,bs]' == comparison_parts:
-               self.ui.chk_all_voice_combos.setChecked(True)
+               self.ui.chk__all_voice_combos.setChecked(True)
                self.ui.chk_basso_seguente.setChecked(True)
                # Update the QCheckBox for "All Combinations" and "Basso Seguente"
-               self.all_voice_combos()
-               self.chose_bs()
+               self._all_voice_combos()
+               self._chose_bs()
             else:
-               self.ui.chk_all_voice_combos.setChecked(False)
+               self.ui.chk__all_voice_combos.setChecked(False)
                self.ui.chk_basso_seguente.setChecked(False)
             break
 
       # Adjust the text for "Basso Seguente," if needed
-      self.adjust_bs()
-   # End update_comparison_parts() -------------------------
+      self._adjust_bs()
+   # End _update_comparison_parts() -------------------------
 
 
 
    # Not a pyqtSlot
-   def edit_part_name(self, part_index=None):
+   def _edit_part_name(self, part_index=None):
+      '''
+      Change the name of a part.
+      '''
       # Get the current part name from the checkbox...
       current_name = str(self.part_checkboxes[part_index].text())
 
@@ -694,71 +739,75 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             # actual Score object itself (which would require re-loading)
 
             # Get the Score
-            parts_list = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
+            parts = self.vis_controller.l_o_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
 
             # Update the part name as requested
-            parts_list[part_index] = new_name
+            parts[part_index] = new_name
 
             # Convert the part names to str objects (from QString)
-            parts_list = [str(name) for name in parts_list]
+            parts = [str(name) for name in parts]
 
             # Update the data model and QCheckBox objects
-            self.vis_controller.analyzer._list_of_pieces.setData(cell, parts_list, QtCore.Qt.EditRole)
-            self.update_pieces_selection()
-   # End edit_part_name() ----------------------------------
+            self.vis_controller.l_o_pieces.setData(cell, parts, QtCore.Qt.EditRole)
+            self._update_pieces_selection()
+   # End _edit_part_name() ----------------------------------
 
-   def zarr_0(self):
-      self.edit_part_name(0)
 
-   def zarr_1(self):
-      self.edit_part_name(1)
 
-   def zarr_2(self):
-      self.edit_part_name(2)
+   # These are a series of regretful methods that somehow can't be generated dynamically, but
+   # really ought to be replaced somehow.
+   def _zarr_0(self):
+      self._edit_part_name(0)
 
-   def zarr_3(self):
-      self.edit_part_name(3)
+   def _zarr_1(self):
+      self._edit_part_name(1)
 
-   def zarr_4(self):
-      self.edit_part_name(4)
+   def _zarr_2(self):
+      self._edit_part_name(2)
 
-   def zarr_5(self):
-      self.edit_part_name(5)
+   def _zarr_3(self):
+      self._edit_part_name(3)
 
-   def zarr_6(self):
-      self.edit_part_name(6)
+   def _zarr_4(self):
+      self._edit_part_name(4)
 
-   def zarr_7(self):
-      self.edit_part_name(7)
+   def _zarr_5(self):
+      self._edit_part_name(5)
 
-   def zarr_8(self):
-      self.edit_part_name(8)
+   def _zarr_6(self):
+      self._edit_part_name(6)
 
-   def zarr_9(self):
-      self.edit_part_name(9)
+   def _zarr_7(self):
+      self._edit_part_name(7)
 
-   def zarr_10(self):
-      self.edit_part_name(10)
+   def _zarr_8(self):
+      self._edit_part_name(8)
 
-   def zarr_11(self):
-      self.edit_part_name(11)
+   def _zarr_9(self):
+      self._edit_part_name(9)
 
-   def zarr_12(self):
-      self.edit_part_name(12)
+   def _zarr_10(self):
+      self._edit_part_name(10)
 
-   def zarr_13(self):
-      self.edit_part_name(13)
+   def _zarr_11(self):
+      self._edit_part_name(11)
 
-   def zarr_14(self):
-      self.edit_part_name(14)
+   def _zarr_12(self):
+      self._edit_part_name(12)
 
-   def zarr_15(self):
-      self.edit_part_name(15)
+   def _zarr_13(self):
+      self._edit_part_name(13)
+
+   def _zarr_14(self):
+      self._edit_part_name(14)
+
+   def _zarr_15(self):
+      self._edit_part_name(15)
 
 
 
    # Not a pyqtSlot
-   def update_part_checkboxes(self, currently_selected):
+   def _update_part_checkboxes(self, currently_selected):
       '''
       Update the part-selection QCheckBox objects to reflect the currently
       selected part(s).
@@ -797,7 +846,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       list_of_parts = None
       for cell in currently_selected:
          if ListOfPieces.parts_list == cell.column():
-            list_of_parts = self.vis_controller.analyzer._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()
+            list_of_parts = self.vis_controller.l_o_pieces.\
+            data(cell, QtCore.Qt.DisplayRole).toPyObject()
             break
 
       # (3) Put up a checkbox for each part
@@ -816,10 +866,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          n_btn.setObjectName('btn_' + part_name)
          n_btn.setText('Edit Part Name')
          # NOTE: this should be improved later
-         n_btn.clicked.connect(eval('self.zarr_' + str(i)))
+         n_btn.clicked.connect(eval('self._zarr_' + str(i)))
          # This would have been better, but it always passes the *last* "i"
          # value of the method
-         # n_btn.clicked.connect(lambda : self.edit_part_name(i))
+         # n_btn.clicked.connect(lambda : self._edit_part_name(i))
 
          # Add the checkbox and button to the horizontal layout
          lay = QtGui.QHBoxLayout()
@@ -834,12 +884,15 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # (4) Add all the widgets to the layout
       for part in self.part_layouts:
          self.ui.verticalLayout_22.addLayout(part)
-   # End update_part_checkboxes() --------------------------
+   # End _update_part_checkboxes() --------------------------
 
 
 
    # Slot for self.ui.btn_choose_note.clicked
-   def launch_offset_selection(self):
+   def _launch_offset_selection(self):
+      '''
+      Launch the dialogue box to help users visually select offset values.
+      '''
       # Launch the offset-selection QDialog
       selector = VisOffsetSelector()
       chosen_offset = selector.trigger()
@@ -851,7 +904,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       selected_cells = self.ui.gui_pieces_list.selectedIndexes()
       for cell in selected_cells:
          if ListOfPieces.offset_intervals == cell.column():
-            self.vis_controller.analyzer._list_of_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
+            self.vis_controller.l_o_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
 
       # Just to make sure we get rid of this
       selector = None
@@ -859,7 +912,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
    # Not a pyqtSlot
-   def update_piece_settings_visibility(self, set_to):
+   def _piece_settings_visibility(self, set_to):
       '''
       Given True or False, makes visible and enables (or makes invisible and
       disables) everything in the "Settings for Piece" QGroupBox (and the box
@@ -873,39 +926,65 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
    # Slot for: self.ui.btn_show_results.clicked
    @QtCore.pyqtSlot()
-   def prepare_experiment_submission(self):
+   def _prepare_experiment_submission(self):
       '''
       Make sure the Experimenter has a properly-configured ExperimentSettings
       instance, then ask it to run the experiment.
       '''
-      # (1) Figure out the settings
-      # TODO: ensure these are chosen dynamically, to correspond to the GUI
+
       # hold a list of tuples to be signalled as settings
       list_of_settings = []
+
+      def do_experiment():
+         '''
+         Which experiment does the user want to run?
+         '''
+         # TODO: must revise these to account for both "Output Format" and "What to Display"
+         if self.ui.rdo_intervals.isChecked():
+            list_of_settings.append(('experiment', 'IntervalsList'))
+         elif self.ui.rdo_chord_ngrams.isChecked():
+            list_of_settings.append(('experiment', 'ChordsList'))
+
+      def do_threshold():
+         '''
+         Is there a threshold value?
+         '''
+         threshold = str(self.ui.line_threshold.text())
+         if '' != threshold:
+            list_of_settings.append(('threshold', threshold))
+
+      def do_print_quality():
+         '''
+         Print quality?
+         '''
+         if self.ui.rdo_heedQuality.isChecked():
+            list_of_settings.append(('quality', True))
+         else:
+            list_of_settings.append(('quality', False))
+
+      def do_simple_or_compound():
+         '''
+         Simple or compound?
+         '''
+         if self.ui.rdo_simple.isChecked():
+            list_of_settings.append(('simple or compound', 'simple'))
+         else:
+            list_of_settings.append(('simple or compound', 'compound'))
+
+      # (1) Figure out the settings
+      # TODO: ensure these are chosen dynamically, to correspond to the GUI
       # (1a) Which experiment?
-      # TODO: must revise these to account for both "Output Format" and "What to Display"
-      if self.ui.rdo_intervals.isChecked():
-         list_of_settings.append(('experiment', 'IntervalsList'))
-      elif self.ui.rdo_chord_ngrams.isChecked():
-         list_of_settings.append(('experiment', 'ChordsList'))
+      do_experiment()
       # (1b) Print quality?
-      if self.ui.rdo_heedQuality.isChecked():
-         list_of_settings.append(('quality', True))
-      else:
-         list_of_settings.append(('quality', False))
+      do_print_quality()
       # (1c) Simple or compound?
-      if self.ui.rdo_simple.isChecked():
-         list_of_settings.append(('simple or compound', 'simple'))
-      else:
-         list_of_settings.append(('simple or compound', 'compound'))
+      do_simple_or_compound()
       # (1d) Is there a "top X" value?
-      topX = str(self.ui.line_output_most_common.text())
-      if '' != topX:
-         list_of_settings.append(('topX', topX))
+      top_x = str(self.ui.line_output_most_common.text())
+      if '' != top_x:
+         list_of_settings.append(('topX', top_x))
       # (1e) Is there a "threshold" value?
-      threshold = str(self.ui.line_threshold.text())
-      if '' != threshold:
-         list_of_settings.append(('threshold', threshold))
+      do_threshold()
       # (1d) Is there a "values of n" value?
       values_of_n = str(self.ui.line_values_of_n.text())
       if '' != values_of_n:

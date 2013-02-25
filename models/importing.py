@@ -192,8 +192,12 @@ class ListOfFiles(QAbstractListModel):
       Tests whether 'candidate' is present in this ListOfFiles.
 
       Returns a QModelIndex that points to the filename or False.
+
+      If the argument is already a QModelIndex, it is simply returned.
       '''
-      if candidate in self._files:
+      if isinstance(candidate, QModelIndex):
+         return candidate
+      elif candidate in self._files:
          for index in xrange(len(self._files)):
             if candidate == self._files[index]:
                return self.createIndex(index, 0)

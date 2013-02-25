@@ -82,6 +82,13 @@ class VisController(Controller):
    experiment_setting = QtCore.pyqtSignal(tuple)
 
 
+   # List of Instance Variables
+   # self.importer = Importer()
+   # self.analyzer = Analyzer()
+   # self.l_o_pieces = self.analyzer._list_of_pieces
+   # self.experimenter = Experimenter()
+   # self.displayer = DisplayHandler()
+
 
    def __init__(self, arg, interface='PyQt4', details=None):
       '''
@@ -112,6 +119,9 @@ class VisController(Controller):
       self.analyzer = Analyzer()
       self.experimenter = Experimenter()
       self.displayer = DisplayHandler()
+
+      # For the GUI
+      self.l_o_pieces = self.analyzer._list_of_pieces
 
       # Setup the sub-controller signals
       self.importer.setup_signals()

@@ -168,18 +168,16 @@ class Importer(Controller):
    @pyqtSlot(list)
    def remove_pieces(self, pieces):
       '''
-      Remove the filenames from the list of filenames that should be imported.
-      The argument is a list of strings. If a filename is a directory, all the
-      files in that directory (and its subdirectories) are removed from the
-      list.
+      Remove the filenames from the list of filenames or list of QModelIndex objects that should
+      be imported. The argument is a list of strings. If a filename is a directory, all the
+      files in that directory (and its subdirectories) are removed from the list.
 
       If the argument is a string, it is treated like a single filename.
 
       If a filename is not in the list, it is ignored.
 
-      Emits the Importer.add_remove_success signal with True or
-      False, depending on whether the operation succeeded. Returns that same
-      value.
+      Emits the Importer.add_remove_success signal with True or False, depending on whether the
+      operation succeeded. Returns that same value.
       '''
       # Is the argument a string? If so, make it a one-element list.
       if isinstance(pieces, str):
