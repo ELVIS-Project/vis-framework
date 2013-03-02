@@ -630,6 +630,12 @@ class ChordNGram(NGram):
                          'RPRR', 'RRLL', 'RRLP', 'RRLR', 'RRPL', 'RRPP', 'RRPR',
                          'RRRL', 'RRRP', 'RRRR', 'PRPRP', 'LRPRP']
 
+   # This is what to say when two consecutive things are identical
+   identical_chords = 'ident'
+
+   # This is what to say when we don't know the transformation between two chords
+   unknown_transformation = '?'
+
    ## Instance Data
    # _n : how many events are in this n-gram
    # _list_of_events : list of the musical events
@@ -665,7 +671,7 @@ class ChordNGram(NGram):
             # Are both of the chords already the same?
             if some_events[i-1].orderedPitchClasses == \
             some_events[i].orderedPitchClasses:
-               self._list_of_connections.append('is')
+               self._list_of_connections.append(ChordNGram.identical_chords)
             else:
                # Then we'll try some trans formations
                for transform in ChordNGram.list_of_transforms:
@@ -674,10 +680,10 @@ class ChordNGram(NGram):
                      self._list_of_connections.append(transform)
                      break
                else:
-                  self._list_of_connections.append('?')
+                  self._list_of_connections.append(ChordNGram.unknown_transformation)
          # They aren't just triads, so we can't calculate their connections
          else:
-            self._list_of_connections.append('?')
+            self._list_of_connections.append(ChordNGram.unknown_transformation)
    # End __init__() ------------------------------------------
 
 
@@ -757,4 +763,4 @@ class ChordNGram(NGram):
       # TODO: write this method
       pass
    # End make_from_str() -----------------------------------
-# End class NGram------------------------------------------------------------
+# End class ChordNGram------------------------------------------------------------
