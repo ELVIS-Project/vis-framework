@@ -293,21 +293,21 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
 
 
-   # Signal for: self.ui.chk__all_voice_combos.stateChanged
+   # Signal for: self.ui.chk_all_voice_combos.stateChanged
    @QtCore.pyqtSlot()
    def _adjust_bs(self):
       '''
       Adjust the 'basso seguente' checkbox's text, depending on whether the
       "all combinations" checkbox is checked.
       '''
-      if self.ui.chk__all_voice_combos.isChecked():
+      if self.ui.chk_all_voice_combos.isChecked():
          self.ui.chk_basso_seguente.setText('Every part against Basso Seguente')
       else:
          self.ui.chk_basso_seguente.setText('Basso Seguente')
 
 
 
-   # Signal for: self.ui.chk__all_voice_combos.clicked
+   # Signal for: self.ui.chk_all_voice_combos.clicked
    @QtCore.pyqtSlot()
    def _all_voice_combos(self):
       '''
@@ -318,7 +318,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       part_spec = ''
 
       # Are we enabling "all" or disabling?
-      if self.ui.chk__all_voice_combos.isChecked():
+      if self.ui.chk_all_voice_combos.isChecked():
          # Enabling
          # Are there specific part names? If so, disable those checkboxes
          if self.part_checkboxes is not None:
@@ -348,7 +348,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       When somebody chooses the "basso seguente" checkbox, if "all" is also
       selected, we should update the QLineEdit
       '''
-      if self.ui.chk__all_voice_combos.isChecked():
+      if self.ui.chk_all_voice_combos.isChecked():
          part_spec = ''
          if self.ui.chk_basso_seguente.isChecked():
             part_spec = '[all,bs]'
@@ -557,7 +557,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          self.ui.line_offset_interval.setEnabled(False)
          self.ui.btn_choose_note.setEnabled(False)
          self.ui.line_compare_these_parts.setEnabled(False)
-         self.ui.chk__all_voice_combos.setEnabled(False)
+         self.ui.chk_all_voice_combos.setEnabled(False)
          self.ui.chk_basso_seguente.setEnabled(False)
          self.ui.btn_add_check_combo.setEnabled(False)
          self.ui.line_piece_title.setEnabled(False)
@@ -575,7 +575,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          self.ui.line_offset_interval.setEnabled(True)
          self.ui.btn_choose_note.setEnabled(True)
          self.ui.line_compare_these_parts.setEnabled(True)
-         self.ui.chk__all_voice_combos.setEnabled(True)
+         self.ui.chk_all_voice_combos.setEnabled(True)
          self.ui.chk_basso_seguente.setEnabled(True)
          self.ui.btn_add_check_combo.setEnabled(True)
          self.ui.line_piece_title.setEnabled(False) # not applicable
@@ -598,7 +598,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             self._update_part_checkboxes(currently_selected)
          else:
             # Then they don't all have the same name.
-            self.ui.chk__all_voice_combos.setEnabled(True)
+            self.ui.chk_all_voice_combos.setEnabled(True)
             self.ui.chk_basso_seguente.setEnabled(True)
             self._adjust_bs()
             self._update_part_checkboxes('erase')
@@ -633,7 +633,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          if '' == first_comp:
             # Multiple parts have different specs
             self.ui.line_compare_these_parts.setText('')
-            self.ui.chk__all_voice_combos.setChecked(False)
+            self.ui.chk_all_voice_combos.setChecked(False)
             self.ui.chk_basso_seguente.setChecked(False)
             self._adjust_bs()
          else:
@@ -646,7 +646,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          self.ui.line_offset_interval.setEnabled(True)
          self.ui.btn_choose_note.setEnabled(True)
          self.ui.line_compare_these_parts.setEnabled(True)
-         self.ui.chk__all_voice_combos.setEnabled(True)
+         self.ui.chk_all_voice_combos.setEnabled(True)
          self.ui.chk_basso_seguente.setEnabled(True)
          self.ui.btn_add_check_combo.setEnabled(True)
          self.ui.line_piece_title.setEnabled(True)
@@ -689,19 +689,19 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             data(cell, QtCore.Qt.DisplayRole).toPyObject())
             self.ui.line_compare_these_parts.setText(comparison_parts)
             if '[all]' == comparison_parts:
-               self.ui.chk__all_voice_combos.setChecked(True)
+               self.ui.chk_all_voice_combos.setChecked(True)
                self.ui.chk_basso_seguente.setChecked(False)
                # Update the QCheckBox for "All Combinations" and "Basso Seguente"
                self._all_voice_combos()
                self._chose_bs()
             elif '[all,bs]' == comparison_parts:
-               self.ui.chk__all_voice_combos.setChecked(True)
+               self.ui.chk_all_voice_combos.setChecked(True)
                self.ui.chk_basso_seguente.setChecked(True)
                # Update the QCheckBox for "All Combinations" and "Basso Seguente"
                self._all_voice_combos()
                self._chose_bs()
             else:
-               self.ui.chk__all_voice_combos.setChecked(False)
+               self.ui.chk_all_voice_combos.setChecked(False)
                self.ui.chk_basso_seguente.setChecked(False)
             break
 
