@@ -188,8 +188,7 @@ class Experiment(object):
       Perform the Experiment. This method is not called "run" to avoid possible
       confusion with the multiprocessing nature of Experiment subclasses.
 
-      This method emits an Experimenter.experimented signal when it
-      finishes.
+      This method emits an Experimenter.experimented signal when it finishes.
       '''
       # NOTE: You must reimplement this method in subclasses.
       pass
@@ -239,8 +238,7 @@ class IntervalsLists(Experiment):
          ('simple') or actual ('compound') form.
       '''
       # Call the superclass constructor
-      # TODO: call the superclass constructor
-
+      super(Experiment, self).__init__()
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound'):
          self._records = records
@@ -252,37 +250,78 @@ class IntervalsLists(Experiment):
 
 
    def perform(self):
-      # TODO: write documentation and comments
+      '''
+      Perform the IntervalsLists Experiment.
+
+      This method emits an Experimenter.experimented signal when it finishes.
+      '''
+
+      # pre-fetch the settings we'll be using repeatedly
+      quality = self._settings.get('quality')
+      interval_size = self._settings.get('simple or compound')
+
+      def the_formatter(interv, direction=False):
+         '''
+         Formats an Interval object according to the preferences of "quality" and "interval_size."
+
+         You can also specify a boolean for "direction," which indicates whether to show the
+         direction of the interval (being a '+' for ascending or '-' for descending). The default
+         is False.
+         '''
+         post = ''
+
+         if direction:
+            if 1 == interv.direction: post += '+'
+            elif -1 == interv.direction: post += '-'
+
+         if quality:
+            if interval_size == 'simple':
+               post += interv.semiSimpleName
+            else:
+               post += interv.name
+         else:
+            if interval_size == 'simple':
+               post += interv.generic.semiSimpleDirected
+            else:
+               post += interv.generic.directed
+
+         return post
+      # End sub-method the_formatter()
+
+      # this is the header for CSV-format output
       data = [('vertical', 'horizontal', 'offset')]
-      #print('number of records: ' + str(len(self._records))) # DEBUGGING
+
+      # loop through every AnalysisRecord
       for record in self._records:
-         for first, second in zip(record,list(record)[1:]):
+         # loop through all the events... this use of zip() works like this:
+         #    a_list = (1, 2, 3, 4)
+         #    zip(a_list, list(a_list)[1:])
+         #    ((1, 2), (2, 3), (3, 4))
+         for first, second in zip(record, list(record)[1:]):
             offset = first[0]
+            # lower note of the fist interval
             first_lower = first[1][0]
+            # upper note of the first interval
             first_upper = first[1][1]
+            # lower note of the second interval
             second_lower = second[1][0]
 
-            vertical = Interval(Note(first_lower), Note(first_upper))
-            horizontal = Interval(Note(first_lower), Note(second_lower))
-            if self._settings.get('quality'):
-               if self._settings.get('simple or compound') == 'simple':
-                  vertical = vertical.semiSimpleName
-                  horizontal = horizontal.semiSimpleName
-               else:
-                  vertical = vertical.name
-                  horizontal = horizontal.name
-            else:
-               if self._settings.get('simple or compound') == 'simple':
-                  vertical = vertical.generic.semiSimpleDirected
-                  horizontal = horizontal.generic.semiSimpleDirected
-               else:
-                  vertical = vertical.generic.directed
-                  horizontal = horizontal.generic.directed
+            # make the vertical interval, which connects first_lower and first_upper
+            vertical = the_formatter(Interval(Note(first_lower), Note(first_upper)))
 
+            # make the horizontal interval, which connects first_lower and second_lower
+            horizontal = the_formatter(Interval(Note(first_lower), Note(second_lower)), True)
+
+            # make the 3-tuplet to append to the list
             put_me = (vertical, horizontal, offset)
 
             data.append(put_me)
-         # TODO: Then add the last row
+
+         # finally, add the last row, which has no horizontal connection
+         last = record[-1]
+         last_vertical = the_formatter(Interval(Note(last[1][0]), Note(last[1][1])))
+         data.append((last_vertical, None, last[0]))
+
       return data
 # End class IntervalsLists -------------------------------------------------------------------------
 
@@ -322,48 +361,48 @@ class ChordsLists(Experiment):
       - settings : an ExperimentSettings object
       '''
       # Call the superclass constructor
-      # TODO: call the superclass constructor
-
+      super(Experiment, self).__init__()
+      # Save things
       self._records = records
       self._settings = settings
 
 
 
    def perform(self):
+      '''
+      Perform the ChordsListsExperiment.
+
+      This method emits an Experimenter.experimented signal when it finishes.
+      '''
+
       # this is what we'll return
       post = [('chord', 'transformation', 'offset')]
+
+      def remove_rests(event):
+         post = ''
+
+         for chord_member in event:
+            if isinstance(chord_member, list):
+               for inner_chord_member in chord_member:
+                  post += inner_chord_member + ' '
+            elif 'Rest' != chord_member:
+               post += chord_member + ' '
+
+         return post
 
       for record in self._records:
          for first, second in zip(record, list(record)[1:]):
             # find the offset
             offset = first[0]
 
-            # DEBUGGING
-            #print(str(offset)+' offset before processing...')
-            #print('   1st chord: '+str(first))
-            #print('   2nd chord: '+str(second))
-            # END DEBUGGING
-
             # hold the string-wise representation of the notes in the chords
             first_chord, second_chord = '', ''
 
             # prepare the string-wise representation of notes in the chords
-            # TODO: deduplicate this
             # NOTE: we have the inner isinstance() call because, if a Chord object is put here,
             #       it'll be as a tuple, rather than, like Note objects, as simply right there
-            for chord_member in first[1]:
-               if isinstance(chord_member, list):
-                  for inner_chord_member in chord_member:
-                     first_chord += inner_chord_member + ' '
-               elif 'Rest' != chord_member:
-                  first_chord += chord_member + ' '
-
-            for chord_member in second[1]:
-               if isinstance(chord_member, list):
-                  for inner_chord_member in chord_member:
-                     second_chord += inner_chord_member + ' '
-               elif 'Rest' != chord_member:
-                  second_chord += chord_member + ' '
+            first_chord = remove_rests(first[1])
+            second_chord = remove_rests(second[1])
 
             # ensure neither of the chords is just a REST... if it is, we'll skip this loop
             if '' == first_chord or '' == second_chord:
@@ -380,8 +419,18 @@ class ChordsLists(Experiment):
             # add this chord-and-transformation to the list of all of them
             post.append(put_me)
 
-      # finally, add the last chord, which doesn't have a transformation
-      # TODO: this
+         # finally, add the last chord, which doesn't have a transformation
+         last = record[-1]
+         last_chord = ''
+
+         # prepare the string-wise representation of notes in the chords
+         last_chord = remove_rests(last[1])
+
+         # format and add the chord, but only if the previous step didn't turn everyting to rests
+         if '' != last_chord:
+            last_chord = chord.Chord(last_chord)
+            last_chord_name = last_chord.root().name + ' ' + last_chord.commonName
+            post.append((last_chord_name, None, last[0]))
 
       return post
 # End class Experiment ---------------------------------------------------------
