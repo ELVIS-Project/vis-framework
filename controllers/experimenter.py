@@ -117,7 +117,7 @@ class Experimenter(Controller, QtCore.QObject):
 
       # TODO: figure out the valid types of display, and put them in a list in
       # the first element of this tuple
-      post = (['SpreadsheetDisplay'], post)
+      post = (exper.good_for(), post)
 
       self.experiment_finished.emit(post)
 
@@ -152,11 +152,16 @@ class Experiment(object):
 
 
 
+   # List of strings that are the names of the Display objects suitable for this Experiment
+   _good_for = ['None']
+
+
+
    def __init__(self, records, settings):
       '''
       Create a new Experiment.
 
-      There are two argument, both of which are mandatory:
+      There are three mandatory arguments:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
       '''
@@ -165,6 +170,16 @@ class Experiment(object):
       super(Experiment, self).__init__()
       self._records = records
       self._settings = settings
+
+
+
+   def good_for(self):
+      '''
+      Returns a list of string objects that are the names of the Display objects suitable for
+      this Experiment
+      '''
+      # NOTE: You do not need to reimplement this method in subclasses.
+      return self._good_for
 
 
 
@@ -184,17 +199,29 @@ class Experiment(object):
 
 class IntervalsLists(Experiment):
    '''
-   Prepares two lists of intervals: one of harmonic intervals, and the other of
-   the melodic intervals that connect the lower voice of the harmonic intervals.
+   Prepare a list of 3-tuples:
+   [(vertical_interval, horizontal_interval, offset),
+    (vertical_interval, horizontal_interval, offset)]
 
-   This Experiment is useful for these Display classes:
-   - spreadsheet
-   - LilyPond annotated score
+   BUT: the first element in the ouputted list is a tuple of strings that represent descriptions
+   of the data in each tuple index that are suitable for use in a spreadsheet.
+
+   Each horizontal interval specifies the movement of the lower part in going to the following
+   chord.
+
+   This Experiment can be outputted by these Display classes:
+   - SpreadsheetFile
+   - LilyPondAnnotated
 
    Although the Experiment itself does not use NGram objects or deal with
    n-grams (only intervals), both output formats are useful for visual
    inspections that allow human to find n-grams.
    '''
+
+
+
+   # List of strings that are the names of the Display objects suitable for this Experiment
+   _good_for = ['SpreadsheetFile', 'LilyPondAnnotated']
 
 
 
@@ -226,7 +253,7 @@ class IntervalsLists(Experiment):
 
    def perform(self):
       # TODO: write documentation and comments
-      data = 'vertical, horizontal, offset\n'
+      data = [('vertical', 'horizontal', 'offset')]
       #print('number of records: ' + str(len(self._records))) # DEBUGGING
       for record in self._records:
          for first, second in zip(record,list(record)[1:]):
@@ -237,59 +264,62 @@ class IntervalsLists(Experiment):
 
             vertical = Interval(Note(first_lower), Note(first_upper))
             horizontal = Interval(Note(first_lower), Note(second_lower))
-            put_me = ''
             if self._settings.get('quality'):
                if self._settings.get('simple or compound') == 'simple':
-                  put_me = vertical.semiSimpleName + ', ' + \
-                           horizontal.semiSimpleName + ', ' + \
-                           str(offset) + '\n'
+                  vertical = vertical.semiSimpleName
+                  horizontal = horizontal.semiSimpleName
                else:
-                  put_me = vertical.name + ', ' + \
-                           horizontal.name + ', ' + \
-                           str(offset) + '\n'
+                  vertical = vertical.name
+                  horizontal = horizontal.name
             else:
                if self._settings.get('simple or compound') == 'simple':
-                  put_me = str(vertical.generic.semiSimpleDirected) + ', ' + \
-                           str(horizontal.generic.semiSimpleDirected) + ', ' + \
-                           str(offset) + '\n'
+                  vertical = vertical.generic.semiSimpleDirected
+                  horizontal = horizontal.generic.semiSimpleDirected
                else:
-                  put_me = str(vertical.generic.directed) + ', ' + \
-                           str(horizontal.generic.directed) + ', ' + \
-                           str(offset) + '\n'
+                  vertical = vertical.generic.directed
+                  horizontal = horizontal.generic.directed
 
-            data += put_me
+            put_me = (vertical, horizontal, offset)
+
+            data.append(put_me)
          # TODO: Then add the last row
       return data
-# End class Experiment ---------------------------------------------------------
+# End class IntervalsLists -------------------------------------------------------------------------
 
 
 
 class ChordsLists(Experiment):
    '''
-   Prepares two lists of chord-related information: one of chord names, and the other of the
-   neo-Riemannian transformations that connect the intervals.
+   Prepare a list of 3-tuples:
+   [(chord_name, neoriemannian_transformation, offset),
+    (chord_name, neoriemannian_transformation, offset)]
 
-   This Experiment is useful for these Display classes:
-   - spreadsheet
-   - LilyPond annotated score
+   BUT: the first element in the ouputted list is a tuple of strings that represent descriptions
+   of the data in each tuple index that are suitable for use in a spreadsheet.
 
-   The experiment directly uses ChordNGram objects
+   Each transformation specifies how to get to the following chord.
+
+   This Experiment can be outputted by these Display classes:
+   - SpreadsheetFile
+   - LilyPondAnnotated
+
+   The experiment uses ChordNGram objects to find the transformation.
    '''
+
+
+
+   # List of strings that are the names of the Display objects suitable for this Experiment
+   _good_for = ['SpreadsheetFile', 'LilyPondAnnotated']
 
 
 
    def __init__(self, records, settings):
       '''
-      Create a new IntervalsLists.
+      Create a new ChordsLists.
 
       There are two argument, both of which are mandatory:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
-
-      The IntervalsSpreadsheet uses these settings:
-      - 'quality' : boolean, whether to print or suppress quality
-      - 'simple or compound' : whether to print intervals in their single-octave
-         ('simple') or actual ('compound') form.
       '''
       # Call the superclass constructor
       # TODO: call the superclass constructor
@@ -301,7 +331,7 @@ class ChordsLists(Experiment):
 
    def perform(self):
       # this is what we'll return
-      post = 'chord, transformation, offset\n'
+      post = [('chord', 'transformation', 'offset')]
 
       for record in self._records:
          for first, second in zip(record, list(record)[1:]):
@@ -314,10 +344,10 @@ class ChordsLists(Experiment):
             #print('   2nd chord: '+str(second))
             # END DEBUGGING
 
-            # hold the string-wise representation of the chords
+            # hold the string-wise representation of the notes in the chords
             first_chord, second_chord = '', ''
 
-            # prepare the string-wise representation of the chords
+            # prepare the string-wise representation of notes in the chords
             # TODO: deduplicate this
             # NOTE: we have the inner isinstance() call because, if a Chord object is put here,
             #       it'll be as a tuple, rather than, like Note objects, as simply right there
@@ -342,24 +372,16 @@ class ChordsLists(Experiment):
             transformer = ngram.ChordNGram([chord.Chord(first_chord), chord.Chord(second_chord)])
 
             the_chord = chord.Chord(first_chord)
+            the_chord_name = the_chord.root().name + ' ' + the_chord.commonName
             # TODO: this next line without violating the object
             horizontal = transformer._list_of_connections[0]
-            put_me = ''
-
-            # add the chord
-            put_me += the_chord.root().name + ' ' + the_chord.commonName + ', '
-
-            # add the transformation
-            put_me += horizontal + ', '
-
-            # add the offset
-            put_me += str(offset)
-
-            # add the newline
-            put_me += '\n'
+            put_me = (the_chord_name, horizontal, offset)
 
             # add this chord-and-transformation to the list of all of them
-            post += put_me
-         # TODO: Then add the last row (CRA: is it missing? Maybe)
+            post.append(put_me)
+
+      # finally, add the last chord, which doesn't have a transformation
+      # TODO: this
+
       return post
 # End class Experiment ---------------------------------------------------------

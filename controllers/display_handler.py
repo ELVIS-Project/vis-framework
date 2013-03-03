@@ -77,6 +77,9 @@ class DisplayHandler(Controller):
 
       If there is more than one possible display type, the DisplayHandler will
       somehow choose.
+
+      NOTE: the list of possible Display types must have this format:
+      ['FileOutput'] to use the class FileOutputDisplay.
       '''
 
       # (1) Make a new ___Display
@@ -85,7 +88,7 @@ class DisplayHandler(Controller):
       # (1) Choose which display type to use
       # TODO: write this section properly... note that signal_result is a
       # 2-tuple, where index 0 has a list of possible Display objects
-      display_type = FileOutputDisplay
+      display_type = SpreadsheetFileDisplay
 
       # (2) Instantiate and show the display
       this_display = display_type(self, signal_result[1])
@@ -135,7 +138,10 @@ class Display(object):
 
 class FileOutputDisplay(Display):
    '''
-   Saves text-based results into a file.
+   Saves a string into a file.
+
+   You can use this class from another Display subclass, in a situation where the other Display
+   subclass converts a non-string result into a string, then calls this class.
    '''
 
 
@@ -183,4 +189,58 @@ class FileOutputDisplay(Display):
       else:
          # TODO: raise some exception!
          pass
-# End class Display ------------------------------------------------------------
+# End class FileOutputDisplay ----------------------------------------------------------------------
+
+
+
+class SpreadsheetFileDisplay(Display):
+   '''
+   Converts a list of tuples into a string suitable for CSV-format output, then uses the
+   FileOutputDisplay class to save the result into a file.
+   '''
+
+
+
+   def __init__(self, controller, data, settings=None):
+      '''
+      Create a new SpreadsheetFileDisplay.
+
+      There are three arguments, the first two of which are mandatory:
+      - controller : the DisplayHandler controller to which this Display belongs
+      - data : a list of tuples
+      - settings : the optional ExperimentSettings object
+
+      Note: The "data" argument is converted to a CSV-format string with the following assumptions:
+      - each tuple represents a row in the spreadsheet (and a \n character is printed after)
+      - each value in the tuple is run through its str() method
+      - no header information is appended
+      '''
+      # NOTE: You must re-implement this, and change "object" to "Display"
+      super(Display, self).__init__()
+      self._controller = controller
+      self._data = data
+      self._settings = settings
+
+
+
+   def show(self):
+      '''
+      Show the data in the display.
+
+      The FileOutputDisplay instance emits the VisSignals.display_shown signal.
+      '''
+      post = ''
+
+      for each_row in self._data:
+         for each_column in each_row:
+            post += str(each_column) + ', '
+         # remove the final ', ' and append a newline
+         post = post[:-2] + '\n'
+
+      # We will *not* emit this signal, but rather let the FileOutputDisplay do it.
+      # self._controller.display_shown.emit()
+
+      # Create a FileOutputDisplay and use it
+      f_o_disp = FileOutputDisplay(self._controller, post, self._settings)
+      f_o_disp.show()
+# End class SpreadsheetFileDisplay -----------------------------------------------------------------
