@@ -990,25 +990,25 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # (1c) Simple or compound?
       do_simple_or_compound()
       # (1d) Is there a "top X" value?
-      top_x = str(self.ui.line_output_most_common.text())
-      if '' != top_x:
-         list_of_settings.append(('topX', top_x))
+      #top_x = str(self.ui.line_output_most_common.text())
+      #if '' != top_x:
+         #list_of_settings.append(('topX', top_x))
       # (1e) Is there a "threshold" value?
-      do_threshold()
+      #do_threshold()
       # (1d) Is there a "values of n" value?
-      values_of_n = str(self.ui.line_values_of_n.text())
-      if '' != values_of_n:
-         list_of_settings.append(('values of n', values_of_n))
+      #values_of_n = str(self.ui.line_values_of_n.text())
+      #if '' != values_of_n:
+         #list_of_settings.append(('values of n', values_of_n))
       # (1e) What's the sort order?
-      if self.ui.rdo_ascending.isChecked():
-         list_of_settings.append(('sort order', 'ascending'))
-      else:
-         list_of_settings.append(('sort order', 'descending'))
+      #if self.ui.rdo_ascending.isChecked():
+         #list_of_settings.append(('sort order', 'ascending'))
+      #else:
+         #list_of_settings.append(('sort order', 'descending'))
       # (1f) Sort by frequency or name of object?
-      if self.ui.rdo_name.isChecked():
-         list_of_settings.append(('sort by', 'name'))
-      else:
-         list_of_settings.append(('sort by', 'frequency'))
+      #if self.ui.rdo_name.isChecked():
+         #list_of_settings.append(('sort by', 'name'))
+      #else:
+         #list_of_settings.append(('sort by', 'frequency'))
 
       # (2) Set the settings
       for setting in list_of_settings:
@@ -1052,7 +1052,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
       if self.ui.rdo_consider_intervals.isChecked():
          which_to_enable = [self.ui.rdo_spreadsheet, self.ui.groupBox_octaves,
-                            self.ui.groupBox_quality]
+                            self.ui.groupBox_quality, self.ui.rdo_list]
       elif self.ui.rdo_consider_interval_ngrams.isChecked():
          pass
       elif self.ui.rdo_consider_chord_ngrams.isChecked():
