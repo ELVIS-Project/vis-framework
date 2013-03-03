@@ -847,7 +847,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       for cell in currently_selected:
          if ListOfPieces.parts_list == cell.column():
             list_of_parts = self.vis_controller.l_o_pieces.\
-            data(cell, QtCore.Qt.DisplayRole).toPyObject()
+            data(cell, ListOfPieces.ScoreRole).toPyObject()
             break
 
       # (3) Put up a checkbox for each part

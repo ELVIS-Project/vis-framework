@@ -70,6 +70,9 @@ class ListOfPieces(QAbstractTableModel):
    # A role for data() that means to return the Score object rather than title
    ScoreRole = 'This is an object for the ScoreRole'
 
+   # This is the default values for every new row created
+   default_row = ['', None, [], [0.5], '(no selection)']
+
 
 
    def __init__(self, parent=QModelIndex()):
@@ -101,10 +104,9 @@ class ListOfPieces(QAbstractTableModel):
 
    def data(self, index, role):
       '''
-      Returns the data for the table cell corresponding to the index. The role
-      should always be Qt.DisplayRole except in the "score" column, in which
-      case Qt.DisplayRole returns a string representing the title, and the
-      ListOfPieces.ScoreRole returns the Score object.
+      Returns the data for the table cell corresponding to the index. The role can be either
+      Qt.DisplayRole or ListOfPieces.ScoreRole. For a list of the columns that support ScoreRole,
+      see the descriptions below.
 
       NOTE: This method always returns a QVariant object
 
@@ -114,7 +116,9 @@ class ListOfPieces(QAbstractTableModel):
       - ListOfPieces.score : either...
          - music21.stream.Score (for ListOfPieces.ScoreRole)
          - string (for Qt.DisplayRole)
-      - ListOfPieces.parts_list : list of string
+      - ListOfPieces.parts_list : either...
+         - list of string objects that are the part names (for ListOfPiece.ScoreRole)
+         - string (for Qt.DisplayRole)
       - ListOfPieces.offset_intervals : list of float
       - ListOfPieces.parts_combinations : either...
          - [[int, int], [int, int], ...]
@@ -141,17 +145,30 @@ class ListOfPieces(QAbstractTableModel):
       post = None
 
       if 0 <= row < len(self._pieces) and 0 <= column < self._number_of_columns:
+         # most things will have the Qt.DisplayRole
          if Qt.DisplayRole == role:
-            # most things
+            # get the object
+            post = self._pieces[row][column]
+            # for the "score" column, we have to choose the right sub-index
             if column is ListOfPieces.score:
-               # must choose the right sub-index
-               post = self._pieces[row][ListOfPieces.score]
                post = post.toPyObject()[1] if isinstance(post, QVariant) else post[1]
+            # for the "list of pieces" column, convert the list into a string
+            elif column is ListOfPieces.parts_list:
+               post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
+               post = post[1:-1]
+         # some things will have the Qt.ScoreRole
+         elif role is ListOfPieces.ScoreRole:
+            # get the object
+            post = self._pieces[row][column]
+            # if it's the score
+            if column is ListOfPieces.score:
+               post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
+            # if it's the list of parts
+            if column is ListOfPieces.parts_list:
+               pass # just to avoid obliteration
+            # everything else must return nothing
             else:
-               post = self._pieces[row][column]
-         elif role is ListOfPieces.ScoreRole and column is ListOfPieces.score:
-            post = self._pieces[row][ListOfPieces.score]
-            post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
+               post = None
 
       # Must always return a QVariant
       if not isinstance(post, QVariant):
@@ -250,7 +267,7 @@ class ListOfPieces(QAbstractTableModel):
       '''
       self.beginInsertRows(parent, row, row+count-1)
       for zed in xrange(count):
-         self._pieces.insert(row, ['', None, [], [0.5], '(no selection)'])
+         self._pieces.insert(row, ListOfPieces.default_row)
       self.endInsertRows()
 
 
