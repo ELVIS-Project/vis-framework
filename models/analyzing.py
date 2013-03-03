@@ -377,6 +377,14 @@ class AnalysisRecord(object):
 
 
 
+   def __getitem__(self, key):
+      '''
+      Access the event at a particular index in the AnalysisRecord.
+      '''
+      return self._record[key]
+
+
+
    def part_names(self):
       '''
       Return a list of strings that represent the part names involved in this
