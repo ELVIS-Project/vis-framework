@@ -636,13 +636,13 @@
         <item>
          <widget class="QGroupBox" name="groupBox_2">
           <property name="title">
-           <string>Show Results</string>
+           <string>Conduct an Experiment</string>
           </property>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="0">
+           <item row="0" column="1">
             <widget class="QGroupBox" name="groupBox_5">
              <property name="title">
-              <string>Output Format</string>
+              <string>How to Show Results</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_9">
               <item>
@@ -701,40 +701,31 @@
              </layout>
             </widget>
            </item>
-           <item row="2" column="2" colspan="2">
-            <widget class="QGroupBox" name="groupBox_quality">
-             <property name="title">
-              <string>Interval Quality</string>
+           <item row="2" column="5">
+            <widget class="QPushButton" name="btn_show_results">
+             <property name="text">
+              <string>Process and &amp;Show</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_10">
-              <item>
-               <widget class="QRadioButton" name="rdo_heedQuality">
-                <property name="text">
-                 <string>Display</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_noHeedQuality">
-                <property name="text">
-                 <string>Ignore</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             <property name="icon">
+              <iconset resource="icons.qrc">
+               <normaloff>:/icons/icons/show_checkmark.png</normaloff>:/icons/icons/show_checkmark.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>64</width>
+               <height>64</height>
+              </size>
+             </property>
             </widget>
            </item>
-           <item row="0" column="1" colspan="2">
+           <item row="0" column="0">
             <widget class="QGroupBox" name="groupBox_7">
              <property name="title">
-              <string>What to Display</string>
+              <string>Object to Consider</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
-               <widget class="QRadioButton" name="rdo_intervals">
+               <widget class="QRadioButton" name="rdo_consider_intervals">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -747,7 +738,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rdo_interval_ngrams">
+               <widget class="QRadioButton" name="rdo_consider_interval_ngrams">
                 <property name="enabled">
                  <bool>false</bool>
                 </property>
@@ -760,7 +751,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="rdo_chord_ngrams">
+               <widget class="QRadioButton" name="rdo_consider_chord_ngrams">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
@@ -772,23 +763,7 @@
              </layout>
             </widget>
            </item>
-           <item row="0" column="3">
-            <widget class="QGroupBox" name="groupBox_n">
-             <property name="title">
-              <string>Values of N</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_12">
-              <item>
-               <widget class="QLineEdit" name="line_values_of_n">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="2" column="0" colspan="2">
+           <item row="1" column="0">
             <widget class="QGroupBox" name="groupBox_octaves">
              <property name="title">
               <string>Octaves</string>
@@ -814,273 +789,33 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_topX">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
+           <item row="1" column="1">
+            <widget class="QGroupBox" name="groupBox_quality">
              <property name="title">
-              <string/>
+              <string>Interval Quality</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_14">
+             <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>
-               <widget class="QLabel" name="label_5">
-                <property name="font">
-                 <font>
-                  <strikeout>false</strikeout>
-                  <kerning>true</kerning>
-                 </font>
-                </property>
+               <widget class="QRadioButton" name="rdo_heedQuality">
                 <property name="text">
-                 <string>Output the</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
+                 <string>Display</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLineEdit" name="line_output_most_common">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="lbl_most_common">
+               <widget class="QRadioButton" name="rdo_noHeedQuality">
                 <property name="text">
-                 <string>most common n-grams.</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="1" column="2" colspan="2">
-            <widget class="QGroupBox" name="groupBox_threshold">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="title">
-              <string/>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_15">
-              <item>
-               <widget class="QLabel" name="lbl_exclude_if_fewer">
-                <property name="text">
-                 <string>Exclude n-grams with fewer than</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="line_threshold">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>occurrences.</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="2">
-            <widget class="QGroupBox" name="groupBox_sorted_by">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="title">
-              <string>Sorted by...</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_16">
-              <item>
-               <widget class="QRadioButton" name="rdo_frequency">
-                <property name="text">
-                 <string>frequency</string>
+                 <string>Ignore</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
                 </property>
                </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_name">
-                <property name="text">
-                 <string>name</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="3" column="2" colspan="2">
-            <widget class="QGroupBox" name="groupBox_sort_order">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="title">
-              <string>Sort Order</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_17">
-              <item>
-               <widget class="QRadioButton" name="rdo_descending">
-                <property name="text">
-                 <string>Descending (High to Low)</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_ascending">
-                <property name="text">
-                 <string>Ascending (Low to High)</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="3" column="5">
-            <widget class="QPushButton" name="btn_show_results">
-             <property name="text">
-              <string>Process and &amp;Show</string>
-             </property>
-             <property name="icon">
-              <iconset resource="icons.qrc">
-               <normaloff>:/icons/icons/show_checkmark.png</normaloff>:/icons/icons/show_checkmark.png</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>64</width>
-               <height>64</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="4">
-            <spacer name="horizontalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="4" rowspan="3" colspan="2">
-            <widget class="QGroupBox" name="groupBox_targeted_score">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <property name="title">
-              <string>Annotated Score</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_18">
-              <item>
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Annotate this n-gram in colour:</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="line_ngram_in_colour">
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_10">
-                <property name="text">
-                 <string>Annotate this n-gram in black:</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLineEdit" name="line_ngram_in_black"/>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
-                <item>
-                 <widget class="QPushButton" name="btn_targeted_choose_colour">
-                  <property name="text">
-                   <string>Choose Colour</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QFrame" name="frame">
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
-                  </property>
-                  <property name="frameShape">
-                   <enum>QFrame::StyledPanel</enum>
-                  </property>
-                  <property name="frameShadow">
-                   <enum>QFrame::Sunken</enum>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <widget class="QPlainTextEdit" name="txt_targeted_score"/>
-              </item>
-              <item>
-               <spacer name="verticalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
               </item>
              </layout>
             </widget>
            </item>
           </layout>
-          <zorder>groupBox_5</zorder>
-          <zorder>groupBox_quality</zorder>
-          <zorder>groupBox_7</zorder>
-          <zorder>groupBox_n</zorder>
-          <zorder>groupBox_octaves</zorder>
-          <zorder>groupBox_topX</zorder>
-          <zorder>groupBox_threshold</zorder>
-          <zorder>groupBox_sorted_by</zorder>
-          <zorder>groupBox_sort_order</zorder>
-          <zorder>btn_show_results</zorder>
-          <zorder>horizontalSpacer_4</zorder>
-          <zorder>groupBox_targeted_score</zorder>
          </widget>
         </item>
        </layout>

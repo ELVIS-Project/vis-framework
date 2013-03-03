@@ -102,7 +102,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
          (self.ui.line_offset_interval.editingFinished, self._update_offset_interval),
          (self.ui.gui_pieces_list.clicked, self._update_pieces_selection),
-         (self.ui.btn_choose_note.clicked, self._launch_offset_selection)
+         (self.ui.btn_choose_note.clicked, self._launch_offset_selection),
+         (self.ui.rdo_consider_chord_ngrams.clicked, self._update_experiment_from_object),
+         (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
+         (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
       ]
       for signal, slot in mapper:
          signal.connect(slot)
@@ -197,6 +200,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.btn_experiment.setChecked(True)
       self.ui.btn_step1.setEnabled(False)
       self.ui.btn_step2.setEnabled(False)
+      # call the thing to update this panel
+      self._update_experiment_from_object()
 
 
 
@@ -932,6 +937,11 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       instance, then ask it to run the experiment.
       '''
 
+      # move to the "working" panel and update it
+      self.show_working.emit()
+      self.update_progress.emit('0')
+      self.update_progress.emit('Initializing experiment.')
+
       # hold a list of tuples to be signalled as settings
       list_of_settings = []
 
@@ -940,9 +950,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          Which experiment does the user want to run?
          '''
          # TODO: must revise these to account for both "Output Format" and "What to Display"
-         if self.ui.rdo_intervals.isChecked():
+         if self.ui.rdo_consider_intervals.isChecked():
             list_of_settings.append(('experiment', 'IntervalsList'))
-         elif self.ui.rdo_chord_ngrams.isChecked():
+         elif self.ui.rdo_consider_chord_ngrams.isChecked():
             list_of_settings.append(('experiment', 'ChordsList'))
 
       def do_threshold():
@@ -1006,3 +1016,48 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
       # (3) Run the experiment
       self.vis_controller.run_the_experiment.emit()
+
+
+
+   # Slot for: self.ui.rdo_consider_***.clicked()
+   @QtCore.pyqtSlot()
+   def _update_experiment_from_object(self):
+      '''
+      When one of the self.ui.rdo_consider_*** radio buttons is selected, this method updates the
+      rest of the GUI to reflect the options relevant to that output method.
+      '''
+
+      all_the_widgets = [self.ui.rdo_spreadsheet,
+                         self.ui.rdo_list,
+                         self.ui.rdo_chart,
+                         self.ui.rdo_score,
+                         self.ui.rdo_targeted_score,
+                         self.ui.groupBox_octaves,
+                         self.ui.groupBox_quality]
+
+      def on_offer(enable_these):
+         # Given a list of the GUI objects in the "experiment" panel that should be "on," this
+         # method enables them and disables all the others.
+
+         # (1) Disable everything
+         for each_widget in all_the_widgets:
+            each_widget.setEnabled(False)
+
+         # (2) Enable the valid things
+         for each_widget in enable_these:
+            each_widget.setEnabled(True)
+
+      # Determine which widgets to enable
+      which_to_enable = []
+
+      if self.ui.rdo_consider_intervals.isChecked():
+         which_to_enable = [self.ui.rdo_spreadsheet, self.ui.groupBox_octaves,
+                            self.ui.groupBox_quality]
+      elif self.ui.rdo_consider_interval_ngrams.isChecked():
+         pass
+      elif self.ui.rdo_consider_chord_ngrams.isChecked():
+         which_to_enable = [self.ui.rdo_spreadsheet]
+
+      # Run the on_offer()
+      on_offer(which_to_enable)
+   # End _update_experiment_from_object() --------------------------------------
