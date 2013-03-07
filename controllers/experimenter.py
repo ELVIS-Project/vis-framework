@@ -272,7 +272,7 @@ class IntervalsLists(Experiment):
 
          if direction:
             if 1 == interv.direction: post += '+'
-            elif -1 == interv.direction: post += '-'
+            #elif -1 == interv.direction: post += '-'
 
          if quality:
             if interval_size == 'simple':
@@ -281,9 +281,9 @@ class IntervalsLists(Experiment):
                post += interv.name
          else:
             if interval_size == 'simple':
-               post += interv.generic.semiSimpleDirected
+               post += str(interv.generic.semiSimpleDirected)
             else:
-               post += interv.generic.directed
+               post += str(interv.generic.directed)
 
          return post
       # End sub-method the_formatter()
@@ -306,11 +306,24 @@ class IntervalsLists(Experiment):
             # lower note of the second interval
             second_lower = second[1][0]
 
-            # make the vertical interval, which connects first_lower and first_upper
-            vertical = the_formatter(Interval(Note(first_lower), Note(first_upper)))
+            # these will hold the intervals
+            vertical, horizontal = None, None
 
-            # make the horizontal interval, which connects first_lower and second_lower
-            horizontal = the_formatter(Interval(Note(first_lower), Note(second_lower)), True)
+            # If one of the notes is actually a 'Rest' then we can't use it, so skip it
+            if 'Rest' == first_lower:
+               vertical = 'Rest & ' + first_upper
+               horizontal = 'N/A'
+            elif 'Rest' == first_upper:
+               vertical = first_lower + ' & Rest'
+            else:
+               # make the vertical interval, which connects first_lower and first_upper
+               vertical = the_formatter(Interval(Note(first_lower), Note(first_upper)))
+
+            if 'Rest' == second_lower:
+               horizontal = 'N/A'
+            elif horizontal is None:
+               # make the horizontal interval, which connects first_lower and second_lower
+               horizontal = the_formatter(Interval(Note(first_lower), Note(second_lower)), True)
 
             # make the 3-tuplet to append to the list
             put_me = (vertical, horizontal, offset)

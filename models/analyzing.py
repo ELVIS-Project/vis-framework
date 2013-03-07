@@ -52,26 +52,28 @@ class ListOfPieces(QAbstractTableModel):
    #    sublist[2] : list of names of parts in the score
    #    sublist[3] : offset intervals to analyze
    #    sublist[4] : list of pairs of indices for part combinations to prepare
+   #    sublist[5] : whether to repeat consecutive identcal events
 
    # Public class variables to track which column has which data
    # NOTE: Update _number_of_columns whenever you change the number of columns,
    #       since this variable is used by columnCount().
    # NOTE: Update _header_names whenever you change the number or definition of
    #       columns, since this variale is used by headerData().
-   _number_of_columns = 5
+   _number_of_columns = 6
    _header_names = ['Path', 'Title', 'List of Part Names', 'Offset',
-                    'Part Combinations']
+                    'Part Combinations', 'Repeat Identical']
    filename = 0
    score = 1
    parts_list = 2
    offset_intervals = 3
    parts_combinations = 4
+   repeat_identical = 5
 
    # A role for data() that means to return the Score object rather than title
    ScoreRole = 'This is an object for the ScoreRole'
 
    # This is the default values for every new row created
-   default_row = ['', None, [], [0.5], '(no selection)']
+   default_row = ['', None, [], [0.5], '(no selection)', False]
 
 
 
@@ -126,6 +128,7 @@ class ListOfPieces(QAbstractTableModel):
          - ['all']
          - ['all', 'bs']
          where 'all' means "all combinations" and 'bs' means "basso seguente."
+      - ListOfPieces.repeat_identical : True or False
       '''
       # Set the row and column
       row = None
@@ -226,6 +229,7 @@ class ListOfPieces(QAbstractTableModel):
          - ['all']
          - ['all', 'bs']
          where 'all' means "all combinations" and 'bs' means "basso seguente."
+      - ListOfPieces.repeat_identical : True or False
 
       This method does not check your argument is the right type.
       '''
@@ -262,8 +266,7 @@ class ListOfPieces(QAbstractTableModel):
       retain their index values. The elements at indices "row" and higher will
       have an index value that is their original value plus "count".
 
-      Each row is initialized with the following data:
-      ['', None, [], [0.5], [2], '(no selection)']
+      Each row is initialized with the data contained in the class variable "default_row"
       '''
       self.beginInsertRows(parent, row, row+count-1)
       for zed in xrange(count):

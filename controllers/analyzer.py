@@ -195,21 +195,15 @@ class Analyzer(Controller):
 
          # (2) Loop through every part combination
          for combo in this_combos:
-            # hold the Score object for the whole piece
-            #whole_piece = each_piece[ListOfPieces.score]
             # select the two parts to analyze
             # NOTE: the step used to look like this... but QVariants...
             this_parts = [each_piece[ListOfPieces.score][0].parts[i] for i in combo]
-            #if isinstance(whole_piece, QtCore.QVariant):
-               #whole_piece = whole_piece.toPyObject()
-            #this_parts = [whole_piece[0].parts[i] for i in combo]
             # prepare the metadata
             this_metadata = each_piece[ListOfPieces.score][0].metadata
             this_part_names = [each_piece[ListOfPieces.parts_list][i] for i in combo]
             #print(str(each_piece[ListOfPieces.offset_intervals][1:-1])) # DEBUGGING
             this_offset = float(each_piece[ListOfPieces.offset_intervals][1:-1])
-            # TODO: figure this dynamically
-            this_salami = False
+            this_salami = each_piece[ListOfPieces.repeat_identical]
             # TODO: figure this dynamically
             # TODO: formalize the lambda things somehow
             # NOTE: 'c' is for 'Chord' and 'm' is for 'chord Member'
@@ -363,17 +357,11 @@ class Analyzer(Controller):
          # 4.4) Calculate the offset at which this event could be said to start
          current_event_offset_start = max([obj.offset for obj in current_events])
 
-         # DEBUGGING
-         #print('--> pre-stringer at ' + str(current_offset) + ' is ' + str(current_events))
-
          # 4.5) Turn the objects into their string forms
          current_events = Analyzer._object_stringer(current_events, settings.get('types'))
 
          # 4.6) Reverse the list, so it's lowest-to-highest voices
          current_events = tuple(reversed(current_events))
-
-         # DEBUGGING
-         #print('--> pre-commit at ' + str(current_offset) + ' is ' + str(current_events))
 
          # 4.7) Add the event to the AnalysisRecord, if relevant
          if settings.get('salami'):

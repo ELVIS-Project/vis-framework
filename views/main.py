@@ -106,6 +106,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          (self.ui.rdo_consider_chord_ngrams.clicked, self._update_experiment_from_object),
          (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
          (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
+         (self.ui.chk_repeat_identical.stateChanged, self._update_repeat_identical),
       ]
       for signal, slot in mapper:
          signal.connect(slot)
@@ -370,8 +371,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       '''
       When users change the piece title on the "assemble" panel.
       '''
-      # TODO: rewrite this using the self.vis_controller.analyzer.change_settings signal
-
       # Which piece is/pieces are selected?
       currently_selected = self.ui.gui_pieces_list.selectedIndexes()
 
@@ -395,6 +394,26 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             # NB: the second argument has to be 2-tuple with the Score object
             # and the string that is the title, as specified in ListOfPieces
             self.vis_controller.analyzer.change_settings.emit(cell, (piece, piece.metadata.title))
+
+
+
+   # Signal for: self.ui.chk_repeat_identical.stateChanged
+   @QtCore.pyqtSlot()
+   def _update_repeat_identical(self):
+      '''
+      When users change "repeat consecutive identical events" on the "assemble" panel.
+      '''
+      # Which piece is/pieces are selected?
+      currently_selected = self.ui.gui_pieces_list.selectedIndexes()
+
+      # what was the QCheckBox changed to?
+      changed_to = self.ui.chk_repeat_identical.isChecked()
+
+      # Find the piece title and update it
+      for cell in currently_selected:
+         if ListOfPieces.repeat_identical == cell.column():
+            # Update the piece
+            self.vis_controller.analyzer.change_settings.emit(cell, changed_to)
 
 
 
@@ -558,7 +577,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       # we have only one row... but more than 6 cells means more than one row
       if len(currently_selected) == 0:
          # (1) Disable all the controls
-         #self.ui.line_values_of_n.setEnabled(False)
          self.ui.line_offset_interval.setEnabled(False)
          self.ui.btn_choose_note.setEnabled(False)
          self.ui.line_compare_these_parts.setEnabled(False)
@@ -576,7 +594,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       elif len(currently_selected) > 6:
          # Multiple pieces selected... possible customization
          # (1) Enable all the controls
-         #self.ui.line_values_of_n.setEnabled(True)
          self.ui.line_offset_interval.setEnabled(True)
          self.ui.btn_choose_note.setEnabled(True)
          self.ui.line_compare_these_parts.setEnabled(True)
@@ -612,10 +629,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          for cell in currently_selected:
             if ListOfPieces.offset_intervals == cell.column():
                if first_offset is None:
-                  # TODO : whatever
-                  first_offset = self.analysis_pieces.\
+                  # TODO: whatever
+                  first_offset = self.vis_controller.l_o_pieces.\
                   data(cell, QtCore.Qt.DisplayRole).toPyObject()
-               elif first_offset == self.analysis_pieces.\
+               elif first_offset == self.vis_controller.l_o_pieces.\
                data(cell, QtCore.Qt.DisplayRole).toPyObject():
                   continue
                else:
@@ -629,7 +646,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
                if first_comp is None:
                   first_comp = self.vis_controller.l_o_pieces.\
                   data(cell, QtCore.Qt.DisplayRole).toPyObject()
-               elif first_comp == self.analysis_pieces.\
+               elif first_comp == self.vis_controller.l_o_pieces.\
                data(cell, QtCore.Qt.DisplayRole).toPyObject():
                   continue
                else:
@@ -647,7 +664,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       else:
          # Only one piece... customize for it
          # (1) Enable all the controls
-         #self.ui.line_values_of_n.setEnabled(True)
          self.ui.line_offset_interval.setEnabled(True)
          self.ui.btn_choose_note.setEnabled(True)
          self.ui.line_compare_these_parts.setEnabled(True)
@@ -989,6 +1005,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       do_print_quality()
       # (1c) Simple or compound?
       do_simple_or_compound()
+
       # (1d) Is there a "top X" value?
       #top_x = str(self.ui.line_output_most_common.text())
       #if '' != top_x:
@@ -1016,6 +1033,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
       # (3) Run the experiment
       self.vis_controller.run_the_experiment.emit()
+   # End of _prepare_experiment_submission() -----------------------------------
 
 
 
