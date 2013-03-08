@@ -71,7 +71,7 @@ class Experimenter(Controller, QtCore.QObject):
 
 
    # List of the experiments we have
-   experiments_we_have = ['IntervalsList']
+   experiments_we_have = ['IntervalsList', 'ChordsList']
 
 
 
@@ -141,11 +141,12 @@ class Experimenter(Controller, QtCore.QObject):
       to that value.
       '''
       self._experiment_settings.set(sett[0], sett[1])
-# End class Experimenter -------------------------------------------------------
+# End class Experimenter ---------------------------------------------------------------------------
 
 
 
 class Experiment(object):
+   # NOTE: in subclasses, change "object" to "Experiment"
    '''
    Base class for all Experiments.
    '''
@@ -161,7 +162,7 @@ class Experiment(object):
       '''
       Create a new Experiment.
 
-      There are three mandatory arguments:
+      There are two mandatory arguments:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
       '''
@@ -192,7 +193,7 @@ class Experiment(object):
       '''
       # NOTE: You must reimplement this method in subclasses.
       pass
-# End class Experiment ---------------------------------------------------------
+# End class Experiment -----------------------------------------------------------------------------
 
 
 
@@ -228,7 +229,7 @@ class IntervalsLists(Experiment):
       '''
       Create a new IntervalsLists.
 
-      There are two argument, both of which are mandatory:
+      There are two arguments, both of which are mandatory:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -369,7 +370,7 @@ class ChordsLists(Experiment):
       '''
       Create a new ChordsLists.
 
-      There are two argument, both of which are mandatory:
+      There are two arguments, both of which are mandatory:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
       '''
@@ -446,4 +447,127 @@ class ChordsLists(Experiment):
             post.append((last_chord_name, None, last[0]))
 
       return post
-# End class Experiment ---------------------------------------------------------
+# End class ChordsLists ----------------------------------------------------------------------------
+
+
+
+class IntervalsStatistics(Experiment):
+   '''
+   Experiment that gathers statistics about the number of occurrences of vertical intervals.
+   '''
+
+
+
+   # List of strings that are the names of the Display objects suitable for this Experiment
+   _good_for = ['List', 'Chart']
+
+
+
+   def __init__(self, records, settings):
+      '''
+      Create a new IntervalsStatistics experiment.
+
+      There are two mandatory arguments:
+      - records : a list of AnalysisRecord objects
+      - settings : an ExperimentSettings object
+
+      IntervalsStatistics requires these settings:
+      - quality : whether or not to display interval quality
+      - simple or compound : whether to use simple or compound intervals
+
+      IntervalsStatistics uses these settings, but provides defaults:
+      - topX : display on the "top X" number of results (default: none)
+      - threshold : stop displaying things after this point (default: none)
+      - sort order : whether to sort things 'ascending' or 'descending' (default: 'descending')
+      - sort by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
+      '''
+      super(Experiment, self).__init__()
+      # Check the ExperimentSettings object has the right settings
+      if settings.has('quality') and settings.has('simple or compound'):
+         self._records = records
+         self._settings = settings
+      else:
+         msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
+         raise KeyError(msg)
+      # Check for the other settings we use, and provide default values if required
+      if not self._settings.has('topX'): self._settings.set('topX', None)
+      if not self._settings.has('threshold'): self._settings.set('threshold', None)
+      if not self._settings.has('sort order'): self._settings.set('sort order', 'descending')
+      if not self._settings.has('sort by'): self._settings.set('sort by', 'frequency')
+   # End __init__()
+
+
+
+   def perform(self):
+      '''
+      Perform the Experiment. This method is not called "run" to avoid possible
+      confusion with the multiprocessing nature of Experiment subclasses.
+
+      This method emits an Experimenter.experimented signal when it finishes.
+      '''
+      # NOTE: You must reimplement this method in subclasses.
+      pass
+# End class IntervalsStatistics --------------------------------------------------------------------
+
+
+
+class IntervalNGramStatistics(object):
+   '''
+   Experiment that gathers statistics about the number of occurrences of n-grams made from
+   vertical intervals.
+   '''
+
+
+
+   # List of strings that are the names of the Display objects suitable for this Experiment
+   _good_for = ['List', 'Chart']
+
+
+
+   def __init__(self, records, settings):
+      '''
+      Create a new IntervalNGramStatistics experiment.
+
+      There are three mandatory arguments:
+      - records : a list of AnalysisRecord objects
+      - settings : an ExperimentSettings object
+
+      IntervalsStatistics requires these settings:
+      - quality : whether or not to display interval quality
+      - simple or compound : whether to use simple or compound intervals
+      - values of n : a list of ints that is the values of 'n' to display
+
+      IntervalsStatistics uses these settings, but provides defaults:
+      - topX : display on the "top X" number of results (default: none)
+      - threshold : stop displaying things after this point (default: none)
+      - sort order : whether to sort things 'ascending' or 'descending' (default: 'descending')
+      - sort by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
+      '''
+      super(Experiment, self).__init__()
+      # Check the ExperimentSettings object has the right settings
+      if settings.has('quality') and settings.has('simple or compound') and \
+      settings.has('values of n'):
+         self._records = records
+         self._settings = settings
+      else:
+         msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
+         raise KeyError(msg)
+      # Check for the other settings we use, and provide default values if required
+      if not self._settings.has('topX'): self._settings.set('topX', None)
+      if not self._settings.has('threshold'): self._settings.set('threshold', None)
+      if not self._settings.has('sort order'): self._settings.set('sort order', 'descending')
+      if not self._settings.has('sort by'): self._settings.set('sort by', 'frequency')
+   # End __init__()
+
+
+
+   def perform(self):
+      '''
+      Perform the Experiment. This method is not called "run" to avoid possible
+      confusion with the multiprocessing nature of Experiment subclasses.
+
+      This method emits an Experimenter.experimented signal when it finishes.
+      '''
+      # NOTE: You must reimplement this method in subclasses.
+      pass
+# End class IntervalNGramStatistics ----------------------------------------------------------------
