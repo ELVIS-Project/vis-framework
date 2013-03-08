@@ -504,6 +504,62 @@ class TestRemovePieces(unittest.TestCase):
 class TestImportPieces(unittest.TestCase):
    # For the method Importer.import_pieces()
 
+   def test_one_piece(self):
+      # Tests importing the whole test corpus through calling and return value
+
+      # (1) Set up the Importer controller
+      paths = ['test_corpus/bwv77.mxl']
+      control = Importer()
+      control.add_pieces(paths)
+
+      # (2) Finish the "expected" lists
+      # holds the Score objects
+      pieces = [converter.parse(path) for path in paths]
+      # holds the titles as strings
+      titles = [Importer._find_piece_title(piece) for piece in pieces]
+      # holds the part-name lists as lists of strings
+      parts = [Importer._find_part_names(piece) for piece in pieces]
+
+      # (3) Run the import
+      returned = analyzing.ListOfPieces()
+      returned = control.import_pieces(returned)
+
+      # (4) Check for correctness
+      self.assertEqual(len(paths), returned.rowCount())
+      for row in xrange(len(paths)): # filenames
+         #index = returned.createIndex(row, analyzing.ListOfPieces.filename)
+         index = (row, analyzing.ListOfPieces.filename)
+         self.assertEqual(paths[row], returned.data(index, Qt.DisplayRole).toPyObject())
+      for row in xrange(len(paths)): # titles
+         #index = returned.createIndex(row, analyzing.ListOfPieces.score)
+         index = (row, analyzing.ListOfPieces.score)
+         self.assertEqual(titles[row], returned.data(index, Qt.DisplayRole).toPyObject())
+      for row in xrange(len(paths)): # Score objects
+         #index = returned.createIndex(row, analyzing.ListOfPieces.score)
+         index = (row, analyzing.ListOfPieces.score)
+         self.assertTrue(isinstance(returned.data(index, analyzing.ListOfPieces.ScoreRole).toPyObject(), stream.Score))
+         # TODO: make this following test work, if possible
+         #self.assertEqual(pieces[row], returned.data(index, analyzing.ListOfPieces.ScoreRole))
+      for row in xrange(len(paths)): # lists of parts
+         #index = returned.createIndex(row, analyzing.ListOfPieces.parts_list)
+         index = (row, analyzing.ListOfPieces.parts_list)
+         self.assertEqual(str(parts[row])[1:-1], returned.data(index, Qt.DisplayRole).toPyObject())
+         self.assertEqual(parts[row], returned.data(index, analyzing.ListOfPieces.ScoreRole).toPyObject())
+      for row in xrange(len(paths)): # offset intervals
+         #index = returned.createIndex(row, analyzing.ListOfPieces.offset_intervals)
+         index = (row, analyzing.ListOfPieces.offset_intervals)
+         self.assertEqual([0.5], returned.data(index, Qt.DisplayRole).toPyObject())
+      for row in xrange(len(paths)): # parts combinations
+         #index = returned.createIndex(row, analyzing.ListOfPieces.parts_combinations)
+         index = (row, analyzing.ListOfPieces.parts_combinations)
+         self.assertEqual('(no selection)', returned.data(index, Qt.DisplayRole).toPyObject())
+      for row in xrange(len(paths)): # included consecutive repetitions
+         #index = returned.createIndex(row, analyzing.ListOfPieces.repeat_identical)
+         index = (row, analyzing.ListOfPieces.repeat_identical)
+         self.assertEqual(False, returned.data(index, Qt.DisplayRole).toPyObject())
+
+
+
    def test_all_pieces_calling(self):
       # Tests importing the whole test corpus through calling and return value
 
@@ -531,33 +587,38 @@ class TestImportPieces(unittest.TestCase):
       returned = control.import_pieces(returned)
 
       # (4) Check for correctness
-      self.assertEqual(6, returned.rowCount())
+      self.assertEqual(len(paths), returned.rowCount())
       for row in xrange(len(paths)): # filenames
          #index = returned.createIndex(row, analyzing.ListOfPieces.filename)
          index = (row, analyzing.ListOfPieces.filename)
-         self.assertEqual(paths[row], returned.data(index, Qt.DisplayRole))
+         self.assertEqual(paths[row], returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # titles
          #index = returned.createIndex(row, analyzing.ListOfPieces.score)
          index = (row, analyzing.ListOfPieces.score)
-         self.assertEqual(titles[row], returned.data(index, Qt.DisplayRole))
+         self.assertEqual(titles[row], returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # Score objects
          #index = returned.createIndex(row, analyzing.ListOfPieces.score)
          index = (row, analyzing.ListOfPieces.score)
-         self.assertTrue(isinstance(returned.data(index, analyzing.ListOfPieces.ScoreRole), stream.Score))
+         self.assertTrue(isinstance(returned.data(index, analyzing.ListOfPieces.ScoreRole).toPyObject(), stream.Score))
          # TODO: make this following test work, if possible
          #self.assertEqual(pieces[row], returned.data(index, analyzing.ListOfPieces.ScoreRole))
       for row in xrange(len(paths)): # lists of parts
          #index = returned.createIndex(row, analyzing.ListOfPieces.parts_list)
          index = (row, analyzing.ListOfPieces.parts_list)
-         self.assertEqual(parts[row], returned.data(index, Qt.DisplayRole))
+         self.assertEqual(str(parts[row])[1:-1], returned.data(index, Qt.DisplayRole).toPyObject())
+         self.assertEqual(parts[row], returned.data(index, analyzing.ListOfPieces.ScoreRole).toPyObject())
       for row in xrange(len(paths)): # offset intervals
          #index = returned.createIndex(row, analyzing.ListOfPieces.offset_intervals)
          index = (row, analyzing.ListOfPieces.offset_intervals)
-         self.assertEqual([0.5], returned.data(index, Qt.DisplayRole))
+         self.assertEqual([0.5], returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # parts combinations
          #index = returned.createIndex(row, analyzing.ListOfPieces.parts_combinations)
          index = (row, analyzing.ListOfPieces.parts_combinations)
-         self.assertEqual('(no selection)', returned.data(index, Qt.DisplayRole))\
+         self.assertEqual('(no selection)', returned.data(index, Qt.DisplayRole).toPyObject())
+      for row in xrange(len(paths)): # included consecutive repetitions
+         #index = returned.createIndex(row, analyzing.ListOfPieces.repeat_identical)
+         index = (row, analyzing.ListOfPieces.repeat_identical)
+         self.assertEqual(False, returned.data(index, Qt.DisplayRole).toPyObject())
 # End TestImportPieces ---------------------------------------------------------
 
 
@@ -565,7 +626,6 @@ class TestImportPieces(unittest.TestCase):
 #-------------------------------------------------------------------------------
 # Definitions
 #-------------------------------------------------------------------------------
-# TODO: Make the TestPieceGetter suite work, then add it to run_tests.py
 importer_piece_getter_suite = unittest.TestLoader().loadTestsFromTestCase(TestPieceGetter)
 importer_part_and_titles_suite = unittest.TestLoader().loadTestsFromTestCase(TestPartsAndTitles)
 importer_add_pieces_suite = unittest.TestLoader().loadTestsFromTestCase(TestAddPieces)

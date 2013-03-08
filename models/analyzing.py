@@ -28,6 +28,8 @@ The model classes for the Analyzer controller.
 
 
 # Imports from...
+# python
+import copy
 # PyQt4
 from PyQt4.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 # music21
@@ -74,6 +76,9 @@ class ListOfPieces(QAbstractTableModel):
 
    # This is the default values for every new row created
    default_row = ['', None, [], [0.5], '(no selection)', False]
+   # NOTE:
+   # When you change this default_row, you must also change the value in this test:
+   # models.test_analyzing.TestListOfPiecesInsertAndRemoveRows.test_insert_7()
 
 
 
@@ -166,8 +171,8 @@ class ListOfPieces(QAbstractTableModel):
             # if it's the score
             if column is ListOfPieces.score:
                post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
-            # if it's the list of parts
-            if column is ListOfPieces.parts_list:
+            # else if it's the list of parts
+            elif column is ListOfPieces.parts_list:
                pass # just to avoid obliteration
             # everything else must return nothing
             else:
@@ -270,7 +275,7 @@ class ListOfPieces(QAbstractTableModel):
       '''
       self.beginInsertRows(parent, row, row+count-1)
       for zed in xrange(count):
-         self._pieces.insert(row, ListOfPieces.default_row)
+         self._pieces.insert(row, copy.deepcopy(ListOfPieces.default_row))
       self.endInsertRows()
 
 

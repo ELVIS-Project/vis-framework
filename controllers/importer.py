@@ -235,7 +235,8 @@ class Importer(Controller):
             post.setData((new_row, analyzing.ListOfPieces.parts_list),
                          Importer._find_part_names(this_piece),
                          Qt.EditRole)
-            # Leave offset-interval and parts-combinations at defaults
+            # Leave other columns with their default values
+
       # return
       self.import_finished.emit()
       return post

@@ -45,12 +45,13 @@ class TestListOfPiecesBasics(unittest.TestCase):
 
    def test_init_1(self):
       # test all the statics
-      self.assertEqual(5, self.lop._number_of_columns)
+      self.assertEqual(6, self.lop._number_of_columns)
       self.assertEqual(0, self.lop.filename)
       self.assertEqual(1, self.lop.score)
       self.assertEqual(2, self.lop.parts_list)
       self.assertEqual(3, self.lop.offset_intervals)
       self.assertEqual(4, self.lop.parts_combinations)
+      self.assertEqual(5, self.lop.repeat_identical)
 
 
 
@@ -60,7 +61,7 @@ class TestListOfPiecesBasics(unittest.TestCase):
 
 
    def test_column_count_1(self):
-      self.assertEqual(5, self.lop.columnCount())
+      self.assertEqual(6, self.lop.columnCount())
 
 
 
@@ -93,7 +94,9 @@ class TestListOfPiecesInsertAndRemoveRows(unittest.TestCase):
    # Test insertRows() and removeRows()
    def setUp(self):
       self.lop = analyzing.ListOfPieces()
-      self.default_row = ['', None, [], [0.5], '(no selection)']
+      self.default_row = analyzing.ListOfPieces.default_row
+
+
 
    def test_insert_1(self):
       #self.lop._pieces = []
@@ -142,7 +145,22 @@ class TestListOfPiecesInsertAndRemoveRows(unittest.TestCase):
       for each_row in self.lop._pieces[4:-1]:
          self.assertEqual(self.default_row, each_row)
       self.assertEqual('d', self.lop._pieces[-1])
-# End TestListOfPiecesInsertAndRemoveRows --------------------------------------
+
+
+
+   def test_insert_7(self):
+      # ensure changes in one row don't carry over to other rows
+      # NB: this fixes a bug where each row was based on the same object, but not properly
+      # "deep copied" so they were in fact all the same row
+      self.lop.insertRows(0, 5)
+      self.lop._pieces[2][0] = 'hello'
+      # due to the nature of this problem, we have to use an internal representation of this
+      default_row = ['', None, [], [0.5], '(no selection)', False]
+      for each_row in self.lop._pieces[:1]:
+         self.assertEqual(default_row, each_row)
+      for each_row in self.lop._pieces[3:]:
+         self.assertEqual(default_row, each_row)
+# End TestListOfPiecesInsertAndRemoveRows ----------------------------------------------------------
 
 
 
@@ -255,7 +273,7 @@ class TestListOfPiecesSetData(unittest.TestCase):
    # Test setData()
    def setUp(self):
       self.lop = analyzing.ListOfPieces()
-      self.default_row = ['', None, [], [0.5], [2], '(no selection)']
+      self.default_row = analyzing.ListOfPieces.default_row
 
 
 
@@ -319,7 +337,7 @@ class TestListOfPiecesData(unittest.TestCase):
    # Test data()
    def setUp(self):
       self.lop = analyzing.ListOfPieces()
-      self.default_row = ['', None, [], [0.5], [2], '(no selection)']
+      self.default_row = analyzing.ListOfPieces.default_row
 
 
 
@@ -328,7 +346,7 @@ class TestListOfPiecesData(unittest.TestCase):
       the_field = 'test_corpus/Kyrie.krn'
       self.lop._pieces[0][ListOfPieces.filename] = the_field
       index = self.lop.createIndex(0, ListOfPieces.filename)
-      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
+      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
 
@@ -337,26 +355,31 @@ class TestListOfPiecesData(unittest.TestCase):
       the_field = (converter.parse('test_corpus/bwv77.mxl'), 'Chorale!')
       self.lop._pieces[0][ListOfPieces.score] = the_field
       index = self.lop.createIndex(0, ListOfPieces.score)
-      self.assertEqual(the_field[1], self.lop.data(index, Qt.DisplayRole))
+      self.assertEqual(the_field[1], self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
 
    def test_data_3(self):
       self.lop._pieces = [self.default_row]
-      the_field = (converter.parse('test_corpus/bwv77.mxl'), 'Chorale!')
+      the_score = converter.parse('test_corpus/bwv77.mxl')
+      the_field = (the_score, 'Chorale!')
       self.lop._pieces[0][ListOfPieces.score] = the_field
       index = self.lop.createIndex(0, ListOfPieces.score)
-      self.assertEqual(the_field[0],
+      self.assertEqual(the_score,
                        self.lop.data(index, ListOfPieces.ScoreRole).toPyObject())
 
 
 
    def test_data_4(self):
       self.lop._pieces = [self.default_row]
-      the_field = ['a', 'b', 'c', 'd']
+      the_field = ['a', 'b', 'c', 'd'] # for ScoreRole
+      the_field_str = str(the_field)[1:-1] # for DisplayRole
       self.lop._pieces[0][ListOfPieces.parts_list] = the_field
       index = self.lop.createIndex(0, ListOfPieces.parts_list)
-      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
+      # DisplayRole returns a string
+      self.assertEqual(the_field_str, self.lop.data(index, Qt.DisplayRole).toPyObject())
+      # ScoreRole returns the list
+      self.assertEqual(the_field, self.lop.data(index, ListOfPieces.ScoreRole).toPyObject())
 
 
 
@@ -365,7 +388,7 @@ class TestListOfPiecesData(unittest.TestCase):
       the_field = [0.25]
       self.lop._pieces[0][ListOfPieces.offset_intervals] = the_field
       index = self.lop.createIndex(0, ListOfPieces.offset_intervals)
-      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
+      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
 
@@ -374,7 +397,7 @@ class TestListOfPiecesData(unittest.TestCase):
       the_field = [[0, 1], [0, 'bs']]
       self.lop._pieces[0][ListOfPieces.parts_combinations] = the_field
       index = self.lop.createIndex(0, ListOfPieces.parts_combinations)
-      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
+      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
 
@@ -383,7 +406,7 @@ class TestListOfPiecesData(unittest.TestCase):
       the_field = 'test_corpus/madrigal51.mxl'
       self.lop._pieces[1][ListOfPieces.filename] = the_field
       index = self.lop.createIndex(1, ListOfPieces.filename)
-      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole))
+      self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
 
@@ -393,7 +416,7 @@ class TestListOfPiecesData(unittest.TestCase):
       the_field = (converter.parse('test_corpus/bwv77.mxl'), 'Chorale!')
       self.lop._pieces[4][ListOfPieces.score] = the_field
       index = self.lop.createIndex(4, ListOfPieces.score)
-      self.assertEqual(the_field[1], self.lop.data(index, Qt.DisplayRole))
+      self.assertEqual(the_field[1], self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
 
