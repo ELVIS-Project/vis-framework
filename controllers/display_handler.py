@@ -82,13 +82,12 @@ class DisplayHandler(Controller):
       ['FileOutput'] to use the class FileOutputDisplay.
       '''
 
-      # (1) Make a new ___Display
-      # (2) Call its "show" method
-
       # (1) Choose which display type to use
-      # TODO: write this section properly... note that signal_result is a
-      # 2-tuple, where index 0 has a list of possible Display objects
-      display_type = SpreadsheetFileDisplay
+      # NOTE: remember to update this selection code as different Display objects are added
+      if 'SpreadsheetFile' in signal_result[0]:
+         display_type = SpreadsheetFileDisplay
+      elif 'StatisticsListDisplay' in signal_result[0]:
+         display_type = StatisticsListDisplay # SpreadsheetFileDisplay
 
       # (2) Instantiate and show the display
       this_display = display_type(self, signal_result[1])
@@ -96,7 +95,7 @@ class DisplayHandler(Controller):
 
       # (3) Send the signal of success
       self.display_shown.emit()
-# End class DisplayHandler -------------------------------------------------------
+# End class DisplayHandler -------------------------------------------------------------------------
 
 
 
@@ -132,7 +131,7 @@ class Display(object):
       '''
       # NOTE: You must reimplement this method in subclasses.
       self._controller.display_shown.emit()
-# End class Display ------------------------------------------------------------
+# End class Display --------------------------------------------------------------------------------
 
 
 
@@ -244,3 +243,83 @@ class SpreadsheetFileDisplay(Display):
       f_o_disp = FileOutputDisplay(self._controller, post, self._settings)
       f_o_disp.show()
 # End class SpreadsheetFileDisplay -----------------------------------------------------------------
+
+
+
+class StatisticsListDisplay(Display):
+   '''
+   Converts a list of 2-tuples into a string for file output.
+
+   In each 2-tuple, the first object should represent something meaningful when run through str(),
+   and the second object should be an int that represents the occurrences of the thing.
+
+   The total number of things is printed before the number of each thing.
+
+   If the first element is a 3-tuple, and the first object is the string 'description', then the
+   next two elements are used as table headers for the rest of the data.
+   '''
+
+
+
+   def __init__(self, controller, data, settings=None):
+      '''
+      Create a new StatisticsListDisplay.
+
+      There are three arguments, the first two of which are mandatory:
+      - controller : the DisplayHandler controller to which this Display belongs
+      - data : a list of tuples
+      - settings : the optional ExperimentSettings object
+
+      Note: The "data" argument is converted to a string with the following assumptions:
+      - each tuple represents a row in the table (and a \n character is printed after)
+      - each 0th element in the tuple is run through its str() method
+      - each 1st element must be an int
+      - if the first tuple is a 3-tuple, and the 0th element is the string 'description', the
+        following two elements are used as table headers for the rest of the data
+      '''
+      # NOTE: You must re-implement this, and change "object" to "Display"
+      super(Display, self).__init__()
+      self._controller = controller
+      self._data = data
+      self._settings = settings
+
+
+
+   def show(self):
+      '''
+      Show the data in the display.
+
+      The FileOutputDisplay instance emits the VisSignals.display_shown signal.
+      '''
+      header_data = ''
+      post = ''
+      total_occurrences = 0
+
+      # prepare the header data (except total number of occurrences)
+      if 3 == len(self._data[0]) and 'description' == self._data[0][0]:
+         header_data += self._data[0][1] + ':\t' + self._data[0][2] + '\n'
+         self._data = self._data[1:]
+      else:
+         post += 'object:\toccurrences\n'
+
+      header_data += '========================\n'
+
+      # prepare per-object data
+      for each_row in self._data:
+         # add the object to the table
+         post += str(each_row[0]) + ':\t' + str(each_row[1])
+         # count the number of things to the total number of things
+         total_occurrences += each_row[1]
+         # remove the final ', ' and append a newline
+         post = post[:-2] + '\n'
+
+      # add the total occurrences after the header, and concatenate both parts
+      post = header_data + 'Total occurrences: ' + str(total_occurrences) + '\n' + post
+
+      # We will *not* emit this signal, but rather let the FileOutputDisplay do it.
+      # self._controller.display_shown.emit()
+
+      # Create a FileOutputDisplay and use it
+      f_o_disp = FileOutputDisplay(self._controller, post, self._settings)
+      f_o_disp.show()
+# End class Display --------------------------------------------------------------------------------

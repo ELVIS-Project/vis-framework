@@ -965,9 +965,13 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          '''
          Which experiment does the user want to run?
          '''
-         # TODO: must revise these to account for both "Output Format" and "What to Display"
+         # NOTE: as we add different Experiment and Display combinations, we have to update this
+
          if self.ui.rdo_consider_intervals.isChecked():
-            list_of_settings.append(('experiment', 'IntervalsList'))
+            if self.ui.rdo_spreadsheet.isChecked():
+               list_of_settings.append(('experiment', 'IntervalsList'))
+            elif self.ui.rdo_list.isChecked():
+               list_of_settings.append(('experiment', 'IntervalsStatistics'))
          elif self.ui.rdo_consider_chord_ngrams.isChecked():
             list_of_settings.append(('experiment', 'ChordsList'))
 

@@ -29,16 +29,18 @@ Holds the Experimenter controller.
 
 
 # Imports from...
-# vis
-from controller import Controller
-from models.experimenting import ExperimentSettings
-from models import ngram
+# python
+from string import digits as string_digits
+# PyQt4
+from PyQt4 import QtCore
 # music21
 from music21.interval import Interval
 from music21.note import Note
 from music21 import chord
-# PyQt4
-from PyQt4 import QtCore
+# vis
+from controller import Controller
+from models.experimenting import ExperimentSettings
+from models import ngram
 
 
 
@@ -113,6 +115,8 @@ class Experimenter(Controller, QtCore.QObject):
          exper = IntervalsLists(self._list_of_analyses, self._experiment_settings)
       elif self._experiment_settings.get('experiment') == 'ChordsList':
          exper = ChordsLists(self._list_of_analyses, self._experiment_settings)
+      elif self._experiment_settings.get('experiment') == 'IntervalsStatistics':
+         exper = IntervalsStatistics(self._list_of_analyses, self._experiment_settings)
       post = exper.perform()
 
       # TODO: figure out the valid types of display, and put them in a list in
@@ -272,8 +276,8 @@ class IntervalsLists(Experiment):
          post = ''
 
          if direction:
-            if 1 == interv.direction: post += '+'
-            #elif -1 == interv.direction: post += '-'
+            if 1 == interv.direction:
+               post += '+'
 
          if quality:
             if interval_size == 'simple':
@@ -454,12 +458,20 @@ class ChordsLists(Experiment):
 class IntervalsStatistics(Experiment):
    '''
    Experiment that gathers statistics about the number of occurrences of vertical intervals.
+
+   Produce a list of tuples, like this:
+   [('m3', 10), ('M3', 4), ...]
+
+   The list is sorted as per the ExperimentSettings. Each 0th element in the tuple is a
+   string-format representation of an interval, and each 1st element is the number of occurrences.
+
+   Intervals that do not occur in any of the AnalysisRecord objects are not included in the output.
    '''
 
 
 
    # List of strings that are the names of the Display objects suitable for this Experiment
-   _good_for = ['List', 'Chart']
+   _good_for = ['StatisticsListDisplay', 'StatisticsChartDisplay']
 
 
 
@@ -482,6 +494,7 @@ class IntervalsStatistics(Experiment):
       - sort by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
       '''
       super(Experiment, self).__init__()
+
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound'):
          self._records = records
@@ -489,12 +502,100 @@ class IntervalsStatistics(Experiment):
       else:
          msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
          raise KeyError(msg)
+
       # Check for the other settings we use, and provide default values if required
-      if not self._settings.has('topX'): self._settings.set('topX', None)
-      if not self._settings.has('threshold'): self._settings.set('threshold', None)
-      if not self._settings.has('sort order'): self._settings.set('sort order', 'descending')
-      if not self._settings.has('sort by'): self._settings.set('sort by', 'frequency')
+      if not self._settings.has('topX'):
+         self._settings.set('topX', None)
+      if not self._settings.has('threshold'):
+         self._settings.set('threshold', None)
+      if not self._settings.has('sort order'):
+         self._settings.set('sort order', 'descending')
+      if not self._settings.has('sort by'):
+         self._settings.set('sort by', 'frequency')
+
+      # Make a dictionary to store the intervals
+      self._intervals = None
+
+      # Make a list to store the sorted and filtered intervals
+      self._keys = None
    # End __init__()
+
+
+
+   def _add_interval(self, interv):
+      '''
+      Add an interval, represented as a string, to the occurrences dictionary in this experiment.
+      '''
+      if interv in self._intervals:
+         self._intervals[interv] += 1
+      else:
+         self._intervals[interv] = 1
+
+
+
+   @staticmethod
+   def interval_sorter(left, right):
+      '''
+      Returns -1 if the first argument is a smaller interval.
+      Returns 1 if the second argument is a smaller interval.
+      Returns 0 if both arguments are the same.
+
+      Input should be a str of the following form:
+      - d, m, M, or A
+      - an int
+
+      Examples:
+      >>> from vis import interval_sorter
+      >>> interval_sorter( 'm3', 'm3' )
+      0
+      >>> interval_sorter( 'm3', 'M3' )
+      1
+      >>> interval_sorter( 'A4', 'd4' )
+      -1
+      '''
+
+      list_of_directions = ['+', '-']
+
+      # I want to sort based on generic size, so the direction is irrelevant. If
+      # we have directions, they'll be removed with this. If we don't have
+      # directions, this will have no effect.
+      for direct in list_of_directions:
+         left = left.replace( direct, '' )
+         right = right.replace( direct, '' )
+
+      # If we have numbers with no qualities, we'll just add a 'P' to both, to
+      # pretend they have the same quality (which, as far as we know, they do).
+      if left[0] in string_digits and right[0] in string_digits:
+         left = 'P' + left
+         right = 'P' + right
+
+      # Comparisons!
+      if left == right:
+         post = 0
+      elif int(left[1:]) < int(right[1:]): # if x is generically smaller
+         post = -1
+      elif int(left[1:]) > int(right[1:]): # if y is generically smaller
+         post = 1
+      else: # otherwise, we're down to the species/quality
+         left_qual = left[0]
+         right_qual = right[0]
+         if left_qual == 'd':
+            post = -1
+         elif right_qual == 'd':
+            post = 1
+         elif left_qual == 'A':
+            post = 1
+         elif right_qual == 'A':
+            post = -1
+         elif left_qual == 'm':
+            post = -1
+         elif right_qual == 'm':
+            post = 1
+         else:
+            post = 0
+
+      return post
+   # End IntervalsStatistics.interval_sorter() ---------------------------------
 
 
 
@@ -505,8 +606,83 @@ class IntervalsStatistics(Experiment):
 
       This method emits an Experimenter.experimented signal when it finishes.
       '''
-      # NOTE: You must reimplement this method in subclasses.
-      pass
+      # (0) Instantiate/clear things
+      self._intervals = {}
+      self._keys = []
+
+      # (1) Loop through each of the AnalysisRecord objects, adding the intervals we find.
+      # We'll use these over and over again
+      quality = self._settings.get('quality')
+      interval_size = self._settings.get('simple or compound')
+
+      for each_record in self._records:
+         for each_event in each_record:
+            # make sure we don't try to make an Interval from a rest
+            if 'Rest' != each_event[1][0] and 'Rest' != each_event[1][1]:
+               interv = Interval(Note(each_event[1][0]), Note(each_event[1][1]))
+            else:
+               continue
+
+            if quality:
+               if interval_size == 'simple':
+                  self._add_interval(interv.semiSimpleName)
+               else:
+                  self._add_interval(interv.name)
+            else:
+               if interval_size == 'simple':
+                  self._add_interval(str(interv.generic.semiSimpleDirected))
+               else:
+                  self._add_interval(str(interv.generic.directed))
+
+      # (2.1) If there is a topX or threshold filter, sort by frequency now.
+      if self._settings.get('topX') is not None or \
+      self._settings.get('threshold') is not None:
+         # returns a list of keys, sorted by descending frequency
+         self._keys = sorted(self._intervals, key=lambda x:self._intervals[x], reverse=True)
+
+         # (3) If we're doing a "topX" filter, do it now.
+         if self._settings.get('topX') is not None:
+            # cut the list at the "topX-th element"
+            self._keys = self._keys[:int(self._settings.get('topX'))]
+
+         # (4) If we're doing a "threshold" filter, do it now.
+         if self._settings.get('threshold') is not None:
+            thresh = int(self._settings.get('threshold'))
+            # if the last key on the list is already greater than the threshold, we won't sort
+            if self._intervals[self._keys[-1]] < thresh:
+               # hold the keys of intervals above the threshold
+               new_keys = []
+               # check each key we already have, and add it to new_keys only if its occurrences are
+               # above the threshold value
+               for each_key in self._keys:
+                  if self._intervals[each_key] >= thresh:
+                     new_keys.append(each_key)
+               # assign
+               self._keys = new_keys
+      # (2.2) Otherwise, just get all the keys
+      else:
+         self._keys = self._intervals.keys()
+
+      # (4) Now do a final sorting.
+      # Should we 'reverse' the list sorting? Yes, unless we sorted 'ascending'
+      should_reverse = False if 'ascending' == self._settings.get('sort order') else True
+
+      if 'frequency' == self._settings.get('sort by'):
+         self._keys = sorted(self._keys,
+                             key=lambda x:self._intervals[x],
+                             reverse=should_reverse)
+      else:
+         self._keys = sorted(self._keys,
+                             cmp=IntervalsStatistics.interval_sorter,
+                             reverse=should_reverse)
+
+      # (5) Construct the dictionary to return
+      post = []
+      for each_key in self._keys:
+         post.append((each_key, self._intervals[each_key]))
+
+      # (6) Conclude
+      return post
 # End class IntervalsStatistics --------------------------------------------------------------------
 
 
@@ -520,7 +696,7 @@ class IntervalNGramStatistics(object):
 
 
    # List of strings that are the names of the Display objects suitable for this Experiment
-   _good_for = ['List', 'Chart']
+   _good_for = ['StatisticsListDisplay', 'StatisticsChartDisplay']
 
 
 
@@ -553,10 +729,14 @@ class IntervalNGramStatistics(object):
          msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
          raise KeyError(msg)
       # Check for the other settings we use, and provide default values if required
-      if not self._settings.has('topX'): self._settings.set('topX', None)
-      if not self._settings.has('threshold'): self._settings.set('threshold', None)
-      if not self._settings.has('sort order'): self._settings.set('sort order', 'descending')
-      if not self._settings.has('sort by'): self._settings.set('sort by', 'frequency')
+      if not self._settings.has('topX'):
+         self._settings.set('topX', None)
+      if not self._settings.has('threshold'):
+         self._settings.set('threshold', None)
+      if not self._settings.has('sort order'):
+         self._settings.set('sort order', 'descending')
+      if not self._settings.has('sort by'):
+         self._settings.set('sort by', 'frequency')
    # End __init__()
 
 
