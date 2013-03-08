@@ -71,16 +71,18 @@ unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
 
 
 
-# Analyzing
+# Analyzing: ListOfPieces
 unittest.TextTestRunner(verbosity=verb).run(lop_basics_suite)
 unittest.TextTestRunner(verbosity=verb).run(lop_insert_and_remove_suite)
 unittest.TextTestRunner(verbosity=verb).run(lop_iterate_rows_suite)
 unittest.TextTestRunner(verbosity=verb).run(lop_set_data_suite)
 unittest.TextTestRunner(verbosity=verb).run(lop_header_data_suite)
 unittest.TextTestRunner(verbosity=verb).run(lop_data_suite)
+# Analyzing.AnalysisRecord
 unittest.TextTestRunner(verbosity=verb).run(ar_init_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_iter_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_getters_suite)
 unittest.TextTestRunner(verbosity=verb).run(ar_append_event_suite)
+# Analyzing.NGram
 unittest.TextTestRunner(verbosity=verb).run(test_interval_ngram_suite)
 unittest.TextTestRunner(verbosity=verb).run(test_chord_ngram_suite)
