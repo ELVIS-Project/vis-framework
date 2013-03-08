@@ -151,9 +151,11 @@ class VisController(Controller):
          (self.importer.error, self.window.report_error.emit),
          (self.analyzer.error, self.window.report_error.emit),
          (self.experimenter.error, self.window.report_error.emit),
+         (self.displayer.error, self.window.report_error.emit),
          # others
          (self.import_files_added, self.importer.add_pieces_signal.emit),
          (self.import_files_removed, self.importer.remove_pieces_signal.emit),
+         (self.displayer.display_shown, self.window.show_experiment.emit),
          # Signals Sent by GUIs (and Handled Here) -----------------------------
          (self.run_the_import, self.prepare_import),
          (self.run_the_analysis, self.analyzer.run_analysis.emit),

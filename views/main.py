@@ -196,7 +196,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.main_screen.setCurrentWidget(self.ui.page_show)
       self.ui.btn_about.setEnabled(True)
       self.ui.btn_choose_files.setEnabled(False)
-      self.ui.btn_analyze.setEnabled(True)
+      self.ui.btn_analyze.setEnabled(False)
       self.ui.btn_experiment.setEnabled(True)
       self.ui.btn_experiment.setChecked(True)
       self.ui.btn_step1.setEnabled(False)
@@ -970,10 +970,13 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          if self.ui.rdo_consider_intervals.isChecked():
             if self.ui.rdo_spreadsheet.isChecked():
                list_of_settings.append(('experiment', 'IntervalsList'))
+               list_of_settings.append(('output format', 'SpreadsheetFile'))
             elif self.ui.rdo_list.isChecked():
                list_of_settings.append(('experiment', 'IntervalsStatistics'))
+               list_of_settings.append(('output format', 'StatisticsListDisplay'))
          elif self.ui.rdo_consider_chord_ngrams.isChecked():
             list_of_settings.append(('experiment', 'ChordsList'))
+            list_of_settings.append(('output format', 'SpreadsheetFile'))
 
       def do_threshold():
          '''

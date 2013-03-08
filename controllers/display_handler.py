@@ -54,6 +54,8 @@ class DisplayHandler(Controller):
    # when the user should be able to see the results of an experiment on the
    # screen in a particular format
    display_shown = QtCore.pyqtSignal()
+   # description of an error in the DisplayHandler
+   error = QtCore.pyqtSignal(str)
 
 
 
@@ -83,11 +85,17 @@ class DisplayHandler(Controller):
       '''
 
       # (1) Choose which display type to use
-      # NOTE: remember to update this selection code as different Display objects are added
-      if 'SpreadsheetFile' in signal_result[0]:
-         display_type = SpreadsheetFileDisplay
-      elif 'StatisticsListDisplay' in signal_result[0]:
-         display_type = StatisticsListDisplay # SpreadsheetFileDisplay
+      # Currently, we can't deal with choosing Display class after the Experiment has run, so we'll
+      # have to panic if there is more than one choice.
+      if 1 < len(signal_result[0]):
+         self.error.emit('Internal error: vis cannot yet deal with choosing Display subclass after the Experiment has run.')
+         return
+      else:
+         # NOTE: remember to update this selection code as different Display objects are added
+         if 'SpreadsheetFile' in signal_result[0]:
+            display_type = SpreadsheetFileDisplay
+         elif 'StatisticsListDisplay' in signal_result[0]:
+            display_type = StatisticsListDisplay # SpreadsheetFileDisplay
 
       # (2) Instantiate and show the display
       this_display = display_type(self, signal_result[1])

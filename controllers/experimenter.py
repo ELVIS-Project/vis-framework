@@ -241,9 +241,13 @@ class IntervalsLists(Experiment):
       - 'quality' : boolean, whether to print or suppress quality
       - 'simple or compound' : whether to print intervals in their single-octave
          ('simple') or actual ('compound') form.
+
+      IntervalsLists can use this setting, but will not provide a default:
+      - output format : choose the Display subclass for this experiment's results
       '''
       # Call the superclass constructor
       super(Experiment, self).__init__()
+
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound'):
          self._records = records
@@ -251,6 +255,11 @@ class IntervalsLists(Experiment):
       else:
          msg = 'IntervalsLists requires "quality" and "simple or compound" settings'
          raise KeyError(msg)
+
+      # Process the optional "output format" setting
+      if self._settings.has('output format'):
+         self._good_for = [self._settings.get('output format')]
+   # End __init__()
 
 
 
@@ -377,12 +386,20 @@ class ChordsLists(Experiment):
       There are two arguments, both of which are mandatory:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
+
+      ChordsLists can use this setting, but will not provide a default:
+      - output format : choose the Display subclass for this experiment's results
       '''
       # Call the superclass constructor
       super(Experiment, self).__init__()
+
       # Save things
       self._records = records
       self._settings = settings
+
+      # Process the optional "output format" setting
+      if self._settings.has('output format'):
+         self._good_for = [self._settings.get('output format')]
 
 
 
@@ -492,6 +509,9 @@ class IntervalsStatistics(Experiment):
       - threshold : stop displaying things after this point (default: none)
       - sort order : whether to sort things 'ascending' or 'descending' (default: 'descending')
       - sort by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
+
+      IntervalsStatistics can use this setting, but will not provide a default:
+      - output format : choose the Display subclass for this experiment's results
       '''
       super(Experiment, self).__init__()
 
@@ -518,6 +538,10 @@ class IntervalsStatistics(Experiment):
 
       # Make a list to store the sorted and filtered intervals
       self._keys = None
+
+      # Process the optional "output format" setting
+      if self._settings.has('output format'):
+         self._good_for = [self._settings.get('output format')]
    # End __init__()
 
 
@@ -718,8 +742,12 @@ class IntervalNGramStatistics(object):
       - threshold : stop displaying things after this point (default: none)
       - sort order : whether to sort things 'ascending' or 'descending' (default: 'descending')
       - sort by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
+
+      IntervalsStatistics can use this setting, but will not provide a default:
+      - output format : choose the Display subclass for this experiment's results
       '''
       super(Experiment, self).__init__()
+
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound') and \
       settings.has('values of n'):
@@ -728,6 +756,7 @@ class IntervalNGramStatistics(object):
       else:
          msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
          raise KeyError(msg)
+
       # Check for the other settings we use, and provide default values if required
       if not self._settings.has('topX'):
          self._settings.set('topX', None)
@@ -737,6 +766,10 @@ class IntervalNGramStatistics(object):
          self._settings.set('sort order', 'descending')
       if not self._settings.has('sort by'):
          self._settings.set('sort by', 'frequency')
+
+      # Process the optional "output format" setting
+      if self._settings.has('output format'):
+         self._good_for = [self._settings.get('output format')]
    # End __init__()
 
 

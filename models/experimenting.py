@@ -42,6 +42,7 @@ class ExperimentSettings(object):
    - values of n : a list of ints that is the values of 'n' to display
    - sort order : whether to sort things 'ascending' or 'descending'
    - sort by : whether to sort things by 'frequency' or 'name'
+   - output format : choose the Display subclass for this experiment's results
    '''
 
 
