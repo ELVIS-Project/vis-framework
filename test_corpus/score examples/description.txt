@@ -1,0 +1,3 @@
+The "score examples" directory contains images of the score excerpts appearing in the automated tests.
+
+Each of these examples corresponds to a symbolic music file in the directory above.

@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
-# 
+#
 # Filename: test_corpus/__init__.py
 # Purpose: Import the Native music21 Corpus Tests
 #
@@ -24,4 +24,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-import test_theSixth, test_triplet_bug, vis_these_parts_unit_tests
+
+
+__all__ = ['test_theSixth', 'test_triplet_bug', 'event_finder_short']
+
+
+
+import test_theSixth, test_triplet_bug, event_finder_short

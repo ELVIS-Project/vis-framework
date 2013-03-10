@@ -4,8 +4,8 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: __main__.py
-# Purpose: Starts vis with the PyQt4 interface.
+# Filename: models/__init__.py
+# Purpose: Load the vis models modules.
 #
 # Attribution:  Based on the 'harrisonHarmony.py' module available at...
 #               https://github.com/crantila/harrisonHarmony/
@@ -25,25 +25,42 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
-Starts vis with the PyQt4 interface.
-'''
 
 
 
-import sys
-from controllers.vis_controller import VisController
+__all__ = ['analyzing', 'display_handling', 'experimenting', 'importing']#, 'ngram']
+
+import analyzing
+import display_handling
+import experimenting
+import importing
+#import ngram
 
 
-
-def main():
-   '''
-   The main execution loop.
-   '''
-   gui_controller = VisController(sys.argv)
-   sys.exit(gui_controller.exec_())
+#from controllers.signals import VisSignal
+#from PyQt4.QtCore import QAbstractItemModel
 
 
-
-if __name__ == '__main__':
-   main()
+#class Model(object):
+   #"""
+   #Base class for all vis models. Basically Python has enough stuff builtin
+   #that we might as well just have a really really simple interface to the
+   #Python types with some basic signal/slot stuff to keep everything together.
+   #"""
+   #def __init__(self, data=None):
+      #"""
+      #Creates a new Model instance. The optional data parameter lets you
+      #set the initial data when constructing the model.
+      #"""
+      #self._data = data
+      #self.data_changed = VisSignal()
+   #
+   #@property
+   #def data(self, *args):
+      #return self._data
+   #
+   #@data.setter
+   #def data(self, value):
+      #if value != self._data:
+         #self._data = value
+         #self.data_changed(value)

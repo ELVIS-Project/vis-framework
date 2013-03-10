@@ -4,13 +4,10 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: __main__.py
-# Purpose: Starts vis with the PyQt4 interface.
+# Filename: controllers.py
+# Purpose: Holds the "controllers" for the MVC architecture in vis.
 #
-# Attribution:  Based on the 'harrisonHarmony.py' module available at...
-#               https://github.com/crantila/harrisonHarmony/
-#
-# Copyright (C) 2012 Christopher Antila, Jamie Klassen
+# Copyright (C) 2012 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,24 +23,35 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-Starts vis with the PyQt4 interface.
+Holds the "controllers" for the MVC architecture in vis.
 '''
 
 
 
-import sys
-from controllers.vis_controller import VisController
+# Imports
+from PyQt4.QtCore import pyqtSignal, QObject
+from models.analyzing import ListOfPieces
 
 
 
-def main():
+class Controller(QObject):
    '''
-   The main execution loop.
+   Base class for all vis controllers.
    '''
-   gui_controller = VisController(sys.argv)
-   sys.exit(gui_controller.exec_())
 
 
 
-if __name__ == '__main__':
-   main()
+   def __init__(self):
+      '''
+      Creates a new instance, and assigns the appropriate widget.
+      '''
+      super(Controller, self).__init__()
+
+
+
+   def setup_signals(self):
+      '''
+      Set methods of this controller as the slot for relevant signals emitted
+      by the GUI.
+      '''
+      pass

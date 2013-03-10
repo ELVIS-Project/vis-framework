@@ -4,8 +4,8 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: __main__.py
-# Purpose: Starts vis with the PyQt4 interface.
+# Filename: controllers_tests/__init__.py
+# Purpose: Tests for the "controllers" module in vis.
 #
 # Attribution:  Based on the 'harrisonHarmony.py' module available at...
 #               https://github.com/crantila/harrisonHarmony/
@@ -25,25 +25,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
-Starts vis with the PyQt4 interface.
-'''
 
 
 
-import sys
-from controllers.vis_controller import VisController
+__all__ = ['test_importer']#, 'test_analyzer', 'test_display_handler_', 'test_experimenter', 'test_vis_controller']
 
-
-
-def main():
-   '''
-   The main execution loop.
-   '''
-   gui_controller = VisController(sys.argv)
-   sys.exit(gui_controller.exec_())
-
-
-
-if __name__ == '__main__':
-   main()
+import test_importer
+#import test_analyzer
+#import test_display_handler
+#import test_experimenter
+#import test_vis_controller
