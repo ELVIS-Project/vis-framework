@@ -29,8 +29,6 @@ Holds the Experimenter controller.
 
 
 # Imports from...
-# python
-from string import digits as string_digits
 # PyQt4
 from PyQt4 import QtCore
 # music21
@@ -108,25 +106,22 @@ class Experimenter(Controller, QtCore.QObject):
       Runs the currently-configured experiment(s).
       '''
       # Check there is an 'experiment' setting that refers to one we have
-      # TODO: plug it in
-      # Trigger that experiment
-      # TODO: run the right experiment
+
       if self._experiment_settings.get('experiment') == 'IntervalsList':
-         exper = IntervalsLists(self._list_of_analyses, self._experiment_settings)
+         exper = IntervalsLists(self, self._list_of_analyses, self._experiment_settings)
       elif self._experiment_settings.get('experiment') == 'ChordsList':
-         exper = ChordsLists(self._list_of_analyses, self._experiment_settings)
+         exper = ChordsLists(self, self._list_of_analyses, self._experiment_settings)
       elif self._experiment_settings.get('experiment') == 'IntervalsStatistics':
-         exper = IntervalsStatistics(self._list_of_analyses, self._experiment_settings)
+         exper = IntervalsStatistics(self, self._list_of_analyses, self._experiment_settings)
       elif self._experiment_settings.get('experiment') == 'IntervalNGramStatistics':
-         exper = IntervalNGramStatistics(self._list_of_analyses, self._experiment_settings)
+         exper = IntervalNGramStatistics(self, self._list_of_analyses, self._experiment_settings)
       else:
          self.error.emit('Experimenter: could not determine which experiment to run.')
          return
 
+      # Trigger the experiment
       post = exper.perform()
 
-      # TODO: figure out the valid types of display, and put them in a list in
-      # the first element of this tuple
       post = (exper.good_for(), post)
 
       self.experiment_finished.emit(post)
@@ -168,17 +163,23 @@ class Experiment(object):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new Experiment.
 
-      There are two mandatory arguments:
+      There are three mandatory arguments:
+      - controller : the Experimenter controller that created this Experiment
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
       '''
       # NOTE: In subclasses, you should implement a check system to ensure the
-      #       ExperimentSettings object has the right settings in it.
+      #       ExperimentSettings object has the right settings in it. If you do
+      #       not have the settings you need, send an error through the
+      #       Experimenter controller, then return without proper instantiation:
+      # self._controller.error.emit(error_message_here)
+      # return
       super(Experiment, self).__init__()
+      self._controller = controller
       self._records = records
       self._settings = settings
 
@@ -235,11 +236,12 @@ class IntervalsLists(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new IntervalsLists.
 
-      There are two arguments, both of which are mandatory:
+      There are three mandatory arguments:
+      - controller : the Experimenter controller that created this Experiment
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -256,11 +258,12 @@ class IntervalsLists(Experiment):
 
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound'):
+         self._controller = controller
          self._records = records
          self._settings = settings
       else:
          msg = 'IntervalsLists requires "quality" and "simple or compound" settings'
-         raise KeyError(msg)
+         self._controller.error.emit(msg)
 
       # Process the optional "output format" setting
       if self._settings.has('output format'):
@@ -385,11 +388,12 @@ class ChordsLists(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new ChordsLists.
 
-      There are two arguments, both of which are mandatory:
+      There are three mandatory arguments:
+      - controller : the Experimenter controller that created this Experiment
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -400,6 +404,7 @@ class ChordsLists(Experiment):
       super(Experiment, self).__init__()
 
       # Save things
+      self._controller = controller
       self._records = records
       self._settings = settings
 
@@ -501,11 +506,12 @@ class IntervalsStatistics(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new IntervalsStatistics experiment.
 
-      There are two mandatory arguments:
+      There are three mandatory arguments:
+      - controller : the Experimenter controller that created this Experiment
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -526,11 +532,12 @@ class IntervalsStatistics(Experiment):
 
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound'):
+         self._controller = controller
          self._records = records
          self._settings = settings
       else:
          msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
-         raise KeyError(msg)
+         self._controller.error.emit(msg)
 
       # Check for the other settings we use, and provide default values if required
       if not self._settings.has('topX'):
@@ -587,6 +594,7 @@ class IntervalsStatistics(Experiment):
       -1
       '''
 
+      string_digits = '0123456789'
       list_of_directions = ['+', '-']
 
       # I want to sort based on generic size, so the direction is irrelevant. If
@@ -741,11 +749,12 @@ class IntervalNGramStatistics(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new IntervalNGramStatistics experiment.
 
-      There are two mandatory arguments:
+      There are three mandatory arguments:
+      - controller : the Experimenter controller that created this Experiment
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -768,13 +777,13 @@ class IntervalNGramStatistics(Experiment):
       # Check the ExperimentSettings object has the right settings
       if settings.has('quality') and settings.has('simple or compound') and \
       settings.has('values of n'):
+         self._controller = controller
          self._records = records
          self._settings = settings
       else:
          msg = 'IntervalNGramStatistics requires "quality," '
          msg += '"simple or compound," and "values of n" settings'
-         raise KeyError(msg)
-         # TODO: rewrite this, and similar errors in other classes, with the Experimenter.error() signal
+         self._controller.error.emit(msg)
 
       # Check for the other settings we use, and provide default values if required
       if not self._settings.has('topX'):
@@ -997,4 +1006,4 @@ class IntervalNGramStatistics(Experiment):
 
       # (6) Conclude
       return post
-# End class IntervalNGramStatistics --------------------------------------------------------------------
+# End class IntervalNGramStatistics ----------------------------------------------------------------
