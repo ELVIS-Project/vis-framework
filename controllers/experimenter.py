@@ -900,6 +900,9 @@ class IntervalNGramStatistics(Experiment):
 
       for each_record in self._records:
          for i in xrange(len(each_record)):
+            # store the last index in this record, so we know if we're about to cause an IndexError
+            last_index = len(each_record) - 1
+
             # make sure our first vertical interval doesn't have a rest
             if 'Rest' == each_record[i][1][0] or 'Rest' == each_record[i][1][1]:
                continue
@@ -918,10 +921,17 @@ class IntervalNGramStatistics(Experiment):
 
                # - first check if there are enough vertical intervals without rests
                #   (if not, we'll skip this and all higher 'n' values with "kill_switch")
-               for j in xrange(each_n-1):
-                  if 'Rest' == each_record[i+j][1][0] or 'Rest' == each_record[i+j][1][1]:
+               for j in xrange(1, each_n):
+                  # this first check will ensure we don't cause an IndexError going past the end
+                  # of the list
+                  if i+j > last_index:
                      kill_switch = True
                      break
+                  # now check for rests
+                  elif 'Rest' == each_record[i+j][1][0] or 'Rest' == each_record[i+j][1][1]:
+                     kill_switch = True
+                     break
+                  # now assume we can make an n-gram
                   else:
                      this_interv = Interval(Note(each_record[i+j][1][0]),
                                             Note(each_record[i+j][1][1]))
