@@ -208,7 +208,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -646,6 +646,45 @@
            <string>Conduct an Experiment</string>
           </property>
           <layout class="QGridLayout" name="gridLayout">
+           <item row="3" column="0">
+            <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="0" rowspan="2">
+            <widget class="QGroupBox" name="grp_octaves">
+             <property name="title">
+              <string>Octaves</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_13">
+              <item>
+               <widget class="QRadioButton" name="rdo_compound">
+                <property name="text">
+                 <string>Compound Intervals</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rdo_simple">
+                <property name="text">
+                 <string>Simple Intervals</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
            <item row="0" column="1">
             <widget class="QGroupBox" name="groupBox_5">
              <property name="title">
@@ -708,23 +747,6 @@
              </layout>
             </widget>
            </item>
-           <item row="2" column="5">
-            <widget class="QPushButton" name="btn_show_results">
-             <property name="text">
-              <string>Process and &amp;Show</string>
-             </property>
-             <property name="icon">
-              <iconset resource="icons.qrc">
-               <normaloff>:/icons/icons/show_checkmark.png</normaloff>:/icons/icons/show_checkmark.png</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>64</width>
-               <height>64</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
             <widget class="QGroupBox" name="groupBox_7">
              <property name="title">
@@ -747,7 +769,7 @@
               <item>
                <widget class="QRadioButton" name="rdo_consider_interval_ngrams">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Interval N-grams</string>
@@ -770,34 +792,21 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QGroupBox" name="groupBox_octaves">
-             <property name="title">
-              <string>Octaves</string>
+           <item row="3" column="1">
+            <spacer name="verticalSpacer_10">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_13">
-              <item>
-               <widget class="QRadioButton" name="rdo_compound">
-                <property name="text">
-                 <string>Compound Intervals</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_simple">
-                <property name="text">
-                 <string>Simple Intervals</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
            </item>
-           <item row="1" column="1">
-            <widget class="QGroupBox" name="groupBox_quality">
+           <item row="1" column="1" rowspan="2">
+            <widget class="QGroupBox" name="grp_quality">
              <property name="title">
               <string>Interval Quality</string>
              </property>
@@ -820,6 +829,55 @@
                </widget>
               </item>
              </layout>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QGroupBox" name="grp_values_of_n">
+             <property name="title">
+              <string>Values of N</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_4">
+              <item>
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please input values as a well-formatted&lt;/p&gt;&lt;p&gt;list of python &amp;quot;int&amp;quot; objects.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="line_values_of_n"/>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <spacer name="verticalSpacer_11">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="3" column="3">
+            <widget class="QPushButton" name="btn_show_results">
+             <property name="text">
+              <string>Process and &amp;Show</string>
+             </property>
+             <property name="icon">
+              <iconset resource="icons.qrc">
+               <normaloff>:/icons/icons/show_checkmark.png</normaloff>:/icons/icons/show_checkmark.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>64</width>
+               <height>64</height>
+              </size>
+             </property>
             </widget>
            </item>
           </layout>
@@ -955,9 +1013,9 @@
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_6">
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="label_copyright">
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;vis (pre-Milestone 4)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Copyright (c) 2012 Christopher Antila and Jamie Klassen&lt;/p&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify&lt;br/&gt;it under the terms of the GNU General Public License as published by&lt;br/&gt;the Free Software Foundation, either version 3 of the License, or&lt;br/&gt;(at your option) any later version.&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful,&lt;br/&gt;but WITHOUT ANY WARRANTY; without even the implied warranty of&lt;br/&gt;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the&lt;br/&gt;GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License&lt;br/&gt;along with this program. If not, see &amp;lt;http://www.gnu.org/licenses/&amp;gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;vis 9&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan&lt;/p&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify&lt;br/&gt;it under the terms of the GNU General Public License as published by&lt;br/&gt;the Free Software Foundation, either version 3 of the License, or&lt;br/&gt;(at your option) any later version.&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful,&lt;br/&gt;but WITHOUT ANY WARRANTY; without even the implied warranty of&lt;br/&gt;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the&lt;br/&gt;GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License&lt;br/&gt;along with this program. If not, see &amp;lt;http://www.gnu.org/licenses/&amp;gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </item>
@@ -969,7 +1027,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="label_about">
              <property name="text">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;vis was written as part of McGill University's contribution to the ELVIS project.&lt;br/&gt;For more information about ELVIS, please refer to our &lt;a href=&quot;http://elvis.music.mcgill.ca/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;web site&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;Funding for ELVIS was provided by the following organizations:&lt;br/&gt;- SSHRC (Social Sciences and Humanities Research Council) of Canada&lt;br/&gt;- NEH (National Endowment for the Humanities) of the United States of America&lt;br/&gt;- The Digging into Data Challenge&lt;/p&gt;&lt;p&gt;vis is written in the Python programming language, and relies on the following&lt;br/&gt;software, all released under free licences:&lt;br/&gt;- &lt;a href=&quot;http://mit.edu/music21/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;music21&lt;br/&gt;&lt;/span&gt;&lt;/a&gt;- &lt;a href=&quot;http://www.riverbankcomputing.co.uk/software/pyqt/download&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;PyQt4&lt;/span&gt;&lt;/a&gt;&lt;br/&gt;- &lt;a href=&quot;http://www.oxygen-icons.org/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;Oxygen Icons&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>

@@ -977,6 +977,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          elif self.ui.rdo_consider_chord_ngrams.isChecked():
             list_of_settings.append(('experiment', 'ChordsList'))
             list_of_settings.append(('output format', 'SpreadsheetFile'))
+         elif self.ui.rdo_consider_interval_ngrams.isChecked():
+            list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
+            list_of_settings.append(('output format', 'StatisticsListDisplay'))
 
       def do_threshold():
          '''
@@ -1004,6 +1007,23 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          else:
             list_of_settings.append(('simple or compound', 'compound'))
 
+      def do_values_of_n():
+         '''
+         Are there values of 'n' specified?
+         '''
+         # TODO: this has to be done safer
+         # get the potential values of 'n'
+         raw_of_n = str(self.ui.line_values_of_n.text())
+
+         # Try to parse and format everything
+         raw_of_n = eval(raw_of_n)
+         post = []
+         for thing in raw_of_n:
+            post.append(int(thing))
+
+         # Put it onnnnnn
+         list_of_settings.append(('values of n', post))
+
       # (1) Figure out the settings
       # TODO: ensure these are chosen dynamically, to correspond to the GUI
       # (1a) Which experiment?
@@ -1012,27 +1032,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       do_print_quality()
       # (1c) Simple or compound?
       do_simple_or_compound()
-
-      # (1d) Is there a "top X" value?
-      #top_x = str(self.ui.line_output_most_common.text())
-      #if '' != top_x:
-         #list_of_settings.append(('topX', top_x))
-      # (1e) Is there a "threshold" value?
-      #do_threshold()
       # (1d) Is there a "values of n" value?
-      #values_of_n = str(self.ui.line_values_of_n.text())
-      #if '' != values_of_n:
-         #list_of_settings.append(('values of n', values_of_n))
-      # (1e) What's the sort order?
-      #if self.ui.rdo_ascending.isChecked():
-         #list_of_settings.append(('sort order', 'ascending'))
-      #else:
-         #list_of_settings.append(('sort order', 'descending'))
-      # (1f) Sort by frequency or name of object?
-      #if self.ui.rdo_name.isChecked():
-         #list_of_settings.append(('sort by', 'name'))
-      #else:
-         #list_of_settings.append(('sort by', 'frequency'))
+      do_values_of_n()
 
       # (2) Set the settings
       for setting in list_of_settings:
@@ -1057,8 +1058,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
                          self.ui.rdo_chart,
                          self.ui.rdo_score,
                          self.ui.rdo_targeted_score,
-                         self.ui.groupBox_octaves,
-                         self.ui.groupBox_quality]
+                         self.ui.grp_octaves,
+                         self.ui.grp_quality,
+                         self.ui.grp_values_of_n]
 
       def on_offer(enable_these):
          # Given a list of the GUI objects in the "experiment" panel that should be "on," this
@@ -1076,12 +1078,13 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       which_to_enable = []
 
       if self.ui.rdo_consider_intervals.isChecked():
-         which_to_enable = [self.ui.rdo_spreadsheet, self.ui.groupBox_octaves,
-                            self.ui.groupBox_quality, self.ui.rdo_list]
+         which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_octaves, self.ui.grp_quality,
+                            self.ui.rdo_list]
       elif self.ui.rdo_consider_interval_ngrams.isChecked():
-         pass
+         which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
+                            self.ui.grp_quality]
       elif self.ui.rdo_consider_chord_ngrams.isChecked():
-         which_to_enable = [self.ui.rdo_spreadsheet]
+         which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n]
 
       # Run the on_offer()
       on_offer(which_to_enable)

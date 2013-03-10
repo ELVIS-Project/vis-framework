@@ -117,6 +117,12 @@ class Experimenter(Controller, QtCore.QObject):
          exper = ChordsLists(self._list_of_analyses, self._experiment_settings)
       elif self._experiment_settings.get('experiment') == 'IntervalsStatistics':
          exper = IntervalsStatistics(self._list_of_analyses, self._experiment_settings)
+      elif self._experiment_settings.get('experiment') == 'IntervalNGramStatistics':
+         exper = IntervalNGramStatistics(self._list_of_analyses, self._experiment_settings)
+      else:
+         self.error.emit('Experimenter: could not determine which experiment to run.')
+         return
+
       post = exper.perform()
 
       # TODO: figure out the valid types of display, and put them in a list in
@@ -414,6 +420,9 @@ class ChordsLists(Experiment):
       post = [('chord', 'transformation', 'offset')]
 
       def remove_rests(event):
+         '''
+         Removes 'Rest' strings from a list of strings.
+         '''
          post = ''
 
          for chord_member in event:
@@ -711,10 +720,18 @@ class IntervalsStatistics(Experiment):
 
 
 
-class IntervalNGramStatistics(object):
+class IntervalNGramStatistics(Experiment):
    '''
-   Experiment that gathers statistics about the number of occurrences of n-grams made from
-   vertical intervals.
+   Experiment that gathers statistics about the number of occurrences of n-grams composed of
+   vertical intervals and the horizontal connections between the lower voice.
+
+   Produce a list of tuples, like this:
+   [('m3 -P4 M6', 10), ('M3 -P4 m6', 4), ...]
+
+   The list is sorted as per the ExperimentSettings. Each 0th element in the tuple is a
+   string-format representation of an interval, and each 1st element is the number of occurrences.
+
+   Intervals that do not occur in any of the AnalysisRecord objects are not included in the output.
    '''
 
 
@@ -728,16 +745,16 @@ class IntervalNGramStatistics(object):
       '''
       Create a new IntervalNGramStatistics experiment.
 
-      There are three mandatory arguments:
+      There are two mandatory arguments:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
-      IntervalsStatistics requires these settings:
+      IntervalNGramStatistics requires these settings:
       - quality : whether or not to display interval quality
       - simple or compound : whether to use simple or compound intervals
       - values of n : a list of ints that is the values of 'n' to display
 
-      IntervalsStatistics uses these settings, but provides defaults:
+      IntervalNGramStatistics uses these settings, but provides defaults:
       - topX : display on the "top X" number of results (default: none)
       - threshold : stop displaying things after this point (default: none)
       - sort order : whether to sort things 'ascending' or 'descending' (default: 'descending')
@@ -754,8 +771,10 @@ class IntervalNGramStatistics(object):
          self._records = records
          self._settings = settings
       else:
-         msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
+         msg = 'IntervalNGramStatistics requires "quality," '
+         msg += '"simple or compound," and "values of n" settings'
          raise KeyError(msg)
+         # TODO: rewrite this, and similar errors in other classes, with the Experimenter.error() signal
 
       # Check for the other settings we use, and provide default values if required
       if not self._settings.has('topX'):
@@ -767,10 +786,98 @@ class IntervalNGramStatistics(object):
       if not self._settings.has('sort by'):
          self._settings.set('sort by', 'frequency')
 
+      # Make a dictionary to store the intervals
+      self._ngrams = None
+
+      # Make a list to store the sorted and filtered intervals
+      self._keys = None
+
       # Process the optional "output format" setting
       if self._settings.has('output format'):
          self._good_for = [self._settings.get('output format')]
    # End __init__()
+
+
+
+   def _add_ngram(self, interv):
+      '''
+      Add an n-gram, represented as a string, to the occurrences dictionary in this experiment.
+      '''
+      if interv in self._ngrams:
+         self._ngrams[interv] += 1
+      else:
+         self._ngrams[interv] = 1
+
+
+
+   # TODO: implement vis7 tests for this
+   @staticmethod
+   def ngram_sorter(left, right):
+      '''
+      Returns -1 if the first argument is a smaller n-gram.
+      Returns 1 if the second argument is a smaller n-gram.
+      Returns 0 if both arguments are the same.
+
+      If one n-gram is a subset of the other, starting at index 0, we consider the
+      shorter n-gram to be the "smaller."
+
+      Input should be like this, at minimum with three non-white-space characters
+      separated by at most one space character.
+      3 +4 7
+      m3 +P4 m7
+      -3 +4 1
+      m-3 +P4 P1
+
+      Examples:
+      >>> from vis import ngram_sorter
+      >>> ngram_sorter( '3 +4 7', '5 +2 4' )
+      -1
+      >>> ngram_sorter( '3 +5 6', '3 +4 6' )
+      1
+      >>> ngram_sorter( 'M3 1 m2', 'M3 1 M2' )
+      -1
+      >>> ngram_sorter( '9 -2 -3', '9 -2 -3' )
+      0
+      >>> ngram_sorter( '3 -2 3 -2 3', '6 +2 6' )
+      -1
+      >>> ngram_sorter( '3 -2 3 -2 3', '3 -2 3' )
+      1
+      '''
+
+      # We need the string version for this
+      left = str(left)
+      right = str(right)
+
+      # Just in case there are some extra spaces
+      left = left.strip()
+      right = right.strip()
+
+      # See if we have only one interval left. When there is only one interval,
+      # the result of this will be -1
+      left_find = left.find(' ')
+      right_find = right.find(' ')
+
+      if -1 == left_find:
+         if -1 == right_find:
+            # Both x and y have only one interval left, so the best we can do is
+            # the output from intervalSorter()
+            return IntervalsStatistics.interval_sorter(left, right)
+         else:
+            # x has one interval left, but y has more than one, so x is shorter.
+            return -1
+      elif -1 == right_find:
+         # y has one interval left, but x has more than one, so y is shorter.
+         return 1
+
+      # See if the first interval will differentiate
+      possible_result = IntervalsStatistics.interval_sorter(left[:left_find], right[:right_find])
+
+      if 0 != possible_result:
+         return possible_result
+
+      # If not, we'll rely on ourselves to solve the next mystery!
+      return IntervalNGramStatistics.ngram_sorter(left[left_find + 1:], right[right_find + 1:])
+   # End IntervalNGramStatistics.ngram_sorter() --------------------------------
 
 
 
@@ -781,6 +888,103 @@ class IntervalNGramStatistics(object):
 
       This method emits an Experimenter.experimented signal when it finishes.
       '''
-      # NOTE: You must reimplement this method in subclasses.
-      pass
-# End class IntervalNGramStatistics ----------------------------------------------------------------
+      # (0) Instantiate/clear things
+      self._ngrams = {}
+      self._keys = []
+
+      # (1) Loop through each of the AnalysisRecord objects, adding the n-grams we find.
+      # We'll use these over and over again
+      quality = self._settings.get('quality')
+      interval_size = self._settings.get('simple or compound')
+      values_of_n = sorted(self._settings.get('values of n')) # sorted lowest-to-highest
+
+      for each_record in self._records:
+         for i in xrange(len(each_record)):
+            # make sure our first vertical interval doesn't have a rest
+            if 'Rest' == each_record[i][1][0] or 'Rest' == each_record[i][1][1]:
+               continue
+
+            # for the next loop, we'll use this to indicate that the current and all higher
+            # values of 'n' do not have enough vertical intervals without rests
+            kill_switch = False
+
+            # for each of the values of 'n' we have to find:
+            for each_n in values_of_n:
+               # start of the intervals to build the n-gram with this 'n' value
+               intervals_this_n = [Interval(Note(each_record[i][1][0]), Note(each_record[i][1][1]))]
+
+               # reset the kill_switch
+               kill_switch = False
+
+               # - first check if there are enough vertical intervals without rests
+               #   (if not, we'll skip this and all higher 'n' values with "kill_switch")
+               for j in xrange(each_n-1):
+                  if 'Rest' == each_record[i+j][1][0] or 'Rest' == each_record[i+j][1][1]:
+                     kill_switch = True
+                     break
+                  else:
+                     this_interv = Interval(Note(each_record[i+j][1][0]),
+                                            Note(each_record[i+j][1][1]))
+                     intervals_this_n.append(this_interv)
+               if kill_switch:
+                  break
+
+               # - build the n-gram
+               this_ngram = ngram.IntervalNGram(intervals_this_n)
+
+               # - find the n-gram's string-wise representation
+               # - add the representation to the occurrences dictionary
+               self._add_ngram(this_ngram.get_string_version(quality, interval_size))
+      # (End of step 1)
+
+
+      # (2.1) If there is a topX or threshold filter, sort by frequency now.
+      if self._settings.get('topX') is not None or \
+      self._settings.get('threshold') is not None:
+         # returns a list of keys, sorted by descending frequency
+         self._keys = sorted(self._ngrams, key=lambda x:self._ngrams[x], reverse=True)
+
+         # (3) If we're doing a "topX" filter, do it now.
+         if self._settings.get('topX') is not None:
+            # cut the list at the "topX-th element"
+            self._keys = self._keys[:int(self._settings.get('topX'))]
+
+         # (4) If we're doing a "threshold" filter, do it now.
+         if self._settings.get('threshold') is not None:
+            thresh = int(self._settings.get('threshold'))
+            # if the last key on the list is already greater than the threshold, we won't sort
+            if self._ngrams[self._keys[-1]] < thresh:
+               # hold the keys of intervals above the threshold
+               new_keys = []
+               # check each key we already have, and add it to new_keys only if its occurrences are
+               # above the threshold value
+               for each_key in self._keys:
+                  if self._ngrams[each_key] >= thresh:
+                     new_keys.append(each_key)
+               # assign
+               self._keys = new_keys
+      # (2.2) Otherwise, just get all the keys
+      else:
+         self._keys = self._ngrams.keys()
+
+      # (4) Now do a final sorting.
+      # Should we 'reverse' the list sorting? Yes, unless we sorted 'ascending'
+      should_reverse = False if 'ascending' == self._settings.get('sort order') else True
+
+      if 'frequency' == self._settings.get('sort by'):
+         self._keys = sorted(self._keys,
+                             key=lambda x:self._ngrams[x],
+                             reverse=should_reverse)
+      else:
+         self._keys = sorted(self._keys,
+                             cmp=IntervalsStatistics.interval_sorter,
+                             reverse=should_reverse)
+
+      # (5) Construct the dictionary to return
+      post = []
+      for each_key in self._keys:
+         post.append((each_key, self._ngrams[each_key]))
+
+      # (6) Conclude
+      return post
+# End class IntervalNGramStatistics --------------------------------------------------------------------

@@ -257,13 +257,13 @@ class IntervalNGram(NGram):
             self._has_voice_crossing = True
       except AttributeError:
          msg = 'NGram: One of the intervals is probably missing a Note'
-         raise RuntimeError( msg )
+         raise RuntimeError(msg)
    # End __init__() ------------------------------------------
 
 
 
 
-   def __repr__( self ):
+   def __repr__(self):
       '''
       Return the code that could be used to re-create this NGram object.
       '''
@@ -289,7 +289,7 @@ class IntervalNGram(NGram):
 
 
 
-   def canonical( self ):
+   def canonical(self):
       '''
       Return the "canonical non-crossed" str representation of this IntervalNGram
       object. This is like an "absolute value" function, in that it removes any
@@ -301,6 +301,7 @@ class IntervalNGram(NGram):
       - 'm-3 +M2 m3'
       - 'm3 -M2 m-2'
       - etc.
+
       These are not necessarily experientially similar.
       '''
       post = self.get_string_version(True, 'compound').replace('-', '')
@@ -308,7 +309,7 @@ class IntervalNGram(NGram):
 
 
 
-   def voice_crossing( self ):
+   def voice_crossing(self):
       '''
       Returns True if the IntervalNGram object has voice crossing (meaning that one
       or more of the Interval objects has a negative direction) or else False.
@@ -424,10 +425,10 @@ class IntervalNGram(NGram):
 
       >>> from music21 import *
       >>> from vis import *
-      >>> i1 = Interval( Note( 'A4' ), Note( 'C5' ) )
-      >>> i2 = Interval( Note( 'B4' ), Note( 'E5' ) )
-      >>> ng = IntervalNGram( [i1,i2] )
-      >>> str(ng.get_inversion_at_the( 12, 'up' ))
+      >>> i1 = Interval(Note('A4'), Note('C5'))
+      >>> i2 = Interval(Note('B4'), Note('E5'))
+      >>> ng = IntervalNGram([i1,i2])
+      >>> str(ng.get_inversion_at_the(12, 'up'))
       'M-10 +M2 M-9'
       '''
 

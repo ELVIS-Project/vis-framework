@@ -393,6 +393,14 @@ class AnalysisRecord(object):
 
 
 
+   def __len__(self):
+      '''
+      Returns the number of events in the AnalysisRecord.
+      '''
+      return len(self._record)
+
+
+
    def part_names(self):
       '''
       Return a list of strings that represent the part names involved in this
