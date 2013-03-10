@@ -315,11 +315,9 @@ class StatisticsListDisplay(Display):
       # prepare per-object data
       for each_row in self._data:
          # add the object to the table
-         post += str(each_row[0]) + ':\t' + str(each_row[1])
+         post += str(each_row[0]) + ':\t' + str(each_row[1]) + '\n'
          # count the number of things to the total number of things
          total_occurrences += each_row[1]
-         # remove the final ', ' and append a newline
-         post = post[:-2] + '\n'
 
       # add the total occurrences after the header, and concatenate both parts
       post = header_data + 'Total occurrences: ' + str(total_occurrences) + '\n' + post
