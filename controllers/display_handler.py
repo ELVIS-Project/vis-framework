@@ -308,7 +308,7 @@ class StatisticsListDisplay(Display):
          header_data += self._data[0][1] + ':\t' + self._data[0][2] + '\n'
          self._data = self._data[1:]
       else:
-         post += 'object:\toccurrences\n'
+         header_data += 'object:\toccurrences\n'
 
       header_data += '========================\n'
 
