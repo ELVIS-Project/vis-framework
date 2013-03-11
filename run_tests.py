@@ -55,7 +55,8 @@ unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite)
 
 # Analyzer
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_short_suite)
-unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_suite)
+unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_monteverdi)
+unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_josquin)
 
 
 

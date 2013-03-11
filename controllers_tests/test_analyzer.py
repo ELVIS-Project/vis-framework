@@ -220,12 +220,11 @@ class TestEventFinderShort(unittest.TestCase):
 
 
 
-class TestEventFinderLong(unittest.TestCase):
+class TestEventFinderMonteverdi(unittest.TestCase):
    # Test _event_finder() with long excerpts
 
    def test_madrigal_1(self):
       # tests madrigal51.mxl (cruda amarilli) offset = 0.5, we're salami slicing
-      self.maxDiff = None
       the_analyzer = analyzer.Analyzer()
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
@@ -558,13 +557,253 @@ class TestEventFinderLong(unittest.TestCase):
                                  (36.0, ('C5', 'F5')),
                                  (38.0, ('C5', 'E5'))]
       self.assertEqual(expected_result,  actual_result._record[:13])
-# End TestEventFinderLong ------------------------------------------------------
+# End TestEventFinderMonteverdi --------------------------------------------------------------------
 
 
 
-#-------------------------------------------------------------------------------
-# Definitions
-#-------------------------------------------------------------------------------
+class TestEventFinderJosquin(unittest.TestCase):
+   # Test _event_finder() with long excerpts:
+   # Josquin's "Ave maris stella," all parts in measures 59 through 65
+
+   def setUp(self):
+      # set-up for tests of Jos2308.krn
+      self.the_analyzer = analyzer.Analyzer()
+      self.actual_result = analyzing.AnalysisRecord()
+      self.piece = converter.parse('test_corpus/Jos2308.krn')
+      self.parts_list = [self.piece.parts[0][67:74],
+                         self.piece.parts[1][67:74],
+                         self.piece.parts[2][67:74],
+                         self.piece.parts[3][67:74]]
+      self.setts = analyzing.AnalysisSettings()
+      self.setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
+
+
+
+   def test_josquin_1(self):
+      # tests Jos2308.krn ("Ave maris stella") offset = 0.5, we're salami slicing
+      self.setts.set('salami', True)
+      self.setts.set('offset', 0.5)
+      self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+                                                           settings=self.setts,
+                                                           record=self.actual_result)
+      expected_result = [(464+0.0, ('A3', 'A3', 'C5', 'Rest')),
+                         (464+0.0, ('A3', 'A3', 'C5', 'Rest')),
+                         (464+0.0, ('A3', 'A3', 'C5', 'Rest')),
+                         (464+0.0, ('A3', 'A3', 'C5', 'Rest')),
+                         (464+2.0, ('F3', 'A3', 'A4', 'Rest')),
+                         (464+2.5, ('F3', 'A3', 'A4', 'Rest')),
+                         (464+3.0, ('F3', 'A3', 'A4', 'Rest')),
+                         (464+3.5, ('F3', 'A3', 'A4', 'Rest')),
+                         (464+4.0, ('E3', 'C4', 'G4', 'Rest')),
+                         (464+4.5, ('E3', 'C4', 'G4', 'Rest')),
+                         (464+5.0, ('E3', 'C4', 'G4', 'Rest')),
+                         (464+5.5, ('E3', 'C4', 'G4', 'Rest')),
+                         (464+6.0, ('E3', 'C4', 'G4', 'Rest')),
+                         (464+6.5, ('E3', 'C4', 'G4', 'Rest')),
+                         (464+7.0, ('E3', 'C4', 'G4', 'Rest')),
+                         (464+7.5, ('E3', 'C4', 'G4', 'Rest')),
+                         # m. 60
+                         (464+8.0, ('D3', 'D4', 'F4', 'Rest')),
+                         (464+8.5, ('D3', 'D4', 'F4', 'Rest')),
+                         (464+9.0, ('D3', 'D4', 'F4', 'Rest')),
+                         (464+9.5, ('D3', 'D4', 'F4', 'Rest')),
+                         (464+10.0, ('D3', 'D4', 'F4', 'Rest')),
+                         (464+10.5, ('D3', 'D4', 'F4', 'Rest')),
+                         (464+11.0, ('D3', 'D4', 'G4', 'Rest')),
+                         (464+11.5, ('D3', 'D4', 'G4', 'Rest')),
+                         (464+12.0, ('D3', 'D4', 'A4', 'Rest')),
+                         (464+12.5, ('D3', 'D4', 'A4', 'Rest')),
+                         (464+13.0, ('D3', 'D4', 'A4', 'Rest')),
+                         (464+13.5, ('D3', 'D4', 'A4', 'Rest')),
+                         (464+14.0, ('D3', 'D4', 'B-4', 'Rest')),
+                         (464+14.5, ('D3', 'D4', 'B-4', 'Rest')),
+                         (464+15.0, ('D3', 'D4', 'B-4', 'Rest')),
+                         (464+15.5, ('D3', 'D4', 'B-4', 'Rest')),
+                         # m. 61
+                         (464+16.0, ('Rest', 'G3', 'B-4', 'Rest')),
+                         (464+16.5, ('Rest', 'G3', 'B-4', 'Rest')),
+                         (464+17.0, ('Rest', 'G3', 'A4', 'Rest')),
+                         (464+17.5, ('Rest', 'G3', 'A4', 'Rest')),
+                         (464+18.0, ('Rest', 'G3', 'G4', 'Rest')),
+                         (464+18.5, ('Rest', 'G3', 'G4', 'Rest')),
+                         (464+19.0, ('Rest', 'A3', 'F4', 'Rest')),
+                         (464+19.5, ('Rest', 'A3', 'F4', 'Rest')),
+                         (464+20.0, ('Rest', 'B-3', 'G4', 'Rest')),
+                         (464+20.5, ('Rest', 'B-3', 'G4', 'Rest')),
+                         (464+21.0, ('Rest', 'B-3', 'G4', 'Rest')),
+                         (464+21.5, ('Rest', 'B-3', 'G4', 'Rest')),
+                         (464+22.0, ('Rest', 'C4', 'A4', 'Rest')),
+                         (464+22.5, ('Rest', 'C4', 'A4', 'Rest')),
+                         (464+23.0, ('Rest', 'C4', 'A4', 'Rest')),
+                         (464+23.5, ('Rest', 'C4', 'A4', 'Rest')),
+                         # m. 62
+                         (464+24.0, ('Rest', 'A3', 'A4', 'Rest')),
+                         (464+24.5, ('Rest', 'A3', 'A4', 'Rest')),
+                         (464+25.0, ('Rest', 'A3', 'G4', 'Rest')),
+                         (464+25.5, ('Rest', 'A3', 'G4', 'Rest')),
+                         (464+26.0, ('Rest', 'B-3', 'F4', 'Rest')),
+                         (464+26.5, ('Rest', 'B-3', 'F4', 'Rest')),
+                         (464+27.0, ('Rest', 'B-3', 'F4', 'Rest')),
+                         (464+27.5, ('Rest', 'B-3', 'F4', 'Rest')),
+                         (464+28.0, ('Rest', 'G3', 'F4', 'Rest')),
+                         (464+28.5, ('Rest', 'G3', 'F4', 'Rest')),
+                         (464+29.0, ('Rest', 'G3', 'F4', 'Rest')),
+                         (464+29.5, ('Rest', 'G3', 'F4', 'Rest')),
+                         (464+30.0, ('Rest', 'G3', 'E4', 'Rest')),
+                         (464+30.5, ('Rest', 'G3', 'E4', 'Rest')),
+                         (464+31.0, ('Rest', 'G3', 'E4', 'Rest')),
+                         (464+31.5, ('Rest', 'G3', 'E4', 'Rest')),
+                         # m. 63
+                         (464+32.0, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+32.5, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+33.0, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+33.5, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+34.0, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+34.5, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+35.0, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+35.5, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+36.0, ('A3', 'F3', 'Rest', 'C5')),
+                         (464+36.5, ('A3', 'F3', 'Rest', 'C5')),
+                         (464+37.0, ('A3', 'F3', 'Rest', 'C5')),
+                         (464+37.5, ('A3', 'F3', 'Rest', 'C5')),
+                         (464+38.0, ('A3', 'F3', 'Rest', 'C5')),
+                         (464+38.5, ('A3', 'F3', 'Rest', 'C5')),
+                         (464+39.0, ('A3', 'F3', 'Rest', 'B-4')),
+                         (464+39.5, ('A3', 'F3', 'Rest', 'B-4')),
+                         # m. 64
+                         (464+40.0, ('C4', 'Rest', 'Rest', 'A4')),
+                         (464+40.5, ('C4', 'Rest', 'Rest', 'A4')),
+                         (464+41.0, ('C4', 'Rest', 'Rest', 'A4')),
+                         (464+41.5, ('C4', 'Rest', 'Rest', 'A4')),
+                         (464+42.0, ('C4', 'Rest', 'Rest', 'G4')),
+                         (464+42.5, ('C4', 'Rest', 'Rest', 'G4')),
+                         (464+43.0, ('C4', 'Rest', 'Rest', 'G4')),
+                         (464+43.5, ('C4', 'Rest', 'Rest', 'G4')),
+                         (464+44.0, ('A3', 'Rest', 'Rest', 'F4')),
+                         (464+44.5, ('A3', 'Rest', 'Rest', 'F4')),
+                         (464+45.0, ('A3', 'Rest', 'Rest', 'F4')),
+                         (464+45.5, ('A3', 'Rest', 'Rest', 'F4')),
+                         (464+46.0, ('A3', 'Rest', 'Rest', 'E4')),
+                         (464+46.5, ('A3', 'Rest', 'Rest', 'E4')),
+                         (464+47.0, ('A3', 'Rest', 'Rest', 'E4')),
+                         (464+47.5, ('A3', 'Rest', 'Rest', 'E4')),
+                         # m. 65
+                         (464+48.0, ('B-3', 'Rest', 'Rest', 'E4')),
+                         (464+48.5, ('B-3', 'Rest', 'Rest', 'E4')),
+                         (464+49.0, ('B-3', 'Rest', 'Rest', 'D4')),
+                         (464+49.5, ('B-3', 'Rest', 'Rest', 'D4')),
+                         (464+50.0, ('B-3', 'Rest', 'Rest', 'G4')),
+                         (464+50.5, ('B-3', 'Rest', 'Rest', 'G4')),
+                         (464+51.0, ('G3', 'Rest', 'Rest', 'G4')),
+                         (464+51.5, ('G3', 'Rest', 'Rest', 'G4')),
+                         (464+52.0, ('A3', 'Rest', 'Rest', 'G4')),
+                         (464+52.5, ('A3', 'Rest', 'Rest', 'G4')),
+                         (464+53.0, ('A3', 'Rest', 'Rest', 'G4')),
+                         (464+53.5, ('A3', 'Rest', 'Rest', 'G4')),
+                         (464+54.0, ('A3', 'Rest', 'Rest', 'F4')),
+                         (464+54.5, ('A3', 'Rest', 'Rest', 'F4')),
+                         (464+55.0, ('A3', 'Rest', 'Rest', 'F4')),
+                         (464+55.5, ('A3', 'Rest', 'Rest', 'F4')),
+                        ]
+      self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   #def test_josquin_2(self):
+      ## tests Jos2308.krn ("Ave maris stella") offset = 1.0, we're salami slicing
+      #self.setts.set('salami', True)
+      #self.setts.set('offset', 1.0)
+      #self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+                                                           #settings=self.setts,
+                                                           #record=self.actual_result)
+      #expected_result = []
+      #self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   #def test_madrigal_3(self):
+      ## tests Jos2308.krn ("Ave maris stella") offset = 2.0, we're salami slicing
+      #self.setts.set('salami', True)
+      #self.setts.set('offset', 2.0)
+      #self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+                                                           #settings=self.setts,
+                                                           #record=self.actual_result)
+      #expected_result = []
+      #self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   #def test_josquin_4(self):
+      ## tests Jos2308.krn ("Ave maris stella") offset = 0.5, we're NOT salami slicing
+      #self.setts.set('salami', False)
+      #self.setts.set('offset', 0.5)
+      #self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+                                                           #settings=self.setts,
+                                                           #record=self.actual_result)
+      #expected_result = []
+      #self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   #def test_josquin_5(self):
+      ## tests Jos2308.krn ("Ave maris stella") offset = 1.0, we're NOT salami slicing
+      #self.setts.set('salami', False)
+      #self.setts.set('offset', 1.0)
+      #self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+                                                           #settings=self.setts,
+                                                           #record=self.actual_result)
+      #expected_result = []
+      #self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   def test_josquin_6(self):
+      # tests Jos2308.krn ("Ave maris stella") offset = 2.0, we're NOT salami slicing
+      self.setts.set('salami', False)
+      self.setts.set('offset', 2.0)
+      self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+                                                           settings=self.setts,
+                                                           record=self.actual_result)
+      expected_result = [(464.0, ('A3', 'A3', 'C5', 'Rest')),
+                         (466.0, ('F3', 'A3', 'A4', 'Rest')),
+                         (468.0, ('E3', 'C4', 'G4', 'Rest')),
+                         # m. 60
+                         (472.0, ('D3', 'D4', 'F4', 'Rest')),
+                         (464+12.0, ('D3', 'D4', 'A4', 'Rest')),
+                         (464+14.0, ('D3', 'D4', 'B-4', 'Rest')),
+                         # m. 61
+                         (464+16.0, ('Rest', 'G3', 'B-4', 'Rest')),
+                         (464+18.0, ('Rest', 'G3', 'G4', 'Rest')),
+                         (464+20.0, ('Rest', 'B-3', 'G4', 'Rest')),
+                         (464+22.0, ('Rest', 'C4', 'A4', 'Rest')),
+                         # m. 62
+                         (464+24.0, ('Rest', 'A3', 'A4', 'Rest')),
+                         (464+26.0, ('Rest', 'B-3', 'F4', 'Rest')),
+                         (464+28.0, ('Rest', 'G3', 'F4', 'Rest')),
+                         (464+30.0, ('Rest', 'G3', 'E4', 'Rest')),
+                         # m. 63
+                         (464+32.0, ('Rest', 'F3', 'F4', 'A4')),
+                         (464+36.0, ('A3', 'F3', 'Rest', 'C5')),
+                         # m. 64
+                         (464+40.0, ('C4', 'Rest', 'Rest', 'A4')),
+                         (464+42.0, ('C4', 'Rest', 'Rest', 'G4')),
+                         (464+44.0, ('A3', 'Rest', 'Rest', 'F4')),
+                         (464+46.0, ('A3', 'Rest', 'Rest', 'E4')),
+                         # m. 65
+                         (464+48.0, ('B-3', 'Rest', 'Rest', 'E4')),
+                         (464+50.0, ('B-3', 'Rest', 'Rest', 'G4')),
+                         (464+52.0, ('A3', 'Rest', 'Rest', 'G4')),
+                         (464+54.0, ('A3', 'Rest', 'Rest', 'F4')),
+                        ]
+      self.assertEqual(expected_result,  self.actual_result._record)
+# End TestEventFinderJosquin -----------------------------------------------------------------------
+
+
+
+#--------------------------------------------------------------------------------------------------#
+# Definitions                                                                                      #
+#--------------------------------------------------------------------------------------------------#
 #run_analysis_suite = unittest.TestLoader().loadTestsFromTestCase(TestRunAnalysis)
 analyzer_event_finder_short_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderShort)
-analyzer_event_finder_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderLong)
+analyzer_event_finder_long_monteverdi = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderMonteverdi)
+analyzer_event_finder_long_josquin = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderJosquin)
