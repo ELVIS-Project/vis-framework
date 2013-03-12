@@ -160,10 +160,14 @@ class ListOfPieces(QAbstractTableModel):
             # for the "score" column, we have to choose the right sub-index
             if column is ListOfPieces.score:
                post = post.toPyObject()[1] if isinstance(post, QVariant) else post[1]
-            # for the "list of pieces" column, convert the list into a string
+            # for the "list of parts" columns, convert the list into a string
             elif column is ListOfPieces.parts_list:
                post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
+               # also trim the [] around the list
                post = post[1:-1]
+            # for the "list of offsets" columns, convert the list into a string
+            elif column is ListOfPieces.offset_intervals:
+               post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
          # some things will have the Qt.ScoreRole
          elif role is ListOfPieces.ScoreRole:
             # get the object

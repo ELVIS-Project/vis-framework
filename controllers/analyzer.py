@@ -193,6 +193,9 @@ class Analyzer(Controller):
          # calculate the number of voice combinations for this piece
          nr_of_voice_combos = len(this_combos) # TODO: use this
 
+         # prepare the list of offset values to check
+         this_offset = float(str(each_piece[ListOfPieces.offset_intervals])[1:-1])
+
          # (2) Loop through every part combination
          for combo in this_combos:
             # select the two parts to analyze
@@ -201,8 +204,6 @@ class Analyzer(Controller):
             # prepare the metadata
             this_metadata = each_piece[ListOfPieces.score][0].metadata
             this_part_names = [each_piece[ListOfPieces.parts_list][i] for i in combo]
-            #print(str(each_piece[ListOfPieces.offset_intervals][1:-1])) # DEBUGGING
-            this_offset = float(each_piece[ListOfPieces.offset_intervals][1:-1])
             this_salami = each_piece[ListOfPieces.repeat_identical]
             # TODO: figure this dynamically
             # TODO: formalize the lambda things somehow
@@ -227,7 +228,7 @@ class Analyzer(Controller):
 
       # Conclude
       self.status.emit('100')
-      self.status.emit('I finished!')
+      self.status.emit('The Analyzer is finished.')
       self.analysis_finished.emit(self._list_of_analyses)
       return self._list_of_analyses
 
