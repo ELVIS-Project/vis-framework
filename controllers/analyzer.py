@@ -183,8 +183,15 @@ class Analyzer(Controller):
             # Turn the str specification of parts into a list of int (or str)
             if '(no selection)' == this_combos:
                # This is what happens when no voice pairs were selected
-               # TODO: raise an exception
-               pass
+               # (1) Notify the user what happened
+               msg = 'No voices selected for analysis in "'+each_piece[ListOfPieces.score][1]+'"'
+               msg += '\nSome analyses may have been completed, but you should re-start vis.'
+               self.error.emit(msg)
+               # (2) Wipe out all the existing analyses
+               self._list_of_analyses = []
+               # (3) Return to the panel where the user can select some voice pairs
+               # TODO: this part
+               continue
             else:
                # TODO: we should do this in a safer way, because, as it stands
                #       any code put in here will be blindly executed
