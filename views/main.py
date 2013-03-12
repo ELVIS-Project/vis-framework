@@ -1011,18 +1011,21 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          '''
          Are there values of 'n' specified?
          '''
-         # TODO: this has to be done safer
+         # TODO: this has to be done safer... because this is *truly terrible*!
          # get the potential values of 'n'
          raw_of_n = str(self.ui.line_values_of_n.text())
 
          # Try to parse and format everything
-         raw_of_n = eval(raw_of_n)
-         post = []
-         for thing in raw_of_n:
-            post.append(int(thing))
-
-         # Put it onnnnnn
-         list_of_settings.append(('values of n', post))
+         try:
+            raw_of_n = eval(raw_of_n)
+         except SyntaxError:
+            pass
+         else:
+            post = []
+            for thing in raw_of_n:
+               post.append(int(thing))
+            # Put it onnnnnn
+            list_of_settings.append(('values of n', post))
 
       # (1) Figure out the settings
       # TODO: ensure these are chosen dynamically, to correspond to the GUI
