@@ -221,9 +221,9 @@ class Analyzer(Controller):
             this_settings.set('offset', this_offset)
             this_settings.set('salami', this_salami)
             # run the analysis and append results to our results-collector
-            self._list_of_analyses.append(self._event_finder(parts=this_parts,
-                                                             settings=this_settings,
-                                                             record=this_record))
+            self._event_finder(parts=this_parts, settings=this_settings, record=this_record)
+            # NB: no need to append, since _event_finder() sends a signal that
+            #     calls _part_combo_finished()
 
       # Conclude
       self.status.emit('100')
