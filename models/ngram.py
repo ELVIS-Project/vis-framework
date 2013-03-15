@@ -654,26 +654,33 @@ class ChordNGram(NGram):
 
       # (Calculation goes here)
       for i in xrange(1, self._n):
-         # Are both of these chords just major or minor triads?
-         if 11 == some_events[i-1].forteClassNumber and \
-         11 == some_events[i].forteClassNumber:
-            # Are both of the chords already the same?
-            if some_events[i-1].orderedPitchClasses == \
-            some_events[i].orderedPitchClasses:
-               self._list_of_connections.append(ChordNGram.identical_chords)
-            else:
-               # Then we'll try some trans formations
-               for transform in ChordNGram.list_of_transforms:
-                  if LRP(some_events[i-1], transform).orderedPitchClasses == \
-                  some_events[i].orderedPitchClasses:
-                     self._list_of_connections.append(transform)
-                     break
-               else:
-                  self._list_of_connections.append(ChordNGram.unknown_transformation)
-         # They aren't just triads, so we can't calculate their connections
-         else:
-            self._list_of_connections.append(ChordNGram.unknown_transformation)
+         self._list_of_connections.append(ChordNGram.find_transformation(some_events[i-1],
+                                                                         some_events[i]))
    # End __init__() ------------------------------------------
+
+
+
+   @staticmethod
+   def find_transformation(one, another):
+      '''
+      Find the neo-Riemannian transformation between "one" Chord instance and "another" one.
+      '''
+      # We can only calculate connections between major and minor triads... is that what we have?
+      if 11 == one.forteClassNumber and 11 == another.forteClassNumber:
+         # Are both of the chords already the same?
+         if one.orderedPitchClasses == another.orderedPitchClasses:
+            return ChordNGram.identical_chords
+         else:
+            # Then we'll try some trans formations
+            for transform in ChordNGram.list_of_transforms:
+               if LRP(one, transform).orderedPitchClasses == another.orderedPitchClasses:
+                  return transform
+                  break
+            else:
+               return ChordNGram.unknown_transformation
+      # They aren't just triads, so we can't calculate their connections
+      else:
+         return ChordNGram.unknown_transformation
 
 
 
