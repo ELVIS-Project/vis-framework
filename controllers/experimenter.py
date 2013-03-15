@@ -457,12 +457,10 @@ class ChordsLists(Experiment):
             if '' == first_chord or '' == second_chord:
                continue
 
-            transformer = ngram.ChordNGram([chord.Chord(first_chord), chord.Chord(second_chord)])
-
             the_chord = chord.Chord(first_chord)
             the_chord_name = the_chord.root().name + ' ' + the_chord.commonName
-            # TODO: this next line without violating the object
-            horizontal = transformer._list_of_connections[0]
+            horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
+                                                              chord.Chord(second_chord))
             put_me = (the_chord_name, horizontal, offset)
 
             # add this chord-and-transformation to the list of all of them
