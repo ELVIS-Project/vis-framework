@@ -79,7 +79,7 @@ class NGram(object):
       self._list_of_connections = []
 
       # (Calculation goes here)
-   # End __init__() ------------------------------------------
+   # End __init__() ------------------------------------------------------------
 
 
 
@@ -161,7 +161,7 @@ class NGram(object):
             pass
 
       return post
-   # end get_string_version --------------------------------------------
+   # end get_string_version ----------------------------------------------------
 
 
 
@@ -171,7 +171,6 @@ class NGram(object):
       Returns an NGram object corresponding to the given string
       '''
       pass
-   # End make_from_str() -----------------------------------
 
 
 
@@ -198,7 +197,7 @@ class NGram(object):
       Test whether this NGram object and another are not equal.
       '''
       return not self == other
-# End class NGram------------------------------------------------------------
+# End class NGram-----------------------------------------------------------------------------------
 
 
 
@@ -258,7 +257,7 @@ class IntervalNGram(NGram):
       except AttributeError:
          msg = 'NGram: One of the intervals is probably missing a Note'
          raise RuntimeError(msg)
-   # End __init__() ------------------------------------------
+   # End __init__() ------------------------------------------------------------
 
 
 
@@ -402,7 +401,7 @@ class IntervalNGram(NGram):
             this_move = None
 
       return post
-   # end get_string_version --------------------------------------------
+   # end get_string_version ----------------------------------------------------
 
 
 
@@ -600,8 +599,8 @@ class IntervalNGram(NGram):
       list_of_ints.append(last_int)
 
       return IntervalNGram(list_of_ints)
-   # End make_from_str() -----------------------------------
-# End class IntervalNGram-------------------------------------------------------
+   # End make_from_str() -------------------------------------------------------
+# End class IntervalNGram---------------------------------------------------------------------------
 
 
 
@@ -654,9 +653,9 @@ class ChordNGram(NGram):
 
       # (Calculation goes here)
       for i in xrange(1, self._n):
-         self._list_of_connections.append(ChordNGram.find_transformation(some_events[i-1],
-                                                                         some_events[i]))
-   # End __init__() ------------------------------------------
+         this_connection = ChordNGram.find_transformation(some_events[i-1], some_events[i])
+         self._list_of_connections.append(this_connection)
+   # End __init__() ------------------------------------------------------------
 
 
 
@@ -747,16 +746,18 @@ class ChordNGram(NGram):
             pass
 
       return post
-   # end get_string_version --------------------------------------------
+   # end get_string_version ----------------------------------------------------
 
 
 
    @classmethod
    def make_from_str(cls, given_string):
       '''
-      Returns an NGram object corresponding to the given string
+      This method raises a NotImplementedError.
+
+      For this method to work, we would have to write something that transforms the result of
+      music21.chord.Chord.__str__() into a Chord object. It's not worth it, because we have no
+      use for this method yet anwyway.
       '''
-      # TODO: write this method
-      pass
-   # End make_from_str() -----------------------------------
-# End class ChordNGram------------------------------------------------------------
+      raise NotImplementedError('ChordNGram.make_from_str() is not yet implemented.')
+# End class ChordNGram------------------------------------------------------------------------------
