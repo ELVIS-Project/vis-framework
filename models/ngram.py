@@ -613,23 +613,11 @@ class ChordNGram(NGram):
 
    # Class Data
    # This is a list of all the neo-Riemannian transformations we consider
-   list_of_transforms = ['L', 'P', 'R', 'LL', 'LP', 'LR', 'PL', 'PP', 'PR',
-                         'RL', 'RP', 'RR', 'LLL', 'LLP', 'LLR', 'LPL', 'LPP',
-                         'LPR', 'LRL', 'LRP', 'LRR', 'PLL', 'PLP', 'PLR', 'PPL',
-                         'PPP', 'PPR', 'PRL', 'PRP', 'PRR', 'RLL', 'RLP', 'RLR',
-                         'RPL', 'RPP', 'RPR', 'RRL', 'RRP', 'RRR', 'LLLL',
-                         'LLLP', 'LLLR', 'LLPL', 'LLPP', 'LLPR', 'LLRL', 'LLRP',
-                         'LLRR', 'LPLL', 'LPLP', 'LPLR', 'LPPL', 'LPPP', 'LPPR',
-                         'LPRL', 'LPRP', 'LPRR', 'LRLL', 'LRLP', 'LRLR', 'LRPL',
-                         'LRPP', 'LRPR', 'LRRL', 'LRRP', 'LRRR', 'PLLL', 'PLLP',
-                         'PLLR', 'PLPL', 'PLPP', 'PLPR', 'PLRL', 'PLRP', 'PLRR',
-                         'PPLL', 'PPLP', 'PPLR', 'PPPL', 'PPPP', 'PPPR', 'PPRL',
-                         'PPRP', 'PPRR', 'PRLL', 'PRLP', 'PRLR', 'PRPL', 'PRPP',
-                         'PRPR', 'PRRL', 'PRRP', 'PRRR', 'RLLL', 'RLLP', 'RLLR',
-                         'RLPL', 'RLPP', 'RLPR', 'RLRL', 'RLRP', 'RLRR', 'RPLL',
-                         'RPLP', 'RPLR', 'RPPL', 'RPPP', 'RPPR', 'RPRL', 'RPRP',
-                         'RPRR', 'RRLL', 'RRLP', 'RRLR', 'RRPL', 'RRPP', 'RRPR',
-                         'RRRL', 'RRRP', 'RRRR', 'PRPRP', 'LRPRP']
+   # NB: The list includes all of, and only, thost compositions that get from one to any other
+   #     12-pc-per-octave major or minor triad.
+   list_of_transforms = ['LPR', 'LPRP', 'RLR', 'LRLR', 'PRP', 'PR', 'L', 'LP', 'PLR', 'RL', 'RPR',
+                         'PRPR', 'LRP', 'LR', 'LPL', 'PL', 'R', 'RP', 'LRPRP', 'LRPR', 'LRL',
+                         'LPLR']
 
    # This is what to say when two consecutive things are identical
    identical_chords = 'ident'
