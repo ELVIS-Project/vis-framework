@@ -548,7 +548,7 @@ class TestImportPieces(unittest.TestCase):
       for row in xrange(len(paths)): # offset intervals
          #index = returned.createIndex(row, analyzing.ListOfPieces.offset_intervals)
          index = (row, analyzing.ListOfPieces.offset_intervals)
-         self.assertEqual([0.5], returned.data(index, Qt.DisplayRole).toPyObject())
+         self.assertEqual('[0.5]', returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # parts combinations
          #index = returned.createIndex(row, analyzing.ListOfPieces.parts_combinations)
          index = (row, analyzing.ListOfPieces.parts_combinations)
@@ -610,7 +610,7 @@ class TestImportPieces(unittest.TestCase):
       for row in xrange(len(paths)): # offset intervals
          #index = returned.createIndex(row, analyzing.ListOfPieces.offset_intervals)
          index = (row, analyzing.ListOfPieces.offset_intervals)
-         self.assertEqual([0.5], returned.data(index, Qt.DisplayRole).toPyObject())
+         self.assertEqual('[0.5]', returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # parts combinations
          #index = returned.createIndex(row, analyzing.ListOfPieces.parts_combinations)
          index = (row, analyzing.ListOfPieces.parts_combinations)

@@ -385,7 +385,7 @@ class TestListOfPiecesData(unittest.TestCase):
 
    def test_data_5(self):
       self.lop._pieces = [self.default_row]
-      the_field = [0.25]
+      the_field = '[0.25]'
       self.lop._pieces[0][ListOfPieces.offset_intervals] = the_field
       index = self.lop.createIndex(0, ListOfPieces.offset_intervals)
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole).toPyObject())
