@@ -555,7 +555,7 @@ class IntervalNGram(NGram):
          if vert_match.group(1) == "":
             try:
                return Interval('M' + int_str)
-            except:
+            except ValueError: # Interval.__init__() throws a ValueError on things like 'M5'
                return Interval('P' + int_str)
          else:
             return Interval(int_str)
@@ -574,7 +574,7 @@ class IntervalNGram(NGram):
          if horiz_match.group(2) == '':
             try:
                return Interval('M' + sign + horiz_match.group(3))
-            except:
+            except ValueError: # Interval.__init__() throws a ValueError on things like 'M5'
                return Interval('P' + sign + horiz_match.group(3))
          else:
             return Interval(horiz_match.group(2) + sign + horiz_match.group(3))
@@ -674,7 +674,6 @@ class ChordNGram(NGram):
             for transform in ChordNGram.list_of_transforms:
                if LRP(one, transform).orderedPitchClasses == another.orderedPitchClasses:
                   return transform
-                  break
             else:
                return ChordNGram.unknown_transformation
       # They aren't just triads, so we can't calculate their connections
@@ -700,10 +699,10 @@ class ChordNGram(NGram):
 
          # Append all but the final Chord
          for simultaneity in self._list_of_events[:-1]:
-            post += 'Chord(' + str(simultaneity)[21:-1] + '), '
+            post += 'Chord(\'' + str(simultaneity)[21:-1] + '\'), '
 
          # Append the final Chord
-         post += 'Chord(' + str(self._list_of_events[-1])[21:-1] + ')])'
+         post += 'Chord(\'' + str(self._list_of_events[-1])[21:-1] + '\')])'
 
          # Save this for next time!
          self._repr = post
@@ -714,8 +713,7 @@ class ChordNGram(NGram):
 
    def get_string_version(self):
       '''
-      Return a string-format representation of this NGram object. Unlike str(),
-      this method allows different formatting options.
+      Return a string-format representation of this ChordNGram object.
       '''
 
       # Hold the str we're making

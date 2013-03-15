@@ -450,6 +450,78 @@ class TestChordNGram(unittest.TestCase):
       for simultaneity, transform in correct_transforms:
          this_ngram = ChordNGram([cmaj, chord.Chord(simultaneity)])
          self.assertEqual(this_ngram._list_of_connections[0], transform)
+
+   # test __repr__()
+   def test_repr_1(self):
+      expected = "ChordNGram([Chord('C E G'), Chord('D F A')])"
+      actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a')])
+      self.assertEqual(actual.__repr__(), expected)
+
+   def test_repr_2(self):
+      expected = "ChordNGram([Chord('C E G'), Chord('D F A C')])"
+      actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a c')])
+      self.assertEqual(actual.__repr__(), expected)
+
+   def test_repr_3(self):
+      expected = "ChordNGram([Chord('C E G'), Chord('D F A'), Chord('E G B')])"
+      actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a'), chord.Chord('e g b')])
+      self.assertEqual(actual.__repr__(), expected)
+
+   def test_repr_4(self):
+      expected = "ChordNGram([Chord('C E G'), Chord('D F A'), Chord('E G B'), Chord('F A C')])"
+      actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a'), chord.Chord('e g b'), chord.Chord('f a c')])
+      self.assertEqual(actual.__repr__(), expected)
+
+   def test_repr_5(self):
+      expected = "ChordNGram([Chord('C E G'), Chord('D F A C'), Chord('E G B'), Chord('F A C')])"
+      actual = ChordNGram([chord.Chord('C E G'), chord.Chord('D F A C'), chord.Chord('E G B'), chord.Chord('F A C')])
+      self.assertEqual(actual.__repr__(), expected)
+
+   def test_repr_6(self):
+      expected = "ChordNGram([Chord('C E G B'), Chord('D F A')])"
+      actual = ChordNGram([chord.Chord('C E G B'), chord.Chord('D F A')])
+      self.assertEqual(actual.__repr__(), expected)
+
+   def test_repr_7(self):
+      expected = "ChordNGram([Chord('C E- E G'), Chord('D E F'), Chord('E')])"
+      actual = ChordNGram([chord.Chord('C E- E G'), chord.Chord('D E F'), chord.Chord('E')])
+      self.assertEqual(actual.__repr__(), expected)
+
+   # test get_string_version()
+   def test_str_1(self):
+      expected = "<C E G> ==RLR=> <D F A>"
+      actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a')])
+      self.assertEqual(actual.get_string_version(), expected)
+
+   def test_str_2(self):
+      expected = "<C E G> ==?=> <D F A C>"
+      actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a c')])
+      self.assertEqual(actual.get_string_version(), expected)
+
+   def test_str_3(self):
+      expected = "<C E G> ==RLR=> <D F A> ==LRPR=> <E G B>"
+      actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a'), chord.Chord('e g b')])
+      self.assertEqual(actual.get_string_version(), expected)
+
+   def test_str_4(self):
+      expected = "<C E G> ==RLR=> <D F A> ==LRPR=> <E G B> ==LRL=> <F A C>"
+      actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a'), chord.Chord('e g b'), chord.Chord('f a c')])
+      self.assertEqual(actual.get_string_version(), expected)
+
+   def test_str_5(self):
+      expected = "<C E G> ==?=> <D F A C> ==?=> <E G B> ==LRL=> <F A C>"
+      actual = ChordNGram([chord.Chord('C E G'), chord.Chord('D F A C'), chord.Chord('E G B'), chord.Chord('F A C')])
+      self.assertEqual(actual.get_string_version(), expected)
+
+   def test_str_6(self):
+      expected = "<C E G B> ==?=> <D F A>"
+      actual = ChordNGram([chord.Chord('C E G B'), chord.Chord('D F A')])
+      self.assertEqual(actual.get_string_version(), expected)
+
+   def test_str_7(self):
+      expected = "<C E- E G> ==?=> <D E F> ==?=> <E>"
+      actual = ChordNGram([chord.Chord('C E- E G'), chord.Chord('D E F'), chord.Chord('E')])
+      self.assertEqual(actual.get_string_version(), expected)
 # End class TestChordNGram -----------------------------------------------------
 
 
