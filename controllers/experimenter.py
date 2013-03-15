@@ -108,18 +108,25 @@ class Experimenter(Controller, QtCore.QObject):
       # Check there is an 'experiment' setting that refers to one we have
 
       if self._experiment_settings.get('experiment') == 'IntervalsList':
-         exper = IntervalsLists(self, self._list_of_analyses, self._experiment_settings)
+         exper = IntervalsLists
       elif self._experiment_settings.get('experiment') == 'ChordsList':
-         exper = ChordsLists(self, self._list_of_analyses, self._experiment_settings)
+         exper = ChordsLists
       elif self._experiment_settings.get('experiment') == 'IntervalsStatistics':
-         exper = IntervalsStatistics(self, self._list_of_analyses, self._experiment_settings)
+         exper = IntervalsStatistics
       elif self._experiment_settings.get('experiment') == 'IntervalNGramStatistics':
-         exper = IntervalNGramStatistics(self, self._list_of_analyses, self._experiment_settings)
+         exper = IntervalNGramStatistics
       else:
          self.error.emit('Experimenter: could not determine which experiment to run.')
          return
 
       # Trigger the experiment
+      try:
+         exper = exper(self._list_of_analyses, self._experiment_settings)
+      except KeyError as kerr:
+         # If the experiment doesn't have the ExperimentSettings it needs
+         self.error.emit(kerr.message)
+         return
+
       post = exper.perform()
 
       post = (exper.good_for(), post)
@@ -163,12 +170,11 @@ class Experiment(object):
 
 
 
-   def __init__(self, controller, records, settings):
+   def __init__(self, records, settings):
       '''
       Create a new Experiment.
 
-      There are three mandatory arguments:
-      - controller : the Experimenter controller that created this Experiment
+      There are two mandatory arguments:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
       '''
@@ -178,8 +184,9 @@ class Experiment(object):
       #       Experimenter controller, then return without proper instantiation:
       # self._controller.error.emit(error_message_here)
       # return
+      # NOTE: In subclasses, the following line should be like this:
+      #       super(SubclassName, self).__init__(records, settings)
       super(Experiment, self).__init__()
-      self._controller = controller
       self._records = records
       self._settings = settings
 
@@ -236,12 +243,11 @@ class IntervalsLists(Experiment):
 
 
 
-   def __init__(self, controller, records, settings):
+   def __init__(self, records, settings):
       '''
       Create a new IntervalsLists.
 
-      There are three mandatory arguments:
-      - controller : the Experimenter controller that created this Experiment
+      There are two mandatory arguments:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -250,20 +256,18 @@ class IntervalsLists(Experiment):
       - 'simple or compound' : whether to print intervals in their single-octave
          ('simple') or actual ('compound') form.
 
+      If one of these settings is not present, the constructor raises a KeyError.
+
       IntervalsLists can use this setting, but will not provide a default:
       - output format : choose the Display subclass for this experiment's results
       '''
       # Call the superclass constructor
-      super(Experiment, self).__init__()
+      super(IntervalsLists, self).__init__(records, settings)
 
       # Check the ExperimentSettings object has the right settings
-      if settings.has('quality') and settings.has('simple or compound'):
-         self._controller = controller
-         self._records = records
-         self._settings = settings
-      else:
+      if not settings.has('quality') or not settings.has('simple or compound'):
          msg = 'IntervalsLists requires "quality" and "simple or compound" settings'
-         self._controller.error.emit(msg)
+         raise KeyError(msg)
 
       # Process the optional "output format" setting
       if self._settings.has('output format'):
@@ -388,12 +392,11 @@ class ChordsLists(Experiment):
 
 
 
-   def __init__(self, controller, records, settings):
+   def __init__(self, records, settings):
       '''
       Create a new ChordsLists.
 
-      There are three mandatory arguments:
-      - controller : the Experimenter controller that created this Experiment
+      There are two mandatory arguments:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -401,12 +404,7 @@ class ChordsLists(Experiment):
       - output format : choose the Display subclass for this experiment's results
       '''
       # Call the superclass constructor
-      super(Experiment, self).__init__()
-
-      # Save things
-      self._controller = controller
-      self._records = records
-      self._settings = settings
+      super(ChordsLists, self).__init__(records, settings)
 
       # Process the optional "output format" setting
       if self._settings.has('output format'):
@@ -504,12 +502,11 @@ class IntervalsStatistics(Experiment):
 
 
 
-   def __init__(self, controller, records, settings):
+   def __init__(self, records, settings):
       '''
       Create a new IntervalsStatistics experiment.
 
       There are three mandatory arguments:
-      - controller : the Experimenter controller that created this Experiment
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -526,16 +523,12 @@ class IntervalsStatistics(Experiment):
       IntervalsStatistics can use this setting, but will not provide a default:
       - output format : choose the Display subclass for this experiment's results
       '''
-      super(Experiment, self).__init__()
+      super(IntervalsStatistics, self).__init__(records, settings)
 
       # Check the ExperimentSettings object has the right settings
-      if settings.has('quality') and settings.has('simple or compound'):
-         self._controller = controller
-         self._records = records
-         self._settings = settings
-      else:
+      if not settings.has('quality') or not settings.has('simple or compound'):
          msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
-         self._controller.error.emit(msg)
+         raise KeyError(msg)
 
       # Check for the other settings we use, and provide default values if required
       if not self._settings.has('topX'):
@@ -747,12 +740,11 @@ class IntervalNGramStatistics(Experiment):
 
 
 
-   def __init__(self, controller, records, settings):
+   def __init__(self, records, settings):
       '''
       Create a new IntervalNGramStatistics experiment.
 
-      There are three mandatory arguments:
-      - controller : the Experimenter controller that created this Experiment
+      There are two mandatory arguments:
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -767,21 +759,17 @@ class IntervalNGramStatistics(Experiment):
       - sort order : whether to sort things 'ascending' or 'descending' (default: 'descending')
       - sort by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
 
-      IntervalsStatistics can use this setting, but will not provide a default:
+      IntervalNGramStatistics can use this setting, but will not provide a default:
       - output format : choose the Display subclass for this experiment's results
       '''
-      super(Experiment, self).__init__()
+      super(IntervalNGramStatistics, self).__init__(records, settings)
 
       # Check the ExperimentSettings object has the right settings
-      if settings.has('quality') and settings.has('simple or compound') and \
-      settings.has('values of n'):
-         self._controller = controller
-         self._records = records
-         self._settings = settings
-      else:
+      if not settings.has('quality') or not settings.has('simple or compound') or \
+      not settings.has('values of n'):
          msg = 'IntervalNGramStatistics requires "quality," '
          msg += '"simple or compound," and "values of n" settings'
-         self._controller.error.emit(msg)
+         raise KeyError(msg)
 
       # Check for the other settings we use, and provide default values if required
       if not self._settings.has('topX'):
