@@ -57,9 +57,9 @@ class Experimenter(Controller, QtCore.QObject):
    set = QtCore.pyqtSignal(tuple)
    # tell the Experimenter controller to perform an experiment
    run_experiment = QtCore.pyqtSignal()
-   # the result of experimenter_experiment; the result is a tuple, where the
-   # first element is the type of Display object to use, and the second is
-   # whatever the Display object needs
+   # Emitted by the Experimenter when the experiment is finished. The argument is a tuple, where
+   # the first element is the type of Display object to use, and the second is the data required
+   # by the Display object.
    experiment_finished = QtCore.pyqtSignal(tuple)
    # description of an error in the Experimenter
    error = QtCore.pyqtSignal(str)
@@ -67,6 +67,9 @@ class Experimenter(Controller, QtCore.QObject):
    # or three characters followed by a '%' then it should try to update a
    # progress bar, if available)
    status = QtCore.pyqtSignal(str)
+   # Emitted by an Experiment when it's finished. The argument should be a QVariant that holds
+   # whatever type is required by the relevant Display class.
+   _experiment_results = QtCore.pyqtSignal(QtCore.QVariant)
 
 
 
@@ -85,6 +88,9 @@ class Experimenter(Controller, QtCore.QObject):
       # Signals
       self.set.connect(self._change_setting)
       self.run_experiment.connect(self._run_experiment)
+      self._experiment_results.connect(self._catch_experiments)
+      # Hold the result emitted by an Experiment when it's finished
+      self._exper_result = None
 
 
 
@@ -97,6 +103,23 @@ class Experimenter(Controller, QtCore.QObject):
       The argument is a list of AnalysisRecord objects.
       '''
       self._list_of_analyses = analyses_list
+
+
+
+   @QtCore.pyqtSlot(QtCore.QVariant)
+   def _catch_experiments(self, experiment_result):
+      '''
+      Slot for the Experimenter._experiment_results signal. Catches the result, converts it to a
+      python object, then assigns it to the Experimenter._exper_result instance variable.
+
+      The argument is a QVariant object.
+      '''
+      # Update the status
+      self.status.emit('100')
+      self.status.emit('Waiting on DisplayHandler')
+
+      # Make and emit the tuple for the DisplayHandler
+      self.experiment_finished.emit((self._exper_result, experiment_result.toPyObject()))
 
 
 
@@ -121,27 +144,20 @@ class Experimenter(Controller, QtCore.QObject):
 
       # Trigger the experiment
       try:
-         exper = exper(self._list_of_analyses, self._experiment_settings)
+         exper = exper(self, self._list_of_analyses, self._experiment_settings)
       except KeyError as kerr:
          # If the experiment doesn't have the ExperimentSettings it needs
          self.error.emit(kerr.message)
          return
 
-      post = exper.perform()
+      # Get the preferred (or possible) Display subclasses for this Experiment
+      self._exper_result = exper.good_for()
 
-      post = (exper.good_for(), post)
-
-      self.experiment_finished.emit(post)
-
-
-
-   #def get_setting(self, sett):
-      #'''
-      #Returns the value of the setting whose `name` field is equal to `sett`.
-      #'''
-      #matches = [s for s in self._settings if s.name == sett]
-      #if matches:
-         #return matches[0].value
+      # add to the QThreadPool
+      QtCore.QThreadPool.globalInstance().start(exper)
+      self.status.emit('0')
+      self.status.emit('Experiment running... the progress bar will not be updated.')
+   # End _run_experiment() -----------------------------------------------------
 
 
 
@@ -157,8 +173,8 @@ class Experimenter(Controller, QtCore.QObject):
 
 
 
-class Experiment(object):
-   # NOTE: in subclasses, change "object" to "Experiment"
+class Experiment(QtCore.QRunnable):
+   # NOTE: in subclasses, change "QtCore.QRunnable" to "Experiment"
    '''
    Base class for all Experiments.
    '''
@@ -170,11 +186,12 @@ class Experiment(object):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new Experiment.
 
-      There are two mandatory arguments:
+      There are three mandatory arguments:
+      - controller : the Experimenter object to which this Experiment belongs
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
       '''
@@ -187,6 +204,7 @@ class Experiment(object):
       # NOTE: In subclasses, the following line should be like this:
       #       super(SubclassName, self).__init__(records, settings)
       super(Experiment, self).__init__()
+      self._controller = controller
       self._records = records
       self._settings = settings
 
@@ -199,6 +217,17 @@ class Experiment(object):
       '''
       # NOTE: You do not need to reimplement this method in subclasses.
       return self._good_for
+
+
+
+   def run(self):
+      '''
+      Just starts the perform() method.
+      '''
+      # NOTE: You do not need to reimplement this method in subclasses.
+      # Collect the results of perform(), then emit the signal that sends them to the Experimenter
+      signal_me = self.perform()
+      self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
 
 
 
@@ -243,11 +272,12 @@ class IntervalsLists(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new IntervalsLists.
 
-      There are two mandatory arguments:
+      There are three mandatory arguments:
+      - controller : the Experimenter object to which this Experiment belongs
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -262,7 +292,7 @@ class IntervalsLists(Experiment):
       - output format : choose the Display subclass for this experiment's results
       '''
       # Call the superclass constructor
-      super(IntervalsLists, self).__init__(records, settings)
+      super(IntervalsLists, self).__init__(controller, records, settings)
 
       # Check the ExperimentSettings object has the right settings
       if not settings.has('quality') or not settings.has('simple or compound'):
@@ -392,11 +422,12 @@ class ChordsLists(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new ChordsLists.
 
-      There are two mandatory arguments:
+      There are three mandatory arguments:
+      - controller : the Experimenter object to which this Experiment belongs
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -404,7 +435,7 @@ class ChordsLists(Experiment):
       - output format : choose the Display subclass for this experiment's results
       '''
       # Call the superclass constructor
-      super(ChordsLists, self).__init__(records, settings)
+      super(ChordsLists, self).__init__(controller, records, settings)
 
       # Process the optional "output format" setting
       if self._settings.has('output format'):
@@ -502,11 +533,12 @@ class IntervalsStatistics(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new IntervalsStatistics experiment.
 
       There are three mandatory arguments:
+      - controller : the Experimenter object to which this Experiment belongs
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -523,7 +555,7 @@ class IntervalsStatistics(Experiment):
       IntervalsStatistics can use this setting, but will not provide a default:
       - output format : choose the Display subclass for this experiment's results
       '''
-      super(IntervalsStatistics, self).__init__(records, settings)
+      super(IntervalsStatistics, self).__init__(controller, records, settings)
 
       # Check the ExperimentSettings object has the right settings
       if not settings.has('quality') or not settings.has('simple or compound'):
@@ -740,11 +772,12 @@ class IntervalNGramStatistics(Experiment):
 
 
 
-   def __init__(self, records, settings):
+   def __init__(self, controller, records, settings):
       '''
       Create a new IntervalNGramStatistics experiment.
 
-      There are two mandatory arguments:
+      There are three mandatory arguments:
+      - controller : the Experimenter object to which this Experiment belongs
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
 
@@ -762,7 +795,7 @@ class IntervalNGramStatistics(Experiment):
       IntervalNGramStatistics can use this setting, but will not provide a default:
       - output format : choose the Display subclass for this experiment's results
       '''
-      super(IntervalNGramStatistics, self).__init__(records, settings)
+      super(IntervalNGramStatistics, self).__init__(controller, records, settings)
 
       # Check the ExperimentSettings object has the right settings
       if not settings.has('quality') or not settings.has('simple or compound') or \
