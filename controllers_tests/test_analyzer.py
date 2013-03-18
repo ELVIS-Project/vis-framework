@@ -800,6 +800,367 @@ class TestEventFinderJosquin(unittest.TestCase):
 
 
 
+class TestEventFinderBach(unittest.TestCase):
+   # Test _event_finder() with long excerpts:
+   # BWV 7.7, all parts in measures 1 through 7
+
+   def setUp(self):
+      # set-up for tests of bwv77.mxl
+      self.the_analyzer = analyzer.Analyzer()
+      self.actual_result = analyzing.AnalysisRecord()
+      self.piece = converter.parse('test_corpus/bwv77.mxl')
+      self.parts_list = [self.piece.parts[0][1:9],
+                         self.piece.parts[1][1:9],
+                         self.piece.parts[2][1:9],
+                         self.piece.parts[3][1:9]]
+      self.setts = analyzing.AnalysisSettings()
+      self.setts.set('types',
+                     [(note.Note, lambda x: x.nameWithOctave),
+                      (note.Rest, lambda x: 'Rest')]
+                    )
+
+
+
+   def test_bach_1(self):
+      # tests bwv77.mxl offset = 0.5, we're salami slicing
+      self.setts.set('salami', True)
+      self.setts.set('offset', 0.5)
+      self.actual_result = self.the_analyzer._event_finder(
+                              parts=self.parts_list,
+                              settings=self.setts,
+                              record=self.actual_result
+                           )
+      expected_result = [
+                           # offset interval: 0.5
+                           # repeat identical events
+                           # pickup
+                           (0.0, ('E3', 'G3', 'B3', 'E4')),
+                           (0.5, ('E3', 'A3', 'B3', 'F#4')),
+                           # m.1
+                           (1.0, ('E3', 'B3', 'E4', 'G4')),
+                           (1.5, ('E3', 'B3', 'E4', 'G4')),
+                           (2.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (2.5, ('D3', 'D4', 'F#4', 'A4')),
+                           (3.0, ('G3', 'D4', 'G4', 'B4')),
+                           (3.5, ('G3', 'D4', 'G4', 'B4')),
+                           (4.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (4.5, ('C#3', 'E4', 'F#4', 'A4')),
+                           # m.2
+                           (5.0, ('B2', 'F#4', 'B4', 'D5')),
+                           (5.5, ('G3', 'D4', 'B4', 'D5')),
+                           (6.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (6.5, ('F#3', 'F#4', 'A#4', 'C#5')),
+                           (7.0, ('B3', 'D4', 'F#4', 'B4')),
+                           (7.5, ('B3', 'D4', 'F#4', 'B4')),
+                           (8.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           (8.5, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.3
+                           (9.0, ('B3', 'B3', 'F#4', 'D5')),
+                           (9.5, ('B3', 'B3', 'G4', 'D5')),
+                           (10.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (10.5, ('A3', 'C#4', 'F#4', 'C#5')),
+                           (11.0, ('G3', 'D#4', 'F#4', 'B4')),
+                           (11.5, ('G3', 'E4', 'E4', 'B4')),
+                           (12.0, ('F#3', 'F#4', 'E4', 'A4')),
+                           (12.5, ('F#3', 'F#4', 'D#4', 'A4')),
+                           # m.4
+                           (13.0, ('E3', 'B3', 'E4', 'G4')),
+                           (13.5, ('E3', 'B3', 'E4', 'G4')),
+                           (14.0, ('B2', 'B3', 'D#4', 'F#4')),
+                           (14.5, ('B2', 'A3', 'D#4', 'F#4')),
+                           (15.0, ('E3', 'G3', 'B3', 'E4')),
+                           (15.5, ('E3', 'G3', 'B3', 'E4')),
+                           (16.0, ('E3', 'G3', 'B3', 'E4')),
+                           (16.5, ('E3', 'A3', 'B3', 'F#4')),
+                           # m.5
+                           (17.0, ('E3', 'B3', 'E4', 'G4')),
+                           (17.5, ('E3', 'B3', 'E4', 'G4')),
+                           (18.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (18.5, ('D3', 'D4', 'F#4', 'A4')),
+                           (19.0, ('G3', 'D4', 'G4', 'B4')),
+                           (19.5, ('G3', 'D4', 'G4', 'B4')),
+                           (20.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (20.5, ('C#3', 'E4', 'F#4', 'A4')),
+                           # m.6
+                           (21.0, ('B2', 'F#4', 'B4', 'D5')),
+                           (21.5, ('G3', 'D4', 'B4', 'D5')),
+                           (22.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (22.5, ('F#3', 'F#4', 'A#4', 'C#5')),
+                           (23.0, ('B3', 'D4', 'F#4', 'B4')),
+                           (23.5, ('B3', 'D4', 'F#4', 'B4')),
+                           (24.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           (24.5, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.7
+                           (25.0, ('B3', 'B3', 'F#4', 'D5')),
+                           (25.5, ('B3', 'B3', 'G4', 'D5')),
+                           (26.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (26.5, ('A3', 'C#4', 'F#4', 'C#5')),
+                           (27.0, ('G3', 'D#4', 'F#4', 'B4')),
+                           (27.5, ('G3', 'E4', 'E4', 'B4')),
+                           (28.0, ('F#3', 'F#4', 'E4', 'A4')),
+                           (28.5, ('F#3', 'F#4', 'D#4', 'A4'))
+                        ]
+      print self.actual_result._record
+      self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   def test_bach_2(self):
+      # tests bwv77.mxl offset = 0.5, we're NOT salami slicing
+      self.setts.set('salami', False)
+      self.setts.set('offset', 0.5)
+      self.actual_result = self.the_analyzer._event_finder(
+                              parts=self.parts_list,
+                              settings=self.setts,
+                              record=self.actual_result
+                           )
+      expected_result = [
+                           # offset interval: 0.5
+                           # do not repeat identical events
+                           # pickup
+                           (0.0, ('E3', 'G3', 'B3', 'E4')),
+                           (0.5, ('E3', 'A3', 'B3', 'F#4')),
+                           # m.1
+                           (1.0, ('E3', 'B3', 'E4', 'G4')),
+                           (2.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (3.0, ('G3', 'D4', 'G4', 'B4')),
+                           (4.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (4.5, ('C#3', 'E4', 'F#4', 'A4')),
+                           # m.2
+                           (5.0, ('B2', 'F#4', 'B4', 'D5')),
+                           (5.5, ('G3', 'D4', 'B4', 'D5')),
+                           (6.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (6.5, ('F#3', 'F#4', 'A#4', 'C#5')),
+                           (7.0, ('B3', 'D4', 'F#4', 'B4')),
+                           (8.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.3
+                           (9.0, ('B3', 'B3', 'F#4', 'D5')),
+                           (9.5, ('B3', 'B3', 'G4', 'D5')),
+                           (10.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (10.5, ('A3', 'C#4', 'F#4', 'C#5')),
+                           (11.0, ('G3', 'D#4', 'F#4', 'B4')),
+                           (11.5, ('G3', 'E4', 'E4', 'B4')),
+                           (12.0, ('F#3', 'F#4', 'E4', 'A4')),
+                           (12.5, ('F#3', 'F#4', 'D#4', 'A4')),
+                           # m.4
+                           (13.0, ('E3', 'B3', 'E4', 'G4')),
+                           (14.0, ('B2', 'B3', 'D#4', 'F#4')),
+                           (14.5, ('B2', 'A3', 'D#4', 'F#4')),
+                           (15.0, ('E3', 'G3', 'B3', 'E4')),
+                           (16.5, ('E3', 'A3', 'B3', 'F#4')),
+                           # m.5
+                           (17.0, ('E3', 'B3', 'E4', 'G4')),
+                           (18.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (19.0, ('G3', 'D4', 'G4', 'B4')),
+                           (20.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (20.5, ('C#3', 'E4', 'F#4', 'A4')),
+                           # m.6
+                           (21.0, ('B2', 'F#4', 'B4', 'D5')),
+                           (21.5, ('G3', 'D4', 'B4', 'D5')),
+                           (22.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (22.5, ('F#3', 'F#4', 'A#4', 'C#5')),
+                           (23.0, ('B3', 'D4', 'F#4', 'B4')),
+                           (24.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.7
+                           (25.0, ('B3', 'B3', 'F#4', 'D5')),
+                           (25.5, ('B3', 'B3', 'G4', 'D5')),
+                           (26.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (26.5, ('A3', 'C#4', 'F#4', 'C#5')),
+                           (27.0, ('G3', 'D#4', 'F#4', 'B4')),
+                           (27.5, ('G3', 'E4', 'E4', 'B4')),
+                           (28.0, ('F#3', 'F#4', 'E4', 'A4')),
+                           (28.5, ('F#3', 'F#4', 'D#4', 'A4'))
+                        ]
+      self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   def test_bach_3(self):
+      # tests bwv77.mxl offset = 1.0, we're salami slicing
+      self.setts.set('salami', True)
+      self.setts.set('offset', 1.0)
+      self.actual_result = self.the_analyzer._event_finder(
+                              parts=self.parts_list,
+                              settings=self.setts,
+                              record=self.actual_result
+                           )
+      expected_result = [
+                           # offset interval: 1.0
+                           # repeat identical events
+                           # pickup
+                           (0.0, ('E3', 'G3', 'B3', 'E4')),
+                           # m.1
+                           (1.0, ('E3', 'B3', 'E4', 'G4')),
+                           (2.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (3.0, ('G3', 'D4', 'G4', 'B4')),
+                           (4.0, ('D3', 'D4', 'F#4', 'A4')),
+                           # m.2
+                           (5.0, ('B2', 'F#4', 'B4', 'D5')),
+                           (6.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (7.0, ('B3', 'D4', 'F#4', 'B4')),
+                           (8.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.3
+                           (9.0, ('B3', 'B3', 'F#4', 'D5')),
+                           (10.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (11.0, ('G3', 'D#4', 'F#4', 'B4')),
+                           (12.0, ('F#3', 'F#4', 'E4', 'A4')),
+                           # m.4
+                           (13.0, ('E3', 'B3', 'E4', 'G4')),
+                           (14.0, ('B2', 'B3', 'D#4', 'F#4')),
+                           (15.0, ('E3', 'G3', 'B3', 'E4')),
+                           (16.0, ('E3', 'G3', 'B3', 'E4')),
+                           # m.5
+                           (17.0, ('E3', 'B3', 'E4', 'G4')),
+                           (18.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (19.0, ('G3', 'D4', 'G4', 'B4')),
+                           (20.0, ('D3', 'D4', 'F#4', 'A4')),
+                           # m.6
+                           (21.0, ('B2', 'F#4', 'B4', 'D5')),
+                           (22.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (23.0, ('B3', 'D4', 'F#4', 'B4')),
+                           (24.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.7
+                           (25.0, ('B3', 'B3', 'F#4', 'D5')),
+                           (26.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (27.0, ('G3', 'D#4', 'F#4', 'B4')),
+                           (28.0, ('F#3', 'F#4', 'E4', 'A4'))
+                        ]
+      self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   def test_bach_4(self):
+      # tests bwv77.mxl offset = 1.0, we're NOT salami slicing
+      self.setts.set('salami', False)
+      self.setts.set('offset', 1.0)
+      self.actual_result = self.the_analyzer._event_finder(
+                              parts=self.parts_list,
+                              settings=self.setts,
+                              record=self.actual_result
+                           )
+      expected_result = [
+                           # offset interval: 1.0
+                           # do not repeat identical events
+                           # pickup
+                           (0.0, ('E3', 'G3', 'B3', 'E4')),
+                           # m.1
+                           (1.0, ('E3', 'B3', 'E4', 'G4')),
+                           (2.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (3.0, ('G3', 'D4', 'G4', 'B4')),
+                           (4.0, ('D3', 'D4', 'F#4', 'A4')),
+                           # m.2
+                           (5.0, ('B2', 'F#4', 'B4', 'D5')),
+                           (6.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (7.0, ('B3', 'D4', 'F#4', 'B4')),
+                           (8.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.3
+                           (9.0, ('B3', 'B3', 'F#4', 'D5')),
+                           (10.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (11.0, ('G3', 'D#4', 'F#4', 'B4')),
+                           (12.0, ('F#3', 'F#4', 'E4', 'A4')),
+                           # m.4
+                           (13.0, ('E3', 'B3', 'E4', 'G4')),
+                           (14.0, ('B2', 'B3', 'D#4', 'F#4')),
+                           (15.0, ('E3', 'G3', 'B3', 'E4')),
+                           # m.5
+                           (17.0, ('E3', 'B3', 'E4', 'G4')),
+                           (18.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (19.0, ('G3', 'D4', 'G4', 'B4')),
+                           (20.0, ('D3', 'D4', 'F#4', 'A4')),
+                           # m.6
+                           (21.0, ('B2', 'F#4', 'B4', 'D5')),
+                           (22.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (23.0, ('B3', 'D4', 'F#4', 'B4')),
+                           (24.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.7
+                           (25.0, ('B3', 'B3', 'F#4', 'D5')),
+                           (26.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (27.0, ('G3', 'D#4', 'F#4', 'B4')),
+                           (28.0, ('F#3', 'F#4', 'E4', 'A4'))
+                        ]
+      self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   def test_bach_5(self):
+      # tests bwv77.mxl offset = 2.0, we're salami slicing
+      self.setts.set('salami', True)
+      self.setts.set('offset', 2.0)
+      self.actual_result = self.the_analyzer._event_finder(
+                              parts=self.parts_list,
+                              settings=self.setts,
+                              record=self.actual_result
+                           )
+      expected_result = [
+                           # offset interval: 2.0
+                           # repeat identical events
+                           # pickup
+                           (0.0, ('E3', 'G3', 'B3', 'E4')),
+                           # m.1
+                           (2.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (4.0, ('D3', 'D4', 'F#4', 'A4')),
+                           # m.2
+                           (6.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (8.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.3
+                           (10.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (12.0, ('F#3', 'F#4', 'E4', 'A4')),
+                           # m.4
+                           (14.0, ('B2', 'B3', 'D#4', 'F#4')),
+                           (16.0, ('E3', 'G3', 'B3', 'E4')),
+                           # m.5
+                           (18.0, ('D3', 'D4', 'F#4', 'A4')),
+                           (20.0, ('D3', 'D4', 'F#4', 'A4')),
+                           # m.6
+                           (22.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (24.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.7
+                           (26.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (28.0, ('F#3', 'F#4', 'E4', 'A4'))
+                        ]
+      self.assertEqual(expected_result,  self.actual_result._record)
+
+
+
+   def test_bach_6(self):
+      # tests bwv77.mxl offset = 2.0, we're NOT salami slicing
+      self.setts.set('salami', False)
+      self.setts.set('offset', 2.0)
+      self.actual_result = self.the_analyzer._event_finder(
+                              parts=self.parts_list,
+                              settings=self.setts,
+                              record=self.actual_result
+                           )
+      expected_result = [
+                           # offset interval: 2.0
+                           # do not repeat identical events
+                           # pickup
+                           (0.0, ('E3', 'G3', 'B3', 'E4')),
+                           # m.1
+                           (2.0, ('D3', 'D4', 'F#4', 'A4')),
+                           # m.2
+                           (6.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (8.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.3
+                           (10.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (12.0, ('F#3', 'F#4', 'E4', 'A4')),
+                           # m.4
+                           (14.0, ('B2', 'B3', 'D#4', 'F#4')),
+                           (16.0, ('E3', 'G3', 'B3', 'E4')),
+                           # m.5
+                           (18.0, ('D3', 'D4', 'F#4', 'A4')),
+                           # m.6
+                           (22.0, ('E3', 'G4', 'B4', 'C#5')),
+                           (24.0, ('F#3', 'C#4', 'F#4', 'A4')),
+                           # m.7
+                           (26.0, ('A3', 'C#4', 'G4', 'C#5')),
+                           (28.0, ('F#3', 'F#4', 'E4', 'A4'))
+                        ]
+      self.assertEqual(expected_result,  self.actual_result._record)
+# End TestEventFinderBach -----------------------------------------------------------------------
+
+
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
@@ -807,3 +1168,5 @@ class TestEventFinderJosquin(unittest.TestCase):
 analyzer_event_finder_short_suite = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderShort)
 analyzer_event_finder_long_monteverdi = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderMonteverdi)
 analyzer_event_finder_long_josquin = unittest.TestLoader().loadTestsFromTestCase(TestEventFinderJosquin)
+analyzer_event_finder_long_bach = (
+unittest.TestLoader().loadTestsFromTestCase(TestEventFinderBach))
