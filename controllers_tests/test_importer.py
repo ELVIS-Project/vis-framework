@@ -31,17 +31,13 @@ from PyQt4.QtCore import Qt
 # music21
 from music21 import converter, stream, metadata
 # vis
-from controllers.importer import Importer
+from controllers.importer import import_piece
 from models import importing, analyzing
 
 
 
 class TestPieceGetter(unittest.TestCase):
-   # TODO: Make the TestPieceGetter suite work, then add it to run_tests.py
-   # For the method Importer._piece_getter()
-
-   def setUp(self):
-      self.impo = Importer()
+   # For the method import_piece()
 
    @staticmethod
    def metadata_equality(one, another):
@@ -86,19 +82,19 @@ class TestPieceGetter(unittest.TestCase):
    def test_tester(self):
       path = 'test_corpus/bwv77.mxl'
       try_1 = converter.parse(path)
-      try_2 = converter.parse(path)
+      try_2 = converter.thawStr(import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(try_1, try_2))
 
    def test_bwv77(self):
       path = 'test_corpus/bwv77.mxl'
       my_import = converter.parse(path)
-      test_import = self.impo._piece_getter(path)
+      test_import = converter.thawStr(import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    def test_jos2308_krn(self):
       path = 'test_corpus/Jos2308.krn'
       my_import = converter.parse(path)
-      test_import = self.impo._piece_getter(path)
+      test_import = converter.thawStr(import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    #def test_jos2308_mei(self):
@@ -114,31 +110,31 @@ class TestPieceGetter(unittest.TestCase):
    def test_kyrie(self):
       path = 'test_corpus/Kyrie.krn'
       my_import = converter.parse(path)
-      test_import = self.impo._piece_getter(path)
+      test_import = converter.thawStr(import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    #def test_laPlusDesPlus(self):
       #path = 'test_corpus/laPlusDesPlus.abc'
       #my_import = converter.parse(path)
-      #test_import = self.impo._piece_getter(path)
+      #test_import = converter.thawStr(import_piece(path)[1])
       #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    def test_madrigal51(self):
       path = 'test_corpus/madrigal51.mxl'
       my_import = converter.parse(path)
-      test_import = self.impo._piece_getter(path)
+      test_import = converter.thawStr(import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    def test_sinfony(self):
       path = 'test_corpus/sinfony.md'
       my_import = converter.parse(path)
-      test_import = self.impo._piece_getter(path)
+      test_import = converter.thawStr(import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    def test_sqOp76_4_i(self):
       path = 'test_corpus/sqOp76-4-i.midi'
       my_import = converter.parse(path)
-      test_import = self.impo._piece_getter(path)
+      test_import = converter.thawStr(import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 # End TestPieceGetter ----------------------------------------------------------
 
@@ -522,7 +518,8 @@ class TestImportPieces(unittest.TestCase):
 
       # (3) Run the import
       returned = analyzing.ListOfPieces()
-      returned = control.import_pieces(returned)
+      control.import_pieces(returned)
+      control.thread.wait()
 
       # (4) Check for correctness
       self.assertEqual(len(paths), returned.rowCount())
@@ -583,8 +580,11 @@ class TestImportPieces(unittest.TestCase):
       parts = [Importer._find_part_names(piece) for piece in pieces]
 
       # (3) Run the import
+      print 'got here'
       returned = analyzing.ListOfPieces()
-      returned = control.import_pieces(returned)
+      control.import_pieces(returned)
+      control.thread.wait()
+      print 'finished importing'
 
       # (4) Check for correctness
       self.assertEqual(len(paths), returned.rowCount())

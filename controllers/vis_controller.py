@@ -74,6 +74,8 @@ class VisController(Controller):
    # When a user adds or removes a file (or some files) to or from the list
    import_files_added = QtCore.pyqtSignal(list)
    import_files_removed = QtCore.pyqtSignal(list)
+   # When a user changes the choice to use multiprocessing in importing
+   import_set_multiprocess = QtCore.pyqtSignal(bool)
    # When the GUI knows the user wants to analyze the files
    run_the_analysis = QtCore.pyqtSignal()
    # When the GUI knows the user wants to run the experiment
@@ -158,6 +160,7 @@ class VisController(Controller):
          (self.displayer.display_shown, self.window.show_experiment.emit),
          # Signals Sent by GUIs (and Handled Here) -----------------------------
          (self.run_the_import, self.prepare_import),
+         (self.import_set_multiprocess, self.importer.thread.set_multiprocess),
          (self.run_the_analysis, self.analyzer.run_analysis.emit),
          (self.run_the_experiment, self.experimenter.run_experiment.emit),
          (self.experiment_setting, self.experimenter.set.emit),
