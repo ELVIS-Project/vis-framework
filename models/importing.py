@@ -46,7 +46,7 @@ class ListOfFiles(QAbstractListModel):
       '''
       Create a new ListOfFiles instance. Best to use no arguments.
       '''
-      super(QAbstractListModel, self).__init__() # required for QModelIndex
+      super(ListOfFiles, self).__init__() # required for QModelIndex
       self._files = []
 
 
@@ -93,19 +93,12 @@ class ListOfFiles(QAbstractListModel):
 
 
 
-   #def headerData(self, section, orientation, role=Qt.DisplayRole):
-      # TODO: implement and test this later
-      #'''
-      #Returns the table header data for this ListOfFiles. This is always
-      #"filename".
-      #'''
-      #pass
-
-
-
-   #def flags():
-      ## TODO: implement and test this later
-      #pass
+   def headerData(self, section, orientation, role=Qt.DisplayRole):
+      '''
+      Returns the table header data for this ListOfFiles. This is always
+      "filename".
+      '''
+      return 'filename'
 
 
 
@@ -193,10 +186,15 @@ class ListOfFiles(QAbstractListModel):
 
       Returns a QModelIndex that points to the filename or False.
 
-      If the argument is already a QModelIndex, it is simply returned.
+      If the argument is already a QModelIndex, it returned if it is a valid QModelIndex for this
+      ListOfFiles.
       '''
       if isinstance(candidate, QModelIndex):
-         return candidate
+         # return the QModelIndex if it represents a valid index for this ListOfFiles
+         if 0 == candidate.column() and 0 <= candidate.row() <= len(self._files):
+            return candidate
+         else:
+            return False
       elif candidate in self._files:
          for index in xrange(len(self._files)):
             if candidate == self._files[index]:

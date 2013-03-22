@@ -28,6 +28,7 @@
 import unittest
 # PyQt4
 from PyQt4.QtCore import Qt, QVariant
+from PyQt4 import QtCore
 # vis
 from models import importing
 
@@ -181,24 +182,50 @@ class TestIsPresent(unittest.TestCase):
 
    def test_is_present_1(self):
       self.lof._files = ['a', 'b', 'c', 'd']
-      self.assertTrue(self.lof.isPresent('b'))
+      actual = self.lof.isPresent('b')
+      self.assertEqual(type(actual), QtCore.QModelIndex)
+      self.assertEqual(actual.row(), 1)
 
 
 
    def test_is_present_2(self):
       self.lof._files = ['a']
-      self.assertTrue(self.lof.isPresent('a'))
+      actual = self.lof.isPresent('a')
+      self.assertEqual(type(actual), QtCore.QModelIndex)
+      self.assertEqual(actual.row(), 0)
 
 
 
    def test_is_present_3(self):
       self.lof._files = ['a', 'b', 'c', 'd']
-      self.assertFalse(self.lof.isPresent('l'))
+      actual = self.lof.isPresent('l')
+      self.assertEqual(type(actual), bool)
+      self.assertFalse(actual)
 
 
 
    def test_is_present_4(self):
-      self.assertFalse(self.lof.isPresent('anything'))
+      actual = self.lof.isPresent('anything')
+      self.assertEqual(type(actual), bool)
+      self.assertFalse(actual)
+
+
+
+   def test_is_present_5(self):
+      # test inputting a valid QModelIndex
+      self.lof._files = ['a', 'b', 'c', 'd']
+      actual = self.lof.isPresent(self.lof.createIndex(2, 0))
+      self.assertEqual(type(actual), QtCore.QModelIndex)
+      self.assertEqual(actual.row(), 2)
+
+
+
+   def test_is_present_6(self):
+      # test inputting an invalid QModelIndex
+      self.lof._files = ['a', 'b', 'c', 'd']
+      actual = self.lof.isPresent(self.lof.createIndex(12, 0))
+      self.assertEqual(type(actual), bool)
+      self.assertFalse(actual)
 # End TestIsPresent ------------------------------------------------------------
 
 
