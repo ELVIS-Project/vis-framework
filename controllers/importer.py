@@ -47,7 +47,7 @@ import time
 
 # multiprocessing requires your processes to be declared a module scope, sorry!
 def import_piece(file_path):
-   """
+   '''
    Given a path to a music21 symbolic music notation file, return a string
    version of the corresponding frozen music21.Score object, or else a string
    containing any errors that occurred in importing.
@@ -56,7 +56,7 @@ def import_piece(file_path):
    Streams are complex webs of weak references, which cannot be pickled and
    therefore cannot be passed between different child processes in a
    multiprocessing context.
-   """
+   '''
    try:
       s = converter.freezeStr(converter.parseFile(file_path), fmt='pickle')
       return (file_path, s)
@@ -69,16 +69,23 @@ def import_piece(file_path):
 
 
 class ImporterThread(QThread):
+   '''
+   TODO: write a description of this class
+   '''
+   # Signals
    # this will always get passed along to self._importer,
    # which in turn updates the "working" panel in the GUI
    status = pyqtSignal(str)
    # similarly for errors
    error = pyqtSignal(str)
+
+
+
    def __init__(self, importer):
-      """
+      '''
       Creates a new ImporterThread instance, keeping track of the
       Importer object which instantiated it.
-      """
+      '''
       self._importer = importer
       # this will hold the fraction of pieces which have been analyzed
       # at a given time
@@ -89,25 +96,35 @@ class ImporterThread(QThread):
       # associated filenames
       self.results = []
       QThread.__init__(self)
+
+
+
    def prepare(self, pieces):
-      """
+      '''
       Sets the analyzing.ListOfPieces object to store the imported
       pieces in, and sets some shorthands for the other methods.
-      """
+      '''
       self._pieces_list = pieces
       self._files = self._importer._list_of_files
       self.num_files = self._files.rowCount()
+
+
+
+   @pyqtSlot(bool)
    def set_multiprocess(self, state):
-      """
-      Slot for the VisController import_set_multiprocess signal.
-      """
+      '''
+      Slot for the VisController.import_set_multiprocess signal.
+      '''
       self._multiprocess = bool(state)
+
+
+
    def callback(self, result):
-      """
+      '''
       Each time an import process is completed, either report any
       errors which occurred, or update the progress status and append
       the imported piece to the list of results.
-      """
+      '''
       file_path, pickled = result
       # first we try unpickling whatever came from import_piece to see
       # if it's an error. If it's a music21.Score, the Python pickle.loads
@@ -118,19 +135,22 @@ class ImporterThread(QThread):
       else:
          self.progress += 1.0/self.num_files
          self._importer.status.emit(str(int(self.progress * 100)))
-         self._importer.status.emit('Importing... '+file_path+' imported.')
+         self._importer.status.emit('Importing... ' + file_path + ' imported.')
          self.results.append((file_path, converter.thawStr(pickled)))
+
+
+
    def run(self):
-      """
+      '''
       Import all the pieces contained in the parent Importer's _list_of_files.
-      """
+      '''
       self._importer.status.emit('0')
       self._importer.status.emit('Importing...')
       if self._multiprocess:
          pool = Pool()
          for file_path in self._files:
             pool.apply_async(import_piece,
-                             (file_path,),
+                             (file_path, ),
                              callback=self.callback)
          pool.close()
          pool.join()
@@ -156,6 +176,7 @@ class ImporterThread(QThread):
                       Qt.EditRole)
       self._importer.status.emit('Done!')
       self._importer.import_finished.emit()
+# End class ImporterThread -------------------------------------------------------------------------
 
 
 
