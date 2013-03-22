@@ -51,7 +51,7 @@ def import_piece(file_path):
    Given a path to a music21 symbolic music notation file, return a string
    version of the corresponding frozen music21.Score object, or else a string
    containing any errors that occurred in importing.
-   
+
    NB: the reason we freeze the music21 Score is because normally music21
    Streams are complex webs of weak references, which cannot be pickled and
    therefore cannot be passed between different child processes in a
@@ -60,7 +60,7 @@ def import_piece(file_path):
    try:
       s = converter.freezeStr(converter.parseFile(file_path), fmt='pickle')
       return (file_path, s)
-   except (converter.ArchiveManagerException, 
+   except (converter.ArchiveManagerException,
            converter.PickleFilterException,
            converter.ConverterException,
            converter.ConverterFileException) as e:
@@ -130,7 +130,7 @@ class ImporterThread(QThread):
          pool = Pool()
          for file_path in self._files:
             pool.apply_async(import_piece,
-                             (file_path,), 
+                             (file_path,),
                              callback=self.callback)
          pool.close()
          pool.join()
@@ -148,7 +148,7 @@ class ImporterThread(QThread):
                       file_path,
                       Qt.EditRole)
          post.setData((new_row, analyzing.ListOfPieces.score),
-                      (piece, 
+                      (piece,
                       Importer._find_piece_title(piece)),
                       Qt.EditRole)
          post.setData((new_row, analyzing.ListOfPieces.parts_list),
@@ -331,6 +331,17 @@ class Importer(Controller):
       # or you may get disastrous results.
       self.thread.prepare(the_pieces)
       self.thread.start()
+
+
+
+   def has_files(self):
+      '''
+      Returns True if there is at least one file in the list of files to be imported.
+      '''
+      if 0 < self._list_of_files.rowCount():
+         return True
+      else:
+         return False
 
 
 

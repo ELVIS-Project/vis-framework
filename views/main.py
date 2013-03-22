@@ -214,10 +214,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       ask the user to choose some pieces.
       '''
       # check there are more than 0 pieces for the Importer
-      if 0 < self.vis_controller.importer._list_of_files.rowCount():
+      if self.vis_controller.importer.has_files():
          # then go!
          self._tool_working()
-         self.vis_controller.run_the_import.emit
+         self.vis_controller.run_the_import.emit()
       else:
          # then ask the user to stop being a jerk
          QtGui.QMessageBox.information(None,
