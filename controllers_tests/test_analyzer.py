@@ -31,7 +31,7 @@ from music21 import note, converter
 # vis
 from test_corpus import event_finder_short
 from models import analyzing
-from controllers import analyzer
+from controllers.analyzer import _event_finder
 
 
 
@@ -49,7 +49,6 @@ class TestEventFinderShort(unittest.TestCase):
 
 
    def setUp(self):
-      self.a = analyzer.Analyzer()
       self.setts = analyzing.AnalysisSettings()
       self.setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
       self.setts.set('salami', False)
@@ -61,7 +60,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_1
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -70,7 +69,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_2
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -79,7 +78,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_3
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -88,7 +87,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_4
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -97,7 +96,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'F4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_5
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -106,7 +105,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_6
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -116,7 +115,7 @@ class TestEventFinderShort(unittest.TestCase):
                   (1.0, ('A3', 'G4')), (1.5, ('B3', 'F4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_7
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -125,7 +124,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4')), (0.5, ('A3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_8
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -135,7 +134,7 @@ class TestEventFinderShort(unittest.TestCase):
                   (1.0, ('B3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_9
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -145,7 +144,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4')), (0.25, ('A3', 'G4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_10
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -154,7 +153,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_11
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -163,7 +162,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_12
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -172,7 +171,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_13
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -181,7 +180,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_14
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -190,7 +189,7 @@ class TestEventFinderShort(unittest.TestCase):
       expected = [(0.0, ('G3', 'G4')), (1.0, ('Rest', 'G4')), (1.5, ('G3', 'G4'))] # different if salami=True
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_15
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -201,7 +200,7 @@ class TestEventFinderShort(unittest.TestCase):
                   (0.75, ('F3', 'A4')), (1.5, ('E3', 'B4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_16
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 
 
@@ -214,7 +213,7 @@ class TestEventFinderShort(unittest.TestCase):
                   (2.0, ('G3', 'E4'))]
       actual = analyzing.AnalysisRecord()
       this_piece = event_finder_short.test_17
-      actual = self.a._event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
 # End TestEventFinderShort -----------------------------------------------------
 
@@ -225,16 +224,16 @@ class TestEventFinderMonteverdi(unittest.TestCase):
 
    def test_madrigal_1(self):
       # tests madrigal51.mxl (cruda amarilli) offset = 0.5, we're salami slicing
-      the_analyzer = analyzer.Analyzer()
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
       setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
       setts.set('salami', True)
       setts.set('offset', 0.5)
-      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
-                                                 settings=setts,
-                                                 record=actual_result)
+      actual_result = _event_finder(parts=[madrigal.parts[0],
+                                           madrigal.parts[1]],
+                                    settings=setts,
+                                    record=actual_result)
       expected_result = [(0.0, (u'B4', u'D5')),
                         (0.0, (u'B4', u'D5')),
                         (0.0, (u'B4', u'D5')),
@@ -330,16 +329,16 @@ class TestEventFinderMonteverdi(unittest.TestCase):
 
    def test_madrigal_2(self):
       # tests madrigal51.mxl (cruda amarilli) offset = 1.0, we're salami slicing
-      the_analyzer = analyzer.Analyzer()
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
       setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
       setts.set('salami', True)
       setts.set('offset', 1.0)
-      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
-                                                 settings=setts,
-                                                 record=actual_result)
+      actual_result = _event_finder(parts=[madrigal.parts[0],
+                                           madrigal.parts[1]],
+                                    settings=setts,
+                                    record=actual_result)
       expected_result = [(0.0, ('B4', 'D5')),
                         (0.0, ('B4', 'D5')),
                         (0.0, ('B4', 'D5')),
@@ -395,16 +394,16 @@ class TestEventFinderMonteverdi(unittest.TestCase):
 
    def test_madrigal_3(self):
       # tests madrigal51.mxl (cruda amarilli) offset = 2.0, we're salami slicing
-      the_analyzer = analyzer.Analyzer()
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
       setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
       setts.set('salami', True)
       setts.set('offset', 2.0)
-      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
-                                                 settings=setts,
-                                                 record=actual_result)
+      actual_result = _event_finder(parts=[madrigal.parts[0],
+                                           madrigal.parts[1]],
+                                    settings=setts,
+                                    record=actual_result)
       expected_result = [(0.0, ('B4', 'D5')),
                         (0.0, ('B4', 'D5')),
                         # m. 2
@@ -440,16 +439,16 @@ class TestEventFinderMonteverdi(unittest.TestCase):
 
    def test_madrigal_4(self):
       # tests madrigal51.mxl (cruda amarilli) offset = 0.5, we're NOT salami slicing
-      the_analyzer = analyzer.Analyzer()
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
       setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
       setts.set('salami', False)
       setts.set('offset', 0.5)
-      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
-                                                 settings=setts,
-                                                 record=actual_result)
+      actual_result = _event_finder(parts=[madrigal.parts[0],
+                                           madrigal.parts[1]],
+                                    settings=setts,
+                                    record=actual_result)
       expected_result = [(0.0, ('B4', 'D5')),
                                  # m. 2
                                  (6.0, ('A4', 'C5')),
@@ -482,16 +481,16 @@ class TestEventFinderMonteverdi(unittest.TestCase):
 
    def test_madrigal_5(self):
       # tests madrigal51.mxl (cruda amarilli) offset = 1.0, we're NOT salami slicing
-      the_analyzer = analyzer.Analyzer()
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
       setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
       setts.set('salami', False)
       setts.set('offset', 1.0)
-      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
-                                                 settings=setts,
-                                                 record=actual_result)
+      actual_result = _event_finder(parts=[madrigal.parts[0],
+                                           madrigal.parts[1]],
+                                    settings=setts,
+                                    record=actual_result)
       expected_result = [(0.0, ('B4', 'D5')),
                         # m. 2
                         (6.0, ('A4', 'C5')),
@@ -524,16 +523,16 @@ class TestEventFinderMonteverdi(unittest.TestCase):
 
    def test_madrigal_6(self):
       # tests madrigal51.mxl (cruda amarilli) offset = 2.0, we're NOT salami slicing
-      the_analyzer = analyzer.Analyzer()
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
       setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
       setts.set('salami', False)
       setts.set('offset', 2.0)
-      actual_result = the_analyzer._event_finder(parts=[madrigal.parts[0],  madrigal.parts[1]],
-                                                 settings=setts,
-                                                 record=actual_result)
+      actual_result = _event_finder(parts=[madrigal.parts[0],
+                                           madrigal.parts[1]],
+                                    settings=setts,
+                                    record=actual_result)
       expected_result = [(0.0, ('B4', 'D5')),
                                  # m. 2
                                  (6.0, ('A4', 'C5')),
@@ -567,7 +566,6 @@ class TestEventFinderJosquin(unittest.TestCase):
 
    def setUp(self):
       # set-up for tests of Jos2308.krn
-      self.the_analyzer = analyzer.Analyzer()
       self.actual_result = analyzing.AnalysisRecord()
       self.piece = converter.parse('test_corpus/Jos2308.krn')
       self.parts_list = [self.piece.parts[0][67:74],
@@ -583,9 +581,9 @@ class TestEventFinderJosquin(unittest.TestCase):
       # tests Jos2308.krn ("Ave maris stella") offset = 0.5, we're salami slicing
       self.setts.set('salami', True)
       self.setts.set('offset', 0.5)
-      self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
-                                                           settings=self.setts,
-                                                           record=self.actual_result)
+      self.actual_result = _event_finder(parts=self.parts_list,
+                                         settings=self.setts,
+                                         record=self.actual_result)
       expected_result = [(464+0.0, ('A3', 'A3', 'C5', 'Rest')),
                          (464+0.0, ('A3', 'A3', 'C5', 'Rest')),
                          (464+0.0, ('A3', 'A3', 'C5', 'Rest')),
@@ -931,9 +929,9 @@ class TestEventFinderJosquin(unittest.TestCase):
       # tests Jos2308.krn ("Ave maris stella") offset = 2.0, we're NOT salami slicing
       self.setts.set('salami', False)
       self.setts.set('offset', 2.0)
-      self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
-                                                           settings=self.setts,
-                                                           record=self.actual_result)
+      self.actual_result = _event_finder(parts=self.parts_list,
+                                         settings=self.setts,
+                                         record=self.actual_result)
       expected_result = [(464.0, ('A3', 'A3', 'C5', 'Rest')),
                          (466.0, ('F3', 'A3', 'A4', 'Rest')),
                          (468.0, ('E3', 'C4', 'G4', 'Rest')),
@@ -976,7 +974,6 @@ class TestEventFinderBach(unittest.TestCase):
 
    def setUp(self):
       # set-up for tests of bwv77.mxl
-      self.the_analyzer = analyzer.Analyzer()
       self.actual_result = analyzing.AnalysisRecord()
       self.piece = converter.parse('test_corpus/bwv77.mxl')
       self.parts_list = [self.piece.parts[0][1:9],
@@ -995,7 +992,7 @@ class TestEventFinderBach(unittest.TestCase):
       # tests bwv77.mxl offset = 0.5, we're salami slicing
       self.setts.set('salami', True)
       self.setts.set('offset', 0.5)
-      self.actual_result = self.the_analyzer._event_finder(
+      self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
                               record=self.actual_result
@@ -1079,7 +1076,7 @@ class TestEventFinderBach(unittest.TestCase):
       # tests bwv77.mxl offset = 0.5, we're NOT salami slicing
       self.setts.set('salami', False)
       self.setts.set('offset', 0.5)
-      self.actual_result = self.the_analyzer._event_finder(
+      self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
                               record=self.actual_result
@@ -1149,7 +1146,7 @@ class TestEventFinderBach(unittest.TestCase):
       # tests bwv77.mxl offset = 1.0, we're salami slicing
       self.setts.set('salami', True)
       self.setts.set('offset', 1.0)
-      self.actual_result = self.the_analyzer._event_finder(
+      self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
                               record=self.actual_result
@@ -1203,7 +1200,7 @@ class TestEventFinderBach(unittest.TestCase):
       # tests bwv77.mxl offset = 1.0, we're NOT salami slicing
       self.setts.set('salami', False)
       self.setts.set('offset', 1.0)
-      self.actual_result = self.the_analyzer._event_finder(
+      self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
                               record=self.actual_result
@@ -1256,7 +1253,7 @@ class TestEventFinderBach(unittest.TestCase):
       # tests bwv77.mxl offset = 2.0, we're salami slicing
       self.setts.set('salami', True)
       self.setts.set('offset', 2.0)
-      self.actual_result = self.the_analyzer._event_finder(
+      self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
                               record=self.actual_result
@@ -1296,7 +1293,7 @@ class TestEventFinderBach(unittest.TestCase):
       # tests bwv77.mxl offset = 2.0, we're NOT salami slicing
       self.setts.set('salami', False)
       self.setts.set('offset', 2.0)
-      self.actual_result = self.the_analyzer._event_finder(
+      self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
                               record=self.actual_result

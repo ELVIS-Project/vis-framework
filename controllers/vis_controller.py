@@ -78,6 +78,8 @@ class VisController(Controller):
    import_set_multiprocess = QtCore.pyqtSignal(bool)
    # When the GUI knows the user wants to analyze the files
    run_the_analysis = QtCore.pyqtSignal()
+   # When a user changes the choice to use multiprocessing in analyzing
+   analyze_set_multiprocess = QtCore.pyqtSignal(bool)
    # When the GUI knows the user wants to run the experiment
    run_the_experiment = QtCore.pyqtSignal()
    # When the user changes a setting on the Experimenter's GUI representation
@@ -162,6 +164,7 @@ class VisController(Controller):
          (self.run_the_import, self.prepare_import),
          (self.import_set_multiprocess, self.importer.thread.set_multiprocess),
          (self.run_the_analysis, self.analyzer.run_analysis.emit),
+         (self.analyze_set_multiprocess, self.analyzer.thread.set_multiprocess),
          (self.run_the_experiment, self.experimenter.run_experiment.emit),
          (self.experiment_setting, self.experimenter.set.emit),
          #(self.run_the_import, self.processEvents), # NOTE: does nothing?

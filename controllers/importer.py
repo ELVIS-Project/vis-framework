@@ -45,42 +45,34 @@ import time
 
 
 
-# multiprocessing requires your processes to be declared a module scope, sorry!
+# multiprocessing requires your processes to be declared at module scope, sorry!
 def import_piece(file_path):
    '''
-   Given a path to a music21 symbolic music notation file, return a string
-   version of the corresponding frozen music21.Score object, or else a string
-   containing any errors that occurred in importing.
-
+   Given a path to a music21 symbolic music notation file, return a tuple
+   containing a frozen music21.Score and all the pertinent import information 
+   for the score, or else a string containing any errors that occurred in 
+   importing.
+   
    NB: the reason we freeze the music21 Score is because normally music21
    Streams are complex webs of weak references, which cannot be pickled and
    therefore cannot be passed between different child processes in a
    multiprocessing context.
    '''
    try:
-      s = converter.freezeStr(converter.parseFile(file_path), fmt='pickle')
-      return (file_path, s)
-   except (converter.ArchiveManagerException,
+      piece = converter.parseFile(file_path)
+      title = Importer._find_piece_title(piece)
+      part_names = Importer._find_part_names(piece)
+      s = converter.freezeStr(piece, fmt='pickle')
+      return (file_path, s, title, part_names)
+   except (converter.ArchiveManagerException, 
            converter.PickleFilterException,
            converter.ConverterException,
            converter.ConverterFileException) as e:
-      return pickle.dumps(str(e))
+      return str(e)
 
 
 
 class ImporterThread(QThread):
-   '''
-   TODO: write a description of this class
-   '''
-   # Signals
-   # this will always get passed along to self._importer,
-   # which in turn updates the "working" panel in the GUI
-   status = pyqtSignal(str)
-   # similarly for errors
-   error = pyqtSignal(str)
-
-
-
    def __init__(self, importer):
       '''
       Creates a new ImporterThread instance, keeping track of the
@@ -92,13 +84,8 @@ class ImporterThread(QThread):
       self.progress = 0.0
       # flag for whether to use multiprocessing in importing
       self._multiprocess = False
-      # this will hold the imported music21.Score objects and their
-      # associated filenames
       self.results = []
-      QThread.__init__(self)
-
-
-
+      super(QThread, self).__init__()
    def prepare(self, pieces):
       '''
       Sets the analyzing.ListOfPieces object to store the imported
@@ -107,39 +94,25 @@ class ImporterThread(QThread):
       self._pieces_list = pieces
       self._files = self._importer._list_of_files
       self.num_files = self._files.rowCount()
-
-
-
-   @pyqtSlot(bool)
    def set_multiprocess(self, state):
       '''
-      Slot for the VisController.import_set_multiprocess signal.
+      Slot for the VisController import_set_multiprocess signal.
       '''
       self._multiprocess = bool(state)
-
-
-
    def callback(self, result):
       '''
       Each time an import process is completed, either report any
       errors which occurred, or update the progress status and append
       the imported piece to the list of results.
       '''
-      file_path, pickled = result
-      # first we try unpickling whatever came from import_piece to see
-      # if it's an error. If it's a music21.Score, the Python pickle.loads
-      # will return a dict rather than a string.
-      unpickled = pickle.loads(pickled)
-      if isinstance(unpickled, str):
+      if isinstance(result, str):
          self._importer.error.emit(unpickled)
-      else:
+      else: # it is a tuple
+         file_path = result[0]
          self.progress += 1.0/self.num_files
          self._importer.status.emit(str(int(self.progress * 100)))
-         self._importer.status.emit('Importing... ' + file_path + ' imported.')
-         self.results.append((file_path, converter.thawStr(pickled)))
-
-
-
+         self._importer.status.emit('Importing... '+file_path+' imported.')
+         self.results.append(result)
    def run(self):
       '''
       Import all the pieces contained in the parent Importer's _list_of_files.
@@ -150,7 +123,7 @@ class ImporterThread(QThread):
          pool = Pool()
          for file_path in self._files:
             pool.apply_async(import_piece,
-                             (file_path, ),
+                             (file_path,), 
                              callback=self.callback)
          pool.close()
          pool.join()
@@ -161,22 +134,21 @@ class ImporterThread(QThread):
       # at this point, self._pieces_list should be an analyzing.ListOfPieces
       # which belongs to the relevant Analyzer we'll be passing the data to.
       post = self._pieces_list
-      for file_path, piece in self.results:
+      for file_path, piece, title, parts in self.results:
          post.insertRows(post.rowCount(), 1)
          new_row = post.rowCount() - 1
          post.setData((new_row, analyzing.ListOfPieces.filename),
                       file_path,
                       Qt.EditRole)
          post.setData((new_row, analyzing.ListOfPieces.score),
-                      (piece,
-                      Importer._find_piece_title(piece)),
+                      (piece, title),
                       Qt.EditRole)
          post.setData((new_row, analyzing.ListOfPieces.parts_list),
-                      Importer._find_part_names(piece),
+                      parts,
                       Qt.EditRole)
       self._importer.status.emit('Done!')
       self._importer.import_finished.emit()
-# End class ImporterThread -------------------------------------------------------------------------
+# End class ImporterThread -----------------------------------------------------
 
 
 
@@ -352,17 +324,6 @@ class Importer(Controller):
       # or you may get disastrous results.
       self.thread.prepare(the_pieces)
       self.thread.start()
-
-
-
-   def has_files(self):
-      '''
-      Returns True if there is at least one file in the list of files to be imported.
-      '''
-      if 0 < self._list_of_files.rowCount():
-         return True
-      else:
-         return False
 
 
 

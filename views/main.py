@@ -88,11 +88,14 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          (self.ui.btn_file_add.clicked, self._add_files),
          (self.ui.btn_file_remove.clicked, self._remove_files),
          (self.ui.btn_step2.clicked, self._tool_working),
+         (self.ui.btn_analyze_now.clicked, self._tool_working),
          (self.ui.btn_show_results.clicked, self._prepare_experiment_submission),
          # NB: these are connected to sub-controllers by VisController
          (self.ui.btn_step1.clicked, self._check_for_pieces),
          (self.ui.chk_multi_import.stateChanged, self.vis_controller.import_set_multiprocess.emit),
+         (self.ui.chk_analyze_multi.stateChanged, self.vis_controller.analyze_set_multiprocess.emit),
          (self.ui.btn_step2.clicked, self.vis_controller.run_the_analysis.emit),
+         (self.ui.btn_analyze_now.clicked, self.vis_controller.run_the_analysis.emit),
          # Things that operate the GUI
          (self.ui.chk_all_voice_combos.stateChanged, self._adjust_bs),
          (self.ui.chk_all_voice_combos.clicked, self._all_voice_combos),
