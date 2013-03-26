@@ -74,6 +74,8 @@ class Experimenter(Controller, QtCore.QObject):
 
 
    # List of the experiments we have
+   # TODO: do this with introspection so we don't have to update things
+   # in multiple places when these change.
    experiments_we_have = ['IntervalsList', 'ChordsList']
 
 

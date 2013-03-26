@@ -30,6 +30,7 @@ Holds the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQ
 # Imports from...
 # Python
 from itertools import chain
+import os
 from os import walk
 from os.path import splitext, join
 # PyQt4
@@ -39,6 +40,7 @@ from music21 import metadata
 # vis
 from models.analyzing import ListOfPieces
 from views.VisOffsetSelector import VisOffsetSelector
+from views.Ui_main_window import Ui_MainWindow
 
 
 
@@ -62,9 +64,11 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       '''
       super(VisQtMainWindow, self).__init__() # required for signals
       self.vis_controller = vis_controller
-      self.ui = uic.loadUi('views/ui/main_window.ui')
+      self.ui = Ui_MainWindow()
+      self.ui.setupUi(self)
+      #uic.loadUi(os.path.dirname(os.path.realpath(__file__))+'/ui/main_window.ui')
       self._tool_import()
-      self.ui.show()
+      self.show()
       # Hold a lists of checkboxes, "Edit" buttons, and layouts that represent
       # the parts in a piece for the "assemble" panel
       self.part_checkboxes = None
