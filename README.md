@@ -27,3 +27,12 @@ How to Use
 After you installed the dependencies listed in the previous section, open a terminal in the same directory as this README file, and run this command:
 
 `$ python __main__.py`
+
+Stand-alone Executable
+======================
+To create a Mac application bundle for vis (.app), we use PyInstaller. Download it, and from your
+pyinstaller folder, run:
+
+`$ python pyinstaller.py --windowed --name=vis --runtime-hook=PyInstaller/loader/rthooks/pyi_rth_encodings.py /path/to/vis/__main__.py`
+
+In the (newly-created) `dist` folder there will be a file called `vis.app`.
