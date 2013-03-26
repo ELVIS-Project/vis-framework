@@ -334,7 +334,7 @@ class Analyzer(Controller):
 
       # 4.) Iterate
       while current_offset < end_of_score:
-         # 4.1) Make sure we're not using the same offset at last time through the loop.
+         # 4.1) Make sure we're not using the same offset as last time through the loop.
          if offset_from_last_time == current_offset:
             msg = 'Error in controllers.Analyzer._event_finder, section 3.1'
             raise RuntimeError(msg)
@@ -347,8 +347,7 @@ class Analyzer(Controller):
                                                  classList=list_of_types)
                            for p in parts]
 
-         #print(str(current_offset)) # DEBUGGING
-         # 4.3) We only actually want the first elements in these lists (but we have to know there
+         # 4.3) Make sure we only have the first event at this offset.
          # current_events = [e[0] for e in current_events]
          # TODO: surely there is a cleaner way to do this
          underprocessed = current_events
@@ -373,7 +372,13 @@ class Analyzer(Controller):
 
          # 4.7) Add the event to the AnalysisRecord, if relevant
          if settings.get('salami'):
-            # If salami, we always add the event
+            # If salami, we always add the event.
+
+            # But also, if this event is the same as the previous event, we have to use the
+            # previous event's offset.
+            if record.most_recent_event()[1] == current_events:
+               current_event_offset_start = record.most_recent_event()[0]
+
             record.append(current_event_offset_start, current_events)
          elif record.most_recent_event()[1] != current_events:
             # If not salami, we only add the event if it's different from the previous
