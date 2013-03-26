@@ -47,7 +47,7 @@ import time
 
 # multiprocessing requires your processes to be declared at module scope, sorry!
 def import_piece(file_path):
-   """
+   '''
    Given a path to a music21 symbolic music notation file, return a tuple
    containing a frozen music21.Score and all the pertinent import information 
    for the score, or else a string containing any errors that occurred in 
@@ -57,7 +57,7 @@ def import_piece(file_path):
    Streams are complex webs of weak references, which cannot be pickled and
    therefore cannot be passed between different child processes in a
    multiprocessing context.
-   """
+   '''
    try:
       piece = converter.parseFile(file_path)
       title = Importer._find_piece_title(piece)
@@ -74,10 +74,10 @@ def import_piece(file_path):
 
 class ImporterThread(QThread):
    def __init__(self, importer):
-      """
+      '''
       Creates a new ImporterThread instance, keeping track of the
       Importer object which instantiated it.
-      """
+      '''
       self._importer = importer
       # this will hold the fraction of pieces which have been analyzed
       # at a given time
@@ -87,24 +87,24 @@ class ImporterThread(QThread):
       self.results = []
       super(QThread, self).__init__()
    def prepare(self, pieces):
-      """
+      '''
       Sets the analyzing.ListOfPieces object to store the imported
       pieces in, and sets some shorthands for the other methods.
-      """
+      '''
       self._pieces_list = pieces
       self._files = self._importer._list_of_files
       self.num_files = self._files.rowCount()
    def set_multiprocess(self, state):
-      """
+      '''
       Slot for the VisController import_set_multiprocess signal.
-      """
+      '''
       self._multiprocess = bool(state)
    def callback(self, result):
-      """
+      '''
       Each time an import process is completed, either report any
       errors which occurred, or update the progress status and append
       the imported piece to the list of results.
-      """
+      '''
       if isinstance(result, str):
          self._importer.error.emit(unpickled)
       else: # it is a tuple
@@ -114,9 +114,9 @@ class ImporterThread(QThread):
          self._importer.status.emit('Importing... '+file_path+' imported.')
          self.results.append(result)
    def run(self):
-      """
+      '''
       Import all the pieces contained in the parent Importer's _list_of_files.
-      """
+      '''
       self._importer.status.emit('0')
       self._importer.status.emit('Importing...')
       if self._multiprocess:
@@ -148,6 +148,7 @@ class ImporterThread(QThread):
                       Qt.EditRole)
       self._importer.status.emit('Done!')
       self._importer.import_finished.emit()
+# End class ImporterThread -----------------------------------------------------
 
 
 
