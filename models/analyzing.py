@@ -34,6 +34,7 @@ import copy
 from PyQt4.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 # music21
 from music21.metadata import Metadata
+from music21 import freezeThaw
 
 
 
@@ -312,7 +313,8 @@ class AnalysisRecord(object):
    information being analyzed is stored separately from the piece.
 
    Each AnalysisRecord contains the following information:
-   - a music21 Metadata object, with information about the work and movement
+   - a (JSON-serialized) music21 Metadata object, with information about the 
+     work and movement
    - the names of the parts being analyzed
    - the minimum quarterLength offset value between subsequent elements
    - the events in the parts being analyzed, and the offset at which they happen
@@ -323,8 +325,6 @@ class AnalysisRecord(object):
    This class is iterable. Each iteration returns a 2-tuple, where index 0 is
    the offset at which the event occurs in the Score, and index 1 is the event
    itself.
-
-   You can access the Metadata object directly, through the "metadata" property.
    '''
 
 
@@ -359,9 +359,12 @@ class AnalysisRecord(object):
       self._record = []
 
       if metadata is None:
-         self.metadata = Metadata()
+         m = Metadata()
+         jf = freezeThaw.JSONFreezer(m)
+         self._metadata = jf.json
       else:
-         self.metadata = metadata
+         jf = freezeThaw.JSONFreezer(metadata)
+         self._metadata = jf.json
 
       if part_names is None:
          self._part_names = ['']
@@ -460,6 +463,16 @@ class AnalysisRecord(object):
       False
       '''
       return self._salami
+
+
+
+   def metadata(self):
+      '''
+      Return the music21 Metadata object stored in this AnalysisRecord.
+      '''
+      jt = freezeThaw.JSONThawer()
+      jt.json = self._metadata
+      return jt.storedObject
 
 
 

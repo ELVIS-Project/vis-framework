@@ -31,7 +31,7 @@ from PyQt4.QtCore import Qt
 # music21
 from music21 import converter, stream, metadata
 # vis
-from controllers.importer import import_piece
+from controllers.importer import import_piece, Importer
 from models import importing, analyzing
 
 
