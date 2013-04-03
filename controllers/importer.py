@@ -327,6 +327,17 @@ class Importer(Controller):
 
 
 
+   def has_files(self):
+      '''
+      Returns True if there is at least one file in the list of files to be imported.
+      '''
+      if 0 < self._list_of_files.rowCount():
+         return True
+      else:
+         return False
+
+
+
    @staticmethod
    def _find_part_names(the_score):
       '''
