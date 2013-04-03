@@ -106,7 +106,6 @@ def analyze_piece(each_piece):
       this_settings.set('salami', this_salami)
       # run the analysis and append results to our results-collector
       try:
-         print 'analyzing', piece_name
          records.append(_event_finder(parts=this_parts,
                                       settings=this_settings,
                                       record=this_record))
@@ -116,7 +115,7 @@ def analyze_piece(each_piece):
 
 
 
-def _event_finder(self, parts, settings, record):
+def _event_finder(parts, settings, record):
    '''
    Find events in parts.
 
@@ -238,7 +237,6 @@ def _event_finder(self, parts, settings, record):
    # End step 4
 
    # Return
-   self.event_finder_finished.emit(record)
    return record
 # End _event_finder() ------------------------------------------------------------------------------
 
@@ -291,7 +289,6 @@ class AnalyzerThread(QtCore.QThread):
                   each_piece.append(each_column.toPyObject())
                else:
                   each_piece.append(each_column)
-            print each_piece
             pool.apply_async(analyze_piece,(each_piece,),callback=self.callback)
 
          pool.close()
