@@ -86,3 +86,13 @@ class IncompatibleSetupError( Exception ):
    '''
 
    pass
+
+
+
+class SettingValidationError( Exception ):
+   '''
+   This error is used when a user inputs a value for a Setting object which cannot
+   be properly cleaned or validated.   
+   '''
+
+   pass
