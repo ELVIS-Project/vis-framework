@@ -64,11 +64,11 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       '''
       super(VisQtMainWindow, self).__init__() # required for signals
       self.vis_controller = vis_controller
-      self.ui = Ui_MainWindow()
-      self.ui.setupUi(self)
-      #uic.loadUi(os.path.dirname(os.path.realpath(__file__))+'/ui/main_window.ui')
+      #self.ui = Ui_MainWindow()
+      #self.ui.setupUi(self)
+      self.ui = uic.loadUi(os.path.dirname(os.path.realpath(__file__))+'/ui/main_window.ui')
       self._tool_import()
-      self.show()
+      self.ui.show()
       # Hold a lists of checkboxes, "Edit" buttons, and layouts that represent
       # the parts in a piece for the "assemble" panel
       self.part_checkboxes = None
