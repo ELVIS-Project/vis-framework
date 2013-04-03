@@ -39,3 +39,9 @@ $ python pyinstaller.py --windowed --name=vis
 ```
 
 In the (newly-created) `dist` folder there will be a file called `vis.app`.
+
+On Windows, PyInstaller can also be used (but ensure you also have pywin32). In this case, the corresponding command is:
+
+`$ python pyinstaller.py --windowed --name=vis -F \path\to\vis\__main__.py`
+
+and in your new `dist` folder there will be a file called `vis.exe`.
