@@ -34,7 +34,11 @@ import copy
 from PyQt4.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 # music21
 from music21.metadata import Metadata
+from music21.note import Note, Rest
+from music21.chord import Chord
 from music21 import freezeThaw
+# vis
+import settings
 
 
 
@@ -510,7 +514,7 @@ class AnalysisRecord(object):
 
 
 
-class AnalysisSettings(object):
+class AnalysisSettings(settings.Settings):
    '''
    Hold settings relevant to conducting analyses.
 
@@ -522,41 +526,26 @@ class AnalysisSettings(object):
    - salami : if True, all events will be the offset distance from each
       other, even if this produces a series of identical events
    '''
-
-
-
    def __init__(self):
       '''
-      Create an empty AnalysisSettings instance with no settings.
+      Create an empty AnalysisSettings instance.
       '''
-      self._settings = {}
-
-
-
-   def set(self, setting, value):
-      '''
-      Set the value of a setting. If the setting does not yet exist, it is
-      created and initialized to the value.
-      '''
-      self._settings[setting] = value
-
-
-
-   def has(self, setting):
-      '''
-      Returns True if a setting already exists in this AnalysisSettings
-      instance, or else False.
-      '''
-      return setting in self._settings
-
-
-
-   def get(self, setting):
-      '''
-      Return the value of a setting, or None if the setting does not exist.
-      '''
-      if self.has(setting):
-         return self._settings[setting]
-      else:
-         return None
-# End class AnalysisSettings -----------------------------------------------------------------------
+      setts = {
+         'types': settings.MultiChoiceSetting(
+            # TODO: include other interesting choices here, possibly
+            # dynamically drawn from music21
+            choices=[(Note, 'Note'),
+                     (Rest, 'Rest'),
+                     (Chord, 'Chord')],
+            display_name="Find these types of object"
+         ),
+         'offset': settings.PositiveNumberSetting(settings.FloatSetting)(
+            0.5,
+            display_name="Offset"
+         ),
+         'salami': settings.BooleanSetting(
+            False,
+            display_name="Include repeated identical events"
+         )
+      }
+      super(AnalysisSettings, self).__init__(setts)

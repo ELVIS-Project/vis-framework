@@ -45,7 +45,7 @@ from models_tests.test_ngram import *
 
 
 # Controllers ------------------------------------------------------------------
-# Importer -- all tests pass
+# Importer
 unittest.TextTestRunner(verbosity=verb).run(importer_piece_getter_suite)
 unittest.TextTestRunner(verbosity=verb).run(importer_part_and_titles_suite)
 unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite)
@@ -54,7 +54,7 @@ unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite)
 
 
 
-# Analyzer
+# Analyzer -- all tests pass
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_short_suite)
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_monteverdi)
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_josquin)

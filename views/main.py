@@ -1002,16 +1002,16 @@ You must choose pieces before we can import them.""",
          if self.ui.rdo_consider_intervals.isChecked():
             if self.ui.rdo_spreadsheet.isChecked():
                list_of_settings.append(('experiment', 'IntervalsList'))
-               list_of_settings.append(('output format', 'SpreadsheetFile'))
+               list_of_settings.append(('output_format', 'SpreadsheetFile'))
             elif self.ui.rdo_list.isChecked():
                list_of_settings.append(('experiment', 'IntervalsStatistics'))
-               list_of_settings.append(('output format', 'StatisticsListDisplay'))
+               list_of_settings.append(('output_format', 'StatisticsListDisplay'))
          elif self.ui.rdo_consider_chord_ngrams.isChecked():
             list_of_settings.append(('experiment', 'ChordsList'))
-            list_of_settings.append(('output format', 'SpreadsheetFile'))
+            list_of_settings.append(('output_format', 'SpreadsheetFile'))
          elif self.ui.rdo_consider_interval_ngrams.isChecked():
             list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
-            list_of_settings.append(('output format', 'StatisticsListDisplay'))
+            list_of_settings.append(('output_format', 'StatisticsListDisplay'))
 
       def do_threshold():
          '''
@@ -1035,9 +1035,9 @@ You must choose pieces before we can import them.""",
          Simple or compound?
          '''
          if self.ui.rdo_simple.isChecked():
-            list_of_settings.append(('simple or compound', 'simple'))
+            list_of_settings.append(('simple_or_compound', 'simple'))
          else:
-            list_of_settings.append(('simple or compound', 'compound'))
+            list_of_settings.append(('simple_or_compound', 'compound'))
 
       def do_values_of_n():
          '''
@@ -1057,7 +1057,7 @@ You must choose pieces before we can import them.""",
             for thing in raw_of_n:
                post.append(int(thing))
             # Put it onnnnnn
-            list_of_settings.append(('values of n', post))
+            list_of_settings.append(('values_of_n', post))
 
       # (1) Figure out the settings
       # TODO: ensure these are chosen dynamically, to correspond to the GUI
@@ -1067,7 +1067,7 @@ You must choose pieces before we can import them.""",
       do_print_quality()
       # (1c) Simple or compound?
       do_simple_or_compound()
-      # (1d) Is there a "values of n" value?
+      # (1d) Is there a "values_of_n" value?
       do_values_of_n()
 
       # (2) Set the settings

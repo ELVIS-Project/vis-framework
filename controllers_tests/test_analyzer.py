@@ -50,9 +50,9 @@ class TestEventFinderShort(unittest.TestCase):
 
    def setUp(self):
       self.setts = analyzing.AnalysisSettings()
-      self.setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
-      self.setts.set('salami', False)
-      self.setts.set('offset', 0.5)
+      self.setts.types =  [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
+      self.setts.salami =  False
+      self.setts.offset =  0.5
 
 
 
@@ -227,9 +227,9 @@ class TestEventFinderMonteverdi(unittest.TestCase):
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
-      setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
-      setts.set('salami', True)
-      setts.set('offset', 0.5)
+      setts.types =  [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
+      setts.salami =  True
+      setts.offset =  0.5
       actual_result = _event_finder(parts=[madrigal.parts[0],
                                            madrigal.parts[1]],
                                     settings=setts,
@@ -332,9 +332,9 @@ class TestEventFinderMonteverdi(unittest.TestCase):
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
-      setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
-      setts.set('salami', True)
-      setts.set('offset', 1.0)
+      setts.types =  [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
+      setts.salami =  True
+      setts.offset =  1.0
       actual_result = _event_finder(parts=[madrigal.parts[0],
                                            madrigal.parts[1]],
                                     settings=setts,
@@ -397,9 +397,9 @@ class TestEventFinderMonteverdi(unittest.TestCase):
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
-      setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
-      setts.set('salami', True)
-      setts.set('offset', 2.0)
+      setts.types =  [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
+      setts.salami =  True
+      setts.offset =  2.0
       actual_result = _event_finder(parts=[madrigal.parts[0],
                                            madrigal.parts[1]],
                                     settings=setts,
@@ -442,9 +442,9 @@ class TestEventFinderMonteverdi(unittest.TestCase):
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
-      setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
-      setts.set('salami', False)
-      setts.set('offset', 0.5)
+      setts.types =  [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
+      setts.salami =  False
+      setts.offset =  0.5
       actual_result = _event_finder(parts=[madrigal.parts[0],
                                            madrigal.parts[1]],
                                     settings=setts,
@@ -484,9 +484,9 @@ class TestEventFinderMonteverdi(unittest.TestCase):
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
-      setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
-      setts.set('salami', False)
-      setts.set('offset', 1.0)
+      setts.types =  [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
+      setts.salami =  False
+      setts.offset =  1.0
       actual_result = _event_finder(parts=[madrigal.parts[0],
                                            madrigal.parts[1]],
                                     settings=setts,
@@ -526,9 +526,9 @@ class TestEventFinderMonteverdi(unittest.TestCase):
       madrigal = converter.parse('test_corpus/madrigal51.mxl')
       actual_result = analyzing.AnalysisRecord()
       setts = analyzing.AnalysisSettings()
-      setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
-      setts.set('salami', False)
-      setts.set('offset', 2.0)
+      setts.types =  [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
+      setts.salami =  False
+      setts.offset =  2.0
       actual_result = _event_finder(parts=[madrigal.parts[0],
                                            madrigal.parts[1]],
                                     settings=setts,
@@ -573,14 +573,14 @@ class TestEventFinderJosquin(unittest.TestCase):
                          self.piece.parts[2][67:74],
                          self.piece.parts[3][67:74]]
       self.setts = analyzing.AnalysisSettings()
-      self.setts.set('types', [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')])
+      self.setts.types =  [(note.Note, lambda x: x.nameWithOctave), (note.Rest, lambda x: 'Rest')]
 
 
 
    def test_josquin_1(self):
       # tests Jos2308.krn ("Ave maris stella") offset = 0.5, we're salami slicing
-      self.setts.set('salami', True)
-      self.setts.set('offset', 0.5)
+      self.setts.salami =  True
+      self.setts.offset =  0.5
       self.actual_result = _event_finder(parts=self.parts_list,
                                          settings=self.setts,
                                          record=self.actual_result)
@@ -709,9 +709,9 @@ class TestEventFinderJosquin(unittest.TestCase):
 
    def test_josquin_2(self):
       # tests Jos2308.krn ("Ave maris stella") offset = 1.0, we're salami slicing
-      self.setts.set('salami', True)
-      self.setts.set('offset', 1.0)
-      self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+      self.setts.salami =  True
+      self.setts.offset =  1.0
+      self.actual_result = _event_finder(parts=self.parts_list,
                                                            settings=self.setts,
                                                            record=self.actual_result)
       expected_result = [(464+0.0, ('A3', 'A3', 'C5', 'Rest')),
@@ -783,9 +783,9 @@ class TestEventFinderJosquin(unittest.TestCase):
 
    def test_madrigal_3(self):
       # tests Jos2308.krn ("Ave maris stella") offset = 2.0, we're salami slicing
-      self.setts.set('salami', True)
-      self.setts.set('offset', 2.0)
-      self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+      self.setts.salami =  True
+      self.setts.offset =  2.0
+      self.actual_result = _event_finder(parts=self.parts_list,
                                                            settings=self.setts,
                                                            record=self.actual_result)
       expected_result = [(464+0.0, ('A3', 'A3', 'C5', 'Rest')),
@@ -829,9 +829,9 @@ class TestEventFinderJosquin(unittest.TestCase):
 
    def test_josquin_4(self):
       # tests Jos2308.krn ("Ave maris stella") offset = 0.5, we're NOT salami slicing
-      self.setts.set('salami', False)
-      self.setts.set('offset', 0.5)
-      self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+      self.setts.salami =  False
+      self.setts.offset =  0.5
+      self.actual_result = _event_finder(parts=self.parts_list,
                                                            settings=self.setts,
                                                            record=self.actual_result)
       expected_result = [(464+0.0, ('A3', 'A3', 'C5', 'Rest')),
@@ -878,9 +878,9 @@ class TestEventFinderJosquin(unittest.TestCase):
 
    def test_josquin_5(self):
       # tests Jos2308.krn ("Ave maris stella") offset = 1.0, we're NOT salami slicing
-      self.setts.set('salami', False)
-      self.setts.set('offset', 1.0)
-      self.actual_result = self.the_analyzer._event_finder(parts=self.parts_list,
+      self.setts.salami =  False
+      self.setts.offset =  1.0
+      self.actual_result = _event_finder(parts=self.parts_list,
                                                            settings=self.setts,
                                                            record=self.actual_result)
       expected_result = [(464+0.0, ('A3', 'A3', 'C5', 'Rest')),
@@ -927,8 +927,8 @@ class TestEventFinderJosquin(unittest.TestCase):
 
    def test_josquin_6(self):
       # tests Jos2308.krn ("Ave maris stella") offset = 2.0, we're NOT salami slicing
-      self.setts.set('salami', False)
-      self.setts.set('offset', 2.0)
+      self.setts.salami =  False
+      self.setts.offset =  2.0
       self.actual_result = _event_finder(parts=self.parts_list,
                                          settings=self.setts,
                                          record=self.actual_result)
@@ -981,17 +981,15 @@ class TestEventFinderBach(unittest.TestCase):
                          self.piece.parts[2][1:9],
                          self.piece.parts[3][1:9]]
       self.setts = analyzing.AnalysisSettings()
-      self.setts.set('types',
-                     [(note.Note, lambda x: x.nameWithOctave),
-                      (note.Rest, lambda x: 'Rest')]
-                    )
+      self.setts.types = [(note.Note, lambda x: x.nameWithOctave),
+                          (note.Rest, lambda x: 'Rest')]
 
 
 
    def test_bach_1(self):
       # tests bwv77.mxl offset = 0.5, we're salami slicing
-      self.setts.set('salami', True)
-      self.setts.set('offset', 0.5)
+      self.setts.salami =  True
+      self.setts.offset =  0.5
       self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
@@ -1074,8 +1072,8 @@ class TestEventFinderBach(unittest.TestCase):
 
    def test_bach_2(self):
       # tests bwv77.mxl offset = 0.5, we're NOT salami slicing
-      self.setts.set('salami', False)
-      self.setts.set('offset', 0.5)
+      self.setts.salami =  False
+      self.setts.offset =  0.5
       self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
@@ -1144,8 +1142,8 @@ class TestEventFinderBach(unittest.TestCase):
 
    def test_bach_3(self):
       # tests bwv77.mxl offset = 1.0, we're salami slicing
-      self.setts.set('salami', True)
-      self.setts.set('offset', 1.0)
+      self.setts.salami =  True
+      self.setts.offset =  1.0
       self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
@@ -1198,8 +1196,8 @@ class TestEventFinderBach(unittest.TestCase):
 
    def test_bach_4(self):
       # tests bwv77.mxl offset = 1.0, we're NOT salami slicing
-      self.setts.set('salami', False)
-      self.setts.set('offset', 1.0)
+      self.setts.salami =  False
+      self.setts.offset =  1.0
       self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
@@ -1251,8 +1249,8 @@ class TestEventFinderBach(unittest.TestCase):
 
    def test_bach_5(self):
       # tests bwv77.mxl offset = 2.0, we're salami slicing
-      self.setts.set('salami', True)
-      self.setts.set('offset', 2.0)
+      self.setts.salami =  True
+      self.setts.offset =  2.0
       self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,
@@ -1291,8 +1289,8 @@ class TestEventFinderBach(unittest.TestCase):
 
    def test_bach_6(self):
       # tests bwv77.mxl offset = 2.0, we're NOT salami slicing
-      self.setts.set('salami', False)
-      self.setts.set('offset', 2.0)
+      self.setts.salami =  False
+      self.setts.offset =  2.0
       self.actual_result = _event_finder(
                               parts=self.parts_list,
                               settings=self.setts,

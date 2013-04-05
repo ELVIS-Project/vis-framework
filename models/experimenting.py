@@ -27,57 +27,25 @@
 The model classes for the Experimenter controller.
 '''
 
+# Imports from...
+# vis
+from settings import Settings
 
 
-class ExperimentSettings(object):
+
+class ExperimentSettings(Settings):
    '''
    Hold settings relevant to performing experiments.
-
+   
    All the possible settings:
    - experiment : name of the experiment to use
    - quality : whether or not to display interval quality
-   - simple or compound : whether to use simple or compound intervals
+   - simple_or_compound : whether to use simple or compound intervals
    - topX : display on the "top X" number of results
    - threshold : stop displaying things after this point
-   - values of n : a list of ints that is the values of 'n' to display
-   - sort order : whether to sort things 'ascending' or 'descending'
-   - sort by : whether to sort things by 'frequency' or 'name'
-   - output format : choose the Display subclass for this experiment's results
+   - values_of_n : a list of ints that is the values of 'n' to display
+   - sort_order : whether to sort things 'ascending' or 'descending'
+   - sort_by : whether to sort things by 'frequency' or 'name'
+   - output_format : choose the Display subclass for this experiment's results
    '''
-
-
-
-   def __init__(self):
-      '''
-      Create an empty ExperimentSettings instance with no settings.
-      '''
-      self._settings = {}
-
-
-
-   def set(self, setting, value):
-      '''
-      Set the value of a setting. If the setting does not yet exist, it is
-      created and initialized to the value.
-      '''
-      self._settings[setting] = value
-
-
-
-   def has(self, setting):
-      '''
-      Returns True if a setting already exists in this ExperimentSettings
-      instance, or else False.
-      '''
-      return setting in self._settings
-
-
-
-   def get(self, setting):
-      '''
-      Return the value of a setting, or None if the setting does not exist.
-      '''
-      if self.has(setting):
-         return self._settings[setting]
-      else:
-         return None
+   pass

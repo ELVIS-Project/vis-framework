@@ -28,21 +28,23 @@ the Analyzer and Experimenter controllers.
 '''
 
 
-#Imports from...
-#PyQt4
+# Imports from...
+# Python
+from numbers import Number
+# PyQt4
 from PyQt4.QtCore import pyqtSignal, QObject
-#vis
-from problems.coreproblems import SettingValidationError
+# vis
+from problems.coreproblems import SettingValidationError, MissingInformationError
 
 
 
-class Setting(object, QObject):
+class Setting(QObject):
    '''
    Base class for all Settings to be used by the Analyzer & Experimenter
    controllers.
    '''
-   # emitted when a user changes the value contained in this Setting.
-   value_changed = pyqtSignal()
+   # # emitted when a user changes the value contained in this Setting.
+   # value_changed = pyqtSignal()
    # emitted when the relevant view widget for this Setting must be created.
    initialize = pyqtSignal()
    
@@ -55,7 +57,7 @@ class Setting(object, QObject):
       display in a view.
       '''
       self._value = value
-      self._display_name = kwargs.get('display_name')
+      self._display_name = kwargs.get('display_name', '')
    
    @property
    def display_name(self):
@@ -99,8 +101,131 @@ class Setting(object, QObject):
 
 
 
-class PositiveIntSetting(Setting):
+class Settings(object):
    '''
-   class docstring
+   Wrapper for a dictionary of Setting objects.
    '''
-   pass
+   def __init__(self, settings=None):
+      '''
+      Create a new Settings instance, optionally with the argument
+      `settings`, a dict with (string, Setting) items.
+      '''
+      if settings is None:
+         settings = {}
+      self._settings = settings
+   
+   def __setattr__(self, setting, value):
+      '''
+      Set the value of a setting. If the setting does not yet exist, it is
+      created and initialized to the value.
+      '''
+      if '_settings' == setting:
+         super(Settings, self).__setattr__(setting, value)
+      sett = self._settings.get(setting)
+      if not sett:
+         sett = Setting()
+      sett.value = value
+      self._settings[setting] = sett
+   
+   def has(self, setting):
+      '''
+      Returns True if a setting already exists in this AnalysisSettings
+      instance, or else False.
+      '''
+      return setting in self._settings.iterkeys()
+   
+   def __getattr__(self, setting):
+      '''
+      Return the value of a setting. If it does not exist, create it and
+      populate it with value None first.
+      '''
+      if not self.has(setting):
+         self._settings[setting] = Setting(None)
+      return self._settings[setting].value
+
+
+
+class PositiveNumberSetting(type):
+   '''
+   Metaclass to add a check for your numeric Setting to be positive.
+   '''
+   def __new__(meta, cls):
+      dct = dict(cls.__dict__)
+      bases = cls.__bases__
+      name = "Positive" + cls.__name__
+      pre_clean = dct['clean']
+      def clean(self, value):
+         # NB: this is not safe; assumes the class 
+         # you pass in has a method called `clean`.
+         value = pre_clean(self, value)
+         if isinstance(value, Number):
+            if value <= 0:
+               msg = "Value must be positive"
+               raise SettingValidationError(msg)
+            return value
+         else:
+            msg = "Value must be a number"
+            raise SettingValidationError(msg)
+      dct['clean'] = clean
+      return type(name, bases, dct)
+
+
+
+class FloatSetting(Setting):
+   '''
+   Setting to hold a floating-point number.
+   '''
+   def clean(self, value):
+      __doc__ = Setting.clean.__doc__
+      try:
+         return float(value)
+      except ValueError: # could not convert string to float
+         msg = "Value must be a valid decimal number"
+         raise SettingValidationError(msg)
+
+
+
+class BooleanSetting(Setting):
+   '''
+   Setting to hold a boolean (True or False) value.
+   '''
+   def clean(self, value):
+      __doc__ = Setting.clean.__doc__
+      return bool(value)
+
+
+
+class MultiChoiceSetting(Setting):
+   '''
+   A setting with multiple values taken from a fixed set of options. Normally
+   modified with a multiple-select widget of some kind.
+   '''
+   def __init__(self, *args, **kwargs):
+      '''
+      Creates a new MultiChoiceSetting instance. The keyword argument `choices`
+      is required, and must be an iterable of 2-tuples (value, label) where value
+      is any Python type and label is a string to be used as the label of the option
+      in the view widget for this Setting.
+      
+      Example:
+      >>> mcs = MultiChoiceSetting(choices=[(0, 'Option A'),
+      (1, 'Option B'), 
+      (2, 'Option C')])
+      '''
+      choices = kwargs.pop('choices')
+      if not choices:
+         msg = "Missing required keyword argument 'choices'"
+         raise MissingInformationError(msg)
+      else:
+         try:
+            for i, val in choices:
+               if not isinstance(val, basestring):
+                  s = "value '{0}' in kwarg 'choices' of incorrect type '{1}'"
+                  msg = s.format(val, type(val))
+                  raise SettingValidationError(msg)
+                  break
+         except ValueError: # too many values to unpack
+            msg = "kwarg 'choices' must be an iterable of 2-tuples"
+            raise SettingValidationError(msg)
+         self._choices = choices
+         super(MultiChoiceSetting, self).__init__(*args, **kwargs)
