@@ -981,7 +981,7 @@ You must choose pieces before we can import them.""",
    @QtCore.pyqtSlot()
    def _prepare_experiment_submission(self):
       '''
-      Make sure the Experimenter has a properly-configured ExperimentSettings
+      Make sure the Experimenter has a properly-configured Settings
       instance, then ask it to run the experiment.
       '''
 

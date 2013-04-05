@@ -151,7 +151,7 @@ class PositiveNumberSetting(type):
    '''
    def __new__(meta, cls):
       dct = dict(cls.__dict__)
-      bases = cls.__bases__
+      bases = (cls,)
       name = "Positive" + cls.__name__
       pre_clean = dct['clean']
       def clean(self, value):
@@ -227,5 +227,5 @@ class MultiChoiceSetting(Setting):
          except ValueError: # too many values to unpack
             msg = "kwarg 'choices' must be an iterable of 2-tuples"
             raise SettingValidationError(msg)
-         self._choices = choices
+         self.choices = choices
          super(MultiChoiceSetting, self).__init__(*args, **kwargs)
