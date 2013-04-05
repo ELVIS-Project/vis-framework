@@ -132,13 +132,13 @@ class Experimenter(Controller, QtCore.QObject):
       '''
       # Check there is an 'experiment' setting that refers to one we have
 
-      if self._experiment_settings.get('experiment') == 'IntervalsList':
+      if self._experiment_settings.experiment == 'IntervalsList':
          exper = IntervalsLists
-      elif self._experiment_settings.get('experiment') == 'ChordsList':
+      elif self._experiment_settings.experiment == 'ChordsList':
          exper = ChordsLists
-      elif self._experiment_settings.get('experiment') == 'IntervalsStatistics':
+      elif self._experiment_settings.experiment == 'IntervalsStatistics':
          exper = IntervalsStatistics
-      elif self._experiment_settings.get('experiment') == 'IntervalNGramStatistics':
+      elif self._experiment_settings.experiment == 'IntervalNGramStatistics':
          exper = IntervalNGramStatistics
       else:
          self.error.emit('Experimenter: could not determine which experiment to run.')
@@ -170,7 +170,8 @@ class Experimenter(Controller, QtCore.QObject):
       the second element is any type (setting value), make that setting refer
       to that value.
       '''
-      self._experiment_settings.set(sett[0], sett[1])
+      name, value = sett
+      setattr(self._experiment_settings, name, value)
 # End class Experimenter ---------------------------------------------------------------------------
 
 
@@ -285,25 +286,25 @@ class IntervalsLists(Experiment):
 
       The IntervalsSpreadsheet uses these settings:
       - 'quality' : boolean, whether to print or suppress quality
-      - 'simple or compound' : whether to print intervals in their single-octave
+      - 'simple_or_compound' : whether to print intervals in their single-octave
          ('simple') or actual ('compound') form.
 
       If one of these settings is not present, the constructor raises a KeyError.
 
       IntervalsLists can use this setting, but will not provide a default:
-      - output format : choose the Display subclass for this experiment's results
+      - output_format : choose the Display subclass for this experiment's results
       '''
       # Call the superclass constructor
       super(IntervalsLists, self).__init__(controller, records, settings)
 
       # Check the ExperimentSettings object has the right settings
-      if not settings.has('quality') or not settings.has('simple or compound'):
-         msg = 'IntervalsLists requires "quality" and "simple or compound" settings'
+      if not settings.has('quality') or not settings.has('simple_or_compound'):
+         msg = 'IntervalsLists requires "quality" and "simple_or_compound" settings'
          raise KeyError(msg)
 
       # Process the optional "output format" setting
-      if self._settings.has('output format'):
-         self._good_for = [self._settings.get('output format')]
+      if self._settings.has('output_format'):
+         self._good_for = [self._settings.output_format]
    # End __init__()
 
 
@@ -316,8 +317,8 @@ class IntervalsLists(Experiment):
       '''
 
       # pre-fetch the settings we'll be using repeatedly
-      quality = self._settings.get('quality')
-      interval_size = self._settings.get('simple or compound')
+      quality = self._settings.quality
+      interval_size = self._settings.simple_or_compound
 
       def the_formatter(interv, direction=False):
          '''
@@ -434,14 +435,14 @@ class ChordsLists(Experiment):
       - settings : an ExperimentSettings object
 
       ChordsLists can use this setting, but will not provide a default:
-      - output format : choose the Display subclass for this experiment's results
+      - output_format : choose the Display subclass for this experiment's results
       '''
       # Call the superclass constructor
       super(ChordsLists, self).__init__(controller, records, settings)
 
       # Process the optional "output format" setting
-      if self._settings.has('output format'):
-         self._good_for = [self._settings.get('output format')]
+      if self._settings.has('output_format'):
+         self._good_for = [self._settings.output_format]
 
 
 
@@ -546,33 +547,33 @@ class IntervalsStatistics(Experiment):
 
       IntervalsStatistics requires these settings:
       - quality : whether or not to display interval quality
-      - simple or compound : whether to use simple or compound intervals
+      - simple_or_compound : whether to use simple or compound intervals
 
       IntervalsStatistics uses these settings, but provides defaults:
       - topX : display on the "top X" number of results (default: none)
       - threshold : stop displaying things after this point (default: none)
-      - sort order : whether to sort things 'ascending' or 'descending' (default: 'descending')
-      - sort by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
+      - sort_order : whether to sort things 'ascending' or 'descending' (default: 'descending')
+      - sort_by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
 
       IntervalsStatistics can use this setting, but will not provide a default:
-      - output format : choose the Display subclass for this experiment's results
+      - output_format : choose the Display subclass for this experiment's results
       '''
       super(IntervalsStatistics, self).__init__(controller, records, settings)
 
       # Check the ExperimentSettings object has the right settings
-      if not settings.has('quality') or not settings.has('simple or compound'):
-         msg = 'IntervalsStatistics requires "quality" and "simple or compound" settings'
+      if not settings.has('quality') or not settings.has('simple_or_compound'):
+         msg = 'IntervalsStatistics requires "quality" and "simple_or_compound" settings'
          raise KeyError(msg)
 
       # Check for the other settings we use, and provide default values if required
       if not self._settings.has('topX'):
-         self._settings.set('topX', None)
+         self._settings.topX = None
       if not self._settings.has('threshold'):
-         self._settings.set('threshold', None)
-      if not self._settings.has('sort order'):
-         self._settings.set('sort order', 'descending')
-      if not self._settings.has('sort by'):
-         self._settings.set('sort by', 'frequency')
+         self._settings.threshold = None
+      if not self._settings.has('sort_order'):
+         self._settings.sort_order = 'descending'
+      if not self._settings.has('sort_by'):
+         self._settings.sort_by = 'frequency'
 
       # Make a dictionary to store the intervals
       self._intervals = None
@@ -581,8 +582,8 @@ class IntervalsStatistics(Experiment):
       self._keys = None
 
       # Process the optional "output format" setting
-      if self._settings.has('output format'):
-         self._good_for = [self._settings.get('output format')]
+      if self._settings.has('output_format'):
+         self._good_for = [self._settings.output_format]
    # End __init__()
 
 
@@ -678,8 +679,8 @@ class IntervalsStatistics(Experiment):
 
       # (1) Loop through each of the AnalysisRecord objects, adding the intervals we find.
       # We'll use these over and over again
-      quality = self._settings.get('quality')
-      interval_size = self._settings.get('simple or compound')
+      quality = self._settings.quality
+      interval_size = self._settings.simple_or_compound
 
       for each_record in self._records:
          for each_event in each_record:
@@ -701,19 +702,19 @@ class IntervalsStatistics(Experiment):
                   self._add_interval(str(interv.generic.directed))
 
       # (2.1) If there is a topX or threshold filter, sort by frequency now.
-      if self._settings.get('topX') is not None or \
-      self._settings.get('threshold') is not None:
+      if self._settings.topX is not None or \
+      self._settings.threshold is not None:
          # returns a list of keys, sorted by descending frequency
          self._keys = sorted(self._intervals, key=lambda x:self._intervals[x], reverse=True)
 
          # (3) If we're doing a "topX" filter, do it now.
-         if self._settings.get('topX') is not None:
+         if self._settings.topX is not None:
             # cut the list at the "topX-th element"
-            self._keys = self._keys[:int(self._settings.get('topX'))]
+            self._keys = self._keys[:int(self._settings.topX)]
 
          # (4) If we're doing a "threshold" filter, do it now.
-         if self._settings.get('threshold') is not None:
-            thresh = int(self._settings.get('threshold'))
+         if self._settings.threshold is not None:
+            thresh = int(self._settings.threshold)
             # if the last key on the list is already greater than the threshold, we won't sort
             if self._intervals[self._keys[-1]] < thresh:
                # hold the keys of intervals above the threshold
@@ -731,9 +732,9 @@ class IntervalsStatistics(Experiment):
 
       # (4) Now do a final sorting.
       # Should we 'reverse' the list sorting? Yes, unless we sorted 'ascending'
-      should_reverse = False if 'ascending' == self._settings.get('sort order') else True
+      should_reverse = False if 'ascending' == self._settings.sort_order else True
 
-      if 'frequency' == self._settings.get('sort by'):
+      if 'frequency' == self._settings.sort_by:
          self._keys = sorted(self._keys,
                              key=lambda x:self._intervals[x],
                              reverse=should_reverse)
@@ -785,36 +786,36 @@ class IntervalNGramStatistics(Experiment):
 
       IntervalNGramStatistics requires these settings:
       - quality : whether or not to display interval quality
-      - simple or compound : whether to use simple or compound intervals
-      - values of n : a list of ints that is the values of 'n' to display
+      - simple_or_compound : whether to use simple or compound intervals
+      - values_of_n : a list of ints that is the values of 'n' to display
 
       IntervalNGramStatistics uses these settings, but provides defaults:
       - topX : display on the "top X" number of results (default: none)
       - threshold : stop displaying things after this point (default: none)
-      - sort order : whether to sort things 'ascending' or 'descending' (default: 'descending')
-      - sort by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
+      - sort_order : whether to sort things 'ascending' or 'descending' (default: 'descending')
+      - sort_by : whether to sort things by 'frequency' or 'name' (default: 'frequency')
 
       IntervalNGramStatistics can use this setting, but will not provide a default:
-      - output format : choose the Display subclass for this experiment's results
+      - output_format : choose the Display subclass for this experiment's results
       '''
       super(IntervalNGramStatistics, self).__init__(controller, records, settings)
 
       # Check the ExperimentSettings object has the right settings
-      if not settings.has('quality') or not settings.has('simple or compound') or \
-      not settings.has('values of n'):
+      if not settings.has('quality') or not settings.has('simple_or_compound') or \
+      not settings.has('values_of_n'):
          msg = 'IntervalNGramStatistics requires "quality," '
-         msg += '"simple or compound," and "values of n" settings'
+         msg += '"simple or compound," and "values_of_n" settings'
          raise KeyError(msg)
 
       # Check for the other settings we use, and provide default values if required
       if not self._settings.has('topX'):
-         self._settings.set('topX', None)
+         self._settings.topX = None
       if not self._settings.has('threshold'):
-         self._settings.set('threshold', None)
-      if not self._settings.has('sort order'):
-         self._settings.set('sort order', 'descending')
-      if not self._settings.has('sort by'):
-         self._settings.set('sort by', 'frequency')
+         self._settings.threshold = None
+      if not self._settings.has('sort_order'):
+         self._settings.sort_order = 'descending'
+      if not self._settings.has('sort_by'):
+         self._settings.sort_by = 'frequency'
 
       # Make a dictionary to store the intervals
       self._ngrams = None
@@ -823,8 +824,8 @@ class IntervalNGramStatistics(Experiment):
       self._keys = None
 
       # Process the optional "output format" setting
-      if self._settings.has('output format'):
-         self._good_for = [self._settings.get('output format')]
+      if self._settings.has('output_format'):
+         self._good_for = [self._settings.output_format]
    # End __init__()
 
 
@@ -924,9 +925,9 @@ class IntervalNGramStatistics(Experiment):
 
       # (1) Loop through each of the AnalysisRecord objects, adding the n-grams we find.
       # We'll use these over and over again
-      quality = self._settings.get('quality')
-      interval_size = self._settings.get('simple or compound')
-      values_of_n = sorted(self._settings.get('values of n')) # sorted lowest-to-highest
+      quality = self._settings.quality
+      interval_size = self._settings.simple_or_compound
+      values_of_n = sorted(self._settings.values_of_n) # sorted lowest-to-highest
 
       for each_record in self._records:
          for i in xrange(len(each_record)):
@@ -979,19 +980,19 @@ class IntervalNGramStatistics(Experiment):
 
 
       # (2.1) If there is a topX or threshold filter, sort by frequency now.
-      if self._settings.get('topX') is not None or \
-      self._settings.get('threshold') is not None:
+      if self._settings.topX is not None or \
+      self._settings.threshold is not None:
          # returns a list of keys, sorted by descending frequency
          self._keys = sorted(self._ngrams, key=lambda x:self._ngrams[x], reverse=True)
 
          # (3) If we're doing a "topX" filter, do it now.
-         if self._settings.get('topX') is not None:
+         if self._settings.topX is not None:
             # cut the list at the "topX-th element"
-            self._keys = self._keys[:int(self._settings.get('topX'))]
+            self._keys = self._keys[:int(self._settings.topX)]
 
          # (4) If we're doing a "threshold" filter, do it now.
-         if self._settings.get('threshold') is not None:
-            thresh = int(self._settings.get('threshold'))
+         if self._settings.threshold is not None:
+            thresh = int(self._settings.threshold)
             # if the last key on the list is already greater than the threshold, we won't sort
             if self._ngrams[self._keys[-1]] < thresh:
                # hold the keys of intervals above the threshold
@@ -1009,9 +1010,9 @@ class IntervalNGramStatistics(Experiment):
 
       # (4) Now do a final sorting.
       # Should we 'reverse' the list sorting? Yes, unless we sorted 'ascending'
-      should_reverse = False if 'ascending' == self._settings.get('sort order') else True
+      should_reverse = False if 'ascending' == self._settings.sort_order else True
 
-      if 'frequency' == self._settings.get('sort by'):
+      if 'frequency' == self._settings.sort_by:
          self._keys = sorted(self._keys,
                              key=lambda x:self._ngrams[x],
                              reverse=should_reverse)

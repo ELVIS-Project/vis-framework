@@ -101,9 +101,9 @@ def analyze_piece(each_piece):
                                    salami=this_salami)
       # prepare the AnalysisSettings object
       this_settings = AnalysisSettings()
-      this_settings.set('types', this_types)
-      this_settings.set('offset', this_offset)
-      this_settings.set('salami', this_salami)
+      this_settings.types = this_types
+      this_settings.offset = this_offset
+      this_settings.salami = this_salami
       # run the analysis and append results to our results-collector
       try:
          records.append(_event_finder(parts=this_parts,
@@ -163,7 +163,7 @@ def _event_finder(parts, settings, record):
          return this_obj.offset
 
    # Make an iterable out of the list of types we'll need, so it's easier to pass as an argument
-   list_of_types = [l[0] for l in settings.get('types')]
+   list_of_types = [type for type, name in settings.types]
 
    # 1.) Flatten the parts
    parts = [p.flat for p in parts]
@@ -213,13 +213,13 @@ def _event_finder(parts, settings, record):
       current_event_offset_start = max([obj.offset for obj in current_events])
 
       # 4.5) Turn the objects into their string forms
-      current_events = Analyzer._object_stringer(current_events, settings.get('types'))
+      current_events = Analyzer._object_stringer(current_events, settings.types)
 
       # 4.6) Reverse the list, so it's lowest-to-highest voices
       current_events = tuple(reversed(current_events))
 
       # 4.7) Add the event to the AnalysisRecord, if relevant
-      if settings.get('salami'):
+      if settings.salami:
          # If salami, we always add the event.
 
          # But also, if this event is the same as the previous event, we have to use the
@@ -233,7 +233,7 @@ def _event_finder(parts, settings, record):
          record.append(current_event_offset_start, current_events)
 
       # 4.8) Increment the offset
-      current_offset += settings.get('offset')
+      current_offset += settings.offset
    # End step 4
 
    # Return
