@@ -117,7 +117,8 @@ class Settings(object):
    def __setattr__(self, setting, value):
       '''
       Set the value of a setting. If the setting does not yet exist, it is
-      created and initialized to the value.
+      created and initialized to the value. This syntax feels a bit more
+      object-oriented and friendly than __setitem__.
       '''
       if '_settings' == setting:
          super(Settings, self).__setattr__(setting, value)
@@ -126,6 +127,12 @@ class Settings(object):
          sett = Setting()
       sett.value = value
       self._settings[setting] = sett
+   
+   def __iter__(self):
+      '''
+      Syntactic sugar for the values of the internal dictionary.
+      '''
+      return self._settings.itervalues()
    
    def has(self, setting):
       '''
@@ -153,10 +160,10 @@ class PositiveNumberSetting(type):
       dct = dict(cls.__dict__)
       bases = (cls,)
       name = "Positive" + cls.__name__
+      # NB: this is not safe; assumes the class 
+      # you pass in has a method called `clean`.
       pre_clean = dct['clean']
       def clean(self, value):
-         # NB: this is not safe; assumes the class 
-         # you pass in has a method called `clean`.
          value = pre_clean(self, value)
          if isinstance(value, Number):
             if value <= 0:
