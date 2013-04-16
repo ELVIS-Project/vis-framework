@@ -33,7 +33,7 @@ for connecting controllers & models to views.
 __all__ = ['visqtinterface']
 
 
-class _Views_Tmp:
+class _ViewsTmp:
    '''
    This class is private to the __init__ module. It is merely used
    as a placeholder for the view-getting functions of a VisInterface
@@ -51,14 +51,14 @@ class _InterfaceMeta(type):
       # VisInterface itself is only a base class, so
       # don't tally up its view-getters
       if not 'VisInterface' == name:
-         for func in _Views_Tmp.views.itervalues():
+         for func in _ViewsTmp.views.itervalues():
             # remove the view-getters from the class definition;
             # these will go in its `views` dictionary
             attrs.pop(func.__name__)
-      attrs.update(views=_Views_Tmp.views)
+      attrs.update(views=_ViewsTmp.views)
       # now we've put the view-getting functions back in the class,
-      # clear out _Views_Tmp for the next interface to be imported.
-      _Views_Tmp.views = {}
+      # clear out _ViewsTmp for the next interface to be imported.
+      _ViewsTmp.views = {}
       return super(_InterfaceMeta, cls).__new__(cls, name, bases, attrs)
 
 def view_getter(class_name):
@@ -71,7 +71,7 @@ def view_getter(class_name):
    def wrap(func):
       # keep the association between the decorated function and the class
       # it returns views for, at least until the interface is done being imported.
-      _Views_Tmp.views[class_name] = func
+      _ViewsTmp.views[class_name] = func
       return func
    return wrap
 
