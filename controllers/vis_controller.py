@@ -49,11 +49,11 @@ class VisController(Controller):
 
    TODO: doctest
    '''
-   def __init__(self, argv, interface='PyQt4', details=None):
-      
-      active_controller_changed = pyqtSignal(str)
-      info_signal = pyqtSignal()
-      
+   
+   active_controller_changed = pyqtSignal(str)
+   info_signal = pyqtSignal()
+   
+   def __init__(self, argv, interface='PyQt4', details=None):      
       '''
       Create a new VisController instance.
 
