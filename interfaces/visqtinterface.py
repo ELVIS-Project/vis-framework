@@ -50,18 +50,31 @@ class VisQtInterface(VisInterface):
    
    # Helper functions
    
-   def setup_thread(self, thread, next):
+   def popup_error(self, component, description):
+      '''
+      Notify the user that an error has happened.
+      INPUTS:
+      `component` - the name of the component raising the error
+      `description` - a useful description of the error
+      '''
+      # TODO: the `error` signals in the controllers should output a
+      # (name, error) 2-tuple and this function can take that as an
+      # argument instead of having the view-getter look at the controller's class.
+      return QtGui.QMessageBox.warning(None,
+                                       '{0} Error'.format(component),
+                                       description,
+                                       QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                                       QtGui.QMessageBox.Ok)
+   
+   def setup_thread(self, thread):
       '''
       Does the basic configuration for a QThread
       subclass to use the "working" screen.
       '''
-      # NB: it may be more canonical/sensical not to have the 'next'
-      # argument. From an MVC perspective, this means requiring the
-      # VisInterface (which should be strictly a view) to understand
-      # some aspect of the inner workings of the program.
       def thread_started():
-         self.main_screen.setCurrentIndex(main_screen.WORKING_INDEX)
+         self.main_screen.setCurrentWidget(self.work_page)
       thread.started.connect(thread_started)
+      
       def update_progress(status):
          if isinstance(progress, basestring):
             if '100' == progress:
@@ -75,9 +88,10 @@ class VisQtInterface(VisInterface):
             else:
                self.lbl.setText(progress)
       thread.status.connect(update_progress)
-      def thread_finished():
-         self.main_screen.setCurrentIndex(next)
-      thread.finished.connect(thread_finished)
+      
+      def popup_error(description):
+         return self.popup_error(thread.__class__.__name__, description)
+      thread.error.connect(popup_error)
    
    def working_page(self):
       page_working = QtGui.QWidget()
@@ -189,6 +203,8 @@ class VisQtInterface(VisInterface):
                                                parent=function_menu))
       horizontalLayout.addWidget(self.get_view(vis_controller.setup_experiment,
                                                parent=function_menu))
+      # TODO: extra buttons for progressing from Experiment to Visualization,
+      # and implement their associated VisController methods
       spacerItem = QtGui.QSpacerItem(40,
                                      20,
                                      QtGui.QSizePolicy.Expanding,
@@ -197,110 +213,44 @@ class VisQtInterface(VisInterface):
       horizontalLayout.addWidget(self.get_view(vis_controller.get_info,
                                                parent=function_menu))
       verticalLayout.addWidget(function_menu)
-      main_screen = QtGui.QStackedWidget(centralwidget)
-      self.IMPORTER_INDEX = 0
-      self.ANALYZER_INDEX = 1
-      self.EXPERIMENTER_INDEX = 2
-      self.WORKING_INDEX = 3
-      main_screen.addWidget(self.get_view(vis_controller.importer))
-      main_screen.addWidget(self.get_view(vis_controller.analyzer))
-      main_screen.addWidget(self.get_view(vis_controller.experimenter))
-      main_screen.addWidget(self.get_view(self.working_page()))
-      # TODO: refactor this
-      page_about = QtGui.QWidget()
-      verticalLayout_5 = QtGui.QVBoxLayout(page_about)
-      groupBox_4 = QtGui.QGroupBox(page_about)
-      groupBox_4.setTitle(self.translate("Information about vis"))
-      verticalLayout_6 = QtGui.QVBoxLayout(groupBox_4)
-      label_copyright = QtGui.QLabel(groupBox_4)
-      label_copyright.setText(self.translate('''
-      <html>
-      <head/>
-      <body>
-         <p>
-            <span style=\" text-decoration: underline;\">vis 9</span>
-         </p>
-         <p>
-            Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan
-         </p>
-         <p>
-            This program is free software: you can redistribute it and/or modify<br/>it under
-             the terms of the GNU General Public License as published by<br/>the Free Software
-              Foundation, either version 3 of the License, or<br/>(at your option) any later
-               version.
-         </p>
-         <p>
-            This program is distributed in the hope that it will be
-             useful,<br/>but WITHOUT ANY WARRANTY; without even the implied warranty
-              of<br/>MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the<br/>GNU
-               General Public License for more details.
-         </p>
-         <p>
-            You should have received a copy
-             of the GNU General Public License<br/>along with this program. If not, see
-              &lt;http://www.gnu.org/licenses/&gt;.
-         </p>
-      </body>
-      </html>'''))
-      verticalLayout_6.addWidget(label_copyright)
-      line = QtGui.QFrame(groupBox_4)
-      line.setFrameShape(QtGui.QFrame.HLine)
-      line.setFrameShadow(QtGui.QFrame.Sunken)
-      verticalLayout_6.addWidget(line)
-      label_about = QtGui.QLabel(groupBox_4)
-      label_about.setText(self.translate('''
-      <html>
-      <head/>
-      <body>
-      <p>
-         vis was written as part of McGill University\'s contribution to the ELVIS
-          project.<br/>For more information about ELVIS, please refer to our 
-          <a href=\"http://elvis.music.mcgill.ca/\">
-            <span style=\" text-decoration: underline; color:#0057ae;\">
-               web site
-            </span>
-         </a>.
-      </p>
-      <p>
-         Funding for ELVIS was provided by the following organizations:<br/>- SSHRC (Social
-          Sciences and Humanities Research Council) of Canada<br/>- NEH (National Endowment for
-           the Humanities) of the United States of America<br/>- The Digging into Data
-            Challenge
-      </p>
-      <p>
-         vis is written in the Python programming language, and relies on the
-          following<br/>software, all released under free licences:<br/>
-         - <a href=\"http://mit.edu/music21/\">
-            <span style=\" text-decoration: underline; color:#0057ae;\">
-               music21<br/>
-            </span>
-         </a>
-         - <a href=\"http://www.riverbankcomputing.co.uk/software/pyqt/download\">
-            <span style=\" text-decoration: underline; color:#0057ae;\">
-               PyQt4
-            </span>
-         </a>
-         <br/>
-         - <a href=\"http://www.oxygen-icons.org/\">
-            <span style=\" text-decoration: underline; color:#0057ae;\">
-               Oxygen Icons
-            </span>
-         </a>
-      </p>
-      </body>
-      </html>'''))
-      verticalLayout_6.addWidget(label_about)
-      verticalLayout_5.addWidget(groupBox_4)
-      # END TODO
-      main_screen.addWidget(page_about)
-      verticalLayout.addWidget(main_screen)
-      self.main_screen = main_screen
+      verticalLayout.addWidget(self.get_view(vis_controller.set_active_controller,
+                                             parent=centralwidget))
       MainWindow.setCentralWidget(centralwidget)
       statusbar = QtGui.QStatusBar(MainWindow)
       MainWindow.setStatusBar(statusbar)
       MainWindow.setWindowTitle(self.translate("vis"))
       main_screen.setCurrentIndex(0)
       return MainWindow
+   
+   @view_getter('set_active_controller')
+   def view(self, set_active_controller, **kwargs):
+      # This is a bit weird -- maybe it should go in the
+      # main VisController view-getter
+      parent = kwargs.pop('parent')
+      vis_controller = set_active_controller.__self__
+      main_screen = QtGui.QStackedWidget(parent)
+      controllers = [
+         vis_controller.importer,
+         vis_controller.analyzer,
+         vis_controller.experimenter,
+      ]
+      widgets = {
+         controller.__class__.__name__: self.get_view(controller)
+         for controller in controllers
+      }
+      for controller in controllers:
+         main_screen.addWidget(widgets[controller.__class__.__name__])
+      def switch_widget(class_name):
+         main_screen.setCurrentWidget(widgets[class_name])
+      vis_controller.active_controller_changed.connect(switch_widget)
+      self.work_page = main_screen.addWidget(self.get_view(self.working_page()))
+      info_widget = self.get_view(vis_controller.info)
+      main_screen.addWidget(info_widget)
+      def info_requested():
+         main_screen.setCurrentWidget(info_widget)
+      vis_controller.info_signal.connect(info_requested)
+      self.main_screen = main_screen
+      return main_screen
    
    @view_getter('choose_files')
    def view(self, choose_files, **kwargs):
@@ -384,7 +334,7 @@ class VisQtInterface(VisInterface):
                                       QtGui.QSizePolicy.Expanding,
                                       QtGui.QSizePolicy.Minimum)
       horizontalLayout_4.addItem(spacerItem1)
-      files_list_view = self.get_view(importer._list_of_files, parent=widget_3)
+      files_list_view = self.get_view(importer.thread.list_of_files, parent=widget_3)
       horizontalLayout_4.addWidget(self.get_view(importer.add_folders,
                                                  parent=widget_4))
       horizontalLayout_4.addWidget(self.get_view(importer.add_files,
@@ -416,6 +366,9 @@ class VisQtInterface(VisInterface):
       verticalLayout_8.setMargin(0)
       horizontalLayout_3.addWidget(widget)
       verticalLayout_2.addWidget(grp_choose_files)
+      def import_error(description):
+         return self.error_popup(importer.__class__.__name__, description)
+      importer.error.connect(import_error)
       return page_choose
    
    @view_getter('add_folders')
@@ -485,7 +438,7 @@ class VisQtInterface(VisInterface):
       btn_import.setSizePolicy(sizePolicy)
       btn_import.setLayoutDirection(QtCore.Qt.LeftToRight)
       btn_import.setText(self.translate("Import Pieces"))
-      self.setup_thread(importer_thread, self.ANALYZER_INDEX)
+      self.setup_thread(importer_thread)
       btn_import.clicked.connect(importer_thread.start)
       return btn_import
    
@@ -528,7 +481,7 @@ class VisQtInterface(VisInterface):
                                       QtGui.QSizePolicy.Minimum,
                                       QtGui.QSizePolicy.Expanding)
       gridLayout_2.addItem(spacerItem5, 2, 4, 1, 1)
-      gridLayout_2.addWidget(self.get_view(analyzer._list_of_pieces, parent=groupBox),
+      gridLayout_2.addWidget(self.get_view(analyzer.list_of_pieces, parent=groupBox),
                              2, 0, 6, 3)
       grp_settings_for_piece = QtGui.QGroupBox(groupBox)
       grp_settings_for_piece.setTitle(self.translate("Settings for Piece"))
@@ -602,7 +555,9 @@ class VisQtInterface(VisInterface):
       horizontalLayout_5.addWidget(self.get_view(analyzer.analyze, parent=widget_6))
       gridLayout_2.addWidget(widget_6, 0, 4, 1, 1)
       verticalLayout_23.addWidget(groupBox)
-      # maybe connect some signals?
+      def analyze_error(description):
+         return self.error_popup(analyzer.__class__.__name__, description)
+      analyzer.error.connect(analyze_error)
       return page_analyze
    
    @view_getter('load_statistics')
@@ -748,4 +703,27 @@ class VisQtInterface(VisInterface):
       lbl_choose_experiment.setText(self.translate("Choose an Experiment:"))
       formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, lbl_choose_experiment)
       verticalLayout_3.addWidget(groupBox_2)
+      def experiment_error(description):
+         return self.error_popup(experimenter.__class__.__name__, description)
+      experimenter.error.connect(experiment_error)
       return page_show
+   
+   @view_getter('VisInfo')
+   def view(self, info):
+      page_about = QtGui.QWidget()
+      verticalLayout_5 = QtGui.QVBoxLayout(page_about)
+      groupBox_4 = QtGui.QGroupBox(page_about)
+      groupBox_4.setTitle(self.translate(info.title))
+      verticalLayout_6 = QtGui.QVBoxLayout(groupBox_4)
+      label_copyright = QtGui.QLabel(groupBox_4)
+      label_copyright.setText(self.translate(info.copyright))
+      verticalLayout_6.addWidget(label_copyright)
+      line = QtGui.QFrame(groupBox_4)
+      line.setFrameShape(QtGui.QFrame.HLine)
+      line.setFrameShadow(QtGui.QFrame.Sunken)
+      verticalLayout_6.addWidget(line)
+      label_about = QtGui.QLabel(groupBox_4)
+      label_about.setText(self.translate(info.about))
+      verticalLayout_6.addWidget(label_about)
+      verticalLayout_5.addWidget(groupBox_4)
+      return page_about
