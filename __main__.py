@@ -28,12 +28,8 @@
 '''
 Starts vis with the PyQt4 interface.
 '''
-
-
-
 import sys
 from controllers.vis_controller import VisController
-
 
 
 def main():
@@ -42,8 +38,6 @@ def main():
    '''
    gui_controller = VisController(sys.argv)
    sys.exit(gui_controller.exec_())
-
-
 
 if __name__ == '__main__':
    main()
