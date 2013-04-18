@@ -70,13 +70,6 @@ class Experimenter(Controller, QtCore.QObject):
 
 
 
-   # List of the experiments we have
-   # TODO: do this with introspection so we don't have to update things
-   # in multiple places when these change.
-   experiments_we_have = ['IntervalsList', 'ChordsList']
-
-
-
    def __init__(self):
       '''
       Create a new Experimenter controller.
@@ -90,6 +83,17 @@ class Experimenter(Controller, QtCore.QObject):
       self._experiment_results.connect(self._catch_experiments)
       # Hold the result emitted by an Experiment when it's finished
       self._exper_result = None
+      # look into models.experimenting and find the names of Experiments
+      namespace = [getattr(experimenting, s) for s in dir(experimenting)]
+      classes = [c for c in namespace if isinstance(c, type)]
+      experiments = [e for e in classes if experimenting.Experiment in e.__bases__]
+      self.available_experiments = experiments
+   
+   def set_experiment(self):
+      '''
+      Method docstring
+      '''
+      pass
 
 
 
@@ -115,9 +119,9 @@ class Experimenter(Controller, QtCore.QObject):
       '''
       # Update the status
       self.status.emit('100')
-      self.status.emit('Waiting on DisplayHandler')
+      self.status.emit('Waiting on Visualizer')
 
-      # Make and emit the tuple for the DisplayHandler
+      # Make and emit the tuple for the Visualizer
       self.experiment_finished.emit((self._exper_result, experiment_result.toPyObject()))
 
 
@@ -128,12 +132,8 @@ class Experimenter(Controller, QtCore.QObject):
       Runs the currently-configured experiment(s).
       '''
       # Check there is an 'experiment' setting that refers to one we have
-      
-      namespace = [getattr(experimenting, s) for s in dir(experimenting)]
-      classes = [c for c in namespace if isinstance(c, type)]
-      experiments = [e.__name__ for e in classes if experimenting.Experiment in e.__bases__]
       exper = self._experiment_settings.experiment
-      if exper in experiments:
+      if exper in [e.__name__ for e in self.available_experiments]:
          exper = getattr(experimenting, exper)
       else:
          self.error.emit('Experimenter: could not determine which experiment to run.')

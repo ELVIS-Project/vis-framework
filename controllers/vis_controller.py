@@ -30,7 +30,7 @@ Holds the VisController class, which maintains interactions between all parts of
 
 # Imports from...
 # vis
-from controllers.controller import Controller
+from conf import DEFAULT_INTERFACE
 from controllers.importer import Importer
 from controllers.analyzer import Analyzer
 from controllers.experimenter import Experimenter
@@ -39,10 +39,10 @@ from models.importing import ListOfFiles
 from models.analyzing import ListOfPieces
 from models.info import VisInfo
 # PyQt4
-from PyQt4.QtCore import pyqtSignal
+from PyQt4.QtCore import pyqtSignal, QObject
 
 
-class VisController(Controller):
+class VisController(QObject):
    '''
    This class creates an interface and the various controllers required to run a vis
    implementation, and manages the interactions amongst them.
@@ -53,7 +53,7 @@ class VisController(Controller):
    active_controller_changed = pyqtSignal(str)
    info_signal = pyqtSignal()
    
-   def __init__(self, argv, interface='PyQt4', details=None):      
+   def __init__(self, argv, interface=DEFAULT_INTERFACE, details=None):      
       '''
       Create a new VisController instance.
 
@@ -65,7 +65,7 @@ class VisController(Controller):
       The second argument, "details", is a list of arguments specifying settings
       to be used when creating the specific interface. So far, there are none.
       '''
-      super(Controller, self).__init__() # required for signals
+      super(VisController, self).__init__() # required for signals
       
       # Setup sub-controllers
       self.importer = Importer()
@@ -74,13 +74,12 @@ class VisController(Controller):
       self.visualizer = Visualizer()
       
       # Connect signals
-      self.importer.thread.finished.connect(self.setup_analysis)
-      self.analyzer.thread.finished.connect(self.setup_experiment)
+      self.importer.finished.connect(self.setup_analysis)
+      self.analyzer.finished.connect(self.setup_experiment)
       
       # Set instance variables
-      self.importer.thread.list_of_pieces = self.analyzer.list_of_pieces
+      self.importer.list_of_pieces = self.analyzer.list_of_pieces
       self.info = VisInfo()
-      self.active_controller = None
       
       if 'PyQt4' == interface:
          from interfaces.visqtinterface import VisQtInterface
@@ -95,6 +94,8 @@ class VisController(Controller):
       return self.interface.exec_()
    
    def set_active_controller(self, value):
+      if not hasattr(self, '_active_controller'):
+         self._active_controller = value
       if not self._active_controller is value:
          self._active_controller = value
          self.active_controller_changed.emit(value.__class__.__name__)
@@ -106,7 +107,7 @@ class VisController(Controller):
       '''
       pieces_list = ListOfPieces()
       self.analyzer.list_of_pieces = pieces_list
-      self.importer.thread.list_of_pieces = pieces_list
+      self.importer.list_of_pieces = pieces_list
       # clear importer and visualizer?
       self.set_active_controller(self.importer)
    
@@ -114,7 +115,7 @@ class VisController(Controller):
       '''
       Start importing the files contained in the self.importer's ListOfFiles.
       '''
-      self.importer.thread.start()
+      self.importer.start()
    
    def setup_analysis(self):
       '''

@@ -28,10 +28,10 @@
 
 
 
-__all__ = ['analyzing', 'display_handling', 'experimenting', 'importing']#, 'ngram']
+__all__ = ['analyzing', 'visualizing', 'experimenting', 'importing']#, 'ngram']
 
 import analyzing
-import display_handling
+import visualizing
 import experimenting
 import importing
 #import ngram

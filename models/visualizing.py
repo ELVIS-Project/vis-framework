@@ -5,7 +5,7 @@
 # Program Description:       Measures sequences of vertical intervals.
 #
 # Filename: data.py
-# Purpose: The model classes for the DisplayHandler controller.
+# Purpose: The model classes for the Visualizer controller.
 #
 # Copyright (C) 2012 Jamie Klassen, Christopher Antila
 #

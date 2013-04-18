@@ -29,6 +29,7 @@
 This module contains the VisInterface class -- the core functionality
 for connecting controllers & models to views.
 '''
+import types
 
 class _ViewsTmp:
    '''
@@ -87,7 +88,7 @@ class VisInterface(object):
       '''
       # this is a safe bet; every class has a name
       class_name = viewable.__class__.__name__
-      if hasattr(viewable, "__name__"):
+      if isinstance(viewable, types.MethodType):
          # this is to account for functions, which always have names
          # unless they're lambdas. And if you're storing a lambda in
          # here, Guido have mercy on your soul.

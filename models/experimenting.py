@@ -60,6 +60,8 @@ from settings import Settings
 #    '''
 #    pass
 
+
+
 class Experiment(QtCore.QRunnable):
    # NOTE: in subclasses, change "QtCore.QRunnable" to "Experiment"
    '''
@@ -70,6 +72,8 @@ class Experiment(QtCore.QRunnable):
 
    # List of strings that are the names of the Display objects suitable for this Experiment
    _good_for = ['None']
+   # Human-readable name for the GUI
+   name = "Untitled Experiment"
 
 
 
@@ -156,6 +160,8 @@ class IntervalsLists(Experiment):
 
    # List of strings that are the names of the Display objects suitable for this Experiment
    _good_for = ['SpreadsheetFile', 'LilyPondAnnotated']
+   # Human-readable name for the GUI
+   name = "List of All Vertical and Horizontal Intervals"
 
 
 
@@ -306,6 +312,8 @@ class ChordsLists(Experiment):
 
    # List of strings that are the names of the Display objects suitable for this Experiment
    _good_for = ['SpreadsheetFile', 'LilyPondAnnotated']
+   # Human-readable name for the GUI
+   name = "List of all Chords and Neoriemannian Transformations"
 
 
 
@@ -417,6 +425,8 @@ class IntervalsStatistics(Experiment):
 
    # List of strings that are the names of the Display objects suitable for this Experiment
    _good_for = ['StatisticsListDisplay', 'StatisticsChartDisplay']
+   # Human-readable name for the GUI
+   name = "# of Occurrences of each Interval"
 
 
 
@@ -656,6 +666,8 @@ class IntervalNGramStatistics(Experiment):
 
    # List of strings that are the names of the Display objects suitable for this Experiment
    _good_for = ['StatisticsListDisplay', 'StatisticsChartDisplay']
+   # Human-readable name for the GUI
+   name = "# of Occurences of each N-Gram"
 
 
 

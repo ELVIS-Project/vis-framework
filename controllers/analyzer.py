@@ -34,16 +34,16 @@ from multiprocessing import Pool
 import pickle
 import traceback
 # music21
-from music21 import note, chord, converter
+from music21 import note, chord, converter, stream
 # PyQt4
 from PyQt4 import QtCore
 # vis
 from controller import Controller
-from models.analyzing import ListOfPieces, AnalysisRecord, AnalysisSettings
+from models.analyzing import Piece, ListOfPieces, AnalysisRecord
+from models import settings as models_settings
 
 
-
-def analyze_piece(each_piece):
+def _analyze_piece(each_piece):
    records = []
    piece_name = str(each_piece[ListOfPieces.score][1])
    # (1) Decode the part-combination specification
@@ -112,7 +112,6 @@ def analyze_piece(each_piece):
       except RuntimeError as e:
          return (piece_name, str(e))
    return (piece_name, records)
-
 
 
 def _event_finder(parts, settings, record):
@@ -241,20 +240,73 @@ def _event_finder(parts, settings, record):
 # End _event_finder() ------------------------------------------------------------------------------
 
 
+class Analyzer(QtCore.QThread):
+   '''
+   This class performs analysis for series of vertical intervals, and manages
+   the settings with which to analyze. Makes a list of AnalysisRecord objects
+   that each holds a half-analyzed voice-pair that Experimenter will use to
+   perform fuller analysis.
 
-class AnalyzerThread(QtCore.QThread):
-   def __init__(self, analyzer):
-      self._analyzer = analyzer
+   The ListOfPieces model is always stored in the list_of_pieces property.
+   '''
+   # description of an error in the Analyzer
+   error = QtCore.pyqtSignal(str)
+   # status of the analysis
+   status = QtCore.pyqtSignal(str)
+   
+   def __init__(self):
+      '''
+      Create a new Analyzer instance.
+      '''
+      super(Analyzer, self).__init__()
+      self.current_piece = Piece('', stream.Score(), '', [])
+      self.list_of_pieces = ListOfPieces()
+      self.list_of_analyses = []
       self.progress = 0.0
-      self._multiprocess = False
-      super(QtCore.QThread, self).__init__()
-
-
-
-   def set_multiprocess(self, state):
-      self._multiprocess = bool(state)
-
-
+      self.settings = models_settings.Settings({
+         'types': models_settings.MultiChoiceSetting(
+            # TODO: include other interesting choices here, possibly
+            # dynamically drawn from music21
+            choices=[(note.Note, 'Note'),
+                     (note.Rest, 'Rest'),
+                     (chord.Chord, 'Chord')],
+            display_name="Find these types of object"
+         ),
+         'multiprocess': models_settings.BooleanSetting(
+            False,
+            display_name="Use multiprocessing (import in parallel)"
+         )
+      })
+   
+   @property
+   def current_piece(self):
+      '''
+      Method docstring
+      '''
+      return self._current_piece
+   
+   @current_piece.setter
+   def current_piece(self, value):
+      '''
+      Method docstring
+      '''
+      if not hasattr(self, "_current_piece"):
+         self._current_piece = Piece('', stream.Score(), '', [])
+      self._current_piece.update(value)
+   
+   def analyze(self):
+      '''
+      Method docstring
+      '''
+      self.start()
+   
+   def load_statistics(self, statistics):
+      '''
+      This method may not even be required, but if it is, it will import
+      the "precalculated statistics" -- some kind of serialized AnalysisRecord.
+      '''
+      pass
+   
    def callback(self, result):
       '''
       For internal use.
@@ -265,23 +317,22 @@ class AnalyzerThread(QtCore.QThread):
       '''
       piece_name, result = result
       if isinstance(result, basestring):
-         self._analyzer.error.emit(result)
+         self.error.emit(result)
       else:
          self.progress += 1.0/self.num_pieces
-         self._analyzer.status.emit(str(int(self.progress * 100)))
-         self._analyzer.status.emit("Analyzing... "+piece_name+" Analyzed.")
+         self.status.emit(str(int(self.progress * 100)))
+         self.status.emit("Analyzing... {0} Analyzed.".format(piece_name))
          for record in result:
-            self._analyzer._list_of_analyses.append(record)
-
-
+            self.analysis_records.append(record)
+   
    def run(self):
-      self._analyzer.status.emit('0')
-      self._analyzer.status.emit('Analyzing...')
-      self.num_pieces = self._analyzer._list_of_pieces.rowCount()
+      self.status.emit('0')
+      self.status.emit('Analyzing...')
+      self.num_pieces = self.list_of_pieces.rowCount()
 
-      if self._multiprocess:
+      if self.settings.multiprocess:
          pool = Pool()
-         for each_raw_piece in self._analyzer._list_of_pieces:
+         for each_raw_piece in self.list_of_pieces:
             # (1) Ensure all the things in "each_piece" are *not* a QVariant
             each_piece = []
             for each_column in each_raw_piece:
@@ -289,12 +340,12 @@ class AnalyzerThread(QtCore.QThread):
                   each_piece.append(each_column.toPyObject())
                else:
                   each_piece.append(each_column)
-            pool.apply_async(analyze_piece,(each_piece,),callback=self.callback)
+            pool.apply_async(_analyze_piece, (each_piece,), callback=self.callback)
 
          pool.close()
          pool.join()
       else:
-         for each_raw_piece in self._analyzer._list_of_pieces:
+         for each_raw_piece in self.list_of_pieces:
             each_piece = []
             for each_column in each_raw_piece:
                if isinstance(each_column, QtCore.QVariant):
@@ -302,113 +353,35 @@ class AnalyzerThread(QtCore.QThread):
                else:
                   each_piece.append(each_column)
 
-            self.callback(analyze_piece(each_piece))
+            self.callback(_analyze_piece(each_piece))
 
-      self._analyzer.status.emit('100')
-      self._analyzer.status.emit('Done!')
-      self._analyzer.analysis_finished.emit(self._analyzer._list_of_analyses)
-# End class AnalyzerThread -------------------------------------------------------------------------
-
-
-
-class Analyzer(Controller):
-   '''
-   This class performs analysis for series of vertical intervals, and manages
-   the settings with which to analyze. Makes a list of AnalysisRecord objects
-   that each holds a half-analyzed voice-pair that Experimenter will use to
-   perform fuller analysis.
-
-   The ListOfPieces model is always stored in the list_of_pieces property.
-   '''
-
-
-
-   # PyQt4 Signals
-   # -------------
-   # Change the data of a cell in the ListOfPieces; the GUI will know how to
-   # create an index based on which rows are selected and which data is being
-   # changed (cross-referenced with the ListOfPieces' declaration of
-   # column indices)
-   change_settings = QtCore.pyqtSignal(QtCore.QModelIndex, QtCore.QVariant)
-   # description of an error in the Analyzer
-   error = QtCore.pyqtSignal(str)
-   # to tell the Analyzer controller to perform analysis
-   run_analysis = QtCore.pyqtSignal()
-   # the result of analyzer_analyze; the result is a list of AnalysisRecord objects
-   analysis_finished = QtCore.pyqtSignal(list)
-   # informs the GUI of the status for a currently-running analysis (if two
-   # or three characters followed by a '%' then it should try to update a
-   # progress bar, if available)
-   status = QtCore.pyqtSignal(str)
-   # For internal use...
-   # When _event_finder() finished, it emits this signal
-   event_finder_finished = QtCore.pyqtSignal(AnalysisRecord)
-
-
-
-   def __init__(self):
-      '''
-      Create a new Analyzer instance.
-      '''
-      # signals
-      super(Analyzer, self).__init__() # required for signals
-      # other things
-      self._list_of_pieces = ListOfPieces()
-      self._list_of_analyses = []
-      self.thread = AnalyzerThread(self)
-
-
-
-   def setup_signals(self):
-      self.run_analysis.connect(self.analyze_pieces)
-      self.change_settings.connect(self.set_data)
-
-
-
-   @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QVariant)
+      self.status.emit('100')
+      self.status.emit('Done!')
+      self.analysis_finished.emit(self.analysis_records)
+   
    def set_data(self, index, change_to):
       '''
       Changes the data in a cell of the ListOfPieces model.
-
+      
       The arguments here should be the same as sent to ListOfPieces.setData().
       '''
-      self._list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
-
-
-
+      self.list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
+   
    @staticmethod
    def calculate_all_combos(upto):
       '''
       Calculate all combinations of integers between 0 and the argument.
-
+      
       Includes a 0th item... the argument should be len(whatevs) - 1.
       '''
       post = []
-
+      
       for left in xrange(upto):
          for right in xrange(left+1, upto+1):
             post.append([left, right])
-
+      
       return post
-
-
-
-   @QtCore.pyqtSlot()
-   def analyze_pieces(self):
-      '''
-      Runs the analysis specified in the ListOfPieces. Produces an
-      AnalysisRecord object for each voice pair analyzed.
-
-      Emits the Analyzer.error signal if there is a problem, and continues to
-      process further pieces.
-
-      Emits the Analyzer.analysis_finished signal upon completion, with a list
-      of the AnalysisRecord objects generated.
-      '''
-      self.thread.start()
-
-
-
+   
    @staticmethod
    def _object_stringer(string_me, specs):
       # TODO: test this method

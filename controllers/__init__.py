@@ -28,12 +28,12 @@
 
 
 
-__all__ = ['analyzer', 'controller', 'display_handler', 'experimenter',
+__all__ = ['analyzer', 'controller', 'visualizer', 'experimenter',
            'importer', 'vis_controller']
 
 import vis_controller
 import analyzer
 import controller
-import display_handler
+import visualizer
 import experimenter
 import importer

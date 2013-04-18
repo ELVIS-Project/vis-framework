@@ -4,8 +4,8 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: DisplayHandler.py
-# Purpose: Holds the DisplayHandler controller.
+# Filename: visualizer.py
+# Purpose: Holds the Visualizer controller.
 #
 # Copyright (C) 2012 Jamie Klassen, Christopher Antila
 #
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-Holds the DisplayHandler controller.
+Holds the Visualizer controller.
 '''
 
 
@@ -37,13 +37,13 @@ import file_output
 
 
 
-class DisplayHandler(Controller):
+class Visualizer(Controller):
    '''
    This class takes an ExperimentResults object, if relevant determines which
    Display format to use and its DisplaySettings, then actually displays the
    results for the user.
 
-   Really, the DisplayHandler waits for an Experimenter.experimented
+   Really, the Visualizer waits for an Experimenter.experimented
    signal, then processes it.
    '''
 
@@ -54,16 +54,16 @@ class DisplayHandler(Controller):
    # when the user should be able to see the results of an experiment on the
    # screen in a particular format
    display_shown = QtCore.pyqtSignal()
-   # description of an error in the DisplayHandler
+   # description of an error in the Visualizer
    error = QtCore.pyqtSignal(str)
 
 
 
    def __init__(self):
       '''
-      Create a new DisplayHandler instance.
+      Create a new Visualizer instance.
       '''
-      super(DisplayHandler, self).__init__() # required for signals
+      super(Visualizer, self).__init__() # required for signals
 
 
 
@@ -77,7 +77,7 @@ class DisplayHandler(Controller):
       possible Display objects to use for the results, and the second is the
       data needed by that Display object.
 
-      If there is more than one possible display type, the DisplayHandler will
+      If there is more than one possible display type, the Visualizer will
       somehow choose.
 
       NOTE: the list of possible Display types must have this format:
@@ -103,7 +103,7 @@ class DisplayHandler(Controller):
 
       # (3) Send the signal of success
       self.display_shown.emit()
-# End class DisplayHandler -------------------------------------------------------------------------
+# End class Visualizer -------------------------------------------------------------------------
 
 
 
@@ -119,7 +119,7 @@ class Display(object):
       Create a new Display.
 
       There are three arguments, the first two of which are mandatory:
-      - controller : the DisplayHandler controller to which this Display belongs
+      - controller : the Visualizer controller to which this Display belongs
       - data : argument of any type, as required by the Display subclass
       - settings : the optional ExperimentSettings object
       '''
@@ -158,7 +158,7 @@ class FileOutputDisplay(Display):
       Create a new FileOutputDisplay.
 
       There are three arguments, the first two of which are mandatory:
-      - controller : the DisplayHandler controller to which this Display belongs
+      - controller : the Visualizer controller to which this Display belongs
       - data : a string that should be the contents of the text file
       - settings : the optional ExperimentSettings object
 
@@ -213,7 +213,7 @@ class SpreadsheetFileDisplay(Display):
       Create a new SpreadsheetFileDisplay.
 
       There are three arguments, the first two of which are mandatory:
-      - controller : the DisplayHandler controller to which this Display belongs
+      - controller : the Visualizer controller to which this Display belongs
       - data : a list of tuples
       - settings : the optional ExperimentSettings object
 
@@ -274,7 +274,7 @@ class StatisticsListDisplay(Display):
       Create a new StatisticsListDisplay.
 
       There are three arguments, the first two of which are mandatory:
-      - controller : the DisplayHandler controller to which this Display belongs
+      - controller : the Visualizer controller to which this Display belongs
       - data : a list of tuples
       - settings : the optional ExperimentSettings object
 

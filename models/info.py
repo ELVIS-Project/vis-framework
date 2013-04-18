@@ -25,6 +25,7 @@
 '''
 Holds the VisInfo class, which contains general useful information.
 '''
+from conf import VIS_VERSION
 
 class VisInfo(object):
    def __init__(self):
@@ -34,7 +35,7 @@ class VisInfo(object):
       <head/>
       <body>
          <p>
-            <span style=\" text-decoration: underline;\">vis 9</span>
+            <span style=\" text-decoration: underline;\">vis {0}</span>
          </p>
          <p>
             Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan
@@ -58,7 +59,7 @@ class VisInfo(object):
          </p>
       </body>
       </html>
-      '''
+      '''.format(VIS_VERSION)
       self.about = '''
       <html>
       <head/>

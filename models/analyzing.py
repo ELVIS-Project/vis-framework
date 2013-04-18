@@ -37,9 +37,106 @@ from music21.metadata import Metadata
 from music21.note import Note, Rest
 from music21.chord import Chord
 from music21 import freezeThaw
+from music21.stream import Score
 # vis
 import settings
 
+
+class PartNameSetting(settings.StringSetting):
+   '''
+   class docstring
+   '''
+   pass
+
+
+class OffsetSetting(settings.PositiveNumberSetting(settings.FloatSetting)):
+   '''
+   Class docstring
+   '''
+   pass
+
+
+class PartsComboSetting(settings.MultiChoiceSetting):
+   '''
+   Class docstring
+   '''
+   def __init__(self, *args, **kwargs):
+      super(PartsComboSetting, self).__init__(*args, **kwargs)
+      setts = [(val, name, PartNameSetting(name))
+               for val, name in self.choices]
+      for val, name, setting in setts:
+         def value_changed():
+            for key, sett in self.settings._settings.itervalues():
+               if sett is setting:
+                  self.settings._settings.pop(key)
+                  self.settings._settings[setting.val] = setting
+         setting.value_changed.connect(value_changed)
+      self.settings = settings.Settings({name: setting for val, name, setting in setts})
+
+
+class Piece(object):
+   '''
+   Class docstring
+   '''
+   def __init__(self, path, score, title, part_names):
+      '''
+      Method docstring
+      '''
+      self.description = "Settings for Piece"
+      self.path = path
+      self.score = score
+      self.part_names = part_names
+      self.part_combos = []
+      self.settings = settings.Settings({
+         'title': settings.StringSetting(
+            title,
+            display_name="Piece Title:"
+         ),
+         'all_parts': settings.BooleanSetting(
+            False,
+            display_name="All 2-Part Combinations",
+            extra_detail="Collect Statistics for all Part Combinations"
+         ),
+         'basso_seguente': settings.BooleanSetting(
+            False,
+            display_name="Basso Seguente",
+            extra_detail="Generate Basso Seguente Part"
+         ),
+         'current_parts_combo': PartsComboSetting(
+            choices=zip(self.score.parts, self.part_names),
+            display_name="Compare these parts:"
+         ),
+         'offset': OffsetSetting(
+            0.5,
+            display_name="Offset Interval:"
+         ),
+         'salami': settings.BooleanSetting(
+            False,
+            display_name="Include repeated identical events"
+         )
+      })
+      self.settings.keys = ['title', 'all_parts', 'basso_seguente',
+                            'current_parts_combo', 'offset', 'salami']
+   
+   def update(self, other_piece):
+      '''
+      Change a Piece model to have all the same attributes
+      as another piece model.
+      '''
+      self.path = other_piece.path
+      self.score = other_piece.score
+      self.part_names = other_piece.part_names
+      self.settings.title = other_piece.settings.title
+      self.settings.current_parts_combo = other_piece.settings.current_parts_combo
+      self.settings.offset = other_piece.settings.offset
+      self.settings.salami = other_piece.settings.salami
+   
+   def add_parts_combo(self):
+      '''
+      Method docstring
+      '''
+      self.part_combos.append(self.settings.current_parts_combo)
+      self.settings.current_parts_combo = []
 
 
 class ListOfPieces(QAbstractTableModel):
@@ -69,29 +166,28 @@ class ListOfPieces(QAbstractTableModel):
    _number_of_columns = 6
    _header_names = ['Path', 'Title', 'List of Part Names', 'Offset',
                     'Part Combinations', 'Repeat Identical']
-   filename = 0
-   score = 1
-   parts_list = 2
-   offset_intervals = 3
-   parts_combinations = 4
-   repeat_identical = 5
-
+   
    # A role for data() that means to return the Score object rather than title
    ScoreRole = 'This is an object for the ScoreRole'
-
+   
    # This is the default values for every new row created
-   default_row = ['', None, [], [0.5], '(no selection)', False]
+   default_row = Piece('', Score(), '', [])
    # NOTE:
    # When you change this default_row, you must also change the value in this test:
    # models.test_analyzing.TestListOfPiecesInsertAndRemoveRows.test_insert_7()
-
-
-
    def __init__(self, parent=QModelIndex()):
       '''
       Create a new ListOfPieces instance. Best to use no arguments.
       '''
       super(QAbstractTableModel, self).__init__() # required for QModelIndex
+      self.columns = {
+         'filename': 0,
+         'score': 1,
+         'parts_list': 2,
+         'offset_intervals': 3,
+         'parts_combinations': 4,
+         'repeat_identical': 5
+      }
       self._pieces = []
 
 
@@ -163,25 +259,25 @@ class ListOfPieces(QAbstractTableModel):
             # get the object
             post = self._pieces[row][column]
             # for the "score" column, we have to choose the right sub-index
-            if column is ListOfPieces.score:
+            if column is self.columns['score']:
                post = post.toPyObject()[1] if isinstance(post, QVariant) else post[1]
             # for the "list of parts" columns, convert the list into a string
-            elif column is ListOfPieces.parts_list:
+            elif column is self.columns['parts_list']:
                post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
                # also trim the [] around the list
                post = post[1:-1]
             # for the "list of offsets" columns, convert the list into a string
-            elif column is ListOfPieces.offset_intervals:
+            elif column is self.columns['offset_intervals']:
                post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
          # some things will have the Qt.ScoreRole
          elif role is ListOfPieces.ScoreRole:
             # get the object
             post = self._pieces[row][column]
             # if it's the score
-            if column is ListOfPieces.score:
+            if column is self.columns['score']:
                post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
             # else if it's the list of parts
-            elif column is ListOfPieces.parts_list:
+            elif column is self.columns['parts_list']:
                pass # just to avoid obliteration
             # everything else must return nothing
             else:
@@ -309,13 +405,12 @@ class ListOfPieces(QAbstractTableModel):
 # End Class ListOfPieces ------------------------------------------------------
 
 
-
 class AnalysisRecord(object):
    '''
    Stores an intermediate record of an analysis. This class does not hold
    statistics or other results, but rather represents a mid-point, where the
    information being analyzed is stored separately from the piece.
-
+   
    Each AnalysisRecord contains the following information:
    - a (JSON-serialized) music21 Metadata object, with information about the 
      work and movement
@@ -325,14 +420,11 @@ class AnalysisRecord(object):
    - whether the score was "salami sliced" (maintaining the same offset
      between events) or not (which does not include an event if it is equal to
      the previous offset)
-
+   
    This class is iterable. Each iteration returns a 2-tuple, where index 0 is
    the offset at which the event occurs in the Score, and index 1 is the event
    itself.
    '''
-
-
-
    # Instance Data:
    # ==============
    # metadata : a music21 Metadata object
@@ -342,9 +434,6 @@ class AnalysisRecord(object):
    # _record : a list representing a record of an analysis, such that:
    #    _record[x][0] : holds the offset at which the event happened
    #    _record[x][1] : holds the event itself
-
-
-
    def __init__(self, metadata=None, part_names=None, offset=None, salami=None):
       '''
       Create a new AnalysisRecord. You should set the following keyword
@@ -353,7 +442,7 @@ class AnalysisRecord(object):
       - _part_names (with a list of strings containing part names)
       - _offset (with a floating point number)
       - _salami (boolean)
-
+      
       If you do not provide this information, sensible defaults will be used:
       - empty Metadata
       - _part_names : ['']
@@ -361,7 +450,7 @@ class AnalysisRecord(object):
       - _salami : False
       '''
       self._record = []
-
+      
       if metadata is None:
          m = Metadata()
          jf = freezeThaw.JSONFreezer(m)
@@ -369,54 +458,46 @@ class AnalysisRecord(object):
       else:
          jf = freezeThaw.JSONFreezer(metadata)
          self._metadata = jf.json
-
+      
       if part_names is None:
          self._part_names = ['']
       else:
          self._part_names = part_names
-
+      
       if offset is None:
          self._offset = 0.0
       else:
          self._offset = offset
-
+      
       if salami is None:
          self._salami = False
       else:
          self._salami = salami
-
-
-
+   
    def __iter__(self):
       '''
       Iterate through the events in this AnalysisRecord.
       '''
       for event in self._record:
          yield event
-
-
-
+   
    def __getitem__(self, key):
       '''
       Access the event at a particular index in the AnalysisRecord.
       '''
       return self._record[key]
-
-
-
+   
    def __len__(self):
       '''
       Returns the number of events in the AnalysisRecord.
       '''
       return len(self._record)
-
-
-
+   
    def part_names(self):
       '''
       Return a list of strings that represent the part names involved in this
       AnalysisRecord.
-
+      
       >>> a = AnalysisRecord(part_names=['Clarinet', 'Tuba'])
       >>> a.part_names()
       ['Clarinet', 'Tuba']
@@ -428,15 +509,13 @@ class AnalysisRecord(object):
       ['']
       '''
       return self._part_names
-
-
-
+   
    def offset(self):
       '''
       Return the minimum offset between events in this AnalysisRecord. If
       salami_sliced() reutrns True, then all events are this offset from each
       other.
-
+      
       >>> a = AnalysisRecord(offset=1)
       >>> a.offset()
       1
@@ -448,14 +527,12 @@ class AnalysisRecord(object):
       0.0
       '''
       return self._offset
-
-
-
+   
    def salami_sliced(self):
       '''
       Return whether or not the score was "salami sliced" to produce this
       AnalysisRecord.
-
+      
       >>> a = AnalysisRecord(salami=True)
       >>> a.salami_sliced()
       True
@@ -467,9 +544,7 @@ class AnalysisRecord(object):
       False
       '''
       return self._salami
-
-
-
+   
    def metadata(self):
       '''
       Return the music21 Metadata object stored in this AnalysisRecord.
@@ -477,15 +552,11 @@ class AnalysisRecord(object):
       jt = freezeThaw.JSONThawer()
       jt.json = self._metadata
       return jt.storedObject
-
-
-
+   
    def append(self, offset, event):
       # TODO: replace append_event() with this
       self.append_event(offset, event)
-
-
-
+   
    def append_event(self, offset, event):
       '''
       Add an event to the end of this AnalysisRecord.
@@ -495,9 +566,7 @@ class AnalysisRecord(object):
       - event : the object being analyzed
       '''
       self._record.append((offset, event))
-
-
-
+   
    def most_recent_event(self):
       '''
       Returns the 2-tuple representing the most recently-recorded event's
@@ -511,41 +580,3 @@ class AnalysisRecord(object):
       else:
          return (None, None)
 # End class AnalysisRecord -----------------------------------------------------
-
-
-
-class AnalysisSettings(settings.Settings):
-   '''
-   Hold settings relevant to conducting analyses.
-
-   All the possible settings:
-   - types : a list of 2-tuples, where element 0 is a type you want to count as an "event,"
-             and element 1 is a function that produces a string version suitable for an
-             AnalysisRecord instance.
-   - offset : the minimum quarterLength offset between consecutive events
-   - salami : if True, all events will be the offset distance from each
-      other, even if this produces a series of identical events
-   '''
-   def __init__(self):
-      '''
-      Create an empty AnalysisSettings instance.
-      '''
-      setts = {
-         'types': settings.MultiChoiceSetting(
-            # TODO: include other interesting choices here, possibly
-            # dynamically drawn from music21
-            choices=[(Note, 'Note'),
-                     (Rest, 'Rest'),
-                     (Chord, 'Chord')],
-            display_name="Find these types of object"
-         ),
-         'offset': settings.PositiveNumberSetting(settings.FloatSetting)(
-            0.5,
-            display_name="Offset"
-         ),
-         'salami': settings.BooleanSetting(
-            False,
-            display_name="Include repeated identical events"
-         )
-      }
-      super(AnalysisSettings, self).__init__(setts)

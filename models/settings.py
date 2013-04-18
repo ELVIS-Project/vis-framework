@@ -23,11 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-This module contains the model classes for Setting objects, used in VIS by
+This module contains the model classes for Setting objects, used in vis by
 the Analyzer and Experimenter controllers.
 '''
-
-
 # Imports from...
 # Python
 from numbers import Number
@@ -37,16 +35,15 @@ from PyQt4.QtCore import pyqtSignal, QObject
 from problems.coreproblems import SettingValidationError, MissingInformationError
 
 
-
 class Setting(QObject):
    '''
    Base class for all Settings to be used by the Analyzer & Experimenter
    controllers.
    '''
-   # # emitted when a user changes the value contained in this Setting.
-   # value_changed = pyqtSignal()
-   # emitted when the relevant view widget for this Setting must be created.
-   initialize = pyqtSignal()
+   # emitted when a user changes the value contained in this Setting.
+   value_changed = pyqtSignal()
+   # # emitted when the relevant view widget for this Setting must be created.
+   # initialize = pyqtSignal()
    
    def __init__(self, value=None, **kwargs):
       '''
@@ -56,8 +53,10 @@ class Setting(QObject):
       `display_name` - a string containing a short description of this field to
       display in a view.
       '''
+      super(Setting, self).__init__()
       self._value = value
       self._display_name = kwargs.get('display_name', '')
+      self._extra_detail = kwargs.get('extra_detail', '')
    
    @property
    def display_name(self):
@@ -65,6 +64,13 @@ class Setting(QObject):
       Wrapper for private variable _display_name.
       '''
       return self._display_name
+   
+   @property
+   def extra_detail(self):
+      '''
+      Wrapper for private variable _extra_detail
+      '''
+      return self._extra_detail
    
    @property
    def value(self):
@@ -79,7 +85,9 @@ class Setting(QObject):
       Wrapper for private variable _value.
       '''
       value = self.validate(value)
-      self._value = value
+      if self._value != value:
+         self._value = value
+         self.value_changed.emit()
    
    def clean(self, value):
       '''
@@ -100,8 +108,7 @@ class Setting(QObject):
       return self.clean(value)
 
 
-
-class Settings(object):
+class Settings(QObject):
    '''
    Wrapper for a dictionary of Setting objects.
    '''
@@ -110,36 +117,24 @@ class Settings(object):
       Create a new Settings instance, optionally with the argument
       `settings`, a dict with (string, Setting) items.
       '''
-      if settings is None:
-         settings = {}
-      self._settings = settings
-   
-   def __setattr__(self, setting, value):
-      '''
-      Set the value of a setting. If the setting does not yet exist, it is
-      created and initialized to the value. This syntax feels a bit more
-      object-oriented and friendly than __setitem__.
-      '''
-      if '_settings' == setting:
-         super(Settings, self).__setattr__(setting, value)
-      sett = self._settings.get(setting)
-      if not sett:
-         sett = Setting()
-      sett.value = value
-      self._settings[setting] = sett
+      self.keys = []
+      if settings:
+         self.keys = settings.keys()
+         self.__dict__.update(settings)
    
    def __iter__(self):
       '''
       Syntactic sugar for the values of the internal dictionary.
       '''
-      return self._settings.itervalues()
+      for k in self.keys:
+         yield getattr(self, k)
    
    def has(self, setting):
       '''
       Returns True if a setting already exists in this AnalysisSettings
       instance, or else False.
       '''
-      return setting in self._settings.iterkeys()
+      return hasattr(self, setting)
    
    def __getattr__(self, setting):
       '''
@@ -147,9 +142,8 @@ class Settings(object):
       populate it with value None first.
       '''
       if not self.has(setting):
-         self._settings[setting] = Setting(None)
-      return self._settings[setting].value
-
+         setattr(self, setting, Setting(None))
+      return self.__getattribute__(setting)
 
 
 class PositiveNumberSetting(type):
@@ -177,7 +171,6 @@ class PositiveNumberSetting(type):
       return type(name, bases, dct)
 
 
-
 class FloatSetting(Setting):
    '''
    Setting to hold a floating-point number.
@@ -191,6 +184,18 @@ class FloatSetting(Setting):
          raise SettingValidationError(msg)
 
 
+class StringSetting(Setting):
+   '''
+   Setting to hold a string.
+   '''
+   def clean(self, value):
+      __doc__ = Setting.clean.__doc__
+      try:
+         return str(value)
+      except Exception:
+         msg = "Value could not be cast to string"
+         raise SettingValidationError(msg)
+
 
 class BooleanSetting(Setting):
    '''
@@ -199,7 +204,6 @@ class BooleanSetting(Setting):
    def clean(self, value):
       __doc__ = Setting.clean.__doc__
       return bool(value)
-
 
 
 class MultiChoiceSetting(Setting):
@@ -219,20 +223,33 @@ class MultiChoiceSetting(Setting):
       (1, 'Option B'), 
       (2, 'Option C')])
       '''
-      choices = kwargs.pop('choices')
-      if not choices:
+      super(MultiChoiceSetting, self).__init__(*args, **kwargs)
+      if not 'choices' in kwargs:
          msg = "Missing required keyword argument 'choices'"
          raise MissingInformationError(msg)
-      else:
-         try:
-            for i, val in choices:
-               if not isinstance(val, basestring):
-                  s = "value '{0}' in kwarg 'choices' of incorrect type '{1}'"
-                  msg = s.format(val, type(val))
-                  raise SettingValidationError(msg)
-                  break
-         except ValueError: # too many values to unpack
-            msg = "kwarg 'choices' must be an iterable of 2-tuples"
-            raise SettingValidationError(msg)
-         self.choices = choices
-         super(MultiChoiceSetting, self).__init__(*args, **kwargs)
+      choices = kwargs.pop('choices')
+      try:
+         for i, val in choices:
+            if not isinstance(val, basestring):
+               s = "value '{0}' in kwarg 'choices' of incorrect type '{1}'"
+               msg = s.format(val, type(val))
+               raise SettingValidationError(msg)
+               break
+      except ValueError: # too many values to unpack
+         msg = "kwarg 'choices' must be an iterable of 2-tuples"
+         raise SettingValidationError(msg)
+      self.choices = choices
+      self._value = []
+      settings = [(val, name, BooleanSetting(False,display_name=name))
+                  for val, name in choices]
+      for val, name, setting in settings:
+         def value_changed():
+            if setting.value:
+               if not val in self.value:
+                  self.value.append(val)
+            else:
+               if val in self.value:
+                  self.value.remove(val)
+         setting.value_changed.connect(value_changed)
+      self.settings = Settings({name: setting for val, name, setting in settings})
+      super(MultiChoiceSetting, self).__init__(*args, **kwargs)

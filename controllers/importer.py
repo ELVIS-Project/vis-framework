@@ -30,23 +30,19 @@ Holds the Importer controller.
 
 # Imports from...
 # python
-from os import path
+import os
 from multiprocessing import Pool
 import pickle
 # PyQt4
-from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt, QThread
+from PyQt4.QtCore import pyqtSignal, Qt, QThread, QObject
 # music21
 from music21 import converter
 from music21.stream import Score
 # vis
-from controllers.controller import Controller
-from models import importing, analyzing
-import time
+from models import importing, analyzing, settings
 
 
-
-# multiprocessing requires your processes to be declared at module scope, sorry!
-def import_piece(file_path):
+def _import_piece(file_path):
    '''
    Given a path to a music21 symbolic music notation file, return a tuple
    containing a frozen music21.Score and all the pertinent import information 
@@ -71,34 +67,138 @@ def import_piece(file_path):
       return str(e)
 
 
-
-class ImporterThread(QThread):
-   def __init__(self, importer):
+class Importer(QThread):
+   '''
+   This class knows how to keep a list of filenames with pieces to be analyzed,
+   and how to import the files with music21.
+   
+   The ListOfFiles model is always stored in the list_of_files property.
+   '''
+   
+   status = pyqtSignal(str)
+   # TODO: reimplement this with exceptions which are caught
+   # by higher-level controllers.
+   error = pyqtSignal(str)
+   
+   def __init__(self, *args):
       '''
-      Creates a new ImporterThread instance, keeping track of the
-      Importer object which instantiated it.
+      Create a new Importer instance.
       '''
-      self._importer = importer
-      # this will hold the fraction of pieces which have been analyzed
-      # at a given time
       self.progress = 0.0
-      # flag for whether to use multiprocessing in importing
-      self._multiprocess = False
+      self.list_of_files = importing.ListOfFiles()
+      self.list_of_pieces = analyzing.ListOfPieces()
       self.results = []
-      super(QThread, self).__init__()
-   def prepare(self, pieces):
+      self.multiprocess = settings.BooleanSetting(
+         False,
+         display_name="Use multiprocessing (import in parallel)"
+      )
+      super(Importer, self).__init__()
+   
+   def start_import(self):
       '''
-      Sets the analyzing.ListOfPieces object to store the imported
-      pieces in, and sets some shorthands for the other methods.
+      Method docstring
       '''
-      self._pieces_list = pieces
-      self._files = self._importer._list_of_files
-      self.num_files = self._files.rowCount()
-   def set_multiprocess(self, state):
+      self.start()
+   
+   def add_folders(self, folders):
       '''
-      Slot for the VisController import_set_multiprocess signal.
+      Method docstring
       '''
-      self._multiprocess = bool(state)
+      extensions = ['.nwc.', '.mid', '.midi', '.mxl', '.krn', '.xml', '.md']
+      files_to_add = []
+      for folder in folders:
+         for path, _, files in os.walk(d):
+            for fp in files:
+               _, extension = os.path.splitext(fp)
+               if extension in extensions:
+                  files_to_add.append(os.path.join(path, fp))
+      self.add_files(files_to_add)
+   
+   def add_files(self, files):
+      '''
+      Add the filenames to the list of filenames that should be imported. The
+      argument is a list of strings. If a filename is a directory, all the files
+      in that directory (and its subdirectories) are added to the list.
+      
+      This method emits the Importer.error signal, with a description, in the
+      following situations:
+      - a pathname does not exist
+      - a pathname is already in the list
+      
+      Emits the Importer.add_remove_success signal with True if there were no
+      errors, or with False if there was at least one error.
+      '''
+      # Track whether there was an error
+      we_are_error_free = True
+      
+      # Filter out paths that do not exist
+      paths_that_exist = []
+      for pathname in files:
+         if os.path.exists(pathname):
+            paths_that_exist.append(pathname)
+         else:
+            self.error.emit('Path does not exist: ' + str(pathname))
+            we_are_error_free = False
+      
+      # If there's a directory, expand to the files therein
+      directories_expanded = []
+      for pathname in paths_that_exist:
+         if os.path.isdir(pathname):
+            pass # TODO: ??
+         else:
+            directories_expanded.append(pathname)
+      
+      # Ensure there will be no duplicates
+      no_duplicates_list = []
+      for pathname in directories_expanded:
+         if not self.list_of_files.isPresent(pathname):
+            no_duplicates_list.append(pathname)
+         else:
+            self.error.emit('Filename already on the list: ' + str(pathname))
+            we_are_error_free = False
+      
+      # If there are no remaining files in the list, just return now
+      if 0 == len(no_duplicates_list):
+         return we_are_error_free
+      
+      # Add the number of rows we need
+      first_index = self.list_of_files.rowCount()
+      last_index = first_index + len(no_duplicates_list)
+      self.list_of_files.insertRows(first_index, len(no_duplicates_list))
+      
+      # Add the files to the list
+      for list_index in xrange(first_index, last_index):
+         index = self.list_of_files.createIndex(list_index, 0)
+         self.list_of_files.setData(index,
+                                     no_duplicates_list[list_index-first_index],
+                                     Qt.EditRole)
+      
+      return we_are_error_free
+   
+   def remove_files(self, files):
+      '''
+      Remove the filenames from the list of filenames or list of QModelIndex objects that should
+      be imported. The argument is a list of strings. If a filename is a directory, all the
+      files in that directory (and its subdirectories) are removed from the list.
+
+      If the argument is a string, it is treated like a single filename.
+
+      If a filename is not in the list, it is ignored.
+      '''
+      # Is the argument a string? If so, make it a one-element list.
+      if isinstance(files, str):
+         files = [files]
+      
+      for piece_to_remove in files:
+         # isPresent() either returns False or a QModelIndex referring to the
+         # file we want to remove
+         piece_index = self.list_of_files.isPresent(piece_to_remove)
+         if piece_index is not False:
+            # if the piece is actually in the list, remove it
+            self.list_of_files.removeRows(piece_index.row(), 1)
+      
+      return True
+   
    def callback(self, result):
       '''
       Each time an import process is completed, either report any
@@ -106,34 +206,39 @@ class ImporterThread(QThread):
       the imported piece to the list of results.
       '''
       if isinstance(result, str):
-         self._importer.error.emit(unpickled)
+         self.error.emit(unpickled)
       else: # it is a tuple
          file_path = result[0]
          self.progress += 1.0/self.num_files
-         self._importer.status.emit(str(int(self.progress * 100)))
-         self._importer.status.emit('Importing... '+file_path+' imported.')
+         self.status.emit(str(int(self.progress * 100)))
+         self.status.emit('Importing... '+file_path+' imported.')
          self.results.append(result)
+
    def run(self):
       '''
       Import all the pieces contained in the parent Importer's _list_of_files.
       '''
-      self._importer.status.emit('0')
-      self._importer.status.emit('Importing...')
-      if self._multiprocess:
+      # TODO: Check that the list_of_pieces has been set
+      if 0 >= self.list_of_files.rowCount():
+         s1 = "The list of pieces is empty."
+         s2 = "You must choose pieces before we can import them."
+         self.error.emit("{0} {1}".format(s1, s2))
+         return
+      self.status.emit('0')
+      self.status.emit('Importing...')
+      if self.multiprocess:
          pool = Pool()
-         for file_path in self._files:
-            pool.apply_async(import_piece,
+         for file_path in self.list_of_files:
+            pool.apply_async(_import_piece,
                              (file_path,), 
                              callback=self.callback)
          pool.close()
          pool.join()
       else:
-         for file_path in self._files:
-            self.callback(import_piece(file_path))
-      self._importer.status.emit('Assembling Results...')
-      # at this point, self._pieces_list should be an analyzing.ListOfPieces
-      # which belongs to the relevant Analyzer we'll be passing the data to.
-      post = self._pieces_list
+         for file_path in self.list_of_files:
+            self.callback(_import_piece(file_path))
+      self.status.emit('Assembling Results...')
+      post = self.list_of_pieces
       for file_path, piece, title, parts in self.results:
          post.insertRows(post.rowCount(), 1)
          new_row = post.rowCount() - 1
@@ -146,198 +251,8 @@ class ImporterThread(QThread):
          post.setData((new_row, analyzing.ListOfPieces.parts_list),
                       parts,
                       Qt.EditRole)
-      self._importer.status.emit('Done!')
-      self._importer.import_finished.emit()
-# End class ImporterThread -----------------------------------------------------
-
-
-
-class Importer(Controller):
-   '''
-   This class knows how to keep a list of filenames with pieces to be analyzed,
-   and how to import the files with music21.
-
-   The ListOfFiles model is always stored in the list_of_files property.
-   '''
-
-
-
-   # PyQt4 Signals
-   # -------------
-   # a list of str filenames to add to the list of files to analyze
-   add_pieces_signal = pyqtSignal(list)
-   # a list of str filenames to remove from the list of files to analyze
-   remove_pieces_signal = pyqtSignal(list)
-   # whether the add/remove operation was successful
-   add_remove_success = pyqtSignal(bool)
-   # create a ListOfPieces from the ListOfFiles
-   run_import = pyqtSignal(analyzing.ListOfPieces)
-   # the result of importer_import
-   import_finished = pyqtSignal()
-   # description of an error in the Importer
-   error = pyqtSignal(str)
-   # signal for each individual import
-   piece_gotten = pyqtSignal(Score, str)
-   # informs the GUI of the status for a currently-running import (if two or
-   # three characters followed by a '%' then it should try to update a
-   # progress bar, if available)
-   status = pyqtSignal(str)
-
-
-
-   def __init__(self, *args):
-      '''
-      Create a new Importer instance.
-      '''
-      # signals
-      super(Importer, self).__init__() # required for signals
-      self.run_import.connect(self.import_pieces)
-      self.add_pieces_signal.connect(self.add_pieces)
-      self.remove_pieces_signal.connect(self.remove_pieces)
-      # other things
-      self._list_of_files = importing.ListOfFiles()
-      self.thread = ImporterThread(self)
-
-
-
-   def add_piece(self, piece):
-      '''
-      Call add_pieces() with the given argument.
-      '''
-      return self.add_pieces(piece)
-
-
-
-   @pyqtSlot(list)
-   def add_pieces(self, pieces):
-      '''
-      Add the filenames to the list of filenames that should be imported. The
-      argument is a list of strings. If a filename is a directory, all the files
-      in that directory (and its subdirectories) are added to the list.
-
-      This method emits the Importer.error signal, with a description, in the
-      following situations:
-      - a pathname does not exist
-      - a pathname is already in the list
-
-      Emits the Importer.add_remove_success signal with True if there were no
-      errors, or with False if there was at least one error.
-      '''
-      # Track whether there was an error
-      we_are_error_free = True
-
-      # Filter out paths that do not exist
-      paths_that_exist = []
-      for pathname in pieces:
-         if path.exists(pathname):
-            paths_that_exist.append(pathname)
-         else:
-            self.error.emit('Path does not exist: ' + str(pathname))
-            we_are_error_free = False
-
-      # If there's a directory, expand to the files therein
-      directories_expanded = []
-      for pathname in paths_that_exist:
-         if path.isdir(pathname):
-            pass # TODO: ??
-         else:
-            directories_expanded.append(pathname)
-
-      # Ensure there will be no duplicates
-      no_duplicates_list = []
-      for pathname in directories_expanded:
-         if not self._list_of_files.isPresent(pathname):
-            no_duplicates_list.append(pathname)
-         else:
-            self.error.emit('Filename already on the list: ' + str(pathname))
-            we_are_error_free = False
-
-      # If there are no remaining files in the list, just return now
-      if 0 == len(no_duplicates_list):
-         return we_are_error_free
-
-      # Add the number of rows we need
-      first_index = self._list_of_files.rowCount()
-      last_index = first_index + len(no_duplicates_list)
-      self._list_of_files.insertRows(first_index, len(no_duplicates_list))
-
-      # Add the files to the list
-      for list_index in xrange(first_index, last_index):
-         index = self._list_of_files.createIndex(list_index, 0)
-         self._list_of_files.setData(index,
-                                     no_duplicates_list[list_index-first_index],
-                                     Qt.EditRole)
-
-      return we_are_error_free
-
-
-
-   @pyqtSlot(list)
-   def remove_pieces(self, pieces):
-      '''
-      Remove the filenames from the list of filenames or list of QModelIndex objects that should
-      be imported. The argument is a list of strings. If a filename is a directory, all the
-      files in that directory (and its subdirectories) are removed from the list.
-
-      If the argument is a string, it is treated like a single filename.
-
-      If a filename is not in the list, it is ignored.
-
-      Emits the Importer.add_remove_success signal with True or False, depending on whether the
-      operation succeeded. Returns that same value.
-      '''
-      # Is the argument a string? If so, make it a one-element list.
-      if isinstance(pieces, str):
-         pieces = [pieces]
-
-      for piece_to_remove in pieces:
-         # isPresent() either returns False or a QModelIndex referring to the
-         # file we want to remove
-         piece_index = self._list_of_files.isPresent(piece_to_remove)
-         if piece_index is not False:
-            # if the piece is actually in the list, remove it
-            self._list_of_files.removeRows(piece_index.row(), 1)
-
-      # I don't yet know of a situation that warrants a failure, so...
-      self.add_remove_success.emit(True)
-      return True
-
-
-
-   @pyqtSlot(analyzing.ListOfPieces)
-   def import_pieces(self, the_pieces):
-      '''
-      Transforms the current ListOfFiles into a ListOfPieces by importing the
-      files specified, then extracting data as needed.
-
-      The argument is the ListOfPieces into which to load the data.
-
-      Emits Importer.error if a file cannot be imported, but continues to
-      import the rest of the files.
-
-      Emits Importer.import_finished with the ListOfPieces when the import
-      operation is completed, and returns the ListOfPieces.
-      '''
-      # NB: I must initialize the offset_intervals field to [0.5]
-      # NB: I must initialize the parts_combinations field to []
-      # NB: Any time you use this method, you must follow it with .thread.wait()
-      # or you may get disastrous results.
-      self.thread.prepare(the_pieces)
-      self.thread.start()
-
-
-
-   def has_files(self):
-      '''
-      Returns True if there is at least one file in the list of files to be imported.
-      '''
-      if 0 < self._list_of_files.rowCount():
-         return True
-      else:
-         return False
-
-
-
+      self.status.emit('Done!')
+   
    @staticmethod
    def _find_part_names(the_score):
       '''
@@ -345,7 +260,7 @@ class Importer(Controller):
       '''
       # hold the list of part names
       post = []
-
+      
       # First try to find Instrument objects. If that doesn't work, use the "id"
       for each_part in the_score.parts:
          instr = each_part.getInstrument()
@@ -353,7 +268,7 @@ class Importer(Controller):
             post.append(instr.partName)
          else:
             post.append(each_part.id)
-
+      
       # Make sure none of the part names are just numbers; if they are, use
       # a part name like "Part 1" instead.
       for part_index in xrange(len(post)):
@@ -363,11 +278,9 @@ class Importer(Controller):
             post[part_index] = 'Part ' + str(part_index+1)
          except ValueError:
             pass
-
+      
       return post
-
-
-
+   
    @staticmethod
    def _find_piece_title(the_score):
       '''
@@ -375,18 +288,18 @@ class Importer(Controller):
       '''
       # hold the piece title
       post = ''
-
+      
       # First try to get the title from a Metadata object, but if it doesn't
       # exist, use the filename without directory.
       if the_score.metadata is not None:
          post = the_score.metadata.title
       else:
-         post = path.basename(the_score.filePath)
-
+         post = os.path.basename(the_score.filePath)
+      
       # Now check that there is no file extension. This could happen either if
       # we used the filename or if music21 did a less-than-great job at the
       # Metadata object.
-      post = path.splitext(post)[0]
-
+      post = os.path.splitext(post)[0]
+      
       return post
 # End class Importer -----------------------------------------------------------
