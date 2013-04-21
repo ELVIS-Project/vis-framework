@@ -39,7 +39,8 @@ from models.importing import ListOfFiles
 from models.analyzing import ListOfPieces
 from models.info import VisInfo
 # PyQt4
-from PyQt4.QtCore import pyqtSignal, QObject
+from PyQt4.QtCore import pyqtSignal, QObject, QThread
+from PyQt4.QtGui import QApplication
 
 
 class VisController(QObject):
@@ -74,11 +75,11 @@ class VisController(QObject):
       self.visualizer = Visualizer()
       
       # Connect signals
-      self.importer.finished.connect(self.setup_analysis)
-      self.analyzer.finished.connect(self.setup_experiment)
+      self.importer.start.connect(self.import_files)
+      self.analyzer.thread.finished.connect(self.setup_experiment)
       
       # Set instance variables
-      self.importer.list_of_pieces = self.analyzer.list_of_pieces
+      self.importer.list_of_pieces = self.analyzer.thread.list_of_pieces
       self.info = VisInfo()
       
       if 'PyQt4' == interface:
@@ -94,20 +95,16 @@ class VisController(QObject):
       return self.interface.exec_()
    
    def set_active_controller(self, value):
-      if not hasattr(self, '_active_controller'):
-         self._active_controller = value
-      if not self._active_controller is value:
-         self._active_controller = value
-         self.active_controller_changed.emit(value.__class__.__name__)
+      self._active_controller = value
+      self.active_controller_changed.emit(value.__class__.__name__)
    
    def choose_files(self):
       '''
       Set the application to its initial state, clearing all the models except
       the ListOfFiles managed by self.importer.
       '''
-      pieces_list = ListOfPieces()
-      self.analyzer.list_of_pieces = pieces_list
-      self.importer.list_of_pieces = pieces_list
+      self.analyzer.list_of_pieces.clear()
+      self.importer.list_of_pieces = self.analyzer.thread.list_of_pieces
       # clear importer and visualizer?
       self.set_active_controller(self.importer)
    
@@ -115,7 +112,16 @@ class VisController(QObject):
       '''
       Start importing the files contained in the self.importer's ListOfFiles.
       '''
-      self.importer.start()
+      thread = QThread()
+      self.importer.moveToThread(thread)
+      self.interface.setup_thread(self.importer)
+      thread.started.connect(self.importer.run)
+      def import_finished():
+         self.importer.moveToThread(QApplication.instance().thread())
+         self.setup_analysis()
+         thread.quit()
+      self.importer.finished.connect(import_finished)
+      thread.start()
    
    def setup_analysis(self):
       '''

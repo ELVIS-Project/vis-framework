@@ -88,15 +88,17 @@ class VisQtInterface(VisInterface):
                                        QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
                                        QtGui.QMessageBox.Ok)
    
-   def setup_thread(self, thread):
+   def setup_thread(self, controller):
       '''
       Does the basic configuration for a QThread
       subclass to use the "working" screen.
       '''
+      @QtCore.pyqtSlot()
       def thread_started():
          self.main_screen.setCurrentWidget(self.work_page)
-      thread.started.connect(thread_started)
+      controller.start.connect(thread_started)
       
+      @QtCore.pyqtSlot(QtCore.QString)
       def update_progress(progress):
          '''
          Updates the "working" screen in the following ways:
@@ -106,6 +108,7 @@ class VisQtInterface(VisInterface):
          - If the argument is another string, the text below the progress bar is
            set to that string.
          '''
+         print 'update progress called with {0}'.format(progress)
          if isinstance(progress, basestring):
             if '100' == progress:
                self.progress_bar.setValue(100)
@@ -117,11 +120,13 @@ class VisQtInterface(VisInterface):
                   self.lbl.setText(progress)
             else:
                self.lbl.setText(progress)
-      thread.status.connect(update_progress)
+         self.app.processEvents()
+      controller.status.connect(update_progress)
       
+      @QtCore.pyqtSlot(QtCore.QString)
       def popup_error(description):
          return self.popup_error(thread.__class__.__name__, description)
-      thread.error.connect(popup_error)
+      controller.error.connect(popup_error)
    
    def working_page(self):
       page_working = QtGui.QWidget()
@@ -160,17 +165,17 @@ class VisQtInterface(VisInterface):
       lbl_status_text = QtGui.QLabel(page_working)
       lbl_status_text.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
       lbl_status_text.setText(self.translate("Please wait..."))
-      self.lbl = lbl_status_text
       verticalLayout_21.addWidget(lbl_status_text)
       progress_bar = QtGui.QProgressBar(page_working)
       progress_bar.setMinimum(0)
       progress_bar.setMaximum(100)
-      progress_bar.setProperty("value", 0)
+      progress_bar.setValue(0)
       self.progress_bar = progress_bar
       verticalLayout_21.addWidget(progress_bar)
       lbl_currently_processing = QtGui.QLabel(page_working)
       lbl_currently_processing.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
       lbl_currently_processing.setText(self.translate("(processing)"))
+      self.lbl = lbl_currently_processing
       verticalLayout_21.addWidget(lbl_currently_processing)
       spacerItem13 = QtGui.QSpacerItem(20,
                                        40,
@@ -533,7 +538,6 @@ class VisQtInterface(VisInterface):
       verticalLayout_8.setMargin(0)
       horizontalLayout_3.addWidget(widget)
       verticalLayout_2.addWidget(grp_choose_files)
-      self.setup_thread(importer)
       return page_choose
    
    @view_getter('add_folders')
@@ -628,14 +632,14 @@ class VisQtInterface(VisInterface):
                                       QtGui.QSizePolicy.Minimum,
                                       QtGui.QSizePolicy.Expanding)
       gridLayout_2.addItem(spacerItem5, 2, 4, 1, 1)
-      gridLayout_2.addWidget(self.get_view(analyzer.list_of_pieces, parent=groupBox),
+      gridLayout_2.addWidget(self.get_view(analyzer.thread.list_of_pieces, parent=groupBox),
                              2, 0, 6, 3)
       gridLayout_2.addWidget(self.get_view(analyzer.current_piece, parent=groupBox),
                              6, 4, 2, 1)
       widget_6 = QtGui.QWidget(groupBox)
       horizontalLayout_5 = QtGui.QHBoxLayout(widget_6)
       horizontalLayout_5.setMargin(0)
-      for widget in self.get_view(analyzer.settings, parent=widget_6):
+      for widget in self.get_view(analyzer.thread.settings, parent=widget_6):
          horizontalLayout_5.addWidget(widget)
       horizontalLayout_5.addWidget(self.get_view(analyzer.analyze, parent=widget_6))
       gridLayout_2.addWidget(widget_6, 0, 4, 1, 1)

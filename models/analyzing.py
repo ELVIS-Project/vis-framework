@@ -88,6 +88,14 @@ class Piece(object):
       self.part_names = part_names
       self.part_combos = []
       self.settings = settings.Settings({
+         'types': settings.MultiChoiceSetting(
+             # TODO: include other interesting choices here, possibly
+             # dynamically drawn from music21
+             choices=[(Note, 'Note'),
+                      (Rest, 'Rest'),
+                      (Chord, 'Chord')],
+             display_name="Find these types of object"
+          ),
          'title': settings.StringSetting(
             title,
             display_name="Piece Title:"
@@ -393,6 +401,9 @@ class ListOfPieces(QAbstractTableModel):
       self.beginRemoveRows( parent, row, row+count-1 )
       self._pieces = self._pieces[:row] + self._pieces[row+count:]
       self.endRemoveRows()
+   
+   def clear(self):
+      self.removeRows(0, self.rowCount())
 
 
 

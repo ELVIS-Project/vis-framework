@@ -240,7 +240,64 @@ def _event_finder(parts, settings, record):
 # End _event_finder() ------------------------------------------------------------------------------
 
 
-class Analyzer(QtCore.QThread):
+class AnalyzerThread(QtCore.QThread):
+   def __init__(self, analyzer):
+      super(AnalyzerThread, self).__init__()
+      self.analyzer = analyzer
+   
+   def callback(self, result):
+      '''
+      For internal use.
+      
+      Called when the _event_finder() has finished with a parts combination.
+      This method adds the resulting AnalysisRecord to the internal list of
+      analyses.
+      '''
+      piece_name, result = result
+      if isinstance(result, basestring):
+         self.error.emit(result)
+      else:
+         self.progress += 1.0/self.num_pieces
+         self.analyzer.status.emit(str(int(self.progress * 100)))
+         self.analyzer.status.emit("Analyzing... {0} Analyzed.".format(piece_name))
+         for record in result:
+            self.analysis_records.append(record)
+   
+   def run(self):
+      self.analyzer.status.emit('0')
+      self.analyzer.status.emit('Analyzing...')
+      self.num_pieces = self.list_of_pieces.rowCount()
+      
+      if self.settings.multiprocess:
+         pool = Pool()
+         for each_raw_piece in self.list_of_pieces:
+            # (1) Ensure all the things in "each_piece" are *not* a QVariant
+            each_piece = []
+            for each_column in each_raw_piece:
+               if isinstance(each_column, QtCore.QVariant):
+                  each_piece.append(each_column.toPyObject())
+               else:
+                  each_piece.append(each_column)
+            pool.apply_async(_analyze_piece, (each_piece,), callback=self.callback)
+      
+         pool.close()
+         pool.join()
+      else:
+         for each_raw_piece in self.list_of_pieces:
+            each_piece = []
+            for each_column in each_raw_piece:
+               if isinstance(each_column, QtCore.QVariant):
+                  each_piece.append(each_column.toPyObject())
+               else:
+                  each_piece.append(each_column)
+      
+            self.callback(_analyze_piece(each_piece))
+      
+      self.analyzer.status.emit('100')
+      self.analyzer.status.emit('Done!')
+
+
+class Analyzer(QtCore.QObject):
    '''
    This class performs analysis for series of vertical intervals, and manages
    the settings with which to analyze. Makes a list of AnalysisRecord objects
@@ -253,25 +310,20 @@ class Analyzer(QtCore.QThread):
    error = QtCore.pyqtSignal(str)
    # status of the analysis
    status = QtCore.pyqtSignal(str)
+   finished = QtCore.pyqtSignal()
+   start = QtCore.pyqtSignal()
    
    def __init__(self):
       '''
       Create a new Analyzer instance.
       '''
       super(Analyzer, self).__init__()
+      self.thread = AnalyzerThread(self)
       self.current_piece = Piece('', stream.Score(), '', [])
-      self.list_of_pieces = ListOfPieces()
-      self.list_of_analyses = []
-      self.progress = 0.0
-      self.settings = models_settings.Settings({
-         'types': models_settings.MultiChoiceSetting(
-            # TODO: include other interesting choices here, possibly
-            # dynamically drawn from music21
-            choices=[(note.Note, 'Note'),
-                     (note.Rest, 'Rest'),
-                     (chord.Chord, 'Chord')],
-            display_name="Find these types of object"
-         ),
+      self.thread.list_of_pieces = ListOfPieces()
+      self.thread.list_of_analyses = []
+      self.thread.progress = 0.0
+      self.thread.settings = models_settings.Settings({
          'multiprocess': models_settings.BooleanSetting(
             False,
             display_name="Use multiprocessing (import in parallel)"
@@ -298,7 +350,7 @@ class Analyzer(QtCore.QThread):
       '''
       Method docstring
       '''
-      self.start()
+      self.thread.start()
    
    def load_statistics(self, statistics):
       '''
@@ -307,65 +359,13 @@ class Analyzer(QtCore.QThread):
       '''
       pass
    
-   def callback(self, result):
-      '''
-      For internal use.
-
-      Called when the _event_finder() has finished with a parts combination.
-      This method adds the resulting AnalysisRecord to the internal list of
-      analyses.
-      '''
-      piece_name, result = result
-      if isinstance(result, basestring):
-         self.error.emit(result)
-      else:
-         self.progress += 1.0/self.num_pieces
-         self.status.emit(str(int(self.progress * 100)))
-         self.status.emit("Analyzing... {0} Analyzed.".format(piece_name))
-         for record in result:
-            self.analysis_records.append(record)
-   
-   def run(self):
-      self.status.emit('0')
-      self.status.emit('Analyzing...')
-      self.num_pieces = self.list_of_pieces.rowCount()
-
-      if self.settings.multiprocess:
-         pool = Pool()
-         for each_raw_piece in self.list_of_pieces:
-            # (1) Ensure all the things in "each_piece" are *not* a QVariant
-            each_piece = []
-            for each_column in each_raw_piece:
-               if isinstance(each_column, QtCore.QVariant):
-                  each_piece.append(each_column.toPyObject())
-               else:
-                  each_piece.append(each_column)
-            pool.apply_async(_analyze_piece, (each_piece,), callback=self.callback)
-
-         pool.close()
-         pool.join()
-      else:
-         for each_raw_piece in self.list_of_pieces:
-            each_piece = []
-            for each_column in each_raw_piece:
-               if isinstance(each_column, QtCore.QVariant):
-                  each_piece.append(each_column.toPyObject())
-               else:
-                  each_piece.append(each_column)
-
-            self.callback(_analyze_piece(each_piece))
-
-      self.status.emit('100')
-      self.status.emit('Done!')
-      self.analysis_finished.emit(self.analysis_records)
-   
    def set_data(self, index, change_to):
       '''
       Changes the data in a cell of the ListOfPieces model.
       
       The arguments here should be the same as sent to ListOfPieces.setData().
       '''
-      self.list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
+      self.thread.list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
    
    @staticmethod
    def calculate_all_combos(upto):

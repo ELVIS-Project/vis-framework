@@ -34,7 +34,7 @@ import os
 from multiprocessing import Pool
 import pickle
 # PyQt4
-from PyQt4.QtCore import pyqtSignal, Qt, QThread, QObject
+from PyQt4.QtCore import pyqtSignal, Qt, QThread, QObject, QString
 # music21
 from music21 import converter
 from music21.stream import Score
@@ -54,6 +54,7 @@ def _import_piece(file_path):
    therefore cannot be passed between different child processes in a
    multiprocessing context.
    '''
+   file_path = str(file_path)
    try:
       piece = converter.parseFile(file_path)
       title = Importer._find_piece_title(piece)
@@ -67,7 +68,7 @@ def _import_piece(file_path):
       return str(e)
 
 
-class Importer(QThread):
+class Importer(QObject):
    '''
    This class knows how to keep a list of filenames with pieces to be analyzed,
    and how to import the files with music21.
@@ -75,15 +76,18 @@ class Importer(QThread):
    The ListOfFiles model is always stored in the list_of_files property.
    '''
    
-   status = pyqtSignal(str)
+   status = pyqtSignal(QString)
    # TODO: reimplement this with exceptions which are caught
    # by higher-level controllers.
-   error = pyqtSignal(str)
+   error = pyqtSignal(QString)
+   finished = pyqtSignal()
+   start = pyqtSignal()
    
    def __init__(self, *args):
       '''
       Create a new Importer instance.
       '''
+      super(Importer, self).__init__()
       self.progress = 0.0
       self.list_of_files = importing.ListOfFiles()
       self.list_of_pieces = analyzing.ListOfPieces()
@@ -92,13 +96,63 @@ class Importer(QThread):
          False,
          display_name="Use multiprocessing (import in parallel)"
       )
-      super(Importer, self).__init__()
    
    def start_import(self):
+      self.start.emit()
+   
+   def callback(self, result):
       '''
-      Method docstring
+      Each time an import process is completed, either report any
+      errors which occurred, or update the progress status and append
+      the imported piece to the list of results.
       '''
-      self.start()
+      if isinstance(result, str):
+         self.error.emit(unpickled)
+      else: # it is a tuple
+         file_path = result[0]
+         self.progress += 1.0 / self.list_of_files.rowCount()
+         self.status.emit(str(int(self.progress * 100)))
+         self.status.emit('Importing... {0} imported.'.format(file_path))
+         self.results.append(result)
+
+   def run(self):
+      '''
+      Import all the pieces contained in list_of_files.
+      '''
+      # TODO: Check that the list_of_pieces has been set
+      if 0 >= self.list_of_files.rowCount():
+         s1 = "The list of pieces is empty."
+         s2 = "You must choose pieces before we can import them."
+         self.error.emit("{0} {1}".format(s1, s2))
+      self.status.emit('0')
+      self.status.emit('Importing...')
+      if self.multiprocess.value:
+         pool = Pool()
+         for file_path in self.list_of_files:
+            pool.apply_async(_import_piece,
+                             (file_path,), 
+                             callback=self.callback)
+         pool.close()
+         pool.join()
+      else:
+         for file_path in self.list_of_files:
+            self.callback(_import_piece(file_path))
+      self.status.emit('Assembling Results...')
+      post = self.list_of_pieces
+      for file_path, piece, title, parts in self.results:
+         post.insertRows(post.rowCount(), 1)
+         new_row = post.rowCount() - 1
+         post.setData((new_row, analyzing.ListOfPieces.filename),
+                      file_path,
+                      Qt.EditRole)
+         post.setData((new_row, analyzing.ListOfPieces.score),
+                      (piece, title),
+                      Qt.EditRole)
+         post.setData((new_row, analyzing.ListOfPieces.parts_list),
+                      parts,
+                      Qt.EditRole)
+      self.status.emit('Done!')
+      self.finished.emit()
    
    def add_folders(self, folders):
       '''
@@ -198,60 +252,6 @@ class Importer(QThread):
             self.list_of_files.removeRows(piece_index.row(), 1)
       
       return True
-   
-   def callback(self, result):
-      '''
-      Each time an import process is completed, either report any
-      errors which occurred, or update the progress status and append
-      the imported piece to the list of results.
-      '''
-      if isinstance(result, str):
-         self.error.emit(unpickled)
-      else: # it is a tuple
-         file_path = result[0]
-         self.progress += 1.0/self.num_files
-         self.status.emit(str(int(self.progress * 100)))
-         self.status.emit('Importing... '+file_path+' imported.')
-         self.results.append(result)
-
-   def run(self):
-      '''
-      Import all the pieces contained in the parent Importer's _list_of_files.
-      '''
-      # TODO: Check that the list_of_pieces has been set
-      if 0 >= self.list_of_files.rowCount():
-         s1 = "The list of pieces is empty."
-         s2 = "You must choose pieces before we can import them."
-         self.error.emit("{0} {1}".format(s1, s2))
-         return
-      self.status.emit('0')
-      self.status.emit('Importing...')
-      if self.multiprocess:
-         pool = Pool()
-         for file_path in self.list_of_files:
-            pool.apply_async(_import_piece,
-                             (file_path,), 
-                             callback=self.callback)
-         pool.close()
-         pool.join()
-      else:
-         for file_path in self.list_of_files:
-            self.callback(_import_piece(file_path))
-      self.status.emit('Assembling Results...')
-      post = self.list_of_pieces
-      for file_path, piece, title, parts in self.results:
-         post.insertRows(post.rowCount(), 1)
-         new_row = post.rowCount() - 1
-         post.setData((new_row, analyzing.ListOfPieces.filename),
-                      file_path,
-                      Qt.EditRole)
-         post.setData((new_row, analyzing.ListOfPieces.score),
-                      (piece, title),
-                      Qt.EditRole)
-         post.setData((new_row, analyzing.ListOfPieces.parts_list),
-                      parts,
-                      Qt.EditRole)
-      self.status.emit('Done!')
    
    @staticmethod
    def _find_part_names(the_score):
