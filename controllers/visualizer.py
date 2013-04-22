@@ -32,12 +32,11 @@ Holds the Visualizer controller.
 # PyQt
 from PyQt4 import QtCore, QtGui
 # vis
-from controller import Controller
 import file_output
 
 
 
-class Visualizer(Controller):
+class Visualizer(QtCore.QObject):
    '''
    This class takes an ExperimentResults object, if relevant determines which
    Display format to use and its DisplaySettings, then actually displays the

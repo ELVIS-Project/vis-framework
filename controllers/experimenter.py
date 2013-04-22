@@ -32,14 +32,13 @@ Holds the Experimenter controller.
 # PyQt4
 from PyQt4 import QtCore
 # vis
-from controller import Controller
 from models.settings import Settings
 from models import ngram
 from models import experimenting
 
 
 
-class Experimenter(Controller, QtCore.QObject):
+class Experimenter(QtCore.QObject):
    '''
    This class handles input for a user's choice of Experiment and choice
    of associated Settings, then performs the experiment, returning the
@@ -88,7 +87,7 @@ class Experimenter(Controller, QtCore.QObject):
       classes = [c for c in namespace if isinstance(c, type)]
       experiments = [e for e in classes if experimenting.Experiment in e.__bases__]
       self.available_experiments = experiments
-   
+
    def set_experiment(self):
       '''
       Method docstring

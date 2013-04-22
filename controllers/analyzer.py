@@ -38,7 +38,6 @@ from music21 import note, chord, converter, stream
 # PyQt4
 from PyQt4 import QtCore
 # vis
-from controller import Controller
 from models.analyzing import Piece, ListOfPieces, AnalysisRecord
 from models import settings as models_settings
 
@@ -244,11 +243,11 @@ class AnalyzerThread(QtCore.QThread):
    def __init__(self, analyzer):
       super(AnalyzerThread, self).__init__()
       self.analyzer = analyzer
-   
+
    def callback(self, result):
       '''
       For internal use.
-      
+
       Called when the _event_finder() has finished with a parts combination.
       This method adds the resulting AnalysisRecord to the internal list of
       analyses.
@@ -262,12 +261,12 @@ class AnalyzerThread(QtCore.QThread):
          self.analyzer.status.emit("Analyzing... {0} Analyzed.".format(piece_name))
          for record in result:
             self.analysis_records.append(record)
-   
+
    def run(self):
       self.analyzer.status.emit('0')
       self.analyzer.status.emit('Analyzing...')
       self.num_pieces = self.list_of_pieces.rowCount()
-      
+
       if self.settings.multiprocess:
          pool = Pool()
          for each_raw_piece in self.list_of_pieces:
@@ -279,7 +278,7 @@ class AnalyzerThread(QtCore.QThread):
                else:
                   each_piece.append(each_column)
             pool.apply_async(_analyze_piece, (each_piece,), callback=self.callback)
-      
+
          pool.close()
          pool.join()
       else:
@@ -290,9 +289,9 @@ class AnalyzerThread(QtCore.QThread):
                   each_piece.append(each_column.toPyObject())
                else:
                   each_piece.append(each_column)
-      
+
             self.callback(_analyze_piece(each_piece))
-      
+
       self.analyzer.status.emit('100')
       self.analyzer.status.emit('Done!')
 
@@ -312,7 +311,7 @@ class Analyzer(QtCore.QObject):
    status = QtCore.pyqtSignal(str)
    finished = QtCore.pyqtSignal()
    start = QtCore.pyqtSignal()
-   
+
    def __init__(self):
       '''
       Create a new Analyzer instance.
@@ -329,14 +328,14 @@ class Analyzer(QtCore.QObject):
             display_name="Use multiprocessing (import in parallel)"
          )
       })
-   
+
    @property
    def current_piece(self):
       '''
       Method docstring
       '''
       return self._current_piece
-   
+
    @current_piece.setter
    def current_piece(self, value):
       '''
@@ -345,43 +344,43 @@ class Analyzer(QtCore.QObject):
       if not hasattr(self, "_current_piece"):
          self._current_piece = Piece('', stream.Score(), '', [])
       self._current_piece.update(value)
-   
+
    def analyze(self):
       '''
       Method docstring
       '''
       self.thread.start()
-   
+
    def load_statistics(self, statistics):
       '''
       This method may not even be required, but if it is, it will import
       the "precalculated statistics" -- some kind of serialized AnalysisRecord.
       '''
       pass
-   
+
    def set_data(self, index, change_to):
       '''
       Changes the data in a cell of the ListOfPieces model.
-      
+
       The arguments here should be the same as sent to ListOfPieces.setData().
       '''
       self.thread.list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
-   
+
    @staticmethod
    def calculate_all_combos(upto):
       '''
       Calculate all combinations of integers between 0 and the argument.
-      
+
       Includes a 0th item... the argument should be len(whatevs) - 1.
       '''
       post = []
-      
+
       for left in xrange(upto):
          for right in xrange(left+1, upto+1):
             post.append([left, right])
-      
+
       return post
-   
+
    @staticmethod
    def _object_stringer(string_me, specs):
       # TODO: test this method
