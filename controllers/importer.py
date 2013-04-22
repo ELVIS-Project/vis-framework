@@ -239,8 +239,10 @@ class Importer(QObject):
         Returns
         -------
 
-        i : 0
-            Returns 0 if at least one piece was successfully imported.
+        self._list_of_pieces : :py:class:`analyzing.ListOfPieces`
+            When at least one piece was successfully imported, run() returns the internal
+            ListOfPieces object that would be should be given to the Analyzer controller. This is
+            primarily done for testing purposes.
 
         i : 1
             Returns 1 if the list of pathnames to import was empty.
@@ -276,9 +278,10 @@ class Importer(QObject):
             s1 = "The list of pieces is empty."
             s2 = "You must choose pieces before we can import them."
             self.error.emit("{0} {1}".format(s1, s2))
+            self._results = None
             return 1
         # Otherwise, start the import
-        self._results = None
+        self._results = []
         self.status.emit('0')
         self.status.emit('Importing...')
         if self.multiprocess.value:
@@ -303,7 +306,7 @@ class Importer(QObject):
             return 2
         # At this point, everything went fine.
         for file_path, piece, title, parts in self._results:
-            self._list_of_pieces.insertRows(post.rowCount(), 1)
+            self._list_of_pieces.insertRows(self._list_of_pieces.rowCount(), 1)
             new_row = post.rowCount() - 1
             self._list_of_pieces.setData((new_row, analyzing.ListOfPieces.filename),
                                          file_path,
@@ -319,9 +322,9 @@ class Importer(QObject):
         self.status.emit('Importer is finished!')
         self.finished.emit()
         #
-        return 0
+        return self._list_of_pieces
 
-    def add_folders(self, folders):
+    def add_directories(self, directories):
         """
         For a list of directories, make a list of the files in the directory (and all
         subdirectories), then call :py:method::`add_files` to import them.
@@ -329,7 +332,7 @@ class Importer(QObject):
         Parameters
         ----------
 
-        folders : list of string
+        directories : list of string
             Each string should be a pathname referring to a directory.
 
         Returns
@@ -345,12 +348,12 @@ class Importer(QObject):
         """
         extensions = ['.nwc.', '.mid', '.midi', '.mxl', '.krn', '.xml', '.md']
         files_to_add = []
-        for folder in folders:
-         for path, _, files in os.walk(d):
-            for fp in files:
-               _, extension = os.path.splitext(fp)
-               if extension in extensions:
-                  files_to_add.append(os.path.join(path, fp))
+        for direc in directories:
+            for path, _, files in os.walk(direc):
+                for filename in files:
+                    _, extension = os.path.splitext(filename)
+                    if extension in extensions:
+                        files_to_add.append(os.path.join(path, filename))
         self.add_files(files_to_add)
         #
         return 0
@@ -403,7 +406,7 @@ class Importer(QObject):
         directories_expanded = []
         for pathname in paths_that_exist:
             if os.path.isdir(pathname):
-                self.add_folders(pathname)
+                self.add_directories(pathname)
             else:
                 directories_expanded.append(pathname)
         # Ensure there will be no duplicates
