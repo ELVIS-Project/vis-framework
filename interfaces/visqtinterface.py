@@ -1,4 +1,4 @@
-#! /usr/bin/python
+##! /usr/bin/python
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
 # Program Name:            vis
@@ -44,13 +44,13 @@ class VisQtInterface(VisInterface):
    def __init__(self, vis_controller, argv):
       self.app = QtGui.QApplication(argv)
       self.mainwindow = self.get_view(vis_controller)
-   
+
    def exec_(self):
       self.mainwindow.show()
       return self.app.exec_()
-   
+
    # Helper functions
-   
+
    def get_multi_view(self, multi_setting, **kwargs):
       parent = kwargs['parent']
       groupBox = QtGui.QGroupBox(parent)
@@ -60,7 +60,7 @@ class VisQtInterface(VisInterface):
       for chk in self.get_view(multi_setting.settings, **kwargs):
          verticalLayout.addWidget(chk)
       return groupBox
-   
+
    def get_lbl_line(self, setting, **kwargs):
       parent = kwargs['parent']
       lbl = QtGui.QLabel(parent)
@@ -71,7 +71,7 @@ class VisQtInterface(VisInterface):
       line.setText(self.translate(setting.value))
       # TODO: connect signals
       return (lbl, line)
-   
+
    def popup_error(self, component, description):
       '''
       Notify the user that an error has happened.
@@ -87,7 +87,7 @@ class VisQtInterface(VisInterface):
                                        description,
                                        QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
                                        QtGui.QMessageBox.Ok)
-   
+
    def setup_thread(self, controller):
       '''
       Does the basic configuration for a QThread
@@ -97,7 +97,7 @@ class VisQtInterface(VisInterface):
       def thread_started():
          self.main_screen.setCurrentWidget(self.work_page)
       controller.start.connect(thread_started)
-      
+
       @QtCore.pyqtSlot(QtCore.QString)
       def update_progress(progress):
          '''
@@ -108,7 +108,7 @@ class VisQtInterface(VisInterface):
          - If the argument is another string, the text below the progress bar is
            set to that string.
          '''
-         print 'update progress called with {0}'.format(progress)
+         #print 'update progress called with {0}'.format(progress) # DEBUGGING
          if isinstance(progress, basestring):
             if '100' == progress:
                self.progress_bar.setValue(100)
@@ -122,12 +122,12 @@ class VisQtInterface(VisInterface):
                self.lbl.setText(progress)
          self.app.processEvents()
       controller.status.connect(update_progress)
-      
+
       @QtCore.pyqtSlot(QtCore.QString)
       def popup_error(description):
          return self.popup_error(thread.__class__.__name__, description)
       controller.error.connect(popup_error)
-   
+
    def working_page(self):
       page_working = QtGui.QWidget()
       verticalLayout_21 = QtGui.QVBoxLayout(page_working)
@@ -183,18 +183,18 @@ class VisQtInterface(VisInterface):
                                        QtGui.QSizePolicy.Expanding)
       verticalLayout_21.addItem(spacerItem13)
       return page_working
-   
+
    def translate(self, text):
       ret = QtGui.QApplication.translate("MainWindow",
                                          str(text),
                                          None,
                                          QtGui.QApplication.UnicodeUTF8)
       return ret
-   
+
    def make_tool_button(self, icon_path, size, tooltip, parent):
       btn = QtGui.QToolButton(parent)
       icon = QtGui.QIcon()
-      icon.addPixmap(QtGui.QPixmap(icon_path), 
+      icon.addPixmap(QtGui.QPixmap(icon_path),
                      QtGui.QIcon.Normal,
                      QtGui.QIcon.Off)
       btn.setIcon(icon)
@@ -205,7 +205,7 @@ class VisQtInterface(VisInterface):
       btn.setText("")
       btn.setToolTip(self.translate(tooltip))
       return btn
-   
+
    def make_push_button(self, icon_path, size, tooltip, parent):
       btn = QtGui.QPushButton(parent)
       btn.setText("")
@@ -218,9 +218,9 @@ class VisQtInterface(VisInterface):
       btn.setFlat(True)
       btn.setToolTip(self.translate(tooltip))
       return btn
-   
+
    # Settings Views
-   
+
    @view_getter('BooleanSetting')
    def view(self, boolean_setting, **kwargs):
       parent = kwargs['parent']
@@ -230,19 +230,19 @@ class VisQtInterface(VisInterface):
       chk.setText(self.translate(boolean_setting.display_name))
       chk.stateChanged.connect(lambda state: setattr(boolean_setting, 'value', state))
       return chk
-   
+
    @view_getter('MultiChoiceSetting')
    def view(self, multi_choice_setting, **kwargs):
       return self.get_multi_view(multi_choice_setting, **kwargs)
-   
+
    @view_getter('PartsComboSetting')
    def view(self, parts_combo_setting, **kwargs):
       return self.get_multi_view(parts_combo_setting, **kwargs)
-   
-   @view_getter('StringSetting')   
+
+   @view_getter('StringSetting')
    def view(self, string_setting, **kwargs):
       return self.get_lbl_line(string_setting, **kwargs)
-   
+
    @view_getter('OffsetSetting')
    def view(self, offset_setting, **kwargs):
       lbl, line = self.get_lbl_line(offset_setting, **kwargs)
@@ -253,14 +253,14 @@ class VisQtInterface(VisInterface):
       btn.setText(self.translate("Choose Offset Note"))
       # TODO: connect signals
       return (lbl, line, btn)
-   
+
    @view_getter('Settings')
    def view(self, settings, **kwargs):
       for sett in settings:
          yield self.get_view(sett, **kwargs)
-   
+
    # Model Views
-   
+
    @view_getter('ListOfFiles')
    def view(self, list_of_files, **kwargs):
       parent = kwargs['parent']
@@ -268,7 +268,7 @@ class VisQtInterface(VisInterface):
       gui_file_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
       gui_file_list.setModel(list_of_files)
       return gui_file_list
-   
+
    @view_getter('Piece')
    def view(self, piece, **kwargs):
       parent = kwargs['parent']
@@ -314,7 +314,7 @@ class VisQtInterface(VisInterface):
       widget_part_boxes = QtGui.QWidget(widget_2)
       verticalLayout_22 = QtGui.QVBoxLayout(widget_part_boxes)
       verticalLayout_22.setMargin(0)
-      verticalLayout_22.addWidget(chk_all_parts)      
+      verticalLayout_22.addWidget(chk_all_parts)
       verticalLayout_22.addWidget(chk_basso_seguente)
       horizontalLayout_9.addWidget(widget_part_boxes)
       gridLayout_3.addWidget(widget_2, 8, 0, 1, 3)
@@ -322,7 +322,7 @@ class VisQtInterface(VisInterface):
       gridLayout_3.addWidget(lbl_title, 5, 0, 1, 1)
       gridLayout_3.addWidget(chk_salami, 1, 0, 1, 3)
       return grp_settings_for_piece
-   
+
    @view_getter('ListOfPieces')
    def view(self, list_of_pieces, **kwargs):
       parent = kwargs['parent']
@@ -332,7 +332,7 @@ class VisQtInterface(VisInterface):
       gui_pieces_list.verticalHeader().setVisible(False)
       gui_pieces_list.setModel(list_of_pieces)
       return gui_pieces_list
-   
+
    @view_getter('VisInfo')
    def view(self, info):
       page_about = QtGui.QWidget()
@@ -352,9 +352,9 @@ class VisQtInterface(VisInterface):
       verticalLayout_6.addWidget(label_about)
       verticalLayout_5.addWidget(groupBox_4)
       return page_about
-   
+
    # Main Window Views
-   
+
    @view_getter('VisController')
    def view(self, vis_controller):
       MainWindow = QtGui.QMainWindow()
@@ -391,7 +391,7 @@ class VisQtInterface(VisInterface):
       MainWindow.setWindowTitle(self.translate("vis"))
       MainWindow.setGeometry(300, 300, 250, 150)
       return MainWindow
-   
+
    @view_getter('set_active_controller')
    def view(self, set_active_controller, **kwargs):
       # This is a bit weird -- maybe it should go in the
@@ -423,7 +423,7 @@ class VisQtInterface(VisInterface):
       self.main_screen = main_screen
       main_screen.setCurrentIndex(0)
       return main_screen
-   
+
    @view_getter('choose_files')
    def view(self, choose_files, **kwargs):
       btn_choose_files = self.make_tool_button(":/icons/icons/choose_files.png",
@@ -482,9 +482,9 @@ class VisQtInterface(VisInterface):
                                         kwargs['parent'])
       btn_about.clicked.connect(get_info)
       return btn_about
-   
+
    # "Import" Frame Views
-   
+
    @view_getter('Importer')
    def view(self, importer):
       page_choose = QtGui.QWidget()
@@ -507,7 +507,7 @@ class VisQtInterface(VisInterface):
                                       QtGui.QSizePolicy.Minimum)
       horizontalLayout_4.addItem(spacerItem1)
       files_list_view = self.get_view(importer.list_of_files, parent=widget_3)
-      horizontalLayout_4.addWidget(self.get_view(importer.add_folders,
+      horizontalLayout_4.addWidget(self.get_view(importer.add_directories,
                                                  parent=widget_4))
       horizontalLayout_4.addWidget(self.get_view(importer.add_files,
                                                  parent=widget_4))
@@ -539,9 +539,9 @@ class VisQtInterface(VisInterface):
       horizontalLayout_3.addWidget(widget)
       verticalLayout_2.addWidget(grp_choose_files)
       return page_choose
-   
-   @view_getter('add_folders')
-   def view(self, add_folders, **kwargs):
+
+   @view_getter('add_directories')
+   def view(self, add_directories, **kwargs):
       btn_dir_add = self.make_push_button(":/icons/icons/add-dir.png",
                                           32,
                                           "Add Directory",
@@ -553,10 +553,10 @@ class VisQtInterface(VisInterface):
             '',
             QtGui.QFileDialog.ShowDirsOnly
          )
-         add_folders(str(d))
+         add_directories(str(d))
       btn_dir_add.clicked.connect(on_click)
       return btn_dir_add
-   
+
    @view_getter('add_files')
    def view(self, add_files, **kwargs):
       btn_file_add = self.make_push_button(":/icons/icons/add-file.png",
@@ -573,7 +573,7 @@ class VisQtInterface(VisInterface):
          add_files(files)
       btn_file_add.clicked.connect(on_click)
       return btn_file_add
-   
+
    @view_getter('remove_files')
    def view(self, remove_files, **kwargs):
       files_list = kwargs.pop('files_list')
@@ -586,7 +586,7 @@ class VisQtInterface(VisInterface):
          remove_files(currently_selected)
       btn_file_remove.clicked.connect(on_click)
       return btn_file_remove
-   
+
    @view_getter('start_import')
    def view(self, start_import, **kwargs):
       parent = kwargs['parent']
@@ -601,9 +601,9 @@ class VisQtInterface(VisInterface):
       btn_import.setText(self.translate("Import Pieces"))
       btn_import.clicked.connect(start_import)
       return btn_import
-   
+
    # "Analyze" Frame Views
-   
+
    @view_getter('Analyzer')
    def view(self, analyzer):
       page_analyze = QtGui.QWidget()
@@ -646,7 +646,7 @@ class VisQtInterface(VisInterface):
       verticalLayout_23.addWidget(groupBox)
       self.setup_thread(analyzer)
       return page_analyze
-   
+
    @view_getter('load_statistics')
    def view(self, load_statistics, **kwargs):
       parent = kwargs['parent']
@@ -655,7 +655,7 @@ class VisQtInterface(VisInterface):
       btn_load_statistics.setText(self.translate("Load Existing Statistics Database"))
       btn_load_statistics.clicked.connect(load_statistics)
       return btn_load_statistics
-   
+
    @view_getter('add_parts_combo')
    def view(self, add_parts_combo, **kwargs):
       parent = kwargs['parent']
@@ -664,7 +664,7 @@ class VisQtInterface(VisInterface):
       btn_add_check_combo.setText(self.translate("Add Combination"))
       # TODO: connect signals
       return btn_add_check_combo
-   
+
    @view_getter('analyze')
    def view(self, analyze, **kwargs):
       parent = kwargs['parent']
@@ -672,16 +672,16 @@ class VisQtInterface(VisInterface):
       btn_analyze_now.setText(self.translate("Analyze Voice Pairs"))
       # TODO: connect signals
       return btn_analyze_now
-   
+
    # "Experiment" Frame Views
-   
+
    @view_getter('set_experiment')
    def view(self, set_experiment, **kwargs):
       parent = kwargs['parent']
       combo_choose_experiment = QtGui.QComboBox(parent)
       # TODO: connect signals
       return combo_choose_experiment
-   
+
    @view_getter('Experimenter')
    def view(self, experimenter):
       page_show = QtGui.QWidget()
