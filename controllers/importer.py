@@ -171,8 +171,14 @@ class Importer(QObject):
         )
 
     def start_import(self):
-        # TODO: this method shouldn't exist... yet it wasn't obvious how to make the interface emit
-        # the signal... see issue #169.
+        """
+        Starts the import.
+
+        Side Effects
+        ------------
+
+        Emits the "start" signal.
+        """
         self.start.emit()
 
     def callback(self, result):
