@@ -266,10 +266,15 @@ class ListOfPieces(QAbstractTableModel):
         post = None
 
         if 0 <= row < len(self._pieces) and 0 <= column < self._number_of_columns:
+            # get the object
+            attr, = (k for k,v in self.columns.iteritems() if v == column)
+            if hasattr(self._pieces[row], attr):
+                post = getattr(self._pieces[row], attr)
+            else:
+                sett = getattr(self._pieces[row].settings, attr)
+                post = sett.value
             # most things will have the Qt.DisplayRole
             if Qt.DisplayRole == role:
-                # get the object
-                post = self._pieces[row][column]
                 # for the "score" column, we have to choose the right sub-index
                 if column is self.columns['score']:
                     post = post.toPyObject()[1] if isinstance(post, QVariant) else post[1]
@@ -283,9 +288,7 @@ class ListOfPieces(QAbstractTableModel):
                     post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
             # some things will have the Qt.ScoreRole
             elif role is ListOfPieces.ScoreRole:
-                # get the object
-                post = self._pieces[row][column]
-                # if it's the score
+                # if the object is the score
                 if column is self.columns['score']:
                     post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
                 # else if it's the list of parts

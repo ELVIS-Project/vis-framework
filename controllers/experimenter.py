@@ -69,11 +69,11 @@ class Experimenter(QtCore.QObject):
 
 
 
-   def __init__(self):
+   def __init__(self, *args):
       '''
       Create a new Experimenter controller.
       '''
-      super(Experimenter, self).__init__() # required for signals
+      super(Experimenter, self).__init__(*args) # required for signals
       self._list_of_analyses = None
       self._experiment_settings = Settings()
       # Signals

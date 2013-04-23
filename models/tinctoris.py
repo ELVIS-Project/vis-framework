@@ -26,7 +26,7 @@ def piece_to_records(piece, tenor):
 	parts = range(len(pieces_list.data(index, Qt.DisplayRole)))
 	parts.remove(tenor)
 	index = pieces_list.createIndex(0, ListOfPieces.columns['part_combos'])
-	analyzer._list_of_pieces = pieces_list
+	analyzer.list_of_pieces = pieces_list
 	analyzer.set_data(index, [[ind,tenor] for ind in parts])
 	return analyzer.run_analysis()
 

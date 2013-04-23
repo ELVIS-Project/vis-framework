@@ -34,7 +34,7 @@ imports the pieces through music21, which includes finding the piece title and t
 import os
 from multiprocessing import Pool
 # PyQt4
-from PyQt4.QtCore import pyqtSignal, Qt, QObject, QString
+from PyQt4.QtCore import pyqtSignal, Qt, QObject, QString, QThread
 # music21
 from music21 import converter
 # vis
@@ -141,6 +141,7 @@ class Importer(QObject):
     error = pyqtSignal(QString)
     finished = pyqtSignal()
     start = pyqtSignal()
+    started = pyqtSignal()
 
     def __init__(self, *args):
         """
@@ -157,7 +158,7 @@ class Importer(QObject):
         Creates the objects required internally to store the list of pathnames for importing, and
         the list of imported pieces once imported.
         """
-        super(Importer, self).__init__()
+        super(Importer, self).__init__(*args)
         self._progress = 0.0
         self.list_of_files = importing.ListOfFiles()
         self._list_of_pieces = analyzing.ListOfPieces()
@@ -171,10 +172,10 @@ class Importer(QObject):
     def start_import(self):
         """
         Starts the import.
-
+    
         Side Effects
         ------------
-
+    
         Emits the "start" signal.
         """
         self.start.emit()
@@ -286,6 +287,7 @@ class Importer(QObject):
             return 1
         # Otherwise, start the import
         self._results = []
+        self.started.emit()
         self.status.emit('0')
         self.status.emit('Importing...')
         if self.multiprocess.value:
