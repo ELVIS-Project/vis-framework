@@ -33,12 +33,10 @@ imports the pieces through music21, which includes finding the piece title and t
 # python
 import os
 from multiprocessing import Pool
-import pickle
 # PyQt4
-from PyQt4.QtCore import pyqtSignal, Qt, QThread, QObject, QString
+from PyQt4.QtCore import pyqtSignal, Qt, QObject, QString
 # music21
 from music21 import converter
-from music21.stream import Score
 # vis
 from models import importing, analyzing, settings
 
@@ -80,13 +78,13 @@ def _import_piece(file_path):
         piece = converter.parseFile(file_path)
         title = Importer._find_piece_title(piece)
         part_names = Importer._find_part_names(piece)
-        s = converter.freezeStr(piece, fmt='pickle')
-        return (file_path, s, title, part_names)
+        frozen_score = converter.freezeStr(piece, fmt='pickle')
+        return (file_path, frozen_score, title, part_names)
     except (converter.ArchiveManagerException,
             converter.PickleFilterException,
             converter.ConverterException,
-            converter.ConverterFileException) as e:
-        return str(e)
+            converter.ConverterFileException) as err:
+        return str(err)
 
 
 class Importer(QObject):
@@ -229,7 +227,7 @@ class Importer(QObject):
         along with certain metadata, appended.
         """
         if isinstance(result, str):
-            self.error.emit(unpickled)
+            self.error.emit(result)
         else: # it is a tuple
             file_path = result[0]
             self._progress += 1.0 / self.list_of_files.rowCount()
@@ -281,9 +279,9 @@ class Importer(QObject):
         """
         # Check there are pathnames to try importing. If none, emit an error and stop the method.
         if 0 >= self.list_of_files.rowCount():
-            s1 = "The list of pieces is empty."
-            s2 = "You must choose pieces before we can import them."
-            self.error.emit("{0} {1}".format(s1, s2))
+            str1 = "The list of pieces is empty."
+            str2 = "You must choose pieces before we can import them."
+            self.error.emit("{0} {1}".format(str1, str2))
             self._results = None
             return 1
         # Otherwise, start the import
@@ -313,7 +311,7 @@ class Importer(QObject):
         # At this point, everything went fine.
         for file_path, piece, title, parts in self._results:
             self._list_of_pieces.insertRows(self._list_of_pieces.rowCount(), 1)
-            new_row = post.rowCount() - 1
+            new_row = self._list_of_pieces.rowCount() - 1
             self._list_of_pieces.setData((new_row, analyzing.ListOfPieces.filename),
                                          file_path,
                                          Qt.EditRole)
