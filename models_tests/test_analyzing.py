@@ -174,7 +174,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
    def test_header_data_1(self):
       self.assertEqual('Path',
-                       self.lop.headerData(ListOfPieces.filename,
+                       self.lop.headerData(ListOfPieces.columns['path'],
                                            Qt.Horizontal,
                                            Qt.DisplayRole))
 
@@ -279,10 +279,10 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_1(self):
       self.lop._pieces = [self.default_row]
-      index = self.lop.createIndex(0, ListOfPieces.filename)
+      index = self.lop.createIndex(0, ListOfPieces.columns['path'])
       self.lop.setData(index, 'test_corpus/Kyrie.krn', Qt.EditRole)
       self.assertEqual('test_corpus/Kyrie.krn',
-                       self.lop._pieces[0][ListOfPieces.filename])
+                       self.lop._pieces[0][ListOfPieces.columns['path']])
 
 
 
@@ -325,10 +325,10 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_6(self):
       self.lop._pieces = [self.default_row, self.default_row, self.default_row]
-      index = self.lop.createIndex(1, ListOfPieces.filename)
+      index = self.lop.createIndex(1, ListOfPieces.columns['path'])
       self.lop.setData(index, 'test_corpus/madrigal51.mxl', Qt.EditRole)
       self.assertEqual('test_corpus/madrigal51.mxl',
-                       self.lop._pieces[1][ListOfPieces.filename])
+                       self.lop._pieces[1][ListOfPieces.columns['path']])
 # End TestListOfPiecesSetData --------------------------------------------------
 
 
@@ -344,8 +344,8 @@ class TestListOfPiecesData(unittest.TestCase):
    def test_data_1(self):
       self.lop._pieces = [self.default_row]
       the_field = 'test_corpus/Kyrie.krn'
-      self.lop._pieces[0][ListOfPieces.filename] = the_field
-      index = self.lop.createIndex(0, ListOfPieces.filename)
+      self.lop._pieces[0][ListOfPieces.columns['path']] = the_field
+      index = self.lop.createIndex(0, ListOfPieces.columns['path'])
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
@@ -404,8 +404,8 @@ class TestListOfPiecesData(unittest.TestCase):
    def test_data_7(self):
       self.lop._pieces = [self.default_row, self.default_row]
       the_field = 'test_corpus/madrigal51.mxl'
-      self.lop._pieces[1][ListOfPieces.filename] = the_field
-      index = self.lop.createIndex(1, ListOfPieces.filename)
+      self.lop._pieces[1][ListOfPieces.columns['path']] = the_field
+      index = self.lop.createIndex(1, ListOfPieces.columns['path'])
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
@@ -440,7 +440,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces[0][ListOfPieces.score] = the_field
       # create a list of QModelIndex instances to use
       list_of_indices = []
-      list_of_columns = [ListOfPieces.filename, ListOfPieces.score, ListOfPieces.columns['part_names'],
+      list_of_columns = [ListOfPieces.columns['path'], ListOfPieces.score, ListOfPieces.columns['part_names'],
                          ListOfPieces.offset_intervals, ListOfPieces.columns['part_combos']]
       for each_column in list_of_columns:
          list_of_indices.append(self.lop.createIndex(0, each_column))

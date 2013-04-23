@@ -276,6 +276,7 @@ class Settings(QObject):
         True
         """
         if not self.has(setting):
+            print 'tried to access nonexistent setting {0}'.format(setting)
             setattr(self, setting, Setting(None))
         return self.__getattribute__(setting)
 

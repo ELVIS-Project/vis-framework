@@ -125,7 +125,7 @@ class Piece(object):
             )
         })
         self.settings.keys = ['title', 'all_parts', 'basso_seguente',
-                                     'current_parts_combo', 'offset', 'salami']
+                                     'current_parts_combo', 'current_offset', 'salami']
     
     def update(self, other_piece):
         '''
@@ -135,9 +135,11 @@ class Piece(object):
         self.path = other_piece.path
         self.score = other_piece.score
         self.part_names = other_piece.part_names
+        self.part_combos = other_piece.part_combos
+        self.offset_intervals = other_piece.offset_intervals
         self.settings.title = other_piece.settings.title
         self.settings.current_parts_combo = other_piece.settings.current_parts_combo
-        self.settings.offset = other_piece.settings.offset
+        self.settings.current_offset = other_piece.settings.current_offset
         self.settings.salami = other_piece.settings.salami
     
     def add_parts_combo(self):
@@ -179,7 +181,7 @@ class ListOfPieces(QAbstractTableModel):
     # A role for data() that means to return the Score object rather than title
     ScoreRole = 'This is an object for the ScoreRole'
     columns = {
-        'filename': 0,
+        'path': 0,
         'score': 1,
         'part_names': 2,
         'offset_intervals': 3,
@@ -230,7 +232,7 @@ class ListOfPieces(QAbstractTableModel):
 
         data() should return the following formats, but only if this specification
         was followed when calling setData(). If the index is...
-        - ListOfPieces.filename : string
+        - ListOfPieces.columns['path'] : string
         - ListOfPieces.score : either...
             - music21.stream.Score (for ListOfPieces.ScoreRole)
             - string (for Qt.DisplayRole)
@@ -335,11 +337,11 @@ class ListOfPieces(QAbstractTableModel):
 
         >>> a = ListOfPieces()
         >>> a.insertRows(0, 1)
-        >>> index = a.createIndex(0, a.columns['filename'])
+        >>> index = a.createIndex(0, a.columns['path'])
         >>> a.setData(index, 'kyrie.krn', Qt.EditRole)
 
         Use the following data formats:
-        - ListOfPieces.filename : string
+        - ListOfPieces.columns['path'] : string
         - ListOfPieces.score : tuple, being (music21.stream.Score, string)
         - ListOfPieces.columns['part_names'] : list of string
         - ListOfPieces.offset_intervals : list of float

@@ -523,8 +523,8 @@ class TestImportPieces(unittest.TestCase):
       # (4) Check for correctness
       self.assertEqual(len(paths), returned.rowCount())
       for row in xrange(len(paths)): # filenames
-         #index = returned.createIndex(row, analyzing.ListOfPieces.filename)
-         index = (row, analyzing.ListOfPieces.filename)
+         #index = returned.createIndex(row, analyzing.ListOfPieces.columns['path'])
+         index = (row, analyzing.ListOfPieces.columns['path'])
          self.assertEqual(paths[row], returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # titles
          #index = returned.createIndex(row, analyzing.ListOfPieces.score)
@@ -584,8 +584,8 @@ class TestImportPieces(unittest.TestCase):
       # (4) Check for correctness
       self.assertEqual(len(paths), returned.rowCount())
       for row in xrange(len(paths)): # filenames
-         #index = returned.createIndex(row, analyzing.ListOfPieces.filename)
-         index = (row, analyzing.ListOfPieces.filename)
+         #index = returned.createIndex(row, analyzing.ListOfPieces.columns['path'])
+         index = (row, analyzing.ListOfPieces.columns['path'])
          self.assertEqual(paths[row], returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # titles
          #index = returned.createIndex(row, analyzing.ListOfPieces.score)
