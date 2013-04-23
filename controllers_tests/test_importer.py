@@ -537,8 +537,8 @@ class TestImportPieces(unittest.TestCase):
          # TODO: make this following test work, if possible
          #self.assertEqual(pieces[row], returned.data(index, analyzing.ListOfPieces.ScoreRole))
       for row in xrange(len(paths)): # lists of parts
-         #index = returned.createIndex(row, analyzing.ListOfPieces.parts_list)
-         index = (row, analyzing.ListOfPieces.parts_list)
+         #index = returned.createIndex(row, analyzing.ListOfPieces.columns['part_names'])
+         index = (row, analyzing.ListOfPieces.columns['part_names'])
          self.assertEqual(str(parts[row])[1:-1], returned.data(index, Qt.DisplayRole).toPyObject())
          self.assertEqual(parts[row], returned.data(index, analyzing.ListOfPieces.ScoreRole).toPyObject())
       for row in xrange(len(paths)): # offset intervals
@@ -546,12 +546,12 @@ class TestImportPieces(unittest.TestCase):
          index = (row, analyzing.ListOfPieces.offset_intervals)
          self.assertEqual('[0.5]', returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # parts combinations
-         #index = returned.createIndex(row, analyzing.ListOfPieces.parts_combinations)
-         index = (row, analyzing.ListOfPieces.parts_combinations)
+         #index = returned.createIndex(row, analyzing.ListOfPieces.columns['part_combos'])
+         index = (row, analyzing.ListOfPieces.columns['part_combos'])
          self.assertEqual('(no selection)', returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # included consecutive repetitions
-         #index = returned.createIndex(row, analyzing.ListOfPieces.repeat_identical)
-         index = (row, analyzing.ListOfPieces.repeat_identical)
+         #index = returned.createIndex(row, analyzing.ListOfPieces.columns['salami'])
+         index = (row, analyzing.ListOfPieces.columns['salami'])
          self.assertEqual(False, returned.data(index, Qt.DisplayRole).toPyObject())
 
 
@@ -598,8 +598,8 @@ class TestImportPieces(unittest.TestCase):
          # TODO: make this following test work, if possible
          #self.assertEqual(pieces[row], returned.data(index, analyzing.ListOfPieces.ScoreRole))
       for row in xrange(len(paths)): # lists of parts
-         #index = returned.createIndex(row, analyzing.ListOfPieces.parts_list)
-         index = (row, analyzing.ListOfPieces.parts_list)
+         #index = returned.createIndex(row, analyzing.ListOfPieces.columns['part_names'])
+         index = (row, analyzing.ListOfPieces.columns['part_names'])
          self.assertEqual(str(parts[row])[1:-1], returned.data(index, Qt.DisplayRole).toPyObject())
          self.assertEqual(parts[row], returned.data(index, analyzing.ListOfPieces.ScoreRole).toPyObject())
       for row in xrange(len(paths)): # offset intervals
@@ -607,12 +607,12 @@ class TestImportPieces(unittest.TestCase):
          index = (row, analyzing.ListOfPieces.offset_intervals)
          self.assertEqual('[0.5]', returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # parts combinations
-         #index = returned.createIndex(row, analyzing.ListOfPieces.parts_combinations)
-         index = (row, analyzing.ListOfPieces.parts_combinations)
+         #index = returned.createIndex(row, analyzing.ListOfPieces.columns['part_combos'])
+         index = (row, analyzing.ListOfPieces.columns['part_combos'])
          self.assertEqual('(no selection)', returned.data(index, Qt.DisplayRole).toPyObject())
       for row in xrange(len(paths)): # included consecutive repetitions
-         #index = returned.createIndex(row, analyzing.ListOfPieces.repeat_identical)
-         index = (row, analyzing.ListOfPieces.repeat_identical)
+         #index = returned.createIndex(row, analyzing.ListOfPieces.columns['salami'])
+         index = (row, analyzing.ListOfPieces.columns['salami'])
          self.assertEqual(False, returned.data(index, Qt.DisplayRole).toPyObject())
 # End TestImportPieces ---------------------------------------------------------
 

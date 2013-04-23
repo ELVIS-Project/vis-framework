@@ -11,7 +11,7 @@ def piece_to_records(piece):
 	importer.add_pieces([piece])
 	importer.import_finished.connect(analyzer.catch_import)
 	l = importer.import_pieces()
-	analyzer.set_data(l.createIndex(0,ListOfPieces.parts_combinations), 
+	analyzer.set_data(l.createIndex(0,ListOfPieces.columns['part_combos']), 
 						[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]])
 	return analyzer.run_analysis()
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
 			l = importer.import_pieces()
 			print 'import finished.'
 			info = list(l.iterateRows())
-			analyzer.set_data(l.createIndex(0,ListOfPieces.parts_combinations), 
+			analyzer.set_data(l.createIndex(0,ListOfPieces.columns['part_combos']), 
 								[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]])
 			print 'analyzing...'
 			writer.writerow([info[0][1][1]])

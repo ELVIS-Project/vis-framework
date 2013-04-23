@@ -190,7 +190,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
    def test_header_data_3(self):
       self.assertEqual('List of Part Names',
-                       self.lop.headerData(ListOfPieces.parts_list,
+                       self.lop.headerData(ListOfPieces.columns['part_names'],
                                            Qt.Horizontal,
                                            Qt.DisplayRole))
 
@@ -206,7 +206,7 @@ class TestListOfPiecesHeaderData(unittest.TestCase):
 
    def test_header_data_5(self):
       self.assertEqual('Part Combinations',
-                       self.lop.headerData(ListOfPieces.parts_combinations,
+                       self.lop.headerData(ListOfPieces.columns['part_combos'],
                                            Qt.Horizontal,
                                            Qt.DisplayRole))
 
@@ -298,10 +298,10 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_3(self):
       self.lop._pieces = [self.default_row]
-      index = self.lop.createIndex(0, ListOfPieces.parts_list)
+      index = self.lop.createIndex(0, ListOfPieces.columns['part_names'])
       self.lop.setData(index, ['a', 'b', 'c', 'd'], Qt.EditRole)
       self.assertEqual(['a', 'b', 'c', 'd'],
-                       self.lop._pieces[0][ListOfPieces.parts_list])
+                       self.lop._pieces[0][ListOfPieces.columns['part_names']])
 
 
 
@@ -316,10 +316,10 @@ class TestListOfPiecesSetData(unittest.TestCase):
 
    def test_set_data_5(self):
       self.lop._pieces = [self.default_row]
-      index = self.lop.createIndex(0, ListOfPieces.parts_combinations)
+      index = self.lop.createIndex(0, ListOfPieces.columns['part_combos'])
       self.lop.setData(index, [[0, 1], [0, 'bs']], Qt.EditRole)
       self.assertEqual([[0, 1], [0, 'bs']],
-                       self.lop._pieces[0][ListOfPieces.parts_combinations])
+                       self.lop._pieces[0][ListOfPieces.columns['part_combos']])
 
 
 
@@ -374,8 +374,8 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces = [self.default_row]
       the_field = ['a', 'b', 'c', 'd'] # for ScoreRole
       the_field_str = str(the_field)[1:-1] # for DisplayRole
-      self.lop._pieces[0][ListOfPieces.parts_list] = the_field
-      index = self.lop.createIndex(0, ListOfPieces.parts_list)
+      self.lop._pieces[0][ListOfPieces.columns['part_names']] = the_field
+      index = self.lop.createIndex(0, ListOfPieces.columns['part_names'])
       # DisplayRole returns a string
       self.assertEqual(the_field_str, self.lop.data(index, Qt.DisplayRole).toPyObject())
       # ScoreRole returns the list
@@ -395,8 +395,8 @@ class TestListOfPiecesData(unittest.TestCase):
    def test_data_6(self):
       self.lop._pieces = [self.default_row]
       the_field = [[0, 1], [0, 'bs']]
-      self.lop._pieces[0][ListOfPieces.parts_combinations] = the_field
-      index = self.lop.createIndex(0, ListOfPieces.parts_combinations)
+      self.lop._pieces[0][ListOfPieces.columns['part_combos']] = the_field
+      index = self.lop.createIndex(0, ListOfPieces.columns['part_combos'])
       self.assertEqual(the_field, self.lop.data(index, Qt.DisplayRole).toPyObject())
 
 
@@ -440,8 +440,8 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces[0][ListOfPieces.score] = the_field
       # create a list of QModelIndex instances to use
       list_of_indices = []
-      list_of_columns = [ListOfPieces.filename, ListOfPieces.score, ListOfPieces.parts_list,
-                         ListOfPieces.offset_intervals, ListOfPieces.parts_combinations]
+      list_of_columns = [ListOfPieces.filename, ListOfPieces.score, ListOfPieces.columns['part_names'],
+                         ListOfPieces.offset_intervals, ListOfPieces.columns['part_combos']]
       for each_column in list_of_columns:
          list_of_indices.append(self.lop.createIndex(0, each_column))
       # test everything with Qt.DisplayRole

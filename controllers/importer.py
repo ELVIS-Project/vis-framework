@@ -312,13 +312,13 @@ class Importer(QObject):
         for file_path, piece, title, parts in self._results:
             self._list_of_pieces.insertRows(self._list_of_pieces.rowCount(), 1)
             new_row = self._list_of_pieces.rowCount() - 1
-            self._list_of_pieces.setData((new_row, analyzing.ListOfPieces.filename),
+            self._list_of_pieces.setData((new_row, self._list_of_pieces.columns['filename']),
                                          file_path,
                                          Qt.EditRole)
-            self._list_of_pieces.setData((new_row, analyzing.ListOfPieces.score),
+            self._list_of_pieces.setData((new_row, self._list_of_pieces.columns['score']),
                                          (piece, title),
                                          Qt.EditRole)
-            self._list_of_pieces.setData((new_row, analyzing.ListOfPieces.parts_list),
+            self._list_of_pieces.setData((new_row, self._list_of_pieces.columns['part_names']),
                                          parts,
                                          Qt.EditRole)
         # Finish up

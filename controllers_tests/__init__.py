@@ -28,10 +28,10 @@
 
 
 
-__all__ = ['test_importer']#, 'test_analyzer', 'test_display_handler_', 'test_experimenter', 'test_vis_controller']
+__all__ = ['test_importer']#, 'test_analyzer', 'test_visualizer_', 'test_experimenter', 'test_vis_controller']
 
 import test_importer
 #import test_analyzer
-#import test_display_handler
+#import test_visualizer
 #import test_experimenter
 #import test_vis_controller

@@ -66,7 +66,7 @@ def _analyze_piece(each_piece):
     records = []
     piece_name = str(each_piece[ListOfPieces.score][1]) # TODO: this won't work in milestone 11 and up
     # (1) Decode the part-combination specification
-    this_combos = str(each_piece[ListOfPieces.parts_combinations])
+    this_combos = str(each_piece[ListOfPieces.columns['part_combos']])
     the_score = converter.thawStr(each_piece[ListOfPieces.score][0])
     if '[all]' == this_combos:
         # We have to examine all combinations of parts...
@@ -99,8 +99,8 @@ def _analyze_piece(each_piece):
         this_parts = [the_score.parts[i] for i in combo]
         # prepare the metadata
         this_metadata = the_score.metadata
-        this_part_names = [each_piece[ListOfPieces.parts_list][i] for i in combo]
-        this_salami = each_piece[ListOfPieces.repeat_identical]
+        this_part_names = [each_piece[ListOfPieces.columns['part_names']][i] for i in combo]
+        this_salami = each_piece[ListOfPieces.columns['salami']]
         # TODO: figure this dynamically (issue #146)
         # TODO: formalize the lambda things somehow
         # NOTE: 'c' is for 'Chord' and 'm' is for 'chord Member'
