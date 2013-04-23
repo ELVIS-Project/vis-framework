@@ -103,8 +103,8 @@ class VisController(QObject):
       Set the application to its initial state, clearing all the models except
       the ListOfFiles managed by self.importer.
       '''
-      self.analyzer.list_of_pieces.clear()
-      self.importer.list_of_pieces = self.analyzer.thread.list_of_pieces
+      self.analyzer.thread.list_of_pieces.clear()
+      self.importer._list_of_pieces = self.analyzer.thread.list_of_pieces
       # clear importer and visualizer?
       self.set_active_controller(self.importer)
    
