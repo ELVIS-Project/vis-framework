@@ -1,8 +1,8 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# Program Name:               vis
-# Program Description:        Measures sequences of vertical intervals.
+# Program Name:              vis
+# Program Description:       Measures sequences of vertical intervals.
 #
 # Filename: settings.py
 # Purpose: The model classes for Setting objects.
@@ -20,12 +20,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.   If not, see <http://www.gnu.org/licenses/>.
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
-This module contains the model classes for Setting objects, used in vis by
-the Analyzer and Experimenter controllers.
-'''
+"""
+Model classes for Setting and Settings objects.
+"""
+
+
 # Imports from...
 # Python
 from numbers import Number
@@ -36,115 +37,248 @@ from problems.coreproblems import SettingValidationError, MissingInformationErro
 
 
 class Setting(QObject):
-    '''
+    """
     Base class for all Settings to be used by the Analyzer & Experimenter
     controllers.
-    '''
-    # emitted when a user changes the value contained in this Setting.
+
+    PyQt4 Signals
+    -------------
+    .. py:attribute:: value_changed
+        Emitted when the value of a Setting is changed through its setter method.
+    """
+
     value_changed = pyqtSignal()
-    # # emitted when the relevant view widget for this Setting must be created.
+    # emitted when the relevant view widget for this Setting must be created.
     # initialize = pyqtSignal()
-    
+
     def __init__(self, value=None, **kwargs):
-        '''
-        Creates a new Setting instance with the value `value`.
-        
-        Other relevant information that can be passed via the keyword arguments:
-        `display_name` - a string containing a short description of this field to
-        display in a view.
-        '''
+        """
+        Make a new Setting instance.
+
+        Parameters
+        ----------
+        All parameters are optional; default values are specified below.
+
+        value : any type or class
+            The value of a the Setting. Default is None.
+
+        display_name : string
+            The textual representation of this Setting in a GUI. Default is ''
+
+        extra_detail : string
+            Additional information about this Setting, such as that used by a tooltip. Deafult is ''
+        """
         super(Setting, self).__init__()
         self._value = value
         self._display_name = kwargs.get('display_name', '')
         self._extra_detail = kwargs.get('extra_detail', '')
-    
+
     @property
     def display_name(self):
-        '''
-        Wrapper for private variable _display_name.
-        '''
+        """
+        Get the display name of this Setting.
+
+        Returns
+        -------
+
+        s : string
+            The preferred textual representaiton of this Setting in a GUI.
+        """
         return self._display_name
-    
+
     @property
     def extra_detail(self):
-        '''
-        Wrapper for private variable _extra_detail
-        '''
+        """
+        Get additional information about this Setting, such as for use in a tooltip.
+
+        Returns
+        -------
+
+        s : string
+            Additional information about this Setting.
+        """
         return self._extra_detail
-    
+
     @property
     def value(self):
-        '''
-        Wrapper for private variable _value.
-        '''
+        """
+        Get the value of this Setting.
+
+        Returns
+        -------
+
+        v : any type
+            Whatever "value" was provided to the constructor, or the value() setter method.
+        """
         return self._value
-    
+
     @value.setter
     def value(self, value):
-        '''
-        Wrapper for private variable _value.
-        '''
+        """
+        Set the value of this Setting.
+
+        Parameters
+        ----------
+
+        value : any type
+            The value to which the Setting should be changed.
+
+        Returns
+        -------
+
+        i : zero
+            Returns 0 to indicate the method has finished successfully.
+
+        Emits
+        -----
+
+        :py:const:`Setting.value_changed` : If the value provided is different from the one
+            previously stored in this Setting.
+
+        Side Effects
+        ------------
+
+        Uses the :py:method:`Setting.validate` method to validate that the input is valid for the
+        type of Setting.
+        """
         value = self.validate(value)
         if self._value != value:
             self._value = value
             self.value_changed.emit()
-    
+        return 0
+
     def clean(self, value):
-        '''
-        Modify or reformat the data being passed into the setting so that it
-        is suitable for internal use by the application. This method can be
-        overridden in subclasses. The default implementation is simply to
-        return the value passed in.
-        '''
+        """
+        Modify or reformat a 'value' to be suitable for this Setting. Values given to this method
+        should be known to be valid, though potentially improperly formatted.
+
+        This method should be overridden in subclasses, since the default implementation simply
+        returns the original value.
+
+        Parameters
+        ----------
+
+        value : any type
+            The object to be reformatted.
+
+        Returns
+        -------
+
+        value : any type
+            The unmodified parameter.
+        """
         return value
-    
+
     def validate(self, value):
-        '''
-        Check to see if the value is valid for its uses, and return a valid
-        value for the setting. Otherwise, raise a SettingValidationError.
-        Overriding this method in subclasses is encouraged; default
-        implementation is to simply return `self.clean(value)`.
-        '''
+        """
+        Verify that a value is valid for this Setting, then format it correctly if so.
+
+        This method should be overridden in subclasses, since the default implementation simply
+        returns the original value.
+
+        Parameters
+        ----------
+
+        value : any type
+            The object to be verified and formatted.
+
+        Returns
+        -------
+
+        value : any type
+            The unmodified parameter.
+
+        Side Effects
+        ------------
+
+        Uses :py:method:`Setting.clean` to properly format a valid value.
+        """
         return self.clean(value)
+# End class Setting --------------------------------------------------------------------------------
 
 
 class Settings(QObject):
-    '''
-    Wrapper for a dictionary of Setting objects.
-    '''
+    """
+    Holds :py:class:`Setting` objects. This class is a wrapper for a dict.
+    """
+
     def __init__(self, settings=None):
-        '''
-        Create a new Settings instance, optionally with the argument
-        `settings`, a dict with (string, Setting) items.
-        '''
+        """
+        Create a new Settings object.
+
+        Parameters
+        ----------
+
+        settings : dict
+            The dict to use as the settings database.
+        """
         self.keys = []
         if settings:
             self.keys = settings.keys()
             self.__dict__.update(settings)
-    
+
     def __iter__(self):
-        '''
-        Syntactic sugar for the values of the internal dictionary.
-        '''
-        for k in self.keys:
-            yield getattr(self, k)
-    
-    def has(self, setting):
-        '''
-        Returns True if a setting already exists in this AnalysisSettings
-        instance, or else False.
-        '''
-        return hasattr(self, setting)
-    
+        """
+        Iterate the values of all settings.
+
+        Returns
+        -------
+
+        All the values are returned, one at a time, in arbitrary order (the order they are stored
+        in the internal dictionary).
+        """
+        for each_key in self.keys:
+            yield getattr(self, each_key)
+
+    def has(self, which_setting):
+        """
+        Know whether a Setting has a value in this Settings object.
+
+        Parameters
+        ----------
+
+        which_setting : string
+            The name of the Setting for which to check.
+
+        Returns
+        -------
+
+        b : boolean
+            Whether the Setting has been set in this Settings instance.
+        """
+        return hasattr(self, which_setting)
+
     def __getattr__(self, setting):
-        '''
-        Return the value of a setting. If it does not exist, create it and
-        populate it with value None first.
-        '''
+        """
+        Get the value of a particular setting. If the setting does not exist, return a Setting with
+        the value of None.
+
+        Parameter
+        ---------
+
+        setting : symbol
+            The name of the Setting to return.
+
+        Returns
+        -------
+
+        s : Setting
+            Either the already-stored Setting object with the specified name, or a newly-created
+            Setting object with a value of None.
+
+        Examples
+        --------
+
+        >>> a = Settings({'test': Setting(5)})
+        >>> a.test.value
+        5
+        >>> a.not_there.value is None
+        True
+        """
         if not self.has(setting):
             setattr(self, setting, Setting(None))
         return self.__getattribute__(setting)
-    
+
     def __deepcopy__(self, memo):
         """
         Creates a deep copy of this Settings object.
@@ -156,6 +290,7 @@ class Settings(QObject):
         for k, v in self.__dict__.items():
             setattr(result, k, deepcopy(v, memo))
         return result
+# End class Settings -------------------------------------------------------------------------------
 
 
 class PositiveNumberSetting(type):
@@ -229,10 +364,10 @@ class MultiChoiceSetting(Setting):
         is required, and must be an iterable of 2-tuples (value, label) where value
         is any Python type and label is a string to be used as the label of the option
         in the view widget for this Setting.
-        
+
         Example:
         >>> mcs = MultiChoiceSetting(choices=[(0, 'Option A'),
-        (1, 'Option B'), 
+        (1, 'Option B'),
         (2, 'Option C')])
         '''
         super(MultiChoiceSetting, self).__init__(*args, **kwargs)
@@ -253,7 +388,7 @@ class MultiChoiceSetting(Setting):
         self.choices = choices
         self._value = []
         settings = [(val, name, BooleanSetting(False,display_name=name))
-                        for val, name in choices]
+                    for val, name in choices]
         for val, name, setting in settings:
             def value_changed():
                 if setting.value:
@@ -265,3 +400,4 @@ class MultiChoiceSetting(Setting):
             setting.value_changed.connect(value_changed)
         self.settings = Settings({name: setting for val, name, setting in settings})
         super(MultiChoiceSetting, self).__init__(*args, **kwargs)
+# End class MultiChoiceSetting ---------------------------------------------------------------------

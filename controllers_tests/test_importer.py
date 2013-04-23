@@ -31,13 +31,13 @@ from PyQt4.QtCore import Qt
 # music21
 from music21 import converter, stream, metadata
 # vis
-from controllers.importer import import_piece, Importer
+from controllers.importer import _import_piece, Importer
 from models import importing, analyzing
 
 
 
 class TestPieceGetter(unittest.TestCase):
-   # For the method import_piece()
+   # For the method _import_piece()
 
    @staticmethod
    def metadata_equality(one, another):
@@ -64,7 +64,8 @@ class TestPieceGetter(unittest.TestCase):
       else:
          for i in xrange(len(one)):
             if type(one[i]) != type(another[i]):
-               print('*** Objects at i = ' + str(i) + ' are different types!')
+               print('*** Objects at i = ' + str(i) + ' are different types:')
+               print('    ' + str(one[i]) + ' in "one" and ' + str(another[i]) + ' in "another"')
                return False
             if '__eq__' in dir(one):
                if one[i] != another[i]:
@@ -79,23 +80,23 @@ class TestPieceGetter(unittest.TestCase):
                pass
       return True
 
-   def test_tester(self):
-      path = 'test_corpus/bwv77.mxl'
-      try_1 = converter.parse(path)
-      try_2 = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(try_1, try_2))
-
-   def test_bwv77(self):
-      path = 'test_corpus/bwv77.mxl'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
-
-   def test_jos2308_krn(self):
-      path = 'test_corpus/Jos2308.krn'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+   #def test_tester(self):
+      #path = 'test_corpus/bwv77.mxl'
+      #try_1 = converter.parse(path)
+      #try_2 = converter.thawStr(_import_piece(path)[1])
+      #self.assertTrue(TestPieceGetter.stream_equality(try_1, try_2))
+#
+   #def test_bwv77(self):
+      #path = 'test_corpus/bwv77.mxl'
+      #my_import = converter.parse(path)
+      #test_import = converter.thawStr(_import_piece(path)[1])
+      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+#
+   #def test_jos2308_krn(self):
+      #path = 'test_corpus/Jos2308.krn'
+      #my_import = converter.parse(path)
+      #test_import = converter.thawStr(_import_piece(path)[1])
+      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    #def test_jos2308_mei(self):
       ## Because music21 doesn't support MEI, this will not work
@@ -107,34 +108,34 @@ class TestPieceGetter(unittest.TestCase):
                         #Importer._piece_getter,
                         #path)
 
-   def test_kyrie(self):
-      path = 'test_corpus/Kyrie.krn'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+   #def test_kyrie(self):
+      #path = 'test_corpus/Kyrie.krn'
+      #my_import = converter.parse(path)
+      #test_import = converter.thawStr(_import_piece(path)[1])
+      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    #def test_laPlusDesPlus(self):
       #path = 'test_corpus/laPlusDesPlus.abc'
       #my_import = converter.parse(path)
-      #test_import = converter.thawStr(import_piece(path)[1])
+      #test_import = converter.thawStr(_import_piece(path)[1])
       #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
-   def test_madrigal51(self):
-      path = 'test_corpus/madrigal51.mxl'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+   #def test_madrigal51(self):
+      #path = 'test_corpus/madrigal51.mxl'
+      #my_import = converter.parse(path)
+      #test_import = converter.thawStr(_import_piece(path)[1])
+      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
-   def test_sinfony(self):
-      path = 'test_corpus/sinfony.md'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
-
+   #def test_sinfony(self):
+      #path = 'test_corpus/sinfony.md'
+      #my_import = converter.parse(path)
+      #test_import = converter.thawStr(_import_piece(path)[1])
+      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+#
    def test_sqOp76_4_i(self):
       path = 'test_corpus/sqOp76-4-i.midi'
       my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
+      test_import = converter.thawStr(_import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 # End TestPieceGetter ----------------------------------------------------------
 
@@ -217,7 +218,7 @@ class TestPartsAndTitles(unittest.TestCase):
 
 
 class TestAddPieces(unittest.TestCase):
-   # For the method Importer.add_pieces()
+   # For the method Importer.add_files()
 
    def setUp(self):
       self.control = Importer()
@@ -225,121 +226,121 @@ class TestAddPieces(unittest.TestCase):
    # add one piece to an empty Importer
    def test_add_pieces_1(self):
       paths = ['test_corpus/bwv77.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
-      for path in self.control._list_of_files:
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add multiple to empty
    def test_add_pieces_2(self):
       paths = ['test_corpus/bwv77.mxl', 'test_corpus/Kyrie.krn']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
-      for path in self.control._list_of_files:
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add one conflict to one
    def test_add_pieces_3(self):
       paths = ['test_corpus/bwv77.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
-      self.assertEqual(1, self.control._list_of_files.rowCount())
-      ret_val = self.control.add_piece(paths)
+      self.assertEqual(1, self.control.list_of_files.rowCount())
+      ret_val = self.control.add_files(paths)
       self.assertFalse(ret_val)
-      self.assertEqual(1, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.assertEqual(1, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add one conflict to multiple
    def test_add_pieces_4(self):
       paths = ['test_corpus/bwv77.mxl', 'test_corpus/Kyrie.krn']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
-      ret_val = self.control.add_piece(['test_corpus/bwv77.mxl'])
+      ret_val = self.control.add_files(['test_corpus/bwv77.mxl'])
       self.assertFalse(ret_val)
-      self.assertEqual(2, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.assertEqual(2, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add one to already-one
    def test_add_pieces_5(self):
       paths = ['test_corpus/bwv77.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
       paths = ['test_corpus/Kyrie.krn']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
       paths = ['test_corpus/bwv77.mxl', 'test_corpus/Kyrie.krn']
-      for path in self.control._list_of_files:
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add multiple to already-one
    def test_add_pieces_6(self):
       paths = ['test_corpus/bwv77.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
       paths = ['test_corpus/Kyrie.krn', 'test_corpus/madrigal51.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
       paths = ['test_corpus/Kyrie.krn', 'test_corpus/madrigal51.mxl',
                'test_corpus/bwv77.mxl']
-      for path in self.control._list_of_files:
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add one to already-many
    def test_add_pieces_7(self):
       paths = ['test_corpus/Kyrie.krn', 'test_corpus/madrigal51.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
       paths = ['test_corpus/bwv77.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
       paths = ['test_corpus/Kyrie.krn', 'test_corpus/madrigal51.mxl',
                'test_corpus/bwv77.mxl']
-      for path in self.control._list_of_files:
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add many to already-many
    def test_add_pieces_8(self):
       paths = ['test_corpus/Kyrie.krn', 'test_corpus/madrigal51.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
       paths = ['test_corpus/bwv77.mxl', 'test_corpus/sinfony.md']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertTrue(ret_val)
       paths = ['test_corpus/Kyrie.krn', 'test_corpus/madrigal51.mxl',
                'test_corpus/bwv77.mxl', 'test_corpus/sinfony.md']
-      for path in self.control._list_of_files:
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add many including a conflict to already-many
    def test_add_pieces_9(self):
       paths = ['test_corpus/Kyrie.krn', 'test_corpus/madrigal51.mxl']
-      self.control.add_piece(paths)
+      self.control.add_files(paths)
       paths = ['test_corpus/bwv77.mxl', 'test_corpus/sinfony.md',
                'test_corpus/Kyrie.krn']
-      self.control.add_piece(paths)
+      self.control.add_files(paths)
       paths = ['test_corpus/Kyrie.krn', 'test_corpus/madrigal51.mxl',
                'test_corpus/bwv77.mxl', 'test_corpus/sinfony.md']
-      self.assertEqual(4, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.assertEqual(4, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add one non-existant filename
    def test_add_pieces_10(self):
       paths = ['test_corpus/does_not.exist']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertFalse(ret_val)
-      self.assertEqual(0, self.control._list_of_files.rowCount())
+      self.assertEqual(0, self.control.list_of_files.rowCount())
 
    # add many filenames with one non-existant file
    def test_add_pieces_11(self):
       paths = ['test_corpus/bwv77.mxl', 'test_corpus/does_not.exist',
                'test_corpus/madrigal51.mxl']
-      ret_val = self.control.add_piece(paths)
+      ret_val = self.control.add_files(paths)
       self.assertFalse(ret_val)
       paths = ['test_corpus/bwv77.mxl', 'test_corpus/madrigal51.mxl']
-      for path in self.control._list_of_files:
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 
    # add a directory from empty with no conflicts
@@ -351,16 +352,16 @@ class TestAddPieces(unittest.TestCase):
                'test_corpus/madrigal51.mxl',
                'test_corpus/sinfony.md',
                'test_corpus/sqOp76-4-i.midi']
-      ret_val = self.control.add_piece(['test_corpus'])
+      ret_val = self.control.add_files(['test_corpus'])
       self.assertTrue(ret_val)
-      for path in self.control._list_of_files:
+      for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 # End TestAddPieces ------------------------------------------------------------
 
 
 
 class TestRemovePieces(unittest.TestCase):
-   # For the method Importer.remove_pieces()
+   # For the method Importer.remove_files()
 
    def setUp(self):
       self.control = Importer()
@@ -371,10 +372,10 @@ class TestRemovePieces(unittest.TestCase):
       remove_paths = ['test_corpus/bwv77.mxl']
       #expected_paths = ['test_corpus/']
       expected_length = 0
-      #self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      #for path in self.control._list_of_files:
+      #self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      #for path in self.control.list_of_files:
          #self.assertTrue(path in expected_paths)
 
    # remove one from one-item list
@@ -383,10 +384,10 @@ class TestRemovePieces(unittest.TestCase):
       remove_paths = ['test_corpus/bwv77.mxl']
       expected_paths = ['test_corpus/bwv77.mxl']
       expected_length = 0
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in expected_paths)
 
    # remove one from many-item list
@@ -395,10 +396,10 @@ class TestRemovePieces(unittest.TestCase):
       remove_paths = ['test_corpus/bwv77.mxl']
       expected_paths = ['test_corpus/Kyrie.krn']
       expected_length = 1
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in expected_paths)
 
    # remove many from one-item list
@@ -407,10 +408,10 @@ class TestRemovePieces(unittest.TestCase):
       remove_paths = ['test_corpus/Kyrie.krn', 'test_corpus/bwv77.mxl']
       #expected_paths = ['test_corpus/']
       expected_length = 0
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      #for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      #for path in self.control.list_of_files:
          #self.assertTrue(path in expected_paths)
 
    # remove many from many-item list
@@ -420,10 +421,10 @@ class TestRemovePieces(unittest.TestCase):
       remove_paths = ['test_corpus/bwv77.mxl', 'test_corpus/Kyrie.krn']
       expected_paths = ['test_corpus/madrigal51.mxl']
       expected_length = 1
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in expected_paths)
 
    # remove one-not-present from one-item
@@ -432,10 +433,10 @@ class TestRemovePieces(unittest.TestCase):
       remove_paths = ['test_corpus/madrigal51.mxl']
       expected_paths = ['test_corpus/bwv77.mxl']
       expected_length = 1
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in expected_paths)
 
    # remove one-not-present from many-item
@@ -446,10 +447,10 @@ class TestRemovePieces(unittest.TestCase):
       expected_paths = ['test_corpus/bwv77.mxl', 'test_corpus/Kyrie.krn',
                         'test_corpus/madrigal51.mxl']
       expected_length = 3
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in expected_paths)
 
    # remove many-including-not-present from many-item
@@ -460,10 +461,10 @@ class TestRemovePieces(unittest.TestCase):
                       'test_corpus/sinfony.md']
       expected_paths = ['test_corpus/madrigal51.mxl']
       expected_length = 1
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in expected_paths)
 
    # remove all from many-item
@@ -474,10 +475,10 @@ class TestRemovePieces(unittest.TestCase):
                       'test_corpus/madrigal51.mxl']
       #expected_paths = ['test_corpus/']
       expected_length = 0
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      #for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      #for path in self.control.list_of_files:
          #self.assertTrue(path in expected_paths)
 
    # remove many from many-item
@@ -487,10 +488,10 @@ class TestRemovePieces(unittest.TestCase):
       remove_paths = ['test_corpus/bwv77.mxl', 'test_corpus/Kyrie.krn']
       expected_paths = ['test_corpus/madrigal51.mxl']
       expected_length = 1
-      self.control.add_pieces(add_paths)
-      self.control.remove_pieces(remove_paths)
-      self.assertEqual(expected_length, self.control._list_of_files.rowCount())
-      for path in self.control._list_of_files:
+      self.control.add_files(add_paths)
+      self.control.remove_files(remove_paths)
+      self.assertEqual(expected_length, self.control.list_of_files.rowCount())
+      for path in self.control.list_of_files:
          self.assertTrue(path in expected_paths)
 
 # End TestRemovePieces ------------------------------------------------------------
@@ -506,7 +507,7 @@ class TestImportPieces(unittest.TestCase):
       # (1) Set up the Importer controller
       paths = ['test_corpus/bwv77.mxl']
       control = Importer()
-      control.add_pieces(paths)
+      control.add_files(paths)
 
       # (2) Finish the "expected" lists
       # holds the Score objects
@@ -517,9 +518,7 @@ class TestImportPieces(unittest.TestCase):
       parts = [Importer._find_part_names(piece) for piece in pieces]
 
       # (3) Run the import
-      returned = analyzing.ListOfPieces()
-      control.import_pieces(returned)
-      control.thread.wait()
+      returned = control.run()
 
       # (4) Check for correctness
       self.assertEqual(len(paths), returned.rowCount())
@@ -569,7 +568,7 @@ class TestImportPieces(unittest.TestCase):
                'test_corpus/sinfony.md',
                'test_corpus/sqOp76-4-i.midi']
       control = Importer()
-      control.add_pieces(paths)
+      control.add_files(paths)
 
       # (2) Finish the "expected" lists
       # holds the Score objects
@@ -580,11 +579,7 @@ class TestImportPieces(unittest.TestCase):
       parts = [Importer._find_part_names(piece) for piece in pieces]
 
       # (3) Run the import
-      print 'got here'
-      returned = analyzing.ListOfPieces()
-      control.import_pieces(returned)
-      control.thread.wait()
-      print 'finished importing'
+      returned = control.run()
 
       # (4) Check for correctness
       self.assertEqual(len(paths), returned.rowCount())
