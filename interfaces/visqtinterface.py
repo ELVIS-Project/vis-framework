@@ -106,9 +106,10 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         self.threads[class_name] = QtCore.QThread()
         controller.moveToThread(self.threads[class_name])
         def thread_started():
-            self.threads[class_name].start()
             self.main_screen.setCurrentWidget(self.work_page)
+            self.app.processEvents()
         controller.started.connect(thread_started)
+        self.threads[class_name].start()
 
         def update_progress(progress):
             '''
@@ -130,7 +131,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                         self.lbl.setText(progress)
                 else:
                     self.lbl.setText(progress)
-            # self.app.processEvents()
+            self.app.processEvents()
         controller.status.connect(update_progress)
 
         def popup_error(description):
@@ -141,15 +142,15 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         page_working = QtGui.QWidget()
         verticalLayout_21 = QtGui.QVBoxLayout(page_working)
         spacerItem10 = QtGui.QSpacerItem(20,
-                                                    40,
-                                                    QtGui.QSizePolicy.Minimum,
-                                                    QtGui.QSizePolicy.Expanding)
+                                         40,
+                                         QtGui.QSizePolicy.Minimum,
+                                         QtGui.QSizePolicy.Expanding)
         verticalLayout_21.addItem(spacerItem10)
         horizontalLayout_8 = QtGui.QHBoxLayout()
         spacerItem11 = QtGui.QSpacerItem(40,
-                                                    20,
-                                                    QtGui.QSizePolicy.Expanding,
-                                                    QtGui.QSizePolicy.Minimum)
+                                         20,
+                                         QtGui.QSizePolicy.Expanding,
+                                         QtGui.QSizePolicy.Minimum)
         horizontalLayout_8.addItem(spacerItem11)
         btn_wait_clock = QtGui.QPushButton(page_working)
         btn_wait_clock.setEnabled(True)
@@ -157,8 +158,8 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         btn_wait_clock.setToolTip(self.translate("Hi, mom!"))
         icon8 = QtGui.QIcon()
         icon8.addPixmap(QtGui.QPixmap(":/icons/icons/working.png"),
-                             QtGui.QIcon.Normal,
-                             QtGui.QIcon.Off)
+                        QtGui.QIcon.Normal,
+                        QtGui.QIcon.Off)
         btn_wait_clock.setIcon(icon8)
         btn_wait_clock.setIconSize(QtCore.QSize(64, 64))
         btn_wait_clock.setCheckable(False)
@@ -166,9 +167,9 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         btn_wait_clock.setFlat(True)
         horizontalLayout_8.addWidget(btn_wait_clock)
         spacerItem12 = QtGui.QSpacerItem(40,
-                                                    20,
-                                                    QtGui.QSizePolicy.Expanding,
-                                                    QtGui.QSizePolicy.Minimum)
+                                         20,
+                                         QtGui.QSizePolicy.Expanding,
+                                         QtGui.QSizePolicy.Minimum)
         horizontalLayout_8.addItem(spacerItem12)
         verticalLayout_21.addLayout(horizontalLayout_8)
         lbl_status_text = QtGui.QLabel(page_working)
@@ -187,9 +188,9 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         self.lbl = lbl_currently_processing
         verticalLayout_21.addWidget(lbl_currently_processing)
         spacerItem13 = QtGui.QSpacerItem(20,
-                                                    40,
-                                                    QtGui.QSizePolicy.Minimum,
-                                                    QtGui.QSizePolicy.Expanding)
+                                         40,
+                                         QtGui.QSizePolicy.Minimum,
+                                         QtGui.QSizePolicy.Expanding)
         verticalLayout_21.addItem(spacerItem13)
         return page_working
 
@@ -330,12 +331,30 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         gridLayout_3.addWidget(line_title, 5, 1, 1, 2)
         gridLayout_3.addWidget(lbl_title, 5, 0, 1, 1)
         gridLayout_3.addWidget(chk_salami, 1, 0, 1, 3)
+        # connect signals
+        def all_pts_changed(state):
+            if state:
+                chk_basso_seguente.setText(
+                    self.translate('Every part against Basso Seguente')
+                )
+            else:
+                chk_basso_seguente.setText(
+                    self.translate(piece.settings.basso_seguente.display_name)
+                )
+        piece.all_parts_changed.connect(all_pts_changed)
         return grp_settings_for_piece
 
     @view_getter('ListOfPieces')
     def view(self, list_of_pieces, **kwargs):
         parent = kwargs['parent']
-        gui_pieces_list = QtGui.QTableView(parent)
+
+        class PiecesListView(QtGui.QTableView):
+            def selectionChanged(self, selected, unselected):
+                selected_rows = set(ind.row() for ind in self.selectedIndexes())
+                list_of_pieces.selected_rows = selected_rows
+                super(PiecesListView, self).selectionChanged(selected, unselected)
+
+        gui_pieces_list = PiecesListView(parent)
         gui_pieces_list.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         gui_pieces_list.horizontalHeader().setMinimumSectionSize(2)
         gui_pieces_list.verticalHeader().setVisible(False)

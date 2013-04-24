@@ -31,7 +31,7 @@ The model classes for the Analyzer controller.
 # python
 import copy
 # PyQt4
-from PyQt4.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
+from PyQt4.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QObject, pyqtSignal
 # music21
 from music21.metadata import Metadata
 from music21.note import Note, Rest
@@ -74,14 +74,16 @@ class PartsComboSetting(settings.MultiChoiceSetting):
         self.settings = settings.Settings({name: setting for val, name, setting in setts})
 
 
-class Piece(object):
+class Piece(QObject):
     '''
     Class docstring
     '''
+    all_parts_changed = pyqtSignal(bool)
     def __init__(self, path, score, title, part_names):
         '''
         Method docstring
         '''
+        super(Piece, self).__init__()
         self.description = "Settings for Piece"
         self.path = path
         self.score = score
@@ -124,6 +126,7 @@ class Piece(object):
                 display_name="Include repeated identical events"
             )
         })
+        self.settings.all_parts.value_changed.connect(self.all_parts_changed.emit)
         self.settings.keys = ['title', 'all_parts', 'basso_seguente',
                                      'current_parts_combo', 'current_offset', 'salami']
     

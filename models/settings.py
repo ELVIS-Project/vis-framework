@@ -47,7 +47,7 @@ class Setting(QObject):
         Emitted when the value of a Setting is changed through its setter method.
     """
 
-    value_changed = pyqtSignal()
+    value_changed = pyqtSignal(object)
     # emitted when the relevant view widget for this Setting must be created.
     # initialize = pyqtSignal()
 
@@ -144,7 +144,7 @@ class Setting(QObject):
         value = self.validate(value)
         if self._value != value:
             self._value = value
-            self.value_changed.emit()
+            self.value_changed.emit(value)
         return 0
 
     def clean(self, value):

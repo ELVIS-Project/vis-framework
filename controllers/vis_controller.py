@@ -81,7 +81,7 @@ class VisController(QObject):
             self.interface = VisQtInterface(self, argv)
 
         # Connect signals
-        self.importer.list_of_pieces = self.analyzer.list_of_pieces
+        self.importer._list_of_pieces = self.analyzer.list_of_pieces
         self.importer.start.connect(self.import_files)
         self.importer.finished.connect(self.setup_analysis)
         self.analyzer.finished.connect(self.setup_experiment)
