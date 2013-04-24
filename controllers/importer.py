@@ -140,7 +140,6 @@ class Importer(QObject):
     status = pyqtSignal(QString)
     error = pyqtSignal(QString)
     finished = pyqtSignal()
-    start = pyqtSignal()
     started = pyqtSignal()
 
     def __init__(self, *args):
@@ -168,17 +167,6 @@ class Importer(QObject):
             False,
             display_name="Use multi-core processor during import"
         )
-
-    def start_import(self):
-        """
-        Starts the import.
-    
-        Side Effects
-        ------------
-    
-        Emits the "start" signal.
-        """
-        self.start.emit()
 
     def callback(self, result):
         """

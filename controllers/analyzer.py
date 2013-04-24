@@ -298,12 +298,6 @@ class Analyzer(QtCore.QObject):
             self._current_piece = Piece('', stream.Score(), '', [])
         self._current_piece.update(value)
 
-    def analyze(self):
-        """
-        Method docstring
-        """
-        self.start.emit()
-
     def callback(self, result):
         """
         For internal use.

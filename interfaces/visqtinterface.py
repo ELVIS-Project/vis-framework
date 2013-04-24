@@ -240,7 +240,11 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         chk.setLayoutDirection(QtCore.Qt.LeftToRight)
         chk.setToolTip(self.translate(boolean_setting.extra_detail))
         chk.setText(self.translate(boolean_setting.display_name))
+        chk.setChecked(boolean_setting.value)
         chk.stateChanged.connect(lambda state: setattr(boolean_setting, 'value', state))
+        def on_change_display_name(name):
+            chk.setText(self.translate(name))
+        boolean_setting.display_name_changed.connect(on_change_display_name)
         return chk
 
     @view_getter('MultiChoiceSetting')
@@ -287,7 +291,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         grp_settings_for_piece = QtGui.QGroupBox(parent)
         grp_settings_for_piece.setTitle(self.translate(piece.description))
         ((lbl_title, line_title),
-         chk_all_parts,
+         chk_all_pairs,
          chk_basso_seguente,
          widget_curr_pts_comb,
          (lbl_offset, line_offset, btn_offset),
@@ -326,7 +330,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         widget_part_boxes = QtGui.QWidget(widget_2)
         verticalLayout_22 = QtGui.QVBoxLayout(widget_part_boxes)
         verticalLayout_22.setMargin(0)
-        verticalLayout_22.addWidget(chk_all_parts)
+        verticalLayout_22.addWidget(chk_all_pairs)
         verticalLayout_22.addWidget(chk_basso_seguente)
         horizontalLayout_9.addWidget(widget_part_boxes)
         gridLayout_3.addWidget(widget_2, 8, 0, 1, 3)
@@ -341,6 +345,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         parent = kwargs['parent']
 
         class PiecesListView(QtGui.QTableView):
+            selection_changed = QtCore.pyqtSignal(list)
             def selectionChanged(self, selected, unselected):
                 selected_rows = set(ind.row() for ind in self.selectedIndexes())
                 list_of_pieces.selected_rows = selected_rows
@@ -542,8 +547,6 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         widget_5.setLayoutDirection(QtCore.Qt.RightToLeft)
         horizontalLayout_7 = QtGui.QHBoxLayout(widget_5)
         horizontalLayout_7.setMargin(0)
-        horizontalLayout_7.addWidget(self.get_view(importer.start_import,
-                                                   parent=widget_5))
         horizontalLayout_7.addWidget(self.get_view(importer.multiprocess,
                                                    parent=widget_5))
 
@@ -609,21 +612,6 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         btn_file_remove.clicked.connect(on_click)
         return btn_file_remove
 
-    @view_getter('start_import')
-    def view(self, start_import, **kwargs):
-        parent = kwargs['parent']
-        btn_import = QtGui.QPushButton(parent)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred,
-                                       QtGui.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(btn_import.sizePolicy().hasHeightForWidth())
-        btn_import.setSizePolicy(sizePolicy)
-        btn_import.setLayoutDirection(QtCore.Qt.LeftToRight)
-        btn_import.setText(self.translate("Import Pieces"))
-        btn_import.clicked.connect(start_import)
-        return btn_import
-
     # "Analyze" Frame Views
 
     @view_getter('Analyzer')
@@ -663,7 +651,6 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         horizontalLayout_5.setMargin(0)
         for widget in self.get_view(analyzer.settings, parent=widget_6):
             horizontalLayout_5.addWidget(widget)
-        horizontalLayout_5.addWidget(self.get_view(analyzer.analyze, parent=widget_6))
         gridLayout_2.addWidget(widget_6, 0, 4, 1, 1)
         verticalLayout_23.addWidget(groupBox)
         self.setup_thread(analyzer)
@@ -686,14 +673,6 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         btn_add_check_combo.setText(self.translate("Add Combination"))
         # TODO: connect signals
         return btn_add_check_combo
-
-    @view_getter('analyze')
-    def view(self, analyze, **kwargs):
-        parent = kwargs['parent']
-        btn_analyze_now = QtGui.QPushButton(parent)
-        btn_analyze_now.setText(self.translate("Analyze Voice Pairs"))
-        # TODO: connect signals
-        return btn_analyze_now
 
     # "Experiment" Frame Views
 

@@ -82,7 +82,6 @@ class VisController(QObject):
 
         # Connect signals
         self.importer._list_of_pieces = self.analyzer.list_of_pieces
-        self.importer.start.connect(self.import_files)
         self.importer.finished.connect(self.setup_analysis)
         self.analyzer.finished.connect(self.setup_experiment)
 

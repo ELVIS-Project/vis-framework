@@ -102,7 +102,7 @@ class Piece(object):
                 title,
                 display_name='Piece Title:'
             ),
-            'all_parts': settings.BooleanSetting(
+            'all_pairs': settings.BooleanSetting(
                 False,
                 display_name='All 2-Part Combinations',
                 extra_detail='Collect Statistics for all Part Combinations'
@@ -125,8 +125,8 @@ class Piece(object):
                 display_name='Include repeated identical events'
             )
         })
-        self.settings.all_parts.value_changed.connect(self.all_parts_changed.emit)
-        self.settings.keys = ['title', 'all_parts', 'basso_seguente',
+        self.settings.all_pairs.value_changed.connect(self.update_basso_seguente)
+        self.settings.keys = ['title', 'all_pairs', 'basso_seguente',
                                      'current_parts_combo', 'current_offset', 'salami']
     def update_basso_seguente(self, state):
         if state:
