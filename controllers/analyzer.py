@@ -38,7 +38,7 @@ from music21 import note, chord, converter, stream
 # PyQt4
 from PyQt4 import QtCore
 # vis
-from models.analyzing import Piece, ListOfPieces, AnalysisRecord
+from models.analyzing import PieceSettings, ListOfPieces, AnalysisRecord
 from models import settings as models_settings
 
 
@@ -271,7 +271,7 @@ class Analyzer(QtCore.QObject):
         Create a new Analyzer instance.
         """
         super(Analyzer, self).__init__(*args)
-        self.current_piece = Piece('', stream.Score(), '', [])
+        self.current_piece = PieceSettings('', stream.Score(), '', [])
         self.list_of_pieces = ListOfPieces()
         self.list_of_analyses = []
         self.progress = 0.0
@@ -295,7 +295,7 @@ class Analyzer(QtCore.QObject):
         Method docstring
         """
         if not hasattr(self, "_current_piece"):
-            self._current_piece = Piece('', stream.Score(), '', [])
+            self._current_piece = PieceSettings('', stream.Score(), '', [])
         self._current_piece.update(value)
 
     def callback(self, result):
@@ -350,20 +350,13 @@ class Analyzer(QtCore.QObject):
         self.status.emit('100')
         self.status.emit('Done!')
 
-    def load_statistics(self, statistics):
-        """
-        This method may not even be required, but if it is, it will import
-        the "precalculated statistics" -- some kind of serialized AnalysisRecord.
-        """
-        pass
-
     def set_data(self, index, change_to):
         """
         Changes the data in a cell of the ListOfPieces model.
 
         The arguments here should be the same as sent to ListOfPieces.setData().
         """
-        self.thread.list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
+        self.list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
 
     @staticmethod
     def calculate_all_combos(upto):

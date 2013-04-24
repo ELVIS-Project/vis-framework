@@ -74,7 +74,33 @@ class PartsComboSetting(settings.MultiChoiceSetting):
         self.settings = settings.Settings({name: setting for val, name, setting in setts})
 
 
-class Piece(object):
+class PiecesSelection(object):
+    """
+    Class docstring
+    """
+    def __init__(self, pieces):
+        """
+        Method docstring
+        """
+        self.pieces = pieces
+        self.settings = settings.Settings({
+            'all_pairs': settings.BooleanSetting(
+                False,
+                display_name='All 2-Part Combinations',
+                extra_detail='Collect Statistics for all Part Combinations'
+            ),
+            'current_parts_combo': PartsComboSetting(
+                choices=zip(self.score.parts, self.part_names),
+                display_name='Compare these parts:'
+            ),
+            'current_offset': OffsetSetting(
+                0.5,
+                display_name='Offset Interval:'
+            ),
+        })
+
+
+class PieceSettings(settings.Settings):
     """
     Class docstring
     """
@@ -82,14 +108,13 @@ class Piece(object):
         """
         Method docstring
         """
-        super(Piece, self).__init__()
         self.description = "Settings for Piece"
         self.path = path
         self.score = score
         self.part_names = part_names
         self.part_combos = []
         self.offset_intervals = []
-        self.settings = settings.Settings({
+        super(PieceSettings, self).__init__({
             'types': settings.MultiChoiceSetting(
                  # TODO: include other interesting choices here, possibly
                  # dynamically drawn from music21
@@ -102,37 +127,24 @@ class Piece(object):
                 title,
                 display_name='Piece Title:'
             ),
-            'all_pairs': settings.BooleanSetting(
-                False,
-                display_name='All 2-Part Combinations',
-                extra_detail='Collect Statistics for all Part Combinations'
-            ),
             'basso_seguente': settings.BooleanSetting(
                 False,
                 display_name='Basso Seguente',
                 extra_detail='Generate Basso Seguente Part'
-            ),
-            'current_parts_combo': PartsComboSetting(
-                choices=zip(self.score.parts, self.part_names),
-                display_name='Compare these parts:'
-            ),
-            'current_offset': OffsetSetting(
-                0.5,
-                display_name='Offset Interval:'
             ),
             'salami': settings.BooleanSetting(
                 False,
                 display_name='Include repeated identical events'
             )
         })
-        self.settings.all_pairs.value_changed.connect(self.update_basso_seguente)
-        self.settings.keys = ['title', 'all_pairs', 'basso_seguente',
+        self.all_pairs.value_changed.connect(self.update_basso_seguente)
+        self.keys = ['title', 'all_pairs', 'basso_seguente',
                                      'current_parts_combo', 'current_offset', 'salami']
     def update_basso_seguente(self, state):
         if state:
-            self.settings.basso_seguente.display_name = 'Every part against Basso Seguente'
+            self.basso_seguente.display_name = 'Every part against Basso Seguente'
         else:
-            self.settings.basso_seguente.display_name = 'Basso Seguente'
+            self.basso_seguente.display_name = 'Basso Seguente'
     
     def update(self, other_piece):
         """
@@ -144,10 +156,10 @@ class Piece(object):
         self.part_names = other_piece.part_names
         self.part_combos = other_piece.part_combos
         self.offset_intervals = other_piece.offset_intervals
-        self.settings.title = other_piece.settings.title
-        self.settings.current_parts_combo = other_piece.settings.current_parts_combo
-        self.settings.current_offset = other_piece.settings.current_offset
-        self.settings.salami = other_piece.settings.salami
+        self.title.value = other_piece.title.value
+        self.current_parts_combo.value = other_piece.current_parts_combo.value
+        self.current_offset.value = other_piece.current_offset.value
+        self.salami.value = other_piece.salami.value
     
     def add_parts_combo(self):
         """
@@ -183,7 +195,7 @@ class ListOfPieces(QAbstractTableModel):
     #         columns, since this variale is used by headerData().
     _number_of_columns = 6
     _header_names = ['Path', 'Title', 'List of Part Names', 'Offset',
-                          'Part Combinations', 'Repeat Identical']
+                     'Part Combinations', 'Repeat Identical']
     
     # A role for data() that means to return the Score object rather than title
     ScoreRole = 'This is an object for the ScoreRole'
@@ -197,7 +209,7 @@ class ListOfPieces(QAbstractTableModel):
     }
     
     # This is the default values for every new row created
-    default_row = Piece('', Score(), '', [])
+    default_row = PieceSettings('', Score(), '', [])
     # NOTE:
     # When you change this default_row, you must also change the value in this test:
     # models.test_analyzing.TestListOfPiecesInsertAndRemoveRows.test_insert_7()
@@ -209,15 +221,11 @@ class ListOfPieces(QAbstractTableModel):
         self.columns = ListOfPieces.columns
         self._pieces = []
 
-
-
     def rowCount(self, parent=QModelIndex()):
         """
         Return the number of pieces in this list.
         """
         return len(self._pieces)
-
-
 
     def columnCount(self, parent=QModelIndex()):
         """
@@ -226,8 +234,6 @@ class ListOfPieces(QAbstractTableModel):
         # Every time we change the number of columns, we change this class
         # variable... so it should be correct.
         return ListOfPieces._number_of_columns
-
-
 
     def data(self, index, role):
         """
@@ -311,8 +317,6 @@ class ListOfPieces(QAbstractTableModel):
 
         return post
 
-
-
     def headerData(self, section, orientation, role):
         """
         Return the column names for a ListOfPieces instance.
@@ -333,8 +337,6 @@ class ListOfPieces(QAbstractTableModel):
             return ListOfPieces._header_names[section]
         else:
             return QVariant()
-
-
 
     def setData(self, index, value, role):
         """
@@ -390,8 +392,6 @@ class ListOfPieces(QAbstractTableModel):
         else:
             return False
 
-
-
     def insertRows(self, row, count, parent=QModelIndex()):
         """
         Insert a certain number of rows at a certain point in the ListOfPieces.
@@ -410,8 +410,6 @@ class ListOfPieces(QAbstractTableModel):
             self._pieces.insert(row, copy.deepcopy(ListOfPieces.default_row))
         self.endInsertRows()
 
-
-
     def removeRows(self, row, count, parent=QModelIndex()):
         """
         This is the opposite of insertRows(), and the arguments work in the same
@@ -420,11 +418,9 @@ class ListOfPieces(QAbstractTableModel):
         self.beginRemoveRows( parent, row, row+count-1 )
         self._pieces = self._pieces[:row] + self._pieces[row+count:]
         self.endRemoveRows()
-    
+
     def clear(self):
         self.removeRows(0, self.rowCount())
-
-
 
     def __iter__(self):
         """

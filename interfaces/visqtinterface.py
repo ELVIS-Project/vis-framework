@@ -285,18 +285,14 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         gui_file_list.setModel(list_of_files)
         return gui_file_list
 
-    @view_getter('Piece')
+    @view_getter('PieceSettings')
     def view(self, piece, **kwargs):
         parent = kwargs['parent']
         grp_settings_for_piece = QtGui.QGroupBox(parent)
         grp_settings_for_piece.setTitle(self.translate(piece.description))
-        ((lbl_title, line_title),
-         chk_all_pairs,
-         chk_basso_seguente,
-         widget_curr_pts_comb,
-         (lbl_offset, line_offset, btn_offset),
-         chk_salami
-        ) = self.get_view(piece.settings, parent=grp_settings_for_piece)
+        widget_curr_pts_comb = self.get_view(piece.current_parts_combo, parent=grp_settings_for_piece)
+        lbl_title, line_title = self.get_view(piece.title, parent=grp_settings_for_piece)
+        lbl_offset, line_offset, btn_offset = self.get_view(piece.current_offset, parent=grp_settings_for_piece)
         gridLayout_3 = QtGui.QGridLayout(grp_settings_for_piece)
         spacerItem6 = QtGui.QSpacerItem(20,
                                                   40,
@@ -330,13 +326,13 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         widget_part_boxes = QtGui.QWidget(widget_2)
         verticalLayout_22 = QtGui.QVBoxLayout(widget_part_boxes)
         verticalLayout_22.setMargin(0)
-        verticalLayout_22.addWidget(chk_all_pairs)
-        verticalLayout_22.addWidget(chk_basso_seguente)
+        verticalLayout_22.addWidget(self.get_view(piece.all_pairs, parent=grp_settings_for_piece))
+        verticalLayout_22.addWidget(self.get_view(piece.basso_seguente, parent=grp_settings_for_piece))
         horizontalLayout_9.addWidget(widget_part_boxes)
         gridLayout_3.addWidget(widget_2, 8, 0, 1, 3)
         gridLayout_3.addWidget(line_title, 5, 1, 1, 2)
         gridLayout_3.addWidget(lbl_title, 5, 0, 1, 1)
-        gridLayout_3.addWidget(chk_salami, 1, 0, 1, 3)
+        gridLayout_3.addWidget(self.get_view(piece.salami, parent=grp_settings_for_piece), 1, 0, 1, 3)
         # connect signals
         return grp_settings_for_piece
 
@@ -626,8 +622,6 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                                                   QtGui.QSizePolicy.Minimum,
                                                   QtGui.QSizePolicy.Expanding)
         gridLayout_2.addItem(spacerItem3, 4, 4, 1, 1)
-        gridLayout_2.addWidget(self.get_view(analyzer.load_statistics, parent=groupBox),
-                                      0, 0, 1, 1)
         spacerItem4 = QtGui.QSpacerItem(40,
                                                   20,
                                                   QtGui.QSizePolicy.Expanding,
@@ -655,15 +649,6 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         verticalLayout_23.addWidget(groupBox)
         self.setup_thread(analyzer)
         return page_analyze
-
-    @view_getter('load_statistics')
-    def view(self, load_statistics, **kwargs):
-        parent = kwargs['parent']
-        btn_load_statistics = QtGui.QPushButton(parent)
-        btn_load_statistics.setEnabled(False)
-        btn_load_statistics.setText(self.translate("Load Existing Statistics Database"))
-        btn_load_statistics.clicked.connect(load_statistics)
-        return btn_load_statistics
 
     @view_getter('add_parts_combo')
     def view(self, add_parts_combo, **kwargs):
