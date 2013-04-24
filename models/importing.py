@@ -22,9 +22,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 The model classes for the Importer controller.
-'''
+"""
 
 
 # Imports from...
@@ -34,33 +34,33 @@ from PyQt4.QtCore import QAbstractListModel, QModelIndex, Qt, QVariant
 
 
 class ListOfFiles(QAbstractListModel):
-   '''
+   """
    This model represents a list of filenames that the Importer controller should
    import, find data from, and put into a ListOfPieces for the Analyzer
    controller.
-   '''
+   """
 
 
 
    def __init__(self, parent=None, *args):
-      '''
+      """
       Create a new ListOfFiles instance. Best to use no arguments.
-      '''
+      """
       super(ListOfFiles, self).__init__() # required for QModelIndex
       self._files = []
 
 
 
    def rowCount(self, parent=QModelIndex()):
-      '''
+      """
       Return the number of files in the list.
-      '''
+      """
       return len(self._files)
 
 
 
    def data(self, index, role):
-      '''
+      """
       Return the filename with the specified index as a QVariant.
 
       The first argument is the index to return. The second argument is the
@@ -77,7 +77,7 @@ class ListOfFiles(QAbstractListModel):
       'sanctus.krn'
       >>> a.data(a.createIndex(0), Qt.DisplayRole)
       'kyrie.krn'
-      '''
+      """
       # Set the row
       row = None
       if isinstance(index, QModelIndex):
@@ -94,16 +94,16 @@ class ListOfFiles(QAbstractListModel):
 
 
    def headerData(self, section, orientation, role=Qt.DisplayRole):
-      '''
+      """
       Returns the table header data for this ListOfFiles. This is always
       "filename".
-      '''
+      """
       return 'filename'
 
 
 
    def setData(self, index, value, role):
-      '''
+      """
       Set the data for the given row to the given filename.
 
       The first argument is the index to set. The second argument is the value
@@ -116,7 +116,7 @@ class ListOfFiles(QAbstractListModel):
       >>> a.insertRows(0, 2)
       >>> a.setData(a.createIndex(0, 0), 'kyrie.krn', Qt.EditRole)
       >>> a.setData(a.createIndex(1, 0), 'sanctus.krn', Qt.EditRole)
-      '''
+      """
       # Set the row
       row = None
       if isinstance(index, QModelIndex):
@@ -137,7 +137,7 @@ class ListOfFiles(QAbstractListModel):
 
 
    def insertRows(self, row, count, parent=QModelIndex()):
-      '''
+      """
       Insert a certain number of rows at a certain point in the ListOfFiles.
 
       The first argument is the index you want for the first row to be inserted.
@@ -169,7 +169,7 @@ class ListOfFiles(QAbstractListModel):
       >>> a.insertRows(a.rowCount(), 1)
       >>> a.setData(a.createIndex(a.rowCount()+0), 'gloria.krn', Qt.EditRole)
       This is ['kyrie.krn', 'gloria.krn']
-      '''
+      """
       self.beginInsertRows(parent, row, row+count-1)
       new_files = self._files[:row]
       for zed in xrange(count):
@@ -181,14 +181,14 @@ class ListOfFiles(QAbstractListModel):
 
 
    def isPresent(self, candidate):
-      '''
+      """
       Tests whether 'candidate' is present in this ListOfFiles.
 
       Returns a QModelIndex that points to the filename or False.
 
       If the argument is already a QModelIndex, it returned if it is a valid QModelIndex for this
       ListOfFiles.
-      '''
+      """
       if isinstance(candidate, QModelIndex):
          # return the QModelIndex if it represents a valid index for this ListOfFiles
          if 0 == candidate.column() and 0 <= candidate.row() <= len(self._files):
@@ -205,19 +205,19 @@ class ListOfFiles(QAbstractListModel):
 
 
    def __iter__(self):
-      '''
+      """
       Create an iterator that returns each of the filenames in this ListOfFiles.
-      '''
+      """
       for filename in self._files:
          yield filename
 
 
 
    def removeRows(self, row, count, parent=QModelIndex()):
-      '''
+      """
       This is the opposite of insertRows(), and the arguments work in the same
       way.
-      '''
+      """
       self.beginRemoveRows(parent, row, row+count-1)
       self._files = self._files[:row] + self._files[row+count:]
       self.endRemoveRows()

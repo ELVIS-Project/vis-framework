@@ -19,9 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 The file_output module has methods for writing and reading files.
-'''
+"""
 
 
 
@@ -33,7 +33,7 @@ import fileinput
 
 
 def file_outputter( contents, filename, extension='' ):
-   '''
+   """
    Outputs the first argument, which should be a str, into a file whose name is
    specified as the second argument.
 
@@ -49,7 +49,7 @@ def file_outputter( contents, filename, extension='' ):
    >>>    print( 'We had an error! ' + output_result[0] )
    >>> else:
    >>>    print( 'File successfully outputted to ' + output_result[0]
-   '''
+   """
 
    # Sanity checks
    # Filename must be a str
@@ -97,9 +97,9 @@ def file_outputter( contents, filename, extension='' ):
 
 
 def file_inputter(filename):
-   '''
+   """
    Reads the file with the path specified as a str, and returns its contents.
-   '''
+   """
 
    # Sanity checks
    # Filename must be a str

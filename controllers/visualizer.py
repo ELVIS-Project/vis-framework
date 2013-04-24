@@ -22,9 +22,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.   If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Holds the Visualizer controller.
-'''
+"""
 # Imports from...
 # PyQt
 from PyQt4 import QtCore, QtGui
@@ -33,14 +33,14 @@ import file_output
 
 
 class Visualizer(QtCore.QObject):
-    '''
+    """
     This class takes an ExperimentResults object, if relevant determines which
     Display format to use and its DisplaySettings, then actually displays the
     results for the user.
 
     Really, the Visualizer waits for an Experimenter.experimented
     signal, then processes it.
-    '''
+    """
     # PyQt4 Signals
     # -------------
     # when the user should be able to see the results of an experiment on the
@@ -50,14 +50,14 @@ class Visualizer(QtCore.QObject):
     error = QtCore.pyqtSignal(str)
 
     def __init__(self, *args):
-        '''
+        """
         Create a new Visualizer instance.
-        '''
+        """
         super(Visualizer, self).__init__(*args) # required for signals
 
     #@QtCore.pyqtSlot
     def show_result(self, signal_result):
-        '''
+        """
         Slot for the Experimenter.experiment_finished signal. This method is
         called when the Experimenter controller has finished analysis.
 
@@ -70,7 +70,7 @@ class Visualizer(QtCore.QObject):
 
         NOTE: the list of possible Display types must have this format:
         ['FileOutput'] to use the class FileOutputDisplay.
-        '''
+        """
         # (1) Choose which display type to use
         # Currently, we can't deal with choosing Display class after the Experiment has run, so we'll
         # have to panic if there is more than one choice.
@@ -94,18 +94,18 @@ class Visualizer(QtCore.QObject):
 
 
 class Display(object):
-    '''
+    """
     Base class for all Displays.
-    '''
+    """
     def __init__(self, controller, data, settings=None):
-        '''
+        """
         Create a new Display.
 
         There are three arguments, the first two of which are mandatory:
         - controller : the Visualizer controller to which this Display belongs
         - data : argument of any type, as required by the Display subclass
         - settings : the optional ExperimentSettings object
-        '''
+        """
         # NOTE: You must re-implement this, and change "object" to "Display"
         super(object, self).__init__()
         self._controller = controller
@@ -113,25 +113,25 @@ class Display(object):
         self._settings = settings
 
     def show(self):
-        '''
+        """
         Show the data in the display.
 
         This method emits a VisSignals.display_shown signal when it finishes.
-        '''
+        """
         # NOTE: You must reimplement this method in subclasses.
         self._controller.display_shown.emit()
 # End class Display --------------------------------------------------------------------------------
 
 
 class FileOutputDisplay(Display):
-    '''
+    """
     Saves a string into a file.
 
     You can use this class from another Display subclass, in a situation where the other Display
     subclass converts a non-string result into a string, then calls this class.
-    '''
+    """
     def __init__(self, controller, data, settings=None):
-        '''
+        """
         Create a new FileOutputDisplay.
 
         There are three arguments, the first two of which are mandatory:
@@ -140,7 +140,7 @@ class FileOutputDisplay(Display):
         - settings : the optional ExperimentSettings object
 
         The filename is determined dynamically by the show() method.
-        '''
+        """
         # NOTE: You do not need to reimplement this method for subclasses.
         super(Display, self).__init__()
         self._controller = controller
@@ -148,11 +148,11 @@ class FileOutputDisplay(Display):
         self._settings = settings
 
     def show(self):
-        '''
+        """
         Saves the data in a file on the filesystem.
 
         This method emits a VisSignals.display_shown signal when it finishes.
-        '''
+        """
         # (1) Ask for the filename
         the_filename = QtGui.QFileDialog.getSaveFileName(\
             None,
@@ -175,12 +175,12 @@ class FileOutputDisplay(Display):
 
 
 class SpreadsheetFileDisplay(Display):
-    '''
+    """
     Converts a list of tuples into a string suitable for CSV-format output, then uses the
     FileOutputDisplay class to save the result into a file.
-    '''
+    """
     def __init__(self, controller, data, settings=None):
-        '''
+        """
         Create a new SpreadsheetFileDisplay.
 
         There are three arguments, the first two of which are mandatory:
@@ -192,7 +192,7 @@ class SpreadsheetFileDisplay(Display):
         - each tuple represents a row in the spreadsheet (and a \n character is printed after)
         - each value in the tuple is run through its str() method
         - no header information is appended
-        '''
+        """
         # NOTE: You must re-implement this, and change "object" to "Display"
         super(Display, self).__init__()
         self._controller = controller
@@ -200,11 +200,11 @@ class SpreadsheetFileDisplay(Display):
         self._settings = settings
 
     def show(self):
-        '''
+        """
         Show the data in the display.
 
         The FileOutputDisplay instance emits the VisSignals.display_shown signal.
-        '''
+        """
         post = ''
 
         for each_row in self._data:
@@ -223,7 +223,7 @@ class SpreadsheetFileDisplay(Display):
 
 
 class StatisticsListDisplay(Display):
-    '''
+    """
     Converts a list of 2-tuples into a string for file output.
 
     In each 2-tuple, the first object should represent something meaningful when run through str(),
@@ -233,9 +233,9 @@ class StatisticsListDisplay(Display):
 
     If the first element is a 3-tuple, and the first object is the string 'description', then the
     next two elements are used as table headers for the rest of the data.
-    '''
+    """
     def __init__(self, controller, data, settings=None):
-        '''
+        """
         Create a new StatisticsListDisplay.
 
         There are three arguments, the first two of which are mandatory:
@@ -249,7 +249,7 @@ class StatisticsListDisplay(Display):
         - each 1st element must be an int
         - if the first tuple is a 3-tuple, and the 0th element is the string 'description', the
           following two elements are used as table headers for the rest of the data
-        '''
+        """
         # NOTE: You must re-implement this, and change "object" to "Display"
         super(Display, self).__init__()
         self._controller = controller
@@ -257,11 +257,11 @@ class StatisticsListDisplay(Display):
         self._settings = settings
 
     def show(self):
-        '''
+        """
         Show the data in the display.
 
         The FileOutputDisplay instance emits the VisSignals.display_shown signal.
-        '''
+        """
         header_data = ''
         post = ''
         total_occurrences = 0

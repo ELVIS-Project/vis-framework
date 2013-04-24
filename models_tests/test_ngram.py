@@ -423,10 +423,10 @@ class TestIntervalNGram(unittest.TestCase):
 
 class TestChordNGram(unittest.TestCase):
    def test_finds_transformations(self):
-      '''
+      """
       Whether the constructor correctly calculates the transformations from a
       C major triad to every other minor and major triad.
-      '''
+      """
       # each element in this list is a tuple, where the first is a string that
       # will be passed to chord.Chord to create the second Chord object to be
       # passed to the ChordNGram constructor, and the second is a string that

@@ -22,15 +22,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Holds the VisInfo class, which contains general useful information.
-'''
+"""
 from conf import VIS_VERSION
 
 class VisInfo(object):
    def __init__(self):
       self.title = "Information about vis"
-      self.copyright = '''
+      self.copyright = """
       <html>
       <head/>
       <body>
@@ -59,8 +59,8 @@ class VisInfo(object):
          </p>
       </body>
       </html>
-      '''.format(VIS_VERSION)
-      self.about = '''
+      """.format(VIS_VERSION)
+      self.about = """
       <html>
       <head/>
       <body>
@@ -101,4 +101,4 @@ class VisInfo(object):
       </p>
       </body>
       </html>
-      '''
+      """

@@ -22,9 +22,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 The window that allows you to select a note duration for offset.
-'''
+"""
 
 
 
@@ -34,9 +34,9 @@ from PyQt4 import uic
 
 
 class VisOffsetSelector(object):
-   '''
+   """
    Display and assign actions for the offset-selection window.
-   '''
+   """
 
 
 
@@ -46,11 +46,11 @@ class VisOffsetSelector(object):
 
 
    def trigger(self):
-      '''
+      """
       Set up and get information from a window that asks the user for an offest
       value. The return value corresponds to the quarterLength duration the
       user chose.
-      '''
+      """
 
       # UI setup stuff
       #self.select_offset = QtGui.QDialog()

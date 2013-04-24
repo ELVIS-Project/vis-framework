@@ -23,9 +23,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 The model classes for the Experimenter controller.
-'''
+"""
 
 # Imports from...
 # PyQt4
@@ -44,7 +44,7 @@ from settings import Settings
 # for the various settings used so far for Experiments in vis.
 
 # class ExperimentSettings(Settings):
-#    '''
+#    """
 #    Hold settings relevant to performing experiments.
 #    
 #    All the possible settings:
@@ -57,16 +57,16 @@ from settings import Settings
 #    - sort_order : whether to sort things 'ascending' or 'descending'
 #    - sort_by : whether to sort things by 'frequency' or 'name'
 #    - output_format : choose the Display subclass for this experiment's results
-#    '''
+#    """
 #    pass
 
 
 
 class Experiment(QtCore.QRunnable):
    # NOTE: in subclasses, change "QtCore.QRunnable" to "Experiment"
-   '''
+   """
    Base class for all Experiments.
-   '''
+   """
 
 
 
@@ -78,14 +78,14 @@ class Experiment(QtCore.QRunnable):
 
 
    def __init__(self, controller, records, settings):
-      '''
+      """
       Create a new Experiment.
 
       There are three mandatory arguments:
       - controller : the Experimenter object to which this Experiment belongs
       - records : a list of AnalysisRecord objects
       - settings : an ExperimentSettings object
-      '''
+      """
       # NOTE: In subclasses, you should implement a check system to ensure the
       #       ExperimentSettings object has the right settings in it. If you do
       #       not have the settings you need, send an error through the
@@ -102,19 +102,19 @@ class Experiment(QtCore.QRunnable):
 
 
    def good_for(self):
-      '''
+      """
       Returns a list of string objects that are the names of the Display objects suitable for
       this Experiment
-      '''
+      """
       # NOTE: You do not need to reimplement this method in subclasses.
       return self._good_for
 
 
 
    def run(self):
-      '''
+      """
       Just starts the perform() method.
-      '''
+      """
       # NOTE: You do not need to reimplement this method in subclasses.
       # Collect the results of perform(), then emit the signal that sends them to the Experimenter
       signal_me = self.perform()
@@ -123,12 +123,12 @@ class Experiment(QtCore.QRunnable):
 
 
    def perform(self):
-      '''
+      """
       Perform the Experiment. This method is not called "run" to avoid possible
       confusion with the multiprocessing nature of Experiment subclasses.
 
       This method emits an Experimenter.experimented signal when it finishes.
-      '''
+      """
       # NOTE: You must reimplement this method in subclasses.
       pass
 # End class Experiment -----------------------------------------------------------------------------
@@ -136,7 +136,7 @@ class Experiment(QtCore.QRunnable):
 
 
 class IntervalsLists(Experiment):
-   '''
+   """
    Prepare a list of 3-tuples:
    [(vertical_interval, horizontal_interval, offset),
     (vertical_interval, horizontal_interval, offset)]
@@ -154,7 +154,7 @@ class IntervalsLists(Experiment):
    Although the Experiment itself does not use NGram objects or deal with
    n-grams (only intervals), both output formats are useful for visual
    inspections that allow human to find n-grams.
-   '''
+   """
 
 
 
@@ -166,7 +166,7 @@ class IntervalsLists(Experiment):
 
 
    def __init__(self, controller, records, settings):
-      '''
+      """
       Create a new IntervalsLists.
 
       There are three mandatory arguments:
@@ -183,7 +183,7 @@ class IntervalsLists(Experiment):
 
       IntervalsLists can use this setting, but will not provide a default:
       - output_format : choose the Display subclass for this experiment's results
-      '''
+      """
       # Call the superclass constructor
       super(IntervalsLists, self).__init__(controller, records, settings)
 
@@ -200,24 +200,24 @@ class IntervalsLists(Experiment):
 
 
    def perform(self):
-      '''
+      """
       Perform the IntervalsLists Experiment.
 
       This method emits an Experimenter.experimented signal when it finishes.
-      '''
+      """
 
       # pre-fetch the settings we'll be using repeatedly
       quality = self._settings.quality
       interval_size = self._settings.simple_or_compound
 
       def the_formatter(interv, direction=False):
-         '''
+         """
          Formats an Interval object according to the preferences of "quality" and "interval_size."
 
          You can also specify a boolean for "direction," which indicates whether to show the
          direction of the interval (being a '+' for ascending or '-' for descending). The default
          is False.
-         '''
+         """
          post = ''
 
          if direction:
@@ -291,7 +291,7 @@ class IntervalsLists(Experiment):
 
 
 class ChordsLists(Experiment):
-   '''
+   """
    Prepare a list of 3-tuples:
    [(chord_name, neoriemannian_transformation, offset),
     (chord_name, neoriemannian_transformation, offset)]
@@ -306,7 +306,7 @@ class ChordsLists(Experiment):
    - LilyPondAnnotated
 
    The experiment uses ChordNGram objects to find the transformation.
-   '''
+   """
 
 
 
@@ -318,7 +318,7 @@ class ChordsLists(Experiment):
 
 
    def __init__(self, controller, records, settings):
-      '''
+      """
       Create a new ChordsLists.
 
       There are three mandatory arguments:
@@ -328,7 +328,7 @@ class ChordsLists(Experiment):
 
       ChordsLists can use this setting, but will not provide a default:
       - output_format : choose the Display subclass for this experiment's results
-      '''
+      """
       # Call the superclass constructor
       super(ChordsLists, self).__init__(controller, records, settings)
 
@@ -339,19 +339,19 @@ class ChordsLists(Experiment):
 
 
    def perform(self):
-      '''
+      """
       Perform the ChordsListsExperiment.
 
       This method emits an Experimenter.experimented signal when it finishes.
-      '''
+      """
 
       # this is what we'll return
       post = [('chord', 'transformation', 'offset')]
 
       def remove_rests(event):
-         '''
+         """
          Removes 'Rest' strings from a list of strings.
-         '''
+         """
          post = ''
 
          for chord_member in event:
@@ -409,7 +409,7 @@ class ChordsLists(Experiment):
 
 
 class IntervalsStatistics(Experiment):
-   '''
+   """
    Experiment that gathers statistics about the number of occurrences of vertical intervals.
 
    Produce a list of tuples, like this:
@@ -419,7 +419,7 @@ class IntervalsStatistics(Experiment):
    string-format representation of an interval, and each 1st element is the number of occurrences.
 
    Intervals that do not occur in any of the AnalysisRecord objects are not included in the output.
-   '''
+   """
 
 
 
@@ -431,7 +431,7 @@ class IntervalsStatistics(Experiment):
 
 
    def __init__(self, controller, records, settings):
-      '''
+      """
       Create a new IntervalsStatistics experiment.
 
       There are three mandatory arguments:
@@ -451,7 +451,7 @@ class IntervalsStatistics(Experiment):
 
       IntervalsStatistics can use this setting, but will not provide a default:
       - output_format : choose the Display subclass for this experiment's results
-      '''
+      """
       super(IntervalsStatistics, self).__init__(controller, records, settings)
 
       # Check the ExperimentSettings object has the right settings
@@ -483,9 +483,9 @@ class IntervalsStatistics(Experiment):
 
 
    def _add_interval(self, interv):
-      '''
+      """
       Add an interval, represented as a string, to the occurrences dictionary in this experiment.
-      '''
+      """
       if interv in self._intervals:
          self._intervals[interv] += 1
       else:
@@ -495,7 +495,7 @@ class IntervalsStatistics(Experiment):
 
    @staticmethod
    def interval_sorter(left, right):
-      '''
+      """
       Returns -1 if the first argument is a smaller interval.
       Returns 1 if the second argument is a smaller interval.
       Returns 0 if both arguments are the same.
@@ -512,7 +512,7 @@ class IntervalsStatistics(Experiment):
       1
       >>> interval_sorter( 'A4', 'd4' )
       -1
-      '''
+      """
 
       string_digits = '0123456789'
       list_of_directions = ['+', '-']
@@ -561,12 +561,12 @@ class IntervalsStatistics(Experiment):
 
 
    def perform(self):
-      '''
+      """
       Perform the Experiment. This method is not called "run" to avoid possible
       confusion with the multiprocessing nature of Experiment subclasses.
 
       This method emits an Experimenter.experimented signal when it finishes.
-      '''
+      """
       # (0) Instantiate/clear things
       self._intervals = {}
       self._keys = []
@@ -649,7 +649,7 @@ class IntervalsStatistics(Experiment):
 
 
 class IntervalNGramStatistics(Experiment):
-   '''
+   """
    Experiment that gathers statistics about the number of occurrences of n-grams composed of
    vertical intervals and the horizontal connections between the lower voice.
 
@@ -660,7 +660,7 @@ class IntervalNGramStatistics(Experiment):
    string-format representation of an interval, and each 1st element is the number of occurrences.
 
    Intervals that do not occur in any of the AnalysisRecord objects are not included in the output.
-   '''
+   """
 
 
 
@@ -672,7 +672,7 @@ class IntervalNGramStatistics(Experiment):
 
 
    def __init__(self, controller, records, settings):
-      '''
+      """
       Create a new IntervalNGramStatistics experiment.
 
       There are three mandatory arguments:
@@ -693,7 +693,7 @@ class IntervalNGramStatistics(Experiment):
 
       IntervalNGramStatistics can use this setting, but will not provide a default:
       - output_format : choose the Display subclass for this experiment's results
-      '''
+      """
       super(IntervalNGramStatistics, self).__init__(controller, records, settings)
 
       # Check the ExperimentSettings object has the right settings
@@ -727,9 +727,9 @@ class IntervalNGramStatistics(Experiment):
 
 
    def _add_ngram(self, interv):
-      '''
+      """
       Add an n-gram, represented as a string, to the occurrences dictionary in this experiment.
-      '''
+      """
       if interv in self._ngrams:
          self._ngrams[interv] += 1
       else:
@@ -740,7 +740,7 @@ class IntervalNGramStatistics(Experiment):
    # TODO: implement vis7 tests for this
    @staticmethod
    def ngram_sorter(left, right):
-      '''
+      """
       Returns -1 if the first argument is a smaller n-gram.
       Returns 1 if the second argument is a smaller n-gram.
       Returns 0 if both arguments are the same.
@@ -769,7 +769,7 @@ class IntervalNGramStatistics(Experiment):
       -1
       >>> ngram_sorter( '3 -2 3 -2 3', '3 -2 3' )
       1
-      '''
+      """
 
       # We need the string version for this
       left = str(left)
@@ -809,12 +809,12 @@ class IntervalNGramStatistics(Experiment):
 
 
    def perform(self):
-      '''
+      """
       Perform the Experiment. This method is not called "run" to avoid possible
       confusion with the multiprocessing nature of Experiment subclasses.
 
       This method emits an Experimenter.experimented signal when it finishes.
-      '''
+      """
       # (0) Instantiate/clear things
       self._ngrams = {}
       self._keys = []

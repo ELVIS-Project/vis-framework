@@ -23,9 +23,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.   If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Holds the VisController class, which maintains interactions between all parts of vis.
-'''
+"""
 
 
 # Imports from...
@@ -43,18 +43,18 @@ from PyQt4.QtCore import pyqtSignal, QObject
 
 
 class VisController(QObject):
-    '''
+    """
     This class creates an interface and the various controllers required to run a vis
     implementation, and manages the interactions amongst them.
 
     TODO: doctest
-    '''
+    """
     
     active_controller_changed = pyqtSignal(str)
     info_signal = pyqtSignal()
     
     def __init__(self, argv, interface=DEFAULT_INTERFACE, details=None):          
-        '''
+        """
         Create a new VisController instance.
 
         The first argument, "interface", is a string specifying which GUI to use:
@@ -64,7 +64,7 @@ class VisController(QObject):
 
         The second argument, "details", is a list of arguments specifying settings
         to be used when creating the specific interface. So far, there are none.
-        '''
+        """
         super(VisController, self).__init__() # required for signals
 
         # Setup sub-controllers
@@ -89,9 +89,9 @@ class VisController(QObject):
         self.set_active_controller(self.importer)
 
     def exec_(self):
-        '''
+        """
         Runs the application.
-        '''
+        """
         return self.interface.exec_()
 
     def set_active_controller(self, value):
@@ -99,47 +99,47 @@ class VisController(QObject):
         self.active_controller_changed.emit(value.__class__.__name__)
 
     def choose_files(self):
-        '''
+        """
         Set the application to its initial state, clearing all the models except
         the ListOfFiles managed by self.importer.
-        '''
+        """
         self.analyzer.list_of_pieces.clear()
         self.importer._list_of_pieces = self.analyzer.list_of_pieces
         # clear importer and visualizer?
         self.set_active_controller(self.importer)
 
     def import_files(self):
-        '''
+        """
         Start importing the files contained in the self.importer's ListOfFiles.
-        '''
+        """
         self.importer.run()
 
     def setup_analysis(self):
-        '''
+        """
         Set the application to its intermediate state, where users can define the
         settings for analyzing.
-        '''
+        """
         # clear importer and visualizer?
         self.set_active_controller(self.analyzer)
 
     def analyze_pieces(self):
-        '''
+        """
         Analyze the selected voice pairs in self.analyzer's ListOfPieces.
-        '''
+        """
         self.analyzer.run()
 
     def setup_experiment(self):
-        '''
+        """
         Set the application to its intermediate state, where users can choose an
         experiment and define its settings before performing it.
-        '''
+        """
         # clear visualizer?
         self.set_active_controller(self.experimenter)
 
     def get_info(self):
-        '''
+        """
         Returns the VisInfo instance contained in this VisController.
-        '''
+        """
         self.info_signal.emit()
         return self.info
 # End class VisController ------------------------------------------------------

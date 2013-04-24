@@ -25,9 +25,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Holds the VisQtInterface class, responsible for all PyQt4 stuff.
-'''
+"""
 # imports
 from common import VisInterface, view_getter, _InterfaceMeta
 from PyQt4 import QtCore, QtGui
@@ -43,9 +43,9 @@ class _VisQtMeta(_InterfaceMeta, QtCore.pyqtWrapperType):
 
 
 class VisQtInterface(VisInterface, QtCore.QObject):
-    '''
+    """
     Interface for desktop app via PyQt4
-    '''
+    """
     __metaclass__ = _VisQtMeta
     def __init__(self, vis_controller, argv):
         super(VisQtInterface, self).__init__(vis_controller)
@@ -76,16 +76,18 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         line.setInputMask("")
         line.setMaxLength(256)
         line.setText(self.translate(setting.value))
-        # TODO: connect signals
+        def text_edited():
+            setting.value = line.text()
+        line.textEdited.connect(text_edited)
         return (lbl, line)
 
     def popup_error(self, component, description):
-        '''
+        """
         Notify the user that an error has happened.
         INPUTS:
         `component` - the name of the component raising the error
         `description` - a useful description of the error
-        '''
+        """
         # TODO: the `error` signals in the controllers should output a
         # (name, error) 2-tuple and this function can take that as an
         # argument instead of having the view-getter look at the controller's class.
@@ -96,10 +98,10 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                                          QtGui.QMessageBox.Ok)
 
     def setup_thread(self, controller):
-        '''
+        """
         Does the basic configuration for a controller
         class to use the "working" screen.
-        '''
+        """
         if not hasattr(self, "threads"):
             self.threads = {}
         class_name = controller.__class__.__name__
@@ -112,14 +114,14 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         self.threads[class_name].start()
 
         def update_progress(progress):
-            '''
+            """
             Updates the "working" screen in the following ways:
             - If the argument is a two-character string that can be converted into
               an integer, or the string '100', the progress bar is set to that
               percentage completion.
             - If the argument is another string, the text below the progress bar is
               set to that string.
-            '''
+            """
             if isinstance(progress, basestring):
                 if '100' == progress:
                     self.progress_bar.setValue(100)
@@ -332,16 +334,6 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         gridLayout_3.addWidget(lbl_title, 5, 0, 1, 1)
         gridLayout_3.addWidget(chk_salami, 1, 0, 1, 3)
         # connect signals
-        def all_pts_changed(state):
-            if state:
-                chk_basso_seguente.setText(
-                    self.translate('Every part against Basso Seguente')
-                )
-            else:
-                chk_basso_seguente.setText(
-                    self.translate(piece.settings.basso_seguente.display_name)
-                )
-        piece.all_parts_changed.connect(all_pts_changed)
         return grp_settings_for_piece
 
     @view_getter('ListOfPieces')

@@ -41,21 +41,21 @@ class TestPieceGetter(unittest.TestCase):
 
    @staticmethod
    def metadata_equality(one, another):
-      '''
+      """
       Test that "one" is a music21 Metadata object equal to "another."
 
       Currently, doesn't test anything... just returns 'true'... but eventually,
       we should be able to do a better job at this!
-      '''
+      """
       return True
 
    @staticmethod
    def stream_equality(one, another):
-      '''
+      """
       Test that "one" is a music21 stream equal to "another."
 
       Currently, the method
-      '''
+      """
       one = one.flat
       another = another.flat
       if len(one) != len(another):

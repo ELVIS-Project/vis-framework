@@ -22,7 +22,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 This module presents the NGram class, representing a list of musical objects
 that are optionally connected by other musical objects.
 
@@ -31,7 +31,7 @@ intervals of the lower voice; this is a contrapuntal module.
 
 The ChordNGram subclass is for chords connected by neo-Riemannian
 transformations.
-'''
+"""
 
 
 
@@ -49,10 +49,10 @@ from music21.analysis.neoRiemannian import LRP_combinations as LRP
 
 class NGram(object):
    # NOTE: when subclassing, you must change "object" to "NGram"
-   '''
+   """
    Represents an n-gram of musical objects, optionally connected by other
    musical objects.
-   '''
+   """
 
    ## Instance Data
    # _n : how many events are in this n-gram
@@ -61,9 +61,9 @@ class NGram(object):
    # _string : string-format representation of this NGram
 
    def __init__(self, some_events):
-      '''
+      """
       Create a new n-gram when given a list of some events.
-      '''
+      """
 
       # Call the base class constructor
       # NOTE: uncomment this in subclasses
@@ -84,42 +84,42 @@ class NGram(object):
 
 
    def get_events(self):
-      '''
+      """
       Returns a list of the primary events in this NGram.
-      '''
+      """
       return self._list_of_events
 
 
 
    def get_connections(self):
-      '''
+      """
       Returns a list of the connecting events between this NGram's primary
       events.
-      '''
+      """
       return self._list_of_connections
 
 
 
    def retrograde(self):
-      '''
+      """
       Returns the retrograde (backwards) n-gram of self.
-      '''
+      """
       return self.__class__(self._list_of_events[::-1])
 
 
 
    def n(self):
-      '''
+      """
       Return the 'n' of this n-gram, which means the number of primary events.
-      '''
+      """
       return self._n
 
 
 
    def __repr__(self):
-      '''
+      """
       Return the code that could be used to re-create this NGram object.
-      '''
+      """
       # The Python standard suggests the return value from this method should
       # be sufficient to re-create the object. This is a little more complicated
       # than the music21 core classes make it seem.
@@ -128,10 +128,10 @@ class NGram(object):
 
 
    def get_string_version(self):
-      '''
+      """
       Return a string-format representation of this NGram object. Unlike str(),
       this method allows different formatting options.
-      '''
+      """
 
       # Hold the str we're making
       post = ''
@@ -167,25 +167,25 @@ class NGram(object):
 
    @classmethod
    def make_from_str(cls, given_string):
-      '''
+      """
       Returns an NGram object corresponding to the given string
-      '''
+      """
       pass
 
 
 
    def __str__(self):
-      '''
+      """
       Returns a string-format representation of this NGram instance.
-      '''
+      """
       return self.get_string_version()
 
 
 
    def __eq__(self, other):
-      '''
+      """
       Test whether this NGram object is the same as another.
-      '''
+      """
       # an NGram is just a list of intervals and list of movements
       return self._list_of_events == other._list_of_events and \
              self._list_of_connections == other._list_of_connections
@@ -193,19 +193,19 @@ class NGram(object):
 
 
    def __ne__(self, other):
-      '''
+      """
       Test whether this NGram object and another are not equal.
-      '''
+      """
       return not self == other
 # End class NGram-----------------------------------------------------------------------------------
 
 
 
 class IntervalNGram(NGram):
-   '''
+   """
    Represents an n-gram of vertical intervals connected by the horizontal
    interval of the lower voice.
-   '''
+   """
 
    ## Instance Data
    # _n : how many events are in this n-gram
@@ -215,9 +215,9 @@ class IntervalNGram(NGram):
    # _has_voice_crossing : whether this IntervalNGram has voice crossing
 
    def __init__(self, some_events):
-      '''
+      """
       Create a new n-gram when given a list of some events.
-      '''
+      """
 
       # Call the base class constructor
       super(IntervalNGram, self).__init__(some_events)
@@ -263,9 +263,9 @@ class IntervalNGram(NGram):
 
 
    def __repr__(self):
-      '''
+      """
       Return the code that could be used to re-create this NGram object.
-      '''
+      """
       # The Python standard suggests the return value from this method should
       # be sufficient to re-create the object. This is a little more complicated
       # than the music21 core classes make it seem.
@@ -289,7 +289,7 @@ class IntervalNGram(NGram):
 
 
    def canonical(self):
-      '''
+      """
       Return the "canonical non-crossed" str representation of this IntervalNGram
       object. This is like an "absolute value" function, in that it removes any
       positive/negative signs and does not do much else.
@@ -302,17 +302,17 @@ class IntervalNGram(NGram):
       - etc.
 
       These are not necessarily experientially similar.
-      '''
+      """
       post = self.get_string_version(True, 'compound').replace('-', '')
       return post.replace('+', '')
 
 
 
    def voice_crossing(self):
-      '''
+      """
       Returns True if the IntervalNGram object has voice crossing (meaning that one
       or more of the Interval objects has a negative direction) or else False.
-      '''
+      """
       return self._has_voice_crossing
 
 
@@ -320,7 +320,7 @@ class IntervalNGram(NGram):
    def get_string_version(self, \
                           show_quality=False, \
                           simple_or_compound='compound'):
-      '''
+      """
       Return a string-format representation of this IntervalNGram object. With no
       arguments, the intervals are compound, and quality not displayed.
 
@@ -340,7 +340,7 @@ class IntervalNGram(NGram):
       'M3 M+2 M2'
       >>> ng.get_string_version(s)
       '10 +2 9'
-      '''
+      """
 
       # Hold the str we're making
       post = ''
@@ -406,7 +406,7 @@ class IntervalNGram(NGram):
 
 
    def get_inversion_at_the(self, interv, up_or_down='up'):
-      '''
+      """
       Returns an IntervalNGram with the upper and lower parts inverted at the interval
       specified.
 
@@ -429,13 +429,13 @@ class IntervalNGram(NGram):
       >>> ng = IntervalNGram([i1,i2])
       >>> str(ng.get_inversion_at_the(12, 'up'))
       'M-10 +M2 M-9'
-      '''
+      """
 
       def get_inverted_quality(start_spec):
-         '''
+         """
          "Inner function" to transform a quality-letter into the quality-letter
          needed for inversion
-         '''
+         """
          post = ''
 
          if 'd' == start_spec:
@@ -452,9 +452,9 @@ class IntervalNGram(NGram):
          return post
 
       def check_for_stupid(huh):
-         '''
+         """
          "Inner function" to check for stupid intervals like 'm4'
-         '''
+         """
 
          # Hold all the sizes that require "perfect," not "major" or "minor"
          perfect_sizes = ['1', '4', '5', '8', '11', '12', '15', '19', \
@@ -528,14 +528,14 @@ class IntervalNGram(NGram):
 
    @classmethod
    def make_from_str(cls, string):
-      '''
+      """
       Returns an IntervalIntervalNGram object with the specifications of the
       given string-format representation. A valid string would be of the format
       provided by get_string_version().
 
       If interval quality is not specified, it is assumed to be Major or
       Perfect, as appropriate.
-      '''
+      """
 
       vertical_re = re.compile(r'([MmAdP]?)([-]?)([\d]+)')
       horizontal_re = re.compile(r'([+-]?)([MmAdP]?)([\d]+)')
@@ -544,11 +544,11 @@ class IntervalNGram(NGram):
       err_msg = 'Cannot make IntevalNGram from the wrong number of intervals'
 
       def make_vert(int_str):
-         '''
+         """
          Return a music21 Interval object corresponding to the interval string
          given as an argument. The interval string may have a quality or not,
          but it should not have a + or - symbol.
-         '''
+         """
          vert_match = vertical_re.match(int_str)
          if vert_match is None or vert_match.group(0) != int_str:
             raise RuntimeError(err_msg)
@@ -562,11 +562,11 @@ class IntervalNGram(NGram):
       # End make_vert()
 
       def make_horiz(int_str):
-         '''
+         """
          Return a music21 Interval object corresponding to the interval string
          given as an argument. The interval string may have a quality or not,
          but it must have a + or - symbol.
-         '''
+         """
          horiz_match = horizontal_re.match(int_str)
          if horiz_match is None or horiz_match.group(0) != int_str:
             raise RuntimeError(err_msg)
@@ -605,10 +605,10 @@ class IntervalNGram(NGram):
 
 
 class ChordNGram(NGram):
-   '''
+   """
    Represents an n-gram of simultaneities connected by neo-Riemannian
    transformations.
-   '''
+   """
 
    # Class Data
    # This is a list of all the neo-Riemannian transformations we consider
@@ -632,9 +632,9 @@ class ChordNGram(NGram):
    # _repr : string-format "reper" of this NGram
 
    def __init__(self, some_events):
-      '''
+      """
       Create a new n-gram when given a list of Chord objects.
-      '''
+      """
 
       # Call the base class constructor
       super(ChordNGram, self).__init__(some_events)
@@ -661,9 +661,9 @@ class ChordNGram(NGram):
 
    @staticmethod
    def find_transformation(one, another):
-      '''
+      """
       Find the neo-Riemannian transformation between "one" Chord instance and "another" one.
-      '''
+      """
       # We can only calculate connections between major and minor triads... is that what we have?
       if 11 == one.forteClassNumber and 11 == another.forteClassNumber:
          # Are both of the chords already the same?
@@ -683,9 +683,9 @@ class ChordNGram(NGram):
 
 
    def __repr__(self):
-      '''
+      """
       Return the code that could be used to re-create this NGram object.
-      '''
+      """
       # The Python standard suggests the return value from this method should
       # be sufficient to re-create the object. This is a little more complicated
       # than the music21 core classes make it seem.
@@ -712,9 +712,9 @@ class ChordNGram(NGram):
 
 
    def get_string_version(self):
-      '''
+      """
       Return a string-format representation of this ChordNGram object.
-      '''
+      """
 
       # Hold the str we're making
       post = ''
@@ -750,12 +750,12 @@ class ChordNGram(NGram):
 
    @classmethod
    def make_from_str(cls, given_string):
-      '''
+      """
       This method raises a NotImplementedError.
 
       For this method to work, we would have to write something that transforms the result of
       music21.chord.Chord.__str__() into a Chord object. It's not worth it, because we have no
       use for this method yet anwyway.
-      '''
+      """
       raise NotImplementedError('ChordNGram.make_from_str() is not yet implemented.')
 # End class ChordNGram------------------------------------------------------------------------------

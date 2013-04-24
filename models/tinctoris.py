@@ -10,14 +10,14 @@ import csv
 import sys
 
 def piece_to_records(piece, tenor):
-	'''
+	"""
 	INPUTS:
 	piece - path to a music21-importable file
 	tenor - index of the tenor voice in the file
 	
 	OUTPUT:
 	A list of AnalysisRecord objects, one for each voice pair containing the tenor
-	'''
+	"""
 	importer, analyzer = Importer(), Analyzer()
 	importer.add_pieces([piece])
 	pieces_list = importer.import_pieces(ListOfPieces())
@@ -31,7 +31,7 @@ def piece_to_records(piece, tenor):
 	return analyzer.run_analysis()
 
 def analyze(piece, tenor):
-	'''
+	"""
 	INPUTS:
 	piece - path to a music21-importable file
 	tenor - index of the tenor voice in the file
@@ -47,7 +47,7 @@ def analyze(piece, tenor):
 					  # of times/# of 2-grams with the same melodic and final interval,
 					  # of times/# of 2-grams with the same melodic interval)
 	sorted by interval, for all the 2-grams appearing in the piece
-	'''
+	"""
 	records = piece_to_records(piece, tenor)
 	print 'records', records
 	bigrams = []
@@ -71,7 +71,7 @@ def analyze(piece, tenor):
 	return list(chain(*[get_subtable(histogram, interv) for interv in intervs]))
 
 def get_subtable(histogram, interval):
-	'''
+	"""
 	INPUTS:
 	histogram - a frequency histogram for bigrams in a fixed piece
 	interval - an interval occurring in that piece
@@ -79,7 +79,7 @@ def get_subtable(histogram, interval):
 	OUTPUT:
 	a list of tuples of the form described in analyze(), but only containing
 	bigrams beginning with `interval`.
-	'''
+	"""
 	sub_hg = {bigram:freq for bigram,freq in histogram.iteritems()
 				 if bigram[0]==interval}
 	rows = []
@@ -101,7 +101,7 @@ def get_subtable(histogram, interval):
 	return rows
 
 def main(*args):
-	'''
+	"""
 	INPUTS:
 	args - a list of music21-importable file names and the index of the tenor
 	voice in each
@@ -109,7 +109,7 @@ def main(*args):
 	OUTPUT:
 	Creates a CSV file containing various statistics about 2-grams where one of
 	the voices is the designated tenor.
-	'''
+	"""
 	args = args[1:]
 	pairs = [(arg,int(next)) for i,(arg,next) in enumerate(zip(args,args[1:])) if i % 2 == 0]
 	table = list(chain(*[analyze(*pair) for pair in pairs]))

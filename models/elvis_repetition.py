@@ -5,7 +5,7 @@ from suffix_tree import GeneralisedSuffixTree
 from music21.interval import Interval
 from music21.note import Note
 # NB: requires SuffixTree, from http://www.daimi.au.dk/~mailund/suffix_tree.html
-'''
+"""
 This module contains the statistical machinery required to apply a measure of repetition
 discovered for use in genomics to strings. Also it can be used to convert vis
 AnalysisRecords into strings, where the statistical computations are the same. One can use
@@ -15,7 +15,7 @@ shell or scope with vis AnalysisRecords:
 >>> from elvis_repetition import I_r
 >>> I_r(record)
 will give the index of repetition, where `record` is an AnalysisRecord in the local namespace.
-'''
+"""
 
 def I_r(record):
 	s = stringify(record)[0]
@@ -100,7 +100,7 @@ def stringify(record):
 	return ("".join(trans[tok] for tok in tokens),trans)
 
 if __name__ == "__main__":
-	st = '''	Lose away off why half led have near bed. At engage simple father of period others except. My giving do summer of though narrow marked at. Spring formal no county ye waited. My whether cheered at regular it of promise blushes perhaps. Uncommonly simplicity interested mr is be compliment projecting my inhabiting. Gentleman he september in oh excellent. 
+	st = """	Lose away off why half led have near bed. At engage simple father of period others except. My giving do summer of though narrow marked at. Spring formal no county ye waited. My whether cheered at regular it of promise blushes perhaps. Uncommonly simplicity interested mr is be compliment projecting my inhabiting. Gentleman he september in oh excellent. 
 
 	Speedily say has suitable disposal add boy. On forth doubt miles of child. Exercise joy man children rejoiced. Yet uncommonly his ten who diminution astonished. Demesne new manners savings staying had. Under folly balls death own point now men. Match way these she avoid see death. She whose drift their fat off. 
 
@@ -118,8 +118,8 @@ if __name__ == "__main__":
 
 	No opinions answered oh felicity is resolved hastened. Produced it friendly my if opinions humoured. Enjoy is wrong folly no taken. It sufficient instrument insipidity simplicity at interested. Law pleasure attended differed mrs fat and formerly. Merely thrown garret her law danger him son better excuse. Effect extent narrow in up chatty. Small are his chief offer happy had. 
 
-	Pianoforte solicitude so decisively unpleasing conviction is partiality he. Or particular so diminution entreaties oh do. Real he me fond show gave shot plan. Mirth blush linen small hoped way its along. Resolution frequently apartments off all discretion devonshire. Saw sir fat spirit seeing valley. He looked or valley lively. If learn woody spoil of taken he cause.'''
-	dutch = '''	Tot bovenkant zes regentijd zee vernieuwd. Ze herhaling er behandeld in leeningen krachtige. Welvaart ten baksteen plaatsen staatjes goa dag een. Amboina zes rijkdom stammen aan bewogen met den. Varen gayah waren na de reeds. Oven de tijd af want lang. Te geheelen er na speurzin mogelijk bepaalde engelsch. 
+	Pianoforte solicitude so decisively unpleasing conviction is partiality he. Or particular so diminution entreaties oh do. Real he me fond show gave shot plan. Mirth blush linen small hoped way its along. Resolution frequently apartments off all discretion devonshire. Saw sir fat spirit seeing valley. He looked or valley lively. If learn woody spoil of taken he cause."""
+	dutch = """	Tot bovenkant zes regentijd zee vernieuwd. Ze herhaling er behandeld in leeningen krachtige. Welvaart ten baksteen plaatsen staatjes goa dag een. Amboina zes rijkdom stammen aan bewogen met den. Varen gayah waren na de reeds. Oven de tijd af want lang. Te geheelen er na speurzin mogelijk bepaalde engelsch. 
 
 	Ruwe per daar den veel. Ten dit concurrent van plotseling aanplanten inspanning zin vaartuigen economisch. Vroegeren wassching inlandsen onderling er de na. Heuvel gronds zoo kegels overal lossen oosten wat. Op ze noemt de beste sinds groen. Eronder bekoeld sap schepen dollars wat gebeurt ver. Ruimer breede op af zekere er. En ad metaal binnen om cijfer heuvel. Op vreemden menschen gestookt hellende hectaren ze veertien. 
 
@@ -137,7 +137,7 @@ if __name__ == "__main__":
 
 	Te te mooren ze is daarin succes. Der gelukkige bijgeloof bedroegen stoompomp mekongdal had. Al op ontgonnen gelukkige gedeelten. Alluviale uitrollen prachtige nu er arabieren onderling er. Is rijk naam zijn om er. Ik in wetenschap vergrooten op nu plotseling. Uit mag ontginnen weg antwerpen australie geschiedt wij. Bladen mooren gif koffie leenen streek gezegd den tot hen. 
 
-	Zit verbazende bevaarbaar ongunstige een ingewanden spoorwegen weelderige. Op forten er is soegei spelen dragen te. Tweemaal of maleiers indische gezegend nu ernstige af uitmaakt. Mijn werk arme er af zich op door geen. Elk dik zijde eerst drong toe. Volledige ook plaatsing kan ontgonnen goa schepping dat ingenieur regeering. Af aanraking er bepaalden ze de kleederen. Land in er daad en al zelf. Aanmerking uitgegeven van dat die verzamelen.'''
+	Zit verbazende bevaarbaar ongunstige een ingewanden spoorwegen weelderige. Op forten er is soegei spelen dragen te. Tweemaal of maleiers indische gezegend nu ernstige af uitmaakt. Mijn werk arme er af zich op door geen. Elk dik zijde eerst drong toe. Volledige ook plaatsing kan ontgonnen goa schepping dat ingenieur regeering. Af aanraking er bepaalden ze de kleederen. Land in er daad en al zelf. Aanmerking uitgegeven van dat die verzamelen."""
 	n, d = A_o(dutch), A_e(dutch)
 	a, c = A_o(st), A_e(st)
 	print 'English:'

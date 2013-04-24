@@ -48,8 +48,7 @@ class Setting(QObject):
     """
 
     value_changed = pyqtSignal(object)
-    # emitted when the relevant view widget for this Setting must be created.
-    # initialize = pyqtSignal()
+    display_name_changed = pyqtSignal(str)
 
     def __init__(self, value=None, **kwargs):
         """
@@ -85,6 +84,28 @@ class Setting(QObject):
             The preferred textual representaiton of this Setting in a GUI.
         """
         return self._display_name
+
+    @display_name.setter
+    def display_name(self, name):
+        """
+        Set the display name of this Setting.
+        
+        Returns
+        -------
+
+        i : zero
+            Returns 0 to indicate the method has finished successfully.
+
+        Emits
+        -----
+
+        :py:const:`Setting.display_name_changed` : If the name provided is
+            different from the one previously stored in this Setting.
+        """
+        if self._display_name != name:
+            self._display_name = name
+            self.display_name_changed.emit(name)
+        return 0
 
     @property
     def extra_detail(self):
@@ -295,9 +316,9 @@ class Settings(QObject):
 
 
 class PositiveNumberSetting(type):
-    '''
+    """
     Metaclass to add a check for your numeric Setting to be positive.
-    '''
+    """
     def __new__(meta, cls):
         dct = dict(cls.__dict__)
         bases = (cls,)
@@ -320,9 +341,9 @@ class PositiveNumberSetting(type):
 
 
 class FloatSetting(Setting):
-    '''
+    """
     Setting to hold a floating-point number.
-    '''
+    """
     def clean(self, value):
         __doc__ = Setting.clean.__doc__
         try:
@@ -333,9 +354,9 @@ class FloatSetting(Setting):
 
 
 class StringSetting(Setting):
-    '''
+    """
     Setting to hold a string.
-    '''
+    """
     def clean(self, value):
         __doc__ = Setting.clean.__doc__
         try:
@@ -346,21 +367,21 @@ class StringSetting(Setting):
 
 
 class BooleanSetting(Setting):
-    '''
+    """
     Setting to hold a boolean (True or False) value.
-    '''
+    """
     def clean(self, value):
         __doc__ = Setting.clean.__doc__
         return bool(value)
 
 
 class MultiChoiceSetting(Setting):
-    '''
+    """
     A setting with multiple values taken from a fixed set of options. Normally
     modified with a multiple-select widget of some kind.
-    '''
+    """
     def __init__(self, *args, **kwargs):
-        '''
+        """
         Creates a new MultiChoiceSetting instance. The keyword argument `choices`
         is required, and must be an iterable of 2-tuples (value, label) where value
         is any Python type and label is a string to be used as the label of the option
@@ -370,7 +391,7 @@ class MultiChoiceSetting(Setting):
         >>> mcs = MultiChoiceSetting(choices=[(0, 'Option A'),
         (1, 'Option B'),
         (2, 'Option C')])
-        '''
+        """
         super(MultiChoiceSetting, self).__init__(*args, **kwargs)
         if not 'choices' in kwargs:
             msg = "Missing required keyword argument 'choices'"

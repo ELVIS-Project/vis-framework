@@ -22,9 +22,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.   If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Holds the Analyzer controller.
-'''
+"""
 
 
 
@@ -173,11 +173,11 @@ def _event_finder(parts, settings, record):
      """
 
      def end_finder(this_obj):
-          '''
+          """
           Given an object with an "offset" property and optionally a "quarterLength" proper, returns
           either the value of offset+quarterLength or, if there is no quarterLength property, just
           the value of offset.
-          '''
+          """
           if hasattr(this_obj, 'quarterLength'):
                 return this_obj.offset + this_obj.quarterLength
           else:
@@ -251,14 +251,14 @@ def _event_finder(parts, settings, record):
 
 
 class Analyzer(QtCore.QObject):
-    '''
+    """
     This class performs analysis for series of vertical intervals, and manages
     the settings with which to analyze. Makes a list of AnalysisRecord objects
     that each holds a half-analyzed voice-pair that Experimenter will use to
     perform fuller analysis.
 
     The ListOfPieces model is always stored in the list_of_pieces property.
-    '''
+    """
     # description of an error in the Analyzer
     error = QtCore.pyqtSignal(str)
     # status of the analysis
@@ -267,9 +267,9 @@ class Analyzer(QtCore.QObject):
     started = QtCore.pyqtSignal()
 
     def __init__(self, *args):
-        '''
+        """
         Create a new Analyzer instance.
-        '''
+        """
         super(Analyzer, self).__init__(*args)
         self.current_piece = Piece('', stream.Score(), '', [])
         self.list_of_pieces = ListOfPieces()
@@ -284,34 +284,34 @@ class Analyzer(QtCore.QObject):
 
     @property
     def current_piece(self):
-        '''
+        """
         Method docstring
-        '''
+        """
         return self._current_piece
 
     @current_piece.setter
     def current_piece(self, value):
-        '''
+        """
         Method docstring
-        '''
+        """
         if not hasattr(self, "_current_piece"):
             self._current_piece = Piece('', stream.Score(), '', [])
         self._current_piece.update(value)
 
     def analyze(self):
-        '''
+        """
         Method docstring
-        '''
+        """
         self.start.emit()
 
     def callback(self, result):
-        '''
+        """
         For internal use.
 
         Called when the _event_finder() has finished with a parts combination.
         This method adds the resulting AnalysisRecord to the internal list of
         analyses.
-        '''
+        """
         piece_name, result = result
         if isinstance(result, basestring):
             self.error.emit(result)
@@ -357,27 +357,27 @@ class Analyzer(QtCore.QObject):
         self.status.emit('Done!')
 
     def load_statistics(self, statistics):
-        '''
+        """
         This method may not even be required, but if it is, it will import
         the "precalculated statistics" -- some kind of serialized AnalysisRecord.
-        '''
+        """
         pass
 
     def set_data(self, index, change_to):
-        '''
+        """
         Changes the data in a cell of the ListOfPieces model.
 
         The arguments here should be the same as sent to ListOfPieces.setData().
-        '''
+        """
         self.thread.list_of_pieces.setData(index, change_to, QtCore.Qt.EditRole)
 
     @staticmethod
     def calculate_all_combos(upto):
-        '''
+        """
         Calculate all combinations of integers between 0 and the argument.
 
         Includes a 0th item... the argument should be len(whatevs) - 1.
-        '''
+        """
         post = []
 
         for left in xrange(upto):
@@ -389,7 +389,7 @@ class Analyzer(QtCore.QObject):
     @staticmethod
     def _object_stringer(string_me, specs):
         # TODO: test this method
-        '''
+        """
         Converts music21 objects to strings for use in AnalysisRecord objects.
 
         string_me : is a list of music21 objects
@@ -400,7 +400,7 @@ class Analyzer(QtCore.QObject):
         >>> b = [(Note, lambda x: x.nameWithOctave), (Rest, lambda x: 'Rest')]
         >>> Analyzer._object_stringer(a, b)
         ['C4', 'Rest']
-        '''
+        """
         post = []
 
         for obj in string_me:

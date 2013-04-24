@@ -22,9 +22,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Holds the Experimenter controller.
-'''
+"""
 
 
 
@@ -39,11 +39,11 @@ from models import experimenting
 
 
 class Experimenter(QtCore.QObject):
-   '''
+   """
    This class handles input for a user's choice of Experiment and choice
    of associated Settings, then performs the experiment, returning the
    relevant Results object(s).
-   '''
+   """
 
 
 
@@ -70,9 +70,9 @@ class Experimenter(QtCore.QObject):
 
 
    def __init__(self, *args):
-      '''
+      """
       Create a new Experimenter controller.
-      '''
+      """
       super(Experimenter, self).__init__(*args) # required for signals
       self._list_of_analyses = None
       self._experiment_settings = Settings()
@@ -89,33 +89,33 @@ class Experimenter(QtCore.QObject):
       self.available_experiments = experiments
 
    def set_experiment(self):
-      '''
+      """
       Method docstring
-      '''
+      """
       pass
 
 
 
    @QtCore.pyqtSlot(list)
    def catch_analyses(self, analyses_list):
-      '''
+      """
       Slot for the Analyzer.analysis_finished signal. This method is called
       when the Analyzer controller has finished analysis.
 
       The argument is a list of AnalysisRecord objects.
-      '''
+      """
       self._list_of_analyses = analyses_list
 
 
 
    @QtCore.pyqtSlot(QtCore.QVariant)
    def _catch_experiments(self, experiment_result):
-      '''
+      """
       Slot for the Experimenter._experiment_results signal. Catches the result, converts it to a
       python object, then assigns it to the Experimenter._exper_result instance variable.
 
       The argument is a QVariant object.
-      '''
+      """
       # Update the status
       self.status.emit('100')
       self.status.emit('Waiting on Visualizer')
@@ -127,9 +127,9 @@ class Experimenter(QtCore.QObject):
 
    @QtCore.pyqtSlot() # for Experimenter.run_experiment
    def _run_experiment(self):
-      '''
+      """
       Runs the currently-configured experiment(s).
-      '''
+      """
       # Check there is an 'experiment' setting that refers to one we have
       exper = self._experiment_settings.experiment
       if exper in [e.__name__ for e in self.available_experiments]:
@@ -159,11 +159,11 @@ class Experimenter(QtCore.QObject):
 
    @QtCore.pyqtSlot(tuple) # for Experimenter.set
    def _change_setting(self, sett):
-      '''
+      """
       Given a 2-tuple, where the first element is a string (setting name) and
       the second element is any type (setting value), make that setting refer
       to that value.
-      '''
+      """
       name, value = sett
       setattr(self._experiment_settings, name, value)
 # End class Experimenter ---------------------------------------------------------------------------
