@@ -5,7 +5,7 @@
 # Program Description:       Measures sequences of vertical intervals.
 #
 # Filename: settings.py
-# Purpose: The model classes for Setting objects.
+# Purpose: The model classes for Setting and Settings objects.
 #
 # Copyright (C) 2012 Jamie Klassen, Christopher Antila
 #
@@ -30,6 +30,7 @@ Model classes for Setting and Settings objects.
 # Imports from...
 # Python
 from numbers import Number
+import copy
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, QObject
 # vis
@@ -89,7 +90,7 @@ class Setting(QObject):
     def display_name(self, name):
         """
         Set the display name of this Setting.
-        
+
         Returns
         -------
 
@@ -213,6 +214,12 @@ class Setting(QObject):
         ------------
 
         Uses :py:method:`Setting.clean` to properly format a valid value.
+
+        Raises
+        ------
+
+        SettingValidationError :
+            If the inputted value could not be properly validated and formatted.
         """
         return self.clean(value)
 # End class Setting --------------------------------------------------------------------------------
@@ -233,6 +240,7 @@ class Settings(QObject):
         settings : dict
             The dict to use as the settings database.
         """
+        super(Settings, self).__init__()
         self.keys = []
         if settings:
             self.keys = settings.keys()
@@ -269,48 +277,15 @@ class Settings(QObject):
         """
         return hasattr(self, which_setting)
 
-    def __getattr__(self, setting):
-        """
-        Get the value of a particular setting. If the setting does not exist, return a Setting with
-        the value of None.
-
-        Parameter
-        ---------
-
-        setting : symbol
-            The name of the Setting to return.
-
-        Returns
-        -------
-
-        s : Setting
-            Either the already-stored Setting object with the specified name, or a newly-created
-            Setting object with a value of None.
-
-        Examples
-        --------
-
-        >>> a = Settings({'test': Setting(5)})
-        >>> a.test.value
-        5
-        >>> a.not_there.value is None
-        True
-        """
-        if not self.has(setting):
-            print 'tried to access nonexistent setting {0}'.format(setting)
-            setattr(self, setting, Setting(None))
-        return self.__getattribute__(setting)
-
     def __deepcopy__(self, memo):
         """
-        Creates a deep copy of this Settings object.
+        Used by copy.deepcopy() to make a deep copy of this Settings object.
         """
-        from copy import deepcopy
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            setattr(result, k, deepcopy(v, memo))
+        for key, val in self.__dict__.items():
+            setattr(result, key, copy.deepcopy(val, memo))
         return result
 # End class Settings -------------------------------------------------------------------------------
 
@@ -319,11 +294,12 @@ class PositiveNumberSetting(type):
     """
     Metaclass to add a check for your numeric Setting to be positive.
     """
+
     def __new__(meta, cls):
         dct = dict(cls.__dict__)
         bases = (cls,)
         name = "Positive" + cls.__name__
-        # NB: this is not safe; assumes the class 
+        # NB: this is not safe; assumes the class
         # you pass in has a method called `clean`.
         pre_clean = dct['clean']
         def clean(self, value):
@@ -342,45 +318,137 @@ class PositiveNumberSetting(type):
 
 class FloatSetting(Setting):
     """
-    Setting to hold a floating-point number.
+    Hold a floating point number (i.e., one with a decimal).
     """
-    def clean(self, value):
-        __doc__ = Setting.clean.__doc__
+    def validate(self, value):
+        """
+        Verify that the value is or can be turned into a floating point number, then format it
+        correctly if so.
+
+        Parameters
+        ----------
+
+        value : string or number
+            A string or number that should not raise an exception when run through float()
+
+        Returns
+        -------
+
+        value : float
+            The result of float(), run on the 'value' parameter.
+
+        Raises
+        ------
+
+        SettingValidationError :
+            If the inputted value could not be properly converted to a floating point number.
+
+
+        Note: This method does not call clean(), as the default verify() implementation.
+        """
         try:
             return float(value)
         except ValueError: # could not convert string to float
-            msg = "Value must be a valid decimal number"
+            msg = 'Value must produce a decimal number.'
             raise SettingValidationError(msg)
 
 
 class StringSetting(Setting):
     """
-    Setting to hold a string.
+    Hold a string.
     """
-    def clean(self, value):
-        __doc__ = Setting.clean.__doc__
+    def verify(self, value):
+        """
+        Verify that the value is or can be turned into a string, then format it correctly if so.
+
+        Parameters
+        ----------
+
+        value : string or object
+            A string or object that should not raise an exception when run through str()
+
+        Returns
+        -------
+
+        value : string
+            The result of str(), run on the 'value' parameter.
+
+        Raises
+        ------
+
+        SettingValidationError :
+            If the inputted value could not be properly converted to a string.
+
+
+        Note: This method does not call clean(), as the default verify() implementation.
+        """
         try:
             return str(value)
         except Exception:
-            msg = "Value could not be cast to string"
+            msg = 'Value must produce a string.'
             raise SettingValidationError(msg)
 
 
 class BooleanSetting(Setting):
     """
-    Setting to hold a boolean (True or False) value.
+    Hold a boolean value (True or False).
     """
     def clean(self, value):
-        __doc__ = Setting.clean.__doc__
+        """
+        Modify or reformat a 'value' to be a boolean value.
+
+        Parameters
+        ----------
+
+        value : any type
+            The object to be turned into a boolean.
+
+        Returns
+        -------
+
+        value : boolean
+            Either True or False.
+        """
         return bool(value)
 
 
 class MultiChoiceSetting(Setting):
     """
-    A setting with multiple values taken from a fixed set of options. Normally
-    modified with a multiple-select widget of some kind.
+    Hold some :py:class:`BooleanSetting` objects. This would be represented on an interface with,
+    for example, a set of checkboxes.
+
+    For a set of boolean settings where only one may be selected at a time, as in a set of radio
+    buttons, use :py:class:`SingleChoiceSetting`.
     """
+
     def __init__(self, *args, **kwargs):
+        """
+        Make a new MultiChoiceSetting.
+
+        Parameters
+        ----------
+
+        value : list of any types
+            The default value for which choices are selected.
+
+        choices : iterable of 2-tuples
+            Required keyword parameter. This should be a list of 2-tuples, where the first element
+            is a string that corresponds to the name for a setting, and the second element is its
+            value, which should be boolean.
+
+        display_name : string
+            The textual representation of the group of setting in a GUI. Default is ''
+
+        extra_detail : string
+            Additional information about the group of settings, such as that used by a tooltip.
+            Deafult is ''
+
+        Side Effects
+        ------------
+
+        Creates a Settings object with a set of BooleanSetting objects.
+        """
+
         """
         Creates a new MultiChoiceSetting instance. The keyword argument `choices`
         is required, and must be an iterable of 2-tuples (value, label) where value
@@ -393,24 +461,25 @@ class MultiChoiceSetting(Setting):
         (2, 'Option C')])
         """
         super(MultiChoiceSetting, self).__init__(*args, **kwargs)
+
+        # make sure we have the proper 'choices' keyword argument
         if not 'choices' in kwargs:
-            msg = "Missing required keyword argument 'choices'"
+            msg = 'Missing required keyword argument: choices'
             raise MissingInformationError(msg)
-        choices = kwargs.pop('choices')
-        try:
-            for i, val in choices:
-                if not isinstance(val, basestring):
-                    s = "value '{0}' in kwarg 'choices' of incorrect type '{1}'"
-                    msg = s.format(val, type(val))
-                    raise SettingValidationError(msg)
-                    break
-        except ValueError: # too many values to unpack
-            msg = "kwarg 'choices' must be an iterable of 2-tuples"
-            raise SettingValidationError(msg)
+        else:
+            choices = kwargs.pop('choices')
+
+        # validate-then-clean
+
+
         self.choices = choices
         self._value = []
+
+        # We probably won't need this line
         settings = [(val, name, BooleanSetting(False,display_name=name))
                     for val, name in choices]
+
+        # we'll probably still need this part
         for val, name, setting in settings:
             def value_changed():
                 if setting.value:
@@ -422,4 +491,82 @@ class MultiChoiceSetting(Setting):
             setting.value_changed.connect(value_changed)
         self.settings = Settings({name: setting for val, name, setting in settings})
         super(MultiChoiceSetting, self).__init__(*args, **kwargs)
+
+
+
+
+
+    def clean(self, value):
+        """
+        Modify or reformat a 'value' to be suitable for this Setting. Values given to this method
+        should be known to be valid, though potentially improperly formatted.
+
+        This method should be overridden in subclasses, since the default implementation simply
+        returns the original value.
+
+        Parameters
+        ----------
+
+        value : any type
+            The object to be reformatted.
+
+        Returns
+        -------
+
+        value : any type
+            The unmodified parameter.
+        """
+        return value
+
+    def validate(self, value):
+        """
+        Verify that 'value' is an iterable of 2-tuples, the first element of which can be a string and
+        the second of which can be a boolean.
+
+        Parameters
+        ----------
+
+        value : an iterable of 2-tuples
+
+        Returns
+        -------
+
+        value : an iterable of 2-tuples
+            With a guarantee that the first element in each is a string and the second is a boolean.
+
+        Side Effects
+        ------------
+
+        Uses :py:method:`Setting.clean` to properly format each 2-tuple.
+
+        Raises
+        ------
+
+        SettingValidationError :
+            If the inputted value could not be properly formatted.
+        """
+        post = []
+        try:
+            for bool_sett in value:
+                if 2 == len(bool_sett):
+                    post.append(self.clean(bool_sett))
+                else:
+                    msg = 'An element in the iterable has too many elements.'
+                    raise SettingValidationError(msg)
+        except TypeError:
+            msg = 'An element in the iterable has too many elements.'
+            raise SettingValidationError(msg)
+
+        return post
 # End class MultiChoiceSetting ---------------------------------------------------------------------
+
+
+class SingleChoiceSetting(Setting):
+    """
+    Hold some :py:class:`BooleanSetting` objects, only one of which may be True at a time. This
+    would be represented on an interface with, for example, a set of radio buttons.
+
+    For a set of boolean settings where many may be selected at a time, as in a set of checkboxes,
+    use :py:class:`MultiChoiceSetting`.
+    """
+    pass
