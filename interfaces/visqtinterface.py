@@ -253,7 +253,32 @@ class VisQtInterface(VisInterface, QtCore.QObject):
 
     @view_getter('PartsComboSetting')
     def view(self, parts_combo_setting, **kwargs):
-        return self.get_multi_view(parts_combo_setting, **kwargs)
+        parent = kwargs['parent']
+        groupBox = QtGui.QGroupBox(parent)
+        groupBox.setTitle(self.translate(parts_combo_setting.display_name))
+        vlayout = QtGui.QVBoxLayout(groupBox)
+        for i, chk in enumerate(self.get_view(parts_combo_setting.settings,
+                                              parent=groupBox)):
+            lay = QtGui.QHBoxLayout()
+            btn = QtGui.QPushButton(groupBox)
+            btn.setText(self.translate('Edit Part Name'))
+            def onclick(i):
+                def on_click():
+                    current_name = parts_combo_setting.part_names[i]
+                    new_name, ok = QtGui.QInputDialog.getText(
+                        None,
+                        "Part Name!",
+                        "Choose New Part Name",
+                        QtGui.QLineEdit.Normal,
+                        current_name
+                    )
+                    parts_combo_setting.set_part_name(i, str(new_name))
+                return on_click
+            btn.clicked.connect(onclick(i))
+            lay.addWidget(chk)
+            lay.addWidget(btn)
+            vlayout.addLayout(lay)
+        return groupBox
 
     @view_getter('StringSetting')
     def view(self, string_setting, **kwargs):
@@ -285,63 +310,91 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         gui_file_list.setModel(list_of_files)
         return gui_file_list
 
-    @view_getter('PieceSettings')
-    def view(self, piece, **kwargs):
+    @view_getter('PiecesSelection')
+    def view(self, selection, **kwargs):
         parent = kwargs['parent']
-        grp_settings_for_piece = QtGui.QGroupBox(parent)
-        grp_settings_for_piece.setTitle(self.translate(piece.description))
-        widget_curr_pts_comb = self.get_view(piece.current_parts_combo, parent=grp_settings_for_piece)
-        lbl_title, line_title = self.get_view(piece.title, parent=grp_settings_for_piece)
-        lbl_offset, line_offset, btn_offset = self.get_view(piece.current_offset, parent=grp_settings_for_piece)
-        gridLayout_3 = QtGui.QGridLayout(grp_settings_for_piece)
-        spacerItem6 = QtGui.QSpacerItem(20,
-                                                  40,
-                                                  QtGui.QSizePolicy.Minimum,
-                                                  QtGui.QSizePolicy.Expanding)
-        gridLayout_3.addItem(spacerItem6, 3, 1, 1, 1)
-        spacerItem7 = QtGui.QSpacerItem(20,
-                                                  40,
-                                                  QtGui.QSizePolicy.Minimum,
-                                                  QtGui.QSizePolicy.Expanding)
-        gridLayout_3.addItem(spacerItem7, 6, 1, 1, 1)
-        spacerItem8 = QtGui.QSpacerItem(40,
-                                                  20,
-                                                  QtGui.QSizePolicy.Expanding,
-                                                  QtGui.QSizePolicy.Minimum)
-        gridLayout_3.addItem(spacerItem8, 9, 1, 1, 2)
-        gridLayout_3.addWidget(self.get_view(piece.add_parts_combo,
-                                                         parent=grp_settings_for_piece),
-                                      9, 0, 1, 1)
-        gridLayout_3.addWidget(line_offset, 0, 1, 1, 1)
-        gridLayout_3.addWidget(lbl_offset, 0, 0, 1, 1)
-        gridLayout_3.addWidget(btn_offset, 0, 2, 1, 1)
-        widget_2 = QtGui.QWidget(grp_settings_for_piece)
-        horizontalLayout_9 = QtGui.QHBoxLayout(widget_2)
-        horizontalLayout_9.setMargin(0)
-        spacerItem9 = QtGui.QSpacerItem(40,
-                                                  20,
-                                                  QtGui.QSizePolicy.Maximum,
-                                                  QtGui.QSizePolicy.Minimum)
-        horizontalLayout_9.addItem(spacerItem9)
-        widget_part_boxes = QtGui.QWidget(widget_2)
-        verticalLayout_22 = QtGui.QVBoxLayout(widget_part_boxes)
-        verticalLayout_22.setMargin(0)
-        verticalLayout_22.addWidget(self.get_view(piece.all_pairs, parent=grp_settings_for_piece))
-        verticalLayout_22.addWidget(self.get_view(piece.basso_seguente, parent=grp_settings_for_piece))
-        horizontalLayout_9.addWidget(widget_part_boxes)
-        gridLayout_3.addWidget(widget_2, 8, 0, 1, 3)
-        gridLayout_3.addWidget(line_title, 5, 1, 1, 2)
-        gridLayout_3.addWidget(lbl_title, 5, 0, 1, 1)
-        gridLayout_3.addWidget(self.get_view(piece.salami, parent=grp_settings_for_piece), 1, 0, 1, 3)
+        container = QtGui.QWidget(parent)
+        layout = QtGui.QVBoxLayout(container)
+        self.selection_view = None
+        def on_pieces_change(pieces):
+            if self.selection_view:
+                self.selection_view.deleteLater()
+                layout.removeWidget(self.selection_view)
+            if pieces:
+                grp_settings_for_selection = QtGui.QGroupBox(parent)
+                def on_description_change(desc):
+                    grp_settings_for_selection.setTitle(self.translate(desc))
+                on_description_change(selection.settings.description.value)
+                selection.settings.description.value_changed.connect(on_description_change)
+
+                (
+                    (lbl_title, line_title),
+                    chk_all_pairs,
+                    chk_basso_seguente,
+                    widget_curr_pts_comb,
+                    (lbl_offset, line_offset, btn_offset),
+                    chk_salami
+                ) = self.get_view(selection.settings, parent=grp_settings_for_selection)
+
+                line_title.textEdited.connect(selection.title_changed.emit)
+                gridLayout_3 = QtGui.QGridLayout(grp_settings_for_selection)
+                spacerItem6 = QtGui.QSpacerItem(20,
+                                            40,
+                                            QtGui.QSizePolicy.Minimum,
+                                            QtGui.QSizePolicy.Expanding)
+                gridLayout_3.addItem(spacerItem6, 3, 1, 1, 1)
+                spacerItem7 = QtGui.QSpacerItem(20,
+                                                40,
+                                                QtGui.QSizePolicy.Minimum,
+                                                QtGui.QSizePolicy.Expanding)
+                gridLayout_3.addItem(spacerItem7, 6, 1, 1, 1)
+                spacerItem8 = QtGui.QSpacerItem(40,
+                                                20,
+                                                QtGui.QSizePolicy.Expanding,
+                                                QtGui.QSizePolicy.Minimum)
+                gridLayout_3.addItem(spacerItem8, 9, 1, 1, 2)
+                gridLayout_3.addWidget(self.get_view(selection.add_parts_combo,
+                                                     parent=grp_settings_for_selection),
+                                       9, 0, 1, 1)
+                gridLayout_3.addWidget(line_offset, 0, 1, 1, 1)
+                gridLayout_3.addWidget(lbl_offset, 0, 0, 1, 1)
+                gridLayout_3.addWidget(btn_offset, 0, 2, 1, 1)
+                widget_2 = QtGui.QWidget(grp_settings_for_selection)
+                horizontalLayout_9 = QtGui.QHBoxLayout(widget_2)
+                horizontalLayout_9.setMargin(0)
+                spacerItem9 = QtGui.QSpacerItem(40,
+                                                20,
+                                                QtGui.QSizePolicy.Maximum,
+                                                QtGui.QSizePolicy.Minimum)
+                horizontalLayout_9.addItem(spacerItem9)
+                widget_part_boxes = QtGui.QWidget(widget_2)
+                verticalLayout_22 = QtGui.QVBoxLayout(widget_part_boxes)
+                verticalLayout_22.setMargin(0)
+                verticalLayout_22.addWidget(chk_all_pairs)
+                verticalLayout_22.addWidget(chk_basso_seguente)
+                verticalLayout_22.addWidget(widget_curr_pts_comb)
+                horizontalLayout_9.addWidget(widget_part_boxes)
+                gridLayout_3.addWidget(widget_2, 8, 0, 1, 3)
+                gridLayout_3.addWidget(line_title, 5, 1, 1, 2)
+                gridLayout_3.addWidget(lbl_title, 5, 0, 1, 1)
+                gridLayout_3.addWidget(chk_salami, 1, 0, 1, 3)
+                self.selection_view = grp_settings_for_selection
+            else:
+                lbl_select_piece = QtGui.QLabel(parent)
+                lbl_select_piece.setText(self.translate("Select piece(s) to see possible settings."))
+                lbl_select_piece.setAlignment(QtCore.Qt.AlignCenter)
+                self.selection_view = lbl_select_piece
+            layout.addWidget(self.selection_view)
         # connect signals
-        return grp_settings_for_piece
+        selection.pieces_changed.connect(on_pieces_change)
+        on_pieces_change(selection.pieces)
+        return container
 
     @view_getter('ListOfPieces')
     def view(self, list_of_pieces, **kwargs):
         parent = kwargs['parent']
 
         class PiecesListView(QtGui.QTableView):
-            selection_changed = QtCore.pyqtSignal(list)
             def selectionChanged(self, selected, unselected):
                 selected_rows = set(ind.row() for ind in self.selectedIndexes())
                 list_of_pieces.selected_rows = selected_rows
@@ -352,6 +405,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         gui_pieces_list.horizontalHeader().setMinimumSectionSize(2)
         gui_pieces_list.verticalHeader().setVisible(False)
         gui_pieces_list.setModel(list_of_pieces)
+        gui_pieces_list.resizeColumnsToContents()
         return gui_pieces_list
 
     @view_getter('VisInfo')
@@ -399,9 +453,9 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         # TODO: extra buttons for progressing from Experiment to Visualization,
         # and implement their associated VisController methods
         spacerItem = QtGui.QSpacerItem(40,
-                                                 20,
-                                                 QtGui.QSizePolicy.Expanding,
-                                                 QtGui.QSizePolicy.Minimum)
+                                       20,
+                                       QtGui.QSizePolicy.Expanding,
+                                       QtGui.QSizePolicy.Minimum)
         horizontalLayout.addItem(spacerItem)
         horizontalLayout.addWidget(self.get_view(vis_controller.get_info,
                                                  parent=function_menu))
@@ -411,7 +465,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         statusbar = QtGui.QStatusBar(MainWindow)
         MainWindow.setStatusBar(statusbar)
         MainWindow.setWindowTitle(self.translate("vis"))
-        MainWindow.setGeometry(300, 300, 250, 150)
+        # MainWindow.setGeometry(300, 300, 250, 150)
         return MainWindow
 
     @view_getter('set_active_controller')
@@ -616,36 +670,16 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         verticalLayout_23 = QtGui.QVBoxLayout(page_analyze)
         groupBox = QtGui.QGroupBox(page_analyze)
         groupBox.setTitle(self.translate("Assemble Results, Statistics, Analyses"))
-        gridLayout_2 = QtGui.QGridLayout(groupBox)
-        spacerItem3 = QtGui.QSpacerItem(20,
-                                                  40,
-                                                  QtGui.QSizePolicy.Minimum,
-                                                  QtGui.QSizePolicy.Expanding)
-        gridLayout_2.addItem(spacerItem3, 4, 4, 1, 1)
-        spacerItem4 = QtGui.QSpacerItem(40,
-                                                  20,
-                                                  QtGui.QSizePolicy.Expanding,
-                                                  QtGui.QSizePolicy.Minimum)
-        gridLayout_2.addItem(spacerItem4, 0, 2, 1, 1)
-        lbl_select_piece = QtGui.QLabel(groupBox)
-        lbl_select_piece.setAlignment(QtCore.Qt.AlignCenter)
-        lbl_select_piece.setText(self.translate("Select piece(s) to see possible settings."))
-        gridLayout_2.addWidget(lbl_select_piece, 3, 4, 1, 1)
-        spacerItem5 = QtGui.QSpacerItem(20,
-                                                  40,
-                                                  QtGui.QSizePolicy.Minimum,
-                                                  QtGui.QSizePolicy.Expanding)
-        gridLayout_2.addItem(spacerItem5, 2, 4, 1, 1)
-        gridLayout_2.addWidget(self.get_view(analyzer.list_of_pieces, parent=groupBox),
-                                      2, 0, 6, 3)
-        gridLayout_2.addWidget(self.get_view(analyzer.current_piece, parent=groupBox),
-                                      6, 4, 2, 1)
+        gridLayout = QtGui.QGridLayout(groupBox)
+        gridLayout.addWidget(self.get_view(analyzer.list_of_pieces, parent=groupBox), 1, 0)
+        gridLayout.setColumnStretch(0, 2)
+        gridLayout.addWidget(self.get_view(analyzer.current_pieces, parent=groupBox), 1, 1)
         widget_6 = QtGui.QWidget(groupBox)
         horizontalLayout_5 = QtGui.QHBoxLayout(widget_6)
         horizontalLayout_5.setMargin(0)
         for widget in self.get_view(analyzer.settings, parent=widget_6):
             horizontalLayout_5.addWidget(widget)
-        gridLayout_2.addWidget(widget_6, 0, 4, 1, 1)
+        gridLayout.addWidget(widget_6, 0, 1)
         verticalLayout_23.addWidget(groupBox)
         self.setup_thread(analyzer)
         return page_analyze

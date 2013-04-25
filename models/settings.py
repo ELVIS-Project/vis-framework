@@ -320,7 +320,7 @@ class FloatSetting(Setting):
     """
     Hold a floating point number (i.e., one with a decimal).
     """
-    def validate(self, value):
+    def clean(self, value):
         """
         Verify that the value is or can be turned into a floating point number, then format it
         correctly if so.
@@ -342,9 +342,6 @@ class FloatSetting(Setting):
 
         SettingValidationError :
             If the inputted value could not be properly converted to a floating point number.
-
-
-        Note: This method does not call clean(), as the default verify() implementation.
         """
         try:
             return float(value)
@@ -357,7 +354,7 @@ class StringSetting(Setting):
     """
     Hold a string.
     """
-    def verify(self, value):
+    def validate(self, value):
         """
         Verify that the value is or can be turned into a string, then format it correctly if so.
 
@@ -380,13 +377,20 @@ class StringSetting(Setting):
             If the inputted value could not be properly converted to a string.
 
 
-        Note: This method does not call clean(), as the default verify() implementation.
+        Note: This method does not call clean(), as the default validate() implementation.
         """
         try:
             return str(value)
         except Exception:
             msg = 'Value must produce a string.'
             raise SettingValidationError(msg)
+
+
+class DescriptionSetting(StringSetting):
+    """
+    Holds a static description.
+    """
+    pass
 
 
 class BooleanSetting(Setting):
@@ -474,6 +478,8 @@ class MultiChoiceSetting(Setting):
 
         self.choices = choices
         self._value = []
+        if args:
+            self._value, = args
 
         # We probably won't need this line
         settings = [(val, name, BooleanSetting(False,display_name=name))
@@ -490,11 +496,8 @@ class MultiChoiceSetting(Setting):
                         self.value.remove(val)
             setting.value_changed.connect(value_changed)
         self.settings = Settings({name: setting for val, name, setting in settings})
+        self.settings.keys = [name for val, name, setting in settings]
         super(MultiChoiceSetting, self).__init__(*args, **kwargs)
-
-
-
-
 
     def clean(self, value):
         """
@@ -520,24 +523,24 @@ class MultiChoiceSetting(Setting):
 
     def validate(self, value):
         """
-        Verify that 'value' is an iterable of 2-tuples, the first element of which can be a string and
-        the second of which can be a boolean.
+        Verify that 'value' is an iterable of values, each of which is drawn from this Setting's
+        `choices` attribute.
 
         Parameters
         ----------
 
-        value : an iterable of 2-tuples
+        value : an iterable of Python objects.
 
         Returns
         -------
 
-        value : an iterable of 2-tuples
-            With a guarantee that the first element in each is a string and the second is a boolean.
+        value : an iterable of Python objects
+            With a guarantee that each object is contained in this Setting's `choices` attribute.
 
         Side Effects
         ------------
 
-        Uses :py:method:`Setting.clean` to properly format each 2-tuple.
+        Uses :py:method:`Setting.clean` to properly format each object.
 
         Raises
         ------
@@ -546,16 +549,15 @@ class MultiChoiceSetting(Setting):
             If the inputted value could not be properly formatted.
         """
         post = []
-        try:
-            for bool_sett in value:
-                if 2 == len(bool_sett):
-                    post.append(self.clean(bool_sett))
-                else:
-                    msg = 'An element in the iterable has too many elements.'
-                    raise SettingValidationError(msg)
-        except TypeError:
-            msg = 'An element in the iterable has too many elements.'
-            raise SettingValidationError(msg)
+
+        for obj in value:
+            obj = self.clean(obj)
+            vals = [val for val, label in self.choices]
+            if obj in vals:
+                post.append(obj)
+            else:
+                msg = 'An unavailable choice {0} was supplied'.format(obj)
+                raise SettingValidationError(msg)
 
         return post
 # End class MultiChoiceSetting ---------------------------------------------------------------------

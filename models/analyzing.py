@@ -60,71 +60,81 @@ class PartsComboSetting(settings.MultiChoiceSetting):
     """
     Class docstring
     """
+    parts_changed = pyqtSignal(list)
     def __init__(self, *args, **kwargs):
+        self._part_names = kwargs.pop('part_names', [])
+        kwargs.update(choices=enumerate(self._part_names))
         super(PartsComboSetting, self).__init__(*args, **kwargs)
-        setts = [(val, name, PartNameSetting(name))
-                    for val, name in self.choices]
-        for val, name, setting in setts:
-            def value_changed():
-                for key, sett in self.settings._settings.itervalues():
-                    if sett is setting:
-                        self.settings._settings.pop(key)
-                        self.settings._settings[setting.val] = setting
-            setting.value_changed.connect(value_changed)
-        self.settings = settings.Settings({name: setting for val, name, setting in setts})
+
+    @property
+    def part_names(self):
+        return self._part_names
+
+    @part_names.setter
+    def part_names(self, parts):
+        if self._part_names != parts:
+            self._part_names = parts
+            for key in self.settings.keys:
+                delattr(self.settings, key)
+
+            setts = [(i, name, settings.BooleanSetting(False,display_name=name))
+                        for i, name in enumerate(parts)]
+
+            # we'll probably still need this part
+            for val, name, setting in setts:
+                def value_changed():
+                    if setting.value:
+                        if not val in self.value:
+                            self.value.append(val)
+                    else:
+                        if val in self.value:
+                            self.value.remove(val)
+                setting.value_changed.connect(value_changed)
+                setattr(self.settings, name, setting)
+
+            self.settings.keys = [name for val, name, setting in setts]
+
+    def set_part_name(self, part, name):
+        names = self.part_names
+        names[part] = name
+        self.part_names = names
+        getattr(self.settings, self.settings.keys[part]).display_name = name
+        self.parts_changed.emit(self.part_names)
 
 
-class PiecesSelection(object):
+class PiecesSelection(QObject):
     """
     Class docstring
     """
+    pieces_changed = pyqtSignal(list)
+    title_changed = pyqtSignal(str)
     def __init__(self, pieces):
         """
         Method docstring
         """
-        self.pieces = pieces
+        super(PiecesSelection, self).__init__()
+        self._pieces = None
+        part_names = []
+        if pieces:
+            for piece in pieces:
+                if not piece.part_names in part_names:
+                    part_names.append(piece.part_names)
+            if len(part_names) == 1:
+                part_names, = part_names
+            else:
+                part_names = []
         self.settings = settings.Settings({
-            'all_pairs': settings.BooleanSetting(
-                False,
-                display_name='All 2-Part Combinations',
-                extra_detail='Collect Statistics for all Part Combinations'
-            ),
-            'current_parts_combo': PartsComboSetting(
-                choices=zip(self.score.parts, self.part_names),
-                display_name='Compare these parts:'
-            ),
-            'current_offset': OffsetSetting(
-                0.5,
-                display_name='Offset Interval:'
-            ),
-        })
-
-
-class PieceSettings(settings.Settings):
-    """
-    Class docstring
-    """
-    def __init__(self, path, score, title, part_names):
-        """
-        Method docstring
-        """
-        self.description = "Settings for Piece"
-        self.path = path
-        self.score = score
-        self.part_names = part_names
-        self.part_combos = []
-        self.offset_intervals = []
-        super(PieceSettings, self).__init__({
             'types': settings.MultiChoiceSetting(
                  # TODO: include other interesting choices here, possibly
                  # dynamically drawn from music21
+                 [Note],
                  choices=[(Note, 'Note'),
-                             (Rest, 'Rest'),
-                             (Chord, 'Chord')],
+                          (Rest, 'Rest'),
+                          (Chord, 'Chord')],
                  display_name='Find these types of object'
              ),
             'title': settings.StringSetting(
-                title,
+                '',
                 display_name='Piece Title:'
             ),
             'basso_seguente': settings.BooleanSetting(
@@ -135,38 +145,87 @@ class PieceSettings(settings.Settings):
             'salami': settings.BooleanSetting(
                 False,
                 display_name='Include repeated identical events'
+            ),
+            'all_pairs': settings.BooleanSetting(
+                False,
+                display_name='All 2-Part Combinations',
+                extra_detail='Collect Statistics for all Part Combinations'
+            ),
+            'current_parts_combo': PartsComboSetting(
+                [],
+                part_names=part_names,
+                display_name='Compare these parts:'
+            ),
+            'current_offset': OffsetSetting(
+                0.5,
+                display_name='Offset Interval:'
+            ),
+            'description': settings.DescriptionSetting(
+                "Settings for Piece"
             )
         })
-        self.all_pairs.value_changed.connect(self.update_basso_seguente)
-        self.keys = ['title', 'all_pairs', 'basso_seguente',
-                                     'current_parts_combo', 'current_offset', 'salami']
+        self.settings.keys = ['title', 'all_pairs', 'basso_seguente',
+                              'current_parts_combo', 'current_offset', 'salami']
+        self.pieces = pieces
+
+    @property
+    def pieces(self):
+        return self._pieces
+    
+    @pieces.setter
+    def pieces(self, pieces):
+        if self._pieces != pieces:
+            self._pieces = pieces
+            if len(pieces) == 1:
+                self.settings.description.value = "Settings for Piece"
+            elif len(pieces) > 1:
+                self.settings.description.value = "Settings for Pieces"
+            if pieces:
+                if len(pieces) == 1:
+                    piece, = pieces
+                    self.settings.title.value = piece.title
+            self.pieces_changed.emit(pieces)
+
+    def update(self, other_selection):
+        """
+        Change a PiecesSelection model to have all the same attributes
+        as another PiecesSelection model.
+        """
+        self.settings.title.value = other_selection.settings.title.value
+        self.settings.current_parts_combo.part_names = other_selection.settings.current_parts_combo.part_names
+        self.settings.current_parts_combo.value = other_selection.settings.current_parts_combo.value
+        self.settings.current_offset.value = other_selection.settings.current_offset.value
+        self.settings.salami.value = other_selection.settings.salami.value
+        self.pieces = other_selection.pieces
+
+    def add_parts_combo(self):
+        """
+        Method docstring
+        """
+        pass
+
+
+class PieceSettings(object):
+    """
+    Class docstring
+    """
+    def __init__(self, path, score, title, part_names):
+        """
+        Method docstring
+        """
+        super(PieceSettings, self).__init__()
+        self.path = path
+        self.score = score
+        self.title = title
+        self.part_names = part_names
+        self.part_combos = []
+        self.offset_intervals = []
+        self.salami = []
     def update_basso_seguente(self, state):
         if state:
             self.basso_seguente.display_name = 'Every part against Basso Seguente'
         else:
             self.basso_seguente.display_name = 'Basso Seguente'
-    
-    def update(self, other_piece):
-        """
-        Change a Piece model to have all the same attributes
-        as another piece model.
-        """
-        self.path = other_piece.path
-        self.score = other_piece.score
-        self.part_names = other_piece.part_names
-        self.part_combos = other_piece.part_combos
-        self.offset_intervals = other_piece.offset_intervals
-        self.title.value = other_piece.title.value
-        self.current_parts_combo.value = other_piece.current_parts_combo.value
-        self.current_offset.value = other_piece.current_offset.value
-        self.salami.value = other_piece.salami.value
-    
-    def add_parts_combo(self):
-        """
-        Method docstring
-        """
-        self.part_combos.append(self.settings.current_parts_combo)
-        self.settings.current_parts_combo = []
 
 
 class ListOfPieces(QAbstractTableModel):
@@ -193,6 +252,8 @@ class ListOfPieces(QAbstractTableModel):
     #         since this variable is used by columnCount().
     # NOTE: Update _header_names whenever you change the number or definition of
     #         columns, since this variale is used by headerData().
+    selection_changed = pyqtSignal(list)
+    
     _number_of_columns = 6
     _header_names = ['Path', 'Title', 'List of Part Names', 'Offset',
                      'Part Combinations', 'Repeat Identical']
@@ -220,6 +281,18 @@ class ListOfPieces(QAbstractTableModel):
         super(QAbstractTableModel, self).__init__() # required for QModelIndex
         self.columns = ListOfPieces.columns
         self._pieces = []
+        self._selected_rows = []
+
+    @property
+    def selected_rows(self):
+        return self._selected_rows
+    
+    @selected_rows.setter
+    def selected_rows(self, indices):
+        rows = [self._pieces[i] for i in indices]
+        if self._selected_rows != rows:
+            self._selected_rows = rows
+            self.selection_changed.emit(rows)
 
     def rowCount(self, parent=QModelIndex()):
         """
@@ -281,39 +354,34 @@ class ListOfPieces(QAbstractTableModel):
         if 0 <= row < len(self._pieces) and 0 <= column < self._number_of_columns:
             # get the object
             attr, = (k for k,v in self.columns.iteritems() if v == column)
-            if hasattr(self._pieces[row], attr):
+            if attr != 'score':
                 post = getattr(self._pieces[row], attr)
-            else:
-                sett = getattr(self._pieces[row].settings, attr)
-                post = sett.value
             # most things will have the Qt.DisplayRole
             if Qt.DisplayRole == role:
                 # for the "score" column, we have to choose the right sub-index
                 if column is self.columns['score']:
-                    post = post.toPyObject()[1] if isinstance(post, QVariant) else post[1]
+                    post = self._pieces[row].title
                 # for the "list of parts" columns, convert the list into a string
                 elif column is self.columns['part_names']:
-                    post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
-                    # also trim the [] around the list
-                    post = post[1:-1]
+                    post = ", ".join(post)
                 # for the "list of offsets" columns, convert the list into a string
                 elif column is self.columns['offset_intervals']:
-                    post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
+                    post = str(post)
+                if not isinstance(post, QVariant):
+                    post = QVariant(post)
             # some things will have the Qt.ScoreRole
             elif role is ListOfPieces.ScoreRole:
                 # if the object is the score
                 if column is self.columns['score']:
-                    post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
+                    post = self._pieces[row].score
                 # else if it's the list of parts
                 elif column is self.columns['part_names']:
                     pass # just to avoid obliteration
                 # everything else must return nothing
                 else:
                     post = None
-
-        # Must always return a QVariant
-        if not isinstance(post, QVariant):
-            post = QVariant(post)
+            else:
+                post = QVariant()
 
         return post
 
@@ -382,11 +450,12 @@ class ListOfPieces(QAbstractTableModel):
         # Set the data
         if Qt.EditRole == role:
             attr, = (k for k,v in self.columns.iteritems() if v == column)
-            if hasattr(self._pieces[row], attr):
-                setattr(self._pieces[row], attr, value)
+            if attr == 'score':
+                score, title = value
+                self._pieces[row].score = score
+                self._pieces[row].title = title
             else:
-                sett = getattr(self._pieces[row].settings, attr)
-                sett.value = value
+                setattr(self._pieces[row], attr, value)
             self.dataChanged.emit(index, index)
             return True
         else:

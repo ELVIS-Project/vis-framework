@@ -38,7 +38,7 @@ from music21 import note, chord, converter, stream
 # PyQt4
 from PyQt4 import QtCore
 # vis
-from models.analyzing import PieceSettings, ListOfPieces, AnalysisRecord
+from models.analyzing import PiecesSelection, ListOfPieces, AnalysisRecord
 from models import settings as models_settings
 
 
@@ -271,8 +271,25 @@ class Analyzer(QtCore.QObject):
         Create a new Analyzer instance.
         """
         super(Analyzer, self).__init__(*args)
-        self.current_piece = PieceSettings('', stream.Score(), '', [])
+        self._current_pieces = PiecesSelection([])
         self.list_of_pieces = ListOfPieces()
+        def on_selection_change(rows):
+            self.current_pieces = PiecesSelection(rows)
+        self.list_of_pieces.selection_changed.connect(on_selection_change)
+        def on_parts_change(parts):
+            for i, piece in enumerate(self.list_of_pieces):
+                if piece in self.current_pieces.pieces:
+                    index = self.list_of_pieces.createIndex(i, ListOfPieces.columns['part_names'])
+                    self.list_of_pieces.setData(index, parts, QtCore.Qt.EditRole)
+        self._current_pieces.settings.current_parts_combo.parts_changed.connect(on_parts_change)
+        def on_title_change(title):
+            for i, piece in enumerate(self.list_of_pieces):
+                if piece in self.current_pieces.pieces:
+                    index = self.list_of_pieces.createIndex(i, ListOfPieces.columns['score'])
+                    score = self.list_of_pieces.data(index, ListOfPieces.ScoreRole)
+                    data = (score, title)
+                    self.list_of_pieces.setData(index, data, QtCore.Qt.EditRole)
+        self._current_pieces.title_changed.connect(on_title_change)
         self.list_of_analyses = []
         self.progress = 0.0
         self.settings = models_settings.Settings({
@@ -283,20 +300,18 @@ class Analyzer(QtCore.QObject):
         })
 
     @property
-    def current_piece(self):
+    def current_pieces(self):
         """
         Method docstring
         """
-        return self._current_piece
+        return self._current_pieces
 
-    @current_piece.setter
-    def current_piece(self, value):
+    @current_pieces.setter
+    def current_pieces(self, value):
         """
         Method docstring
         """
-        if not hasattr(self, "_current_piece"):
-            self._current_piece = PieceSettings('', stream.Score(), '', [])
-        self._current_piece.update(value)
+        self._current_pieces.update(value)
 
     def callback(self, result):
         """
