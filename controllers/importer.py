@@ -318,16 +318,16 @@ class Importer(QObject):
         #
         return self._list_of_pieces
 
-    def add_directories(self, directories):
+    def add_directory(self, directory):
         """
-        For a list of directories, make a list of the files in the directory (and all
+        For a directoriy, make a list of the files in the directory (and all
         subdirectories), then call :py:method::`add_files` to import them.
 
         Parameters
         ----------
 
-        directories : list of string
-            Each string should be a pathname referring to a directory.
+        directory : string
+            Pathname referring to a directory.
 
         Returns
         -------
@@ -342,12 +342,11 @@ class Importer(QObject):
         """
         extensions = ['.nwc.', '.mid', '.midi', '.mxl', '.krn', '.xml', '.md']
         files_to_add = []
-        for direc in directories:
-            for path, _, files in os.walk(direc):
-                for filename in files:
-                    _, extension = os.path.splitext(filename)
-                    if extension in extensions:
-                        files_to_add.append(os.path.join(path, filename))
+        for path, _, files in os.walk(directory):
+            for filename in files:
+                _, extension = os.path.splitext(filename)
+                if extension in extensions:
+                    files_to_add.append(os.path.join(path, filename))
         self.add_files(files_to_add)
         #
         return 0
@@ -400,7 +399,7 @@ class Importer(QObject):
         directories_expanded = []
         for pathname in paths_that_exist:
             if os.path.isdir(pathname):
-                self.add_directories(pathname)
+                self.add_directory(pathname)
             else:
                 directories_expanded.append(pathname)
         # Ensure there will be no duplicates

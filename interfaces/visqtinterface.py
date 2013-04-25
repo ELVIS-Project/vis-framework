@@ -256,6 +256,9 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         parent = kwargs['parent']
         groupBox = QtGui.QGroupBox(parent)
         groupBox.setTitle(self.translate(parts_combo_setting.display_name))
+        def on_display_name_change(name):
+            groupBox.setTitle(self.translate(name))
+        parts_combo_setting.display_name_changed.connect(on_display_name_change)
         vlayout = QtGui.QVBoxLayout(groupBox)
         for i, chk in enumerate(self.get_view(parts_combo_setting.settings,
                                               parent=groupBox)):
@@ -322,16 +325,13 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                 layout.removeWidget(self.selection_view)
             if pieces:
                 grp_settings_for_selection = QtGui.QGroupBox(parent)
-                def on_description_change(desc):
-                    grp_settings_for_selection.setTitle(self.translate(desc))
-                on_description_change(selection.settings.description.value)
-                selection.settings.description.value_changed.connect(on_description_change)
+                grp_settings_for_selection.setTitle(self.translate(selection.settings.description.value))
 
                 (
                     (lbl_title, line_title),
                     chk_all_pairs,
                     chk_basso_seguente,
-                    widget_curr_pts_comb,
+                    self.widget_curr_pts_comb,
                     (lbl_offset, line_offset, btn_offset),
                     chk_salami
                 ) = self.get_view(selection.settings, parent=grp_settings_for_selection)
@@ -372,7 +372,31 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                 verticalLayout_22.setMargin(0)
                 verticalLayout_22.addWidget(chk_all_pairs)
                 verticalLayout_22.addWidget(chk_basso_seguente)
-                verticalLayout_22.addWidget(widget_curr_pts_comb)
+                verticalLayout_22.addWidget(self.widget_curr_pts_comb)
+                def on_parts_enabled_change(state):
+                    self.widget_curr_pts_comb.deleteLater()
+                    # verticalLayout_22.removeWidget(self.widget_curr_pts_comb)
+                    if state:
+                        self.widget_curr_pts_comb = self.get_view(selection.settings.current_parts_combo,
+                                                                  parent=container)
+                    else:
+                        groupBox = QtGui.QGroupBox(container)
+                        vlayout = QtGui.QVBoxLayout(groupBox)
+                        lbl = QtGui.QLabel(groupBox)
+                        lbl.setText(self.translate(selection.parts_message))
+                        lbl.setAlignment(QtCore.Qt.AlignCenter)
+                        vlayout.addWidget(lbl)
+                        self.widget_curr_pts_comb = groupBox
+                    # NB: when you check or uncheck the "all 2-part combs"
+                    # button, the shell shows a runtimeerror but everything
+                    # seems to continue to work.
+                    verticalLayout_22.addWidget(self.widget_curr_pts_comb)
+                selection.parts_enabled_changed.connect(on_parts_enabled_change)
+                chk_basso_seguente.setEnabled(selection.bs_enabled)
+                chk_all_pairs.setEnabled(selection.all_pairs_enabled)
+                on_parts_enabled_change(selection.parts_enabled)
+                lbl_title.setEnabled(selection.title_editable)
+                line_title.setEnabled(selection.title_editable)
                 horizontalLayout_9.addWidget(widget_part_boxes)
                 gridLayout_3.addWidget(widget_2, 8, 0, 1, 3)
                 gridLayout_3.addWidget(line_title, 5, 1, 1, 2)
@@ -381,7 +405,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                 self.selection_view = grp_settings_for_selection
             else:
                 lbl_select_piece = QtGui.QLabel(parent)
-                lbl_select_piece.setText(self.translate("Select piece(s) to see possible settings."))
+                lbl_select_piece.setText(self.translate('Select piece(s) to see possible settings.'))
                 lbl_select_piece.setAlignment(QtCore.Qt.AlignCenter)
                 self.selection_view = lbl_select_piece
             layout.addWidget(self.selection_view)
@@ -584,7 +608,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                                         QtGui.QSizePolicy.Minimum)
         horizontalLayout_4.addItem(spacerItem1)
         files_list_view = self.get_view(importer.list_of_files, parent=widget_3)
-        horizontalLayout_4.addWidget(self.get_view(importer.add_directories,
+        horizontalLayout_4.addWidget(self.get_view(importer.add_directory,
                                                    parent=widget_4))
         horizontalLayout_4.addWidget(self.get_view(importer.add_files,
                                                    parent=widget_4))
@@ -615,8 +639,8 @@ class VisQtInterface(VisInterface, QtCore.QObject):
         verticalLayout_2.addWidget(grp_choose_files)
         return page_choose
 
-    @view_getter('add_directories')
-    def view(self, add_directories, **kwargs):
+    @view_getter('add_directory')
+    def view(self, add_directory, **kwargs):
         btn_dir_add = self.make_push_button(":/icons/icons/add-dir.png",
                                                         32,
                                                         "Add Directory",
@@ -628,7 +652,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                 '',
                 QtGui.QFileDialog.ShowDirsOnly
             )
-            add_directories(str(d))
+            add_directory(str(d))
         btn_dir_add.clicked.connect(on_click)
         return btn_dir_add
 
