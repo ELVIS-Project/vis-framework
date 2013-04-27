@@ -110,15 +110,17 @@ class PiecesSelection(QObject):
     title_changed = pyqtSignal(str)
     parts_msg = pyqtSignal(str)
     parts_enabled_changed = pyqtSignal(bool)
+    bs_ap_enabled_changed = pyqtSignal(bool)
     def __init__(self, pieces):
         """
         Method docstring
         """
         super(PiecesSelection, self).__init__()
         self._pieces = None
-        self.parts_enabled = False
-        self.bs_enabled = True
-        self.all_pairs_enabled = True
+        self._parts_enabled = False
+        self._bs_ap_enabled = False
+        self.parts_message = ''
+        self.title_editable = False
         self.settings = settings.Settings({
             'types': settings.MultiChoiceSetting(
                  # TODO: include other interesting choices here, possibly
@@ -160,11 +162,30 @@ class PiecesSelection(QObject):
                 "Settings for Piece"
             )
         })
-        self.settings.keys = ['title', 'all_pairs', 'basso_seguente',
-                              'current_parts_combo', 'current_offset', 'salami']
+        self.settings.keys = ['title', 'all_pairs', 'basso_seguente', 'current_offset', 'salami']
         self.settings.all_pairs.value_changed.connect(self.on_all_pairs_change)
         self.settings.basso_seguente.value_changed.connect(self.on_bs_change)
         self.pieces = pieces
+
+    @property
+    def parts_enabled(self):
+        return self._parts_enabled
+
+    @parts_enabled.setter
+    def parts_enabled(self, state):
+        if self._parts_enabled != state:
+            self._parts_enabled = state
+            self.parts_enabled_changed.emit(state)
+
+    @property
+    def bs_ap_enabled(self):
+        return self._bs_ap_enabled
+
+    @bs_ap_enabled.setter
+    def bs_ap_enabled(self, state):
+        if self._bs_ap_enabled != state:
+            self._bs_ap_enabled = state
+            self.bs_ap_enabled_changed.emit(state)
 
     @property
     def pieces(self):
@@ -173,9 +194,6 @@ class PiecesSelection(QObject):
     @pieces.setter
     def pieces(self, pieces):
         if self._pieces != pieces:
-            if self._pieces:
-                self.settings.all_pairs.display_name_changed.disconnect()
-                self.settings.basso_seguente.display_name_changed.disconnect()
             self._pieces = pieces
             if len(pieces) == 1:
                 self.settings.description.value = 'Settings for Piece'
@@ -201,8 +219,7 @@ class PiecesSelection(QObject):
                 part_names, = part_names
                 self.settings.current_parts_combo.part_names = part_names
                 self.parts_enabled = True
-                self.bs_enabled = True
-                self.all_pairs_enabled = True
+                self.bs_ap_enabled = True
             else:
                 nums_of_parts = set(len(piece.part_names) for piece in self.pieces)
                 if len(nums_of_parts) == 1:
@@ -210,35 +227,28 @@ class PiecesSelection(QObject):
                     part_names = ['Voice {0}'.format(i) for i in range(1, num_parts + 1)]
                     self.settings.current_parts_combo.part_names = part_names
                     self.parts_enabled = True
-                    self.all_pairs_enabled = True
-                    self.bs_enabled = True
+                    self.bs_ap_enabled = True
                 else:
                     msg1 = 'Some selected pieces have different numbers of parts.'
                     msg2 = 'To add part combinations, change your selection.'
                     self.parts_message = '{0}\n{1}'.format(msg1, msg2)
                     self.parts_enabled = False
-                    self.all_pairs_enabled = False
-                    self.bs_enabled = False
+                    self.bs_ap_enabled = False
 
     def on_all_pairs_change(self, state):
         if state:
             self.parts_message = '"All 2-Part Combinations" selected'
-            if self.parts_enabled:
-                self.settings.current_parts_combo.display_name_changed.disconnect()
-                for sett in self.settings.current_parts_combo.settings:
-                    sett.display_name_changed.disconnect()
-                self.parts_enabled = False
-                self.parts_enabled_changed.emit(False)
+            self.parts_enabled = False
             self.settings.basso_seguente.display_name = 'Every part against Basso Seguente'
         else:
-            if not self.parts_enabled:
-                self.parts_enabled = True
-                self.parts_enabled_changed.emit(True)
+            self.parts_enabled = True
             self.settings.basso_seguente.display_name = 'Basso Seguente'
 
     def on_bs_change(self, state):
         if state:
-            self.settings.current_parts_combo.display_name = 'Compare these parts against Basso Seguente:'
+            self.settings.current_parts_combo.display_name = (
+                'Compare these parts against Basso Seguente:'
+            )
         else:
             self.settings.current_parts_combo.display_name = 'Compare these parts:'
 
@@ -250,8 +260,12 @@ class PiecesSelection(QObject):
         self.settings.title.value = other_selection.settings.title.value
         self.settings.all_pairs.value = other_selection.settings.all_pairs.value
         self.settings.basso_seguente.value = other_selection.settings.basso_seguente.value
-        self.settings.current_parts_combo.part_names = other_selection.settings.current_parts_combo.part_names
-        self.settings.current_parts_combo.value = other_selection.settings.current_parts_combo.value
+        self.settings.current_parts_combo.part_names = (
+            other_selection.settings.current_parts_combo.part_names
+        )
+        self.settings.current_parts_combo.value = (
+            other_selection.settings.current_parts_combo.value
+        )
         self.settings.current_offset.value = other_selection.settings.current_offset.value
         self.settings.salami.value = other_selection.settings.salami.value
         self.pieces = other_selection.pieces
