@@ -129,7 +129,7 @@ class PiecesSelection(QObject):
                  choices=[(Note, 'Note'),
                           (Rest, 'Rest'),
                           (Chord, 'Chord')],
-                 display_name='Find these types of object'
+                 display_name='Find these types of object:'
              ),
             'title': settings.StringSetting(
                 '',
@@ -162,7 +162,7 @@ class PiecesSelection(QObject):
                 "Settings for Piece"
             )
         })
-        self.settings.keys = ['title', 'all_pairs', 'basso_seguente', 'current_offset', 'salami']
+        self.settings.keys = ['types', 'title', 'all_pairs', 'basso_seguente', 'current_offset', 'salami']
         self.settings.all_pairs.value_changed.connect(self.on_all_pairs_change)
         self.settings.basso_seguente.value_changed.connect(self.on_bs_change)
         self.pieces = pieces
@@ -257,6 +257,7 @@ class PiecesSelection(QObject):
         Change a PiecesSelection model to have all the same attributes
         as another PiecesSelection model.
         """
+        self.settings.types.value = other_selection.settings.types.value
         self.settings.title.value = other_selection.settings.title.value
         self.settings.all_pairs.value = other_selection.settings.all_pairs.value
         self.settings.basso_seguente.value = other_selection.settings.basso_seguente.value

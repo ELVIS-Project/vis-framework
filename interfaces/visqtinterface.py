@@ -329,7 +329,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                 if self.partscombo_widget or self.msg_widget:
                     if self.partscombo_widget:
                         for sett in selection.settings.current_parts_combo.settings:
-                            # this is a fix for a bug in PyQt4
+                            # this is a workaround for a bug in PyQt4
                             sett.display_name_changed.connect(lambda:None)
                             sett.display_name_changed.disconnect()
                         selection.settings.current_parts_combo.display_name_changed.disconnect()
@@ -351,6 +351,7 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                     self.translate(selection.settings.description.value)
                 )
                 (
+                    widg_types,
                     (lbl_title, line_title),
                     self.chk_all_pairs,
                     self.chk_basso_seguente,
@@ -359,60 +360,40 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                 ) = self.get_view(selection.settings, parent=grp_settings_for_selection)
                 line_title.textEdited.connect(selection.title_changed.emit)
                 gridLayout_3 = QtGui.QGridLayout(grp_settings_for_selection)
-                spacerItem6 = QtGui.QSpacerItem(20,
-                                                40,
-                                                QtGui.QSizePolicy.Minimum,
-                                                QtGui.QSizePolicy.Expanding)
-                gridLayout_3.addItem(spacerItem6, 3, 1, 1, 1)
-                spacerItem7 = QtGui.QSpacerItem(20,
-                                                40,
-                                                QtGui.QSizePolicy.Minimum,
-                                                QtGui.QSizePolicy.Expanding)
-                gridLayout_3.addItem(spacerItem7, 6, 1, 1, 1)
-                spacerItem8 = QtGui.QSpacerItem(40,
-                                                20,
-                                                QtGui.QSizePolicy.Expanding,
-                                                QtGui.QSizePolicy.Minimum)
-                gridLayout_3.addItem(spacerItem8, 9, 1, 1, 2)
-                gridLayout_3.addWidget(self.get_view(selection.add_parts_combo,
-                                                     parent=grp_settings_for_selection),
-                                       9, 0, 1, 1)
-                gridLayout_3.addWidget(line_offset, 0, 1, 1, 1)
-                gridLayout_3.addWidget(lbl_offset, 0, 0, 1, 1)
-                gridLayout_3.addWidget(btn_offset, 0, 2, 1, 1)
-                widget_2 = QtGui.QWidget(grp_settings_for_selection)
-                horizontalLayout_9 = QtGui.QHBoxLayout(widget_2)
-                horizontalLayout_9.setMargin(0)
-                spacerItem9 = QtGui.QSpacerItem(40,
-                                                20,
-                                                QtGui.QSizePolicy.Maximum,
-                                                QtGui.QSizePolicy.Minimum)
-                horizontalLayout_9.addItem(spacerItem9)
-                widget_part_boxes = QtGui.QWidget(widget_2)
-                verticalLayout_22 = QtGui.QVBoxLayout(widget_part_boxes)
-                verticalLayout_22.setMargin(0)
-                verticalLayout_22.addWidget(self.chk_all_pairs)
-                verticalLayout_22.addWidget(self.chk_basso_seguente)
+                gridLayout_3.addWidget(lbl_title, 0, 0)
+                lbl_title.setEnabled(selection.title_editable)
+                gridLayout_3.addWidget(line_title, 0, 1, 1, 2)
+                line_title.setEnabled(selection.title_editable)
+                gridLayout_3.addWidget(lbl_offset, 1, 0)
+                gridLayout_3.addWidget(line_offset, 1, 1)
+                gridLayout_3.addWidget(btn_offset, 1, 2)
+                gridLayout_3.addWidget(widg_types, 2, 0, 3, 1)
+                gridLayout_3.addWidget(chk_salami, 2, 1, 1, 2)
+                gridLayout_3.addWidget(self.chk_all_pairs, 3, 1, 1, 2)
+                gridLayout_3.addWidget(self.chk_basso_seguente, 4, 1, 1, 2)
+                def on_bs_ap_enabled_change(state):
+                    self.chk_all_pairs.setEnabled(state)
+                    self.chk_basso_seguente.setEnabled(state)
+                on_bs_ap_enabled_change(selection.bs_ap_enabled)
+                selection.bs_ap_enabled_changed.connect(on_bs_ap_enabled_change)
                 def on_parts_enabled_change(state):
                     if self.partscombo_widget:
                         for sett in selection.settings.current_parts_combo.settings:
                             sett.display_name_changed.disconnect()
                         selection.settings.current_parts_combo.display_name_changed.disconnect()
                         self.partscombo_widget.deleteLater()
-                        verticalLayout_22.removeWidget(self.partscombo_widget)
+                        gridLayout_3.removeWidget(self.partscombo_widget)
                         self.partscombo_widget = None
                     if self.msg_widget:
                         self.msg_widget.deleteLater()
-                        verticalLayout_22.removeWidget(self.msg_widget)
+                        gridLayout_3.removeWidget(self.msg_widget)
                         self.msg_widget = None
                     if state:
                         self.partscombo_widget = self.get_view(
                             selection.settings.current_parts_combo,
                             parent=container
                         )
-                        for sett in selection.settings.current_parts_combo.settings:
-                            print sett.display_name
-                        verticalLayout_22.addWidget(self.partscombo_widget)
+                        gridLayout_3.addWidget(self.partscombo_widget, 5, 0, 1, 3)
                     else:
                         groupBox = QtGui.QGroupBox(container)
                         vlayout = QtGui.QVBoxLayout(groupBox)
@@ -421,21 +402,12 @@ class VisQtInterface(VisInterface, QtCore.QObject):
                         lbl.setAlignment(QtCore.Qt.AlignCenter)
                         vlayout.addWidget(lbl)
                         self.msg_widget = groupBox
-                        verticalLayout_22.addWidget(self.msg_widget)
+                        gridLayout_3.addWidget(self.msg_widget, 5, 0, 1, 3)
                 selection.parts_enabled_changed.connect(on_parts_enabled_change)
                 on_parts_enabled_change(selection.parts_enabled)
-                def on_bs_ap_enabled_change(state):
-                    self.chk_all_pairs.setEnabled(state)
-                    self.chk_basso_seguente.setEnabled(state)
-                on_bs_ap_enabled_change(selection.bs_ap_enabled)
-                selection.bs_ap_enabled_changed.connect(on_bs_ap_enabled_change)
-                lbl_title.setEnabled(selection.title_editable)
-                line_title.setEnabled(selection.title_editable)
-                horizontalLayout_9.addWidget(widget_part_boxes)
-                gridLayout_3.addWidget(widget_2, 8, 0, 1, 3)
-                gridLayout_3.addWidget(line_title, 5, 1, 1, 2)
-                gridLayout_3.addWidget(lbl_title, 5, 0, 1, 1)
-                gridLayout_3.addWidget(chk_salami, 1, 0, 1, 3)
+                gridLayout_3.addWidget(self.get_view(selection.add_parts_combo,
+                                                     parent=grp_settings_for_selection),
+                                       6, 0)
                 self.selection_view = grp_settings_for_selection
             else:
                 lbl_select_piece = QtGui.QLabel(parent)

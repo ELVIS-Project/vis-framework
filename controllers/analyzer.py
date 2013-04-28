@@ -279,7 +279,8 @@ class Analyzer(QtCore.QObject):
         def on_parts_change(parts):
             for i, piece in enumerate(self.list_of_pieces):
                 if piece in self.current_pieces.pieces:
-                    index = self.list_of_pieces.createIndex(i, ListOfPieces.columns['part_names'])
+                    index = self.list_of_pieces.createIndex(i,
+                                                            ListOfPieces.columns['part_names'])
                     self.list_of_pieces.setData(index, parts, QtCore.Qt.EditRole)
         self._current_pieces.settings.current_parts_combo.parts_changed.connect(on_parts_change)
         def on_title_change(title):
@@ -339,28 +340,23 @@ class Analyzer(QtCore.QObject):
 
         if self.settings.multiprocess:
             pool = Pool()
-            for each_raw_piece in self.list_of_pieces:
-                # (1) Ensure all the things in "each_piece" are *not* a QVariant
-                each_piece = []
-                for each_column in each_raw_piece:
-                    if isinstance(each_column, QtCore.QVariant):
-                        each_piece.append(each_column.toPyObject())
-                    else:
-                        each_piece.append(each_column)
-                pool.apply_async(_analyze_piece, (each_piece,), callback=self.callback)
+            func = lambda p: pool.apply_async(_analyze_piece, (p,), callback=self.callback)
+        else:
+            func = lambda p: self.callback(_analyze_piece(p))
 
+        for each_raw_piece in self.list_of_pieces:
+            # (1) Ensure all the things in "each_piece" are *not* a QVariant
+            each_piece = []
+            for each_column in each_raw_piece:
+                if isinstance(each_column, QtCore.QVariant):
+                    each_piece.append(each_column.toPyObject())
+                else:
+                    each_piece.append(each_column)
+            func(each_piece)
+
+        if self.settings.multiprocess:
             pool.close()
             pool.join()
-        else:
-            for each_raw_piece in self.list_of_pieces:
-                each_piece = []
-                for each_column in each_raw_piece:
-                    if isinstance(each_column, QtCore.QVariant):
-                        each_piece.append(each_column.toPyObject())
-                    else:
-                        each_piece.append(each_column)
-
-                self.callback(_analyze_piece(each_piece))
 
         self.status.emit('100')
         self.status.emit('Done!')

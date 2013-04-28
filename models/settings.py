@@ -549,16 +549,19 @@ class MultiChoiceSetting(Setting):
             If the inputted value could not be properly formatted.
         """
         post = []
-
+        for sett in self.settings:
+            sett.value = False
         for obj in value:
             obj = self.clean(obj)
-            vals = [val for val, label in self.choices]
-            if obj in vals:
-                post.append(obj)
-            else:
-                msg = 'An unavailable choice {0} was supplied'.format(obj)
+            for val, name in self.choices:
+                if val is obj:
+                    post.append(obj)
+                    value.remove(obj)
+                    getattr(self.settings, name).value = True
+                    break
+            if value:
+                msg = 'Unavailable choices {0} were supplied'.format(value)
                 raise SettingValidationError(msg)
-
         return post
 # End class MultiChoiceSetting ---------------------------------------------------------------------
 
