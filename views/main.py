@@ -103,7 +103,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          # Things that operate the GUI
          (self.ui.chk_all_voice_combos.stateChanged, self._adjust_bs),
          (self.ui.chk_all_voice_combos.clicked, self._all_voice_combos),
-         (self.ui.chk_basso_seguente.clicked, self._chose_bs),
+         #(self.ui.chk_basso_seguente.clicked, self._chose_bs),
          (self.ui.line_piece_title.editingFinished, self._update_piece_title),
          (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
          (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
@@ -338,10 +338,7 @@ You must choose pieces before we can import them.""",
       Adjust the 'basso seguente' checkbox's text, depending on whether the
       "all combinations" checkbox is checked.
       '''
-      if self.ui.chk_all_voice_combos.isChecked():
-         self.ui.chk_basso_seguente.setText('Every part against Basso Seguente')
-      else:
-         self.ui.chk_basso_seguente.setText('Basso Seguente')
+      pass
 
 
 
@@ -387,11 +384,7 @@ You must choose pieces before we can import them.""",
       selected, we should update the QLineEdit
       '''
       if self.ui.chk_all_voice_combos.isChecked():
-         part_spec = ''
-         if self.ui.chk_basso_seguente.isChecked():
-            part_spec = '[all,bs]'
-         else:
-            part_spec = '[all]'
+         part_spec = '[all]'
 
          self._update_parts_selection(part_spec)
 
@@ -472,10 +465,10 @@ You must choose pieces before we can import them.""",
       # How many checkboxes are selected?
       if 1 == len(selected_checkboxes):
          # If we have one checkbox and bs, okay
-         if self.ui.chk_basso_seguente.isChecked():
-            vis_format = '[' + str(selected_checkboxes[0]) + ',bs]'
-         # Otherwise, complain
-         else:
+         #if self.ui.chk_basso_seguente.isChecked():
+            #vis_format = '[' + str(selected_checkboxes[0]) + ',bs]'
+         ## Otherwise, complain
+         #else:
             QtGui.QMessageBox.warning(None,
                "Unusable Part Selection",
                "Please select two parts at a time.",
@@ -484,15 +477,15 @@ You must choose pieces before we can import them.""",
                QtGui.QMessageBox.Ok)
       elif 2 == len(selected_checkboxes):
          # Is "basso seguente" also selected?
-         if self.ui.chk_basso_seguente.isChecked():
-            # That's not good
-            QtGui.QMessageBox.warning(None,
-               "Cannot Add Part",
-               "When you choose \"basso seguente,\" you can only choose one other part.",
-               QtGui.QMessageBox.StandardButtons(\
-                  QtGui.QMessageBox.Ok),
-               QtGui.QMessageBox.Ok)
-         else:
+         #if self.ui.chk_basso_seguente.isChecked():
+            ## That's not good
+            #QtGui.QMessageBox.warning(None,
+               #"Cannot Add Part",
+               #"When you choose \"basso seguente,\" you can only choose one other part.",
+               #QtGui.QMessageBox.StandardButtons(\
+                  #QtGui.QMessageBox.Ok),
+               #QtGui.QMessageBox.Ok)
+         #else:
             # We have two parts; choose them.
             vis_format = '[' + str(selected_checkboxes[0]) + ',' + \
                                str(selected_checkboxes[1]) + ']'
@@ -535,7 +528,7 @@ You must choose pieces before we can import them.""",
             self._update_parts_selection(new_spec)
 
       # Also clear the part-selection checkboxes
-      self.ui.chk_basso_seguente.setChecked(False)
+      #self.ui.chk_basso_seguente.setChecked(False)
       for box in self.part_checkboxes:
          box.setChecked(False)
    # End _add_parts_combination() ---------------------------
@@ -613,7 +606,7 @@ You must choose pieces before we can import them.""",
          self.ui.btn_choose_note.setEnabled(False)
          self.ui.line_compare_these_parts.setEnabled(False)
          self.ui.chk_all_voice_combos.setEnabled(False)
-         self.ui.chk_basso_seguente.setEnabled(False)
+         #self.ui.chk_basso_seguente.setEnabled(False)
          self.ui.btn_add_check_combo.setEnabled(False)
          self.ui.line_piece_title.setEnabled(False)
          self._piece_settings_visibility(False)
@@ -630,7 +623,7 @@ You must choose pieces before we can import them.""",
          self.ui.btn_choose_note.setEnabled(True)
          self.ui.line_compare_these_parts.setEnabled(True)
          self.ui.chk_all_voice_combos.setEnabled(True)
-         self.ui.chk_basso_seguente.setEnabled(True)
+         #self.ui.chk_basso_seguente.setEnabled(True)
          self.ui.btn_add_check_combo.setEnabled(True)
          self.ui.line_piece_title.setEnabled(False) # not applicable
          self._piece_settings_visibility(True)
@@ -688,7 +681,7 @@ You must choose pieces before we can import them.""",
             # Multiple parts have different specs
             self.ui.line_compare_these_parts.setText('')
             self.ui.chk_all_voice_combos.setChecked(False)
-            self.ui.chk_basso_seguente.setChecked(False)
+            #self.ui.chk_basso_seguente.setChecked(False)
             self._adjust_bs()
          else:
             # Multiple parts have the same spec
@@ -700,7 +693,7 @@ You must choose pieces before we can import them.""",
          self.ui.btn_choose_note.setEnabled(True)
          self.ui.line_compare_these_parts.setEnabled(True)
          self.ui.chk_all_voice_combos.setEnabled(True)
-         self.ui.chk_basso_seguente.setEnabled(True)
+         #self.ui.chk_basso_seguente.setEnabled(True)
          self.ui.btn_add_check_combo.setEnabled(True)
          self.ui.line_piece_title.setEnabled(True)
          self._piece_settings_visibility(True)
@@ -743,19 +736,19 @@ You must choose pieces before we can import them.""",
             self.ui.line_compare_these_parts.setText(comparison_parts)
             if '[all]' == comparison_parts:
                self.ui.chk_all_voice_combos.setChecked(True)
-               self.ui.chk_basso_seguente.setChecked(False)
+               #self.ui.chk_basso_seguente.setChecked(False)
                # Update the QCheckBox for "All Combinations" and "Basso Seguente"
                self._all_voice_combos()
                self._chose_bs()
             elif '[all,bs]' == comparison_parts:
                self.ui.chk_all_voice_combos.setChecked(True)
-               self.ui.chk_basso_seguente.setChecked(True)
+               #self.ui.chk_basso_seguente.setChecked(True)
                # Update the QCheckBox for "All Combinations" and "Basso Seguente"
                self._all_voice_combos()
                self._chose_bs()
             else:
                self.ui.chk_all_voice_combos.setChecked(False)
-               self.ui.chk_basso_seguente.setChecked(False)
+               #self.ui.chk_basso_seguente.setChecked(False)
             break
 
       # Adjust the text for "Basso Seguente," if needed

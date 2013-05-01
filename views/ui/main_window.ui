@@ -613,19 +613,6 @@
                       </property>
                      </widget>
                     </item>
-                    <item>
-                     <widget class="QCheckBox" name="chk_basso_seguente">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="toolTip">
-                       <string>Generate Basso Seguente Part</string>
-                      </property>
-                      <property name="text">
-                       <string>Basso Seguente</string>
-                      </property>
-                     </widget>
-                    </item>
                    </layout>
                   </widget>
                  </item>
