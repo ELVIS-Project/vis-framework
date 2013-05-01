@@ -111,7 +111,7 @@ class ImporterThread(QThread):
          file_path = result[0]
          self.progress += 1.0/self.num_files
          self._importer.status.emit(str(int(self.progress * 100)))
-         self._importer.status.emit('Importing... '+file_path+' imported.')
+         self._importer.status.emit(file_path + ' completed.')
          self.results.append(result)
    def run(self):
       '''
