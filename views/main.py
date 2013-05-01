@@ -1003,8 +1003,12 @@ You must choose pieces before we can import them.""",
             list_of_settings.append(('experiment', 'ChordsList'))
             list_of_settings.append(('output_format', 'SpreadsheetFile'))
          elif self.ui.rdo_consider_interval_ngrams.isChecked():
-            list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
-            list_of_settings.append(('output_format', 'StatisticsListDisplay'))
+            if self.ui.rdo_list.isChecked():
+                list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
+                list_of_settings.append(('output format', 'StatisticsListDisplay'))
+            elif self.ui.rdo_chart.isChecked():
+                list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
+                list_of_settings.append(('output format', 'GraphDisplay'))
 
       def do_threshold():
          '''
@@ -1110,7 +1114,7 @@ You must choose pieces before we can import them.""",
                             self.ui.rdo_list]
       elif self.ui.rdo_consider_interval_ngrams.isChecked():
          which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
-                            self.ui.grp_quality]
+                            self.ui.grp_quality, self.ui.rdo_chart]
       elif self.ui.rdo_consider_chord_ngrams.isChecked():
          which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n]
 
