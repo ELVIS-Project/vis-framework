@@ -445,4 +445,4 @@ class GraphDisplay(Display):
         g.show()
 
         self._controller.display_shown.emit()
-# End class Display --------------------------------------------------------------------------------
+# End class GraphDisplay --------------------------------------------------------------------------
