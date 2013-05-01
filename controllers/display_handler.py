@@ -30,7 +30,7 @@ Holds the DisplayHandler controller.
 
 # Imports from...
 # matplotlib
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 # PyQt
 from PyQt4 import QtCore, QtGui
 # music21
@@ -408,41 +408,32 @@ class GraphDisplay(Display):
         This method emits a VisSignals.display_shown signal when it finishes.
         '''
 
-        g = graph.GraphHistogram( doneAction = None )
+        # prepare the GraphHistogram
+        g = graph.GraphHistogram(doneAction=None)
         g.setData(self._data)
         g.setTitle('A Chart Produced by vis')
+
+        # figure out x-axis ticks
         garbage_tick_list = []
         for i in xrange(len(self._data)):
             garbage_tick_list.append((2 * i, self._data[i][0]))
         g.setTicks('x', garbage_tick_list)
         g.xTickLabelHorizontalAlignment = 'center'
-        setattr( g, 'xTickLabelRotation', 45 )
-        g.setAxisLabel( 'x', 'Object' )
+        setattr(g, 'xTickLabelRotation', 45)
+        g.setAxisLabel('x', 'Object')
+
+        # figured out y-axis ticks
         max_height = max([i[1] for i in self._data])
-        tick_dist = max( max_height / 10, 1 )
+        tick_dist = max(max_height / 10, 1)
         ticks = []
         k = 0
         while k * tick_dist <= max_height:
             k += 1
-            ticks.append( k * tick_dist )
-        g.setTicks( 'y', [( k, k ) for k in ticks] )
-        g.fig = plt.figure()
-        g.fig.subplots_adjust( left = 0.15 )
-        ax = g.fig.add_subplot( 1, 1, 1 )
+            ticks.append(k * tick_dist)
+        g.setTicks('y', [(k, k) for k in ticks])
 
-        x = []
-        y = []
-        for a, b in self._data: # g.data:
-            x.append(a)
-            y.append(b)
-        ax.bar(x, y, alpha=0.8, color=graph.getColor(g.colors[0]))
-
-        g._adjustAxisSpines( ax )
-        g._applyFormatting( ax )
-        ax.set_ylabel( 'Magnitude', fontsize = g.labelFontSize, \
-            family = g.fontFamily, rotation = 'vertical' )
-        g.done()
+        # process and show the data; emit completion signal
+        g.process()
         g.show()
-
         self._controller.display_shown.emit()
 # End class GraphDisplay --------------------------------------------------------------------------
