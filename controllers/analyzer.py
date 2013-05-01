@@ -269,7 +269,7 @@ class AnalyzerThread(QtCore.QThread):
       else:
          self.progress += 1.0/self.num_pieces
          self._analyzer.status.emit(str(int(self.progress * 100)))
-         self._analyzer.status.emit(piece_name + " completed.")
+         self._analyzer.status.emit("Analyzing... "+piece_name+" Analyzed.")
          for record in result:
             self._analyzer._list_of_analyses.append(record)
 
