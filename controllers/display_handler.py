@@ -29,8 +29,12 @@ Holds the DisplayHandler controller.
 
 
 # Imports from...
+# matplotlib
+import matplotlib.pyplot as plt
 # PyQt
 from PyQt4 import QtCore, QtGui
+# music21
+from music21 import graph
 # vis
 from controller import Controller
 import file_output
@@ -96,7 +100,9 @@ class DisplayHandler(Controller):
          if 'SpreadsheetFile' in signal_result[0]:
             display_type = SpreadsheetFileDisplay
          elif 'StatisticsListDisplay' in signal_result[0]:
-            display_type = StatisticsListDisplay # SpreadsheetFileDisplay
+            display_type = StatisticsListDisplay
+         elif 'GraphDisplay' in signal_result[0]:
+            display_type = GraphDisplay
 
       # (2) Instantiate and show the display
       this_display = display_type(self, signal_result[1])
@@ -372,3 +378,71 @@ class VisTextDisplay(Ui_Text_Display):
     def close(self):
         self.text_display.done(0)
 # End Class VisTextDisplay ---------------------------------------------------
+
+class GraphDisplay(Display):
+    '''
+    Output a graph.
+    '''
+
+    def __init__(self, controller, data, settings=None):
+        '''
+        Create a new Display.
+
+        There are three arguments, the first two of which are mandatory:
+        - controller : the DisplayHandler controller to which this Display belongs
+        - data : A list of two-tuples, where the first is a descriptive string and the second is
+                 a number... like this...
+                 [('m3 -P4 M6', 10), ('M3 -P4 m6', 4), ...]
+        - settings : the optional ExperimentSettings object, ignored in GraphDisplay
+        '''
+        # NOTE: You must re-implement this, and change "object" to "Display"
+        super(Display, self).__init__()
+        self._controller = controller
+        self._data = data
+        self._settings = settings
+
+    def show(self):
+        '''
+        Show the data in the display.
+
+        This method emits a VisSignals.display_shown signal when it finishes.
+        '''
+
+        g = graph.GraphHistogram( doneAction = None )
+        g.setData(self._data)
+        g.setTitle('A Chart Produced by vis')
+        garbage_tick_list = []
+        for i in xrange(len(self._data)):
+            garbage_tick_list.append((2 * i, self._data[i][0]))
+        g.setTicks('x', garbage_tick_list)
+        g.xTickLabelHorizontalAlignment = 'center'
+        setattr( g, 'xTickLabelRotation', 45 )
+        g.setAxisLabel( 'x', 'Object' )
+        max_height = max([i[1] for i in self._data])
+        tick_dist = max( max_height / 10, 1 )
+        ticks = []
+        k = 0
+        while k * tick_dist <= max_height:
+            k += 1
+            ticks.append( k * tick_dist )
+        g.setTicks( 'y', [( k, k ) for k in ticks] )
+        g.fig = plt.figure()
+        g.fig.subplots_adjust( left = 0.15 )
+        ax = g.fig.add_subplot( 1, 1, 1 )
+
+        x = []
+        y = []
+        for a, b in self._data: # g.data:
+            x.append(a)
+            y.append(b)
+        ax.bar(x, y, alpha=0.8, color=graph.getColor(g.colors[0]))
+
+        g._adjustAxisSpines( ax )
+        g._applyFormatting( ax )
+        ax.set_ylabel( 'Magnitude', fontsize = g.labelFontSize, \
+            family = g.fontFamily, rotation = 'vertical' )
+        g.done()
+        g.show()
+
+        self._controller.display_shown.emit()
+# End class Display --------------------------------------------------------------------------------

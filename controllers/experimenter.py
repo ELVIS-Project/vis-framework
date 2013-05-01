@@ -768,7 +768,7 @@ class IntervalNGramStatistics(Experiment):
 
 
    # List of strings that are the names of the Display objects suitable for this Experiment
-   _good_for = ['StatisticsListDisplay', 'StatisticsChartDisplay']
+   _good_for = ['StatisticsListDisplay', 'StatisticsChartDisplay', 'GraphDisplay']
 
 
 
