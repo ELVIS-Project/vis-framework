@@ -31,14 +31,11 @@ Holds the Experimenter controller.
 # Imports from...
 # PyQt4
 from PyQt4 import QtCore
-# music21
-from music21.interval import Interval
-from music21.note import Note
-from music21 import chord
 # vis
 from controller import Controller
-from models.experimenting import ExperimentSettings
+from models.settings import Settings
 from models import ngram
+from models import experimenting
 
 
 
@@ -86,7 +83,7 @@ class Experimenter(Controller, QtCore.QObject):
       '''
       super(Experimenter, self).__init__() # required for signals
       self._list_of_analyses = None
-      self._experiment_settings = ExperimentSettings()
+      self._experiment_settings = Settings()
       # Signals
       self.set.connect(self._change_setting)
       self.run_experiment.connect(self._run_experiment)
@@ -131,15 +128,13 @@ class Experimenter(Controller, QtCore.QObject):
       Runs the currently-configured experiment(s).
       '''
       # Check there is an 'experiment' setting that refers to one we have
-
-      if self._experiment_settings.get('experiment') == 'IntervalsList':
-         exper = IntervalsLists
-      elif self._experiment_settings.get('experiment') == 'ChordsList':
-         exper = ChordsLists
-      elif self._experiment_settings.get('experiment') == 'IntervalsStatistics':
-         exper = IntervalsStatistics
-      elif self._experiment_settings.get('experiment') == 'IntervalNGramStatistics':
-         exper = IntervalNGramStatistics
+      
+      namespace = [getattr(experimenting, s) for s in dir(experimenting)]
+      classes = [c for c in namespace if isinstance(c, type)]
+      experiments = [e.__name__ for e in classes if experimenting.Experiment in e.__bases__]
+      exper = self._experiment_settings.experiment
+      if exper in experiments:
+         exper = getattr(experimenting, exper)
       else:
          self.error.emit('Experimenter: could not determine which experiment to run.')
          return
@@ -148,7 +143,7 @@ class Experimenter(Controller, QtCore.QObject):
       try:
          exper = exper(self, self._list_of_analyses, self._experiment_settings)
       except KeyError as kerr:
-         # If the experiment doesn't have the ExperimentSettings it needs
+         # If the experiment doesn't have the Settings it needs
          self.error.emit(kerr.message)
          return
 
@@ -170,7 +165,8 @@ class Experimenter(Controller, QtCore.QObject):
       the second element is any type (setting value), make that setting refer
       to that value.
       '''
-      self._experiment_settings.set(sett[0], sett[1])
+      name, value = sett
+      setattr(self._experiment_settings, name, value)
 # End class Experimenter ---------------------------------------------------------------------------
 
 
@@ -770,7 +766,7 @@ class IntervalNGramStatistics(Experiment):
 
 
    # List of strings that are the names of the Display objects suitable for this Experiment
-   _good_for = ['StatisticsListDisplay', 'StatisticsChartDisplay']
+   _good_for = ['StatisticsListDisplay', 'StatisticsChartDisplay', 'GraphDisplay']
 
 
 
