@@ -34,6 +34,7 @@ from PyQt4 import QtCore, QtGui
 # vis
 from controller import Controller
 import file_output
+from Ui_text_display import Ui_Text_Display
 
 
 
@@ -173,29 +174,35 @@ class FileOutputDisplay(Display):
 
 
    def show(self):
-      '''
-      Saves the data in a file on the filesystem.
+    '''
+    Saves the data in a file on the filesystem.
 
-      This method emits a VisSignals.display_shown signal when it finishes.
-      '''
-      # (1) Ask for the filename
-      the_filename = QtGui.QFileDialog.getSaveFileName(\
-         None,
-         'vis: Enter filename for file output',
-         '',
-         '',
-         None,
-         QtGui.QFileDialog.Options())#QtGui.QFileDialog.DontConfirmOverwrite)) # TODO: remove this if possible
+    This method emits a VisSignals.display_shown signal when it finishes.
+    '''
 
-      # (2) Write out the file
-      output_result = file_output.file_outputter(self._data, the_filename, 'OVERWRITE')
+    lawlz = VisTextDisplay(self._data)
+    lawlz.trigger()
 
-      # (3) Send the signal of success
-      if output_result[0] is None:
-         self._controller.display_shown.emit()
-      else:
-         # TODO: raise some exception!
-         pass
+    # NOTE: The following lines are all from the original implementation of this method, where it
+    #       actually just output things to a file straight away.
+
+    ## (1) Ask for the filename
+    #the_filename = QtGui.QFileDialog.getSaveFileName(\
+        #None,
+        #'vis: Enter filename for file output',
+        #'',
+        #'',
+        #None,
+        #QtGui.QFileDialog.Options())
+
+    ## (2) Write out the file
+    #output_result = file_output.file_outputter(self._data, the_filename, 'OVERWRITE')
+
+    ## (3) Send the signal of success
+    #if output_result[0] is None:
+        #self._controller.display_shown.emit()
+    #else:
+        #pass
 # End class FileOutputDisplay ----------------------------------------------------------------------
 
 
@@ -329,3 +336,39 @@ class StatisticsListDisplay(Display):
       f_o_disp = FileOutputDisplay(self._controller, post, self._settings)
       f_o_disp.show()
 # End class Display --------------------------------------------------------------------------------
+
+
+
+class VisTextDisplay(Ui_Text_Display):
+    """
+    I brought this class back from vis7 as a temporary measure, meant to satisfy our need to see
+    results before saving them, just for the Hack Day in May 2013.
+    """
+    def __init__(self, text):
+        self.text_display = QtGui.QDialog()
+        self.setupUi(self.text_display)
+        self.text = text
+        self.show_text.setPlainText(text)
+
+    def trigger(self):
+        self.btn_save_as.clicked.connect(self.save_as)
+        self.btn_close.clicked.connect(self.close)
+        self.text_display.exec_()
+
+    def save_as(self):
+        filename = str(QtGui.QFileDialog.getSaveFileName(None, \
+                        'Save As', \
+                        '', \
+                        '*.txt'))
+        result = file_output.file_outputter(self.text, filename, 'OVERWRITE')
+        if result[1] is not None:
+            QtGui.QMessageBox.information(None,
+                self.trUtf8("File Output Failed"),
+                result[1],
+                QtGui.QMessageBox.StandardButtons(\
+                QtGui.QMessageBox.Ok),
+                QtGui.QMessageBox.Ok)
+
+    def close(self):
+        self.text_display.done(0)
+# End Class VisTextDisplay ---------------------------------------------------
