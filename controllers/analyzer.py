@@ -246,7 +246,7 @@ class AnalyzerThread(QtCore.QThread):
    def __init__(self, analyzer):
       self._analyzer = analyzer
       self.progress = 0.0
-      self._multiprocess = False
+      self._multiprocess = True
       super(QtCore.QThread, self).__init__()
 
 

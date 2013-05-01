@@ -49,10 +49,10 @@ import time
 def import_piece(file_path):
    '''
    Given a path to a music21 symbolic music notation file, return a tuple
-   containing a frozen music21.Score and all the pertinent import information 
-   for the score, or else a string containing any errors that occurred in 
+   containing a frozen music21.Score and all the pertinent import information
+   for the score, or else a string containing any errors that occurred in
    importing.
-   
+
    NB: the reason we freeze the music21 Score is because normally music21
    Streams are complex webs of weak references, which cannot be pickled and
    therefore cannot be passed between different child processes in a
@@ -64,7 +64,7 @@ def import_piece(file_path):
       part_names = Importer._find_part_names(piece)
       s = converter.freezeStr(piece, fmt='pickle')
       return (file_path, s, title, part_names)
-   except (converter.ArchiveManagerException, 
+   except (converter.ArchiveManagerException,
            converter.PickleFilterException,
            converter.ConverterException,
            converter.ConverterFileException) as e:
@@ -83,7 +83,7 @@ class ImporterThread(QThread):
       # at a given time
       self.progress = 0.0
       # flag for whether to use multiprocessing in importing
-      self._multiprocess = False
+      self._multiprocess = True
       self.results = []
       super(QThread, self).__init__()
    def prepare(self, pieces):
@@ -123,7 +123,7 @@ class ImporterThread(QThread):
          pool = Pool()
          for file_path in self._files:
             pool.apply_async(import_piece,
-                             (file_path,), 
+                             (file_path,),
                              callback=self.callback)
          pool.close()
          pool.join()
