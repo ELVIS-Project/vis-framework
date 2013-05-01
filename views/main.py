@@ -203,7 +203,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
       self.ui.main_screen.setCurrentWidget(self.ui.page_show)
       self.ui.btn_about.setEnabled(True)
       self.ui.btn_choose_files.setEnabled(False)
-      self.ui.btn_analyze.setEnabled(False)
+      self.ui.btn_analyze.setEnabled(True)
       self.ui.btn_experiment.setEnabled(True)
       self.ui.btn_experiment.setChecked(True)
       self.ui.btn_step1.setEnabled(False)
