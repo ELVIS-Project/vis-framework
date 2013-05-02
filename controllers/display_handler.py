@@ -30,7 +30,7 @@ Holds the DisplayHandler controller.
 
 # Imports from...
 # matplotlib
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 # PyQt
 from PyQt4 import QtCore, QtGui
 # music21
@@ -351,17 +351,26 @@ class VisTextDisplay(Ui_Text_Display):
     results before saving them, just for the Hack Day in May 2013.
     """
     def __init__(self, text):
+        """
+        Make a new VisTextDisplay
+        """
         self.text_display = QtGui.QDialog()
         self.setupUi(self.text_display)
         self.text = text
         self.show_text.setPlainText(text)
 
     def trigger(self):
+        """
+        Cause the window to show up.
+        """
         self.btn_save_as.clicked.connect(self.save_as)
         self.btn_close.clicked.connect(self.close)
         self.text_display.exec_()
 
     def save_as(self):
+        """
+        Save the file.
+        """
         filename = str(QtGui.QFileDialog.getSaveFileName(None, \
                         'Save As', \
                         '', \
@@ -376,6 +385,9 @@ class VisTextDisplay(Ui_Text_Display):
                 QtGui.QMessageBox.Ok)
 
     def close(self):
+        """
+        Close the window.
+        """
         self.text_display.done(0)
 # End Class VisTextDisplay ---------------------------------------------------
 
@@ -416,7 +428,7 @@ class GraphDisplay(Display):
         # figure out x-axis ticks
         garbage_tick_list = []
         for i in xrange(len(self._data)):
-            garbage_tick_list.append((2 * i, self._data[i][0]))
+            garbage_tick_list.append((2 * i + 0.4, self._data[i][0]))
         g.setTicks('x', garbage_tick_list)
         g.xTickLabelHorizontalAlignment = 'center'
         setattr(g, 'xTickLabelRotation', 45)
@@ -433,7 +445,27 @@ class GraphDisplay(Display):
         g.setTicks('y', [(k, k) for k in ticks])
 
         # process and show the data; emit completion signal
-        g.process()
+        # BEGIN SEGMENT COPIED FROM graph.py
+        # figure size can be set w/ figsize=(5,10)
+        g.fig = plt.figure()
+        g.fig.subplots_adjust(left=0.15)
+        ax = g.fig.add_subplot(1, 1, 1)
+
+        x = []
+        y = []
+        binWidth = g.binWidth
+        color = graph.getColor(g.colors[0])
+        alpha = g.alpha
+        for ecks in xrange(len(self._data)):
+            x.append(ecks * 2 + 0.4)
+            y.append(self._data[ecks][1])
+        ax.bar(x, y, width=binWidth, alpha=alpha, color=color)
+
+        g._adjustAxisSpines(ax)
+        g._applyFormatting(ax)
+        g.done()
+        # END SEGMENT COPIED FROM graph.py
+
         g.show()
         self._controller.display_shown.emit()
 # End class GraphDisplay --------------------------------------------------------------------------
