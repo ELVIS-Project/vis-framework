@@ -1016,6 +1016,14 @@ You must choose pieces before we can import them.""",
          if '' != threshold:
             list_of_settings.append(('threshold', threshold))
 
+      def do_top_x():
+         '''
+         Is there a "top x" value?
+         '''
+         top_x = str(self.ui.line_top_x.text())
+         if '' != top_x:
+            list_of_settings.append(('topX', top_x))
+
       def do_print_quality():
          '''
          Print quality?
@@ -1064,6 +1072,10 @@ You must choose pieces before we can import them.""",
       do_simple_or_compound()
       # (1d) Is there a "values_of_n" value?
       do_values_of_n()
+      # (1e) Threshold
+      do_threshold()
+      # (1f) Top X
+      do_top_x()
 
       # (2) Set the settings
       for setting in list_of_settings:

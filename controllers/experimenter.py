@@ -123,6 +123,10 @@ class Experimenter(Controller, QtCore.QObject):
       # Make and emit the tuple for the DisplayHandler
       self.experiment_finished.emit((self._exper_result, experiment_result.toPyObject()))
 
+      # Clear the settings used for this experiment, so they don't accidentally carry over to the
+      # next experiment.
+      self._experiment_settings = ExperimentSettings()
+
 
 
    @QtCore.pyqtSlot() # for Experimenter.run_experiment
