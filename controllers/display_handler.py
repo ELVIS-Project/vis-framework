@@ -428,11 +428,12 @@ class GraphDisplay(Display):
         # figure out x-axis ticks
         garbage_tick_list = []
         for i in xrange(len(self._data)):
-            garbage_tick_list.append((2 * i + 0.4, self._data[i][0]))
+            garbage_tick_list.append((i + 0.4, self._data[i][0]))
         g.setTicks('x', garbage_tick_list)
         g.xTickLabelHorizontalAlignment = 'center'
         setattr(g, 'xTickLabelRotation', 45)
         g.setAxisLabel('x', 'Object')
+        g.setAxisLabel('y', 'Number')
 
         # figured out y-axis ticks
         max_height = max([i[1] for i in self._data])
@@ -454,12 +455,11 @@ class GraphDisplay(Display):
         x = []
         y = []
         binWidth = g.binWidth
-        color = graph.getColor(g.colors[0])
-        alpha = g.alpha
+        color = graph.getColor('Steel Blue')
         for ecks in xrange(len(self._data)):
-            x.append(ecks * 2 + 0.4)
+            x.append(ecks + 0.4)
             y.append(self._data[ecks][1])
-        ax.bar(x, y, width=binWidth, alpha=alpha, color=color)
+        ax.bar(x, y, width=binWidth, alpha=g.alpha, color=color, edgecolor=color)
 
         g._adjustAxisSpines(ax)
         g._applyFormatting(ax)
