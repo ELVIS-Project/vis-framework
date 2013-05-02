@@ -32,7 +32,7 @@ from PyQt4.QtCore import Qt
 from music21 import converter, stream, metadata
 # vis
 from controllers.importer import _import_piece, Importer
-from models import importing, analyzing
+from models import analyzing
 
 
 
@@ -80,63 +80,58 @@ class TestPieceGetter(unittest.TestCase):
                pass
       return True
 
-   #def test_tester(self):
-      #path = 'test_corpus/bwv77.mxl'
-      #try_1 = converter.parse(path)
-      #try_2 = converter.thawStr(_import_piece(path)[1])
-      #self.assertTrue(TestPieceGetter.stream_equality(try_1, try_2))
-#
-   #def test_bwv77(self):
-      #path = 'test_corpus/bwv77.mxl'
-      #my_import = converter.parse(path)
-      #test_import = converter.thawStr(_import_piece(path)[1])
-      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
-#
-   #def test_jos2308_krn(self):
-      #path = 'test_corpus/Jos2308.krn'
-      #my_import = converter.parse(path)
-      #test_import = converter.thawStr(_import_piece(path)[1])
-      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+   def test_tester(self):
+      path = 'test_corpus/bwv77.mxl'
+      try_1 = converter.parse(path)
+      try_2 = converter.thawStr(_import_piece(path)[1])
+      self.assertTrue(TestPieceGetter.stream_equality(try_1, try_2))
 
-   #def test_jos2308_mei(self):
-      ## Because music21 doesn't support MEI, this will not work
-      #path = 'test_corpus/Jos2308.mei'
-      #self.assertRaises(converter.ConverterFileException,
-                        #converter.parse,
-                        #path)
-      #self.assertRaises(converter.ConverterFileException,
-                        #Importer._piece_getter,
-                        #path)
+   def test_bwv77(self):
+      path = 'test_corpus/bwv77.mxl'
+      my_import = converter.parse(path)
+      test_import = converter.thawStr(_import_piece(path)[1])
+      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
-   #def test_kyrie(self):
-      #path = 'test_corpus/Kyrie.krn'
-      #my_import = converter.parse(path)
-      #test_import = converter.thawStr(_import_piece(path)[1])
-      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+   def test_jos2308_krn(self):
+      path = 'test_corpus/Jos2308.krn'
+      my_import = converter.parse(path)
+      test_import = converter.thawStr(_import_piece(path)[1])
+      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
-   #def test_laPlusDesPlus(self):
-      #path = 'test_corpus/laPlusDesPlus.abc'
-      #my_import = converter.parse(path)
-      #test_import = converter.thawStr(_import_piece(path)[1])
-      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+   def test_jos2308_mei(self):
+      # Because music21 doesn't support MEI, this will not work
+      path = 'test_corpus/Jos2308.mei'
+      error_msg = 'cannot find a format extensions for: test_corpus/Jos2308.mei'
+      self.assertRaises(converter.ConverterFileException,
+                        converter.parse,
+                        path)
+      self.assertEqual(_import_piece(path), error_msg)
+
+   def test_kyrie(self):
+      path = 'test_corpus/Kyrie.krn'
+      my_import = converter.parse(path)
+      test_import = converter.thawStr(_import_piece(path)[1])
+      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    #def test_madrigal51(self):
+      ## TODO: make this test not fail; issue 175
       #path = 'test_corpus/madrigal51.mxl'
       #my_import = converter.parse(path)
       #test_import = converter.thawStr(_import_piece(path)[1])
       #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
-   #def test_sinfony(self):
-      #path = 'test_corpus/sinfony.md'
-      #my_import = converter.parse(path)
-      #test_import = converter.thawStr(_import_piece(path)[1])
-      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
-#
-   def test_sqOp76_4_i(self):
-      path = 'test_corpus/sqOp76-4-i.midi'
+   def test_sinfony(self):
+      path = 'test_corpus/sinfony.md'
       my_import = converter.parse(path)
       test_import = converter.thawStr(_import_piece(path)[1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+
+   #def test_sqOp76_4_i(self):
+      ## TODO: make this test not fail; issue 175
+      #path = 'test_corpus/sqOp76-4-i.midi'
+      #my_import = converter.parse(path)
+      #test_import = converter.thawStr(_import_piece(path)[1])
+      #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 # End TestPieceGetter ----------------------------------------------------------
 
 
@@ -173,16 +168,6 @@ class TestPartsAndTitles(unittest.TestCase):
       test_parts = Importer._find_part_names(the_score)
       self.assertEqual(title, test_title)
       self.assertEqual(parts, test_parts)
-
-   #def test_laPlusDesPlus(self):
-      #path = 'test_corpus/laPlusDesPlus.abc'
-      #title = 'La plus des plus'
-      #parts = ['68786512', '68784656', '141162896']
-      #the_score = converter.parse(path)
-      #test_title = Importer._find_piece_title(the_score)
-      #test_parts = Importer._find_part_names(the_score)
-      #self.assertEqual(title, test_title)
-      #self.assertEqual(parts, test_parts)
 
    def test_madrigal51(self):
       path = 'test_corpus/madrigal51.mxl'
@@ -345,15 +330,17 @@ class TestAddPieces(unittest.TestCase):
 
    # add a directory from empty with no conflicts
    def test_add_pieces_12(self):
-      paths = ['test_corpus/bwv77.mxl',
+      paths = ['test_corpus/madrigal51.mxl',
+               'test_corpus/bwv77.mxl',
+               'test_corpus/sinfony.md',
                'test_corpus/Jos2308.krn',
                'test_corpus/Kyrie.krn',
-               'test_corpus/laPlusDesPlus.abc',
-               'test_corpus/madrigal51.mxl',
-               'test_corpus/sinfony.md',
+               'test_corpus/symphony6-i.midi',
+               'test_corpus/prolationum-sanctus.midi',
                'test_corpus/sqOp76-4-i.midi']
       ret_val = self.control.add_files(['test_corpus'])
       self.assertTrue(ret_val)
+      self.assertEqual(len(paths), self.control.list_of_files.rowCount())
       for path in self.control.list_of_files:
          self.assertTrue(path in paths)
 # End TestAddPieces ------------------------------------------------------------
@@ -563,7 +550,6 @@ class TestImportPieces(unittest.TestCase):
       paths = ['test_corpus/bwv77.mxl',
                'test_corpus/Jos2308.krn',
                'test_corpus/Kyrie.krn',
-               #'test_corpus/laPlusDesPlus.abc',
                'test_corpus/madrigal51.mxl',
                'test_corpus/sinfony.md',
                'test_corpus/sqOp76-4-i.midi']

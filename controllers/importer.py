@@ -34,7 +34,7 @@ imports the pieces through music21, which includes finding the piece title and t
 import os
 from multiprocessing import Pool
 # PyQt4
-from PyQt4.QtCore import pyqtSignal, Qt, QObject, QString, QThread
+from PyQt4.QtCore import pyqtSignal, Qt, QObject, QString
 # music21
 from music21 import converter
 # vis
@@ -217,7 +217,7 @@ class Importer(QObject):
         """
         if isinstance(result, str):
             self.error.emit(result)
-        else: # it is a tuple
+        else:  # it is a tuple
             file_path = result[0]
             self._progress += 1.0 / self.list_of_files.rowCount()
             self.status.emit(str(int(self._progress * 100)))
@@ -421,7 +421,7 @@ class Importer(QObject):
         for list_index in xrange(first_index, last_index):
             index = self.list_of_files.createIndex(list_index, 0)
             self.list_of_files.setData(index,
-                                       no_duplicates_list[list_index-first_index],
+                                       no_duplicates_list[list_index - first_index],
                                        Qt.EditRole)
         #
         return we_are_error_free
@@ -498,7 +498,7 @@ class Importer(QObject):
             try:
                 int(post[part_index])
                 # if that worked, the part name is just an integer...
-                post[part_index] = 'Part ' + str(part_index+1)
+                post[part_index] = 'Part ' + str(part_index + 1)
             except ValueError:
                 pass
 
