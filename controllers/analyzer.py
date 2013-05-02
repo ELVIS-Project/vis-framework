@@ -307,6 +307,8 @@ class AnalyzerThread(QtCore.QThread):
       self._analyzer.status.emit('100')
       self._analyzer.status.emit('Done!')
       self._analyzer.analysis_finished.emit(self._analyzer._list_of_analyses)
+      # last thing: must clear these analyses, so they don't get re-used!
+      self._analyzer._list_of_analyses = []
 # End class AnalyzerThread -------------------------------------------------------------------------
 
 

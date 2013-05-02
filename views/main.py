@@ -1098,8 +1098,6 @@ You must choose pieces before we can import them.""",
       all_the_widgets = [self.ui.rdo_spreadsheet,
                          self.ui.rdo_list,
                          self.ui.rdo_chart,
-                         self.ui.rdo_score,
-                         self.ui.rdo_targeted_score,
                          self.ui.grp_octaves,
                          self.ui.grp_quality,
                          self.ui.grp_values_of_n]
