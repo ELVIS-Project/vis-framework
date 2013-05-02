@@ -715,26 +715,6 @@
                 </property>
                </widget>
               </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_score">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Summary Score</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_targeted_score">
-                <property name="enabled">
-                 <bool>false</bool>
-                </property>
-                <property name="text">
-                 <string>Annotated Score</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </widget>
            </item>
