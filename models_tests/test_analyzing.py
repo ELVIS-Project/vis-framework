@@ -155,7 +155,7 @@ class TestListOfPiecesInsertAndRemoveRows(unittest.TestCase):
       self.lop.insertRows(0, 5)
       self.lop._pieces[2][0] = 'hello'
       # due to the nature of this problem, we have to use an internal representation of this
-      default_row = ['', None, [], [0.5], '(no selection)', False]
+      default_row = analyzing.PieceSettings()
       for each_row in self.lop._pieces[:1]:
          self.assertEqual(default_row, each_row)
       for each_row in self.lop._pieces[3:]:

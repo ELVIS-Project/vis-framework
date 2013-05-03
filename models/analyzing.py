@@ -33,11 +33,7 @@ import copy
 # PyQt4
 from PyQt4.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant, QObject, pyqtSignal
 # music21
-from music21.metadata import Metadata
-from music21.note import Note, Rest
-from music21.chord import Chord
-from music21 import freezeThaw
-from music21.stream import Score
+from music21 import note, chord, stream, freezeThaw, metadata
 # vis
 import settings
 
@@ -77,7 +73,7 @@ class PartsComboSetting(settings.MultiChoiceSetting):
             for key in self.settings.keys:
                 delattr(self.settings, key)
 
-            setts = [(i, name, settings.BooleanSetting(False,display_name=name))
+            setts = [(i, name, settings.BooleanSetting(False, display_name=name))
                         for i, name in enumerate(parts)]
 
             # we'll probably still need this part
@@ -111,6 +107,7 @@ class PiecesSelection(QObject):
     parts_msg = pyqtSignal(str)
     parts_enabled_changed = pyqtSignal(bool)
     bs_ap_enabled_changed = pyqtSignal(bool)
+
     def __init__(self, pieces):
         """
         Method docstring
@@ -125,10 +122,10 @@ class PiecesSelection(QObject):
             'types': settings.MultiChoiceSetting(
                  # TODO: include other interesting choices here, possibly
                  # dynamically drawn from music21
-                 [Note],
-                 choices=[(Note, 'Note'),
-                          (Rest, 'Rest'),
-                          (Chord, 'Chord')],
+                 [note.Note],
+                 choices=[(note.Note, 'Note'),
+                          (note.Rest, 'Rest'),
+                          (chord.Chord, 'Chord')],
                  display_name='Find these types of object:'
              ),
             'title': settings.StringSetting(
@@ -190,7 +187,7 @@ class PiecesSelection(QObject):
     @property
     def pieces(self):
         return self._pieces
-    
+
     @pieces.setter
     def pieces(self, pieces):
         if self._pieces != pieces:
@@ -280,11 +277,37 @@ class PiecesSelection(QObject):
 
 class PieceSettings(object):
     """
-    Class docstring
+    Hold the settings relevant for running an analysis with the vis Analyzer.
+
+    Each of the following properties is available:
+        - path
+        - score
+        - title
+        - part_names
+        - part_combos
+        - offset_intervals
+        - salami
     """
+
     def __init__(self, path, score, title, part_names):
         """
-        Method docstring
+        Create a new PieceSettings instance.
+
+        Parameters
+        ----------
+
+        path : string
+            The full pathname of the file to be analyzed.
+
+        score : :class:`music21.stream.Score`
+            The score object on which to run analyses.
+
+        title : string
+            The title of the piece, as found by Importer._find_piece_title().
+
+        part_names : iterable of strings
+            The names of the parts found in the score, from top to bottom in score order, as
+            found by Importer._find_part_names().
         """
         super(PieceSettings, self).__init__()
         self.path = path
@@ -292,61 +315,48 @@ class PieceSettings(object):
         self.title = title
         self.part_names = part_names
         self.part_combos = []
-        self.offset_intervals = []
-        self.salami = []
+        self.offset_intervals = [0.5]
+        self.salami = False
 
-
+<<<<<<<<<<<<<<<<<<<<<< you started rewriting here
 class ListOfPieces(QAbstractTableModel):
     """
-    This model holds a filename, a music21 Score object, and various pieces of
-    information about the Score, to ease preparation for processing by the
-    Analyzer and Experiment controllers.
-
-    You cannot currently change the number of columns, or their name as returned
-    by headerData(), at run-time.
+    Collects PieceSettings objects, and pretends to represent them as a table, so a view can
+    make a nice display.
     """
 
-    # Here's the data model:
-    # self._pieces : a list of lists. For each sub-list...
-    #     sublist[0] : filename
-    #     sublist[1] : a music21 score object (index 0) and piece title (index 1)
-    #     sublist[2] : list of names of parts in the score
-    #     sublist[3] : offset intervals to analyze
-    #     sublist[4] : list of pairs of indices for part combinations to prepare
-    #     sublist[5] : whether to repeat consecutive identcal events
+    # Emit this when a user changes the rows of pieces that are selected.
+   selection_changed = pyqtSignal(list)
 
-    # Public class variables to track which column has which data
-    # NOTE: Update _number_of_columns whenever you change the number of columns,
-    #         since this variable is used by columnCount().
-    # NOTE: Update _header_names whenever you change the number or definition of
-    #         columns, since this variale is used by headerData().
-    selection_changed = pyqtSignal(list)
-    
-    _number_of_columns = 6
-    _header_names = ['Path', 'Title', 'List of Part Names', 'Offset',
-                     'Part Combinations', 'Repeat Identical']
-    
-    # A role for data() that means to return the Score object rather than title
-    ScoreRole = 'This is an object for the ScoreRole'
+    # When presenting a table, these are the names that should be used in the table header.
+    _header_names = [
+        'Path',
+        'Title',
+        'List of Part Names',
+        'Offset',
+        'Part Combinations',
+        'Repeat Identical'
+    ]
+
+    # ... self explanatory...
+    _number_of_columns = len(_header_names)
+
+    # Lets us pretend we store the data in columns
     columns = {
-        'path': 0,
-        'score': 1,
-        'part_names': 2,
-        'offset_intervals': 3,
-        'part_combos': 4,
-        'salami': 5
+        'score': -12,  # not in _header_names ... this refers to the Score object
+        'path': 0,  # "Path" in _header_names
+        'title': 1,  # "Title" in _header_names
+        'part_names': 2,  # "List of Part Names" in _header_names
+        'offset_intervals': 3,  # "Offset" in _header_names
+        'part_combos': 4,  # "Part Combinations" in _header_names
+        'salami': 5  # "Repeat Identical" in _header_names
     }
-    
-    # This is the default values for every new row created
-    default_row = PieceSettings('', Score(), '', [])
-    # NOTE:
-    # When you change this default_row, you must also change the value in this test:
-    # models.test_analyzing.TestListOfPiecesInsertAndRemoveRows.test_insert_7()
+>>>>>>>>>>>>>>>>>>>>>>>>>>> you finished rewriting here
     def __init__(self, parent=QModelIndex()):
         """
         Create a new ListOfPieces instance. Best to use no arguments.
         """
-        super(QAbstractTableModel, self).__init__() # required for QModelIndex
+        super(QAbstractTableModel, self).__init__()  # required for QModelIndex
         self.columns = ListOfPieces.columns
         self._pieces = []
         self._selected_rows = []
@@ -354,7 +364,7 @@ class ListOfPieces(QAbstractTableModel):
     @property
     def selected_rows(self):
         return self._selected_rows
-    
+
     @selected_rows.setter
     def selected_rows(self, indices):
         rows = [self._pieces[i] for i in indices]
@@ -421,7 +431,7 @@ class ListOfPieces(QAbstractTableModel):
 
         if 0 <= row < len(self._pieces) and 0 <= column < self._number_of_columns:
             # get the object
-            attr, = (k for k,v in self.columns.iteritems() if v == column)
+            attr, = (k for k, v in self.columns.iteritems() if v == column)
             if attr != 'score':
                 post = getattr(self._pieces[row], attr)
             # most things will have the Qt.DisplayRole
@@ -444,7 +454,7 @@ class ListOfPieces(QAbstractTableModel):
                     post = self._pieces[row].score
                 # else if it's the list of parts
                 elif column is self.columns['part_names']:
-                    pass # just to avoid obliteration
+                    pass  # just to avoid obliteration
                 # everything else must return nothing
                 else:
                     post = None
@@ -517,7 +527,7 @@ class ListOfPieces(QAbstractTableModel):
 
         # Set the data
         if Qt.EditRole == role:
-            attr, = (k for k,v in self.columns.iteritems() if v == column)
+            attr, = (k for k, v in self.columns.iteritems() if v == column)
             if attr == 'score':
                 score, title = value
                 self._pieces[row].score = score
@@ -540,32 +550,33 @@ class ListOfPieces(QAbstractTableModel):
         retain their index values. The elements at indices "row" and higher will
         have an index value that is their original value plus "count".
 
-        Each row is initialized with the data contained in the class variable "default_row"
+        Each row is initialized and empty PieceSettings instance.
         """
-        self.beginInsertRows(parent, row, row+count-1)
+        self.beginInsertRows(parent, row, row + count - 1)
         for zed in xrange(count):
-            self._pieces.insert(row, copy.deepcopy(ListOfPieces.default_row))
+            self._pieces.insert(row, PieceSettings('', stream.Score(), '', []))
         self.endInsertRows()
 
     def removeRows(self, row, count, parent=QModelIndex()):
         """
-        This is the opposite of insertRows(), and the arguments work in the same
-        way.
+        This is the opposite of insertRows(), and the arguments work in the same way.
         """
-        self.beginRemoveRows( parent, row, row+count-1 )
-        self._pieces = self._pieces[:row] + self._pieces[row+count:]
+        self.beginRemoveRows(parent, row, row + count - 1)
+        self._pieces = self._pieces[:row] + self._pieces[row + count:]
         self.endRemoveRows()
 
     def clear(self):
+        """
+        Remove all rows from this ListOfPieces.
+        """
         self.removeRows(0, self.rowCount())
 
     def __iter__(self):
         """
-        Create an iterator that returns each of the filenames in this ListOfFiles.
+        Create an iterator that returns each of the PieceSettings objects in this ListOfPieces.
         """
         for piece_data in self._pieces:
             yield piece_data
-# End Class ListOfPieces ------------------------------------------------------
 
 
 class AnalysisRecord(object):
@@ -573,9 +584,9 @@ class AnalysisRecord(object):
     Stores an intermediate record of an analysis. This class does not hold
     statistics or other results, but rather represents a mid-point, where the
     information being analyzed is stored separately from the piece.
-    
+
     Each AnalysisRecord contains the following information:
-    - a (JSON-serialized) music21 Metadata object, with information about the 
+    - a (JSON-serialized) music21 Metadata object, with information about the
       work and movement
     - the names of the parts being analyzed
     - the minimum quarterLength offset value between subsequent elements
@@ -583,21 +594,21 @@ class AnalysisRecord(object):
     - whether the score was "salami sliced" (maintaining the same offset
       between events) or not (which does not include an event if it is equal to
       the previous offset)
-    
+
     This class is iterable. Each iteration returns a 2-tuple, where index 0 is
     the offset at which the event occurs in the Score, and index 1 is the event
     itself.
     """
     # Instance Data:
     # ==============
-    # metadata : a music21 Metadata object
+    # meta : a music21 Metadata object
     # _part_names : list of string objects that are the part names
     # _offset : the (minimum) offset value between events
     # _is_salami : whether the score was "salami sliced"
     # _record : a list representing a record of an analysis, such that:
     #     _record[x][0] : holds the offset at which the event happened
     #     _record[x][1] : holds the event itself
-    def __init__(self, metadata=None, part_names=None, offset=None, salami=None):
+    def __init__(self, meta=None, part_names=None, offset=None, salami=None):
         """
         Create a new AnalysisRecord. You should set the following keyword
         arguments when you make the AnalysisRecord:
@@ -605,7 +616,7 @@ class AnalysisRecord(object):
         - _part_names (with a list of strings containing part names)
         - _offset (with a floating point number)
         - _salami (boolean)
-        
+
         If you do not provide this information, sensible defaults will be used:
         - empty Metadata
         - _part_names : ['']
@@ -613,54 +624,54 @@ class AnalysisRecord(object):
         - _salami : False
         """
         self._record = []
-        
-        if metadata is None:
-            m = Metadata()
+
+        if meta is None:
+            m = metadata.Metadata()
             jf = freezeThaw.JSONFreezer(m)
             self._metadata = jf.json
         else:
             jf = freezeThaw.JSONFreezer(metadata)
             self._metadata = jf.json
-        
+
         if part_names is None:
             self._part_names = ['']
         else:
             self._part_names = part_names
-        
+
         if offset is None:
             self._offset = 0.0
         else:
             self._offset = offset
-        
+
         if salami is None:
             self._salami = False
         else:
             self._salami = salami
-    
+
     def __iter__(self):
         """
         Iterate through the events in this AnalysisRecord.
         """
         for event in self._record:
             yield event
-    
+
     def __getitem__(self, key):
         """
         Access the event at a particular index in the AnalysisRecord.
         """
         return self._record[key]
-    
+
     def __len__(self):
         """
         Returns the number of events in the AnalysisRecord.
         """
         return len(self._record)
-    
+
     def part_names(self):
         """
         Return a list of strings that represent the part names involved in this
         AnalysisRecord.
-        
+
         >>> a = AnalysisRecord(part_names=['Clarinet', 'Tuba'])
         >>> a.part_names()
         ['Clarinet', 'Tuba']
@@ -672,13 +683,13 @@ class AnalysisRecord(object):
         ['']
         """
         return self._part_names
-    
+
     def offset(self):
         """
         Return the minimum offset between events in this AnalysisRecord. If
         salami_sliced() reutrns True, then all events are this offset from each
         other.
-        
+
         >>> a = AnalysisRecord(offset=1)
         >>> a.offset()
         1
@@ -690,12 +701,12 @@ class AnalysisRecord(object):
         0.0
         """
         return self._offset
-    
+
     def salami_sliced(self):
         """
         Return whether or not the score was "salami sliced" to produce this
         AnalysisRecord.
-        
+
         >>> a = AnalysisRecord(salami=True)
         >>> a.salami_sliced()
         True
@@ -707,7 +718,7 @@ class AnalysisRecord(object):
         False
         """
         return self._salami
-    
+
     def metadata(self):
         """
         Return the music21 Metadata object stored in this AnalysisRecord.
@@ -715,11 +726,11 @@ class AnalysisRecord(object):
         jt = freezeThaw.JSONThawer()
         jt.json = self._metadata
         return jt.storedObject
-    
+
     def append(self, offset, event):
         # TODO: replace append_event() with this
         self.append_event(offset, event)
-    
+
     def append_event(self, offset, event):
         """
         Add an event to the end of this AnalysisRecord.
@@ -729,7 +740,7 @@ class AnalysisRecord(object):
         - event : the object being analyzed
         """
         self._record.append((offset, event))
-    
+
     def most_recent_event(self):
         """
         Returns the 2-tuple representing the most recently-recorded event's

@@ -270,33 +270,49 @@ class Analyzer(QtCore.QObject):
         """
         Create a new Analyzer instance.
         """
+        # basic initialization
         super(Analyzer, self).__init__(*args)
         self._current_pieces = PiecesSelection([])
         self.list_of_pieces = ListOfPieces()
+
+        # these could be lambda functions...
         def on_selection_change(rows):
+            """
+            What to do when a user selects different pieces in the GUI
+            """
             self.current_pieces = PiecesSelection(rows)
-        self.list_of_pieces.selection_changed.connect(on_selection_change)
+
         def on_parts_change(parts):
+            """
+            What to do when a user changes the name of a part in the GUI
+            """
             for i, piece in enumerate(self.list_of_pieces):
                 if piece in self.current_pieces.pieces:
                     index = self.list_of_pieces.createIndex(i,
                                                             ListOfPieces.columns['part_names'])
                     self.list_of_pieces.setData(index, parts, QtCore.Qt.EditRole)
-        self._current_pieces.settings.current_parts_combo.parts_changed.connect(on_parts_change)
+
         def on_title_change(title):
+            """
+            What to do when a user changes the title of a piece in the GUI
+            """
             for i, piece in enumerate(self.list_of_pieces):
                 if piece in self.current_pieces.pieces:
                     index = self.list_of_pieces.createIndex(i, ListOfPieces.columns['score'])
                     score = self.list_of_pieces.data(index, ListOfPieces.ScoreRole)
                     data = (score, title)
                     self.list_of_pieces.setData(index, data, QtCore.Qt.EditRole)
+
+        # connect some functions
+        self.list_of_pieces.selection_changed.connect(on_selection_change)
+        self._current_pieces.settings.current_parts_combo.parts_changed.connect(on_parts_change)
         self._current_pieces.title_changed.connect(on_title_change)
         self.list_of_analyses = []
         self.progress = 0.0
         self.settings = models_settings.Settings({
             'multiprocess': models_settings.BooleanSetting(
                 False,
-                display_name="Use multiprocessing (import in parallel)"
+                display_name="Use multi-core processor during analysis"
             )
         })
 
