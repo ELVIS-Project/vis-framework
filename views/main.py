@@ -92,8 +92,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          (self.ui.btn_show_results.clicked, self._prepare_experiment_submission),
          # NB: these are connected to sub-controllers by VisController
          (self.ui.btn_step1.clicked, self._check_for_pieces),
-         (self.ui.chk_multi_import.stateChanged, self.vis_controller.import_set_multiprocess.emit),
-         (self.ui.chk_analyze_multi.stateChanged, self.vis_controller.analyze_set_multiprocess.emit),
          (self.ui.btn_step2.clicked, self.vis_controller.run_the_analysis.emit),
          # Things that operate the GUI
          (self.ui.chk_all_voice_combos.stateChanged, self._adjust_bs),
@@ -321,9 +319,7 @@ You must choose pieces before we can import them.""",
        feedback = QtGui.QMessageBox.question(
            None,
            "Confirm",
-           """Are you sure you want to cancel the running operation?
-
-(This only works with multiprocessing enabled, which it is by default).""",
+           "Are you sure you want to cancel the running operation?",
            QtGui.QMessageBox.StandardButtons(\
                QtGui.QMessageBox.No | \
                QtGui.QMessageBox.Yes))
@@ -331,6 +327,7 @@ You must choose pieces before we can import them.""",
        if QtGui.QMessageBox.Yes != feedback:
            return None
        # else... we'll figure out which operation is running, and cancel it
+
        self.vis_controller.importer.cancel_import.emit()
        self.vis_controller.analyzer.cancel_analysis.emit()
 
