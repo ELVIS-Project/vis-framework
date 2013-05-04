@@ -109,6 +109,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
          (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
          (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
          (self.ui.chk_repeat_identical.stateChanged, self._update_repeat_identical),
+         (self.ui.btn_cancel_operation.clicked, self._cancel_operation),
       ]
       for signal, slot in mapper:
          signal.connect(slot)
@@ -240,11 +241,14 @@ You must choose pieces before we can import them.""",
       Add files to the "importer" panel.
       '''
       files = QtGui.QFileDialog.getOpenFileNames(
-         None,
-         "Choose Files to Analyze",
-         '',
-         '*.nwc *.mid *.midi *.mxl *.krn *.xml *.md',
-         None)
+         None,  # parent
+         "Choose Files to Analyze",  # title
+         '',  # default directory
+         )  # NB: This should be the 'filter' line, which is below, but commented out... it seems
+         # that, for some reason, the filter isn't working. For me on Fedora 17, the result is that
+         # all file types are "selectable"... but others have reported occasional issues that
+         # entirely prevent them from selecting files. So here we are.
+         # 'music21 Files (*.nwc *.mid *.midi *.mxl *.krn *.xml *.md)')  # filter
       if files:
          self.vis_controller.import_files_added.emit([str(f) for f in files])
 
@@ -256,10 +260,10 @@ You must choose pieces before we can import them.""",
       Add a directory to the "importer" panel.
       '''
       d = QtGui.QFileDialog.getExistingDirectory(\
-         None,
-         "Choose Directory to Analyze",
-         '',
-         QtGui.QFileDialog.ShowDirsOnly)
+         None,  # parent
+         "Choose Directory to Analyze",  # title
+         '',  # default directory
+         QtGui.QFileDialog.ShowDirsOnly)  # options
       d = str(d)
       extensions = ['.nwc.', '.mid', '.midi', '.mxl', '.krn', '.xml', '.md']
       possible_files = chain(*[[join(path, fp) for fp in files if
@@ -307,6 +311,28 @@ You must choose pieces before we can import them.""",
                self.ui.lbl_currently_processing.setText(progress)
          else:
             self.ui.lbl_currently_processing.setText(progress)
+
+   @QtCore.pyqtSlot()
+   def _cancel_operation(self):
+       """
+       If possible, cancels the currently-running operation (import, analysis, experiment).
+       """
+       # confirm with the user that they want to cancel whatever's happening
+       feedback = QtGui.QMessageBox.question(
+           None,
+           "Confirm",
+           """Are you sure you want to cancel the running operation?
+
+(This only works with multiprocessing enabled, which it is by default).""",
+           QtGui.QMessageBox.StandardButtons(\
+               QtGui.QMessageBox.No | \
+               QtGui.QMessageBox.Yes))
+
+       if QtGui.QMessageBox.Yes != feedback:
+           return None
+       # else... we'll figure out which operation is running, and cancel it
+       self.vis_controller.importer.cancel_import.emit()
+       self.vis_controller.analyzer.cancel_analysis.emit()
 
 
 

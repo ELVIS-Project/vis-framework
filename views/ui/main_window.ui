@@ -208,7 +208,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1017,6 +1017,13 @@
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_cancel_operation">
+          <property name="text">
+           <string>Cancel Operation</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

@@ -31,8 +31,6 @@ Holds the Analyzer controller.
 # Imports from...
 # Python
 from multiprocessing import Pool
-import pickle
-import traceback
 # music21
 from music21 import note, chord, converter
 # PyQt4
@@ -247,6 +245,7 @@ class AnalyzerThread(QtCore.QThread):
       self._analyzer = analyzer
       self.progress = 0.0
       self._multiprocess = True
+      self._pool = None
       super(QtCore.QThread, self).__init__()
 
 
@@ -280,7 +279,7 @@ class AnalyzerThread(QtCore.QThread):
       self.num_pieces = self._analyzer._list_of_pieces.rowCount()
 
       if self._multiprocess:
-         pool = Pool()
+         self._pool = Pool()
          for each_raw_piece in self._analyzer._list_of_pieces:
             # (1) Ensure all the things in "each_piece" are *not* a QVariant
             each_piece = []
@@ -289,10 +288,11 @@ class AnalyzerThread(QtCore.QThread):
                   each_piece.append(each_column.toPyObject())
                else:
                   each_piece.append(each_column)
-            pool.apply_async(analyze_piece,(each_piece,),callback=self.callback)
+            self._pool.apply_async(analyze_piece,(each_piece,),callback=self.callback)
 
-         pool.close()
-         pool.join()
+         self._pool.close()
+         self._pool.join()
+         self._pool = None
       else:
          for each_raw_piece in self._analyzer._list_of_pieces:
             each_piece = []
@@ -345,6 +345,8 @@ class Analyzer(Controller):
    # For internal use...
    # When _event_finder() finished, it emits this signal
    event_finder_finished = QtCore.pyqtSignal(AnalysisRecord)
+   # cancels the currently-runing analysis, if there is one
+   cancel_analysis = QtCore.pyqtSignal()
 
 
 
@@ -352,12 +354,13 @@ class Analyzer(Controller):
       '''
       Create a new Analyzer instance.
       '''
-      # signals
       super(Analyzer, self).__init__() # required for signals
       # other things
       self._list_of_pieces = ListOfPieces()
       self._list_of_analyses = []
       self.thread = AnalyzerThread(self)
+      # connect signals
+      self.cancel_analysis.connect(self._cancel_analysis)
 
 
 
@@ -365,6 +368,14 @@ class Analyzer(Controller):
       self.run_analysis.connect(self.analyze_pieces)
       self.change_settings.connect(self.set_data)
 
+
+   @QtCore.pyqtSlot()
+   def _cancel_analysis(self):
+       """
+       Determine whether there is an analysis operation running, then cancel it.
+       """
+       if self.thread._pool is not None:
+           self.thread._pool.terminate()
 
 
    @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QVariant)

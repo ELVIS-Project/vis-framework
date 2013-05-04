@@ -30,9 +30,8 @@ Holds the Importer controller.
 
 # Imports from...
 # python
-from os import path
+import os
 from multiprocessing import Pool
-import pickle
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt, QThread
 # music21
@@ -41,7 +40,6 @@ from music21.stream import Score
 # vis
 from controllers.controller import Controller
 from models import importing, analyzing
-import time
 
 
 
@@ -73,11 +71,15 @@ def import_piece(file_path):
 
 
 class ImporterThread(QThread):
+   """
+   We here at vis have no need for useful docstrings.
+   """
    def __init__(self, importer):
       '''
       Creates a new ImporterThread instance, keeping track of the
       Importer object which instantiated it.
       '''
+      self._pool = None
       self._importer = importer
       # this will hold the fraction of pieces which have been analyzed
       # at a given time
@@ -86,6 +88,7 @@ class ImporterThread(QThread):
       self._multiprocess = True
       self.results = []
       super(QThread, self).__init__()
+
    def prepare(self, pieces):
       '''
       Sets the analyzing.ListOfPieces object to store the imported
@@ -94,11 +97,13 @@ class ImporterThread(QThread):
       self._pieces_list = pieces
       self._files = self._importer._list_of_files
       self.num_files = self._files.rowCount()
+
    def set_multiprocess(self, state):
       '''
       Slot for the VisController import_set_multiprocess signal.
       '''
       self._multiprocess = bool(state)
+
    def callback(self, result):
       '''
       Each time an import process is completed, either report any
@@ -106,13 +111,14 @@ class ImporterThread(QThread):
       the imported piece to the list of results.
       '''
       if isinstance(result, str):
-         self._importer.error.emit(unpickled)
+         self._importer.error.emit(result)
       else: # it is a tuple
          file_path = result[0]
          self.progress += 1.0/self.num_files
          self._importer.status.emit(str(int(self.progress * 100)))
          self._importer.status.emit(file_path + ' completed.')
          self.results.append(result)
+
    def run(self):
       '''
       Import all the pieces contained in the parent Importer's _list_of_files.
@@ -120,13 +126,14 @@ class ImporterThread(QThread):
       self._importer.status.emit('0')
       self._importer.status.emit('Importing...')
       if self._multiprocess:
-         pool = Pool()
+         self._pool = Pool()
          for file_path in self._files:
-            pool.apply_async(import_piece,
-                             (file_path,),
-                             callback=self.callback)
-         pool.close()
-         pool.join()
+            self._pool.apply_async(import_piece,
+                                   (file_path,),
+                                   callback=self.callback)
+         self._pool.close()
+         self._pool.join()
+         self._pool = None
       else:
          for file_path in self._files:
             self.callback(import_piece(file_path))
@@ -182,6 +189,13 @@ class Importer(Controller):
    # three characters followed by a '%' then it should try to update a
    # progress bar, if available)
    status = pyqtSignal(str)
+   # cancels the currently-running import, if there is one
+   cancel_import = pyqtSignal()
+
+
+
+   # List of filename extensions for music21-supported files
+   valid_extensions = ['.nwc.', '.mid', '.midi', '.mxl', '.krn', '.xml', '.md']
 
 
 
@@ -194,19 +208,20 @@ class Importer(Controller):
       self.run_import.connect(self.import_pieces)
       self.add_pieces_signal.connect(self.add_pieces)
       self.remove_pieces_signal.connect(self.remove_pieces)
+      self.cancel_import.connect(self._cancel_import)
       # other things
       self._list_of_files = importing.ListOfFiles()
       self.thread = ImporterThread(self)
 
 
 
-   def add_piece(self, piece):
-      '''
-      Call add_pieces() with the given argument.
-      '''
-      return self.add_pieces(piece)
-
-
+   @pyqtSlot()
+   def _cancel_import(self):
+       """
+       Determine whether there is an import operation running, then cancel it.
+       """
+       if self.thread._pool is not None:
+           self.thread._pool.terminate()
 
    @pyqtSlot(list)
    def add_pieces(self, pieces):
@@ -229,7 +244,7 @@ class Importer(Controller):
       # Filter out paths that do not exist
       paths_that_exist = []
       for pathname in pieces:
-         if path.exists(pathname):
+         if os.path.exists(pathname):
             paths_that_exist.append(pathname)
          else:
             self.error.emit('Path does not exist: ' + str(pathname))
@@ -238,8 +253,10 @@ class Importer(Controller):
       # If there's a directory, expand to the files therein
       directories_expanded = []
       for pathname in paths_that_exist:
-         if path.isdir(pathname):
-            pass # TODO: ??
+         if os.path.isdir(pathname):
+            for path, _, files in os.walk(pathname):
+                for filename in files:
+                    directories_expanded.append(os.path.join(path, filename))
          else:
             directories_expanded.append(pathname)
 
@@ -252,22 +269,37 @@ class Importer(Controller):
             self.error.emit('Filename already on the list: ' + str(pathname))
             we_are_error_free = False
 
+      # Ensure all the filenames have valid extensions
+      valid_extensions_list = []
+      for pathname in no_duplicates_list:
+         _, extension = os.path.splitext(pathname)
+         if extension in Importer.valid_extensions:
+            valid_extensions_list.append(pathname)
+         else:
+            we_are_error_free = False
+
       # If there are no remaining files in the list, just return now
-      if 0 == len(no_duplicates_list):
+      if 0 == len(valid_extensions_list):
+         msg = 'All selected pathnames/filenames are invalid.'
+         self.error.emit(msg)
+         we_are_error_free = False
          return we_are_error_free
 
       # Add the number of rows we need
       first_index = self._list_of_files.rowCount()
-      last_index = first_index + len(no_duplicates_list)
-      self._list_of_files.insertRows(first_index, len(no_duplicates_list))
+      last_index = first_index + len(valid_extensions_list)
+      self._list_of_files.insertRows(first_index, len(valid_extensions_list))
 
       # Add the files to the list
       for list_index in xrange(first_index, last_index):
          index = self._list_of_files.createIndex(list_index, 0)
          self._list_of_files.setData(index,
-                                     no_duplicates_list[list_index-first_index],
+                                     valid_extensions_list[list_index-first_index],
                                      Qt.EditRole)
 
+      if not we_are_error_free:
+          msg = 'Some of the selected pathnames/filenames are invalid.'
+          self.error.emit(msg)
       return we_are_error_free
 
 
@@ -381,12 +413,12 @@ class Importer(Controller):
       if the_score.metadata is not None:
          post = the_score.metadata.title
       else:
-         post = path.basename(the_score.filePath)
+         post = os.path.basename(the_score.filePath)
 
       # Now check that there is no file extension. This could happen either if
       # we used the filename or if music21 did a less-than-great job at the
       # Metadata object.
-      post = path.splitext(post)[0]
+      post = os.path.splitext(post)[0]
 
       return post
 # End class Importer -----------------------------------------------------------
