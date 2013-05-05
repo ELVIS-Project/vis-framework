@@ -274,41 +274,39 @@ class AnalyzerThread(QtCore.QThread):
 
 
    def run(self):
+      self._analyzer.analysis_is_running = True
       self._analyzer.status.emit('0')
       self._analyzer.status.emit('Analyzing...')
       self.num_pieces = self._analyzer._list_of_pieces.rowCount()
 
-      if self._multiprocess:
-         self._pool = Pool()
-         for each_raw_piece in self._analyzer._list_of_pieces:
-            # (1) Ensure all the things in "each_piece" are *not* a QVariant
-            each_piece = []
-            for each_column in each_raw_piece:
-               if isinstance(each_column, QtCore.QVariant):
-                  each_piece.append(each_column.toPyObject())
-               else:
-                  each_piece.append(each_column)
-            self._pool.apply_async(analyze_piece,(each_piece,),callback=self.callback)
+      # always use multiprocessing
+      self._pool = Pool()
+      for each_raw_piece in self._analyzer._list_of_pieces:
+         # (1) Ensure all the things in "each_piece" are *not* a QVariant
+         each_piece = []
+         for each_column in each_raw_piece:
+            if isinstance(each_column, QtCore.QVariant):
+               each_piece.append(each_column.toPyObject())
+            else:
+               each_piece.append(each_column)
+         self._pool.apply_async(analyze_piece,
+                                (each_piece,),
+                                callback=self.callback)
 
-         self._pool.close()
-         self._pool.join()
-         self._pool = None
-      else:
-         for each_raw_piece in self._analyzer._list_of_pieces:
-            each_piece = []
-            for each_column in each_raw_piece:
-               if isinstance(each_column, QtCore.QVariant):
-                  each_piece.append(each_column.toPyObject())
-               else:
-                  each_piece.append(each_column)
+      self._pool.close()
+      self._pool.join()
+      self._pool = None
 
-            self.callback(analyze_piece(each_piece))
+      # self.progress != 1.0 if a user cancelled before the analyses were completed
+      if self.progress != 1.0:
+          return None
 
       self._analyzer.status.emit('100')
       self._analyzer.status.emit('Done!')
       self._analyzer.analysis_finished.emit(self._analyzer._list_of_analyses)
       # last thing: must clear these analyses, so they don't get re-used!
       self._analyzer._list_of_analyses = []
+      self._analyzer.analysis_is_running = False
 # End class AnalyzerThread -------------------------------------------------------------------------
 
 
@@ -347,6 +345,9 @@ class Analyzer(Controller):
    event_finder_finished = QtCore.pyqtSignal(AnalysisRecord)
    # cancels the currently-runing analysis, if there is one
    cancel_analysis = QtCore.pyqtSignal()
+
+   # Whether there's a running analysis
+   analysis_is_running = False
 
 
 

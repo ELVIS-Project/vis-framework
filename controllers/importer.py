@@ -123,21 +123,25 @@ class ImporterThread(QThread):
       '''
       Import all the pieces contained in the parent Importer's _list_of_files.
       '''
+      self._importer.import_is_running = True
       self._importer.status.emit('0')
       self._importer.status.emit('Importing...')
-      if self._multiprocess:
-         self._pool = Pool()
-         for file_path in self._files:
-            self._pool.apply_async(import_piece,
-                                   (file_path,),
-                                   callback=self.callback)
-         self._pool.close()
-         self._pool.join()
-         self._pool = None
-      else:
-         for file_path in self._files:
-            self.callback(import_piece(file_path))
-      self._importer.status.emit('Assembling Results...')
+      # always use multiprocessing
+      self._pool = Pool()
+      for file_path in self._files:
+          self._pool.apply_async(import_piece,
+                                (file_path,),
+                                callback=self.callback)
+      self._pool.close()
+      self._pool.join()
+      self._importer.import_is_running = False
+      self._pool = None
+
+      # self.progress != 1.0 if a user cancelled the runing job before it finished
+      if 1.0 != self.progress:
+          return None
+
+      self._importer.status.emit('Assembling results...')
       # at this point, self._pieces_list should be an analyzing.ListOfPieces
       # which belongs to the relevant Analyzer we'll be passing the data to.
       post = self._pieces_list
@@ -197,6 +201,9 @@ class Importer(Controller):
    # List of filename extensions for music21-supported files
    valid_extensions = ['.nwc.', '.mid', '.midi', '.mxl', '.krn', '.xml', '.md']
 
+   # Whether there's an import running
+   import_is_running = False
+
 
 
    def __init__(self, *args):
@@ -222,6 +229,9 @@ class Importer(Controller):
        """
        if self.thread._pool is not None:
            self.thread._pool.terminate()
+           msg = 'Now you should close and re-open vis.'
+           self.status.emit(msg)
+           self.error.emit(msg)
 
    @pyqtSlot(list)
    def add_pieces(self, pieces):

@@ -327,9 +327,13 @@ You must choose pieces before we can import them.""",
        if QtGui.QMessageBox.Yes != feedback:
            return None
        # else... we'll figure out which operation is running, and cancel it
-
-       self.vis_controller.importer.cancel_import.emit()
-       self.vis_controller.analyzer.cancel_analysis.emit()
+       if self.vis_controller.importer.import_is_running:
+           self.vis_controller.importer.cancel_import.emit()
+       elif self.vis_controller.analyzer.analysis_is_running:
+           self.vis_controller.analyzer.cancel_analysis.emit()
+           self.vis_controller.analyzer.analysis_is_running = False
+           self.vis_controller.analyzer._list_of_analyses = []
+           self.show_analyze.emit()
 
 
 

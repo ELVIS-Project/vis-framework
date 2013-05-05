@@ -30,8 +30,6 @@ Holds the VisController objects for the various GUIs.
 
 # Imports from...
 # vis
-from models.analyzing import ListOfPieces
-#from vis.models import analyzing
 from views.main import VisQtMainWindow
 from controllers.controller import Controller
 from controllers.importer import Importer
