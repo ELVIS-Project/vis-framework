@@ -528,7 +528,7 @@
                        <string>Collect Statistics for all Part Combinations</string>
                       </property>
                       <property name="text">
-                       <string>All 2-Part Combinations</string>
+                       <string>All Voice Pairs</string>
                       </property>
                      </widget>
                     </item>

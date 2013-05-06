@@ -35,7 +35,7 @@ from os.path import splitext, join
 # PyQt4
 from PyQt4 import QtGui, uic, QtCore
 # music21
-from music21 import metadata
+from music21 import metadata, converter
 # vis
 from models.analyzing import ListOfPieces
 from views.VisOffsetSelector import VisOffsetSelector
@@ -86,11 +86,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.btn_dir_add.clicked, self._add_dir),
             (self.ui.btn_file_add.clicked, self._add_files),
             (self.ui.btn_file_remove.clicked, self._remove_files),
-            (self.ui.btn_step2.clicked, self._tool_working),
             (self.ui.btn_show_results.clicked, self._prepare_experiment_submission),
             # NB: these are connected to sub-controllers by VisController
             (self.ui.btn_step1.clicked, self._check_for_pieces),
-            (self.ui.btn_step2.clicked, self.vis_controller.run_the_analysis.emit),
+            (self.ui.btn_step2.clicked, self._start_the_analysis),
             # Things that operate the GUI
             (self.ui.chk_all_voice_combos.stateChanged, self._adjust_bs),
             (self.ui.chk_all_voice_combos.clicked, self._all_voice_combos),
@@ -324,6 +323,35 @@ You must choose pieces before we can import them.""",
                                 QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
                                 QtGui.QMessageBox.Ok)
 
+    #----------------
+    # Not a PyQt slot
+    def _start_the_analysis(self):
+        """
+        Start the analysis, but first... check to make sure a user didn't forget to choose the
+        "add voice pair" button!
+        """
+        # loop through the part checkboxes, see if they're checked
+        part_cbs_are_checked = False
+        for each_box in self.part_checkboxes:
+            if each_box.isChecked():
+                part_cbs_are_checked = True
+                break
+        # if a checkbox was checked, inform the user they may have made a mistake, and *don't*
+        # start the analysis yet
+        if part_cbs_are_checked:
+            response = QtGui.QMessageBox.question(None,
+                'vis',
+                """At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
+
+Do you want to go back and add the part combination?""",
+                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
+                QtGui.QMessageBox.Yes)
+            if response == QtGui.QMessageBox.Yes:
+                return
+        # this happens if none of the QCheckBoxes are selected, or if the response is "No"
+        self._tool_working()
+        self.vis_controller.run_the_analysis.emit()
+
     #------------------------------------------------------
     # Signal for: self.ui.chk_all_voice_combos.stateChanged
     @QtCore.pyqtSlot()
@@ -347,22 +375,8 @@ You must choose pieces before we can import them.""",
 
         # Are we enabling "all" or disabling?
         if self.ui.chk_all_voice_combos.isChecked():
-            # Enabling
-            # Are there specific part names? If so, disable those checkboxes
-            if self.part_checkboxes is not None:
-                for box in self.part_checkboxes:
-                    box.setEnabled(False)
-
-            self.ui.btn_add_check_combo.setEnabled(False)
             part_spec = '[all]'
         else:
-            # Disabling
-            # Are there specific part names? If so, enable those checkboxes
-            if self.part_checkboxes is not None:
-                for box in self.part_checkboxes:
-                    box.setEnabled(True)
-
-            self.ui.btn_add_check_combo.setEnabled(True)
             part_spec = '(no selection)'
 
         self._update_parts_selection(part_spec)
@@ -394,24 +408,23 @@ You must choose pieces before we can import them.""",
         for cell in currently_selected:
             if ListOfPieces.score == cell.column():
                 # This is a little tricky, because we'll change the Score object's
-                # Metadata object directly
-
+                # Metadata object directly...
                 # Get the Score
                 piece = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
-                piece = piece.toPyObject()
-
+                # unpickle the score
+                piece = converter.thawStr(piece)
                 # Make sure there's a Metadata object
                 if piece.metadata is None:
                     piece.insert(metadata.Metadata())
-
-                # Update the title
-                piece.metadata.title = str(self.ui.line_piece_title.text())
-
-                # Put it back
+                # Update the title, saving it for later
+                new_title = str(self.ui.line_piece_title.text())
+                piece.metadata.title = new_title
+                # re-pickle the score
+                piece = converter.freezeStr(piece, fmt='pickle')
+                # Tell the Analyzer to change its setting!
                 # NB: the second argument has to be 2-tuple with the Score object
                 # and the string that is the title, as specified in ListOfPieces
-                the_tuple = (piece, piece.metadata.title)
-                self.vis_controller.analyzer.change_settings.emit(cell, the_tuple)
+                self.vis_controller.analyzer.change_settings.emit(cell, (piece, new_title))
 
     #------------------------------------------------------
     # Signal for: self.ui.chk_repeat_identical.stateChanged
@@ -496,7 +509,7 @@ You must choose pieces before we can import them.""",
             curr_spec = str(self.ui.line_compare_these_parts.text())
 
             # Is curr_spec the default filler?
-            if 'e.g., [0,3] or [[0,3],[1,3]]' == curr_spec or \
+            if 'e.g., [[0,3]] or [[0,3],[1,3]]' == curr_spec or \
             '(no selection)' == curr_spec or \
             '' == curr_spec:
                 # Then just make a new one
@@ -504,6 +517,12 @@ You must choose pieces before we can import them.""",
 
                 # Update the parts selection
                 self._update_parts_selection(new_spec)
+            # Does curr_spec include "[all]"?
+            elif '[all]' == curr_spec:
+                # we'll just make a new one, and un-check the "all" QCheckBox
+                new_spec = '[' + vis_format + ']'
+                self._update_parts_selection(new_spec)
+                self.ui.chk_all_voice_combos.setChecked(False)
             # Does curr_spec contain vis_format?
             elif vis_format in curr_spec:
                 pass
@@ -768,9 +787,8 @@ You must choose pieces before we can import them.""",
             if ListOfPieces.parts_list == cell.column():
                 # We're just going to change the part name in the model, not in the
                 # actual Score object itself (which would require re-loading)
-                # 1.) Get the Score
-                parts = self.vis_controller.l_o_pieces.data(cell,
-                    ListOfPieces.ScoreRole).toPyObject()
+                # 1.) Get the parts list
+                parts = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
                 # 2.) Update the part name as requested
                 parts[part_index] = new_name
                 # 3.) Convert the part names to str objects (from QString)
@@ -820,8 +838,7 @@ You must choose pieces before we can import them.""",
         list_of_parts = None
         for cell in currently_selected:
             if ListOfPieces.parts_list == cell.column():
-                list_of_parts = self.vis_controller.l_o_pieces.\
-                data(cell, ListOfPieces.ScoreRole).toPyObject()
+                list_of_parts = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
                 break
 
         # (3) Put up a checkbox for each part

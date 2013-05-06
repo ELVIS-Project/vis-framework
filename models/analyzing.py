@@ -36,7 +36,7 @@ from PyQt4.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
 from music21.metadata import Metadata
 from music21.note import Note, Rest
 from music21.chord import Chord
-from music21 import freezeThaw
+from music21 import freezeThaw, converter
 # vis
 import settings
 
@@ -120,7 +120,9 @@ class ListOfPieces(QAbstractTableModel):
       Qt.DisplayRole or ListOfPieces.ScoreRole. For a list of the columns that support ScoreRole,
       see the descriptions below.
 
-      NOTE: This method always returns a QVariant object
+      Note about Return Types:
+      If the role is Qt.DisplayRole, then this method always wraps its return value in a QVariant
+      object; otherwise, the original object type is returned.
 
       data() should return the following formats, but only if this specification
       was followed when calling setData(). If the index is...
@@ -187,9 +189,10 @@ class ListOfPieces(QAbstractTableModel):
             else:
                post = None
 
-      # Must always return a QVariant
-      if not isinstance(post, QVariant):
-         post = QVariant(post)
+      # If the role is Qt.DisplayRole, we must always return a QVariant
+      if Qt.DisplayRole == role:
+         if not isinstance(post, QVariant):
+             post = QVariant(post)
 
       return post
 
@@ -317,7 +320,7 @@ class AnalysisRecord(object):
    information being analyzed is stored separately from the piece.
 
    Each AnalysisRecord contains the following information:
-   - a (JSON-serialized) music21 Metadata object, with information about the 
+   - a (JSON-serialized) music21 Metadata object, with information about the
      work and movement
    - the names of the parts being analyzed
    - the minimum quarterLength offset value between subsequent elements
