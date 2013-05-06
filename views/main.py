@@ -22,9 +22,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Holds the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt4 interface.
-'''
+"""
 
 # Imports from...
 # Python
@@ -42,9 +42,9 @@ from views.VisOffsetSelector import VisOffsetSelector
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
-    '''
+    """
     This class makes the GUI-controlling objects for vis' PyQt4 interface.
-    '''
+    """
     # Signals for connecting to the vis_controller
     show_import = QtCore.pyqtSignal()
     show_analyze = QtCore.pyqtSignal()
@@ -55,10 +55,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
     report_error = QtCore.pyqtSignal(str)
 
     def __init__(self, vis_controller):
-        '''
+        """
         The argument is the instance of VisController controlling this class. It's
         used to send signals.
-        '''
+        """
         super(VisQtMainWindow, self).__init__()  # required for signals
         self.vis_controller = vis_controller
         self.ui = uic.loadUi(os.path.dirname(os.path.realpath(__file__)) + '/ui/main_window.ui')
@@ -119,9 +119,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
     # Pressing Buttons in the Toolbar -----------------------
     @QtCore.pyqtSlot()
     def _tool_import(self):
-        '''
+        """
         Activate the "import" panel
-        '''
+        """
         self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
         self.ui.btn_about.setEnabled(True)
         self.ui.btn_choose_files.setEnabled(True)
@@ -132,9 +132,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _tool_analyze(self):
-        '''
+        """
         Activate the "analyze" panel (corresponding to the Analyzer).
-        '''
+        """
         self.ui.main_screen.setCurrentWidget(self.ui.page_analyze)
         self.ui.btn_choose_files.setEnabled(False)
         self.ui.btn_analyze.setChecked(True)
@@ -146,9 +146,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _tool_working(self):
-        '''
+        """
         Activate the "working" panel, for when vis is processing.
-        '''
+        """
         self.ui.main_screen.setCurrentWidget(self.ui.page_working)
         # make sure nothing is enabled
         self.ui.btn_about.setEnabled(False)
@@ -168,9 +168,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _tool_about(self):
-        '''
+        """
         Activate the "about" panel.
-        '''
+        """
         self.ui.main_screen.setCurrentWidget(self.ui.page_about)
         # leave enabled/disabled as-is, but make sure only "about" is checked
         self.ui.btn_about.setChecked(True)
@@ -180,9 +180,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _tool_experiment(self):
-        '''
+        """
         Activate the "show" panel, which corresponds to the Experimenter controller.
-        '''
+        """
         self.ui.main_screen.setCurrentWidget(self.ui.page_show)
         self.ui.btn_about.setEnabled(True)
         self.ui.btn_choose_files.setEnabled(False)
@@ -199,10 +199,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
     # Operations on the Importer panel ----------------------
     @QtCore.pyqtSlot()
     def _check_for_pieces(self):
-        '''
+        """
         Check there is at least one piece set to be imported. If there is, start importing. If not,
         ask the user to choose some pieces.
-        '''
+        """
         # check there are more than 0 pieces for the Importer
         if self.vis_controller.importer.has_files():
             # then go!
@@ -220,9 +220,9 @@ You must choose pieces before we can import them.""",
 
     @QtCore.pyqtSlot()
     def _add_files(self):
-        '''
+        """
         Add files to the "importer" panel.
-        '''
+        """
         files = QtGui.QFileDialog.getOpenFileNames(
             None,  # parent
             "Choose Files to Analyze",  # title
@@ -237,9 +237,9 @@ You must choose pieces before we can import them.""",
 
     @QtCore.pyqtSlot()
     def _add_dir(self):
-        '''
+        """
         Add a directory to the "importer" panel.
-        '''
+        """
         d = QtGui.QFileDialog.getExistingDirectory(
             None,  # parent
             "Choose Directory to Analyze",  # title
@@ -254,10 +254,10 @@ You must choose pieces before we can import them.""",
 
     @QtCore.pyqtSlot()
     def _remove_files(self):
-        '''
+        """
         Method which finds which files the user has selected for
         removal and emits a signal containing their names.
-        '''
+        """
         # which indices are currently selected?
         currently_selected = self.ui.gui_file_list.selectedIndexes()
 
@@ -267,14 +267,14 @@ You must choose pieces before we can import them.""",
     # Operations on the "Working" Panel ---------------------
     @QtCore.pyqtSlot(str)
     def _update_progress_bar(self, progress):
-        '''
+        """
         Updates the "working" screen in the following ways:
         - If the argument is a two-character string that can be converted into
         an integer, or the string '100', the progress bar is set to that
         percentage completion.
         - If the argument is another string, the text below the progress bar is
         set to that string.
-        '''
+        """
         if not isinstance(progress, (str, QtCore.QString)):
             return None
         else:
@@ -317,10 +317,10 @@ You must choose pieces before we can import them.""",
     # Other Things ------------------------------------------
     @QtCore.pyqtSlot(str)  # for self.report_error
     def _error_reporter(self, description):
-        '''
+        """
         Notify the user that an error has happened. The argument should be a
         description of the error.
-        '''
+        """
         QtGui.QMessageBox.warning(None,
                                 'Error in an Internal Component',
                                 description,
@@ -360,20 +360,20 @@ Do you want to go back and add the part combination?""",
     # Signal for: self.ui.chk_all_voice_combos.stateChanged
     @QtCore.pyqtSlot()
     def _adjust_bs(self):
-        '''
+        """
         Adjust the 'basso seguente' checkbox's text, depending on whether the
         "all combinations" checkbox is checked.
-        '''
+        """
         pass
 
     #-------------------------------------------------
     # Signal for: self.ui.chk_all_voice_combos.clicked
     @QtCore.pyqtSlot()
     def _all_voice_combos(self):
-        '''
+        """
         Deal with the situation when a user checks or unchecks the "all voice
         combinations" checkbox.
-        '''
+        """
         # Hold the new value for the part-combination-specification QLineEdit
         part_spec = ''
 
@@ -389,10 +389,10 @@ Do you want to go back and add the part combination?""",
     # Signal for: self.ui.chk_basso_seguente.clicked
     @QtCore.pyqtSlot()
     def _chose_bs(self):
-        '''
+        """
         When somebody chooses the "basso seguente" checkbox, if "all" is also
         selected, we should update the QLineEdit
-        '''
+        """
         if self.ui.chk_all_voice_combos.isChecked():
             part_spec = '[all]'
 
@@ -402,9 +402,9 @@ Do you want to go back and add the part combination?""",
     # Signal for: self.ui.line_piece_title.editingFinished
     @QtCore.pyqtSlot()
     def _update_piece_title(self):
-        '''
+        """
         When users change the piece title on the "assemble" panel.
-        '''
+        """
         # Which piece is/pieces are selected?
         currently_selected = self.ui.gui_pieces_list.selectedIndexes()
 
@@ -434,9 +434,9 @@ Do you want to go back and add the part combination?""",
     # Signal for: self.ui.chk_repeat_identical.stateChanged
     @QtCore.pyqtSlot()
     def _update_repeat_identical(self):
-        '''
+        """
         When users change "repeat consecutive identical events" on the "assemble" panel.
-        '''
+        """
         # Which piece is/pieces are selected?
         currently_selected = self.ui.gui_pieces_list.selectedIndexes()
 
@@ -453,10 +453,10 @@ Do you want to go back and add the part combination?""",
     # Signal for: self.ui.btn_add_check_combo.clicked
     @QtCore.pyqtSlot()
     def _add_parts_combination(self):
-        '''
+        """
         When users choose the "Add Combination" button to add the currently
         selected part combination to the list of parts to analyze.
-        '''
+        """
         # TODO: rewrite this to deal with a wide range of part selections
 
         # If there are no named parts, we can't do this
@@ -548,19 +548,19 @@ Do you want to go back and add the part combination?""",
     # Signal for: self.ui.line_compare_these_parts.editingFinished
     @QtCore.pyqtSlot()
     def _add_parts_combo_by_line_edit(self):
-        '''
+        """
         Blindly put the contents of the part-specification QLineEdit into the
         table, trusting that the user knows what they're doing.
-        '''
+        """
         self._update_parts_selection(str(self.ui.line_compare_these_parts.text()))
 
     #---------------
     # Not a pyqtSlot
     def _update_parts_selection(self, part_spec):
-        '''
+        """
         Updates line_compare_these_parts and the model data for all selected
         pieces so that the "parts to compare" contains part_spec.
-        '''
+        """
 
         # update the UI
         self.ui.line_compare_these_parts.setText(part_spec)
@@ -576,11 +576,11 @@ Do you want to go back and add the part combination?""",
     #---------------------------------------------------------
     # Signal for: self.ui.line_offset_interval.editingFinished
     def _update_offset_interval(self):
-        '''
+        """
         Take the value of the "offset interval" field, and sets it.
 
         Assumes, with no good reason, that the value put in the textbox is good.
-        '''
+        """
         new_offset_interval = str(self.ui.line_offset_interval.text())
 
         # Update the selected pieces
@@ -594,10 +594,10 @@ Do you want to go back and add the part combination?""",
     #--------------------------------
     # self.ui.gui_pieces_list.clicked
     def _update_pieces_selection(self):
-        '''
+        """
         Update the detail-selection widgets when the user changes the pieces that
         are selected.
-        '''
+        """
         # TODO: finish the other things for this method
         # When the user changes the piece(s) selected in self.gui_pieces_list
 
@@ -613,7 +613,6 @@ Do you want to go back and add the part combination?""",
             self.ui.btn_choose_note.setEnabled(False)
             self.ui.line_compare_these_parts.setEnabled(False)
             self.ui.chk_all_voice_combos.setEnabled(False)
-            #self.ui.chk_basso_seguente.setEnabled(False)
             self.ui.btn_add_check_combo.setEnabled(False)
             self.ui.line_piece_title.setEnabled(False)
             self._piece_settings_visibility(False)
@@ -630,31 +629,38 @@ Do you want to go back and add the part combination?""",
             self.ui.btn_choose_note.setEnabled(True)
             self.ui.line_compare_these_parts.setEnabled(True)
             self.ui.chk_all_voice_combos.setEnabled(True)
-            #self.ui.chk_basso_seguente.setEnabled(True)
             self.ui.btn_add_check_combo.setEnabled(True)
             self.ui.line_piece_title.setEnabled(False)  # not applicable
             self._piece_settings_visibility(True)
+            self.ui.grp_settings_for_piece.setTitle('Settings for Selected Pieces')
             # (2) if the pieces have the same part names, display them
-            first_parts = None
+            # 2.1: get a list of all the lists-of-part-names
+            lists_of_part_names = []
             for cell in currently_selected:
-                if ListOfPieces.parts_combinations == cell.column():
-                    if first_parts is None:
-                        first_parts = self.vis_controller.l_o_pieces.\
-                        data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_parts == self.vis_controller.l_o_pieces.\
-                    data(cell, QtCore.Qt.DisplayRole).toPyObject():
-                        continue
-                    else:
-                        first_parts = ''
-                        break
-            if '' != first_parts:
-                # Then they all have the same name, so we can use them
+                if ListOfPieces.parts_list == cell.column():
+                    lists_of_part_names.append(self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole))
+            # 2.2: See if each piece has the same number of parts
+            number_of_parts = 0
+            for parts_list in lists_of_part_names:
+                if 0 == number_of_parts:
+                    number_of_parts = len(parts_list)
+                elif number_of_parts != len(parts_list):
+                    number_of_parts = False
+                    break
+            # 2.3: See if the names in each of the parts is the same
+            same_names = True
+            for i in xrange(len(lists_of_part_names) - 1):
+                if lists_of_part_names[i] != lists_of_part_names[i + 1]:
+                    same_names = False
+            # 2.4: If all the part names are the same, we'll use them
+            if same_names:
                 self._update_part_checkboxes(currently_selected)
+            # 2.5: If all the pieces have the same number of parts, we can still do it
+            elif number_of_parts:
+                self._update_part_checkboxes(currently_selected, no_name=True)
+            # 2.6: Otherwise, we can't display part checkboxes
             else:
-                # Then they don't all have the same name.
                 self.ui.chk_all_voice_combos.setEnabled(True)
-                self.ui.chk_basso_seguente.setEnabled(True)
-                self._adjust_bs()
                 self._update_part_checkboxes('erase')
             # (3) if the pieces have the same offset interval, display it
             first_offset = None
@@ -688,7 +694,6 @@ Do you want to go back and add the part combination?""",
                 # Multiple parts have different specs
                 self.ui.line_compare_these_parts.setText('')
                 self.ui.chk_all_voice_combos.setChecked(False)
-                #self.ui.chk_basso_seguente.setChecked(False)
                 self._adjust_bs()
             else:
                 # Multiple parts have the same spec
@@ -700,10 +705,10 @@ Do you want to go back and add the part combination?""",
             self.ui.btn_choose_note.setEnabled(True)
             self.ui.line_compare_these_parts.setEnabled(True)
             self.ui.chk_all_voice_combos.setEnabled(True)
-            #self.ui.chk_basso_seguente.setEnabled(True)
             self.ui.btn_add_check_combo.setEnabled(True)
             self.ui.line_piece_title.setEnabled(True)
             self._piece_settings_visibility(True)
+            self.ui.grp_settings_for_piece.setTitle('Settings for Selected Piece')
             # (2) Populate the part list
             self._update_part_checkboxes(currently_selected)
             # (3) Update "offset interval"
@@ -803,7 +808,7 @@ Do you want to go back and add the part combination?""",
 
     #---------------
     # Not a pyqtSlot
-    def _update_part_checkboxes(self, currently_selected):
+    def _update_part_checkboxes(self, currently_selected, no_name=False):
         """
         Update the part-selection QCheckBox objects to reflect the currently
         selected part(s).
@@ -815,6 +820,10 @@ Do you want to go back and add the part combination?""",
 
         If the argument is == 'erase' then the method removes all current
         checkboxes and stops.
+
+        The "no_name" keyword argument means we'll use generically numbered parts, rather than
+        specific part names. This is useful when, for example, a bunch of pieces are selected, and
+        they all have the same number of parts but with different names.
         """
 
         # (1) Remove previous checkboxes from the layout
@@ -844,6 +853,12 @@ Do you want to go back and add the part combination?""",
             if ListOfPieces.parts_list == cell.column():
                 list_of_parts = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
                 break
+        # deal with a possible "no_name" argument
+        if no_name:
+            how_many_parts = len(list_of_parts)
+            list_of_parts = []
+            for i in xrange(how_many_parts):
+                list_of_parts.append('Part ' + str(i + 1))
 
         # (3) Put up a checkbox for each part
         self.part_checkboxes = []

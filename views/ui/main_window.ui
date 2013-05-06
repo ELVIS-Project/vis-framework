@@ -215,7 +215,7 @@
         <item>
          <widget class="QGroupBox" name="grp_choose_files">
           <property name="title">
-           <string>Choose Files</string>
+           <string>Importer</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
@@ -227,7 +227,7 @@
                  <item>
                   <widget class="QLabel" name="label_3">
                    <property name="text">
-                    <string>Files to Analyze:</string>
+                    <string>Add files to the list so they will be imported.</string>
                    </property>
                   </widget>
                  </item>
@@ -344,11 +344,11 @@
         <item>
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
-           <string>Assemble Results, Statistics, Analyses</string>
+           <string>Analyzer</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="4" column="4">
-            <spacer name="verticalSpacer_7">
+            <spacer name="spacer_select_piece_1">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -371,7 +371,7 @@
             </widget>
            </item>
            <item row="2" column="4">
-            <spacer name="verticalSpacer_9">
+            <spacer name="spacer_select_piece_2">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -383,23 +383,28 @@
              </property>
             </spacer>
            </item>
-           <item row="2" column="0" rowspan="6" colspan="3">
-            <widget class="QTableView" name="gui_pieces_list">
-             <property name="selectionBehavior">
-              <enum>QAbstractItemView::SelectRows</enum>
-             </property>
-             <attribute name="horizontalHeaderMinimumSectionSize">
-              <number>2</number>
-             </attribute>
-             <attribute name="verticalHeaderVisible">
-              <bool>false</bool>
-             </attribute>
+           <item row="0" column="4">
+            <widget class="QWidget" name="widget_6" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_5"/>
             </widget>
            </item>
-           <item row="6" column="4" rowspan="2">
+           <item row="0" column="1">
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="4">
             <widget class="QGroupBox" name="grp_settings_for_piece">
              <property name="title">
-              <string>Settings for Piece</string>
+              <string>Settings for Selected Piece</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
               <item row="3" column="1">
@@ -558,23 +563,18 @@
              </layout>
             </widget>
            </item>
-           <item row="0" column="4">
-            <widget class="QWidget" name="widget_6" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+           <item row="1" column="0" rowspan="7" colspan="3">
+            <widget class="QTableView" name="gui_pieces_list">
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <attribute name="horizontalHeaderMinimumSectionSize">
+              <number>2</number>
+             </attribute>
+             <attribute name="verticalHeaderVisible">
+              <bool>false</bool>
+             </attribute>
             </widget>
-           </item>
-           <item row="0" column="1">
-            <spacer name="horizontalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </widget>
@@ -586,7 +586,7 @@
         <item>
          <widget class="QGroupBox" name="groupBox_2">
           <property name="title">
-           <string>Conduct an Experiment</string>
+           <string>Experimenter</string>
           </property>
           <layout class="QGridLayout" name="gridLayout">
            <item row="4" column="0">
