@@ -23,61 +23,52 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 The model classes for the Experimenter controller.
-'''
-
+"""
 
 
 class ExperimentSettings(object):
-   '''
-   Hold settings relevant to performing experiments.
+    """
+    Hold settings relevant to performing experiments.
 
-   All the possible settings:
-   - experiment : name of the experiment to use
-   - quality : whether or not to display interval quality
-   - simple or compound : whether to use simple or compound intervals
-   - topX : display on the "top X" number of results
-   - threshold : stop displaying things after this point
-   - values of n : a list of ints that is the values of 'n' to display
-   - sort order : whether to sort things 'ascending' or 'descending'
-   - sort by : whether to sort things by 'frequency' or 'name'
-   - output format : choose the Display subclass for this experiment's results
-   '''
+    All the possible settings:
+    - experiment : name of the experiment to use
+    - quality : whether or not to display interval quality
+    - simple or compound : whether to use simple or compound intervals
+    - topX : display on the "top X" number of results
+    - threshold : stop displaying things after this point
+    - values of n : a list of ints that is the values of 'n' to display
+    - sort order : whether to sort things 'ascending' or 'descending'
+    - sort by : whether to sort things by 'frequency' or 'name'
+    - output format : choose the Display subclass for this experiment's results
+    """
 
+    def __init__(self):
+        """
+        Create an empty ExperimentSettings instance with no settings.
+        """
+        self._settings = {}
 
+    def set(self, setting, value):
+        """
+        Set the value of a setting. If the setting does not yet exist, it is
+        created and initialized to the value.
+        """
+        self._settings[setting] = value
 
-   def __init__(self):
-      '''
-      Create an empty ExperimentSettings instance with no settings.
-      '''
-      self._settings = {}
+    def has(self, setting):
+        """
+        Returns True if a setting already exists in this ExperimentSettings
+        instance, or else False.
+        """
+        return setting in self._settings
 
-
-
-   def set(self, setting, value):
-      '''
-      Set the value of a setting. If the setting does not yet exist, it is
-      created and initialized to the value.
-      '''
-      self._settings[setting] = value
-
-
-
-   def has(self, setting):
-      '''
-      Returns True if a setting already exists in this ExperimentSettings
-      instance, or else False.
-      '''
-      return setting in self._settings
-
-
-
-   def get(self, setting):
-      '''
-      Return the value of a setting, or None if the setting does not exist.
-      '''
-      if self.has(setting):
-         return self._settings[setting]
-      else:
-         return None
+    def get(self, setting):
+        """
+        Return the value of a setting, or None if the setting does not exist.
+        """
+        if self.has(setting):
+            return self._settings[setting]
+        else:
+            return None

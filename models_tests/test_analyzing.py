@@ -366,7 +366,7 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces[0][ListOfPieces.score] = the_field
       index = self.lop.createIndex(0, ListOfPieces.score)
       self.assertEqual(the_score,
-                       self.lop.data(index, ListOfPieces.ScoreRole).toPyObject())
+                       self.lop.data(index, ListOfPieces.ScoreRole))
 
 
 
@@ -379,7 +379,7 @@ class TestListOfPiecesData(unittest.TestCase):
       # DisplayRole returns a string
       self.assertEqual(the_field_str, self.lop.data(index, Qt.DisplayRole).toPyObject())
       # ScoreRole returns the list
-      self.assertEqual(the_field, self.lop.data(index, ListOfPieces.ScoreRole).toPyObject())
+      self.assertEqual(the_field, self.lop.data(index, ListOfPieces.ScoreRole))
 
 
 
@@ -427,12 +427,12 @@ class TestListOfPiecesData(unittest.TestCase):
       self.lop._pieces[4][ListOfPieces.score] = the_field
       index = self.lop.createIndex(4, ListOfPieces.score)
       self.assertEqual(the_field[0],
-                       self.lop.data(index, ListOfPieces.ScoreRole).toPyObject())
+                       self.lop.data(index, ListOfPieces.ScoreRole))
 
 
 
    def test_data_10(self):
-      # Ensure all the fields return as type QtCore.QVariant
+      # Ensure all the fields return as type QtCore.QVariant, unless ScoreRole
       # set the default row
       self.lop._pieces = [self.default_row]
       # put a real Score object in there
@@ -449,7 +449,7 @@ class TestListOfPiecesData(unittest.TestCase):
          self.assertTrue(isinstance(self.lop.data(each_index, Qt.DisplayRole), QVariant))
       # one final test
       index = self.lop.createIndex(0, ListOfPieces.score)
-      self.assertTrue(isinstance(self.lop.data(index, ListOfPieces.ScoreRole), QVariant))
+      self.assertFalse(isinstance(self.lop.data(index, ListOfPieces.ScoreRole), QVariant))
 # End TestListOfPiecesData -----------------------------------------------------
 
 
