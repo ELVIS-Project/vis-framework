@@ -93,7 +93,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             # Things that operate the GUI
             (self.ui.chk_all_voice_combos.stateChanged, self._adjust_bs),
             (self.ui.chk_all_voice_combos.clicked, self._all_voice_combos),
-            #(self.ui.chk_basso_seguente.clicked, self._chose_bs),
             (self.ui.line_piece_title.editingFinished, self._update_piece_title),
             (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
             (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
@@ -105,6 +104,9 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
             (self.ui.chk_repeat_identical.stateChanged, self._update_repeat_identical),
             (self.ui.btn_cancel_operation.clicked, self._cancel_operation),
+            (self.ui.rdo_spreadsheet.clicked, self._output_format_changed),
+            (self.ui.rdo_list.clicked, self._output_format_changed),
+            (self.ui.rdo_chart.clicked, self._output_format_changed),
         ]
         for signal, slot in mapper:
             signal.connect(slot)
@@ -191,6 +193,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.btn_step2.setEnabled(False)
         # call the thing to update this panel
         self._update_experiment_from_object()
+        # call the thing to to what it says it does
+        self._output_format_changed()
 
     # Operations on the Importer panel ----------------------
     @QtCore.pyqtSlot()
@@ -1076,3 +1080,18 @@ Do you want to go back and add the part combination?""",
 
         # Run the on_offer()
         on_offer(which_to_enable)
+
+    def _output_format_changed(self):
+        """
+        When a user chooses a different output format (in "How to Show Results" on the "show"
+        panel), we may have to enable/disable the Top X and Threshold filter.
+        """
+        if self.ui.rdo_spreadsheet.isChecked():
+            self.ui.group_top_x.setEnabled(False)
+            self.ui.group_threshold.setEnabled(False)
+        elif self.ui.rdo_list.isChecked():
+            self.ui.group_top_x.setEnabled(True)
+            self.ui.group_threshold.setEnabled(True)
+        elif self.ui.rdo_chart.isChecked():
+            self.ui.group_top_x.setEnabled(True)
+            self.ui.group_threshold.setEnabled(True)
