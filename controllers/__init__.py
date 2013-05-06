@@ -26,8 +26,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-
-
 __all__ = ['analyzer', 'controller', 'display_handler', 'experimenter',
            'importer', 'vis_controller']
 

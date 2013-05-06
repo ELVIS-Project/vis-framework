@@ -19,11 +19,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 The file_output module has methods for writing and reading files.
-'''
-
-
+"""
 
 # Import:
 # python
@@ -31,88 +29,84 @@ from os.path import exists
 import fileinput
 
 
+def file_outputter(contents, filename, extension=''):
+    """
+    Outputs the first argument, which should be a str, into a file whose name is
+    specified as the second argument.
 
-def file_outputter( contents, filename, extension='' ):
-   '''
-   Outputs the first argument, which should be a str, into a file whose name is
-   specified as the second argument.
+    Return value is a two-element list. Index 0 is the filename we either did or
+    attempted to output, and index 1 is a descriptive str error message or None
+    if relevant.
 
-   Return value is a two-element list. Index 0 is the filename we either did or
-   attempted to output, and index 1 is a descriptive str error message or None
-   if relevant.
+    Use the method like this:
+    >>> from file_output import file_outputter
+    >>> output_this = 'Lots of stuff in this file!\n'
+    >>> output_result = file_outputter( output_this, 'file', 'txt' )
+    >>> if output_result[0] is not None:
+    >>>    print( 'We had an error! ' + output_result[0] )
+    >>> else:
+    >>>    print( 'File successfully outputted to ' + output_result[0]
+    """
 
-   Use the method like this:
-   >>> from file_output import file_outputter
-   >>> output_this = 'Lots of stuff in this file!\n'
-   >>> output_result = file_outputter( output_this, 'file', 'txt' )
-   >>> if output_result[0] is not None:
-   >>>    print( 'We had an error! ' + output_result[0] )
-   >>> else:
-   >>>    print( 'File successfully outputted to ' + output_result[0]
-   '''
+    # Sanity checks
+    # Filename must be a str
+    if not isinstance(filename, str):
+        filename = str(filename)
+    # Unless we got the OVERWRITE signal, the file mustn't already exist.
+    if 'OVERWRITE' != extension:
+        while exists(filename + extension):
+            filename += '-0'
+    else:
+        # We need to do this, or else we'll inadvertently *not* overwrite the
+        # pre-existing file.
+        extension = ''
+    # Output must be a str.
+    if not isinstance(contents, str):
+        contents = str(contents)
 
-   # Sanity checks
-   # Filename must be a str
-   if not isinstance(filename, str):
-      filename = str(filename)
-   # Unless we got the OVERWRITE signal, the file mustn't already exist.
-   if 'OVERWRITE' != extension:
-      while exists(filename + extension):
-         filename += '-0'
-   else:
-      # We need to do this, or else we'll inadvertently *not* overwrite the
-      # pre-existing file.
-      extension = ''
-   # Output must be a str.
-   if not isinstance(contents, str):
-      contents = str(contents)
+    # Store a description of a possible error
+    return_error = None
 
-   # Store a description of a possible error
-   return_error = None
+    # Open the file for writing
+    try:
+        output_file = open(filename + extension, 'w')
+    except IOError as ioe:
+        return_error = 'Unable to open file for writing (' + filename + \
+                        extension + ') because of exception: ' + str(ioe)
+        return [filename, return_error]
 
-   # Open the file for writing
-   try:
-      output_file = open(filename + extension, 'w')
-   except IOError as ioe:
-      return_error = 'Unable to open file for writing (' + filename + \
-                     extension + ') because of exception: ' + str(ioe)
-      return [filename, return_error]
+    # Write the file.
+    try:
+        output_file.write(contents)
+    except IOError as ioe:
+        return_error = 'Unable to write contents into the file.'
 
-   # Write the file.
-   try:
-      output_file.write(contents)
-   except IOError as ioe:
-      return_error = 'Unable to write contents into the file.'
+    # Close the file.
+    try:
+        output_file.close()
+    except IOError as ioe:
+        return_error = 'Unble to close the file (' + filename + extension + ')'
 
-   # Close the file.
-   try:
-      output_file.close()
-   except IOError as ioe:
-      return_error = 'Unble to close the file (' + filename + extension + ')'
-
-   # Return the filename we actually used.
-   return [filename, return_error]
-# End file_outputter() --------------------------------------------------------
-
+    # Return the filename we actually used.
+    return [filename, return_error]
 
 
 def file_inputter(filename):
-   '''
-   Reads the file with the path specified as a str, and returns its contents.
-   '''
+    """
+    Reads the file with the path specified as a str, and returns its contents.
+    """
 
-   # Sanity checks
-   # Filename must be a str
-   if not isinstance(filename, str):
-      filename = str(filename)
-   # File must exist
-   if not exists(filename):
-      raise IOError('File does not seem to exist.')
+    # Sanity checks
+    # Filename must be a str
+    if not isinstance(filename, str):
+        filename = str(filename)
+    # File must exist
+    if not exists(filename):
+        raise IOError('File does not seem to exist.')
 
-   the_file = ''
+    the_file = ''
 
-   for line in fileinput.input(filename):
-      the_file += line
+    for line in fileinput.input(filename):
+        the_file += line
 
-   return the_file
-#------------------------------------------------------------------------------
+    return the_file

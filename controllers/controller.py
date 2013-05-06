@@ -26,32 +26,24 @@
 Holds the "controllers" for the MVC architecture in vis.
 '''
 
-
-
 # Imports
-from PyQt4.QtCore import pyqtSignal, QObject
-from models.analyzing import ListOfPieces
+from PyQt4 import QtCore
 
 
+class Controller(QtCore.QObject):
+    """
+    Base class for all vis controllers.
+    """
 
-class Controller(QObject):
-   '''
-   Base class for all vis controllers.
-   '''
+    def __init__(self):
+        """
+        Creates a new instance, and assigns the appropriate widget.
+        """
+        super(Controller, self).__init__()
 
-
-
-   def __init__(self):
-      '''
-      Creates a new instance, and assigns the appropriate widget.
-      '''
-      super(Controller, self).__init__()
-
-
-
-   def setup_signals(self):
-      '''
-      Set methods of this controller as the slot for relevant signals emitted
-      by the GUI.
-      '''
-      pass
+    def setup_signals(self):
+        """
+        Set methods of this controller as the slot for relevant signals emitted
+        by the GUI.
+        """
+        pass

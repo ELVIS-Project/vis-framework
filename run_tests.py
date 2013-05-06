@@ -22,16 +22,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Run the tests for the models
-'''
-
-
+"""
 
 # Verbosity
 verb = 2
-
-
 
 # Imports
 import unittest
@@ -42,8 +38,6 @@ from models_tests.test_importing import *
 from models_tests.test_analyzing import *
 from models_tests.test_ngram import *
 
-
-
 # Controllers ------------------------------------------------------------------
 # Importer
 unittest.TextTestRunner(verbosity=verb).run(importer_piece_getter_suite)
@@ -52,20 +46,14 @@ unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite)
 unittest.TextTestRunner(verbosity=verb).run(importer_remove_pieces_suite)
 unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite)
 
-
-
-# Analyzer -- all tests pass
+# Analyzer
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_short_suite)
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_monteverdi)
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_josquin)
 unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_bach)
 
-
-
-# Experiment
+# Experimenter
 unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_stats_suite)
-
-
 
 # Models -----------------------------------------------------------------------
 # Importing -- all tests pass
@@ -76,8 +64,6 @@ unittest.TextTestRunner(verbosity=verb).run(importing_insert_rows_suite)
 unittest.TextTestRunner(verbosity=verb).run(importing_is_present_suite)
 unittest.TextTestRunner(verbosity=verb).run(importing_iterator_suite)
 unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
-
-
 
 # Analyzing: ListOfPieces
 unittest.TextTestRunner(verbosity=verb).run(lop_basics_suite)
