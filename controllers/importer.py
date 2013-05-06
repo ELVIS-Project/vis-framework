@@ -52,18 +52,24 @@ def import_piece(file_path):
     Streams are complex webs of weak references, which cannot be pickled and
     therefore cannot be passed between different child processes in a
     multiprocessing context.
+
+    NB2: if the imported file is a MIDI file, it won't be pickled, because then it would explode
     """
     try:
         piece = converter.parseFile(file_path)
         title = Importer._find_piece_title(piece)
         part_names = Importer._find_part_names(piece)
-        s = converter.freezeStr(piece, fmt='pickle')
-        return (file_path, s, title, part_names)
+        _, extension = os.path.splitext(file_path)
+        if '.midi' == extension or '.mid' == extension:
+            return_score = piece
+        else:
+            return_score = converter.freezeStr(piece, fmt='pickle')
+        return (file_path, return_score, title, part_names)
     except (converter.ArchiveManagerException,
         converter.PickleFilterException,
         converter.ConverterException,
-        converter.ConverterFileException) as e:
-            return str(e)
+        converter.ConverterFileException) as excep:
+            return str(excep)
 
 
 class ImporterThread(QThread):
@@ -123,16 +129,33 @@ class ImporterThread(QThread):
         self._importer.import_is_running = True
         self._importer.status.emit('0')
         self._importer.status.emit('Importing...')
-        # always use multiprocessing
+
+        # Sort the files according to whether their extension indicates they'll work with
+        # multiprocessing or not
+        sequential_extensions = ['.mid', '.midi']
+        multiprocess_files = []  # for everything that works in multiprocessing
+        sequential_files = []  # for everything that doesn't work (i.e., MIDI)
+        for sort_file in self._files:
+            _, extension = os.path.splitext(sort_file)
+            if extension in sequential_extensions:
+                sequential_files.append(sort_file)
+            else:
+                multiprocess_files.append(sort_file)
+
+        # Start up the multiprocessing
         self._pool = Pool()
-        for file_path in self._files:
+        for file_path in multiprocess_files:
             self._pool.apply_async(import_piece,
-                                (file_path,),
-                                callback=self.callback)
+                                   (file_path,),
+                                   callback=self.callback)
         self._pool.close()
         self._pool.join()
         self._importer.import_is_running = False
         self._pool = None
+
+        # Start up the sequential importing
+        for file_path in sequential_files:
+            self.callback(import_piece(file_path))
 
         # self.progress != 1.0 if a user cancelled the runing job before it finished
         if 1.0 != self.progress:

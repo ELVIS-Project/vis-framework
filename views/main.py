@@ -35,7 +35,7 @@ from os.path import splitext, join
 # PyQt4
 from PyQt4 import QtGui, uic, QtCore
 # music21
-from music21 import metadata, converter
+from music21 import metadata, converter, stream
 # vis
 from models.analyzing import ListOfPieces
 from views.VisOffsetSelector import VisOffsetSelector
@@ -415,16 +415,20 @@ Do you want to go back and add the part combination?""",
                 # Metadata object directly...
                 # Get the Score
                 piece = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
-                # unpickle the score
-                piece = converter.thawStr(piece)
+                # unpickle the score, if relevant
+                was_pickled = False  # so we know whether to re-pickle
+                if not isinstance(piece, stream.Score):
+                    was_pickled = True
+                    piece = converter.thawStr(piece)
                 # Make sure there's a Metadata object
                 if piece.metadata is None:
                     piece.insert(metadata.Metadata())
                 # Update the title, saving it for later
                 new_title = str(self.ui.line_piece_title.text())
                 piece.metadata.title = new_title
-                # re-pickle the score
-                piece = converter.freezeStr(piece, fmt='pickle')
+                # re-pickle the score, if needed
+                if was_pickled:
+                    piece = converter.freezeStr(piece, fmt='pickle')
                 # Tell the Analyzer to change its setting!
                 # NB: the second argument has to be 2-tuple with the Score object
                 # and the string that is the title, as specified in ListOfPieces

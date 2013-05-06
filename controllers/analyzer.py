@@ -28,9 +28,10 @@ Holds the Analyzer controller.
 
 # Imports from...
 # Python
+import os
 from multiprocessing import Pool
 # music21
-from music21 import note, chord, converter
+from music21 import note, chord, converter, stream
 # PyQt4
 from PyQt4 import QtCore
 # vis
@@ -45,11 +46,13 @@ def analyze_piece(each_piece):
     records = []
     try:
         piece_name = str(each_piece[ListOfPieces.score][1])
-    except Exception as e:
-        print(str(e))
+    except Exception as exc:
+        return str(exc)
     # (1) Decode the part-combination specification
     this_combos = str(each_piece[ListOfPieces.parts_combinations])
-    the_score = converter.thawStr(each_piece[ListOfPieces.score][0])
+    the_score = each_piece[ListOfPieces.score][0]
+    if not isinstance(the_score, stream.Score):
+        the_score = converter.thawStr(the_score)
     if '[all]' == this_combos:
         # We have to examine all combinations of parts...
         # How many parts are in this piece?
@@ -284,25 +287,46 @@ class AnalyzerThread(QtCore.QThread):
         self._analyzer.status.emit('Analyzing...')
         self.num_pieces = self._analyzer._list_of_pieces.rowCount()
 
-        # always use multiprocessing
-        self._pool = Pool()
+        # Convert everything in "each_piece" to *not* a QVariant
+        the_pieces = []
         for each_raw_piece in self._analyzer._list_of_pieces:
-            # Ensure all the things in "each_piece" are *not* a QVariant
-            each_piece = []
+            collecting = []
             for each_column in each_raw_piece:
                 if isinstance(each_column, QtCore.QVariant):
-                    each_piece.append(each_column.toPyObject())
+                    collecting.append(each_column.toPyObject())
                 else:
-                    each_piece.append(each_column)
+                    collecting.append(each_column)
+            the_pieces.append(collecting)
 
+        # Sort the files according to whether their extension indicates they'll work with
+        # multiprocessing or not
+        sequential_extensions = ['.mid', '.midi']
+        multiprocess_pieces = []  # for everything that works in multiprocessing
+        sequential_pieces = []  # for everything that doesn't work (i.e., MIDI)
+        for sort_piece in the_pieces:
+            _, extension = os.path.splitext(sort_piece[ListOfPieces.filename])
+            if extension in sequential_extensions:
+                sequential_pieces.append(sort_piece)
+            else:
+                multiprocess_pieces.append(sort_piece)
+
+        # Start up the multiprocessing
+        self._pool = Pool()
+        for each_piece in multiprocess_pieces:
+            print('parallel analysis of ' + str(each_piece[ListOfPieces.filename]))  # DEBUG
             # Load up the stuff in the Pool!
             self._pool.apply_async(analyze_piece,
-                                (each_piece,),
-                                callback=self.callback)
-
+                                   (each_piece,),
+                                   callback=self.callback)
+        # Wait for the multiprocessing to finish
         self._pool.close()
         self._pool.join()
         self._pool = None
+
+        # Start up the sequential analysis
+        for each_piece in sequential_pieces:
+            print('sequential analysis of ' + str(each_piece[ListOfPieces.filename]))  # DEBUG
+            self.callback(analyze_piece(each_piece))
 
         # self.progress != 1.0 if a user cancelled before the analyses were completed
         if self.progress != 1.0:
