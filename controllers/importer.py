@@ -143,18 +143,15 @@ class ImporterThread(QThread):
                 multiprocess_files.append(sort_file)
 
         # Start up the multiprocessing
-        if __name__ == 'controllers.importer':
-            self._pool = Pool()
-            for file_path in multiprocess_files:
-                self._pool.apply_async(import_piece,
-                                       (file_path,),
-                                       callback=self.callback)
-            self._pool.close()
-            self._pool.join()
-            self._importer.import_is_running = False
-            self._pool = None
-        else:
-            print __name__
+        self._pool = Pool()
+        for file_path in multiprocess_files:
+            self._pool.apply_async(import_piece,
+                                   (file_path,),
+                                   callback=self.callback)
+        self._pool.close()
+        self._pool.join()
+        self._importer.import_is_running = False
+        self._pool = None
 
         # Start up the sequential importing
         for file_path in sequential_files:
