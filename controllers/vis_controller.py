@@ -27,6 +27,8 @@ Holds the VisController objects for the various GUIs.
 '''
 
 # Imports from...
+# Python
+import sys
 # vis
 from views.main import VisQtMainWindow
 from controllers.controller import Controller
@@ -191,5 +193,7 @@ class VisController(Controller):
         '''
         Runs the application.
         '''
+        if sys.platform == 'darwin':
+            self.app.raise_()
         return self.app.exec_()
 # End class VisController ------------------------------------------------------
