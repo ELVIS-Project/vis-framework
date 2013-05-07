@@ -33,6 +33,7 @@ Starts vis with the PyQt4 interface.
 
 import sys
 from controllers.vis_controller import VisController
+from multiprocessing import freeze_support
 
 
 
@@ -46,4 +47,5 @@ def main():
 
 
 if __name__ == '__main__':
+    freeze_support()
    main()
