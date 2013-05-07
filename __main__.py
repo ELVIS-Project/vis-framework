@@ -1,8 +1,8 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# Program Name:              vis
-# Program Description:       Measures sequences of vertical intervals.
+# Program Name:               vis
+# Program Description:        Measures sequences of vertical intervals.
 #
 # Filename: __main__.py
 # Purpose: Starts vis with the PyQt4 interface.
@@ -23,7 +23,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this program.   If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
 Starts vis with the PyQt4 interface.
@@ -38,14 +38,14 @@ from multiprocessing import freeze_support
 
 
 def main():
-   '''
-   The main execution loop.
-   '''
-   gui_controller = VisController(sys.argv)
-   sys.exit(gui_controller.exec_())
+    '''
+    The main execution loop.
+    '''
+    gui_controller = VisController(sys.argv)
+    sys.exit(gui_controller.exec_())
 
 
 
 if __name__ == '__main__':
     freeze_support()
-   main()
+    main()
