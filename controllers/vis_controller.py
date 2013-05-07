@@ -193,7 +193,5 @@ class VisController(Controller):
         '''
         Runs the application.
         '''
-        if sys.platform == 'darwin':
-            self.app.raise_()
         return self.app.exec_()
 # End class VisController ------------------------------------------------------
