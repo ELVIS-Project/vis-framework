@@ -22,7 +22,7 @@ Run vis
 =======
 1. Install the software listed above.
 2. Open a terminal emulator.
-3. Run this command: `$ python __main__.py`
+3. Run this command: `$ python main.py`
 
 Make an Installable Executable File
 ===================================
