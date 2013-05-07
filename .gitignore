@@ -9,7 +9,6 @@ extra_trials/*
 *.spec
 *.DS_Store
 */*.DS_Store
-views/Ui_*.py
 views/ui/Ui_*.py
 *.nja
 
