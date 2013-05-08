@@ -208,7 +208,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -254,7 +254,7 @@
                    </property>
                    <property name="icon">
                     <iconset resource="icons.qrc">
-                     <normaloff>:/icons/icons/add-dir.png</normaloff>:/icons/icons/add-dir.png</iconset>
+                     <normaloff>:/icons/icons/add_directories.png</normaloff>:/icons/icons/add_directories.png</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
@@ -277,7 +277,7 @@
                    </property>
                    <property name="icon">
                     <iconset resource="icons.qrc">
-                     <normaloff>:/icons/icons/add-file.png</normaloff>:/icons/icons/add-file.png</iconset>
+                     <normaloff>:/icons/icons/add_files.png</normaloff>:/icons/icons/add_files.png</iconset>
                    </property>
                    <property name="iconSize">
                     <size>

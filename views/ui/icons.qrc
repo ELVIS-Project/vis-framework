@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/add_directories.png</file>
+    <file>icons/add_files.png</file>
     <file>icons/breve.png</file>
     <file>icons/eighth.png</file>
     <file>icons/half.png</file>
@@ -13,8 +15,6 @@
     <file>icons/working.png</file>
     <file>icons/show_checkmark.png</file>
     <file>icons/start-analysis.png</file>
-    <file>icons/add-dir.png</file>
-    <file>icons/add-file.png</file>
     <file>icons/list-remove.png</file>
     <file>icons/help-about.png</file>
     <file>icons/show_results.png</file>
