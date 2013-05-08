@@ -250,7 +250,12 @@ class Ui_MainWindow(object):
         self.chk_repeat_identical.setObjectName(_fromUtf8("chk_repeat_identical"))
         self.gridLayout_3.addWidget(self.chk_repeat_identical, 1, 0, 1, 3)
         self.gridLayout_2.addWidget(self.grp_settings_for_piece, 1, 4, 1, 1)
-        self.gui_pieces_list = QtGui.QTableView(self.groupBox)
+        class GuiPiecesList(QtGui.QTableView):
+            selection_changed = QtCore.pyqtSignal()
+            def selectionChanged(self, selected, deselected):
+                self.selection_changed.emit()
+                super(GuiPiecesList, self).selectionChanged(selected, deselected)
+        self.gui_pieces_list = GuiPiecesList(self.groupBox)
         self.gui_pieces_list.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.gui_pieces_list.setObjectName(_fromUtf8("gui_pieces_list"))
         self.gui_pieces_list.horizontalHeader().setMinimumSectionSize(2)
