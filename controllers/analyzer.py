@@ -75,8 +75,13 @@ def analyze_piece(each_piece):
             this_combos = eval(this_combos)
     # calculate the number of voice combinations for this piece
     #nr_of_voice_combos = len(this_combos)  # TODO: use this
-    # prepare the list of offset values to check
-    this_offset = float(str(each_piece[ListOfPieces.offset_intervals])[1:-1])
+    # prepare the offset value to check... kind of clunky, but it works for now
+    this_offset = str(each_piece[ListOfPieces.offset_intervals])
+    if this_offset[0] == '[':
+        this_offset = this_offset[1:]
+    if this_offset[-1] == ']':
+        this_offset = this_offset[:-1]
+    this_offset = float(this_offset)
 
     # (2) Loop through every part combination
     for combo in this_combos:
@@ -313,7 +318,6 @@ class AnalyzerThread(QtCore.QThread):
         # Start up the multiprocessing
         self._pool = Pool()
         for each_piece in multiprocess_pieces:
-            print('parallel analysis of ' + str(each_piece[ListOfPieces.filename]))  # DEBUG
             # Load up the stuff in the Pool!
             self._pool.apply_async(analyze_piece,
                                    (each_piece,),
@@ -325,7 +329,6 @@ class AnalyzerThread(QtCore.QThread):
 
         # Start up the sequential analysis
         for each_piece in sequential_pieces:
-            print('sequential analysis of ' + str(each_piece[ListOfPieces.filename]))  # DEBUG
             self.callback(analyze_piece(each_piece))
 
         # self.progress != self.num_pieces if a user cancelled before the analyses were completed
