@@ -100,7 +100,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
             (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
             (self.ui.line_offset_interval.editingFinished, self._update_offset_interval),
-            (self.ui.gui_pieces_list.clicked, self._update_pieces_selection),
+            (self.ui.gui_pieces_list.activated, self._update_pieces_selection),  # DEBUG
             (self.ui.btn_choose_note.clicked, self._launch_offset_selection),
             (self.ui.rdo_consider_chord_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
@@ -113,6 +113,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         ]
         for signal, slot in mapper:
             signal.connect(slot)
+        #self.ui.gui_pieces_list.selectionModel().selectionChanged.connect(self._update_pieces_selection)  # DEBUG
         # Setup the progress bar
         self.ui.progress_bar.setMinimum(0)
         self.ui.progress_bar.setMaximum(100)
@@ -337,25 +338,41 @@ You must choose pieces before we can import them.""",
         Start the analysis, but first... check to make sure a user didn't forget to choose the
         "add voice pair" button!
         """
-        # loop through the part checkboxes, see if they're checked
+
+        # check that all the pieces have at least one part combination selected
+        for each_piece in self.vis_controller.analyzer._list_of_pieces:
+            combos = each_piece[ListOfPieces.parts_combinations]
+            combos = str(combos.toPyObject()) if isinstance(combos, QtCore.QVariant) else str(combos)
+            if '(no selection)' == combos:
+                # we can't analyze, but we *should* tell our user
+                QtGui.QMessageBox.information(None,
+                    'vis',
+                    'You forgot to add part combinations for analysis in at least one piece.',
+                    QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                    QtGui.QMessageBox.Ok)
+                return None
+
+        # See if any of the part-name checkboxes are checked... if so, we gotta warn our user!
         part_cbs_are_checked = False
-        for each_box in self.part_checkboxes:
-            if each_box.isChecked():
-                part_cbs_are_checked = True
-                break
-        # if a checkbox was checked, inform the user they may have made a mistake, and *don't*
-        # start the analysis yet
-        if part_cbs_are_checked:
-            response = QtGui.QMessageBox.question(None,
-                'vis',
-                """At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
+        if self.part_checkboxes is not None:
+            for each_box in self.part_checkboxes:
+                if each_box.isChecked():
+                    part_cbs_are_checked = True
+                    break
+            # if a checkbox was checked, inform the user they may have made a mistake, and *don't*
+            # start the analysis yet
+            if part_cbs_are_checked:
+                response = QtGui.QMessageBox.question(None,
+                    'vis',
+                    """At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
 
 Do you want to go back and add the part combination?""",
-                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
-                QtGui.QMessageBox.Yes)
-            if response == QtGui.QMessageBox.Yes:
-                return
-        # this happens if none of the QCheckBoxes are selected, or if the response is "No"
+                    QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
+                    QtGui.QMessageBox.Yes)
+                if response == QtGui.QMessageBox.Yes:
+                    return None
+
+        # Actually start the experiment
         self._tool_working()
         self.vis_controller.run_the_analysis.emit()
 
@@ -599,8 +616,8 @@ Do you want to go back and add the part combination?""",
                 self.vis_controller.analyzer.change_settings.emit(cell, new_offset_interval)
 
     #--------------------------------
-    # self.ui.gui_pieces_list.clicked
-    def _update_pieces_selection(self):
+    # self.ui.gui_pieces_list.activated???????????????????
+    def _update_pieces_selection(self, the_index):
         """
         Update the detail-selection widgets when the user changes the pieces that
         are selected.
