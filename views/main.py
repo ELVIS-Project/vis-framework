@@ -100,7 +100,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
             (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
             (self.ui.line_offset_interval.editingFinished, self._update_offset_interval),
-            (self.ui.gui_pieces_list.selection_changed, self._update_pieces_selection),
+            (self.ui.gui_pieces_list.clicked, self._update_pieces_selection),
             (self.ui.btn_choose_note.clicked, self._launch_offset_selection),
             (self.ui.rdo_consider_chord_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),

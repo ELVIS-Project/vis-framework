@@ -61,18 +61,7 @@ def analyze_piece(each_piece):
         this_combos = Analyzer.calculate_all_combos(number_of_parts - 1)
     else:
         # Turn the str specification of parts into a list of int (or str)
-        if '(no selection)' == this_combos:
-            # This is what happens when no voice pairs were selected
-            # (1) Notify the user what happened
-            msg = 'No voices selected for analysis in "' + each_piece[ListOfPieces.score][1] + '"'
-            msg += '\nYou should re-start this step from the voice-selection panel.'
-            return (piece_name, msg)
-            # (3) Return to the panel where the user can select some voice pairs
-            # TODO: this part
-        else:
-            # TODO: we should do this in a safer way, because, as it stands
-            #       any code put in here will be blindly executed
-            this_combos = eval(this_combos)
+        this_combos = eval(this_combos)
     # calculate the number of voice combinations for this piece
     #nr_of_voice_combos = len(this_combos)  # TODO: use this
     # prepare the offset value to check... kind of clunky, but it works for now
@@ -254,7 +243,7 @@ class AnalyzerThread(QtCore.QThread):
         that instantiated it.
         """
         self._analyzer = analyzer
-        self.progress = 0
+        self.progress = 0.0
         self._multiprocess = True
         self._pool = None
         super(QtCore.QThread, self).__init__()
@@ -277,9 +266,9 @@ class AnalyzerThread(QtCore.QThread):
         if isinstance(result, basestring):
             self._analyzer.error.emit(result)
         else:
-            self.progress += 1
-            self._analyzer.status.emit(str(int(float(self.progress) / self.num_pieces * 100)))
-            self._analyzer.status.emit(unicode(piece_name) + " completed.")
+            self.progress += 1.0 / self.num_pieces
+            self._analyzer.status.emit(str(int(self.progress * 100)))
+            self._analyzer.status.emit(piece_name + " completed.")
             for record in result:
                 self._analyzer._list_of_analyses.append(record)
 
@@ -331,9 +320,9 @@ class AnalyzerThread(QtCore.QThread):
         for each_piece in sequential_pieces:
             self.callback(analyze_piece(each_piece))
 
-        # self.progress != self.num_pieces if a user cancelled before the analyses were completed
-        if self.progress != self.num_pieces:
-                    return None
+        # self.progress != 1.0 if a user cancelled before the analyses were completed
+        if self.progress != 1.0:
+            return None
 
         self._analyzer.status.emit('100')
         self._analyzer.status.emit('Done!')
