@@ -65,11 +65,8 @@ def import_piece(file_path):
         else:
             return_score = converter.freezeStr(piece, fmt='pickle')
         return (file_path, return_score, title, part_names)
-    except (converter.ArchiveManagerException,
-        converter.PickleFilterException,
-        converter.ConverterException,
-        converter.ConverterFileException) as excep:
-            return str(excep)
+    except Exception as excep:
+        return str(excep)
 
 
 class ImporterThread(QThread):
@@ -86,7 +83,7 @@ class ImporterThread(QThread):
         self._importer = importer
         # this will hold the fraction of pieces which have been analyzed
         # at a given time
-        self.progress = 0.0
+        self.progress = 0
         # flag for whether to use multiprocessing in importing
         self._multiprocess = True
         self.results = []
@@ -113,12 +110,13 @@ class ImporterThread(QThread):
         errors which occurred, or update the progress status and append
         the imported piece to the list of results.
         """
+        self.progress += 1
         if isinstance(result, str):
             self._importer.error.emit(result)
         else:  # it is a tuple
+            print result[-2]
             file_path = result[0]
-            self.progress += 1.0 / self.num_files
-            self._importer.status.emit(str(int(self.progress * 100)))
+            self._importer.status.emit(str(int(float(self.progress) / self.num_files * 100)))
             self._importer.status.emit(file_path + ' completed.')
             self.results.append(result)
 
@@ -157,8 +155,10 @@ class ImporterThread(QThread):
         for file_path in sequential_files:
             self.callback(import_piece(file_path))
 
-        # self.progress != 1.0 if a user cancelled the runing job before it finished
-        if 1.0 != self.progress:
+        # self.progress != self.num_files if a user cancelled the runing job before it finished
+        print 'got here'
+        if self.progress != self.num_files:
+            print self.progress, self.num_files
             return None
 
         self._importer.status.emit('Assembling results...')
