@@ -628,22 +628,23 @@ class IntervalsStatistics(Experiment):
 
         for each_record in self._records:
             for each_event in each_record:
-                # make sure we don't try to make an Interval from a rest
-                if 'Rest' != each_event[1][0] and 'Rest' != each_event[1][1]:
-                    interv = Interval(Note(each_event[1][0]), Note(each_event[1][1]))
-                else:
-                    continue
+                # make sure we don't try to make an Interval from a rest or a chord
+                if isinstance(each_event[1][0], basestring) and isinstance(each_event[1][1], basestring):
+                    if 'Rest' != each_event[1][0] and 'Rest' != each_event[1][1]:
+                        interv = Interval(Note(each_event[1][0]), Note(each_event[1][1]))
+                    else:
+                        continue
 
-                if quality:
-                    if interval_size == 'simple':
-                        self._add_interval(interv.semiSimpleName)
+                    if quality:
+                        if interval_size == 'simple':
+                            self._add_interval(interv.semiSimpleName)
+                        else:
+                            self._add_interval(interv.name)
                     else:
-                        self._add_interval(interv.name)
-                else:
-                    if interval_size == 'simple':
-                        self._add_interval(str(interv.generic.semiSimpleDirected))
-                    else:
-                        self._add_interval(str(interv.generic.directed))
+                        if interval_size == 'simple':
+                            self._add_interval(str(interv.generic.semiSimpleDirected))
+                        else:
+                            self._add_interval(str(interv.generic.directed))
 
         # (2.1) If there is a topX or threshold filter, sort by frequency now.
         if self._settings.get('topX') is not None or \
