@@ -337,25 +337,40 @@ You must choose pieces before we can import them.""",
         Start the analysis, but first... check to make sure a user didn't forget to choose the
         "add voice pair" button!
         """
-        # loop through the part checkboxes, see if they're checked
+        # check that all the pieces have at least one part combination selected
+        for each_piece in self.vis_controller.analyzer._list_of_pieces:
+            combos = each_piece[ListOfPieces.parts_combinations]
+            combos = str(combos.toPyObject()) if isinstance(combos, QtCore.QVariant) else str(combos)
+            if '(no selection)' == combos:
+                # we can't analyze, but we *should* tell our user
+                QtGui.QMessageBox.information(None,
+                    'vis',
+                    'You forgot to add part combinations for analysis in at least one piece.',
+                    QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                    QtGui.QMessageBox.Ok)
+                return None
+
+        # See if any of the part-name checkboxes are checked... if so, we gotta warn our user!
         part_cbs_are_checked = False
-        for each_box in self.part_checkboxes:
-            if each_box.isChecked():
-                part_cbs_are_checked = True
-                break
-        # if a checkbox was checked, inform the user they may have made a mistake, and *don't*
-        # start the analysis yet
-        if part_cbs_are_checked:
-            response = QtGui.QMessageBox.question(None,
-                'vis',
-                """At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
+        if self.part_checkboxes is not None:
+            for each_box in self.part_checkboxes:
+                if each_box.isChecked():
+                    part_cbs_are_checked = True
+                    break
+            # if a checkbox was checked, inform the user they may have made a mistake, and *don't*
+            # start the analysis yet
+            if part_cbs_are_checked:
+                response = QtGui.QMessageBox.question(None,
+                    'vis',
+                    """At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
 
 Do you want to go back and add the part combination?""",
-                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
-                QtGui.QMessageBox.Yes)
-            if response == QtGui.QMessageBox.Yes:
-                return
-        # this happens if none of the QCheckBoxes are selected, or if the response is "No"
+                    QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
+                    QtGui.QMessageBox.Yes)
+                if response == QtGui.QMessageBox.Yes:
+                    return None
+
+        # Actually start the experiment
         self._tool_working()
         self.vis_controller.run_the_analysis.emit()
 
