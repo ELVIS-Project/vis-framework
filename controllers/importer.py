@@ -66,7 +66,7 @@ def import_piece(file_path):
             return_score = converter.freezeStr(piece, fmt='pickle')
         return (file_path, return_score, title, part_names)
     except Exception as excep:
-        return str(excep)
+        return (file_path, str(excep))
 
 
 class ImporterThread(QThread):
@@ -111,10 +111,10 @@ class ImporterThread(QThread):
         the imported piece to the list of results.
         """
         self.progress += 1
-        if isinstance(result, str):
-            self._importer.error.emit(result)
-        else:  # it is a tuple
-            print result[-2]
+        if len(result) == 2:
+            msg = "Could not import {0}: {1}".format(*result)
+            self._importer.error.emit(msg)
+        else:
             file_path = result[0]
             self._importer.status.emit(str(int(float(self.progress) / self.num_files * 100)))
             self._importer.status.emit(file_path + ' completed.')

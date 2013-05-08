@@ -243,7 +243,7 @@ class AnalyzerThread(QtCore.QThread):
         that instantiated it.
         """
         self._analyzer = analyzer
-        self.progress = 0.0
+        self.progress = 0
         self._multiprocess = True
         self._pool = None
         super(QtCore.QThread, self).__init__()
@@ -262,13 +262,13 @@ class AnalyzerThread(QtCore.QThread):
         This method adds the resulting AnalysisRecord to the internal list of
         analyses.
         """
+        self.progress += 1
         piece_name, result = result
         if isinstance(result, basestring):
             self._analyzer.error.emit(result)
         else:
-            self.progress += 1.0 / self.num_pieces
-            self._analyzer.status.emit(str(int(self.progress * 100)))
-            self._analyzer.status.emit(piece_name + " completed.")
+            self._analyzer.status.emit(str(int(float(self.progress) / self.num_pieces * 100)))
+            self._analyzer.status.emit(unicode(piece_name) + " completed.")
             for record in result:
                 self._analyzer._list_of_analyses.append(record)
 
@@ -320,8 +320,8 @@ class AnalyzerThread(QtCore.QThread):
         for each_piece in sequential_pieces:
             self.callback(analyze_piece(each_piece))
 
-        # self.progress != 1.0 if a user cancelled before the analyses were completed
-        if self.progress != 1.0:
+        # self.progress != self.num_pieces if a user cancelled before the analyses were completed
+        if self.progress != self.num_pieces:
             return None
 
         self._analyzer.status.emit('100')
