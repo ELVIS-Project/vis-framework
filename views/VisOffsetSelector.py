@@ -1,8 +1,8 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 #-------------------------------------------------------------------------------
-# Program Name:             vis
-# Program Description:      Measures sequences of vertical intervals.
+# Program Name:              vis
+# Program Description:       Measures sequences of vertical intervals.
 #
 # Filename: VisOffsetSelector.py
 # Purpose: The window that allows you to select a note duration for offset.
@@ -16,7 +16,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -30,104 +30,107 @@ The window that allows you to select a note duration for offset.
 
 # Imports from...
 # PyQt4
-from PyQt4 import uic
+from Ui_select_offset import Ui_Select_Offset
+from PyQt4.QtGui import QDialog
 
 
 class VisOffsetSelector(object):
-   '''
-   Display and assign actions for the offset-selection window.
-   '''
+    '''
+    Display and assign actions for the offset-selection window.
+    '''
 
 
 
-   def __init__(self):
-      self.ui = uic.loadUi('views/ui/select_offset.ui')
+    def __init__(self):
+        self.dialog = QDialog()
+        self.ui = Ui_Select_Offset()
+        self.ui.setupUi(self.dialog)
 
 
 
-   def trigger(self):
-      '''
-      Set up and get information from a window that asks the user for an offest
-      value. The return value corresponds to the quarterLength duration the
-      user chose.
-      '''
+    def trigger(self):
+        '''
+        Set up and get information from a window that asks the user for an offest
+        value. The return value corresponds to the quarterLength duration the
+        user chose.
+        '''
 
-      # UI setup stuff
-      #self.select_offset = QtGui.QDialog()
-      #self.setupUi(self.select_offset)
-      self.ui.show()
+        # UI setup stuff
+        #self.select_offset = QtGui.QDialog()
+        #self.setupUi(self.select_offset)
+        self.dialog.show()
 
-      # Setup signals
-      self.ui.btn_submit.clicked.connect(self.submit_button)
-      self.ui.btn_8.clicked.connect(self.button_8)
-      self.ui.btn_4.clicked.connect(self.button_4)
-      self.ui.btn_2.clicked.connect(self.button_2)
-      self.ui.btn_1.clicked.connect(self.button_1)
-      self.ui.btn_0_5.clicked.connect(self.button_0_5)
-      self.ui.btn_0_25.clicked.connect(self.button_0_25)
-      self.ui.btn_0_125.clicked.connect(self.button_0_125)
-      self.ui.btn_0_0625.clicked.connect(self.button_0_0625)
+        # Setup signals
+        self.ui.btn_submit.clicked.connect(self.submit_button)
+        self.ui.btn_8.clicked.connect(self.button_8)
+        self.ui.btn_4.clicked.connect(self.button_4)
+        self.ui.btn_2.clicked.connect(self.button_2)
+        self.ui.btn_1.clicked.connect(self.button_1)
+        self.ui.btn_0_5.clicked.connect(self.button_0_5)
+        self.ui.btn_0_25.clicked.connect(self.button_0_25)
+        self.ui.btn_0_125.clicked.connect(self.button_0_125)
+        self.ui.btn_0_0625.clicked.connect(self.button_0_0625)
 
-      # Variable to hold the currently-selected duration
-      self.current_duration = 0.5
+        # Variable to hold the currently-selected duration
+        self.current_duration = 0.5
 
-      # Show the form!
-      self.ui.exec_()
+        # Show the form!
+        self.dialog.exec_()
 
-      # (User chooses stuff)
+        # (User chooses stuff)
 
-      # Return the currently-selected duration
-      return '[' + str(self.current_duration) + ']'
-
-
-
-   def submit_button(self):
-      self.ui.done(0)
+        # Return the currently-selected duration
+        return '[' + str(self.current_duration) + ']'
 
 
 
-   def button_8(self):
-      self.current_duration = 8.0
-      self.ui.line_music21_duration.setText(str(self.current_duration))
+    def submit_button(self):
+        self.dialog.done(0)
 
 
 
-   def button_4(self):
-      self.current_duration = 4.0
-      self.ui.line_music21_duration.setText(str(self.current_duration))
+    def button_8(self):
+        self.current_duration = 8.0
+        self.ui.line_music21_duration.setText(str(self.current_duration))
 
 
 
-   def button_2(self):
-      self.current_duration = 2.0
-      self.ui.line_music21_duration.setText(str(self.current_duration))
+    def button_4(self):
+        self.current_duration = 4.0
+        self.ui.line_music21_duration.setText(str(self.current_duration))
 
 
 
-   def button_1(self):
-      self.current_duration = 1.0
-      self.ui.line_music21_duration.setText(str(self.current_duration))
+    def button_2(self):
+        self.current_duration = 2.0
+        self.ui.line_music21_duration.setText(str(self.current_duration))
 
 
 
-   def button_0_5(self):
-      self.current_duration = 0.5
-      self.ui.line_music21_duration.setText(str(self.current_duration))
+    def button_1(self):
+        self.current_duration = 1.0
+        self.ui.line_music21_duration.setText(str(self.current_duration))
 
 
 
-   def button_0_25(self):
-      self.current_duration = 0.25
-      self.ui.line_music21_duration.setText(str(self.current_duration))
+    def button_0_5(self):
+        self.current_duration = 0.5
+        self.ui.line_music21_duration.setText(str(self.current_duration))
 
 
 
-   def button_0_125(self):
-      self.current_duration = 0.125
-      self.ui.line_music21_duration.setText(str(self.current_duration))
+    def button_0_25(self):
+        self.current_duration = 0.25
+        self.ui.line_music21_duration.setText(str(self.current_duration))
 
 
 
-   def button_0_0625(self):
-      self.current_duration = 0.0625
-      self.ui.line_music21_duration.setText(str(self.current_duration))
+    def button_0_125(self):
+        self.current_duration = 0.125
+        self.ui.line_music21_duration.setText(str(self.current_duration))
+
+
+
+    def button_0_0625(self):
+        self.current_duration = 0.0625
+        self.ui.line_music21_duration.setText(str(self.current_duration))
