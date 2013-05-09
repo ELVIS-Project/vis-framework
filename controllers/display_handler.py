@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 # PyQt
 from PyQt4 import QtCore, QtGui
 # music21
-from music21 import graph
+from music21 import graph, base
 # vis
 from controller import Controller
 import file_output
@@ -368,6 +368,12 @@ class GraphDisplay(Display):
         """
 
         # prepare the GraphHistogram
+        try:
+            import matplotlib
+            if 'matploblib' in base._missingImport:
+                base._missingImport.remove('matplotlib')
+        except:
+            pass
         g = graph.GraphHistogram(doneAction=None)
         g.setData(self._data)
         g.setTitle('A Chart Produced by vis')

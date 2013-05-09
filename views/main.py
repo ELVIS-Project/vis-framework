@@ -1038,10 +1038,11 @@ Do you want to go back and add the part combination?""",
             # 1.) get the value of the textbox
             enn = str(self.ui.line_values_of_n.text())
             # 2.) Check for [ or ], as in the old style: [3] ... and remove them
-            if enn[0] == '[':
-                enn = enn[1:]
-            if enn[-1] == ']':
-                enn = enn[:-1]
+            if len(enn) > 0:
+                if enn[0] == '[':
+                    enn = enn[1:]
+                if enn[-1] == ']':
+                    enn = enn[:-1]
             # 3.) Try to convert to a single-int list
             try:
                 enn = [int(enn)]
@@ -1051,6 +1052,7 @@ Do you want to go back and add the part combination?""",
                 return None
             # 4.) Everything's good and valid, so let's put it on the list of settings
             list_of_settings.append(('values of n', enn))
+            return 0
 
         # (1) Figure out the settings
         # TODO: ensure these are chosen dynamically, to correspond to the GUI
@@ -1061,7 +1063,10 @@ Do you want to go back and add the part combination?""",
         # (1c) Simple or compound?
         do_simple_or_compound()
         # (1d) Is there a "values_of_n" value?
-        do_values_of_n()
+        if [val for name, val in list_of_settings if name == 'experiment' if 'NGram' in val]:
+            if do_values_of_n() is None:
+                self._tool_experiment()
+                return None
         # (1e) Threshold
         do_threshold()
         # (1f) Top X
