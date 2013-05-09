@@ -87,7 +87,7 @@ class ImporterThread(QThread):
         # flag for whether to use multiprocessing in importing
         self._multiprocess = True
         self.results = []
-        super(QThread, self).__init__()
+        super(ImporterThread, self).__init__()
 
     def prepare(self, pieces):
         """

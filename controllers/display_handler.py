@@ -123,7 +123,7 @@ class Display(object):
         - settings : the optional ExperimentSettings object
         """
         # NOTE: You must re-implement this, and change "object" to "Display"
-        super(object, self).__init__()
+        super(Display, self).__init__()
         self._controller = controller
         self._data = data
         self._settings = settings
@@ -158,10 +158,7 @@ class FileOutputDisplay(Display):
         The filename is determined dynamically by the show() method.
         """
         # NOTE: You do not need to reimplement this method for subclasses.
-        super(Display, self).__init__()
-        self._controller = controller
-        self._data = data
-        self._settings = settings
+        super(FileOutputDisplay, self).__init__(controller, data, settings)
 
     def show(self):
         """
@@ -197,10 +194,7 @@ class SpreadsheetFileDisplay(Display):
         - no header information is appended
         """
         # NOTE: You must re-implement this, and change "object" to "Display"
-        super(Display, self).__init__()
-        self._controller = controller
-        self._data = data
-        self._settings = settings
+        super(SpreadsheetFileDisplay, self).__init__(controller, data, settings)
 
     def show(self):
         """
@@ -254,10 +248,7 @@ class StatisticsListDisplay(Display):
         following two elements are used as table headers for the rest of the data
         """
         # NOTE: You must re-implement this, and change "object" to "Display"
-        super(Display, self).__init__()
-        self._controller = controller
-        self._data = data
-        self._settings = settings
+        super(StatisticsListDisplay, self).__init__(controller, data, settings)
 
     def show(self):
         """
@@ -329,7 +320,7 @@ class VisTextDisplay(Ui_Text_Display):
         result = file_output.file_outputter(self.text, filename, 'OVERWRITE')
         if result[1] is not None:
             QtGui.QMessageBox.information(None,
-                self.trUtf8("File Output Failed"),
+                'File Output Failed',
                 result[1],
                 QtGui.QMessageBox.StandardButtons(
                     QtGui.QMessageBox.Ok),
@@ -359,10 +350,7 @@ class GraphDisplay(Display):
         - settings : the optional ExperimentSettings object, ignored in GraphDisplay
         """
         # NOTE: You must re-implement this, and change "object" to "Display"
-        super(Display, self).__init__()
-        self._controller = controller
-        self._data = data
-        self._settings = settings
+        super(GraphDisplay, self).__init__(controller, data, settings)
 
     def show(self):
         """
@@ -378,19 +366,19 @@ class GraphDisplay(Display):
                 base._missingImport.remove('matplotlib')
         except:
             pass
-        g = graph.GraphHistogram(doneAction=None)
-        g.setData(self._data)
-        g.setTitle('A Chart Produced by vis')
+        the_graph = graph.GraphHistogram(doneAction=None)
+        the_graph.setData(self._data)
+        the_graph.setTitle('A Chart Produced by vis')
 
         # figure out x-axis ticks
         garbage_tick_list = []
         for i in xrange(len(self._data)):
             garbage_tick_list.append((i + 0.4, self._data[i][0]))
-        g.setTicks('x', garbage_tick_list)
-        g.xTickLabelHorizontalAlignment = 'center'
-        setattr(g, 'xTickLabelRotation', 45)
-        g.setAxisLabel('x', 'Object')
-        g.setAxisLabel('y', 'Number')
+        the_graph.setTicks('x', garbage_tick_list)
+        the_graph.xTickLabelHorizontalAlignment = 'center'
+        setattr(the_graph, 'xTickLabelRotation', 45)
+        the_graph.setAxisLabel('x', 'Object')
+        the_graph.setAxisLabel('y', 'Number')
 
         # figured out y-axis ticks
         max_height = max([i[1] for i in self._data])
@@ -400,28 +388,32 @@ class GraphDisplay(Display):
         while k * tick_dist <= max_height:
             k += 1
             ticks.append(k * tick_dist)
-        g.setTicks('y', [(k, k) for k in ticks])
+        the_graph.setTicks('y', [(k, k) for k in ticks])
 
         # process and show the data; emit completion signal
         # BEGIN SEGMENT COPIED FROM graph.py
         # figure size can be set w/ figsize=(5,10)
-        g.fig = plt.figure()
-        g.fig.subplots_adjust(left=0.15)
-        ax = g.fig.add_subplot(1, 1, 1)
+        the_graph.fig = plt.figure()
+        the_graph.fig.subplots_adjust(left=0.15)
+        the_subplot = the_graph.fig.add_subplot(1, 1, 1)
 
-        x = []
-        y = []
-        binWidth = g.binWidth
+        list_of_x = []
+        list_of_y = []
         color = graph.getColor('Steel Blue')
         for ecks in xrange(len(self._data)):
-            x.append(ecks + 0.4)
-            y.append(self._data[ecks][1])
-        ax.bar(x, y, width=binWidth, alpha=g.alpha, color=color, edgecolor=color)
+            list_of_x.append(ecks + 0.4)
+            list_of_y.append(self._data[ecks][1])
+        the_subplot.bar(list_of_x,
+            list_of_y,
+            width=the_graph.binWidth,
+            alpha=the_graph.alpha,
+            color=color,
+            edgecolor=color)
 
-        g._adjustAxisSpines(ax)
-        g._applyFormatting(ax)
-        g.done()
+        the_graph._adjustAxisSpines(the_subplot)
+        the_graph._applyFormatting(the_subplot)
+        the_graph.done()
         # END SEGMENT COPIED FROM graph.py
 
-        g.show()
+        the_graph.show()
         self._controller.display_shown.emit()

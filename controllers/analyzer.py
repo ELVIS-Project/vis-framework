@@ -102,8 +102,8 @@ def analyze_piece(each_piece):
             records.append(_event_finder(parts=this_parts,
                                          settings=this_settings,
                                          record=this_record))
-        except RuntimeError as e:
-            return (piece_name, str(e))
+        except RuntimeError as excep:
+            return (piece_name, str(excep))
     return (piece_name, records)
 
 
@@ -155,7 +155,7 @@ def _event_finder(parts, settings, record):
             return this_obj.offset
 
     # Make an iterable out of the list of types we'll need, so it's easier to pass as an argument
-    list_of_types = [each_type for each_type, name in settings.types]
+    list_of_types = [each_type for each_type, _ in settings.types]
 
     # 1.) Flatten the parts
     parts = [p.flat for p in parts]
@@ -244,6 +244,7 @@ class AnalyzerThread(QtCore.QThread):
         """
         self._analyzer = analyzer
         self.progress = 0
+        self.num_pieces = 0
         self._multiprocess = True
         self._pool = None
         super(QtCore.QThread, self).__init__()

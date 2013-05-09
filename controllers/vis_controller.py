@@ -22,13 +22,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-'''
+"""
 Holds the VisController objects for the various GUIs.
-'''
+"""
 
 # Imports from...
-# Python
-import sys
 # vis
 from views.main import VisQtMainWindow
 from controllers.controller import Controller
@@ -42,7 +40,7 @@ from PyQt4 import QtCore
 
 
 class VisController(Controller):
-    '''
+    """
     Main GUI Controller. Although there is a dependency on QtCore, for the PyQt
     signals-and-slots mechanism, we must try to avoid using QtGui methods as
     much as possible, so that, in the future, we can use other GUIs without
@@ -55,7 +53,7 @@ class VisController(Controller):
     by the other controller subclasses.
 
     TODO: doctest
-    '''
+    """
     # NOTE: We will have to rewrite most of this class when we want to implement
     # other (non-PyQt4) interfaces, but the use patterns, and maybe even the
     # algorithms, should stay mostly the same.
@@ -88,7 +86,7 @@ class VisController(Controller):
     # self.displayer = DisplayHandler()
 
     def __init__(self, arg, interface='PyQt4', details=None):
-        '''
+        """
         Create a new VisController instance.
 
         The first argument, "interface", is a string specifying which GUI to use:
@@ -98,11 +96,11 @@ class VisController(Controller):
 
         The second argument, "details", is a list of arguments specifying settings
         to be used when creating the specific interface. So far, there are none.
-        '''
+        """
         super(Controller, self).__init__()  # required for signals
 
         # 1.) Setup things we need to know
-        self.UI_type = interface
+        self.ui_type = interface
         self.app = QApplication(arg)
         # NOTE: this will change when we allow multiple interfaces
         # NOTE-2: we should do this before the sub-controllers are setup, because
@@ -162,6 +160,7 @@ class VisController(Controller):
             (self.importer.status, self.processEvents),
             (self.analyzer.status, self.processEvents),
             (self.experimenter.status, self.processEvents),
+            (self.displayer.status, self.processEvents),
             # TODO: connect these signals
             # self.importer.add_remove_success
             # self.change_settings ????????
@@ -175,24 +174,24 @@ class VisController(Controller):
 
     @QtCore.pyqtSlot()
     def prepare_import(self):
-        '''
+        """
         Emits the signal Importer.import_pieces with the proper argument. This is
         needed because the GUI doesn't have access to the Analyzer controller,
         and therefore can't know where the proper ListOfPieces is.
-        '''
+        """
         # Signal the Importer to run the import process
         self.importer.run_import.emit(self.analyzer._list_of_pieces)
 
     def processEvents(self, *args):
-        '''
+        """
         This method is just an interface to 'forget' the arguments of a signal
         which requires updating the GUI.
-        '''
+        """
         self.app.processEvents()
 
     def exec_(self):
-        '''
+        """
         Runs the application.
-        '''
+        """
         return self.app.exec_()
 # End class VisController ------------------------------------------------------
