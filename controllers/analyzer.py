@@ -280,6 +280,7 @@ class AnalyzerThread(QtCore.QThread):
         self._analyzer.status.emit('0')
         self._analyzer.status.emit('Analyzing...')
         self.num_pieces = self._analyzer._list_of_pieces.rowCount()
+        self.progress = 0
 
         # Convert everything in "each_piece" to *not* a QVariant
         the_pieces = []
