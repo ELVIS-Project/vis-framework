@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/main_window.ui'
 #
-# Created: Wed May  8 21:10:02 2013
+# Created: Wed May  8 22:46:14 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -491,8 +491,8 @@ class Ui_MainWindow(object):
         self.grp_quality.setTitle(_translate("MainWindow", "Interval Quality", None))
         self.rdo_heedQuality.setText(_translate("MainWindow", "Display", None))
         self.rdo_noHeedQuality.setText(_translate("MainWindow", "Ignore", None))
-        self.grp_values_of_n.setTitle(_translate("MainWindow", "Values of N", None))
-        self.label.setText(_translate("MainWindow", "<html><head/><body><p>Please input values as a well-formatted<br/>list of python &quot;int&quot; objects, like this:<br/>[2]<br/>... or...<br/>[2, 3]</p></body></html>", None))
+        self.grp_values_of_n.setTitle(_translate("MainWindow", "Value of N", None))
+        self.label.setText(_translate("MainWindow", "<html><head/><body><p>The length of the n-gram you wish to produce.</p></body></html>", None))
         self.btn_show_results.setText(_translate("MainWindow", "Process and &Show", None))
         self.group_top_x.setTitle(_translate("MainWindow", "\"Top X\" Filter", None))
         self.label_2.setText(_translate("MainWindow", "Show only the ...", None))

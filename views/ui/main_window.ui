@@ -755,13 +755,13 @@
            <item row="0" column="2">
             <widget class="QGroupBox" name="grp_values_of_n">
              <property name="title">
-              <string>Values of N</string>
+              <string>Value of N</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_4">
               <item>
                <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Please input values as a well-formatted&lt;br/&gt;list of python &amp;quot;int&amp;quot; objects, like this:&lt;br/&gt;[2]&lt;br/&gt;... or...&lt;br/&gt;[2, 3]&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The length of the n-gram you wish to produce.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                </widget>
               </item>

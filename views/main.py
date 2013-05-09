@@ -1035,21 +1035,22 @@ Do you want to go back and add the part combination?""",
             """
             Are there values of 'n' specified?
             """
-            # TODO: this has to be done safer... because this is *truly terrible*!
-            # get the potential values of 'n'
-            raw_of_n = str(self.ui.line_values_of_n.text())
-
-            # Try to parse and format everything
+            # 1.) get the value of the textbox
+            enn = str(self.ui.line_values_of_n.text())
+            # 2.) Check for [ or ], as in the old style: [3] ... and remove them
+            if enn[0] == '[':
+                enn = enn[1:]
+            if enn[-1] == ']':
+                enn = enn[:-1]
+            # 3.) Try to convert to a single-int list
             try:
-                raw_of_n = eval(raw_of_n)
-            except SyntaxError:
-                pass
-            else:
-                post = []
-                for thing in raw_of_n:
-                    post.append(int(thing))
-                # Put it onnnnnn
-                list_of_settings.append(('values of n', post))
+                enn = [int(enn)]
+            except ValueError:  # if it fails
+                msg = 'Could not parse "value of n!"'
+                self.report_error.emit(msg)
+                return None
+            # 4.) Everything's good and valid, so let's put it on the list of settings
+            list_of_settings.append(('values of n', enn))
 
         # (1) Figure out the settings
         # TODO: ensure these are chosen dynamically, to correspond to the GUI
