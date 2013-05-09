@@ -370,7 +370,7 @@ class GraphDisplay(Display):
         # prepare the GraphHistogram
         try:
             import matplotlib
-            if 'matploblib' in base._missingImport:
+            if 'matplotlib' in base._missingImport:
                 base._missingImport.remove('matplotlib')
         except:
             pass
