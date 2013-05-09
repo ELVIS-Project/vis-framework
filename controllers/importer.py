@@ -156,9 +156,7 @@ class ImporterThread(QThread):
             self.callback(import_piece(file_path))
 
         # self.progress != self.num_files if a user cancelled the runing job before it finished
-        print 'got here'
         if self.progress != self.num_files:
-            print self.progress, self.num_files
             return None
 
         self._importer.status.emit('Assembling results...')

@@ -29,11 +29,10 @@ Holds the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQ
 # Imports from...
 # Python
 from itertools import chain
-import os
 from os import walk
 from os.path import splitext, join
 # PyQt4
-from PyQt4 import QtGui, uic, QtCore
+from PyQt4 import QtGui, QtCore
 # music21
 from music21 import metadata, converter, stream
 # vis
@@ -340,7 +339,8 @@ You must choose pieces before we can import them.""",
         # check that all the pieces have at least one part combination selected
         for each_piece in self.vis_controller.analyzer._list_of_pieces:
             combos = each_piece[ListOfPieces.parts_combinations]
-            combos = str(combos.toPyObject()) if isinstance(combos, QtCore.QVariant) else str(combos)
+            combos = combos.toPyObject() if isinstance(combos, QtCore.QVariant) else combos
+            combos = str(combos)
             if '(no selection)' == combos:
                 # we can't analyze, but we *should* tell our user
                 QtGui.QMessageBox.information(None,
