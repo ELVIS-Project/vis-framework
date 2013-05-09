@@ -28,6 +28,9 @@
          <property name="toolTip">
           <string>Choose Files</string>
          </property>
+         <property name="text">
+          <string>Importer</string>
+         </property>
          <property name="icon">
           <iconset resource="icons.qrc">
            <normaloff>:/icons/icons/choose_files.png</normaloff>:/icons/icons/choose_files.png</iconset>
@@ -46,6 +49,9 @@
          </property>
          <property name="autoExclusive">
           <bool>true</bool>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextUnderIcon</enum>
          </property>
          <property name="autoRaise">
           <bool>true</bool>
@@ -86,6 +92,9 @@
          <property name="toolTip">
           <string>Prepare and Assemble for Analysis</string>
          </property>
+         <property name="text">
+          <string>Analyzer</string>
+         </property>
          <property name="icon">
           <iconset resource="icons.qrc">
            <normaloff>:/icons/icons/analyze.png</normaloff>:/icons/icons/analyze.png</iconset>
@@ -104,6 +113,9 @@
          </property>
          <property name="autoExclusive">
           <bool>true</bool>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextUnderIcon</enum>
          </property>
          <property name="autoRaise">
           <bool>true</bool>
@@ -145,7 +157,7 @@
           <string>Show and Save Results</string>
          </property>
          <property name="text">
-          <string/>
+          <string>Experimenter</string>
          </property>
          <property name="icon">
           <iconset resource="icons.qrc">
@@ -162,6 +174,9 @@
          </property>
          <property name="autoExclusive">
           <bool>true</bool>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextUnderIcon</enum>
          </property>
          <property name="autoRaise">
           <bool>true</bool>
@@ -219,9 +234,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <widget class="QGroupBox" name="grp_choose_files">
-          <property name="title">
-           <string>Importer</string>
-          </property>
           <layout class="QGridLayout" name="gridLayout_4">
            <item row="0" column="1">
             <spacer name="horizontalSpacer_2">
@@ -328,9 +340,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_23">
         <item>
          <widget class="QGroupBox" name="groupBox">
-          <property name="title">
-           <string>Analyzer</string>
-          </property>
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="4" column="4">
             <spacer name="spacer_select_piece_1">
@@ -570,9 +579,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QGroupBox" name="groupBox_2">
-          <property name="title">
-           <string>Experimenter</string>
-          </property>
           <layout class="QGridLayout" name="gridLayout">
            <item row="4" column="0">
             <spacer name="verticalSpacer_3">
@@ -975,7 +981,7 @@
            <item>
             <widget class="QLabel" name="label_copyright">
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;vis 9 (Branched and Revised for the 11 May 2013 CIRMMT Workshop)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan&lt;/p&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify&lt;br/&gt;it under the terms of the GNU General Public License as published by&lt;br/&gt;the Free Software Foundation, either version 3 of the License, or&lt;br/&gt;(at your option) any later version.&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful,&lt;br/&gt;but WITHOUT ANY WARRANTY; without even the implied warranty of&lt;br/&gt;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the&lt;br/&gt;GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License&lt;br/&gt;along with this program. If not, see &amp;lt;http://www.gnu.org/licenses/&amp;gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;vis 9a (Branched and Revised for the 11 May 2013 CIRMMT Workshop)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan&lt;/p&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify&lt;br/&gt;it under the terms of the GNU General Public License as published by&lt;br/&gt;the Free Software Foundation, either version 3 of the License, or&lt;br/&gt;(at your option) any later version.&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful,&lt;br/&gt;but WITHOUT ANY WARRANTY; without even the implied warranty of&lt;br/&gt;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the&lt;br/&gt;GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License&lt;br/&gt;along with this program. If not, see &amp;lt;http://www.gnu.org/licenses/&amp;gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </item>

@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/select_offset.ui'
 #
-# Created: Thu May  9 12:00:15 2013
-#      by: PyQt4 UI code generator 4.9.4
+# Created: Thu May  9 18:12:07 2013
+#      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,7 +12,16 @@ from PyQt4 import QtCore, QtGui
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    _fromUtf8 = lambda s: s
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_Select_Offset(object):
     def setupUi(self, Select_Offset):
@@ -127,10 +136,10 @@ class Ui_Select_Offset(object):
         QtCore.QMetaObject.connectSlotsByName(Select_Offset)
 
     def retranslateUi(self, Select_Offset):
-        Select_Offset.setWindowTitle(QtGui.QApplication.translate("Select_Offset", "Choose an Offset Duration", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("Select_Offset", "music21 Duration:", None, QtGui.QApplication.UnicodeUTF8))
-        self.line_music21_duration.setText(QtGui.QApplication.translate("Select_Offset", "0.5", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_0_125.setText(QtGui.QApplication.translate("Select_Offset", "32nd", None, QtGui.QApplication.UnicodeUTF8))
-        self.btn_all.setText(QtGui.QApplication.translate("Select_Offset", "all", None, QtGui.QApplication.UnicodeUTF8))
+        Select_Offset.setWindowTitle(_translate("Select_Offset", "Choose an Offset Duration", None))
+        self.label.setText(_translate("Select_Offset", "music21 Duration:", None))
+        self.line_music21_duration.setText(_translate("Select_Offset", "0.5", None))
+        self.btn_0_125.setText(_translate("Select_Offset", "32nd", None))
+        self.btn_all.setText(_translate("Select_Offset", "all", None))
 
 import icons_rc

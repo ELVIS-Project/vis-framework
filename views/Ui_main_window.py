@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/main_window.ui'
 #
-# Created: Wed May  8 22:46:14 2013
+# Created: Thu May  9 18:12:07 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -47,6 +47,7 @@ class Ui_MainWindow(object):
         self.btn_choose_files.setCheckable(True)
         self.btn_choose_files.setChecked(True)
         self.btn_choose_files.setAutoExclusive(True)
+        self.btn_choose_files.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.btn_choose_files.setAutoRaise(True)
         self.btn_choose_files.setObjectName(_fromUtf8("btn_choose_files"))
         self.horizontalLayout.addWidget(self.btn_choose_files)
@@ -69,6 +70,7 @@ class Ui_MainWindow(object):
         self.btn_analyze.setCheckable(True)
         self.btn_analyze.setChecked(False)
         self.btn_analyze.setAutoExclusive(True)
+        self.btn_analyze.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.btn_analyze.setAutoRaise(True)
         self.btn_analyze.setObjectName(_fromUtf8("btn_analyze"))
         self.horizontalLayout.addWidget(self.btn_analyze)
@@ -82,13 +84,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.btn_step2)
         self.btn_experiment = QtGui.QToolButton(self.function_menu)
         self.btn_experiment.setEnabled(False)
-        self.btn_experiment.setText(_fromUtf8(""))
         icon4 = QtGui.QIcon()
         icon4.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/icons/show_results.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.btn_experiment.setIcon(icon4)
         self.btn_experiment.setIconSize(QtCore.QSize(64, 64))
         self.btn_experiment.setCheckable(True)
         self.btn_experiment.setAutoExclusive(True)
+        self.btn_experiment.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.btn_experiment.setAutoRaise(True)
         self.btn_experiment.setObjectName(_fromUtf8("btn_experiment"))
         self.horizontalLayout.addWidget(self.btn_experiment)
@@ -453,17 +455,18 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "vis", None))
         self.btn_choose_files.setToolTip(_translate("MainWindow", "Choose Files", None))
+        self.btn_choose_files.setText(_translate("MainWindow", "Importer", None))
         self.btn_step1.setToolTip(_translate("MainWindow", "Continue to Step 2", None))
         self.btn_analyze.setToolTip(_translate("MainWindow", "Prepare and Assemble for Analysis", None))
+        self.btn_analyze.setText(_translate("MainWindow", "Analyzer", None))
         self.btn_step2.setToolTip(_translate("MainWindow", "Continue to the Step 3", None))
         self.btn_experiment.setToolTip(_translate("MainWindow", "Show and Save Results", None))
+        self.btn_experiment.setText(_translate("MainWindow", "Experimenter", None))
         self.btn_about.setToolTip(_translate("MainWindow", "About \"vis\"", None))
-        self.grp_choose_files.setTitle(_translate("MainWindow", "Importer", None))
         self.label_3.setText(_translate("MainWindow", "Add files to the list so they will be imported.", None))
         self.btn_dir_add.setToolTip(_translate("MainWindow", "Add Directory", None))
         self.btn_file_add.setToolTip(_translate("MainWindow", "Add Files", None))
         self.btn_file_remove.setToolTip(_translate("MainWindow", "Remove Selected Items", None))
-        self.groupBox.setTitle(_translate("MainWindow", "Analyzer", None))
         self.lbl_select_piece.setText(_translate("MainWindow", "Select piece(s) to see possible settings.", None))
         self.grp_settings_for_piece.setTitle(_translate("MainWindow", "Settings for Selected Piece", None))
         self.btn_add_check_combo.setText(_translate("MainWindow", "Add Combination", None))
@@ -476,7 +479,6 @@ class Ui_MainWindow(object):
         self.chk_all_voice_combos.setText(_translate("MainWindow", "All Voice Pairs", None))
         self.lbl_piece_title.setText(_translate("MainWindow", "Piece Title:", None))
         self.chk_repeat_identical.setText(_translate("MainWindow", "Repeat consecutive identical events", None))
-        self.groupBox_2.setTitle(_translate("MainWindow", "Experimenter", None))
         self.grp_octaves.setTitle(_translate("MainWindow", "Octaves", None))
         self.rdo_compound.setText(_translate("MainWindow", "Compound Intervals", None))
         self.rdo_simple.setText(_translate("MainWindow", "Simple Intervals", None))
@@ -504,7 +506,7 @@ class Ui_MainWindow(object):
         self.lbl_currently_processing.setText(_translate("MainWindow", "(processing)", None))
         self.btn_cancel_operation.setText(_translate("MainWindow", "Cancel Operation", None))
         self.groupBox_4.setTitle(_translate("MainWindow", "Information about vis", None))
-        self.label_copyright.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" text-decoration: underline;\">vis 9 (Branched and Revised for the 11 May 2013 CIRMMT Workshop)</span></p><p>Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan</p><p>This program is free software: you can redistribute it and/or modify<br/>it under the terms of the GNU General Public License as published by<br/>the Free Software Foundation, either version 3 of the License, or<br/>(at your option) any later version.</p><p>This program is distributed in the hope that it will be useful,<br/>but WITHOUT ANY WARRANTY; without even the implied warranty of<br/>MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the<br/>GNU General Public License for more details.</p><p>You should have received a copy of the GNU General Public License<br/>along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.</p></body></html>", None))
+        self.label_copyright.setText(_translate("MainWindow", "<html><head/><body><p><span style=\" text-decoration: underline;\">vis 9a (Branched and Revised for the 11 May 2013 CIRMMT Workshop)</span></p><p>Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan</p><p>This program is free software: you can redistribute it and/or modify<br/>it under the terms of the GNU General Public License as published by<br/>the Free Software Foundation, either version 3 of the License, or<br/>(at your option) any later version.</p><p>This program is distributed in the hope that it will be useful,<br/>but WITHOUT ANY WARRANTY; without even the implied warranty of<br/>MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the<br/>GNU General Public License for more details.</p><p>You should have received a copy of the GNU General Public License<br/>along with this program. If not, see &lt;http://www.gnu.org/licenses/&gt;.</p></body></html>", None))
         self.label_about.setText(_translate("MainWindow", "<html><head/><body><p>vis was written as part of McGill University\'s contribution to the ELVIS project.<br/>For more information about ELVIS, please refer to our <a href=\"http://elvis.music.mcgill.ca/\"><span style=\" text-decoration: underline; color:#0057ae;\">web site</span></a>.</p><p>Funding for ELVIS was provided by the following organizations:<br/>- SSHRC (Social Sciences and Humanities Research Council) of Canada<br/>- NEH (National Endowment for the Humanities) of the United States of America<br/>- The Digging into Data Challenge</p><p>vis is written in the Python programming language, and relies on the following<br/>software, all released under free licences:<br/>- <a href=\"http://mit.edu/music21/\"><span style=\" text-decoration: underline; color:#0057ae;\">music21<br/></span></a>- <a href=\"http://www.riverbankcomputing.co.uk/software/pyqt/download\"><span style=\" text-decoration: underline; color:#0057ae;\">PyQt4</span></a><br/>- <a href=\"http://www.oxygen-icons.org/\"><span style=\" text-decoration: underline; color:#0057ae;\">Oxygen Icons</span></a></p></body></html>", None))
 
 import icons_rc
