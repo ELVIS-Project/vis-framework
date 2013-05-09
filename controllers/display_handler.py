@@ -56,6 +56,8 @@ class DisplayHandler(Controller):
     display_shown = QtCore.pyqtSignal()
     # description of an error in the DisplayHandler
     error = QtCore.pyqtSignal(str)
+    # obvious
+    status = QtCore.pyqtSignal(str)
 
     def __init__(self):
         """
@@ -98,6 +100,8 @@ class DisplayHandler(Controller):
 
         # (2) Instantiate and show the display
         this_display = display_type(self, signal_result[1])
+        msg = 'Results are displayed. Please close the display to continue using vis.'
+        self.status.emit(msg)
         this_display.show()
 
         # (3) Send the signal of success

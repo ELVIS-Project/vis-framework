@@ -139,6 +139,7 @@ class VisController(Controller):
             (self.importer.status, self.window.update_progress.emit),
             (self.analyzer.status, self.window.update_progress.emit),
             (self.experimenter.status, self.window.update_progress.emit),
+            (self.displayer.status, self.window.update_progress.emit),
             # error
             (self.importer.error, self.window.report_error.emit),
             (self.analyzer.error, self.window.report_error.emit),
