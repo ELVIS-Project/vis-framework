@@ -370,6 +370,16 @@ Do you want to go back and add the part combination?""",
                 if response == QtGui.QMessageBox.Yes:
                     return None
 
+        # final step: see which objects they want us to analyze
+        which_objects = []
+        if self.ui.chk_find_chords.isChecked():
+            which_objects.append('chords')
+        if self.ui.chk_find_notes.isChecked():
+            which_objects.append('notes')
+        if self.ui.chk_find_rests.isChecked():
+            which_objects.append('rests')
+        self.vis_controller.analyzer.which_objects = which_objects
+
         # Actually start the experiment
         self._tool_working()
         self.vis_controller.run_the_analysis.emit()

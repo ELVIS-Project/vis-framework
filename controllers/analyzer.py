@@ -39,7 +39,7 @@ from controller import Controller
 from models.analyzing import ListOfPieces, AnalysisRecord, AnalysisSettings
 
 
-def analyze_piece(each_piece):
+def analyze_piece(each_piece, which_objects):
     """
     This method basically only prepares things for _event_finder().
     """
@@ -84,10 +84,13 @@ def analyze_piece(each_piece):
         # TODO: figure this dynamically
         # TODO: formalize the lambda things somehow
         # NOTE: 'c' is for 'Chord' and 'm' is for 'chord Member'
-        chords_lambda = lambda c: [m.nameWithOctave for m in c]
-        this_types = [(note.Note, lambda x: x.nameWithOctave),
-                      (note.Rest, lambda x: 'Rest'),
-                      (chord.Chord, chords_lambda)]
+        this_types = []
+        if 'notes' in which_objects:
+            this_types.append((note.Note, lambda x: x.nameWithOctave))
+        if 'rests' in which_objects:
+            this_types.append((note.Rest, lambda x: 'Rest'))
+        if 'chords' in which_objects:
+            this_types.append((chord.Chord, lambda c: [m.nameWithOctave for m in c]))
         # prepare the AnalysisRecord object
         this_record = AnalysisRecord(metadata=this_metadata,
             part_names=this_part_names,
@@ -283,6 +286,13 @@ class AnalyzerThread(QtCore.QThread):
         self.num_pieces = self._analyzer._list_of_pieces.rowCount()
         self.progress = 0
 
+        # figure out 'which_objects,' to make sure we have a valid/useful list
+        which_objects = []
+        if self._analyzer.which_objects is None:
+            which_objects = ['notes', 'rests']
+        else:
+            which_objects = self._analyzer.which_objects
+
         # Convert everything in "each_piece" to *not* a QVariant
         the_pieces = []
         for each_raw_piece in self._analyzer._list_of_pieces:
@@ -311,7 +321,7 @@ class AnalyzerThread(QtCore.QThread):
         for each_piece in multiprocess_pieces:
             # Load up the stuff in the Pool!
             self._pool.apply_async(analyze_piece,
-                                   (each_piece,),
+                                   (each_piece, which_objects,),
                                    callback=self.callback)
         # Wait for the multiprocessing to finish
         self._pool.close()
@@ -320,7 +330,7 @@ class AnalyzerThread(QtCore.QThread):
 
         # Start up the sequential analysis
         for each_piece in sequential_pieces:
-            self.callback(analyze_piece(each_piece))
+            self.callback(analyze_piece(each_piece, which_objects))
 
         # self.progress != self.num_pieces if a user cancelled before the analyses were completed
         if self.progress != self.num_pieces:
