@@ -351,14 +351,24 @@ class IntervalsLists(Experiment):
                     horizontal = the_formatter(Interval(Note(first_lower), Note(second_lower)),
                         True)
 
-                # make the 3-tuplet to append to the list
+                # make the 3-tuple to append to the list
                 put_me = (vertical, horizontal, offset)
 
                 data.append(put_me)
 
             # finally, add the last row, which has no horizontal connection
             last = record[-1]
-            last_vertical = the_formatter(Interval(Note(last[1][0]), Note(last[1][1])))
+            last_upper = None
+            last_lower = None
+            last_vertical = None
+            if 'Rest' == last[1][0]:
+                last_upper = 'Rest'
+            if 'Rest' == last[1][1]:
+                last_lower = 'Rest'
+            if last_upper is not None or last_lower is not None:
+                last_vertical = 'N/A'
+            else:
+                last_vertical = the_formatter(Interval(Note(last[1][0]), Note(last[1][1])))
             data.append((last_vertical, None, last[0]))
 
         return data
