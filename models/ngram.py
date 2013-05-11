@@ -36,6 +36,7 @@ transformations.
 # Python
 import re
 # music21
+from music21 import interval
 from music21.interval import Interval
 from music21.note import Note
 from music21.analysis.neoRiemannian import LRP_combinations as LRP
@@ -315,15 +316,17 @@ class IntervalNGram(NGram):
                 post += ' '
 
             # Calculate this interval
-            this_interval = None
+            this_interval = ''
+            # should we append some letters showing the quality?
+            if show_quality:
+                # NB: this gets the quality letters from the music21.interval module...
+                #     it's kind of a hack job, but whatever
+                this_interval += interval.prefixSpecs[interv.specifier]
+            # append the direction symbol and size
             if 'simple' == simple_or_compound:
-                this_interval = interv.directedSimpleName
+                this_interval += str(interv.generic.semiSimpleDirected)
             else:
-                this_interval = interv.directedName
-
-            # If we're ignoring quality, remove the quality
-            if not show_quality:
-                this_interval = this_interval[1:]
+                this_interval += str(interv.generic.directed)
 
             # Append this interval
             post += this_interval

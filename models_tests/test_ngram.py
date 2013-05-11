@@ -225,6 +225,18 @@ class TestIntervalNGram(unittest.TestCase):
       self.assertEqual(IntervalNGram(self.f).get_string_version(False,'simple'), '3 -2 -3')
       self.assertEqual(IntervalNGram(self.g).get_string_version(False,'simple'), '3 +4 2 -6 5 +2 -3')
 
+   def test_string_version_9(self):
+      # This test ensure you don't get something like '7 1 6 -2 1' when you choose "simple" when
+      # it should instead be '7 1 6 -2 8'.
+      intervs = [interval.Interval(note.Note('C4'),note.Note('B4')),
+                 interval.Interval(note.Note('C4'),note.Note('A4')),
+                 interval.Interval(note.Note('B-3'),note.Note('B-4'))]
+      tester = IntervalNGram(intervs)
+      self.assertEqual(tester.get_string_version(False, 'simple'), '7 1 6 -2 8')
+      self.assertEqual(tester.get_string_version(True, 'simple'), 'M7 P1 M6 -M2 P8')
+      self.assertEqual(tester.get_string_version(False, 'compound'), '7 1 6 -2 8')
+      self.assertEqual(tester.get_string_version(True, 'compound'), 'M7 P1 M6 -M2 P8')
+
    def test_repr_1(self):
       self.assertEqual(IntervalNGram(self.a).__repr__(), "IntervalNGram([Interval(Note('A4'), Note('C5')), Interval(Note('A4'), Note('C5'))])")
 
