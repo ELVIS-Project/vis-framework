@@ -33,8 +33,7 @@ from multiprocessing import Pool
 # PyQt4
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, Qt, QThread
 # music21
-from music21 import converter
-from music21.stream import Score
+from music21 import converter, stream
 # vis
 from controllers.controller import Controller
 from models import importing, analyzing
@@ -43,7 +42,7 @@ from models import importing, analyzing
 # multiprocessing requires your processes to be declared at module scope, sorry!
 def import_piece(file_path):
     """
-    Given a path to a music21 symbolic music notation file, return a tuple
+    Given a path to a music21 symbolic music notation file, return a list of tuples
     containing a frozen music21.Score and all the pertinent import information
     for the score, or else a string containing any errors that occurred in
     importing.
@@ -56,17 +55,28 @@ def import_piece(file_path):
     NB2: if the imported file is a MIDI file, it won't be pickled, because then it would explode
     """
     try:
+        post = []
+        imported_pieces = []
         piece = converter.parseFile(file_path)
-        title = Importer._find_piece_title(piece)
-        part_names = Importer._find_part_names(piece)
-        _, extension = os.path.splitext(file_path)
-        if '.midi' == extension or '.mid' == extension:
-            return_score = piece
+        if isinstance(piece, stream.Opus):  # many Pieces in this Corpus!
+            for each_piece in piece.scores:
+                each_piece.filePath = piece.filePath
+                imported_pieces.append(each_piece)
         else:
-            return_score = converter.freezeStr(piece, fmt='pickle')
-        return (file_path, return_score, title, part_names)
+            imported_pieces.append(piece)
+
+        for each_piece in imported_pieces:
+            title = Importer._find_piece_title(each_piece)
+            part_names = Importer._find_part_names(each_piece)
+            _, extension = os.path.splitext(file_path)
+            if '.midi' == extension or '.mid' == extension:
+                return_score = each_piece
+            else:
+                return_score = converter.freezeStr(each_piece, fmt='pickle')
+            post.append((file_path, return_score, title, part_names))
+        return post
     except Exception as excep:
-        return (file_path, str(excep))
+        return [(file_path, str(excep))]
 
 
 class ImporterThread(QThread):
@@ -109,16 +119,19 @@ class ImporterThread(QThread):
         Each time an import process is completed, either report any
         errors which occurred, or update the progress status and append
         the imported piece to the list of results.
+
+        Input is a list of tuples.
         """
-        self.progress += 1
-        if len(result) == 2:
-            msg = "Could not import {0}: {1}".format(*result)
-            self._importer.error.emit(msg)
-        else:
-            file_path = result[0]
-            self._importer.status.emit(str(int(float(self.progress) / self.num_files * 100)))
-            self._importer.status.emit(file_path + ' completed.')
-            self.results.append(result)
+        for each_thing in result:
+            self.progress += 1
+            if len(each_thing) == 2:
+                msg = "Could not import {0}: {1}".format(*each_thing)
+                self._importer.error.emit(msg)
+            else:
+                file_path = each_thing[0]
+                self._importer.status.emit(str(int(float(self.progress) / self.num_files * 100)))
+                self._importer.status.emit(file_path + ' completed.')
+                self.results.append(each_thing)
 
     def run(self):
         """
@@ -155,8 +168,8 @@ class ImporterThread(QThread):
         for file_path in sequential_files:
             self.callback(import_piece(file_path))
 
-        # self.progress != self.num_files if a user cancelled the runing job before it finished
-        if self.progress != self.num_files:
+        # self.progress < self.num_files if a user cancelled the runing job before it finished
+        if self.progress < self.num_files:
             return None
 
         self._importer.status.emit('Assembling results...')
@@ -202,7 +215,7 @@ class Importer(Controller):
     # description of an error in the Importer
     error = pyqtSignal(str)
     # signal for each individual import
-    piece_gotten = pyqtSignal(Score, str)
+    piece_gotten = pyqtSignal(stream.Score, str)
     # informs the GUI of the status for a currently-running import (if two or
     # three characters followed by a '%' then it should try to update a
     # progress bar, if available)
@@ -421,8 +434,10 @@ class Importer(Controller):
         # exist, use the filename without directory.
         if the_score.metadata is not None:
             post = the_score.metadata.title
-        else:
+        elif hasattr(the_score, 'filePath'):
             post = os.path.basename(the_score.filePath)
+        else:  # if the Score was part of an Opus
+            post = u'Unknown Piece'
 
         # Now check that there is no file extension. This could happen either if
         # we used the filename or if music21 did a less-than-great job at the
