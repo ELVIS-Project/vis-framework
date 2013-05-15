@@ -1,0 +1,12 @@
+After you recompile the UI files, you need to edit "Ui_main_window.py"
+
+Change this line:
+        self.gui_pieces_list = QtGui.QTableView(self.groupBox)
+
+To these lines:
+        class GuiPiecesList(QtGui.QTableView):
+            selection_changed = QtCore.pyqtSignal()
+            def selectionChanged(self, selected, deselected):
+                self.selection_changed.emit()
+                super(GuiPiecesList, self).selectionChanged(selected, deselected)
+        self.gui_pieces_list = GuiPiecesList(self.groupBox)

@@ -228,7 +228,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -702,8 +702,15 @@
                 <property name="text">
                  <string>Chart/Graph</string>
                 </property>
-                <property name="checked">
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rdo_score">
+                <property name="enabled">
                  <bool>false</bool>
+                </property>
+                <property name="text">
+                 <string>Score</string>
                 </property>
                </widget>
               </item>
@@ -762,6 +769,13 @@
                 </property>
                 <property name="text">
                  <string>Chord N-grams</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="rdo_consider_score">
+                <property name="text">
+                 <string>Score</string>
                 </property>
                </widget>
               </item>

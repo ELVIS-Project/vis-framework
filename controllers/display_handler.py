@@ -37,6 +37,7 @@ from music21 import graph, base
 from controller import Controller
 import file_output
 from Ui_text_display import Ui_Text_Display
+import OutputLilyPond
 
 
 class DisplayHandler(Controller):
@@ -97,6 +98,8 @@ class DisplayHandler(Controller):
                 display_type = StatisticsListDisplay
             elif 'GraphDisplay' in signal_result[0]:
                 display_type = GraphDisplay
+            elif 'LilyPondDisplay' in signal_result[0]:
+                display_type = LilyPondDisplay
 
         # (2) Instantiate and show the display
         this_display = display_type(self, signal_result[1])
@@ -416,4 +419,40 @@ class GraphDisplay(Display):
         # END SEGMENT COPIED FROM graph.py
 
         the_graph.show()
+        self._controller.display_shown.emit()
+
+
+class LilyPondDisplay(Display):
+    """
+    Prepares a
+    """
+
+    def __init__(self, controller, data, settings=None):
+        """
+        Create a new LilyPondDisplay.
+
+        There are three arguments, the first two of which are mandatory:
+        - controller : the DisplayHandler controller to which this Display belongs
+        - data : argument of any type, as required by the Display subclass
+        - settings : the optional ExperimentSettings object
+        """
+        super(LilyPondDisplay, self).__init__(controller, data, settings)
+
+    def show(self):
+        """
+        Show the data in the display.
+
+        This method emits a VisSignals.display_shown signal when it finishes.
+        """
+        for i in xrange(len(self._data)):
+            ly_me = file_output.file_outputter(self._data[i],
+                'test_output/vis-' + str(i),
+                '.ly')
+            if ly_me[1] is not None:
+                # There was an error while writing the file, so we can't continue
+                msg = 'File output problem in LilyPondDisplay: \n' + str(ly_me[1])
+                self._controller.error.emit(msg)
+                return
+            else:
+                OutputLilyPond.run_lilypond(ly_me[0])
         self._controller.display_shown.emit()

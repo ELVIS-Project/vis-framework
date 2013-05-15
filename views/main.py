@@ -104,6 +104,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.rdo_consider_chord_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
+            (self.ui.rdo_consider_score.clicked, self._update_experiment_from_object),
             (self.ui.chk_repeat_identical.stateChanged, self._update_repeat_identical),
             (self.ui.btn_cancel_operation.clicked, self._cancel_operation),
             (self.ui.rdo_spreadsheet.clicked, self._output_format_changed),
@@ -988,7 +989,7 @@ Do you want to go back and add the part combination?""",
 
             if self.ui.rdo_consider_intervals.isChecked():
                 if self.ui.rdo_spreadsheet.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalsList'))
+                    list_of_settings.append(('experiment', 'IntervalsLists'))
                     list_of_settings.append(('output format', 'SpreadsheetFile'))
                 elif self.ui.rdo_list.isChecked():
                     list_of_settings.append(('experiment', 'IntervalsStatistics'))
@@ -996,6 +997,10 @@ Do you want to go back and add the part combination?""",
                 elif self.ui.rdo_chart.isChecked():
                     list_of_settings.append(('experiment', 'IntervalsStatistics'))
                     list_of_settings.append(('output format', 'GraphDisplay'))
+                elif self.ui.rdo_score.isChecked():
+                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
+                    list_of_settings.append(('lilypond helper', 'IntervalsLists'))
+                    list_of_settings.append(('output format', 'LilyPondDisplay'))
             elif self.ui.rdo_consider_chord_ngrams.isChecked():
                 list_of_settings.append(('experiment', 'ChordsList'))
                 list_of_settings.append(('output format', 'SpreadsheetFile'))
@@ -1006,6 +1011,13 @@ Do you want to go back and add the part combination?""",
                 elif self.ui.rdo_chart.isChecked():
                     list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
                     list_of_settings.append(('output format', 'GraphDisplay'))
+                elif self.ui.rdo_score.isChecked():
+                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
+                    list_of_settings.append(('lilypond helper', 'IntervalNGramStatistics'))
+                    list_of_settings.append(('output format', 'LilyPondDisplay'))
+            elif self.ui.rdo_consider_score.isChecked():
+                list_of_settings.append(('experiment', 'LilyPondExperiment'))
+                list_of_settings.append(('output format', 'LilyPondDisplay'))
 
         def do_threshold():
             """
@@ -1103,7 +1115,8 @@ Do you want to go back and add the part combination?""",
                             self.ui.rdo_chart,
                             self.ui.grp_octaves,
                             self.ui.grp_quality,
-                            self.ui.grp_values_of_n]
+                            self.ui.grp_values_of_n,
+                            self.ui.rdo_score]
 
         def on_offer(enable_these):
             """
@@ -1124,12 +1137,14 @@ Do you want to go back and add the part combination?""",
 
         if self.ui.rdo_consider_intervals.isChecked():
             which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_octaves, self.ui.grp_quality,
-                            self.ui.rdo_list, self.ui.rdo_chart]
+                            self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_score]
         elif self.ui.rdo_consider_interval_ngrams.isChecked():
             which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
                             self.ui.grp_quality, self.ui.rdo_chart]
         elif self.ui.rdo_consider_chord_ngrams.isChecked():
             which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n]
+        elif self.ui.rdo_consider_score.isChecked():
+            which_to_enable = [self.ui.rdo_score]
 
         # Run the on_offer()
         on_offer(which_to_enable)

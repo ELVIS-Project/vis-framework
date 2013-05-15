@@ -92,7 +92,9 @@ def analyze_piece(each_piece, which_objects):
         if 'chords' in which_objects:
             this_types.append((chord.Chord, lambda c: [m.nameWithOctave for m in c]))
         # prepare the AnalysisRecord object
-        this_record = AnalysisRecord(metadata=this_metadata,
+        this_record = AnalysisRecord(
+            pathname=each_piece[ListOfPieces.filename],
+            metadata=this_metadata,
             part_names=this_part_names,
             offset=this_offset,
             salami=this_salami)

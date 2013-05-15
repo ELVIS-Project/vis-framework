@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/main_window.ui'
 #
-# Created: Fri May 10 11:55:56 2013
+# Created: Tue May 14 18:00:48 2013
 #      by: PyQt4 UI code generator 4.10
 #
 # WARNING! All changes made in this file will be lost!
@@ -312,9 +312,12 @@ class Ui_MainWindow(object):
         self.verticalLayout_9.addWidget(self.rdo_list)
         self.rdo_chart = QtGui.QRadioButton(self.groupBox_5)
         self.rdo_chart.setEnabled(False)
-        self.rdo_chart.setChecked(False)
         self.rdo_chart.setObjectName(_fromUtf8("rdo_chart"))
         self.verticalLayout_9.addWidget(self.rdo_chart)
+        self.rdo_score = QtGui.QRadioButton(self.groupBox_5)
+        self.rdo_score.setEnabled(False)
+        self.rdo_score.setObjectName(_fromUtf8("rdo_score"))
+        self.verticalLayout_9.addWidget(self.rdo_score)
         self.gridLayout.addWidget(self.groupBox_5, 0, 1, 1, 1)
         spacerItem10 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout.addItem(spacerItem10, 4, 1, 1, 1)
@@ -336,6 +339,9 @@ class Ui_MainWindow(object):
         self.rdo_consider_chord_ngrams.setEnabled(True)
         self.rdo_consider_chord_ngrams.setObjectName(_fromUtf8("rdo_consider_chord_ngrams"))
         self.verticalLayout_11.addWidget(self.rdo_consider_chord_ngrams)
+        self.rdo_consider_score = QtGui.QRadioButton(self.groupBox_7)
+        self.rdo_consider_score.setObjectName(_fromUtf8("rdo_consider_score"))
+        self.verticalLayout_11.addWidget(self.rdo_consider_score)
         self.gridLayout.addWidget(self.groupBox_7, 0, 0, 1, 1)
         self.grp_quality = QtGui.QGroupBox(self.groupBox_2)
         self.grp_quality.setObjectName(_fromUtf8("grp_quality"))
@@ -467,7 +473,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.main_screen.setCurrentIndex(1)
+        self.main_screen.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -508,10 +514,12 @@ class Ui_MainWindow(object):
         self.rdo_spreadsheet.setText(_translate("MainWindow", "Spreadsheet", None))
         self.rdo_list.setText(_translate("MainWindow", "List", None))
         self.rdo_chart.setText(_translate("MainWindow", "Chart/Graph", None))
+        self.rdo_score.setText(_translate("MainWindow", "Score", None))
         self.groupBox_7.setTitle(_translate("MainWindow", "Object to Consider", None))
         self.rdo_consider_intervals.setText(_translate("MainWindow", "Intervals", None))
         self.rdo_consider_interval_ngrams.setText(_translate("MainWindow", "Interval N-grams", None))
         self.rdo_consider_chord_ngrams.setText(_translate("MainWindow", "Chord N-grams", None))
+        self.rdo_consider_score.setText(_translate("MainWindow", "Score", None))
         self.grp_quality.setTitle(_translate("MainWindow", "Interval Quality", None))
         self.rdo_heedQuality.setText(_translate("MainWindow", "Display", None))
         self.rdo_noHeedQuality.setText(_translate("MainWindow", "Ignore", None))

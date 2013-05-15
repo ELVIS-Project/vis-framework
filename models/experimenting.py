@@ -42,6 +42,8 @@ class ExperimentSettings(object):
     - sort order : whether to sort things 'ascending' or 'descending'
     - sort by : whether to sort things by 'frequency' or 'name'
     - output format : choose the Display subclass for this experiment's results
+    - lilypond helper : the Experiment that will help produce annotated results for
+        LilyPondExperiment. Consequently, this is only used by that Experiment.
     """
 
     def __init__(self):

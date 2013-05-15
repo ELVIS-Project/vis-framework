@@ -30,13 +30,12 @@ Holds the Experimenter controller.
 # PyQt4
 from PyQt4 import QtCore
 # music21
-from music21.interval import Interval
-from music21.note import Note
-from music21 import chord
+from music21 import chord, converter, stream, note, interval
 # vis
 from controller import Controller
 from models.experimenting import ExperimentSettings
 from models import ngram
+import OutputLilyPond
 
 
 class Experimenter(Controller, QtCore.QObject):
@@ -121,7 +120,7 @@ class Experimenter(Controller, QtCore.QObject):
         """
         # Check there is an 'experiment' setting that refers to one we have
 
-        if self._experiment_settings.get('experiment') == 'IntervalsList':
+        if self._experiment_settings.get('experiment') == 'IntervalsLists':
             exper = IntervalsLists
         elif self._experiment_settings.get('experiment') == 'ChordsList':
             exper = ChordsLists
@@ -129,6 +128,8 @@ class Experimenter(Controller, QtCore.QObject):
             exper = IntervalsStatistics
         elif self._experiment_settings.get('experiment') == 'IntervalNGramStatistics':
             exper = IntervalNGramStatistics
+        elif self._experiment_settings.get('experiment') == 'LilyPondExperiment':
+            exper = LilyPondExperiment
         else:
             self.error.emit('Experimenter: could not determine which experiment to run.')
             return
@@ -342,14 +343,15 @@ class IntervalsLists(Experiment):
                     vertical = first_lower + ' & Rest'
                 else:
                     # make the vertical interval, which connects first_lower and first_upper
-                    vertical = the_formatter(Interval(Note(first_lower), Note(first_upper)))
+                    vertical = the_formatter(interval.Interval(note.Note(first_lower),
+                        note.Note(first_upper)))
 
                 if 'Rest' == second_lower:
                     horizontal = 'N/A'
                 elif horizontal is None:
                     # make the horizontal interval, which connects first_lower and second_lower
-                    horizontal = the_formatter(Interval(Note(first_lower), Note(second_lower)),
-                        True)
+                    horizontal = the_formatter(interval.Interval(note.Note(first_lower),
+                        note.Note(second_lower)), True)
 
                 # make the 3-tuple to append to the list
                 put_me = (vertical, horizontal, offset)
@@ -368,7 +370,8 @@ class IntervalsLists(Experiment):
             if last_upper is not None or last_lower is not None:
                 last_vertical = 'N/A'
             else:
-                last_vertical = the_formatter(Interval(Note(last[1][0]), Note(last[1][1])))
+                last_vertical = the_formatter(interval.Interval(note.Note(last[1][0]),
+                    note.Note(last[1][1])))
             data.append((last_vertical, None, last[0]))
 
         return data
@@ -639,9 +642,11 @@ class IntervalsStatistics(Experiment):
         for each_record in self._records:
             for each_event in each_record:
                 # make sure we don't try to make an Interval from a rest or a chord
-                if isinstance(each_event[1][0], basestring) and isinstance(each_event[1][1], basestring):
+                if isinstance(each_event[1][0], basestring) and \
+                isinstance(each_event[1][1], basestring):
                     if 'Rest' != each_event[1][0] and 'Rest' != each_event[1][1]:
-                        interv = Interval(Note(each_event[1][0]), Note(each_event[1][1]))
+                        interv = interval.Interval(note.Note(each_event[1][0]),
+                            note.Note(each_event[1][1]))
                     else:
                         continue
 
@@ -887,8 +892,8 @@ class IntervalNGramStatistics(Experiment):
                 # for each of the values of 'n' we have to find:
                 for each_n in values_of_n:
                     # start of the intervals to build the n-gram with this 'n' value
-                    intervals_this_n = [Interval(Note(each_record[i][1][0]),
-                                                 Note(each_record[i][1][1]))]
+                    intervals_this_n = [interval.Interval(note.Note(each_record[i][1][0]),
+                                                          note.Note(each_record[i][1][1]))]
 
                     # reset the kill_switch
                     kill_switch = False
@@ -908,8 +913,8 @@ class IntervalNGramStatistics(Experiment):
                             break
                         # now assume we can make an n-gram
                         else:
-                            this_interv = Interval(Note(each_record[i + j][1][0]),
-                                                Note(each_record[i + j][1][1]))
+                            this_interv = interval.Interval(note.Note(each_record[i + j][1][0]),
+                                                            note.Note(each_record[i + j][1][1]))
                             intervals_this_n.append(this_interv)
                     if kill_switch:
                         break
@@ -971,3 +976,229 @@ class IntervalNGramStatistics(Experiment):
 
         # (6) Conclude
         return post
+
+
+class LilyPondExperiment(Experiment):
+    """
+    Help prepare a Score for output in LilyPond syntax.
+
+    This Experiment must be connected to the LilyPondDisplay Visualization.
+    """
+
+    # List of strings that are the names of the Display objects suitable for this Experiment
+    _good_for = ['LilyPondDisplay']
+
+    def __init__(self, controller, records, settings):
+        """
+        Create a new LilyPondExperiment.
+
+        There are three mandatory arguments:
+        - controller : the Experimenter object to which this Experiment belongs
+        - records : a list of AnalysisRecord objects
+        - settings : an ExperimentSettings object
+
+        If there is a 'lilypond helper' setting, that experiment will be used to help produce
+        meaningful output for an annotated score:
+        - IntervalNGramStatistics : Produces "interval n-gram summary output," in which case only
+            one score will be produced, based on all the AnalysisRecord objects received.
+        - IntervalsList : Produces a score with vertical interval annotations, in which case a new
+            score will be produced for every AnalysisRecord object received.
+        - no setting : Produces an un-annotated score, in which case a new score will be produced
+            for every new pathname in the AnalysisRecord objects received.
+        """
+        super(LilyPondExperiment, self).__init__(controller, records, settings)
+
+    def perform(self):
+        """
+        Perform the Experiment. This method is not called "run" to avoid possible
+        confusion with the multiprocessing nature of Experiment subclasses.
+
+        This method emits an Experimenter.experimented signal when it finishes.
+        """
+        post = []
+        if self._settings.has('lilypond helper'):
+            which_helper = self._settings.get('lilypond helper')
+            if 'IntervalsLists' == which_helper:
+                all_the_scores = []
+                for each_record in self._records:
+                    this_result = IntervalsLists(self._controller, [each_record], self._settings)
+                    this_result = this_result.perform()
+                    all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
+                        each_record, this_result, [2]))
+                for each_score in all_the_scores:
+                    post.append(OutputLilyPond.process_score(each_score))
+        else:  # just output scores
+            score_paths = []
+            for rec in self._records:
+                score_paths.append(rec._pathname)
+            scores = []
+            for path in score_paths:
+                scores.append(converter.parse(path))
+            for each_score in scores:
+                post.append(OutputLilyPond.process_score(each_score))
+        return post
+
+    @staticmethod
+    def fill_space_between_offsets(start_o, end_o):
+        """
+        Given two float numbers, finds the quarterLength durations required to make
+        the two objects viable. Assumes there is a Note starting both at the "start"
+        and "end" offset.
+
+        Returns a 2-tuplet, where the first index is the required quarterLength of
+        the Note at offset start_o, and the second index is a list of the required
+        quarterLength values for a series of Rest objects that fill space to the
+        end_o. Ideally the list will be empty and no Rest objects will be required.
+
+        The algorithm tries to fill the entire offset range with a single Note that
+        starts at start_o, up to a maximum quarterLength of 4.0 (to avoid LilyPond
+        duration representations longer than one character). The algorithm prefers
+        multiple durations over a single dotted duration.
+        """
+        def highest_valid_ql(rem):
+            """
+            Returns the largest quarterLength that is less "rem" but not greater than 2.0
+            """
+            # Holds the valid quarterLength durations from whole note to 256th.
+            list_of_durations = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0]
+            # Easy terminal condition
+            if rem in list_of_durations:
+                return rem
+            # Otherwise, we have to look around
+            for dur in list_of_durations:
+                if dur < rem:
+                    return dur
+
+        def the_solver(ql_remains):
+            """
+            Given the "quarterLength that remains to be dealt with," this method returns
+            the solution.
+            """
+            if 4.0 == ql_remains:
+                # Terminal condition, just return!
+                return [4.0]
+            elif 4.0 > ql_remains >= 0.0:
+                if 0.015625 > ql_remains:
+                    # give up... ?
+                    return [ql_remains]
+                else:
+                    possible_finish = highest_valid_ql(ql_remains)
+                    if possible_finish == ql_remains:
+                        return [ql_remains]
+                    else:
+                        return [possible_finish] + \
+                        the_solver(ql_remains - possible_finish)
+            elif ql_remains > 4.0:
+                return [4.0] + the_solver(ql_remains - 4.0)
+            else:
+                msg = u'Impossible quarterLength remaining: ' + unicode(ql_remains) + \
+                    u'... we started with ' + unicode(start_o) + u' to ' + unicode(end_o)
+                raise RuntimeError(msg)
+
+        start_o = float(start_o)
+        end_o = float(end_o)
+        result = the_solver(end_o - start_o)
+        return (result[0], result[1:])
+
+    @staticmethod
+    def make_summary_score():
+        """
+        Given the result of an IntervalNGramStatistics Experiment, produce a "summary score."
+
+        Returns
+        -------
+
+        music21.stream.Score
+            A score that should be given to OutputLilyPond.
+        """
+        pass
+
+    @staticmethod
+    def make_interval_ngram_score(record, results, list_of_enns, annotate_these=None):
+        """
+        Annotate a score by indicating interval n-grams.
+
+        Parameters
+        ----------
+
+        record : vis.models.analyzing.AnalysisRecord
+            The AnalysisRecord for the voice pair to be annotated onto its corresponding score.
+
+        results : output from IntervalsLists Experiment
+            Holds the specifications of vertical intervals, along with their offset in the score.
+
+        list_of_enns : list of int
+            A list of the values for 'n' when finding interval n-grams.
+
+        annotate_these : list of 2-tuples: (string, string)
+            This optional argument is a list of 2-tuples that specify which interval n-grams
+            should be marked in the score. For each tuple, the n-gram you want to match should
+            be == the string at index 0, and the annotation colour should be the other string.
+            **** NOTE: this is currently ignored
+
+        Returns
+        -------
+
+        music21.stream.Score
+            An annotated version of the inputted Score.
+
+        # TODO: should we deepcopy() the Score before we start?
+        """
+        # 0.) Check to make sure the first things in the results aren't strings for field names
+        if isinstance(results[0][0], str) and isinstance(results[0][0], str):
+            results = results[1:]
+
+        # 1.) Make an analysis part for the score
+        new_part = stream.Part()
+        new_part.lily_analysis_voice = True
+
+        # 2.) Since the annotations may not begin at the start of the score, let's add some
+        #     rests if we need them
+        if results[0][2] > 0.0:
+            needed_qls = LilyPondExperiment.fill_space_between_offsets(0.0, results[0][2])
+            new_part.append(note.Rest(quarterLength=needed_qls[0]))
+            for each_ql in needed_qls[1]:
+                new_part.append(note.Rest(quarterLength=each_ql))
+
+        # 3.) Add the first annotation (i.e., part names and the first vertical interval)
+        the_lily = u'_\markup{ "'
+        for each_name in record._part_names:
+            the_lily += each_name + u' and '
+        # remove the final " and "
+        the_lily = the_lily[:-5] + u'" }'
+        # add the first vertical interval
+        the_lily += u'_\markup{ "' + unicode(results[0][0]) + '" }'
+        # make a Note to add this onto
+        the_note = note.Note('C4')  # pitch doesn't matter
+        the_note.lily_markup = the_lily
+        # insert the note
+        new_part.insert(results[0][2], the_note)
+
+        # 4.) Add the rest of the annotations
+        # remove the first element so the iterator works more easily
+        results = results[1:]
+        for i in xrange(len(results)):
+            # 6.1) Figure out what's required to fill the space between the previous and this
+            needed_qls = LilyPondExperiment.fill_space_between_offsets(new_part[-1].offset,
+                results[i][2])
+            # 6.2) Set the previous annotation note to the right quarterLength
+            new_part[-1].quarterLength = needed_qls[0]
+            # 6.3) Fill the remaining space with Rest objects, as needed
+            for each_ql in needed_qls[1]:
+                new_part.append(note.Rest(quarterLength=each_ql))
+            # 6.4) Make the annotation for this vertical interval
+            the_lily = u'_\markup{ "' + unicode(results[i][0]) + '" }'
+            the_note = note.Note('C4')
+            the_note.lily_markup = the_lily
+            # 6.5) Insert the annotation note at the right spot
+            new_part.insert(results[i][2], the_note)
+
+        # 5.) Import the score we'll use
+        # TODO: not assume it imports a Score... what about an Opus?
+        score = converter.parse(record._pathname)
+
+        # 6.) Add the new annotation part to the rest of the score
+        score.append(new_part)
+
+        # 7.) Done... ?
+        return score

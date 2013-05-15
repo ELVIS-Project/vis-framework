@@ -315,6 +315,7 @@ class AnalysisRecord(object):
     # Instance Data:
     # ==============
     # metadata : a music21 Metadata object
+    # _pathname : a string; the path to the music21 Score object
     # _part_names : list of string objects that are the part names
     # _offset : the (minimum) offset value between events
     # _is_salami : whether the score was "salami sliced"
@@ -322,11 +323,12 @@ class AnalysisRecord(object):
     #    _record[x][0] : holds the offset at which the event happened
     #    _record[x][1] : holds the event itself
 
-    def __init__(self, metadata=None, part_names=None, offset=None, salami=None):
+    def __init__(self, pathname, metadata=None, part_names=None, offset=None, salami=None):
         """
         Create a new AnalysisRecord. You should set the following keyword
         arguments when you make the AnalysisRecord:
         - metadata (with a music21 Metadata object)
+        - _pathname
         - _part_names (with a list of strings containing part names)
         - _offset (with a floating point number)
         - _salami (boolean)
@@ -338,6 +340,8 @@ class AnalysisRecord(object):
         - _salami : False
         """
         self._record = []
+
+        self._pathname = pathname
 
         if metadata is None:
             m = Metadata()
