@@ -1151,6 +1151,7 @@ class LilyPondExperiment(Experiment):
         # 1.) Make an analysis part for the score
         new_part = stream.Part()
         new_part.lily_analysis_voice = True
+        new_part.lily_instruction = u'\t\\textLengthOn\n'
 
         # 2.) Since the annotations may not begin at the start of the score, let's add some
         #     rests if we need them
@@ -1161,13 +1162,15 @@ class LilyPondExperiment(Experiment):
                 new_part.append(note.Rest(quarterLength=each_ql))
 
         # 3.) Add the first annotation (i.e., part names and the first vertical interval)
-        the_lily = u'_\markup{ "'
+        the_lily = u'_\markup{ \\right-align{ "'
         for each_name in record._part_names:
             the_lily += each_name + u' and '
         # remove the final " and "
-        the_lily = the_lily[:-5] + u'" }'
+        the_lily = the_lily[:-5] + u': '
         # add the first vertical interval
-        the_lily += u'_\markup{ "' + unicode(results[0][0]) + '" }'
+        the_lily += unicode(results[0][0]) + '" }}'
+        # add the first horizontal interval
+        the_lily += u'_\markup{ \\null \halign #-4 \lower #4 "' + unicode(results[0][1]) + '" }'
         # make a Note to add this onto
         the_note = note.Note('C4')  # pitch doesn't matter
         the_note.lily_markup = the_lily
@@ -1186,8 +1189,10 @@ class LilyPondExperiment(Experiment):
             # 6.3) Fill the remaining space with Rest objects, as needed
             for each_ql in needed_qls[1]:
                 new_part.append(note.Rest(quarterLength=each_ql))
-            # 6.4) Make the annotation for this vertical interval
+            # 6.4) Make the annotation for this vertical then horizontal intervals
             the_lily = u'_\markup{ "' + unicode(results[i][0]) + '" }'
+            the_lily += u'_\markup{ \\null \halign #-4 \lower #2 "' + \
+                unicode(results[i][1]) + '" }'
             the_note = note.Note('C4')
             the_note.lily_markup = the_lily
             # 6.5) Insert the annotation note at the right spot
