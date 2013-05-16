@@ -505,37 +505,18 @@ Do you want to go back and add the part combination?""",
 
         # How many checkboxes are selected?
         if 1 == len(selected_checkboxes):
-            # If we have one checkbox and bs, okay
-            #if self.ui.chk_basso_seguente.isChecked():
-            #vis_format = '[' + str(selected_checkboxes[0]) + ',bs]'
-            ## Otherwise, complain
-            #else:
-            QtGui.QMessageBox.warning(None,
-                "Unusable Part Selection",
-                "Please select two parts at a time.",
-                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
-                QtGui.QMessageBox.Ok)
-        elif 2 == len(selected_checkboxes):
-            # Is "basso seguente" also selected?
-            #if self.ui.chk_basso_seguente.isChecked():
-            ## That's not good
-            #QtGui.QMessageBox.warning(None,
-                #"Cannot Add Part",
-                #"When you choose \"basso seguente,\" you can only choose one other part.",
-                #QtGui.QMessageBox.StandardButtons(\
-                    #QtGui.QMessageBox.Ok),
-                #QtGui.QMessageBox.Ok)
-            #else:
-            # We have two parts; choose them.
-            vis_format = '[' + str(selected_checkboxes[0]) + ',' + \
-                                str(selected_checkboxes[1]) + ']'
+            # If we have one checkbox, it means we need to do monophonic analysis
+            vis_format = u'[' + unicode(selected_checkboxes[0]) + u',' + \
+                unicode(selected_checkboxes[0]) + u']'
+        elif 1 < len(selected_checkboxes):
+            # 2 or more checkboxes are selected
+            vis_format = u'['
+            for each_box in selected_checkboxes:
+                vis_format += unicode(each_box) + u','
+            vis_format = vis_format[:-1] + u']'
         else:
-            # Greater or fewer than two parts?
-            QtGui.QMessageBox.warning(None,
-            "Unusable Part Selection",
-            "Please select two parts at a time.",
-            QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
-            QtGui.QMessageBox.Ok)
+            # No checkboxes. Just give up.
+            return
 
         # Now update the lists
         if vis_format is not None:
