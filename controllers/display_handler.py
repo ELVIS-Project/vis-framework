@@ -363,7 +363,7 @@ class GraphDisplay(Display):
         """
 
         # prepare the GraphHistogram
-        try:
+        try:  # this has something to do with Windows being Windows
             import matplotlib
             if 'matplotlib' in base._missingImport:
                 base._missingImport.remove('matplotlib')
@@ -376,14 +376,16 @@ class GraphDisplay(Display):
         # figure out x-axis ticks
         garbage_tick_list = []
         for i in xrange(len(self._data)):
-            garbage_tick_list.append((i + 0.4, self._data[i][0]))
+            # make a label that's like "things: occurrences"
+            x_label = self._data[i][0] + u': ' + unicode(self._data[i][1])
+            garbage_tick_list.append((i + 0.4, x_label))
         the_graph.setTicks('x', garbage_tick_list)
         the_graph.xTickLabelHorizontalAlignment = 'center'
         setattr(the_graph, 'xTickLabelRotation', 45)
         the_graph.setAxisLabel('x', 'Object')
         the_graph.setAxisLabel('y', 'Number')
 
-        # figured out y-axis ticks
+        # figure out y-axis ticks
         max_height = max([i[1] for i in self._data])
         tick_dist = max(max_height / 10, 1)
         ticks = []
