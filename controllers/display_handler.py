@@ -445,9 +445,31 @@ class LilyPondDisplay(Display):
         This method emits a VisSignals.display_shown signal when it finishes.
         """
         for i in xrange(len(self._data)):
-            ly_me = file_output.file_outputter(self._data[i],
-                'test_output/vis-' + str(i),
-                '.ly')
+            pathname = ''
+            extension = '.ly'
+            # get the place they want to save the LilyPond file
+            file_save = QtGui.QFileDialog.getSaveFileName(None,
+                u'Where to Save the LilyPond File?',
+                u'.ly',
+                u'',
+                None)
+            # remove the extension, if they put it
+            if len(file_save) > '.ly' == file_save[-3:]:
+                pathname = file_save[:-3]
+            else:
+                pathname = file_save
+            # make sure we have a (potentially) viable pathname
+            if len(pathname) < 1:
+                msg = u'LilyPond pathname is not viable.' + unicode(pathname)
+                self._controller.error.emit(msg)
+                return
+            # output the LilyPond file
+            ly_me = file_output.file_outputter(
+                contents=self._data[i],
+                pathname=pathname,
+                extension=extension,
+                overwrite=True)
+            # run LilyPond
             if ly_me[1] is not None:
                 # There was an error while writing the file, so we can't continue
                 msg = 'File output problem in LilyPondDisplay: \n' + str(ly_me[1])

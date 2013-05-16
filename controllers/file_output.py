@@ -29,7 +29,7 @@ from os.path import exists
 import fileinput
 
 
-def file_outputter(contents, filename, extension=''):
+def file_outputter(contents, pathname, extension='', overwrite=False):
     """
     Outputs the first argument, which should be a str, into a file whose name is
     specified as the second argument.
@@ -50,12 +50,12 @@ def file_outputter(contents, filename, extension=''):
 
     # Sanity checks
     # Filename must be a str
-    if not isinstance(filename, str):
-        filename = str(filename)
+    if not isinstance(pathname, str):
+        pathname = str(pathname)
     # Unless we got the OVERWRITE signal, the file mustn't already exist.
-    if 'OVERWRITE' != extension:
-        while exists(filename + extension):
-            filename += '-0'
+    if not overwrite:
+        while exists(pathname + extension):
+            pathname += '-0'
     else:
         # We need to do this, or else we'll inadvertently *not* overwrite the
         # pre-existing file.
@@ -69,11 +69,11 @@ def file_outputter(contents, filename, extension=''):
 
     # Open the file for writing
     try:
-        output_file = open(filename + extension, 'w')
+        output_file = open(pathname + extension, 'w')
     except IOError as ioe:
-        return_error = 'Unable to open file for writing (' + filename + \
+        return_error = 'Unable to open file for writing (' + pathname + \
                         extension + ') because of exception: ' + str(ioe)
-        return [filename, return_error]
+        return [pathname, return_error]
 
     # Write the file.
     try:
@@ -85,10 +85,10 @@ def file_outputter(contents, filename, extension=''):
     try:
         output_file.close()
     except IOError as ioe:
-        return_error = 'Unble to close the file (' + filename + extension + ')'
+        return_error = 'Unble to close the file (' + pathname + extension + ')'
 
     # Return the filename we actually used.
-    return [filename, return_error]
+    return [pathname + extension, return_error]
 
 
 def file_inputter(filename):
