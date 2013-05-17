@@ -320,7 +320,7 @@ class VisTextDisplay(Ui_Text_Display):
                         'Save As',
                         '',
                         '*.txt'))
-        result = file_output.file_outputter(self.text, filename, 'OVERWRITE')
+        result = file_output.file_outputter(self.text, filename, overwrite=True)
         if result[1] is not None:
             QtGui.QMessageBox.information(None,
                 'File Output Failed',
