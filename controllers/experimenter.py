@@ -35,7 +35,7 @@ from music21 import chord, converter, stream, note, interval
 from controller import Controller
 from models.experimenting import ExperimentSettings
 from models import ngram
-import OutputLilyPond
+from OutputLilyPond import OutputLilyPond
 
 
 class Experimenter(Controller, QtCore.QObject):
