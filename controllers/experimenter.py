@@ -462,8 +462,8 @@ class ChordsLists(Experiment):
 
                 the_chord = chord.Chord(first_chord)
                 the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
-                the_chord_name = the_chord.root().name
-                the_chord_name += u' ' + the_figure if the_figure != u'' else u''
+                the_chord_name = u'(' + the_chord.bass().name
+                the_chord_name += u' ' + the_figure + u')' if the_figure != u'' else u')'
 
                 horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
                                                                   chord.Chord(second_chord))
@@ -1039,6 +1039,15 @@ class LilyPondExperiment(Experiment):
                 all_the_scores = []
                 for each_record in self._records:
                     this_result = IntervalsLists(self._controller, [each_record], self._settings)
+                    this_result = this_result.perform()
+                    all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
+                        each_record, this_result, [2]))
+                for each_score in all_the_scores:
+                    post.append(OutputLilyPond.process_score(each_score))
+            elif 'ChordsList' == which_helper or 'ChordsLists' == which_helper:
+                all_the_scores = []
+                for each_record in self._records:
+                    this_result = ChordsLists(self._controller, [each_record], self._settings)
                     this_result = this_result.perform()
                     all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
                         each_record, this_result, [2]))
