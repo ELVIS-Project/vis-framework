@@ -30,7 +30,7 @@ Holds the Experimenter controller.
 # PyQt4
 from PyQt4 import QtCore
 # music21
-from music21 import chord, converter, stream, note, interval
+from music21 import chord, converter, stream, note, interval, roman
 # vis
 from controller import Controller
 from models.experimenting import ExperimentSettings
@@ -461,9 +461,12 @@ class ChordsLists(Experiment):
                     continue
 
                 the_chord = chord.Chord(first_chord)
-                the_chord_name = the_chord.root().name + ' ' + the_chord.commonName
+                the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
+                the_chord_name = the_chord.root().name
+                the_chord_name += u' ' + the_figure if the_figure != u'' else u''
+
                 horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
-                                                                    chord.Chord(second_chord))
+                                                                  chord.Chord(second_chord))
                 put_me = (the_chord_name, horizontal, offset)
 
                 # add this chord-and-transformation to the list of all of them
