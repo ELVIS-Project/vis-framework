@@ -902,6 +902,22 @@
              </layout>
             </widget>
            </item>
+           <item row="1" column="2">
+            <widget class="QGroupBox" name="groupBox_3">
+             <property name="title">
+              <string>Voice Crossing</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
+              <item>
+               <widget class="QCheckBox" name="chk_ignore_inversion">
+                <property name="text">
+                 <string>Ignore</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>

@@ -1062,6 +1062,13 @@ Do you want to go back and add the part combination?""",
             list_of_settings.append(('values of n', enn))
             return 0
 
+        def do_ignore_inversion():
+            "Ignore inversion?"
+            if self.ui.chk_ignore_inversion.isChecked():
+                list_of_settings.append(('ignore direction', True))
+            else:
+                list_of_settings.append(('ignore direction', False))
+
         # (1) Figure out the settings
         # TODO: ensure these are chosen dynamically, to correspond to the GUI
         # (1a) Which experiment?
@@ -1079,6 +1086,8 @@ Do you want to go back and add the part combination?""",
         do_threshold()
         # (1f) Top X
         do_top_x()
+        # (1g) Ignore Voice Crossing
+        do_ignore_inversion()
 
         # (2) Set the settings
         for setting in list_of_settings:
