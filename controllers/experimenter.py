@@ -1209,6 +1209,10 @@ class LilyPondExperiment(Experiment):
         new_part.lily_analysis_voice = True
         new_part.lily_instruction = u'\t\\textLengthOn\n'
 
+        # 1.5) Maybe the first item in "results" is descriptions of fields?
+        if u'offset' == results[0][2]:
+            results = results[1:]
+
         # 2.) Since the annotations may not begin at the start of the score, let's add some
         #     rests if we need them
         if results[0][2] > 0.0:
