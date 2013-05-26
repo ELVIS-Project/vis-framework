@@ -46,6 +46,8 @@ class ExperimentSettings(object):
         LilyPondExperiment. Consequently, this is only used by that Experiment.
     - ignore direction : (boolean) whether to ignore directions, which means to represent all
         negative intervals as positive ones, and that voice crossing is ignored in interval n-grams
+    - annotate these : (list of str) These are the objects to be annotated on a targeted LilyPond
+        output score
     """
 
     def __init__(self):

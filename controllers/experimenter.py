@@ -1064,25 +1064,24 @@ class LilyPondExperiment(Experiment):
         """
         post = []
         if self._settings.has('lilypond helper'):
+            # choose the helper experiment
             which_helper = self._settings.get('lilypond helper')
+            TheHelper = None
             if 'IntervalsLists' == which_helper:
-                all_the_scores = []
-                for each_record in self._records:
-                    this_result = IntervalsLists(self._controller, [each_record], self._settings)
-                    this_result = this_result.perform()
-                    all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
-                        each_record, this_result, [2]))
-                for each_score in all_the_scores:
-                    post.append(OutputLilyPond.process_score(each_score))
+                TheHelper = TargetedIntervalNGramExperiment if self._settings.has('annotate these')\
+                    else IntervalsLists
             elif 'ChordsList' == which_helper or 'ChordsLists' == which_helper:
-                all_the_scores = []
-                for each_record in self._records:
-                    this_result = ChordsLists(self._controller, [each_record], self._settings)
-                    this_result = this_result.perform()
-                    all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
-                        each_record, this_result, [2]))
-                for each_score in all_the_scores:
-                    post.append(OutputLilyPond.process_score(each_score))
+                TheHelper = ChordsLists
+
+            # run the experiments
+            all_the_scores = []
+            for each_record in self._records:
+                this_result = TheHelper(self._controller, [each_record], self._settings)
+                this_result = this_result.perform()
+                all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
+                    each_record, this_result, [2]))
+            for each_score in all_the_scores:
+                post.append(OutputLilyPond.process_score(each_score))
         else:  # just output scores
             score_paths = []
             for rec in self._records:
@@ -1267,3 +1266,47 @@ class LilyPondExperiment(Experiment):
 
         # 7.) Done... ?
         return score
+
+
+class TargetedIntervalNGramExperiment(Experiment):
+    """
+    Comment here.
+    """
+
+    # List of strings that are the names of the Display objects suitable for this Experiment
+    _good_for = ['LilyPond']
+
+    def __init__(self, controller, records, settings):
+        """
+        Create a new TargetedIntervalNGramExperiment.
+
+        Here's a description of what this Experiment does.
+
+        There are three mandatory arguments:
+        - controller : the Experimenter object to which this Experiment belongs
+        - records : a list of AnalysisRecord objects
+        - settings : an ExperimentSettings object
+
+        These settings are required:
+        - quality
+        - simple or compound
+        - annotate these
+        """
+        # Check the ExperimentSettings object has the right settings
+        # These are required by IntervalsStatistics
+        if not settings.has('quality') or not settings.has('simple or compound'):
+            msg = u'TargetedIntervalsNGram requires "quality" and "simple or compound" settings'
+            controller.error.emit(msg)
+            return
+        if not settings.has('annotate these'):
+            msg = u'TargetedIntervalsNGram requires "quality" and "simple or compound" settings'
+            controller.error.emit(msg)
+            return
+        # Otherwise, we're good to go!
+        super(TargetedIntervalNGramExperiment, self).__init__(controller, records, settings)
+
+    def perform(self):
+        """
+        This is what Alex has to write.
+        """
+        pass
