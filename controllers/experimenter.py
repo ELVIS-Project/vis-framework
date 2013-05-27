@@ -970,7 +970,21 @@ class IntervalNGramStatistics(Experiment):
                                 reverse=should_reverse)
 
         # (5) Construct the dictionary to return
-        post = []
+        # (5a) Make a crafty tag to help with the description
+        desc = u'Interval ' + unicode(values_of_n[0]) + u'-Grams\n'
+        desc += u'Sorted ' + self._settings.get('sort order') + u' by ' + \
+            self._settings.get('sort by') + u'\n'
+        if self._settings.get('topX'):
+            desc += u'Including only the top ' + unicode(self._settings.get('topX')) + u'\n'
+        if self._settings.get('threshold'):
+            desc += u'With more than ' + unicode(self._settings.get('threshold')) + \
+            u' occurrences\n'
+        desc += u'With quality\n' if quality else u'Without quality\n'
+        desc += u'Size: ' + interval_size + u'\n\n'
+        desc += unicode(values_of_n[0]) + u'-Gram'
+
+        post = [(u'description', desc, u'occurrences')]
+        # (5b) Add all the actual things
         for each_key in self._keys:
             post.append((each_key, self._ngrams[each_key]))
 
