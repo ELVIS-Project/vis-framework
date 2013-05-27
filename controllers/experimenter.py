@@ -462,14 +462,18 @@ class ChordsLists(Experiment):
                 if '' == first_chord or '' == second_chord:
                     continue
 
+                # make the chord symbol
                 the_chord = chord.Chord(first_chord)
                 the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
-                the_chord_name = u'(' + the_chord.bass().name
-                the_chord_name += u' ' + the_figure + u')' if the_figure != u'' else u')'
+                bass_name = the_chord.bass().name
+                if bass_name[-1] == u'-':
+                    bass_name = bass_name[0] + u'b'
+                chord_name = bass_name + u' ' + the_figure if the_figure != u'' else bass_name
 
+                # find the transformation
                 horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
                                                                   chord.Chord(second_chord))
-                put_me = (the_chord_name, horizontal, offset)
+                put_me = (chord_name, u'(' + horizontal + u')', offset)
 
                 # add this chord-and-transformation to the list of all of them
                 post.append(put_me)
@@ -1078,7 +1082,9 @@ class LilyPondExperiment(Experiment):
             for each_record in self._records:
                 this_result = TheHelper(self._controller, [each_record], self._settings)
                 this_result = this_result.perform()
-                all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
+                if 'ChordsList' == which_helper:
+                    this_result = LilyPondExperiment._accidental_replacer(this_result)
+                all_the_scores.append(LilyPondExperiment.make_ngram_score(
                     each_record, this_result, [2]))
             for each_score in all_the_scores:
                 post.append(OutputLilyPond.process_score(each_score))
@@ -1091,6 +1097,59 @@ class LilyPondExperiment(Experiment):
                 scores.append(converter.parse(path))
             for each_score in scores:
                 post.append(OutputLilyPond.process_score(each_score))
+        return post
+
+    @staticmethod
+    def _accidental_replacer(source):
+        # TODO: this must be tested
+        """
+        Replace accidental symbols in chord labels from the ChordsLists Experiment. In the 0th
+        element of the 3-tuple, each 'b' is replaced with the LilyPond code to make a flat sign,
+        and each '#' is replaced with the code to make a sharp sign.
+
+        Parameters
+        ----------
+
+        source : list of 3-tuples
+            The output from a ChordsLists Experiment.
+
+        Returns
+        -------
+
+        list of 3-tuples
+            With 'b' and '#' symbols removed and replaced, as described above and below.
+
+        Side Effects
+        ------------
+
+        Transforms...
+            [('Ab6', 'asdf', 0.5)]
+        ... into...
+            [('A" \flat "6', 'asdf', 0.5)]
+        ... and...
+            [('A#6', 'asdf', 0.5)]
+        ... into...
+            [('A" \sharp "6', 'asdf', 0.5)]
+        """
+        post = []
+        for each in source:
+            left, middle, right = each
+            new_left = u''
+            for char in left:
+                if u'b' == char:
+                    new_left += u'" \\smaller{\\smaller{\\flat}} "'
+                elif u'#' == char:
+                    new_left += u'" \\smaller{\\smaller{\\sharp}} "'
+                else:
+                    new_left += char
+
+            #if len(left) > 1:
+                #if left[1] == u'b':
+                    #left = left[0] + u'" \flat "' + left[2:]
+                #elif each[0][1] == u'#':
+                    #left = left[0] + u'" \sharp "' + left[2:]
+
+            post.append((new_left, middle, right))
         return post
 
     @staticmethod
@@ -1169,18 +1228,22 @@ class LilyPondExperiment(Experiment):
         pass
 
     @staticmethod
-    def make_interval_ngram_score(record, results, list_of_enns, annotate_these=None):
+    def make_ngram_score(record, results, list_of_enns, annotate_these=None):
         """
-        Annotate a score by indicating interval n-grams.
+        Annotate a score by indicating n-grams.
 
         Parameters
         ----------
 
         record : vis.models.analyzing.AnalysisRecord
             The AnalysisRecord for the voice pair to be annotated onto its corresponding score.
+            This is used for its metadata.
 
         results : output from IntervalsLists Experiment
-            Holds the specifications of vertical intervals, along with their offset in the score.
+            Holds the specifications of what to annotate intervals, along with the offset in the
+            score. It should be a list of 3-tuples, like this:
+                [(vertical_event, following_horizontal, offset_of_vertical),
+                 (vertical_event, following_horizotanl, offset_of_vertical)]
 
         list_of_enns : list of int
             A list of the values for 'n' when finding interval n-grams.
@@ -1221,13 +1284,13 @@ class LilyPondExperiment(Experiment):
                 new_part.append(note.Rest(quarterLength=each_ql))
 
         # 3.) Add the first annotation (i.e., part names and the first vertical interval)
-        the_lily = u'_\markup{ \\right-align{ "'
+        the_lily = u'_\markup{ \\right-align{\concat{ "'
         for each_name in record._part_names:
             the_lily += each_name + u' and '
         # remove the final " and "
         the_lily = the_lily[:-5] + u': '
         # add the first vertical interval
-        the_lily += unicode(results[0][0]) + '" }}'
+        the_lily += unicode(results[0][0]) + '" }}}'
         # add the first horizontal interval
         the_lily += u'_\markup{ \\null \halign #-4 \lower #4 "' + unicode(results[0][1]) + '" }'
         # make a Note to add this onto
@@ -1249,7 +1312,7 @@ class LilyPondExperiment(Experiment):
             for each_ql in needed_qls[1]:
                 new_part.append(note.Rest(quarterLength=each_ql))
             # 6.4) Make the annotation for this vertical then horizontal intervals
-            the_lily = u'_\markup{ "' + unicode(results[i][0]) + '" }'
+            the_lily = u'_\markup{\concat{ "' + unicode(results[i][0]) + '" }}'
             the_lily += u'_\markup{ \\null \halign #-4 \lower #2 "' + \
                 unicode(results[i][1]) + '" }'
             the_note = note.Note('C4')
