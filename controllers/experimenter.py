@@ -1142,13 +1142,6 @@ class LilyPondExperiment(Experiment):
                     new_left += u'" \\smaller{\\smaller{\\sharp}} "'
                 else:
                     new_left += char
-
-            #if len(left) > 1:
-                #if left[1] == u'b':
-                    #left = left[0] + u'" \flat "' + left[2:]
-                #elif each[0][1] == u'#':
-                    #left = left[0] + u'" \sharp "' + left[2:]
-
             post.append((new_left, middle, right))
         return post
 
@@ -1262,6 +1255,18 @@ class LilyPondExperiment(Experiment):
 
         # TODO: should we deepcopy() the Score before we start?
         """
+        # Setup: This is the LilyPond code to be put around the object's descriptions...
+        #    left_vert + vertical_event + right_vert
+        #    left_horiz + horizontal_event + right_horiz
+        first_left_vert = u'_\\markup{ \\right-align{\\concat{ "'
+        left_vert = u'_\\markup{ \\center-align{\\concat{ "'
+        right_vert = u'" }}}'
+        left_horiz = u'_\\markup{ \\null \\lower #4 \\center-align{"'
+        right_horiz = u'" }}'
+
+        for each in results:  # DEBUG
+            print(str(each[2]))  # DEBUG
+
         # 0.) Check to make sure the first things in the results aren't strings for field names
         if isinstance(results[0][0], str) and isinstance(results[0][0], str):
             results = results[1:]
@@ -1283,21 +1288,34 @@ class LilyPondExperiment(Experiment):
             for each_ql in needed_qls[1]:
                 new_part.append(note.Rest(quarterLength=each_ql))
 
-        # 3.) Add the first annotation (i.e., part names and the first vertical interval)
-        the_lily = u'_\markup{ \\right-align{\concat{ "'
+        # 3.) Add the first annotation (i.e., part names and the first vertical & horizontal event)
+        the_lily = first_left_vert
         for each_name in record._part_names:
             the_lily += each_name + u' and '
         # remove the final " and "
         the_lily = the_lily[:-5] + u': '
-        # add the first vertical interval
-        the_lily += unicode(results[0][0]) + '" }}}'
-        # add the first horizontal interval
-        the_lily += u'_\markup{ \\null \halign #-4 \lower #4 "' + unicode(results[0][1]) + '" }'
-        # make a Note to add this onto
+        # add the first vertical annotation
+        the_lily += unicode(results[0][0]) + right_vert
+        # make and add a Note for the vertical annotation
         the_note = note.Note('C4')  # pitch doesn't matter
         the_note.lily_markup = the_lily
-        # insert the note
         new_part.insert(results[0][2], the_note)
+        # we won't need this any more, but we may need the memory... ?
+        del the_lily
+        # figure out the offset of this horizontal thing
+        horiz_offset = None
+        try:
+            # the results[1][2] call would raise IndexError if there's only one vertical event
+            half_dist = (results[1][2] - results[0][2]) / 2.0
+            horiz_offset = half_dist + results[0][2]
+            new_part[-1].quarterLength = half_dist
+        except IndexError:
+            horiz_offset = results[0][2] + 0.5
+            new_part[-1].quarterLength = 0.5
+        # make annotation, then make and add the Note
+        the_note = note.Note('C4')
+        the_note.lily_markup = left_horiz + unicode(results[0][1]) + right_horiz
+        new_part.insert(horiz_offset, the_note)
 
         # 4.) Add the rest of the annotations
         # remove the first element so the iterator works more easily
@@ -1311,14 +1329,25 @@ class LilyPondExperiment(Experiment):
             # 6.3) Fill the remaining space with Rest objects, as needed
             for each_ql in needed_qls[1]:
                 new_part.append(note.Rest(quarterLength=each_ql))
-            # 6.4) Make the annotation for this vertical then horizontal intervals
-            the_lily = u'_\markup{\concat{ "' + unicode(results[i][0]) + '" }}'
-            the_lily += u'_\markup{ \\null \halign #-4 \lower #2 "' + \
-                unicode(results[i][1]) + '" }'
+            # 6.4) Make the annotation then Note for this vertical interval
             the_note = note.Note('C4')
-            the_note.lily_markup = the_lily
-            # 6.5) Insert the annotation note at the right spot
+            the_note.lily_markup = left_vert + unicode(results[i][0]) + right_vert
             new_part.insert(results[i][2], the_note)
+            # 6.5) Make this horizontal interval
+            horiz_offset = None
+            try:
+                horiz_offset = ((results[i + 1][2] - results[i][2]) / 2.0) + results[i][2]
+            except IndexError:
+                horiz_offset = results[i][2] + 0.5
+            needed_qls = LilyPondExperiment.fill_space_between_offsets(new_part[-1].offset,
+                horiz_offset)
+            new_part[-1].quarterLength = needed_qls[0]
+            for each_ql in needed_qls[1]:
+                new_part.append(note.Rest(quarterLength=each_ql))
+            the_note = note.Note('C4')
+            the_note.lily_markup = left_horiz + unicode(results[i][1]) + right_horiz
+
+            new_part.insert(horiz_offset, the_note)
 
         # 5.) Import the score we'll use
         # TODO: not assume it imports a Score... what about an Opus?
