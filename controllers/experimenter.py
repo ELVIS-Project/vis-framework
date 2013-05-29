@@ -317,12 +317,12 @@ class IntervalsLists(Experiment):
             # We must get all of the quality, and none of the size (important for AA, dd, etc.)
             qual = u''
             for each in interv.name:
-                if each in [u'A', u'M', u'm', u'd']:
+                if each in [u'A', u'M', u'P', u'm', u'd']:
                     qual += each
             post += qual
 
         if 'simple' == size:
-            post += u'8' if 8 == unicode(interv.generic.undirected) else \
+            post += u'8' if 8 == interv.generic.undirected else \
                 unicode(interv.generic.simpleUndirected)
         else:
             post += unicode(interv.generic.undirected)
