@@ -274,6 +274,61 @@ class IntervalsLists(Experiment):
         if self._settings.has('output format'):
             self._good_for = [self._settings.get('output format')]
 
+    @staticmethod
+    def interval_formatter(interv, quality, size, direction):
+        # TODO: this should be tested
+        """
+        Format the output of an Interval object according to certain preferences.
+
+        Parameters
+        ----------
+
+        interv : music21.interval.Interval
+            This object will be formatted.
+
+        quality : boolean
+            Whether to include a symbol for the interval's quality.
+
+        size : string
+            Either 'simple' or 'compound', depending on whether the interval should be reduced to
+            its single-octave size, if relevant.
+
+        direction : boolean or string
+            Whether to print a + or - sign indicating the interval's direction. The string
+            'sometimes' will print the direction only if it is negative.
+
+        Returns
+        -------
+
+        string
+            A representation of the inputted Interval instance.
+        """
+        post = u''
+
+        if direction is True:
+            if interv.direction > 0:
+                post = u'+'
+            elif interv.direction < 0:
+                post = u'-'
+        elif u'sometimes' == direction and -1 == interv.direction:
+            post = u'-'
+
+        if quality:
+            # We must get all of the quality, and none of the size (important for AA, dd, etc.)
+            qual = u''
+            for each in interv.name:
+                if each in [u'A', u'M', u'm', u'd']:
+                    qual += each
+            post += qual
+
+        if 'simple' == size:
+            post += u'8' if 8 == unicode(interv.generic.undirected) else \
+                unicode(interv.generic.simpleUndirected)
+        else:
+            post += unicode(interv.generic.undirected)
+
+        return post
+
     def perform(self):
         """
         Perform the IntervalsLists Experiment.
@@ -285,36 +340,7 @@ class IntervalsLists(Experiment):
         quality = self._settings.get('quality')
         interval_size = self._settings.get('simple or compound')
         include_direction = not self._settings.get('ignore direction')
-
-        def the_formatter(interv):
-            # NOTE: there is an exact copy of this function in IntervalsStatistics.perform()
-            """
-            Formats an Interval object according to the preferences of "quality" and
-            "interval_size."
-
-            You can also specify a boolean for "direction," which indicates whether to show the
-            direction of the interval (being a '+' for ascending or '-' for descending). The
-            default is False.
-            """
-            post = ''
-
-            # music21 doesn't include a "+" for ascending intervals, by default
-            post += u'+' if include_direction and 1 == interv.direction else u''
-
-            if quality:
-                post += interv.semiSimpleName if interval_size == 'simple' else interv.name
-            else:
-                if interval_size == 'simple' and include_direction:
-                    post += unicode(interv.generic.semiSimpleDirected)
-                elif include_direction:
-                    post += unicode(interv.generic.directed)
-                elif 'simple' == interval_size:
-                    post += unicode(interv.generic.simpleUndirected)
-                else:
-                    post += unicode(interv.generic.undirected)
-
-            return post
-        # End sub-function the_formatter()
+        include_direction = False if not include_direction else u'sometimes'
 
         # this is the header for CSV-format output
         data = [(u'vertical', u'horizontal', u'offset')]
@@ -345,15 +371,21 @@ class IntervalsLists(Experiment):
                     vertical = first_lower + u' & Rest'
                 else:
                     # make the vertical interval, which connects first_lower and first_upper
-                    vertical = the_formatter(interval.Interval(note.Note(first_lower),
-                        note.Note(first_upper)))
+                    vertical = IntervalsLists.interval_formatter(
+                        interval.Interval(note.Note(first_lower), note.Note(first_upper)),
+                        quality=quality,
+                        size=interval_size,
+                        direction=include_direction)
 
                 if 'Rest' == second_lower:
                     horizontal = u'N/A'
                 elif horizontal is None:
                     # make the horizontal interval, which connects first_lower and second_lower
-                    horizontal = the_formatter(interval.Interval(note.Note(first_lower),
-                        note.Note(second_lower)))
+                    horizontal = IntervalsLists.interval_formatter(
+                        interval.Interval(note.Note(first_lower), note.Note(second_lower)),
+                        quality=quality,
+                        size=interval_size,
+                        direction=True)
 
                 # make the 3-tuple to append to the list
                 put_me = (vertical, horizontal, offset)
@@ -372,8 +404,11 @@ class IntervalsLists(Experiment):
             if last_upper is not None or last_lower is not None:
                 last_vertical = u'N/A'
             else:
-                last_vertical = the_formatter(interval.Interval(note.Note(last[1][0]),
-                    note.Note(last[1][1])))
+                last_vertical = IntervalsLists.interval_formatter(
+                    interval.Interval(note.Note(last[1][0]), note.Note(last[1][1])),
+                    quality=quality,
+                    size=interval_size,
+                    direction=include_direction)
             data.append((last_vertical, None, last[0]))
 
         return data
@@ -649,36 +684,6 @@ class IntervalsStatistics(Experiment):
         interval_size = self._settings.get('simple or compound')
         include_direction = not self._settings.get('ignore direction')
 
-        def the_formatter(interv):
-            # NOTE: there is an exact copy of this function in IntervalsLists.perform()
-            """
-            Formats an Interval object according to the preferences of "quality" and
-            "interval_size."
-
-            You can also specify a boolean for "direction," which indicates whether to show the
-            direction of the interval (being a '+' for ascending or '-' for descending). The
-            default is False.
-            """
-            post = ''
-
-            # music21 doesn't include a "+" for ascending intervals, by default
-            post += u'+' if include_direction and 1 == interv.direction else u''
-
-            if quality:
-                post += interv.semiSimpleName if interval_size == 'simple' else interv.name
-            else:
-                if interval_size == 'simple' and include_direction:
-                    post += unicode(interv.generic.semiSimpleDirected)
-                elif include_direction:
-                    post += unicode(interv.generic.directed)
-                elif 'simple' == interval_size:
-                    post += unicode(interv.generic.simpleUndirected)
-                else:
-                    post += unicode(interv.generic.undirected)
-
-            return post
-        # End sub-function the_formatter()
-
         for each_record in self._records:
             for each_event in each_record:
                 # make sure we don't try to make an Interval from a rest or a chord
@@ -690,7 +695,10 @@ class IntervalsStatistics(Experiment):
                                                           note.Note(each_event[1][1]))
                     else:
                         continue
-                    self._add_interval(the_formatter(this_interval))
+                    self._add_interval(IntervalsLists.interval_formatter(this_interval,
+                        quality=quality,
+                        size=interval_size,
+                        direction=include_direction))
 
         # (2.1) If there is a topX or threshold filter, sort by frequency now.
         if self._settings.get('topX') is not None or \
@@ -1263,9 +1271,6 @@ class LilyPondExperiment(Experiment):
         right_vert = u'" }}}'
         left_horiz = u'_\\markup{ \\null \\lower #4 \\center-align{"'
         right_horiz = u'" }}'
-
-        for each in results:  # DEBUG
-            print(str(each[2]))  # DEBUG
 
         # 0.) Check to make sure the first things in the results aren't strings for field names
         if isinstance(results[0][0], str) and isinstance(results[0][0], str):
