@@ -1266,10 +1266,10 @@ class LilyPondExperiment(Experiment):
         # Setup: This is the LilyPond code to be put around the object's descriptions...
         #    left_vert + vertical_event + right_vert
         #    left_horiz + horizontal_event + right_horiz
-        first_left_vert = u'_\\markup{ \\right-align{\\concat{ "'
-        left_vert = u'_\\markup{ \\center-align{\\concat{ "'
+        first_left_vert = u'^\\markup{ \\right-align{\\concat{ "'
+        left_vert = u'^\\markup{ \\center-align{\\concat{ "'
         right_vert = u'" }}}'
-        left_horiz = u'_\\markup{ \\null \\lower #4 \\center-align{"'
+        left_horiz = u'_\\markup{ \\center-align{"'
         right_horiz = u'" }}'
 
         # 0.) Check to make sure the first things in the results aren't strings for field names
