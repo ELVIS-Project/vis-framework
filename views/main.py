@@ -633,7 +633,7 @@ Do you want to go back and add the part combination?""",
             # (2) Remove the part list
             if self.part_checkboxes is not None:
                 for part in self.part_checkboxes:
-                    self.ui.verticalLayout_22.removeWidget(part)
+                    self.ui.verticalLayout_part_boxes.removeWidget(part)
                     part.close()
                 self.part_checkboxes = None
         elif len(currently_selected) > 6:
@@ -652,7 +652,8 @@ Do you want to go back and add the part combination?""",
             lists_of_part_names = []
             for cell in currently_selected:
                 if ListOfPieces.parts_list == cell.column():
-                    lists_of_part_names.append(self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole))
+                    lists_of_part_names.append(self.vis_controller.l_o_pieces.data(cell,
+                        ListOfPieces.ScoreRole))
             # 2.2: See if each piece has the same number of parts
             number_of_parts = 0
             for parts_list in lists_of_part_names:
@@ -909,7 +910,7 @@ Do you want to go back and add the part combination?""",
 
         # (4) Add all the widgets to the layout
         for part in self.part_layouts:
-            self.ui.verticalLayout_22.addLayout(part)
+            self.ui.verticalLayout_part_boxes.addLayout(part)
 
     #-----------------------------------------
     # Slot for self.ui.btn_choose_note.clicked
@@ -943,7 +944,7 @@ Do you want to go back and add the part combination?""",
         """
         self.ui.grp_settings_for_piece.setVisible(set_to)
         self.ui.grp_settings_for_piece.setEnabled(set_to)
-        self.ui.lbl_select_piece.setVisible(not set_to)
+        self.ui.widget_select_piece.setVisible(not set_to)
 
     #-------------------------------------------
     # Slot for: self.ui.btn_show_results.clicked

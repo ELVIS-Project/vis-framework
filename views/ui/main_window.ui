@@ -228,7 +228,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -341,93 +341,13 @@
         <item>
          <widget class="QGroupBox" name="groupBox">
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="4" column="4">
-            <spacer name="spacer_select_piece_1">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="3" column="4">
-            <widget class="QLabel" name="lbl_select_piece">
-             <property name="text">
-              <string>Select piece(s) to see possible settings.</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="4">
-            <spacer name="spacer_select_piece_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="4">
-            <widget class="QWidget" name="widget_6" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_5"/>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <spacer name="horizontalSpacer_4">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
            <item row="1" column="4">
             <widget class="QGroupBox" name="grp_settings_for_piece">
              <property name="title">
               <string>Settings for Selected Piece</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_3">
-              <item row="3" column="1">
-               <spacer name="verticalSpacer_6">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="9" column="1">
-               <spacer name="verticalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="12" column="0">
+              <item row="9" column="0">
                <widget class="QPushButton" name="btn_add_check_combo">
                 <property name="enabled">
                  <bool>false</bool>
@@ -466,7 +386,7 @@
                 </property>
                </widget>
               </item>
-              <item row="10" column="1" colspan="2">
+              <item row="7" column="1" colspan="2">
                <widget class="QLineEdit" name="line_compare_these_parts">
                 <property name="enabled">
                  <bool>false</bool>
@@ -479,7 +399,7 @@
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
+              <item row="7" column="0">
                <widget class="QLabel" name="lbl_compare_these_parts">
                 <property name="text">
                  <string>Compare These Parts:</string>
@@ -496,8 +416,14 @@
                 </property>
                </widget>
               </item>
-              <item row="11" column="0" colspan="3">
+              <item row="8" column="0" colspan="3">
                <widget class="QWidget" name="widget_2" native="true">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <layout class="QHBoxLayout" name="horizontalLayout_9">
                  <item>
                   <spacer name="horizontalSpacer_7">
@@ -516,31 +442,56 @@
                   </spacer>
                  </item>
                  <item>
-                  <widget class="QWidget" name="widget_part_boxes" native="true">
-                   <layout class="QVBoxLayout" name="verticalLayout_22">
-                    <item>
-                     <widget class="QCheckBox" name="chk_all_voice_combos">
-                      <property name="enabled">
-                       <bool>false</bool>
-                      </property>
-                      <property name="toolTip">
-                       <string>Collect Statistics for all Part Combinations</string>
-                      </property>
-                      <property name="text">
-                       <string>All Voice Pairs</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
+                  <widget class="QScrollArea" name="widget_part_boxes">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::NoFrame</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Plain</enum>
+                   </property>
+                   <property name="widgetResizable">
+                    <bool>true</bool>
+                   </property>
+                   <widget class="QWidget" name="part_box_widget">
+                    <property name="geometry">
+                     <rect>
+                      <x>0</x>
+                      <y>0</y>
+                      <width>373</width>
+                      <height>79</height>
+                     </rect>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_part_boxes">
+                     <item>
+                      <widget class="QCheckBox" name="chk_all_voice_combos">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="toolTip">
+                        <string>Collect Statistics for all Part Combinations</string>
+                       </property>
+                       <property name="text">
+                        <string>All Voice Pairs</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
                   </widget>
                  </item>
                 </layout>
                </widget>
               </item>
-              <item row="5" column="1" colspan="2">
+              <item row="4" column="1" colspan="2">
                <widget class="QLineEdit" name="line_piece_title"/>
               </item>
-              <item row="5" column="0">
+              <item row="4" column="0">
                <widget class="QLabel" name="lbl_piece_title">
                 <property name="text">
                  <string>Piece Title:</string>
@@ -554,20 +505,7 @@
                 </property>
                </widget>
               </item>
-              <item row="7" column="1">
-               <spacer name="verticalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="8" column="0" colspan="3">
+              <item row="6" column="0" colspan="3">
                <widget class="QGroupBox" name="grp_which_objects">
                 <property name="title">
                  <string>Look for These Objects</string>
@@ -606,7 +544,67 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="0" rowspan="7" colspan="3">
+           <item row="0" column="4">
+            <widget class="QWidget" name="widget_6" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <spacer name="horizontalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="2" column="4">
+            <widget class="QWidget" name="widget_select_piece" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_16">
+              <item>
+               <spacer name="spacer_select_piece_1">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="lbl_select_piece">
+                <property name="text">
+                 <string>Select piece(s) to see possible settings.</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="spacer_select_piece_2">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>37</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="1" column="0" rowspan="2" colspan="3">
             <widget class="QTableView" name="gui_pieces_list">
              <property name="selectionBehavior">
               <enum>QAbstractItemView::SelectRows</enum>
