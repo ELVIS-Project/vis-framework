@@ -146,6 +146,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.btn_experiment.setEnabled(False)
         self.ui.btn_step1.setEnabled(False)
         self.ui.btn_step2.setEnabled(True)
+        self._update_pieces_selection()
 
     @QtCore.pyqtSlot()
     def _tool_working(self):
@@ -632,10 +633,7 @@ Do you want to go back and add the part combination?""",
             self._piece_settings_visibility(False)
             # (2) Remove the part list
             if self.part_checkboxes is not None:
-                for part in self.part_checkboxes:
-                    self.ui.verticalLayout_part_boxes.removeWidget(part)
-                    part.close()
-                self.part_checkboxes = None
+                self._update_part_checkboxes('erase')
         elif len(currently_selected) > 6:
             # Multiple pieces selected... possible customization
             # (1) Enable all the controls
@@ -850,7 +848,7 @@ Do you want to go back and add the part combination?""",
                 for button in self.edit_buttons:
                     lay.removeWidget(button)
                     button.close()
-                self.ui.verticalLayout_22.removeItem(lay)
+                self.ui.verticalLayout_part_boxes.removeItem(lay)
                 lay.invalidate()
 
         self.part_layouts = None
