@@ -1145,9 +1145,9 @@ class LilyPondExperiment(Experiment):
             new_left = u''
             for char in left:
                 if u'b' == char:
-                    new_left += u'" \\smaller{\\smaller{\\flat}} "'
+                    new_left += u'" \\raise #0.5 {\\fontsize #-4 \\flat} "'
                 elif u'#' == char:
-                    new_left += u'" \\smaller{\\smaller{\\sharp}} "'
+                    new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\sharp} "'
                 else:
                     new_left += char
             post.append((new_left, middle, right))
