@@ -42,41 +42,56 @@ from models import importing, analyzing
 # multiprocessing requires your processes to be declared at module scope, sorry!
 def import_piece(file_path):
     """
-    Given a path to a music21 symbolic music notation file, return a list of tuples
-    containing a frozen music21.Score and all the pertinent import information
-    for the score, or else a string containing any errors that occurred in
-    importing.
+    Import a music21-supported symbolic notation file and find its title and the part names.
 
-    NB: the reason we freeze the music21 Score is because normally music21
-    Streams are complex webs of weak references, which cannot be pickled and
-    therefore cannot be passed between different child processes in a
-    multiprocessing context.
+    NB: the reason we freeze the music21 Score is because normally music21 Streams are complex
+    webs of weak references, which cannot be pickled and therefore cannot be passed between
+    different child processes in a multiprocessing context.
 
-    NB2: if the imported file is a MIDI file, it won't be pickled, because then it would explode
+    NB2: if the imported file is a MIDI file, it won't be pickled, because that doesn't work in the
+    currently-available version of music21. It will be fixed with music21 1.6.0
+    **** When you fix this, you have to also update the automated tests.
+
+    Parameters
+    ----------
+
+    file_path : string
+        The pathname of the file to try to import.
+
+    Returns
+    -------
+
+    list of tuples
+        If the piece was successfully imported, it is:
+            [(file_path, Score, title, list_of_part_names)]
+        If the piece failed to import:
+            [(file_path, string_describing_the_error)]
+        If the file imported as an Opus (i.e., more than one Score is held in the file), then each
+        Score is appended to the file.
     """
+    post = []
+    imported_pieces = []
     try:
-        post = []
-        imported_pieces = []
         piece = converter.parseFile(file_path)
-        if isinstance(piece, stream.Opus):  # many Pieces in this Corpus!
-            for each_piece in piece.scores:
-                each_piece.filePath = piece.filePath
-                imported_pieces.append(each_piece)
-        else:
-            imported_pieces.append(piece)
+    except (converter.ConverterException, converter.ConverterFileException) as excep:
+        return [(file_path, unicode(excep))]
 
-        for each_piece in imported_pieces:
-            title = Importer._find_piece_title(each_piece)
-            part_names = Importer._find_part_names(each_piece)
-            _, extension = os.path.splitext(file_path)
-            if '.midi' == extension or '.mid' == extension:
-                return_score = each_piece
-            else:
-                return_score = converter.freezeStr(each_piece, fmt='pickle')
-            post.append((file_path, return_score, title, part_names))
-        return post
-    except Exception as excep:
-        return [(file_path, str(excep))]
+    if isinstance(piece, stream.Opus):  # many Pieces in this Corpus!
+        for each_piece in piece.scores:
+            each_piece.filePath = piece.filePath
+            imported_pieces.append(each_piece)
+    else:
+        imported_pieces.append(piece)
+    for each_piece in imported_pieces:
+        title = Importer._find_piece_title(each_piece)
+        part_names = Importer._find_part_names(each_piece)
+        _, extension = os.path.splitext(file_path)
+        if '.midi' == extension or '.mid' == extension:
+            return_score = each_piece
+        else:
+            return_score = converter.freezeStr(each_piece, fmt='pickle')
+        post.append((file_path, return_score, title, part_names))
+    return post
 
 
 class ImporterThread(QThread):
