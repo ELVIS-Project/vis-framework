@@ -35,7 +35,7 @@ from music21 import chord, converter, stream, note, interval, roman
 from controller import Controller
 from models.experimenting import ExperimentSettings
 from models import ngram
-from OutputLilyPond import OutputLilyPond
+import OutputLilyPond
 
 
 class Experimenter(Controller, QtCore.QObject):
@@ -1269,7 +1269,7 @@ class LilyPondExperiment(Experiment):
         first_left_vert = u'^\\markup{ \\right-align{\\concat{ "'
         left_vert = u'^\\markup{ \\center-align{\\concat{ "'
         right_vert = u'" }}}'
-        left_horiz = u'_\\markup{ \\center-align{"'
+        left_horiz = u'_\\markup{ \\center-align{ "'
         right_horiz = u'" }}'
 
         # 0.) Check to make sure the first things in the results aren't strings for field names
