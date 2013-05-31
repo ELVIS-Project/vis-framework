@@ -245,22 +245,29 @@ class IntervalsLists(Experiment):
 
     def __init__(self, controller, records, settings):
         """
-        Create a new IntervalsLists.
+        Create a new IntervalsLists Experiment.
 
-        There are three mandatory arguments:
-        - controller : the Experimenter object to which this Experiment belongs
-        - records : a list of AnalysisRecord objects
-        - settings : an ExperimentSettings object
+        Parameters
+        ----------
 
-        The IntervalsSpreadsheet uses these settings:
-        - 'quality' : boolean, whether to print or suppress quality
-        - 'simple or compound' : whether to print intervals in their single-octave
-            ('simple') or actual ('compound') form.
+        controller : Experimenter
+            The Experimenter instance that runs this IntervalsLists.
 
-        If one of these settings is not present, the constructor raises a KeyError.
+        records : list of AnalysisRecord
+            The objects to use for analysis.
 
-        IntervalsLists can use this setting, but will not provide a default:
-        - output format : choose the Display subclass for this experiment's results
+        settings : ExperimentSettings
+            The settings to use for this IntervalsLists. The required settings are...
+            - 'quality' : boolean, whether to print or suppress quality
+            - 'simple or compound' : whether to print intervals in their single-octave
+                ('simple') or actual ('compound') form.
+            - 'output format' : choose the Display subclass for this Experiment's results.
+
+        Raises
+        ------
+
+        KeyError:
+            If one of the required settings is not present in the ExperimentSettings instance.
         """
         # Call the superclass constructor
         super(IntervalsLists, self).__init__(controller, records, settings)

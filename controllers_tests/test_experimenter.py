@@ -28,9 +28,25 @@ import unittest
 from music21 import interval
 # vis
 from controllers.experimenter import IntervalsStatistics, IntervalsLists
+from models import analyzing, experimenting
 
 
 class TestIntervalsStatistics(unittest.TestCase):
+    def setUp(self):
+        self.record_1 = [(0.0, ('B4', 'D6')),
+                         (6.0, ('A4', 'C5')),
+                         (8.0, ('F#4', 'A4')),
+                         (12.0, ('G4', 'B4')),
+                         (14.0, ('G4', 'G5')),
+                         (16.0, ('E5', 'G5')),
+                         (22.0, ('D5', 'F5')),
+                         (24.0, ('B4', 'D5')),
+                         (28.0, ('C5', 'C5')),
+                         (32.0, ('G4', 'C5')),
+                         (34.0, ('A4', 'C5')),
+                         (36.0, ('C6', 'F6')),
+                         (38.0, ('C6', 'E6'))]
+
     def test_experimenter_interval_sorter_1(self):
         # simple cases
         self.assertEqual(IntervalsStatistics.interval_sorter('M3', 'P5'), -1)
@@ -71,6 +87,32 @@ class TestIntervalsStatistics(unittest.TestCase):
         self.assertEqual(IntervalsStatistics.interval_sorter('M+3', 'M-3'), 0)
         self.assertEqual(IntervalsStatistics.interval_sorter('m+3', 'P-4'), -1)
         self.assertEqual(IntervalsStatistics.interval_sorter('m+3', 'M-2'), 1)
+
+    def test_intervals_stats_1(self):
+        # test mostly simple, with "simple" setting, and quality
+        # not testing topX, sort order, sort by, and threshold
+        a_rec = analyzing.AnalysisRecord()
+        setts = experimenting.ExperimentSettings()
+        setts.set('quality', True)
+        setts.set('simple or compound', 'simple')
+        a_rec._record = self.record_1
+        expect = {'+m3': 7, '+M3': 2, '+P8': 1, 'P1': 1, '+P4': 2}
+        actual = IntervalsStatistics(None, [a_rec], setts)
+        actual.perform()
+        self.assertEqual(expect, actual._intervals)
+
+    def test_intervals_stats_2(self):
+        # test mostly simple, with "simple" setting, and no quality
+        # not testing topX, sort order, sort by, and threshold
+        a_rec = analyzing.AnalysisRecord()
+        setts = experimenting.ExperimentSettings()
+        setts.set('quality', False)
+        setts.set('simple or compound', 'simple')
+        a_rec._record = self.record_1
+        expect = {'+3': 9, '+8': 1, '1': 1, '+4': 2}
+        actual = IntervalsStatistics(None, [a_rec], setts)
+        actual.perform()
+        self.assertEqual(expect, actual._intervals)
 
 
 class TestIntervalsLists(unittest.TestCase):
@@ -217,6 +259,151 @@ class TestIntervalsLists(unittest.TestCase):
                                                    size='compound',
                                                    direction=True)
         self.assertEqual(expect, actual)
+
+    def test_intervals_lists_1(self):
+        # test mostly simple, with "compound" setting, and no quality
+        a_rec = analyzing.AnalysisRecord()
+        setts = experimenting.ExperimentSettings()
+        setts.set('quality', False)
+        setts.set('simple or compound', 'compound')
+        a_rec._record = [(0.0, ('B4', 'D5')),
+                         (6.0, ('A4', 'C5')),
+                         (8.0, ('F#4', 'A4')),
+                         (12.0, ('G4', 'B4')),
+                         (14.0, ('G4', 'G5')),
+                         (16.0, ('E5', 'G5')),
+                         (22.0, ('D5', 'F5')),
+                         (24.0, ('B4', 'D5')),
+                         (28.0, ('C5', 'C5')),
+                         (32.0, ('G4', 'C5')),
+                         (34.0, ('A4', 'C5')),
+                         (36.0, ('C5', 'F5')),
+                         (38.0, ('C5', 'E5'))]
+        expect = [('vertical', 'horizontal', 'offset'),
+                  ('3', '-2', 0.0),
+                  ('3', '-3', 6.0),
+                  ('3', '+2', 8.0),
+                  ('3', '1', 12.0),
+                  ('8', '+6', 14.0),
+                  ('3', '-2', 16.0),
+                  ('3', '-3', 22.0),
+                  ('3', '+2', 24.0),
+                  ('1', '-4', 28.0),
+                  ('4', '+2', 32.0),
+                  ('3', '+3', 34.0),
+                  ('4', '1', 36.0),
+                  ('3', None, 38.0)]
+        actual = IntervalsLists(None, [a_rec], setts).perform()
+        self.assertEqual(expect, actual)
+
+    def test_intervals_lists_2(self):
+        # test mostly simple, with "compound" setting, and quality
+        a_rec = analyzing.AnalysisRecord()
+        setts = experimenting.ExperimentSettings()
+        setts.set('quality', True)
+        setts.set('simple or compound', 'compound')
+        a_rec._record = [(0.0, ('B4', 'D5')),
+                         (6.0, ('A4', 'C5')),
+                         (8.0, ('F#4', 'A4')),
+                         (12.0, ('G4', 'B4')),
+                         (14.0, ('G4', 'G5')),
+                         (16.0, ('E5', 'G5')),
+                         (22.0, ('D5', 'F5')),
+                         (24.0, ('B4', 'D5')),
+                         (28.0, ('C5', 'C5')),
+                         (32.0, ('G4', 'C5')),
+                         (34.0, ('A4', 'C5')),
+                         (36.0, ('C5', 'F5')),
+                         (38.0, ('C5', 'E5'))]
+        expect = [('vertical', 'horizontal', 'offset'),
+                  ('m3', '-M2', 0.0),
+                  ('m3', '-m3', 6.0),
+                  ('m3', '+m2', 8.0),
+                  ('M3', 'P1', 12.0),
+                  ('P8', '+M6', 14.0),
+                  ('m3', '-M2', 16.0),
+                  ('m3', '-m3', 22.0),
+                  ('m3', '+m2', 24.0),
+                  ('P1', '-P4', 28.0),
+                  ('P4', '+M2', 32.0),
+                  ('m3', '+m3', 34.0),
+                  ('P4', 'P1', 36.0),
+                  ('M3', None, 38.0)]
+        actual = IntervalsLists(None, [a_rec], setts).perform()
+        self.assertEqual(expect, actual)
+
+    def test_intervals_lists_3(self):
+        # test strategic compound, with "compound" setting, and quality
+        a_rec = analyzing.AnalysisRecord()
+        setts = experimenting.ExperimentSettings()
+        setts.set('quality', True)
+        setts.set('simple or compound', 'compound')
+        a_rec._record = [(0.0, ('B4', 'D6')),
+                         (6.0, ('A4', 'C5')),
+                         (8.0, ('F#4', 'A4')),
+                         (12.0, ('G4', 'B4')),
+                         (14.0, ('G4', 'G5')),
+                         (16.0, ('E5', 'G5')),
+                         (22.0, ('D5', 'F5')),
+                         (24.0, ('B4', 'D5')),
+                         (28.0, ('C5', 'C5')),
+                         (32.0, ('G4', 'C5')),
+                         (34.0, ('A4', 'C5')),
+                         (36.0, ('C6', 'F6')),
+                         (38.0, ('C6', 'E6'))]
+        expect = [('vertical', 'horizontal', 'offset'),
+                  ('m10', '-M2', 0.0),
+                  ('m3', '-m3', 6.0),
+                  ('m3', '+m2', 8.0),
+                  ('M3', 'P1', 12.0),
+                  ('P8', '+M6', 14.0),
+                  ('m3', '-M2', 16.0),
+                  ('m3', '-m3', 22.0),
+                  ('m3', '+m2', 24.0),
+                  ('P1', '-P4', 28.0),
+                  ('P4', '+M2', 32.0),
+                  ('m3', '+m10', 34.0),
+                  ('P4', 'P1', 36.0),
+                  ('M3', None, 38.0)]
+        actual = IntervalsLists(None, [a_rec], setts).perform()
+        self.assertEqual(expect, actual)
+
+    def test_intervals_lists_4(self):
+        # test strategic compound, with "simple" setting, and quality
+        a_rec = analyzing.AnalysisRecord()
+        setts = experimenting.ExperimentSettings()
+        setts.set('quality', True)
+        setts.set('simple or compound', 'simple')
+        a_rec._record = [(0.0, ('B4', 'D6')),
+                         (6.0, ('A4', 'C5')),
+                         (8.0, ('F#4', 'A4')),
+                         (12.0, ('G4', 'B4')),
+                         (14.0, ('G4', 'G5')),
+                         (16.0, ('E5', 'G5')),
+                         (22.0, ('D5', 'F5')),
+                         (24.0, ('B4', 'D5')),
+                         (28.0, ('C5', 'C5')),
+                         (32.0, ('G4', 'C5')),
+                         (34.0, ('A4', 'C5')),
+                         (36.0, ('C6', 'F6')),
+                         (38.0, ('C6', 'E6'))]
+        expect = [('vertical', 'horizontal', 'offset'),
+                  ('m3', '-M2', 0.0),
+                  ('m3', '-m3', 6.0),
+                  ('m3', '+m2', 8.0),
+                  ('M3', 'P1', 12.0),
+                  ('P8', '+M6', 14.0),
+                  ('m3', '-M2', 16.0),
+                  ('m3', '-m3', 22.0),
+                  ('m3', '+m2', 24.0),
+                  ('P1', '-P4', 28.0),
+                  ('P4', '+M2', 32.0),
+                  ('m3', '+m3', 34.0),
+                  ('P4', 'P1', 36.0),
+                  ('M3', None, 38.0)]
+        actual = IntervalsLists(None, [a_rec], setts).perform()
+        self.assertEqual(expect, actual)
+
 
 #---------------------------------------------------------------------------------------------------
 # Definitions
