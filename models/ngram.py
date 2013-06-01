@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.ngram.py
@@ -7,7 +8,7 @@
 # Fileame: ngram.py
 # Purpose: Class-based representation of an n-gram of vertical intervals.
 #
-# Copyright (C) 2012 Christopher Antila, Jamie Klassen
+# Copyright (C) 2012, 2013 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -254,7 +255,7 @@ class IntervalNGram(NGram):
 
         return post
 
-    def canonical(self):
+    def canonical(self, quality=True, size='compound'):
         """
         Return the "canonical non-crossed" str representation of this IntervalNGram
         object. This is like an "absolute value" function, in that it removes any
@@ -269,8 +270,10 @@ class IntervalNGram(NGram):
 
         These are not necessarily experientially similar.
         """
-        post = self.get_string_version(True, 'compound').replace('-', '')
-        return post.replace('+', '')
+        post = self.get_string_version(quality, size)
+        post = post.replace('-', '')
+        post = post.replace('+', '')
+        return post
 
     def voice_crossing(self):
         """
@@ -397,18 +400,18 @@ class IntervalNGram(NGram):
             "Inner function" to transform a quality-letter into the quality-letter
             needed for inversion
             """
-            post = ''
+            post = u''
 
-            if 'd' == start_spec:
-                post = 'A'
-            elif 'm' == start_spec:
-                post = 'M'
-            elif 'P' == start_spec:
-                post = 'P'
-            elif 'M' == start_spec:
-                post = 'm'
-            elif 'A' == start_spec:
-                post = 'd'
+            if u'd' == start_spec:
+                post = u'A'
+            elif u'm' == start_spec:
+                post = u'M'
+            elif u'P' == start_spec:
+                post = u'P'
+            elif u'M' == start_spec:
+                post = u'm'
+            elif u'A' == start_spec:
+                post = u'd'
 
             return post
 
@@ -418,10 +421,10 @@ class IntervalNGram(NGram):
             """
 
             # Hold all the sizes that require "perfect," not "major" or "minor"
-            perfect_sizes = ['1', '4', '5', '8', '11', '12', '15', '19', '20', '23']
+            perfect_sizes = [u'1', u'4', u'5', u'8', u'11', u'12', u'15', u'19', u'20', u'23']
 
             # Get the integer size of the interval
-            if '-' == huh[1]:
+            if u'-' == huh[1]:
                 size = huh[2:]
             else:
                 size = huh[1:]
@@ -430,8 +433,8 @@ class IntervalNGram(NGram):
             if size in perfect_sizes:
                 # If this was destined to be minor or Major, we should change it
                 # to be Perfect
-                if 'm' == huh[0] or 'M' == huh[0]:
-                    return 'P' + huh[1:]
+                if u'm' == huh[0] or u'M' == huh[0]:
+                    return u'P' + huh[1:]
 
             # Otherwise just return what we were given
             return huh
@@ -444,7 +447,7 @@ class IntervalNGram(NGram):
         inverted_intervals = []
         for old_interv in self._list_of_events:
             # We are transposing the bottom note up
-            if 'up' == up_or_down:
+            if u'up' == up_or_down:
                 # Make the str representing the interval of transposition. We have
                 # to do this for every interval because we're doing diatonic
                 # transposition, so the resulting quality changes depending on the
@@ -463,8 +466,7 @@ class IntervalNGram(NGram):
             # We're transposing the top note down
             else:  # Assume 'down' == up_or_down
                 # Make the str representing the interval of transposition.
-                trans_interv = get_inverted_quality(old_interv.name[0]) + \
-                                '-' + interv
+                trans_interv = get_inverted_quality(old_interv.name[0]) + u'-' + interv
 
                 # Double-check that we don't have something like "m4"
                 trans_interv = check_for_stupid(trans_interv)

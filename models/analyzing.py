@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: analyzing.py
 # Purpose: The model classes for the Analyzer controller.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -323,7 +324,7 @@ class AnalysisRecord(object):
     #    _record[x][0] : holds the offset at which the event happened
     #    _record[x][1] : holds the event itself
 
-    def __init__(self, pathname, metadata=None, part_names=None, offset=None, salami=None):
+    def __init__(self, pathname=None, metadata=None, part_names=None, offset=None, salami=None):
         """
         Create a new AnalysisRecord. You should set the following keyword
         arguments when you make the AnalysisRecord:
@@ -334,15 +335,17 @@ class AnalysisRecord(object):
         - _salami (boolean)
 
         If you do not provide this information, sensible defaults will be used:
+        - _pathname : ''
         - empty Metadata
         - _part_names : ['']
         - _offset : 0.0
         - _salami : False
         """
         self._record = []
-
-        self._pathname = pathname
-
+        self._pathname = u'' if pathname is None else pathname
+        self._part_names = [u''] if part_names is None else part_names
+        self._offset = 0.0 if offset is None else offset
+        self._salami = False if salami is None else salami
         if metadata is None:
             m = Metadata()
             jf = freezeThaw.JSONFreezer(m)
@@ -350,21 +353,6 @@ class AnalysisRecord(object):
         else:
             jf = freezeThaw.JSONFreezer(metadata)
             self._metadata = jf.json
-
-        if part_names is None:
-            self._part_names = ['']
-        else:
-            self._part_names = part_names
-
-        if offset is None:
-            self._offset = 0.0
-        else:
-            self._offset = offset
-
-        if salami is None:
-            self._salami = False
-        else:
-            self._salami = salami
 
     def __iter__(self):
         """

@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: run_tests.py
 # Purpose: Run the autmated tests for the models in vis.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,7 +28,7 @@ Run the tests for the models
 """
 
 # Verbosity
-verb = 2
+verb = 1
 
 # Imports
 import unittest
@@ -53,17 +54,18 @@ from models_tests.test_ngram import *
 #unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_bach)
 
 # Experimenter
-#unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_stats_suite)
+unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_stats_suite)
+#unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_lists_suite)
 
 # Models -----------------------------------------------------------------------
 # Importing -- all tests pass
-unittest.TextTestRunner(verbosity=verb).run(importing_basics_suite)
-unittest.TextTestRunner(verbosity=verb).run(importing_data_suite)
-unittest.TextTestRunner(verbosity=verb).run(importing_set_data_suite)
-unittest.TextTestRunner(verbosity=verb).run(importing_insert_rows_suite)
-unittest.TextTestRunner(verbosity=verb).run(importing_is_present_suite)
-unittest.TextTestRunner(verbosity=verb).run(importing_iterator_suite)
-unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
+#unittest.TextTestRunner(verbosity=verb).run(importing_basics_suite)
+#unittest.TextTestRunner(verbosity=verb).run(importing_data_suite)
+#unittest.TextTestRunner(verbosity=verb).run(importing_set_data_suite)
+#unittest.TextTestRunner(verbosity=verb).run(importing_insert_rows_suite)
+#unittest.TextTestRunner(verbosity=verb).run(importing_is_present_suite)
+#unittest.TextTestRunner(verbosity=verb).run(importing_iterator_suite)
+#unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
 
 # Analyzing: ListOfPieces
 #unittest.TextTestRunner(verbosity=verb).run(lop_basics_suite)
@@ -78,5 +80,5 @@ unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
 #unittest.TextTestRunner(verbosity=verb).run(ar_getters_suite)
 #unittest.TextTestRunner(verbosity=verb).run(ar_append_event_suite)
 ## Analyzing.NGram
-unittest.TextTestRunner(verbosity=verb).run(test_interval_ngram_suite)
-unittest.TextTestRunner(verbosity=verb).run(test_chord_ngram_suite)
+#unittest.TextTestRunner(verbosity=verb).run(test_interval_ngram_suite)
+#unittest.TextTestRunner(verbosity=verb).run(test_chord_ngram_suite)

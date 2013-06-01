@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: DisplayHandler.py
 # Purpose: Holds the DisplayHandler controller.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +37,7 @@ from music21 import graph, base
 # vis
 from controller import Controller
 import file_output
-from Ui_text_display import Ui_Text_Display
+from views.Ui_text_display import Ui_Text_Display
 import OutputLilyPond
 
 
@@ -265,12 +266,12 @@ class StatisticsListDisplay(Display):
 
         # prepare the header data (except total number of occurrences)
         if 3 == len(self._data[0]) and 'description' == self._data[0][0]:
-            header_data += self._data[0][1] + ':\t' + self._data[0][2] + '\n'
+            header_data += self._data[0][1] + u': ' + self._data[0][2] + u'\n'
             self._data = self._data[1:]
         else:
-            header_data += 'object:\toccurrences\n'
+            header_data += u'object:  occurrences\n'
 
-        header_data += '========================\n'
+        header_data += u'========================\n'
 
         # prepare per-object data
         for each_row in self._data:
@@ -280,7 +281,8 @@ class StatisticsListDisplay(Display):
             total_occurrences += each_row[1]
 
         # add the total occurrences after the header, and concatenate both parts
-        post = header_data + 'Total occurrences: ' + str(total_occurrences) + '\n' + post
+        post = header_data + 'Total occurrences of displayed objects: ' + \
+            str(total_occurrences) + '\n' + post
 
         # We will *not* emit this signal, but rather let the FileOutputDisplay do it.
         # self._controller.display_shown.emit()
@@ -361,6 +363,10 @@ class GraphDisplay(Display):
 
         This method emits a VisSignals.display_shown signal when it finishes.
         """
+
+        # Filter out the "description" fields, if they exist
+        if u'description' == self._data[0][0]:
+            self._data = self._data[1:]
 
         # prepare the GraphHistogram
         try:  # this has something to do with Windows being Windows

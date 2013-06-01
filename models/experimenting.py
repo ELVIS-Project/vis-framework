@@ -8,7 +8,7 @@
 # Filename: experimenting.py
 # Purpose: The model classes for the Experimenter controller.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,6 +44,10 @@ class ExperimentSettings(object):
     - output format : choose the Display subclass for this experiment's results
     - lilypond helper : the Experiment that will help produce annotated results for
         LilyPondExperiment. Consequently, this is only used by that Experiment.
+    - ignore direction : (boolean) whether to ignore directions, which means to represent all
+        negative intervals as positive ones, and that voice crossing is ignored in interval n-grams
+    - annotate these : (list of str) These are the objects to be annotated on a targeted LilyPond
+        output score
     """
 
     def __init__(self):

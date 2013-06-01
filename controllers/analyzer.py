@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: Analyzer.py
 # Purpose: Holds the Analyzer controller.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -206,30 +207,22 @@ def _event_finder(parts, settings, record):
         if skip_this_offset:
             break
 
-        # 4.4) Calculate the offset at which this event could be said to start
-        current_event_offset_start = max([obj.offset for obj in current_events])
-
-        # 4.5) Turn the objects into their string forms
+        # 4.4) Turn the objects into their string forms
         current_events = Analyzer._object_stringer(current_events, settings.types)
 
-        # 4.6) Reverse the list, so it's lowest-to-highest voices
+        # 4.5) Reverse the list, so it's lowest-to-highest voices
         current_events = tuple(reversed(current_events))
 
-        # 4.7) Add the event to the AnalysisRecord, if relevant
+        # 4.6) Add the event to the AnalysisRecord, if relevant
         if settings.salami:
-            # If salami, we always add the event.
-
-            # But also, if this event is the same as the previous event, we have to use the
-            # previous event's offset.
-            if record.most_recent_event()[1] == current_events:
-                current_event_offset_start = record.most_recent_event()[0]
-
-            record.append(current_event_offset_start, current_events)
+            # If salami, we always add the event, and always at the current offset
+            record.append(current_offset, current_events)
         elif record.most_recent_event()[1] != current_events:
-            # If not salami, we only add the event if it's different from the previous
-            record.append(current_event_offset_start, current_events)
+            # If not salami, we only add the event if it's different from the previous, and at the
+            # offset at which it starts...
+            record.append(current_offset, current_events)
 
-        # 4.8) Increment the offset
+        # 4.7) Increment the offset
         current_offset += settings.offset
     # End step 4
 
