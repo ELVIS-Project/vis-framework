@@ -44,6 +44,8 @@ class ExperimentSettings(object):
     - output format : choose the Display subclass for this experiment's results
     - lilypond helper : the Experiment that will help produce annotated results for
         LilyPondExperiment. Consequently, this is only used by that Experiment.
+    - ignore direction : (boolean) whether to ignore directions, which means to represent all
+        negative intervals as positive ones, and that voice crossing is ignored in interval n-grams
     """
 
     def __init__(self):
