@@ -30,12 +30,12 @@ Holds the Experimenter controller.
 # PyQt4
 from PyQt4 import QtCore
 # music21
-from music21 import chord, converter, stream, note, interval
+from music21 import chord, converter, stream, note, interval, roman
 # vis
 from controller import Controller
 from models.experimenting import ExperimentSettings
 from models import ngram
-import OutputLilyPond
+from OutputLilyPond import OutputLilyPond
 
 
 class Experimenter(Controller, QtCore.QObject):
@@ -461,9 +461,12 @@ class ChordsLists(Experiment):
                     continue
 
                 the_chord = chord.Chord(first_chord)
-                the_chord_name = the_chord.root().name + ' ' + the_chord.commonName
+                the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
+                the_chord_name = u'(' + the_chord.bass().name
+                the_chord_name += u' ' + the_figure + u')' if the_figure != u'' else u')'
+
                 horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
-                                                                    chord.Chord(second_chord))
+                                                                  chord.Chord(second_chord))
                 put_me = (the_chord_name, horizontal, offset)
 
                 # add this chord-and-transformation to the list of all of them
@@ -970,7 +973,21 @@ class IntervalNGramStatistics(Experiment):
                                 reverse=should_reverse)
 
         # (5) Construct the dictionary to return
-        post = []
+        # (5a) Make a crafty tag to help with the description
+        desc = u'Interval ' + unicode(values_of_n[0]) + u'-Grams\n'
+        desc += u'Sorted ' + self._settings.get('sort order') + u' by ' + \
+            self._settings.get('sort by') + u'\n'
+        if self._settings.get('topX'):
+            desc += u'Including only the top ' + unicode(self._settings.get('topX')) + u'\n'
+        if self._settings.get('threshold'):
+            desc += u'With more than ' + unicode(self._settings.get('threshold')) + \
+            u' occurrences\n'
+        desc += u'With quality\n' if quality else u'Without quality\n'
+        desc += u'Size: ' + interval_size + u'\n\n'
+        desc += unicode(values_of_n[0]) + u'-Gram'
+
+        post = [(u'description', desc, u'occurrences')]
+        # (5b) Add all the actual things
         for each_key in self._keys:
             post.append((each_key, self._ngrams[each_key]))
 
@@ -1022,6 +1039,15 @@ class LilyPondExperiment(Experiment):
                 all_the_scores = []
                 for each_record in self._records:
                     this_result = IntervalsLists(self._controller, [each_record], self._settings)
+                    this_result = this_result.perform()
+                    all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
+                        each_record, this_result, [2]))
+                for each_score in all_the_scores:
+                    post.append(OutputLilyPond.process_score(each_score))
+            elif 'ChordsList' == which_helper or 'ChordsLists' == which_helper:
+                all_the_scores = []
+                for each_record in self._records:
+                    this_result = ChordsLists(self._controller, [each_record], self._settings)
                     this_result = this_result.perform()
                     all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
                         each_record, this_result, [2]))

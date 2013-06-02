@@ -983,8 +983,13 @@ Do you want to go back and add the part combination?""",
                     list_of_settings.append(('lilypond helper', 'IntervalsLists'))
                     list_of_settings.append(('output format', 'LilyPondDisplay'))
             elif self.ui.rdo_consider_chord_ngrams.isChecked():
-                list_of_settings.append(('experiment', 'ChordsList'))
-                list_of_settings.append(('output format', 'SpreadsheetFile'))
+                if self.ui.rdo_spreadsheet.isChecked():
+                    list_of_settings.append(('experiment', 'ChordsList'))
+                    list_of_settings.append(('output format', 'SpreadsheetFile'))
+                elif self.ui.rdo_score.isChecked():
+                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
+                    list_of_settings.append(('lilypond helper', 'ChordsList'))
+                    list_of_settings.append(('output format', 'LilyPondDisplay'))
             elif self.ui.rdo_consider_interval_ngrams.isChecked():
                 if self.ui.rdo_list.isChecked():
                     list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
@@ -1123,7 +1128,7 @@ Do you want to go back and add the part combination?""",
             which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
                             self.ui.grp_quality, self.ui.rdo_chart]
         elif self.ui.rdo_consider_chord_ngrams.isChecked():
-            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n]
+            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n, self.ui.rdo_score]
         elif self.ui.rdo_consider_score.isChecked():
             which_to_enable = [self.ui.rdo_score]
 
