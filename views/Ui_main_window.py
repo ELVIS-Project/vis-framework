@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/main_window.ui'
 #
-# Created: Tue May 14 18:00:48 2013
-#      by: PyQt4 UI code generator 4.10
+# Created: Sun May 26 18:24:23 2013
+#      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -400,6 +400,25 @@ class Ui_MainWindow(object):
         self.line_threshold.setObjectName(_fromUtf8("line_threshold"))
         self.verticalLayout_12.addWidget(self.line_threshold)
         self.gridLayout.addWidget(self.group_threshold, 3, 1, 1, 1)
+        self.grp_ignore_inversion = QtGui.QGroupBox(self.groupBox_2)
+        self.grp_ignore_inversion.setObjectName(_fromUtf8("grp_ignore_inversion"))
+        self.verticalLayout_14 = QtGui.QVBoxLayout(self.grp_ignore_inversion)
+        self.verticalLayout_14.setObjectName(_fromUtf8("verticalLayout_14"))
+        self.chk_ignore_inversion = QtGui.QCheckBox(self.grp_ignore_inversion)
+        self.chk_ignore_inversion.setObjectName(_fromUtf8("chk_ignore_inversion"))
+        self.verticalLayout_14.addWidget(self.chk_ignore_inversion)
+        self.gridLayout.addWidget(self.grp_ignore_inversion, 1, 2, 1, 1)
+        self.grp_annotate_these = QtGui.QGroupBox(self.groupBox_2)
+        self.grp_annotate_these.setObjectName(_fromUtf8("grp_annotate_these"))
+        self.verticalLayout_15 = QtGui.QVBoxLayout(self.grp_annotate_these)
+        self.verticalLayout_15.setObjectName(_fromUtf8("verticalLayout_15"))
+        self.label_6 = QtGui.QLabel(self.grp_annotate_these)
+        self.label_6.setObjectName(_fromUtf8("label_6"))
+        self.verticalLayout_15.addWidget(self.label_6)
+        self.line_annotate_these = QtGui.QLineEdit(self.grp_annotate_these)
+        self.line_annotate_these.setObjectName(_fromUtf8("line_annotate_these"))
+        self.verticalLayout_15.addWidget(self.line_annotate_these)
+        self.gridLayout.addWidget(self.grp_annotate_these, 2, 2, 2, 1)
         self.verticalLayout_3.addWidget(self.groupBox_2)
         self.main_screen.addWidget(self.page_show)
         self.page_working = QtGui.QWidget()
@@ -531,6 +550,10 @@ class Ui_MainWindow(object):
         self.label_4.setText(_translate("MainWindow", "... highest results", None))
         self.group_threshold.setTitle(_translate("MainWindow", "Threshold Filter", None))
         self.label_5.setText(_translate("MainWindow", "<html><head/><body><p>Do not show results<br/>with fewer than this<br/>many occurrences:</p></body></html>", None))
+        self.grp_ignore_inversion.setTitle(_translate("MainWindow", "Voice Crossing", None))
+        self.chk_ignore_inversion.setText(_translate("MainWindow", "Ignore", None))
+        self.grp_annotate_these.setTitle(_translate("MainWindow", "Annotate This N-Gram", None))
+        self.label_6.setText(_translate("MainWindow", "<html><head/><body><p>Only the n-gram whose text matches the</p><p>text inputted below will be annotated on</p><p>the outputted score.</p></body></html>", None))
         self.btn_wait_clock.setToolTip(_translate("MainWindow", "Hi, mom!", None))
         self.lbl_status_text.setText(_translate("MainWindow", "Please wait...", None))
         self.lbl_currently_processing.setText(_translate("MainWindow", "(processing)", None))

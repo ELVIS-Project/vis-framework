@@ -983,8 +983,13 @@ Do you want to go back and add the part combination?""",
                     list_of_settings.append(('lilypond helper', 'IntervalsLists'))
                     list_of_settings.append(('output format', 'LilyPondDisplay'))
             elif self.ui.rdo_consider_chord_ngrams.isChecked():
-                list_of_settings.append(('experiment', 'ChordsList'))
-                list_of_settings.append(('output format', 'SpreadsheetFile'))
+                if self.ui.rdo_spreadsheet.isChecked():
+                    list_of_settings.append(('experiment', 'ChordsList'))
+                    list_of_settings.append(('output format', 'SpreadsheetFile'))
+                elif self.ui.rdo_score.isChecked():
+                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
+                    list_of_settings.append(('lilypond helper', 'ChordsList'))
+                    list_of_settings.append(('output format', 'LilyPondDisplay'))
             elif self.ui.rdo_consider_interval_ngrams.isChecked():
                 if self.ui.rdo_list.isChecked():
                     list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
@@ -1057,6 +1062,22 @@ Do you want to go back and add the part combination?""",
             list_of_settings.append(('values of n', enn))
             return 0
 
+        def do_ignore_inversion():
+            "Ignore inversion?"
+            if self.ui.chk_ignore_inversion.isChecked():
+                list_of_settings.append(('ignore direction', True))
+            else:
+                list_of_settings.append(('ignore direction', False))
+
+        def do_annotate_these():
+            """
+            Is there an "annotate these" value?
+            """
+            a_these = str(self.ui.line_annotate_these.text())
+            if '' != a_these:
+                # TODO: this better
+                list_of_settings.append(('annotate these', [a_these]))
+
         # (1) Figure out the settings
         # TODO: ensure these are chosen dynamically, to correspond to the GUI
         # (1a) Which experiment?
@@ -1074,6 +1095,10 @@ Do you want to go back and add the part combination?""",
         do_threshold()
         # (1f) Top X
         do_top_x()
+        # (1g) Ignore Voice Crossing
+        do_ignore_inversion()
+        # (1h) Annotate These N-Grams
+        do_annotate_these()
 
         # (2) Set the settings
         for setting in list_of_settings:
@@ -1097,7 +1122,9 @@ Do you want to go back and add the part combination?""",
                             self.ui.grp_octaves,
                             self.ui.grp_quality,
                             self.ui.grp_values_of_n,
-                            self.ui.rdo_score]
+                            self.ui.rdo_score,
+                            self.ui.grp_annotate_these,
+                            self.ui.grp_ignore_inversion]
 
         def on_offer(enable_these):
             """
@@ -1118,12 +1145,13 @@ Do you want to go back and add the part combination?""",
 
         if self.ui.rdo_consider_intervals.isChecked():
             which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_octaves, self.ui.grp_quality,
-                            self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_score]
+                               self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_score,
+                               self.ui.grp_annotate_these, self.ui.grp_ignore_inversion]
         elif self.ui.rdo_consider_interval_ngrams.isChecked():
             which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
-                            self.ui.grp_quality, self.ui.rdo_chart]
+                               self.ui.grp_quality, self.ui.rdo_chart, self.ui.grp_ignore_inversion]
         elif self.ui.rdo_consider_chord_ngrams.isChecked():
-            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n]
+            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n, self.ui.rdo_score]
         elif self.ui.rdo_consider_score.isChecked():
             which_to_enable = [self.ui.rdo_score]
 

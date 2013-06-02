@@ -254,7 +254,7 @@ class IntervalNGram(NGram):
 
         return post
 
-    def canonical(self):
+    def canonical(self, quality=True, size='compound'):
         """
         Return the "canonical non-crossed" str representation of this IntervalNGram
         object. This is like an "absolute value" function, in that it removes any
@@ -269,8 +269,10 @@ class IntervalNGram(NGram):
 
         These are not necessarily experientially similar.
         """
-        post = self.get_string_version(True, 'compound').replace('-', '')
-        return post.replace('+', '')
+        post = self.get_string_version(quality, size)
+        post = post.replace('-', '')
+        post = post.replace('+', '')
+        return post
 
     def voice_crossing(self):
         """
