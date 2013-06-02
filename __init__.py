@@ -28,6 +28,6 @@
 
 
 
-__all__ = ['controllers', 'models', 'views']
+__all__ = ['controllers', 'models', 'views', 'OutputLilyPond']
 
 from vis import *
