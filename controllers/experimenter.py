@@ -30,12 +30,12 @@ Holds the Experimenter controller.
 # PyQt4
 from PyQt4 import QtCore
 # music21
-from music21 import chord, converter, stream, note, interval
+from music21 import chord, converter, stream, note, interval, roman
 # vis
 from controller import Controller
 from models.experimenting import ExperimentSettings
 from models import ngram
-import OutputLilyPond
+from OutputLilyPond import OutputLilyPond
 
 
 class Experimenter(Controller, QtCore.QObject):
@@ -284,8 +284,10 @@ class IntervalsLists(Experiment):
         # pre-fetch the settings we'll be using repeatedly
         quality = self._settings.get('quality')
         interval_size = self._settings.get('simple or compound')
+        include_direction = not self._settings.get('ignore direction')
 
-        def the_formatter(interv, direction=False):
+        def the_formatter(interv):
+            # NOTE: there is an exact copy of this function in IntervalsStatistics.perform()
             """
             Formats an Interval object according to the preferences of "quality" and
             "interval_size."
@@ -296,26 +298,26 @@ class IntervalsLists(Experiment):
             """
             post = ''
 
-            if direction:
-                if 1 == interv.direction:
-                    post += '+'
+            # music21 doesn't include a "+" for ascending intervals, by default
+            post += u'+' if include_direction and 1 == interv.direction else u''
 
             if quality:
-                if interval_size == 'simple':
-                    post += interv.semiSimpleName
-                else:
-                    post += interv.name
+                post += interv.semiSimpleName if interval_size == 'simple' else interv.name
             else:
-                if interval_size == 'simple':
-                    post += str(interv.generic.semiSimpleDirected)
+                if interval_size == 'simple' and include_direction:
+                    post += unicode(interv.generic.semiSimpleDirected)
+                elif include_direction:
+                    post += unicode(interv.generic.directed)
+                elif 'simple' == interval_size:
+                    post += unicode(interv.generic.simpleUndirected)
                 else:
-                    post += str(interv.generic.directed)
+                    post += unicode(interv.generic.undirected)
 
             return post
-        # End sub-method the_formatter()
+        # End sub-function the_formatter()
 
         # this is the header for CSV-format output
-        data = [('vertical', 'horizontal', 'offset')]
+        data = [(u'vertical', u'horizontal', u'offset')]
 
         # loop through every AnalysisRecord
         for record in self._records:
@@ -337,21 +339,21 @@ class IntervalsLists(Experiment):
 
                 # If one of the notes is actually a 'Rest' then we can't use it, so skip it
                 if 'Rest' == first_lower:
-                    vertical = 'Rest & ' + first_upper
-                    horizontal = 'N/A'
+                    vertical = u'Rest & ' + first_upper
+                    horizontal = u'N/A'
                 elif 'Rest' == first_upper:
-                    vertical = first_lower + ' & Rest'
+                    vertical = first_lower + u' & Rest'
                 else:
                     # make the vertical interval, which connects first_lower and first_upper
                     vertical = the_formatter(interval.Interval(note.Note(first_lower),
                         note.Note(first_upper)))
 
                 if 'Rest' == second_lower:
-                    horizontal = 'N/A'
+                    horizontal = u'N/A'
                 elif horizontal is None:
                     # make the horizontal interval, which connects first_lower and second_lower
                     horizontal = the_formatter(interval.Interval(note.Note(first_lower),
-                        note.Note(second_lower)), True)
+                        note.Note(second_lower)))
 
                 # make the 3-tuple to append to the list
                 put_me = (vertical, horizontal, offset)
@@ -364,11 +366,11 @@ class IntervalsLists(Experiment):
             last_lower = None
             last_vertical = None
             if 'Rest' == last[1][0]:
-                last_upper = 'Rest'
+                last_upper = u'Rest'
             if 'Rest' == last[1][1]:
-                last_lower = 'Rest'
+                last_lower = u'Rest'
             if last_upper is not None or last_lower is not None:
-                last_vertical = 'N/A'
+                last_vertical = u'N/A'
             else:
                 last_vertical = the_formatter(interval.Interval(note.Note(last[1][0]),
                     note.Note(last[1][1])))
@@ -461,9 +463,12 @@ class ChordsLists(Experiment):
                     continue
 
                 the_chord = chord.Chord(first_chord)
-                the_chord_name = the_chord.root().name + ' ' + the_chord.commonName
+                the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
+                the_chord_name = u'(' + the_chord.bass().name
+                the_chord_name += u' ' + the_figure + u')' if the_figure != u'' else u')'
+
                 horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
-                                                                    chord.Chord(second_chord))
+                                                                  chord.Chord(second_chord))
                 put_me = (the_chord_name, horizontal, offset)
 
                 # add this chord-and-transformation to the list of all of them
@@ -638,28 +643,50 @@ class IntervalsStatistics(Experiment):
         # We'll use these over and over again
         quality = self._settings.get('quality')
         interval_size = self._settings.get('simple or compound')
+        include_direction = not self._settings.get('ignore direction')
+
+        def the_formatter(interv):
+            # NOTE: there is an exact copy of this function in IntervalsLists.perform()
+            """
+            Formats an Interval object according to the preferences of "quality" and
+            "interval_size."
+
+            You can also specify a boolean for "direction," which indicates whether to show the
+            direction of the interval (being a '+' for ascending or '-' for descending). The
+            default is False.
+            """
+            post = ''
+
+            # music21 doesn't include a "+" for ascending intervals, by default
+            post += u'+' if include_direction and 1 == interv.direction else u''
+
+            if quality:
+                post += interv.semiSimpleName if interval_size == 'simple' else interv.name
+            else:
+                if interval_size == 'simple' and include_direction:
+                    post += unicode(interv.generic.semiSimpleDirected)
+                elif include_direction:
+                    post += unicode(interv.generic.directed)
+                elif 'simple' == interval_size:
+                    post += unicode(interv.generic.simpleUndirected)
+                else:
+                    post += unicode(interv.generic.undirected)
+
+            return post
+        # End sub-function the_formatter()
 
         for each_record in self._records:
             for each_event in each_record:
                 # make sure we don't try to make an Interval from a rest or a chord
                 if isinstance(each_event[1][0], basestring) and \
                 isinstance(each_event[1][1], basestring):
+                    this_interval = None
                     if 'Rest' != each_event[1][0] and 'Rest' != each_event[1][1]:
-                        interv = interval.Interval(note.Note(each_event[1][0]),
-                            note.Note(each_event[1][1]))
+                        this_interval = interval.Interval(note.Note(each_event[1][0]),
+                                                          note.Note(each_event[1][1]))
                     else:
                         continue
-
-                    if quality:
-                        if interval_size == 'simple':
-                            self._add_interval(interv.semiSimpleName)
-                        else:
-                            self._add_interval(interv.name)
-                    else:
-                        if interval_size == 'simple':
-                            self._add_interval(str(interv.generic.semiSimpleDirected))
-                        else:
-                            self._add_interval(str(interv.generic.directed))
+                    self._add_interval(the_formatter(this_interval))
 
         # (2.1) If there is a topX or threshold filter, sort by frequency now.
         if self._settings.get('topX') is not None or \
@@ -874,6 +901,7 @@ class IntervalNGramStatistics(Experiment):
         quality = self._settings.get('quality')
         interval_size = self._settings.get('simple or compound')
         values_of_n = sorted(self._settings.get('values of n'))  # sorted lowest-to-highest
+        use_canonical = self._settings.get('ignore direction')
 
         for each_record in self._records:
             for i in xrange(len(each_record)):
@@ -924,7 +952,12 @@ class IntervalNGramStatistics(Experiment):
 
                     # - find the n-gram's string-wise representation
                     # - add the representation to the occurrences dictionary
-                    self._add_ngram(this_ngram.get_string_version(quality, interval_size))
+                    add_me = None
+                    if use_canonical:
+                        add_me = this_ngram.canonical(quality, interval_size)
+                    else:
+                        add_me = this_ngram.get_string_version(quality, interval_size)
+                    self._add_ngram(add_me)
         # (End of step 1)
 
         # (2.1) If there is a topX or threshold filter, sort by frequency now.
@@ -970,7 +1003,21 @@ class IntervalNGramStatistics(Experiment):
                                 reverse=should_reverse)
 
         # (5) Construct the dictionary to return
-        post = []
+        # (5a) Make a crafty tag to help with the description
+        desc = u'Interval ' + unicode(values_of_n[0]) + u'-Grams\n'
+        desc += u'Sorted ' + self._settings.get('sort order') + u' by ' + \
+            self._settings.get('sort by') + u'\n'
+        if self._settings.get('topX'):
+            desc += u'Including only the top ' + unicode(self._settings.get('topX')) + u'\n'
+        if self._settings.get('threshold'):
+            desc += u'With more than ' + unicode(self._settings.get('threshold')) + \
+            u' occurrences\n'
+        desc += u'With quality\n' if quality else u'Without quality\n'
+        desc += u'Size: ' + interval_size + u'\n\n'
+        desc += unicode(values_of_n[0]) + u'-Gram'
+
+        post = [(u'description', desc, u'occurrences')]
+        # (5b) Add all the actual things
         for each_key in self._keys:
             post.append((each_key, self._ngrams[each_key]))
 
@@ -1017,16 +1064,24 @@ class LilyPondExperiment(Experiment):
         """
         post = []
         if self._settings.has('lilypond helper'):
+            # choose the helper experiment
             which_helper = self._settings.get('lilypond helper')
+            TheHelper = None
             if 'IntervalsLists' == which_helper:
-                all_the_scores = []
-                for each_record in self._records:
-                    this_result = IntervalsLists(self._controller, [each_record], self._settings)
-                    this_result = this_result.perform()
-                    all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
-                        each_record, this_result, [2]))
-                for each_score in all_the_scores:
-                    post.append(OutputLilyPond.process_score(each_score))
+                TheHelper = TargetedIntervalNGramExperiment if self._settings.has('annotate these')\
+                    else IntervalsLists
+            elif 'ChordsList' == which_helper or 'ChordsLists' == which_helper:
+                TheHelper = ChordsLists
+
+            # run the experiments
+            all_the_scores = []
+            for each_record in self._records:
+                this_result = TheHelper(self._controller, [each_record], self._settings)
+                this_result = this_result.perform()
+                all_the_scores.append(LilyPondExperiment.make_interval_ngram_score(
+                    each_record, this_result, [2]))
+            for each_score in all_the_scores:
+                post.append(OutputLilyPond.process_score(each_score))
         else:  # just output scores
             score_paths = []
             for rec in self._records:
@@ -1153,6 +1208,10 @@ class LilyPondExperiment(Experiment):
         new_part.lily_analysis_voice = True
         new_part.lily_instruction = u'\t\\textLengthOn\n'
 
+        # 1.5) Maybe the first item in "results" is descriptions of fields?
+        if u'offset' == results[0][2]:
+            results = results[1:]
+
         # 2.) Since the annotations may not begin at the start of the score, let's add some
         #     rests if we need them
         if results[0][2] > 0.0:
@@ -1207,3 +1266,47 @@ class LilyPondExperiment(Experiment):
 
         # 7.) Done... ?
         return score
+
+
+class TargetedIntervalNGramExperiment(Experiment):
+    """
+    Comment here.
+    """
+
+    # List of strings that are the names of the Display objects suitable for this Experiment
+    _good_for = ['LilyPond']
+
+    def __init__(self, controller, records, settings):
+        """
+        Create a new TargetedIntervalNGramExperiment.
+
+        Here's a description of what this Experiment does.
+
+        There are three mandatory arguments:
+        - controller : the Experimenter object to which this Experiment belongs
+        - records : a list of AnalysisRecord objects
+        - settings : an ExperimentSettings object
+
+        These settings are required:
+        - quality
+        - simple or compound
+        - annotate these
+        """
+        # Check the ExperimentSettings object has the right settings
+        # These are required by IntervalsStatistics
+        if not settings.has('quality') or not settings.has('simple or compound'):
+            msg = u'TargetedIntervalsNGram requires "quality" and "simple or compound" settings'
+            controller.error.emit(msg)
+            return
+        if not settings.has('annotate these'):
+            msg = u'TargetedIntervalsNGram requires "quality" and "simple or compound" settings'
+            controller.error.emit(msg)
+            return
+        # Otherwise, we're good to go!
+        super(TargetedIntervalNGramExperiment, self).__init__(controller, records, settings)
+
+    def perform(self):
+        """
+        This is what Alex has to write.
+        """
+        pass
