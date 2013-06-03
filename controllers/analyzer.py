@@ -299,21 +299,9 @@ class AnalyzerThread(QtCore.QThread):
                     collecting.append(each_column)
             the_pieces.append(collecting)
 
-        # Sort the files according to whether their extension indicates they'll work with
-        # multiprocessing or not
-        sequential_extensions = ['.mid', '.midi']
-        multiprocess_pieces = []  # for everything that works in multiprocessing
-        sequential_pieces = []  # for everything that doesn't work (i.e., MIDI)
-        for sort_piece in the_pieces:
-            _, extension = os.path.splitext(sort_piece[ListOfPieces.filename])
-            if extension in sequential_extensions:
-                sequential_pieces.append(sort_piece)
-            else:
-                multiprocess_pieces.append(sort_piece)
-
         # Start up the multiprocessing
         self._pool = Pool()
-        for each_piece in multiprocess_pieces:
+        for each_piece in the_pieces:
             # Load up the stuff in the Pool!
             self._pool.apply_async(analyze_piece,
                                    (each_piece, which_objects,),
@@ -322,10 +310,6 @@ class AnalyzerThread(QtCore.QThread):
         self._pool.close()
         self._pool.join()
         self._pool = None
-
-        # Start up the sequential analysis
-        for each_piece in sequential_pieces:
-            self.callback(analyze_piece(each_piece, which_objects))
 
         # self.progress != self.num_pieces if a user cancelled before the analyses were completed
         if self.progress != self.num_pieces:
