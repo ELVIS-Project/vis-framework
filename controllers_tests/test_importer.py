@@ -122,7 +122,7 @@ class TestPieceGetter(unittest.TestCase):
       my_import = converter.parse(path)
       # we'll have to update this when music21 is fixed, and MIDI files pickle correctly
       #test_import = converter.thawStr(import_piece(path)[0][1])
-      test_import = import_piece(path)[0][1]
+      test_import = converter.thawStr(import_piece(path)[0][1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    def test_sanctus(self):
@@ -363,6 +363,7 @@ class TestAddPieces(unittest.TestCase):
                'test_corpus/Kyrie.krn',
                'test_corpus/symphony6-i.midi',
                'test_corpus/prolationum-sanctus.midi',
+               'test_corpus/Sanctus.krn',
                'test_corpus/sqOp76-4-i.midi']
       ret_val = self.control.add_pieces(['test_corpus'])
       # there will be errors during import, since some files in the directory will not be suitable
@@ -581,8 +582,8 @@ class TestImportPieces(unittest.TestCase):
                'test_corpus/Jos2308.krn',
                'test_corpus/Kyrie.krn',
                'test_corpus/madrigal51.mxl',
-               'test_corpus/sinfony.md']#,
-               #'test_corpus/sqOp76-4-i.midi']
+               'test_corpus/sinfony.md',
+               'test_corpus/sqOp76-4-i.midi']
       control = Importer()
       control.add_pieces(paths)
 
@@ -604,11 +605,11 @@ class TestImportPieces(unittest.TestCase):
       for row in xrange(len(paths)): # filenames
          #index = returned.createIndex(row, analyzing.ListOfPieces.filename)
          index = (row, analyzing.ListOfPieces.filename)
-         self.assertEqual(paths[row], returned.data(index, Qt.DisplayRole))
+         self.assertTrue(returned.data(index, Qt.DisplayRole).toPyObject() in paths)
       for row in xrange(len(paths)): # titles
          #index = returned.createIndex(row, analyzing.ListOfPieces.score)
          index = (row, analyzing.ListOfPieces.score)
-         self.assertEqual(titles[row], returned.data(index, Qt.DisplayRole).toPyObject())
+         self.assertTrue(returned.data(index, Qt.DisplayRole).toPyObject() in titles)
       for row in xrange(len(paths)): # Score objects
          #index = returned.createIndex(row, analyzing.ListOfPieces.score)
          index = (row, analyzing.ListOfPieces.score)
