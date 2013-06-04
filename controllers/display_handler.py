@@ -264,6 +264,12 @@ class StatisticsListDisplay(Display):
         post = ''
         total_occurrences = 0
 
+        # ensure the Experiment produced valid output
+        if 0 == len(self._data):
+            msg = u'StatisticsListDisplay: The Experiment produced no data! Cannot continue.'
+            self._controller.error.emit(msg)
+            return None
+
         # prepare the header data (except total number of occurrences)
         if 3 == len(self._data[0]) and 'description' == self._data[0][0]:
             header_data += self._data[0][1] + u': ' + self._data[0][2] + u'\n'
@@ -363,6 +369,12 @@ class GraphDisplay(Display):
 
         This method emits a VisSignals.display_shown signal when it finishes.
         """
+
+        # ensure the Experiment produced valid output
+        if 0 == len(self._data):
+            msg = u'GraphDisplay: The Experiment produced no data! Cannot continue.'
+            self._controller.error.emit(msg)
+            return None
 
         # Filter out the "description" fields, if they exist
         if u'description' == self._data[0][0]:
