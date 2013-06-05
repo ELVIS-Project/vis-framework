@@ -1078,6 +1078,14 @@ Do you want to go back and add the part combination?""",
                 # TODO: this better
                 list_of_settings.append(('annotate these', [a_these]))
 
+        def do_chord_parser():
+            "Use the ChordParser? How long the quarterLength?"
+            try:
+                list_of_settings.append(('chord parse length',
+                    float(self.ui.line_chord_parser.text())))
+            except ValueError:
+                pass
+
         # (1) Figure out the settings
         # TODO: ensure these are chosen dynamically, to correspond to the GUI
         # (1a) Which experiment?
@@ -1099,6 +1107,8 @@ Do you want to go back and add the part combination?""",
         do_ignore_inversion()
         # (1h) Annotate These N-Grams
         do_annotate_these()
+        # (1i) Should we run the ChordParser?
+        do_chord_parser()
 
         # (2) Set the settings
         for setting in list_of_settings:
@@ -1124,7 +1134,8 @@ Do you want to go back and add the part combination?""",
                             self.ui.grp_values_of_n,
                             self.ui.rdo_score,
                             self.ui.grp_annotate_these,
-                            self.ui.grp_ignore_inversion]
+                            self.ui.grp_ignore_inversion,
+                            self.ui.group_chord_parser]
 
         def on_offer(enable_these):
             """
@@ -1151,7 +1162,8 @@ Do you want to go back and add the part combination?""",
             which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
                                self.ui.grp_quality, self.ui.rdo_chart, self.ui.grp_ignore_inversion]
         elif self.ui.rdo_consider_chord_ngrams.isChecked():
-            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n, self.ui.rdo_score]
+            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n, self.ui.rdo_score,
+                               self.ui.group_chord_parser]
         elif self.ui.rdo_consider_score.isChecked():
             which_to_enable = [self.ui.rdo_score]
 

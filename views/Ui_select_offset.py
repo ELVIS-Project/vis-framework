@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/select_offset.ui'
 #
-# Created: Sat Jun  1 17:18:45 2013
+# Created: Tue Jun  4 22:04:29 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!

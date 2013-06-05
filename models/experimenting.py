@@ -48,6 +48,8 @@ class ExperimentSettings(object):
         negative intervals as positive ones, and that voice crossing is ignored in interval n-grams
     - annotate these : (list of str) These are the objects to be annotated on a targeted LilyPond
         output score
+    - chord parse length : (float) The longest chord to try to make, when using the ChordParser
+        Experiment. This is a quarterLength value.
     """
 
     def __init__(self):

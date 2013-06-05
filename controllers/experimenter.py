@@ -28,12 +28,15 @@ Holds the Experimenter controller.
 """
 
 # Imports from...
+# python
+from copy import deepcopy
 # PyQt4
 from PyQt4 import QtCore
 # music21
 from music21 import chord, converter, stream, note, interval, roman
 # vis
 from controller import Controller
+from models import analyzing
 from models.experimenting import ExperimentSettings
 from models import ngram
 import OutputLilyPond
@@ -468,6 +471,14 @@ class ChordsLists(Experiment):
 
         This method emits an Experimenter.experimented signal when it finishes.
         """
+
+        # Should we use the ChordParser?
+        if self._settings.has('chord parse length'):
+            cp = ChordParser(self._controller, self._records, self._settings)
+            res = cp.perform()
+            self._records = res if res is not None else self._records
+            if res is None:
+                return None
 
         # this is what we'll return
         post = [('chord', 'transformation', 'offset')]
@@ -1415,3 +1426,118 @@ class TargetedIntervalNGramExperiment(Experiment):
         This is what Alex has to write.
         """
         pass
+
+
+class ChordParser(Experiment):
+    """
+    Try to parse chords out of otherwise-impenetrable textures.
+
+    The Experiment tries the events at a particular offset, then gradually adds later offsets until
+    a triad or seventh chord is formed, or until reaching a certain duration away.
+
+    It's probably best to use this with a very small offset through the Analyzer, so this
+    experiment can have all the attacks possible.
+    """
+
+    # This is a helper experiment, only suitable for use by other experiments!
+    _good_for = ['None']
+
+    def __init__(self, controller, records, settings):
+        """
+        Create a new ChordParser Experiment.
+
+        The ExperimentSettings instance must have the "chord parse length" property.
+        """
+        if not settings.has('chord parse length'):
+            msg = u'ChordParser requires the "chord parse length" setting'
+            controller.error.emit(msg)
+            return
+        super(ChordParser, self).__init__(controller, records, settings)
+
+    def perform(self):
+        """
+        Perform the Experiment.
+        """
+        new_ars = []
+
+        for old_ar in self._records:
+            new_ar = analyzing.AnalysisRecord()
+
+            note_dict = {}  # hold the Note objects we generate
+            force_this = False  # whether to add this sonority, even if it's not "nice"
+            largest_duration = self._settings.get('chord parse length')
+            i = [0]  # list of the indices to check in old_ar
+            max_i = len(old_ar)
+            previous_i = [-1]
+
+            while 0 == 0:
+                force_this = False
+                # ?.) Did we just do the last thing?
+                if i[0] >= max_i:
+                    break
+
+                # ?.) Make sure we're not going backwards
+                if i[0] < previous_i[0]:
+                    print('going backwards')  # DEBUG
+                    print('this i: ' + str(i))  # DEBUG
+                    print('previous i: ' + str(previous_i))  # DEBUG
+                    msg = u'ChordParser started to go backwards!'
+                    self._controller.error.emit(msg)
+                    return None
+                elif i[0] == previous_i[0] and len(i) <= len(previous_i):
+                    print('checking the same things twice')  # DEBUG
+                    print('this i: ' + str(i))  # DEBUG
+                    print('previous i: ' + str(previous_i))  # DEBUG
+                    msg = u'ChordParser is checking the same things twice!'
+                    self._controller.error.emit(msg)
+                    return None
+
+                # ?.) Update the "previous"-ly checked i values
+                previous_i = deepcopy(i)
+
+                # ?.) See if we can use this set of offsets (ensure it's not all too large)
+                # If not, we'll have to just use the first thing, no matter what it is.
+                if i[-1] > max_i:  # check we don't go off the end of the AnalysisRecord
+                    force_this = True
+                    i = [i[0]]
+                if old_ar[i[-1]][0] - old_ar[i[0]][0] > largest_duration:  # larger than wanted
+                    force_this = True
+                    i = [i[0]]
+
+                # ?.) Figure out what's at this set of offsets
+                this_sonority = []
+                for each_i in i:
+                    for each_pitch in old_ar[each_i][1]:
+                        # Using this dict, we get a significant speed-up later in Chord.__init__()
+                        if 'Rest' == each_pitch:
+                            continue
+                        if each_pitch in note_dict:
+                            this_sonority.append(note_dict[each_pitch])
+                        else:
+                            new_note = note.Note(each_pitch)
+                            note_dict[each_pitch] = new_note
+                            this_sonority.append(new_note)
+
+                # ?.) Make the Chord
+                # "p_chord" for "possible chord"
+                p_chord = chord.Chord(this_sonority)
+                names = [p.nameWithOctave for p in this_sonority]  # string-wise chord repr
+
+                # ?.) See if the Chord is "nice"
+                if p_chord.isTriad() or p_chord.isSeventh() or force_this:
+                    if len(new_ar) > 0 and old_ar[-1][1] != names:
+                        new_ar.append(old_ar[i[0]][0], names)
+                    else:
+                        new_ar.append(old_ar[i[0]][0], names)
+                    i = [i[-1] + 1]
+                else:
+                    i.append(i[-1] + 1)
+
+                print('next i is ' + str(i))  # DEBUG
+                print('at ' + str(old_ar[i[0] - 1][0]) + ', appended ' + str(names))  # DEBUG
+
+            # ?.) We finished a piece!
+            new_ars.append(new_ar)
+
+        # ?.) We finished all the pieces!
+        return new_ars
