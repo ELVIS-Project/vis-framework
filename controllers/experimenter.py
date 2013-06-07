@@ -1466,6 +1466,12 @@ class ChordParser(Experiment):
         new_ars = []
 
         for old_ar in self._records:
+            # START DEBUGGING
+            #print('#####################')
+            #for ass in old_ar:
+                #print(str(ass))
+            #print('#####################')
+            # END DEBUGGING
             new_ar = analyzing.AnalysisRecord()
 
             note_dict = {}  # hold the Note objects we generate
@@ -1502,10 +1508,10 @@ class ChordParser(Experiment):
 
                 # ?.) See if we can use this set of offsets (ensure it's not all too large)
                 # If not, we'll have to just use the first thing, no matter what it is.
-                if i[-1] > max_i:  # check we don't go off the end of the AnalysisRecord
+                if i[-1] >= max_i:  # check we don't go off the end of the AnalysisRecord
                     force_this = True
                     i = [i[0]]
-                if old_ar[i[-1]][0] - old_ar[i[0]][0] > largest_duration:  # larger than wanted
+                elif old_ar[i[-1]][0] - old_ar[i[0]][0] > largest_duration:  # larger than wanted
                     force_this = True
                     i = [i[0]]
 
@@ -1526,20 +1532,24 @@ class ChordParser(Experiment):
                 # ?.) Make the Chord
                 # "p_chord" for "possible chord"
                 p_chord = chord.Chord(this_sonority)
-                names = [p.nameWithOctave for p in this_sonority]  # string-wise chord repr
+                p_chord.removeRedundantPitchNames(inPlace=True)
+                names = [p.nameWithOctave for p in p_chord]  # string-wise chord repr
 
                 # ?.) See if the Chord is "nice"
                 if p_chord.isTriad() or p_chord.isSeventh() or force_this:
-                    if len(new_ar) > 0 and old_ar[-1][1] != names:
+                    if len(new_ar) == 0:
                         new_ar.append(old_ar[i[0]][0], names)
+                        print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
                     else:
-                        new_ar.append(old_ar[i[0]][0], names)
+                        prev_chord = chord.Chord([note_dict[x] for x in new_ar[-1][1]])
+                        if prev_chord.normalForm != p_chord.normalForm:
+                            new_ar.append(old_ar[i[0]][0], names)
+                            print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
                     i = [i[-1] + 1]
                 else:
                     i.append(i[-1] + 1)
 
                 print('next i is ' + str(i))  # DEBUG
-                print('at ' + str(old_ar[i[0] - 1][0]) + ', appended ' + str(names))  # DEBUG
 
             # ?.) We finished a piece!
             new_ars.append(new_ar)
