@@ -520,8 +520,13 @@ class ChordsLists(Experiment):
                 the_chord = chord.Chord(first_chord)
                 the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
                 bass_name = the_chord.bass().name
+                # TODO: what if it's double-flat or double-sharp?
                 if bass_name[-1] == u'-':
                     bass_name = bass_name[0] + u'b'
+                if u'major' == the_chord.quality:
+                    bass_name += u'+'
+                elif u'minor' == the_chord.quality:
+                    bass_name += u'-'
                 chord_name = bass_name + u' ' + the_figure if the_figure != u'' else bass_name
 
                 # find the transformation
