@@ -572,7 +572,7 @@ class ChordNGram(NGram):
     #     12-pc-per-octave major or minor triad.
     list_of_transforms = ['LPR', 'LPRP', 'RLR', 'LRLR', 'PRP', 'PR', 'L', 'LP', 'PLR', 'RL', 'RPR',
                             'PRPR', 'LRP', 'LR', 'LPL', 'PL', 'R', 'RP', 'LRPRP', 'LRPR', 'LRL',
-                            'LPLR']
+                            'LPLR', 'P']
 
     # This is what to say when two consecutive things are identical
     identical_chords = 'ident'
