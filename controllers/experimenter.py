@@ -1489,16 +1489,16 @@ class ChordParser(Experiment):
 
                 # ?.) Make sure we're not going backwards
                 if i[0] < previous_i[0]:
-                    print('going backwards')  # DEBUG
-                    print('this i: ' + str(i))  # DEBUG
-                    print('previous i: ' + str(previous_i))  # DEBUG
+                    #print('going backwards')  # DEBUG
+                    #print('this i: ' + str(i))  # DEBUG
+                    #print('previous i: ' + str(previous_i))  # DEBUG
                     msg = u'ChordParser started to go backwards!'
                     self._controller.error.emit(msg)
                     return None
                 elif i[0] == previous_i[0] and len(i) <= len(previous_i):
-                    print('checking the same things twice')  # DEBUG
-                    print('this i: ' + str(i))  # DEBUG
-                    print('previous i: ' + str(previous_i))  # DEBUG
+                    #print('checking the same things twice')  # DEBUG
+                    #print('this i: ' + str(i))  # DEBUG
+                    #print('previous i: ' + str(previous_i))  # DEBUG
                     msg = u'ChordParser is checking the same things twice!'
                     self._controller.error.emit(msg)
                     return None
@@ -1534,22 +1534,32 @@ class ChordParser(Experiment):
                 p_chord = chord.Chord(this_sonority)
                 p_chord.removeRedundantPitchNames(inPlace=True)
                 names = [p.nameWithOctave for p in p_chord]  # string-wise chord repr
+                prev_chord = chord.Chord('')
+                if len(new_ar) > 0:
+                    prev_chord = chord.Chord([note_dict[x] for x in new_ar[-1][1]])
 
                 # ?.) See if the Chord is "nice"
-                if p_chord.isTriad() or p_chord.isSeventh() or force_this:
-                    if len(new_ar) == 0:
+                if all([p in prev_chord.pitchClasses for p in p_chord.pitchClasses]):
+                    #print('at ' + str(old_ar[i[0]][0]) + ', (CONTAINED NOT) ' + str(names) +
+                        #' is in ' + str(new_ar[-1][1]))  # DEBUG
+                    i = [i[-1] + 1]
+                elif p_chord.isTriad() or p_chord.isSeventh() or force_this:
+                    if len(new_ar) == 0:  # first item in the new_ar
                         new_ar.append(old_ar[i[0]][0], names)
-                        print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
+                        #print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
                     else:
-                        prev_chord = chord.Chord([note_dict[x] for x in new_ar[-1][1]])
-                        if prev_chord.normalForm != p_chord.normalForm:
+                        if prev_chord.normalForm != p_chord.normalForm:  # this is same as previous
                             new_ar.append(old_ar[i[0]][0], names)
-                            print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
+                            # START DEBUG
+                            #print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))
+                        #else:
+                            #print('at ' + str(old_ar[i[0]][0]) + ', (SAME NOT) ' + str(names))
+                            # END DEBUG
                     i = [i[-1] + 1]
                 else:
+                    #print('at ' + str(old_ar[i[0]][0]) + ', NOT ' + str(names))  # DEBUG
                     i.append(i[-1] + 1)
-
-                print('next i is ' + str(i))  # DEBUG
+                #print('next i is ' + str(i))  # DEBUG
 
             # ?.) We finished a piece!
             new_ars.append(new_ar)
