@@ -446,6 +446,9 @@ class ChordsLists(Experiment):
     # List of strings that are the names of the Display objects suitable for this Experiment
     _good_for = ['SpreadsheetFile', 'LilyPondAnnotated']
 
+    # How chord qualities should be represented with single letters
+    _quality_dict = {u'major': u'+', u'minor': u'-', u'augmented': u'x', u'diminished': u'o'}
+
     def __init__(self, controller, records, settings):
         """
         Create a new ChordsLists.
@@ -465,6 +468,61 @@ class ChordsLists(Experiment):
         if self._settings.has('output format'):
             self._good_for = [self._settings.get('output format')]
 
+    @staticmethod
+    def make_chord_symbol(the_chord):
+        """
+        Given a music21.chord.Chord, make a chord symbol.
+
+        Parameters
+        ----------
+
+        the_chord : music21.chord.Chord
+            The chord the symbol of which you want.
+
+        Returns
+        -------
+
+        string
+            The corresponding chord symbol.
+        """
+        the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
+        if u'other' == the_chord.quality:
+            # We'll show bass and FB
+            bass_name = unicode(the_chord.bass().name).replace(u'-', u'b')  # replace flat symbols
+            return u''.join([bass_name, u' ', the_figure]) if the_figure != u'' else bass_name
+        else:
+            # We'll show root, quality, and FB
+            root = unicode(the_chord.root().name).replace(u'-', u'b')  # replace flat symbols
+            u''.join([root, ChordsLists._quality_dict[the_chord.quality]])
+            return u''.join([root, u' ', the_figure]) if the_figure != u'' else root
+
+    @staticmethod
+    def remove_rests(event):
+        """
+        Remove 'Rest' strings from iterables of strings.
+
+        Parameters
+        ----------
+
+        event : list or tuple of strings, optionally with singly-nested lists/tuples of strings
+            'Rest' strings will be removed from this
+
+        Returns
+        -------
+
+        tuple of strings
+            All elements are brought into the main tuple, and any strings == u'Rest' are removed
+        """
+        post = []
+        for chord_member in event:
+            if isinstance(chord_member, tuple) or isinstance(chord_member, list):
+                for inner_chord_member in chord_member:
+                    if u'Rest' != inner_chord_member:
+                        post.append(inner_chord_member)
+            elif u'Rest' != chord_member:
+                post.append(chord_member)
+        return post
+
     def perform(self):
         """
         Perform the ChordsListsExperiment.
@@ -483,72 +541,54 @@ class ChordsLists(Experiment):
         # this is what we'll return
         post = [('chord', 'transformation', 'offset')]
 
-        def remove_rests(event):
-            """
-            Removes 'Rest' strings from a list of strings.
-            """
-            post = ''
-
-            for chord_member in event:
-                if isinstance(chord_member, list):
-                    for inner_chord_member in chord_member:
-                        post += inner_chord_member + ' '
-                elif 'Rest' != chord_member:
-                    post += chord_member + ' '
-
-            return post
+        # keep a dict of Note objects to help speed up Chord.__init__()
+        note_dict = {}
 
         for record in self._records:
             for first, second in zip(record, list(record)[1:]):
-                # find the offset
-                offset = first[0]
-
-                # hold the string-wise representation of the notes in the chords
-                first_chord, second_chord = '', ''
-
                 # prepare the string-wise representation of notes in the chords
-                # NOTE: we have the inner isinstance() call because, if a Chord object is put here,
-                #       it'll be as a tuple, rather than, like Note objects, as simply right there
-                first_chord = remove_rests(first[1])
-                second_chord = remove_rests(second[1])
+                first_chord_str = ChordsLists.remove_rests(first[1])
+                second_chord_str = ChordsLists.remove_rests(second[1])
+                first_chord_pitches = []
+                for each in first_chord_str:
+                    try:
+                        first_chord_pitches.append(note_dict[each])
+                    except KeyError:
+                        note_dict[each] = note.Note(each)
+                        first_chord_pitches.append(note_dict[each])
+                second_chord_pitches = []
+                for each in second_chord_str:
+                    try:
+                        second_chord_pitches.append(note_dict[each])
+                    except KeyError:
+                        note_dict[each] = note.Note(each)
+                        second_chord_pitches.append(note_dict[each])
+                first_chord = chord.Chord(first_chord_pitches)
+                second_chord = chord.Chord(second_chord_pitches)
 
                 # ensure neither of the chords is just a REST... if it is, we'll skip this loop
-                if '' == first_chord or '' == second_chord:
+                if u'' == first_chord or u'' == second_chord:
                     continue
 
                 # make the chord symbol
-                the_chord = chord.Chord(first_chord)
-                the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
-                bass_name = the_chord.bass().name
-                # TODO: what if it's double-flat or double-sharp?
-                if bass_name[-1] == u'-':
-                    bass_name = bass_name[0] + u'b'
-                if u'major' == the_chord.quality:
-                    bass_name += u'+'
-                elif u'minor' == the_chord.quality:
-                    bass_name += u'-'
-                chord_name = bass_name + u' ' + the_figure if the_figure != u'' else bass_name
+                chord_name = ChordsLists.make_chord_symbol(chord.Chord(first_chord))
 
                 # find the transformation
                 horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
                                                                   chord.Chord(second_chord))
-                put_me = (chord_name, u'(' + horizontal + u')', offset)
+                put_me = (chord_name, u'(' + horizontal + u')', first[0])
 
                 # add this chord-and-transformation to the list of all of them
                 post.append(put_me)
 
             # finally, add the last chord, which doesn't have a transformation
-            last = record[-1]
-            last_chord = ''
-
-            # prepare the string-wise representation of notes in the chords
-            last_chord = remove_rests(last[1])
+            last_chord = ChordsLists.remove_rests(record[-1][1])
 
             # format and add the chord, but only if the previous step didn't turn everyting to rests
             if '' != last_chord:
-                last_chord = chord.Chord(last_chord)
-                last_chord_name = last_chord.root().name + ' ' + last_chord.commonName
-                post.append((last_chord_name, None, last[0]))
+                post.append((ChordsLists.make_chord_symbol(chord.Chord(last_chord)),
+                             None,
+                             record[-1][0]))
 
         return post
 
@@ -1116,6 +1156,15 @@ class LilyPondExperiment(Experiment):
                 this_result = this_result.perform()
                 if 'ChordsList' == which_helper:
                     this_result = LilyPondExperiment._accidental_replacer(this_result)
+                # START DEBUGGING
+                #asdf = LilyPondExperiment.make_ngram_score(each_record, this_result, [2])
+                #print(u'================================================================')
+                #print(u'================================================================')
+                #print(OutputLilyPond.process_score(asdf.parts[-1]))
+                #print(u'================================================================')
+                #print(u'================================================================')
+                #all_the_scores.append(asdf)
+                # END DEBUGGING
                 all_the_scores.append(LilyPondExperiment.make_ngram_score(
                     each_record, this_result, [2]))
             for each_score in all_the_scores:
@@ -1540,26 +1589,27 @@ class ChordParser(Experiment):
 
                 # ?.) See if the Chord is "nice"
                 if all([p in prev_chord.pitchClasses for p in p_chord.pitchClasses]):
-                    #print('at ' + str(old_ar[i[0]][0]) + ', (CONTAINED NOT) ' + str(names) +
-                        #' is in ' + str(new_ar[-1][1]))  # DEBUG
+                    print('at ' + str(old_ar[i[0]][0]) + ', (CONTAINED NOT) ' + str(names) +
+                        ' is in ' + str(new_ar[-1][1]))  # DEBUG
                     i = [i[-1] + 1]
                 elif p_chord.isTriad() or p_chord.isSeventh() or force_this:
                     if len(new_ar) == 0:  # first item in the new_ar
                         new_ar.append(old_ar[i[0]][0], names)
-                        #print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
+                        print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
                     else:
-                        if prev_chord.normalForm != p_chord.normalForm:  # this is same as previous
+                        if prev_chord.orderedPitchClasses != p_chord.orderedPitchClasses:
+                            # then it's the same as the previous chord
                             new_ar.append(old_ar[i[0]][0], names)
                             # START DEBUG
-                            #print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))
-                        #else:
-                            #print('at ' + str(old_ar[i[0]][0]) + ', (SAME NOT) ' + str(names))
+                            print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))
+                        else:
+                            print('at ' + str(old_ar[i[0]][0]) + ', (SAME NOT) ' + str(names))
                             # END DEBUG
                     i = [i[-1] + 1]
                 else:
-                    #print('at ' + str(old_ar[i[0]][0]) + ', NOT ' + str(names))  # DEBUG
+                    print('at ' + str(old_ar[i[0]][0]) + ', NOT ' + str(names))  # DEBUG
                     i.append(i[-1] + 1)
-                #print('next i is ' + str(i))  # DEBUG
+                print('next i is ' + str(i))  # DEBUG
 
             # ?.) We finished a piece!
             new_ars.append(new_ar)
