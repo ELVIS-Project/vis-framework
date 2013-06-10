@@ -29,7 +29,6 @@ Holds the Analyzer controller.
 
 # Imports from...
 # Python
-import os
 from multiprocessing import Pool
 # music21
 from music21 import note, chord, converter, stream
@@ -54,12 +53,12 @@ def analyze_piece(each_piece, which_objects):
     the_score = each_piece[ListOfPieces.score][0]
     if not isinstance(the_score, stream.Score):
         the_score = converter.thawStr(the_score)
-    if '[all]' == this_combos:
-        # We have to examine all combinations of parts...
-        # How many parts are in this piece?
-        number_of_parts = len(the_score.parts)
+    if u'[all pairs]' == this_combos:
         # Get a list of all the part-combinations to examine
-        this_combos = Analyzer.calculate_all_combos(number_of_parts - 1)
+        this_combos = Analyzer.calculate_all_combos(len(the_score.parts) - 1)
+    elif u'[all]' == this_combos:
+        # make a list with one sub-list that has all the parts at once
+        this_combos = [[i for i in range(len(the_score.parts))]]
     else:
         # Turn the str specification of parts into a list of int (or str)
         this_combos = eval(this_combos)

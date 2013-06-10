@@ -24,7 +24,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 """
-Holds the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt4 interface.
+Hold the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt4 interface.
 """
 
 # Imports from...
@@ -43,9 +43,7 @@ from Ui_main_window import Ui_MainWindow
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
-    """
-    This class makes the GUI-controlling objects for vis' PyQt4 interface.
-    """
+    "This class makes the GUI-controlling objects for vis' PyQt4 interface."
     # Signals for connecting to the vis_controller
     show_import = QtCore.pyqtSignal()
     show_analyze = QtCore.pyqtSignal()
@@ -56,10 +54,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
     report_error = QtCore.pyqtSignal(str)
 
     def __init__(self, vis_controller):
-        """
-        The argument is the instance of VisController controlling this class. It's
-        used to send signals.
-        """
+        "Parameter is an instance of VisController to use for sending signals."
         super(VisQtMainWindow, self).__init__()  # required for signals
         self.vis_controller = vis_controller
         # self.ui = uic.loadUi(os.path.dirname(os.path.realpath(__file__)) + '/ui/main_window.ui')
@@ -94,8 +89,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.btn_step1.clicked, self._check_for_pieces),
             (self.ui.btn_step2.clicked, self._start_the_analysis),
             # Things that operate the GUI
-            (self.ui.chk_all_voice_combos.stateChanged, self._adjust_bs),
-            (self.ui.chk_all_voice_combos.clicked, self._all_voice_combos),
+            (self.ui.chk_all_voice_combos.clicked, self._all_voice_pairs),
             (self.ui.line_piece_title.editingFinished, self._update_piece_title),
             (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
             (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
@@ -111,6 +105,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.rdo_spreadsheet.clicked, self._output_format_changed),
             (self.ui.rdo_list.clicked, self._output_format_changed),
             (self.ui.rdo_chart.clicked, self._output_format_changed),
+            (self.ui.chk_all_voices.stateChanged, self._all_voices),
         ]
         for signal, slot in mapper:
             signal.connect(slot)
@@ -123,9 +118,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
     # Pressing Buttons in the Toolbar -----------------------
     @QtCore.pyqtSlot()
     def _tool_import(self):
-        """
-        Activate the "import" panel
-        """
+        "Activate the 'import' panel"
         self.ui.main_screen.setCurrentWidget(self.ui.page_choose)
         self.ui.btn_about.setEnabled(True)
         self.ui.btn_choose_files.setEnabled(True)
@@ -136,9 +129,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _tool_analyze(self):
-        """
-        Activate the "analyze" panel (corresponding to the Analyzer).
-        """
+        "Activate the 'analyze' panel (corresponding to the Analyzer)."
         self.ui.main_screen.setCurrentWidget(self.ui.page_analyze)
         self.ui.btn_choose_files.setEnabled(False)
         self.ui.btn_analyze.setChecked(True)
@@ -151,9 +142,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _tool_working(self):
-        """
-        Activate the "working" panel, for when vis is processing.
-        """
+        "Activate the 'working' panel, for when vis is processing."
         self.ui.main_screen.setCurrentWidget(self.ui.page_working)
         # make sure nothing is enabled
         self.ui.btn_about.setEnabled(False)
@@ -173,9 +162,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _tool_about(self):
-        """
-        Activate the "about" panel.
-        """
+        "Activate the 'about' panel."
         self.ui.main_screen.setCurrentWidget(self.ui.page_about)
         # leave enabled/disabled as-is, but make sure only "about" is checked
         self.ui.btn_about.setChecked(True)
@@ -185,9 +172,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
 
     @QtCore.pyqtSlot()
     def _tool_experiment(self):
-        """
-        Activate the "show" panel, which corresponds to the Experimenter controller.
-        """
+        "Activate the 'show' panel, which corresponds to the Experimenter controller."
         self.ui.main_screen.setCurrentWidget(self.ui.page_show)
         self.ui.btn_about.setEnabled(True)
         self.ui.btn_choose_files.setEnabled(False)
@@ -216,8 +201,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         else:
             # then ask the user to stop being a jerk
             QtGui.QMessageBox.information(None,
-            "Please Select Pieces",
-            """The list of pieces is empty.
+            u"Please Select Pieces",
+            u"""The list of pieces is empty.
 
 You must choose pieces before we can import them.""",
             QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
@@ -225,33 +210,29 @@ You must choose pieces before we can import them.""",
 
     @QtCore.pyqtSlot()
     def _add_files(self):
-        """
-        Add files to the "importer" panel.
-        """
+        "Add files to the 'importer' panel."
         files = QtGui.QFileDialog.getOpenFileNames(
             None,  # parent
-            "Choose Files to Analyze",  # title
-            '',  # default directory
+            u"Choose Files to Analyze",  # title
+            u'',  # default directory
             )  # NB: This should be the 'filter' line, which is below, but commented out... it seems
             # that, for some reason, the filter isn't working. For me on Fedora 17, the result is
             # that all file types are "selectable"... but others have reported occasional issues
             # that entirely prevent them from selecting files. So here we are.
             # 'music21 Files (*.nwc *.mid *.midi *.mxl *.krn *.xml *.md)')  # filter
         if files:
-            self.vis_controller.import_files_added.emit([str(f) for f in files])
+            self.vis_controller.import_files_added.emit([unicode(f) for f in files])
 
     @QtCore.pyqtSlot()
     def _add_dir(self):
-        """
-        Add a directory to the "importer" panel.
-        """
+        "Add a directory to the 'importer' panel."
         d = QtGui.QFileDialog.getExistingDirectory(
             None,  # parent
-            "Choose Directory to Analyze",  # title
-            '',  # default directory
+            u"Choose Directory to Analyze",  # title
+            u'',  # default directory
             QtGui.QFileDialog.ShowDirsOnly)  # options
-        d = str(d)
-        extensions = ['.nwc.', '.mid', '.midi', '.mxl', '.krn', '.xml', '.md']
+        d = unicode(d)
+        extensions = [u'.nwc.', u'.mid', u'.midi', u'.mxl', u'.krn', u'.xml', u'.md']
         possible_files = chain(*[[join(path, fp) for fp in files if
                         splitext(fp)[1] in extensions]
                         for path, ___, files in walk(d)])
@@ -260,8 +241,8 @@ You must choose pieces before we can import them.""",
     @QtCore.pyqtSlot()
     def _remove_files(self):
         """
-        Method which finds which files the user has selected for
-        removal and emits a signal containing their names.
+        Method which finds which files the user has selected for removal and emits a signal
+        containing their names.
         """
         # which indices are currently selected?
         currently_selected = self.ui.gui_file_list.selectedIndexes()
@@ -283,7 +264,7 @@ You must choose pieces before we can import them.""",
         if not isinstance(progress, (str, QtCore.QString)):
             return None
         else:
-            if '100' == progress:
+            if u'100' == progress:
                 self.ui.progress_bar.setValue(100)
             elif 3 > len(progress):
                 try:
@@ -296,14 +277,12 @@ You must choose pieces before we can import them.""",
 
     @QtCore.pyqtSlot()
     def _cancel_operation(self):
-        """
-        If possible, cancels the currently-running operation (import, analysis, experiment).
-        """
+        "If possible, cancel a running operation (import, analysis, experiment)."
         # confirm with the user that they want to cancel whatever's happening
         feedback = QtGui.QMessageBox.question(
             None,
-            "Confirm",
-            "Are you sure you want to cancel the running operation?",
+            u"Confirm",
+            u"Are you sure you want to cancel the running operation?",
             QtGui.QMessageBox.StandardButtons(
                 QtGui.QMessageBox.No |
                 QtGui.QMessageBox.Yes))
@@ -322,17 +301,13 @@ You must choose pieces before we can import them.""",
     # Other Things ------------------------------------------
     @QtCore.pyqtSlot(str)  # for self.report_error
     def _error_reporter(self, description):
-        """
-        Notify the user that an error has happened. The argument should be a
-        description of the error.
-        """
+        "Notify the user that an error has happened. Parameter is a description of the error."
         QtGui.QMessageBox.warning(None,
-                                'Error in an Internal Component',
-                                description,
-                                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
-                                QtGui.QMessageBox.Ok)
+                                  u'Error in an Internal Component',
+                                  description,
+                                  QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                                  QtGui.QMessageBox.Ok)
 
-    #----------------
     # Not a PyQt slot
     def _start_the_analysis(self):
         """
@@ -343,12 +318,12 @@ You must choose pieces before we can import them.""",
         for each_piece in self.vis_controller.analyzer._list_of_pieces:
             combos = each_piece[ListOfPieces.parts_combinations]
             combos = combos.toPyObject() if isinstance(combos, QtCore.QVariant) else combos
-            combos = str(combos)
-            if '(no selection)' == combos:
+            combos = unicode(combos)
+            if u'(no selection)' == combos:
                 # we can't analyze, but we *should* tell our user
                 QtGui.QMessageBox.information(None,
-                    'vis',
-                    'You forgot to add part combinations for analysis in at least one piece.',
+                    u'vis',
+                    u'You forgot to add part combinations for analysis in at least one piece.',
                     QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
                     QtGui.QMessageBox.Ok)
                 return None
@@ -364,8 +339,8 @@ You must choose pieces before we can import them.""",
             # start the analysis yet
             if part_cbs_are_checked:
                 response = QtGui.QMessageBox.question(None,
-                    'vis',
-                    """At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
+                    u'vis',
+                    u"""At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
 
 Do you want to go back and add the part combination?""",
                     QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
@@ -376,66 +351,27 @@ Do you want to go back and add the part combination?""",
         # final step: see which objects they want us to analyze
         which_objects = []
         if self.ui.chk_find_chords.isChecked():
-            which_objects.append('chords')
+            which_objects.append(u'chords')
         if self.ui.chk_find_notes.isChecked():
-            which_objects.append('notes')
+            which_objects.append(u'notes')
         if self.ui.chk_find_rests.isChecked():
-            which_objects.append('rests')
+            which_objects.append(u'rests')
         self.vis_controller.analyzer.which_objects = which_objects
 
         # Actually start the experiment
         self._tool_working()
         self.vis_controller.run_the_analysis.emit()
 
-    #------------------------------------------------------
-    # Signal for: self.ui.chk_all_voice_combos.stateChanged
-    @QtCore.pyqtSlot()
-    def _adjust_bs(self):
-        """
-        Adjust the 'basso seguente' checkbox's text, depending on whether the
-        "all combinations" checkbox is checked.
-        """
-        pass
-
-    #-------------------------------------------------
-    # Signal for: self.ui.chk_all_voice_combos.clicked
-    @QtCore.pyqtSlot()
-    def _all_voice_combos(self):
-        """
-        Deal with the situation when a user checks or unchecks the "all voice
-        combinations" checkbox.
-        """
-        # Hold the new value for the part-combination-specification QLineEdit
-        part_spec = ''
-
-        # Are we enabling "all" or disabling?
-        if self.ui.chk_all_voice_combos.isChecked():
-            part_spec = '[all]'
-        else:
-            part_spec = '(no selection)'
-
+    @QtCore.pyqtSlot()  # self.ui.chk_all_voice_combos.clicked
+    def _all_voice_pairs(self):
+        "When a user chooses the 'all voice pairs' checkbox"
+        part_spec = u'[all pairs]' if self.ui.chk_all_voice_combos.isChecked() else \
+            u'(no selection)'
         self._update_parts_selection(part_spec)
 
-    #-----------------------------------------------
-    # Signal for: self.ui.chk_basso_seguente.clicked
-    @QtCore.pyqtSlot()
-    def _chose_bs(self):
-        """
-        When somebody chooses the "basso seguente" checkbox, if "all" is also
-        selected, we should update the QLineEdit
-        """
-        if self.ui.chk_all_voice_combos.isChecked():
-            part_spec = '[all]'
-
-            self._update_parts_selection(part_spec)
-
-    #-----------------------------------------------------
-    # Signal for: self.ui.line_piece_title.editingFinished
-    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot()  # self.ui.line_piece_title.editingFinished
     def _update_piece_title(self):
-        """
-        When users change the piece title on the "assemble" panel.
-        """
+        "When users change the piece title on the 'assemble' panel."
         # Which piece is/pieces are selected?
         currently_selected = self.ui.gui_pieces_list.selectedIndexes()
 
@@ -455,7 +391,7 @@ Do you want to go back and add the part combination?""",
                 if piece.metadata is None:
                     piece.insert(metadata.Metadata())
                 # Update the title, saving it for later
-                new_title = str(self.ui.line_piece_title.text())
+                new_title = unicode(self.ui.line_piece_title.text())
                 piece.metadata.title = new_title
                 # re-pickle the score, if needed
                 if was_pickled:
@@ -465,32 +401,23 @@ Do you want to go back and add the part combination?""",
                 # and the string that is the title, as specified in ListOfPieces
                 self.vis_controller.analyzer.change_settings.emit(cell, (piece, new_title))
 
-    #------------------------------------------------------
-    # Signal for: self.ui.chk_repeat_identical.stateChanged
-    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot()  # self.ui.chk_repeat_identical.stateChanged
     def _update_repeat_identical(self):
-        """
-        When users change "repeat consecutive identical events" on the "assemble" panel.
-        """
-        # Which piece is/pieces are selected?
-        currently_selected = self.ui.gui_pieces_list.selectedIndexes()
-
+        "When users change 'repeat consecutive identical events' on the 'assemble' panel."
         # what was the QCheckBox changed to?
         changed_to = self.ui.chk_repeat_identical.isChecked()
 
         # Find the piece title and update it
-        for cell in currently_selected:
+        for cell in self.ui.gui_pieces_list.selectedIndexes():
             if ListOfPieces.repeat_identical == cell.column():
                 # Update the piece
                 self.vis_controller.analyzer.change_settings.emit(cell, changed_to)
 
-    #------------------------------------------------
-    # Signal for: self.ui.btn_add_check_combo.clicked
-    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot()  # self.ui.btn_add_check_combo.clicked
     def _add_parts_combination(self):
         """
-        When users choose the "Add Combination" button to add the currently
-        selected part combination to the list of parts to analyze.
+        When users choose the "Add Combination" button to add the currently selected part
+        combination to the list of parts to analyze.
         """
         # TODO: rewrite this to deal with a wide range of part selections
 
@@ -526,23 +453,24 @@ Do you want to go back and add the part combination?""",
             new_spec = ''
 
             # What's the current specification?
-            curr_spec = str(self.ui.line_compare_these_parts.text())
+            curr_spec = unicode(self.ui.line_compare_these_parts.text())
 
             # Is curr_spec the default filler?
-            if 'e.g., [[0,3]] or [[0,3],[1,3]]' == curr_spec or \
-            '(no selection)' == curr_spec or \
-            '' == curr_spec:
+            if u'e.g., [[0,3]] or [[0,3],[1,3]]' == curr_spec or \
+            u'(no selection)' == curr_spec or \
+            u'' == curr_spec:
                 # Then just make a new one
-                new_spec = '[' + vis_format + ']'
+                new_spec = u'[' + vis_format + u']'
 
                 # Update the parts selection
                 self._update_parts_selection(new_spec)
             # Does curr_spec include "[all]"?
-            elif '[all]' == curr_spec:
+            elif u'[all]' == curr_spec or u'[all pairs]':
                 # we'll just make a new one, and un-check the "all" QCheckBox
-                new_spec = '[' + vis_format + ']'
+                new_spec = u'[' + vis_format + u']'
                 self._update_parts_selection(new_spec)
                 self.ui.chk_all_voice_combos.setChecked(False)
+                self.ui.chk_all_voices.setChecked(False)
             # Does curr_spec contain vis_format?
             elif vis_format in curr_spec:
                 pass
@@ -550,7 +478,7 @@ Do you want to go back and add the part combination?""",
             else:
                 # Otherwise, we should remove the final ']' in the list, and put
                 # our new combo on the end
-                new_spec = curr_spec[:-1] + ',' + vis_format + ']'
+                new_spec = curr_spec[:-1] + u',' + vis_format + u']'
 
                 # Update the parts selection
                 self._update_parts_selection(new_spec)
@@ -560,22 +488,19 @@ Do you want to go back and add the part combination?""",
         for box in self.part_checkboxes:
             box.setChecked(False)
 
-    #-------------------------------------------------------------
-    # Signal for: self.ui.line_compare_these_parts.editingFinished
-    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot()  # self.ui.line_compare_these_parts.editingFinished
     def _add_parts_combo_by_line_edit(self):
         """
-        Blindly put the contents of the part-specification QLineEdit into the
-        table, trusting that the user knows what they're doing.
+        Blindly put the contents of the part-specification QLineEdit into the table, trusting that
+        the user knows what they're doing.
         """
-        self._update_parts_selection(str(self.ui.line_compare_these_parts.text()))
+        self._update_parts_selection(unicode(self.ui.line_compare_these_parts.text()))
 
-    #---------------
     # Not a pyqtSlot
     def _update_parts_selection(self, part_spec):
         """
-        Updates line_compare_these_parts and the model data for all selected
-        pieces so that the "parts to compare" contains part_spec.
+        Updates line_compare_these_parts and the model data for all selected pieces so that the
+        "parts to compare" contains part_spec.
         """
 
         # update the UI
@@ -589,15 +514,14 @@ Do you want to go back and add the part combination?""",
             if ListOfPieces.parts_combinations == cell.column():
                 self.vis_controller.analyzer.change_settings.emit(cell, part_spec)
 
-    #---------------------------------------------------------
-    # Signal for: self.ui.line_offset_interval.editingFinished
+    @QtCore.pyqtSlot()  # self.ui.line_offset_interval.editingFinished
     def _update_offset_interval(self):
         """
         Take the value of the "offset interval" field, and sets it.
 
         Assumes, with no good reason, that the value put in the textbox is good.
         """
-        new_offset_interval = str(self.ui.line_offset_interval.text())
+        new_offset_interval = unicode(self.ui.line_offset_interval.text())
 
         # Update the selected pieces
         # get the list of selected cells... for each one that is the "n"
@@ -607,15 +531,9 @@ Do you want to go back and add the part combination?""",
             if ListOfPieces.offset_intervals == cell.column():
                 self.vis_controller.analyzer.change_settings.emit(cell, new_offset_interval)
 
-    #--------------------------------
-    # self.ui.gui_pieces_list.clicked
+    @QtCore.pyqtSlot()  # self.ui.gui_pieces_list.clicked
     def _update_pieces_selection(self):
-        """
-        Update the detail-selection widgets when the user changes the pieces that
-        are selected.
-        """
-        # TODO: finish the other things for this method
-        # When the user changes the piece(s) selected in self.gui_pieces_list
+        "Update detail-selection widgets when the selected pieces are changed."
 
         # Which piece is/pieces are selected?
         currently_selected = self.ui.gui_pieces_list.selectedIndexes()
@@ -628,24 +546,26 @@ Do you want to go back and add the part combination?""",
             self.ui.line_offset_interval.setEnabled(False)
             self.ui.btn_choose_note.setEnabled(False)
             self.ui.line_compare_these_parts.setEnabled(False)
+            self.ui.chk_all_voices.setEnabled(False)
             self.ui.chk_all_voice_combos.setEnabled(False)
             self.ui.btn_add_check_combo.setEnabled(False)
             self.ui.line_piece_title.setEnabled(False)
             self._piece_settings_visibility(False)
             # (2) Remove the part list
             if self.part_checkboxes is not None:
-                self._update_part_checkboxes('erase')
+                self._update_part_checkboxes(u'erase')
         elif len(currently_selected) > 6:
             # Multiple pieces selected... possible customization
             # (1) Enable all the controls
             self.ui.line_offset_interval.setEnabled(True)
             self.ui.btn_choose_note.setEnabled(True)
             self.ui.line_compare_these_parts.setEnabled(True)
+            self.ui.chk_all_voices.setEnabled(True)
             self.ui.chk_all_voice_combos.setEnabled(True)
             self.ui.btn_add_check_combo.setEnabled(True)
             self.ui.line_piece_title.setEnabled(False)  # not applicable
             self._piece_settings_visibility(True)
-            self.ui.grp_settings_for_piece.setTitle('Settings for Selected Pieces')
+            self.ui.grp_settings_for_piece.setTitle(u'Settings for Selected Pieces')
             # (2) if the pieces have the same part names, display them
             # 2.1: get a list of all the lists-of-part-names
             lists_of_part_names = []
@@ -674,8 +594,8 @@ Do you want to go back and add the part combination?""",
                 self._update_part_checkboxes(currently_selected, no_name=True)
             # 2.6: Otherwise, we can't display part checkboxes
             else:
-                self.ui.chk_all_voice_combos.setEnabled(True)
-                self._update_part_checkboxes('erase')
+                #self.ui.chk_all_voice_combos.setEnabled(True)
+                self._update_part_checkboxes(u'erase')
             # (3) if the pieces have the same offset interval, display it
             first_offset = None
             for cell in currently_selected:
@@ -689,8 +609,8 @@ Do you want to go back and add the part combination?""",
                         continue
                     else:
                         first_offset = ''
-                        break
-            self.ui.line_offset_interval.setText(str(first_offset))
+                        breaku
+            self.ui.line_offset_interval.setText(unicode(first_offset))
             # (4) Update "Compare These Parts"
             first_comp = None
             for cell in currently_selected:
@@ -702,13 +622,13 @@ Do you want to go back and add the part combination?""",
                     data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
-                        first_comp = ''
+                        first_comp = u''
                         break
             if '' == first_comp:
                 # Multiple parts have different specs
                 self.ui.line_compare_these_parts.setText('')
                 self.ui.chk_all_voice_combos.setChecked(False)
-                self._adjust_bs()
+                self.ui.chk_all_voices.setChecked(False)
             else:
                 # Multiple parts have the same spec
                 self._update_comparison_parts(currently_selected)
@@ -718,17 +638,18 @@ Do you want to go back and add the part combination?""",
             self.ui.line_offset_interval.setEnabled(True)
             self.ui.btn_choose_note.setEnabled(True)
             self.ui.line_compare_these_parts.setEnabled(True)
+            self.ui.chk_all_voices.setEnabled(True)
             self.ui.chk_all_voice_combos.setEnabled(True)
             self.ui.btn_add_check_combo.setEnabled(True)
             self.ui.line_piece_title.setEnabled(True)
             self._piece_settings_visibility(True)
-            self.ui.grp_settings_for_piece.setTitle('Settings for Selected Piece')
+            self.ui.grp_settings_for_piece.setTitle(u'Settings for Selected Piece')
             # (2) Populate the part list
             self._update_part_checkboxes(currently_selected)
             # (3) Update "offset interval"
             for cell in currently_selected:
                 if ListOfPieces.offset_intervals == cell.column():
-                    self.ui.line_offset_interval.setText(str(
+                    self.ui.line_offset_interval.setText(unicode(
                     self.vis_controller.l_o_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                     break
             # (4) Update "Compare These Parts"
@@ -737,49 +658,40 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.score == cell.column():
                     self.ui.line_piece_title.setText(
-                    str(self.vis_controller.l_o_pieces.data(cell,
+                    unicode(self.vis_controller.l_o_pieces.data(cell,
                         QtCore.Qt.DisplayRole).toPyObject()))
                     break
 
-    #---------------
     # Not a pyqtSlot
     def _update_comparison_parts(self, currently_selected):
         """
-        When a different part combination is selected, call this method to update
-        the "All Combinations" and "Basso Seguente" checkboxes.
+        When a different part combination is selected, call this method to update the "All
+        Combinations" and "Basso Seguente" checkboxes.
 
-        You should only call this method if all of the selected pieces have the
-        same part names (which is true when only one part is selected).
+        You should only call this method if all of the selected pieces have the same part names
+        (which is true when only one part is selected).
 
         The argument should be a list of the currently selected cells.
         """
 
         for cell in currently_selected:
             if ListOfPieces.parts_combinations == cell.column():
-                comparison_parts = str(self.vis_controller.l_o_pieces.
+                comparison_parts = unicode(self.vis_controller.l_o_pieces.
                     data(cell, QtCore.Qt.DisplayRole).toPyObject())
                 self.ui.line_compare_these_parts.setText(comparison_parts)
-                if '[all]' == comparison_parts:
-                    self.ui.chk_all_voice_combos.setChecked(True)
-                    #self.ui.chk_basso_seguente.setChecked(False)
-                    # Update the QCheckBox for "All Combinations" and "Basso Seguente"
+                if u'[all]' == comparison_parts:
+                    self.ui.chk_all_voice_combos.setChecked(False)
+                    self.ui.chk_all_voices.setChecked(True)
                     self._all_voice_combos()
-                    self._chose_bs()
-                elif '[all,bs]' == comparison_parts:
+                elif u'[all pairs]' == comparison_parts:
                     self.ui.chk_all_voice_combos.setChecked(True)
-                    #self.ui.chk_basso_seguente.setChecked(True)
-                    # Update the QCheckBox for "All Combinations" and "Basso Seguente"
+                    self.ui.chk_all_voices.setChecked(False)
                     self._all_voice_combos()
-                    self._chose_bs()
                 else:
                     self.ui.chk_all_voice_combos.setChecked(False)
-                    #self.ui.chk_basso_seguente.setChecked(False)
+                    self.ui.chk_all_voices.setChecked(False)
                 break
 
-        # Adjust the text for "Basso Seguente," if needed
-        self._adjust_bs()
-
-    #---------------
     # Not a pyqtSlot
     def _edit_part_name(self, part_index=None):
         """
@@ -789,24 +701,16 @@ Do you want to go back and add the part combination?""",
         buttons on the interface, which when they are displayed correspond each to a part in the
         score.
         """
-        # Get the current part name from the checkbox...
-        current_name = str(self.part_checkboxes[part_index].text())
-
         # Get the new name
-        new_name = QtGui.QInputDialog.getText(
+        new_name = unicode(QtGui.QInputDialog.getText(
             None,
-            "Part Name!",
-            "Choose New Part Name",
+            u"Part Name!",
+            u"Choose New Part Name",
             QtGui.QLineEdit.Normal,
-            current_name)
-
-        new_name = str(new_name[0])
-
-        # Which piece is/pieces are selected?
-        currently_selected = self.ui.gui_pieces_list.selectedIndexes()
+            unicode(self.part_checkboxes[part_index].text()))[0])  # default filled with new name
 
         # Find the parts lists and update them
-        for cell in currently_selected:
+        for cell in self.ui.gui_pieces_list.selectedIndexes():
             if ListOfPieces.parts_list == cell.column():
                 # We're just going to change the part name in the model, not in the
                 # actual Score object itself (which would require re-loading)
@@ -815,25 +719,22 @@ Do you want to go back and add the part combination?""",
                 # 2.) Update the part name as requested
                 parts[part_index] = new_name
                 # 3.) Convert the part names to str objects (from QString)
-                parts = [str(name) for name in parts]
+                parts = [unicode(name) for name in parts]
                 # 4.) Update the data model and QCheckBox objects
                 self.vis_controller.l_o_pieces.setData(cell, parts, QtCore.Qt.EditRole)
                 self._update_pieces_selection()
 
-    #---------------
     # Not a pyqtSlot
     def _update_part_checkboxes(self, currently_selected, no_name=False):
         """
-        Update the part-selection QCheckBox objects to reflect the currently
-        selected part(s).
+        Update the part-selection QCheckBox objects to reflect the currently selected part(s).
 
-        You should only call this method if all of the selected pieces have the
-        same part names (which is true when only one part is selected).
+        You should only call this method if all of the selected pieces have the same part names
+        (which is true when only one part is selected).
 
         The argument should be a list of the currently selected cells.
 
-        If the argument is == 'erase' then the method removes all current
-        checkboxes and stops.
+        If the argument is == 'erase' then the method removes all current checkboxes and stops.
 
         The "no_name" keyword argument means we'll use generically numbered parts, rather than
         specific part names. This is useful when, for example, a bunch of pieces are selected, and
@@ -858,7 +759,7 @@ Do you want to go back and add the part combination?""",
 
         # (1a) If currently_selected is "erase" then we should only erase the
         # current checkboxes, and we should stop now.
-        if 'erase' == currently_selected:
+        if u'erase' == currently_selected:
             return
 
         # (2) Get the list of parts
@@ -872,28 +773,26 @@ Do you want to go back and add the part combination?""",
             how_many_parts = len(list_of_parts)
             list_of_parts = []
             for i in xrange(how_many_parts):
-                list_of_parts.append('Part ' + str(i + 1))
+                list_of_parts.append(u'Part ' + unicode(i + 1))
 
         # (3) Put up a checkbox for each part
         self.part_checkboxes = []
         self.edit_buttons = []
         self.part_layouts = []
         for i in xrange(len(list_of_parts)):
-            part_name = str(list_of_parts[i])
+            part_name = unicode(list_of_parts[i])
             # This is the New CheckBox to select this part
             n_c_b = QtGui.QCheckBox(self.ui.widget_part_boxes)
-            n_c_b.setObjectName('chk_' + part_name)
+            n_c_b.setObjectName(u'chk_' + part_name)
             n_c_b.setText(part_name)
 
             # This is the New BuTtoN to "Edit" this part's name
             n_btn = QtGui.QPushButton(self.ui.widget_part_boxes)
-            n_btn.setObjectName('btn_' + part_name)
-            n_btn.setText('Edit Part Name')
+            n_btn.setObjectName(u'btn_' + part_name)
+            n_btn.setText(u'Edit Part Name')
 
             def the_thing(ell):
-                """
-                This method runs when the button is clicked
-                """
+                "This method runs when the button is clicked"
                 return lambda: self._edit_part_name(ell)
             n_btn.clicked.connect(the_thing(i))
 
@@ -911,18 +810,15 @@ Do you want to go back and add the part combination?""",
         for part in self.part_layouts:
             self.ui.verticalLayout_part_boxes.addLayout(part)
 
-    #-----------------------------------------
     # Slot for self.ui.btn_choose_note.clicked
     def _launch_offset_selection(self):
-        """
-        Launch the dialogue box to help users visually select offset values.
-        """
+        "Launch the dialogue box to help users visually select offset values."
         # Launch the offset-selection QDialog
         selector = VisOffsetSelector()
         chosen_offset = selector.trigger()
 
         # Update the QLineEdit
-        self.ui.line_offset_interval.setText(str(chosen_offset))
+        self.ui.line_offset_interval.setText(unicode(chosen_offset))
 
         # Set values in the model
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
@@ -933,39 +829,34 @@ Do you want to go back and add the part combination?""",
         # Just to make sure we get rid of this
         selector = None
 
-    #---------------
     # Not a pyqtSlot
     def _piece_settings_visibility(self, set_to):
         """
-        Given True or False, makes visible and enables (or makes invisible and
-        disables) everything in the "Settings for Piece" QGroupBox (and the box
-        itself), and the opposite for self.lbl_select_piece
+        Given True or False, makes visible and enables (or makes invisible and disables)
+        everything in the "Settings for Piece" QGroupBox (and the box itself), and the opposite
+        for self.lbl_select_piece
         """
         self.ui.grp_settings_for_piece.setVisible(set_to)
         self.ui.grp_settings_for_piece.setEnabled(set_to)
         self.ui.widget_select_piece.setVisible(not set_to)
 
-    #-------------------------------------------
-    # Slot for: self.ui.btn_show_results.clicked
-    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot()  # self.ui.btn_show_results.clicked
     def _prepare_experiment_submission(self):
         """
-        Make sure the Experimenter has a properly-configured Settings
-        instance, then ask it to run the experiment.
+        Make sure the Experimenter has a properly-configured Settings instance, then ask it to run
+        the experiment.
         """
 
         # move to the "working" panel and update it
         self.show_working.emit()
-        self.update_progress.emit('0')
-        self.update_progress.emit('Initializing experiment.')
+        self.update_progress.emit(u'0')
+        self.update_progress.emit(u'Initializing experiment.')
 
         # hold a list of tuples to be signalled as settings
         list_of_settings = []
 
         def do_experiment():
-            """
-            Which experiment does the user want to run?
-            """
+            "Which experiment does the user want to run?"
             # NOTE: as we add different Experiment and Display combinations, we have to update this
 
             if self.ui.rdo_consider_intervals.isChecked():
@@ -1006,45 +897,35 @@ Do you want to go back and add the part combination?""",
                 list_of_settings.append(('output format', 'LilyPondDisplay'))
 
         def do_threshold():
-            """
-            Is there a threshold value?
-            """
-            threshold = str(self.ui.line_threshold.text())
-            if '' != threshold:
+            "Is there a threshold value?"
+            threshold = unicode(self.ui.line_threshold.text())
+            if u'' != threshold:
                 list_of_settings.append(('threshold', threshold))
 
         def do_top_x():
-            """
-            Is there a "top x" value?
-            """
-            top_x = str(self.ui.line_top_x.text())
-            if '' != top_x:
+            "Is there a 'top x' value?"
+            top_x = unicode(self.ui.line_top_x.text())
+            if u'' != top_x:
                 list_of_settings.append(('topX', top_x))
 
         def do_print_quality():
-            """
-            Print quality?
-            """
+            "Print quality?"
             if self.ui.rdo_heedQuality.isChecked():
                 list_of_settings.append(('quality', True))
             else:
                 list_of_settings.append(('quality', False))
 
         def do_simple_or_compound():
-            """
-            Simple or compound?
-            """
+            "Simple or compound?"
             if self.ui.rdo_simple.isChecked():
                 list_of_settings.append(('simple or compound', 'simple'))
             else:
                 list_of_settings.append(('simple or compound', 'compound'))
 
         def do_values_of_n():
-            """
-            Are there values of 'n' specified?
-            """
+            "Are there values of 'n' specified?"
             # 1.) get the value of the textbox
-            enn = str(self.ui.line_values_of_n.text())
+            enn = unicode(self.ui.line_values_of_n.text())
             # 2.) Check for [ or ], as in the old style: [3] ... and remove them
             if len(enn) > 0:
                 if enn[0] == '[':
@@ -1055,7 +936,7 @@ Do you want to go back and add the part combination?""",
             try:
                 enn = [int(enn)]
             except ValueError:  # if it fails
-                msg = 'Could not parse "value of n!"'
+                msg = u'Could not parse "value of n!"'
                 self.report_error.emit(msg)
                 return None
             # 4.) Everything's good and valid, so let's put it on the list of settings
@@ -1070,10 +951,8 @@ Do you want to go back and add the part combination?""",
                 list_of_settings.append(('ignore direction', False))
 
         def do_annotate_these():
-            """
-            Is there an "annotate these" value?
-            """
-            a_these = str(self.ui.line_annotate_these.text())
+            "Is there an 'annotate these' value?"
+            a_these = unicode(self.ui.line_annotate_these.text())
             if '' != a_these:
                 # TODO: this better
                 list_of_settings.append(('annotate these', [a_these]))
@@ -1117,9 +996,7 @@ Do you want to go back and add the part combination?""",
         # (3) Run the experiment
         self.vis_controller.run_the_experiment.emit()
 
-    #---------------------------------------------
-    # Slot for: self.ui.rdo_consider_***.clicked()
-    @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot()  # self.ui.rdo_consider_***.clicked()
     def _update_experiment_from_object(self):
         """
         When one of the self.ui.rdo_consider_*** radio buttons is selected, this method updates the
@@ -1127,15 +1004,15 @@ Do you want to go back and add the part combination?""",
         """
 
         all_the_widgets = [self.ui.rdo_spreadsheet,
-                            self.ui.rdo_list,
-                            self.ui.rdo_chart,
-                            self.ui.grp_octaves,
-                            self.ui.grp_quality,
-                            self.ui.grp_values_of_n,
-                            self.ui.rdo_score,
-                            self.ui.grp_annotate_these,
-                            self.ui.grp_ignore_inversion,
-                            self.ui.group_chord_parser]
+                           self.ui.rdo_list,
+                           self.ui.rdo_chart,
+                           self.ui.grp_octaves,
+                           self.ui.grp_quality,
+                           self.ui.grp_values_of_n,
+                           self.ui.rdo_score,
+                           self.ui.grp_annotate_these,
+                           self.ui.grp_ignore_inversion,
+                           self.ui.group_chord_parser]
 
         def on_offer(enable_these):
             """
@@ -1178,9 +1055,12 @@ Do you want to go back and add the part combination?""",
         if self.ui.rdo_spreadsheet.isChecked():
             self.ui.group_top_x.setEnabled(False)
             self.ui.group_threshold.setEnabled(False)
-        elif self.ui.rdo_list.isChecked():
+        elif self.ui.rdo_list.isChecked() or self.ui.rdo_chart.isChecked():
             self.ui.group_top_x.setEnabled(True)
             self.ui.group_threshold.setEnabled(True)
-        elif self.ui.rdo_chart.isChecked():
-            self.ui.group_top_x.setEnabled(True)
-            self.ui.group_threshold.setEnabled(True)
+
+    @QtCore.pyqtSlot()  # self.ui.chk_all_voices.stateChanged
+    def _all_voices(self):
+        "When a user chooses the 'all voices' checkbox"
+        part_spec = u'[all]' if self.ui.chk_all_voices.isChecked() else u'(no selection)'
+        self._update_parts_selection(part_spec)

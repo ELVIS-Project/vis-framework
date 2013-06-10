@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/main_window.ui'
 #
-# Created: Tue Jun  4 22:04:28 2013
+# Created: Sun Jun  9 19:36:43 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -224,6 +224,10 @@ class Ui_MainWindow(object):
         self.part_box_widget.setObjectName(_fromUtf8("part_box_widget"))
         self.verticalLayout_part_boxes = QtGui.QVBoxLayout(self.part_box_widget)
         self.verticalLayout_part_boxes.setObjectName(_fromUtf8("verticalLayout_part_boxes"))
+        self.chk_all_voices = QtGui.QCheckBox(self.part_box_widget)
+        self.chk_all_voices.setEnabled(False)
+        self.chk_all_voices.setObjectName(_fromUtf8("chk_all_voices"))
+        self.verticalLayout_part_boxes.addWidget(self.chk_all_voices)
         self.chk_all_voice_combos = QtGui.QCheckBox(self.part_box_widget)
         self.chk_all_voice_combos.setEnabled(False)
         self.chk_all_voice_combos.setObjectName(_fromUtf8("chk_all_voice_combos"))
@@ -547,6 +551,7 @@ class Ui_MainWindow(object):
         self.line_compare_these_parts.setText(_translate("MainWindow", "e.g., [0,3] or [[0,3],[1,3]]", None))
         self.lbl_compare_these_parts.setText(_translate("MainWindow", "Compare These Parts:", None))
         self.btn_choose_note.setText(_translate("MainWindow", "Choose Offset Note", None))
+        self.chk_all_voices.setText(_translate("MainWindow", "All Voices", None))
         self.chk_all_voice_combos.setToolTip(_translate("MainWindow", "Collect Statistics for all Part Combinations", None))
         self.chk_all_voice_combos.setText(_translate("MainWindow", "All Voice Pairs", None))
         self.lbl_piece_title.setText(_translate("MainWindow", "Piece Title:", None))
