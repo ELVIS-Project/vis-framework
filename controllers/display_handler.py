@@ -67,7 +67,7 @@ class DisplayHandler(Controller):
         """
         super(DisplayHandler, self).__init__()  # required for signals
 
-    #@QtCore.pyqtSlot
+    @QtCore.pyqtSlot(tuple)  # for Experimenter.experiment_finished
     def show_result(self, signal_result):
         """
         Slot for the Experimenter.experiment_finished signal. This method is
@@ -87,9 +87,14 @@ class DisplayHandler(Controller):
         # (1) Choose which display type to use
         # Currently, we can't deal with choosing Display class after the Experiment has run,
         # so we'll have to panic if there is more than one choice.
-        if 1 < len(signal_result[0]):
+        if u'error' == signal_result[0]:
+            # there was an error in the Experimenter, already reported
+            self.display_shown.emit()
+            return
+        elif 1 < len(signal_result[0]):
             msg = 'Internal Error: DisplayHandler cannot choose its display method independently.'
             self.error.emit(msg)
+            self.display_shown.emit()
             return
         else:
             # NOTE: remember to update this selection code as different Display objects are added

@@ -209,8 +209,15 @@ class Experiment(QtCore.QRunnable):
         """
         # NOTE: You do not need to reimplement this method in subclasses.
         # Collect the results of perform(), then emit the signal that sends them to the Experimenter
-        signal_me = self.perform()
-        self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
+        signal_me = None
+        try:
+            signal_me = self.perform()
+        except Exception as exc:
+            self._controller.error.emit(u'Failure during experiment.\n\n' + str(type(exc)) +
+                u' says:\n' + str(exc))
+            self._controller.experiment_finished.emit((u'error', None))
+        else:
+            self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
 
     def perform(self):
         """
@@ -343,8 +350,6 @@ class IntervalsLists(Experiment):
     def perform(self):
         """
         Perform the IntervalsLists Experiment.
-
-        This method emits an Experimenter.experimented signal when it finishes.
         """
 
         # pre-fetch the settings we'll be using repeatedly
@@ -1515,12 +1520,6 @@ class ChordParser(Experiment):
         new_ars = []
 
         for old_ar in self._records:
-            # START DEBUGGING
-            #print('#####################')
-            #for ass in old_ar:
-                #print(str(ass))
-            #print('#####################')
-            # END DEBUGGING
             new_ar = analyzing.AnalysisRecord()
 
             note_dict = {}  # hold the Note objects we generate
@@ -1532,30 +1531,24 @@ class ChordParser(Experiment):
 
             while 0 == 0:
                 force_this = False
-                # ?.) Did we just do the last thing?
+                # 1.) Did we just do the last thing?
                 if i[0] >= max_i:
                     break
 
-                # ?.) Make sure we're not going backwards
+                # 2.) Make sure we're not going backwards
                 if i[0] < previous_i[0]:
-                    #print('going backwards')  # DEBUG
-                    #print('this i: ' + str(i))  # DEBUG
-                    #print('previous i: ' + str(previous_i))  # DEBUG
                     msg = u'ChordParser started to go backwards!'
                     self._controller.error.emit(msg)
                     return None
                 elif i[0] == previous_i[0] and len(i) <= len(previous_i):
-                    #print('checking the same things twice')  # DEBUG
-                    #print('this i: ' + str(i))  # DEBUG
-                    #print('previous i: ' + str(previous_i))  # DEBUG
                     msg = u'ChordParser is checking the same things twice!'
                     self._controller.error.emit(msg)
                     return None
 
-                # ?.) Update the "previous"-ly checked i values
+                # 3.) Update the "previous"-ly checked i values
                 previous_i = deepcopy(i)
 
-                # ?.) See if we can use this set of offsets (ensure it's not all too large)
+                # 4.) See if we can use this set of offsets (ensure it's not all too large)
                 # If not, we'll have to just use the first thing, no matter what it is.
                 if i[-1] >= max_i:  # check we don't go off the end of the AnalysisRecord
                     force_this = True
@@ -1564,10 +1557,10 @@ class ChordParser(Experiment):
                     force_this = True
                     i = [i[0]]
 
-                # ?.) Figure out what's at this set of offsets
+                # 5.) Figure out what's at this set of offsets
                 this_sonority = []
                 for each_i in i:
-                    for each_pitch in old_ar[each_i][1]:
+                    for each_pitch in old_ar[each_i][1]:  # TODO: add support for "each_pitch" being a list, meaning it came from a chord
                         # Using this dict, we get a significant speed-up later in Chord.__init__()
                         if 'Rest' == each_pitch:
                             continue
@@ -1578,7 +1571,7 @@ class ChordParser(Experiment):
                             note_dict[each_pitch] = new_note
                             this_sonority.append(new_note)
 
-                # ?.) Make the Chord
+                # 6.) Make the Chord
                 # "p_chord" for "possible chord"
                 p_chord = chord.Chord(this_sonority)
                 p_chord.removeRedundantPitchNames(inPlace=True)
@@ -1587,7 +1580,7 @@ class ChordParser(Experiment):
                 if len(new_ar) > 0:
                     prev_chord = chord.Chord([note_dict[x] for x in new_ar[-1][1]])
 
-                # ?.) See if the Chord is "nice"
+                # 7.) See if the Chord is "nice"
                 if all([p in prev_chord.pitchClasses for p in p_chord.pitchClasses]):
                     print('at ' + str(old_ar[i[0]][0]) + ', (CONTAINED NOT) ' + str(names) +
                         ' is in ' + str(new_ar[-1][1]))  # DEBUG
@@ -1611,8 +1604,8 @@ class ChordParser(Experiment):
                     i.append(i[-1] + 1)
                 print('next i is ' + str(i))  # DEBUG
 
-            # ?.) We finished a piece!
+            # 8.) We finished a piece!
             new_ars.append(new_ar)
 
-        # ?.) We finished all the pieces!
+        # 9.) We finished all the pieces!
         return new_ars
