@@ -368,8 +368,13 @@ Do you want to go back and add the part combination?""",
     @QtCore.pyqtSlot()  # self.ui.chk_all_voice_combos.clicked
     def _all_voice_pairs(self):
         "When a user chooses the 'all voice pairs' checkbox"
-        part_spec = u'[all pairs]' if self.ui.chk_all_voice_combos.isChecked() else \
-            u'(no selection)'
+        part_spec = None
+        if self.ui.chk_all_voice_combos.isChecked():
+            if self.ui.chk_all_voices.isChecked():
+                self.ui.chk_all_voices.setChecked(False)
+            part_spec = u'[all pairs]'
+        else:
+            part_spec = u'(no selection)'
         self._update_parts_selection(part_spec)
 
     @QtCore.pyqtSlot()  # self.ui.line_piece_title.editingFinished
@@ -429,8 +434,7 @@ Do you want to go back and add the part combination?""",
             return None
 
         # Hold indices of the selected checkboxes
-        selected_checkboxes = [i for i, box in enumerate(self.part_checkboxes)
-                                if box.isChecked()]
+        selected_checkboxes = [i for i, box in enumerate(self.part_checkboxes) if box.isChecked()]
 
         # Hold the vis-format specification
         vis_format = None
@@ -471,9 +475,11 @@ Do you want to go back and add the part combination?""",
             elif u'[all]' == curr_spec or u'[all pairs]':
                 # we'll just make a new one, and un-check the "all" QCheckBox
                 new_spec = u'[' + vis_format + u']'
-                self._update_parts_selection(new_spec)
                 self.ui.chk_all_voice_combos.setChecked(False)
                 self.ui.chk_all_voices.setChecked(False)
+                # NB: this has to be done after the setChecked(), since setChecked() emits a signal
+                # that would otherwise obliterate the new_spec
+                self._update_parts_selection(new_spec)
             # Does curr_spec contain vis_format?
             elif vis_format in curr_spec:
                 pass
@@ -1073,5 +1079,11 @@ Do you want to go back and add the part combination?""",
     @QtCore.pyqtSlot()  # self.ui.chk_all_voices.stateChanged
     def _all_voices(self):
         "When a user chooses the 'all voices' checkbox"
-        part_spec = u'[all]' if self.ui.chk_all_voices.isChecked() else u'(no selection)'
+        part_spec = None
+        if self.ui.chk_all_voices.isChecked():
+            if self.ui.chk_all_voice_combos.isChecked():
+                self.ui.chk_all_voice_combos.setChecked(False)
+            part_spec = u'[all]'
+        else:
+            part_spec = u'(no selection)'
         self._update_parts_selection(part_spec)
