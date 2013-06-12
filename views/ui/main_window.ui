@@ -359,7 +359,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Add Combination</string>
+                 <string>&amp;Add Combination</string>
                 </property>
                </widget>
               </item>

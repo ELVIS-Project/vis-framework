@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/main_window.ui'
 #
-# Created: Wed Jun 12 17:58:34 2013
+# Created: Wed Jun 12 18:20:51 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -545,7 +545,7 @@ class Ui_MainWindow(object):
         self.btn_file_add.setToolTip(_translate("MainWindow", "Add Files", None))
         self.btn_file_remove.setToolTip(_translate("MainWindow", "Remove Selected Items", None))
         self.grp_settings_for_piece.setTitle(_translate("MainWindow", "Settings for Selected Piece", None))
-        self.btn_add_check_combo.setText(_translate("MainWindow", "Add Combination", None))
+        self.btn_add_check_combo.setText(_translate("MainWindow", "&Add Combination", None))
         self.line_offset_interval.setText(_translate("MainWindow", "0.5", None))
         self.lbl_offset_interval.setText(_translate("MainWindow", "Offset Interval:", None))
         self.line_compare_these_parts.setText(_translate("MainWindow", "e.g., [0,3] or [[0,3],[1,3]]", None))
