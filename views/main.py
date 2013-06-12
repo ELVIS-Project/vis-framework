@@ -126,6 +126,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.btn_experiment.setEnabled(False)
         self.ui.btn_step1.setEnabled(True)
         self.ui.btn_step2.setEnabled(False)
+        self.ui.btn_cancel_operation.setVisible(True)
 
     @QtCore.pyqtSlot()
     def _tool_analyze(self):
@@ -138,6 +139,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.btn_experiment.setEnabled(False)
         self.ui.btn_step1.setEnabled(False)
         self.ui.btn_step2.setEnabled(True)
+        self.ui.btn_cancel_operation.setVisible(True)
         self._update_pieces_selection()
 
     @QtCore.pyqtSlot()
@@ -181,6 +183,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.btn_experiment.setChecked(True)
         self.ui.btn_step1.setEnabled(False)
         self.ui.btn_step2.setEnabled(False)
+        self.ui.btn_cancel_operation.setVisible(False)
         # call the thing to update this panel
         self._update_experiment_from_object()
         # call the thing to to what it says it does

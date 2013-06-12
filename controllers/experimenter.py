@@ -205,10 +205,9 @@ class Experiment(QtCore.QRunnable):
 
     def run(self):
         """
-        Just starts the perform() method.
+        Collect the results of perform(), then emit the signal that sends them to the Experimenter
         """
-        # NOTE: You do not need to reimplement this method in subclasses.
-        # Collect the results of perform(), then emit the signal that sends them to the Experimenter
+        # Note 1: Do not need to reimplement this method in subclasses.
         signal_me = None
         try:
             signal_me = self.perform()
