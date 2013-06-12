@@ -1015,7 +1015,8 @@ Do you want to go back and add the part combination?""",
                            self.ui.rdo_score,
                            self.ui.grp_annotate_these,
                            self.ui.grp_ignore_inversion,
-                           self.ui.group_chord_parser]
+                           self.ui.group_chord_parser,
+                           self.ui.grp_annotate_these]
 
         def on_offer(enable_these):
             """
@@ -1025,11 +1026,11 @@ Do you want to go back and add the part combination?""",
 
             # (1) Disable everything
             for each_widget in all_the_widgets:
-                each_widget.setEnabled(False)
+                each_widget.setVisible(False)
 
             # (2) Enable the valid things
             for each_widget in enable_these:
-                each_widget.setEnabled(True)
+                each_widget.setVisible(True)
 
         # Determine which widgets to enable
         which_to_enable = []
@@ -1037,7 +1038,7 @@ Do you want to go back and add the part combination?""",
         if self.ui.rdo_consider_intervals.isChecked():
             which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_octaves, self.ui.grp_quality,
                                self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_score,
-                               self.ui.grp_annotate_these, self.ui.grp_ignore_inversion]
+                               self.ui.grp_ignore_inversion]
         elif self.ui.rdo_consider_interval_ngrams.isChecked():
             which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
                                self.ui.grp_quality, self.ui.rdo_chart, self.ui.grp_ignore_inversion]
@@ -1050,17 +1051,24 @@ Do you want to go back and add the part combination?""",
         # Run the on_offer()
         on_offer(which_to_enable)
 
+        # Choose the first enabled thing in "How to Show Results"
+        outs = [self.ui.rdo_spreadsheet, self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_score]
+        for each_box in outs:
+            if each_box.isVisible():
+                each_box.setChecked(True)
+                break
+
     def _output_format_changed(self):
         """
         When a user chooses a different output format (in "How to Show Results" on the "show"
         panel), we may have to enable/disable the Top X and Threshold filter.
         """
         if self.ui.rdo_spreadsheet.isChecked():
-            self.ui.group_top_x.setEnabled(False)
-            self.ui.group_threshold.setEnabled(False)
+            self.ui.group_top_x.setVisible(False)
+            self.ui.group_threshold.setVisible(False)
         elif self.ui.rdo_list.isChecked() or self.ui.rdo_chart.isChecked():
-            self.ui.group_top_x.setEnabled(True)
-            self.ui.group_threshold.setEnabled(True)
+            self.ui.group_top_x.setVisible(True)
+            self.ui.group_threshold.setVisible(True)
 
     @QtCore.pyqtSlot()  # self.ui.chk_all_voices.stateChanged
     def _all_voices(self):

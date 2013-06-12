@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/main_window.ui'
 #
-# Created: Wed Jun 12 18:20:51 2013
+# Created: Wed Jun 12 18:45:05 2013
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -335,15 +335,15 @@ class Ui_MainWindow(object):
         self.rdo_spreadsheet.setObjectName(_fromUtf8("rdo_spreadsheet"))
         self.verticalLayout_9.addWidget(self.rdo_spreadsheet)
         self.rdo_list = QtGui.QRadioButton(self.groupBox_5)
-        self.rdo_list.setEnabled(False)
+        self.rdo_list.setEnabled(True)
         self.rdo_list.setObjectName(_fromUtf8("rdo_list"))
         self.verticalLayout_9.addWidget(self.rdo_list)
         self.rdo_chart = QtGui.QRadioButton(self.groupBox_5)
-        self.rdo_chart.setEnabled(False)
+        self.rdo_chart.setEnabled(True)
         self.rdo_chart.setObjectName(_fromUtf8("rdo_chart"))
         self.verticalLayout_9.addWidget(self.rdo_chart)
         self.rdo_score = QtGui.QRadioButton(self.groupBox_5)
-        self.rdo_score.setEnabled(False)
+        self.rdo_score.setEnabled(True)
         self.rdo_score.setObjectName(_fromUtf8("rdo_score"))
         self.verticalLayout_9.addWidget(self.rdo_score)
         self.gridLayout.addWidget(self.groupBox_5, 0, 1, 1, 1)
@@ -453,18 +453,24 @@ class Ui_MainWindow(object):
         self.gridLayout.addItem(spacerItem7, 4, 1, 2, 1)
         spacerItem8 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout.addItem(spacerItem8, 4, 2, 2, 1)
+        spacerItem9 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem9, 6, 0, 1, 1)
+        spacerItem10 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem10, 6, 1, 1, 1)
+        spacerItem11 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem11, 6, 2, 1, 1)
         self.verticalLayout_3.addWidget(self.groupBox_2)
         self.main_screen.addWidget(self.page_show)
         self.page_working = QtGui.QWidget()
         self.page_working.setObjectName(_fromUtf8("page_working"))
         self.verticalLayout_21 = QtGui.QVBoxLayout(self.page_working)
         self.verticalLayout_21.setObjectName(_fromUtf8("verticalLayout_21"))
-        spacerItem9 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_21.addItem(spacerItem9)
+        spacerItem12 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_21.addItem(spacerItem12)
         self.horizontalLayout_8 = QtGui.QHBoxLayout()
         self.horizontalLayout_8.setObjectName(_fromUtf8("horizontalLayout_8"))
-        spacerItem10 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_8.addItem(spacerItem10)
+        spacerItem13 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem13)
         self.btn_wait_clock = QtGui.QPushButton(self.page_working)
         self.btn_wait_clock.setEnabled(True)
         self.btn_wait_clock.setText(_fromUtf8(""))
@@ -477,8 +483,8 @@ class Ui_MainWindow(object):
         self.btn_wait_clock.setFlat(True)
         self.btn_wait_clock.setObjectName(_fromUtf8("btn_wait_clock"))
         self.horizontalLayout_8.addWidget(self.btn_wait_clock)
-        spacerItem11 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_8.addItem(spacerItem11)
+        spacerItem14 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem14)
         self.verticalLayout_21.addLayout(self.horizontalLayout_8)
         self.lbl_status_text = QtGui.QLabel(self.page_working)
         self.lbl_status_text.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
@@ -492,8 +498,8 @@ class Ui_MainWindow(object):
         self.lbl_currently_processing.setAlignment(QtCore.Qt.AlignHCenter|QtCore.Qt.AlignTop)
         self.lbl_currently_processing.setObjectName(_fromUtf8("lbl_currently_processing"))
         self.verticalLayout_21.addWidget(self.lbl_currently_processing)
-        spacerItem12 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_21.addItem(spacerItem12)
+        spacerItem15 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_21.addItem(spacerItem15)
         self.btn_cancel_operation = QtGui.QPushButton(self.page_working)
         self.btn_cancel_operation.setObjectName(_fromUtf8("btn_cancel_operation"))
         self.verticalLayout_21.addWidget(self.btn_cancel_operation)
@@ -526,7 +532,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.main_screen.setCurrentIndex(1)
+        self.main_screen.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
