@@ -181,30 +181,25 @@ def _event_finder(parts, settings, record):
     while current_offset < end_of_score:
         # 4.1) Make sure we're not using the same offset as last time through the loop.
         if offset_from_last_time == current_offset:
-            msg = 'Error in controllers.Analyzer._event_finder, section 3.1'
+            msg = u'Error in controllers.Analyzer._event_finder, section 4.1'
             raise RuntimeError(msg)
         else:
             offset_from_last_time = current_offset
 
-        # 4.2) Get the events at the current offset
-        current_events = [p.getElementsByOffset(current_offset,
-                                                mustBeginInSpan=False,
-                                                classList=list_of_types)
-                        for p in parts]
-
-        # 4.3) Make sure we only have the first event at this offset.
-        # current_events = [e[0] for e in current_events]
-        # TODO: surely there is a cleaner way to do this
-        underprocessed = current_events
+        # 4.2 and 4.3) Get the events at the current offset, making sure only the first ones.
         current_events = []
-        skip_this_offset = False
-        for event in underprocessed:
-            if 0 == len(event):
-                skip_this_offset = True
-            else:
-                current_events.append(event[0])
-        if skip_this_offset:
-            break
+        try:
+            app = [p.getElementsByOffset(current_offset,
+                                         mustBeginInSpan=False,
+                                         classList=list_of_types)
+                for p in parts]
+            current_events = [p[0] for p in app]
+        except stream.StreamException:
+            pass
+        if 0 == len(current_events):
+            # We still have to (4.7) Increment the offset
+            current_offset += settings.offset
+            continue
 
         # 4.4) Turn the objects into their string forms
         current_events = Analyzer._object_stringer(current_events, settings.types)
