@@ -24,8 +24,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-# This line is a test commit for Alex
-
 from controllers.importer import Importer
 from controllers.analyzer import Analyzer
 from models.analyzing import ListOfPieces
