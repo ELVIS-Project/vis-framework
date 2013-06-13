@@ -1480,9 +1480,53 @@ class TargetedIntervalNGramExperiment(Experiment):
         super(TargetedIntervalNGramExperiment, self).__init__(controller, records, settings)
 
     def perform(self):
-        """
-        This is what Alex has to write.
-        """
+        #Takes an ngram entered by the user and divides it into
+		#two lists: one of the vertical intervals and the other of the lower
+		#voice's melodic intervals.
+
+		#userinput is what the user would type in. The user should be prompted
+		#with instructions along the lines of:
+		'''Enter the N-gram you wish to search for separating each vertical
+		and horizontal interval with a space and nothing else.  Unisons are equal to
+		one and inverted vertical intervals as well as descending melodic intervals
+		should be preceded with a minus sign.  Please only enter numbers,
+		spaces, and (when necessary) minus signs.'''
+
+		#For now dummy userinput and IntervalsLists are provided.
+		#userinput = '1 2 3 -2 4 1 3'
+		userinput = self._settings.get('annotate these')
+		IntervalsLists = [(8, 2, 0), (6, 2, .5), (6, 3, 1), (1, 2, 1.5), (3, -2, 2), \
+							(4, 1, 2.5), (3, -5, 3), (8, None, 3.5), (1, 2, 4), \(3, -2, 4.5), 
+							(4, 1, 5), (3, -5, 5.5)]
+		user_intervals = str.split(userinput)
+		user_ngram = []
+		for p in user_intervals:
+			user_ngram.append(int(p))
+		#note that str.split will be removed in python 3
+		#Ideally  return an error message to the user here if len(user_ngram) is not an
+		#odd number 3 or greater.
+		ngram_size = ((len(user_ngram)+1)/2)
+		#Takes the user's ngram and puts it into a list of the vertical intervals and a
+		#list of the horizontal intervals.
+		vertify = []
+		horify = []
+		for n in range (0, len(user_ngram)):
+			if n % 2 == 0:
+				vertify.append(user_ngram[n])
+			else:
+				horify.append(user_ngram[n])
+
+		found_ngrams = []
+		for t in IntervalsLists:
+			spot = IntervalsLists.index(t)
+			if (vertify[0] == t[0]):
+				if all((horify[(w - 1)] == IntervalsLists[(spot + w - 1)][1]) \
+				and (vertify[w] == IntervalsLists[(spot + w)][0]) for w in range (1, ngram_size)):
+					found_ngrams.append(list(IntervalsLists[spot:(spot + ngram_size)]))
+		print found_ngrams
+
+		# use the IntervalsLists Experiment
+		# return is a list of lists of 3-tuples
         pass
 
 
