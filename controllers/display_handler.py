@@ -37,7 +37,7 @@ from music21 import graph, base
 from controller import Controller
 import file_output
 from Ui_text_display import Ui_Text_Display
-import OutputLilyPond
+from OutputLilyPond import OutputLilyPond
 
 
 class DisplayHandler(Controller):
