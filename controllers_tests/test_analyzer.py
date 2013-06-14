@@ -213,6 +213,17 @@ class TestEventFinderShort(unittest.TestCase):
       this_piece = event_finder_short.test_17
       actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
       self.assertEqual(expected, actual._record)
+
+
+
+   def test_event_finder_short_18(self):
+      # What happens when we look only for Rest objects, no Note ones?
+      expected = [(0.5, ('Rest', 'Rest'))]
+      actual = analyzing.AnalysisRecord()
+      this_piece = event_finder_short.test_18
+      self.setts.types =  [(note.Rest, lambda x: 'Rest')]
+      actual = _event_finder([this_piece[0], this_piece[1]], self.setts, actual)
+      self.assertEqual(expected, actual._record)
 # End TestEventFinderShort -----------------------------------------------------
 
 

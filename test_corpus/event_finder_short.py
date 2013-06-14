@@ -334,3 +334,22 @@ bot.append(Note('G3', quarterLength=0.5))
 
 test_17 = Score([top, bot])
 #------------------------------------------------------------------------------
+
+
+
+# Test 18 ----------------------------------------------------------------------
+# NB: This test is designed specifically to ensure that the _event_finder()
+# doesn't stop processing when it doesn't find an element of the expected types
+# at an offset. You should ask it to look for Rest objects only.
+top = Part()
+top.append(TimeSignature('4/4'))
+top.append(Note('G4', quarterLength=0.5))
+top.append(Rest(quarterLength=0.5))
+
+bot = Part()
+bot.append(TimeSignature('4/4'))
+bot.append(Note('G3', quarterLength=0.5))
+bot.append(Rest(quarterLength=0.5))
+
+test_18 = Score([top, bot])
+#------------------------------------------------------------------------------
