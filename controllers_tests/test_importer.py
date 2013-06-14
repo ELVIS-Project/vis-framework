@@ -32,7 +32,7 @@ from PyQt4.QtCore import Qt
 from music21 import converter, stream, metadata
 # vis
 from controllers.importer import import_piece, Importer
-from models import importing, analyzing
+from models import analyzing
 
 
 
@@ -64,7 +64,8 @@ class TestPieceGetter(unittest.TestCase):
       else:
          for i in xrange(len(one)):
             if type(one[i]) != type(another[i]):
-               print('*** Objects at i = ' + str(i) + ' are different types!')
+               print('*** Objects at i = ' + str(i) + ' are different types! ...')
+               print('    expected ' + str(one[i]) + ' but got ' + str(another[i]))
                return False
             if '__eq__' in dir(one):
                if one[i] != another[i]:
@@ -82,22 +83,57 @@ class TestPieceGetter(unittest.TestCase):
    def test_tester(self):
       path = 'test_corpus/bwv77.mxl'
       try_1 = converter.parse(path)
-      try_2 = converter.thawStr(import_piece(path)[1])
+      try_2 = converter.thawStr(import_piece(path)[0][1])
       self.assertTrue(TestPieceGetter.stream_equality(try_1, try_2))
 
    def test_bwv77(self):
       path = 'test_corpus/bwv77.mxl'
       my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
+      test_import = converter.thawStr(import_piece(path)[0][1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
    def test_jos2308_krn(self):
       path = 'test_corpus/Jos2308.krn'
       my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
+      test_import = converter.thawStr(import_piece(path)[0][1])
       self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 
-   #def test_jos2308_mei(self):
+   def test_kyrie(self):
+      path = 'test_corpus/Kyrie.krn'
+      my_import = converter.parse(path)
+      test_import = converter.thawStr(import_piece(path)[0][1])
+      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+
+   def test_madrigal51(self):
+      # fails; not sure why
+      path = 'test_corpus/madrigal51.mxl'
+      my_import = converter.parse(path)
+      test_import = converter.thawStr(import_piece(path)[0][1])
+      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+
+   def test_sinfony(self):
+      path = 'test_corpus/sinfony.md'
+      my_import = converter.parse(path)
+      test_import = converter.thawStr(import_piece(path)[0][1])
+      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+
+   def test_sqOp76_4_i(self):
+      path = 'test_corpus/sqOp76-4-i.midi'
+      my_import = converter.parse(path)
+      # we'll have to update this when music21 is fixed, and MIDI files pickle correctly
+      #test_import = converter.thawStr(import_piece(path)[0][1])
+      test_import = import_piece(path)[0][1]
+      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
+
+   def test_sanctus(self):
+      # this should import as an Opus that import_piece will give us as a list of two Scors
+      path = 'test_corpus/Sanctus.krn'
+      test_import = import_piece(path)
+      self.assertEqual(2, len(test_import))
+      self.assertTrue(isinstance(converter.thawStr(test_import[0][1]), stream.Score))
+      self.assertTrue(isinstance(converter.thawStr(test_import[1][1]), stream.Score))
+
+    #def test_jos2308_mei(self):
       ## Because music21 doesn't support MEI, this will not work
       #path = 'test_corpus/Jos2308.mei'
       #self.assertRaises(converter.ConverterFileException,
@@ -107,35 +143,11 @@ class TestPieceGetter(unittest.TestCase):
                         #Importer._piece_getter,
                         #path)
 
-   def test_kyrie(self):
-      path = 'test_corpus/Kyrie.krn'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
-
    #def test_laPlusDesPlus(self):
       #path = 'test_corpus/laPlusDesPlus.abc'
       #my_import = converter.parse(path)
       #test_import = converter.thawStr(import_piece(path)[1])
       #self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
-
-   def test_madrigal51(self):
-      path = 'test_corpus/madrigal51.mxl'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
-
-   def test_sinfony(self):
-      path = 'test_corpus/sinfony.md'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
-
-   def test_sqOp76_4_i(self):
-      path = 'test_corpus/sqOp76-4-i.midi'
-      my_import = converter.parse(path)
-      test_import = converter.thawStr(import_piece(path)[1])
-      self.assertTrue(TestPieceGetter.stream_equality(my_import, test_import))
 # End TestPieceGetter ----------------------------------------------------------
 
 
@@ -545,7 +557,7 @@ class TestImportPieces(unittest.TestCase):
          #index = returned.createIndex(row, analyzing.ListOfPieces.parts_list)
          index = (row, analyzing.ListOfPieces.parts_list)
          self.assertEqual(str(parts[row])[1:-1], returned.data(index, Qt.DisplayRole).toPyObject())
-         self.assertEqual(parts[row], returned.data(index, analyzing.ListOfPieces.ScoreRole).toPyObject())
+         self.assertEqual(parts[row], returned.data(index, analyzing.ListOfPieces.ScoreRole))
       for row in xrange(len(paths)): # offset intervals
          #index = returned.createIndex(row, analyzing.ListOfPieces.offset_intervals)
          index = (row, analyzing.ListOfPieces.offset_intervals)
@@ -592,7 +604,7 @@ class TestImportPieces(unittest.TestCase):
       for row in xrange(len(paths)): # filenames
          #index = returned.createIndex(row, analyzing.ListOfPieces.filename)
          index = (row, analyzing.ListOfPieces.filename)
-         self.assertEqual(paths[row], returned.data(index, Qt.DisplayRole).toPyObject())
+         self.assertEqual(paths[row], returned.data(index, Qt.DisplayRole))
       for row in xrange(len(paths)): # titles
          #index = returned.createIndex(row, analyzing.ListOfPieces.score)
          index = (row, analyzing.ListOfPieces.score)
