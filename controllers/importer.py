@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: Importer.py
 # Purpose: Holds the Importer controller.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -48,10 +49,6 @@ def import_piece(file_path):
     webs of weak references, which cannot be pickled and therefore cannot be passed between
     different child processes in a multiprocessing context.
 
-    NB2: if the imported file is a MIDI file, it won't be pickled, because that doesn't work in the
-    currently-available version of music21. It will be fixed with music21 1.6.0
-    **** When you fix this, you have to also update the automated tests.
-
     Parameters
     ----------
 
@@ -86,10 +83,7 @@ def import_piece(file_path):
         title = Importer._find_piece_title(each_piece)
         part_names = Importer._find_part_names(each_piece)
         _, extension = os.path.splitext(file_path)
-        if '.midi' == extension or '.mid' == extension:
-            return_score = each_piece
-        else:
-            return_score = converter.freezeStr(each_piece, fmt='pickle')
+        return_score = converter.freezeStr(each_piece, fmt='pickle')
         post.append((file_path, return_score, title, part_names))
     return post
 
@@ -156,21 +150,9 @@ class ImporterThread(QThread):
         self._importer.status.emit('0')
         self._importer.status.emit('Importing...')
 
-        # Sort the files according to whether their extension indicates they'll work with
-        # multiprocessing or not
-        sequential_extensions = ['.mid', '.midi']
-        multiprocess_files = []  # for everything that works in multiprocessing
-        sequential_files = []  # for everything that doesn't work (i.e., MIDI)
-        for sort_file in self._files:
-            _, extension = os.path.splitext(sort_file)
-            if extension in sequential_extensions:
-                sequential_files.append(sort_file)
-            else:
-                multiprocess_files.append(sort_file)
-
         # Start up the multiprocessing
         self._pool = Pool()
-        for file_path in multiprocess_files:
+        for file_path in self._files:
             self._pool.apply_async(import_piece,
                                    (file_path,),
                                    callback=self.callback)
@@ -178,10 +160,6 @@ class ImporterThread(QThread):
         self._pool.join()
         self._importer.import_is_running = False
         self._pool = None
-
-        # Start up the sequential importing
-        for file_path in sequential_files:
-            self.callback(import_piece(file_path))
 
         # self.progress < self.num_files if a user cancelled the runing job before it finished
         if self.progress < self.num_files:

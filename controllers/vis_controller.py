@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: vis_controller.py
 # Purpose: Holds the VisController objects for the various GUIs.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -153,7 +154,7 @@ class VisController(Controller):
             (self.run_the_analysis, self.analyzer.run_analysis.emit),
             (self.analyze_set_multiprocess, self.analyzer.thread.set_multiprocess),
             (self.run_the_experiment, self.experimenter.run_experiment.emit),
-            (self.experiment_setting, self.experimenter.set.emit),
+            (self.experiment_setting, self.experimenter.set_setting.emit),
             #(self.run_the_import, self.processEvents), # NOTE: does nothing?
             #(self.run_the_analysis, self.processEvents), # NOTE: does nothing?
             # Signals Sent by other Controllers (and Handled Here) ----------------

@@ -465,6 +465,7 @@ class TestChordNGram(unittest.TestCase):
                                 ('a c e', 'R'), ('a c# e', 'RP'),
                                 ('b- d- f', 'LRPRP'), ('b- d f', 'LRPR'),
                                 ('b d f#', 'LRL'), ('b d# f#', 'LPLR'),
+                                ('c e- g', 'P'),
                             ]
 
         # Everybody's favourite triad

@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: Analyzer.py
 # Purpose: Holds the Analyzer controller.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,7 +29,6 @@ Holds the Analyzer controller.
 
 # Imports from...
 # Python
-import os
 from multiprocessing import Pool
 # music21
 from music21 import note, chord, converter, stream
@@ -53,12 +53,12 @@ def analyze_piece(each_piece, which_objects):
     the_score = each_piece[ListOfPieces.score][0]
     if not isinstance(the_score, stream.Score):
         the_score = converter.thawStr(the_score)
-    if '[all]' == this_combos:
-        # We have to examine all combinations of parts...
-        # How many parts are in this piece?
-        number_of_parts = len(the_score.parts)
+    if u'[all pairs]' == this_combos:
         # Get a list of all the part-combinations to examine
-        this_combos = Analyzer.calculate_all_combos(number_of_parts - 1)
+        this_combos = Analyzer.calculate_all_combos(len(the_score.parts) - 1)
+    elif u'[all]' == this_combos:
+        # make a list with one sub-list that has all the parts at once
+        this_combos = [[i for i in range(len(the_score.parts))]]
     else:
         # Turn the str specification of parts into a list of int (or str)
         this_combos = eval(this_combos)
@@ -181,30 +181,28 @@ def _event_finder(parts, settings, record):
     while current_offset < end_of_score:
         # 4.1) Make sure we're not using the same offset as last time through the loop.
         if offset_from_last_time == current_offset:
-            msg = 'Error in controllers.Analyzer._event_finder, section 3.1'
+            msg = u'Error in controllers.Analyzer._event_finder, section 4.1'
             raise RuntimeError(msg)
         else:
             offset_from_last_time = current_offset
 
-        # 4.2) Get the events at the current offset
-        current_events = [p.getElementsByOffset(current_offset,
-                                                mustBeginInSpan=False,
-                                                classList=list_of_types)
-                        for p in parts]
-
-        # 4.3) Make sure we only have the first event at this offset.
-        # current_events = [e[0] for e in current_events]
-        # TODO: surely there is a cleaner way to do this
-        underprocessed = current_events
+        # 4.2 and 4.3) Get the events at the current offset, making sure only the first ones.
         current_events = []
-        skip_this_offset = False
-        for event in underprocessed:
-            if 0 == len(event):
-                skip_this_offset = True
-            else:
-                current_events.append(event[0])
-        if skip_this_offset:
-            break
+        for each_part in parts:
+            possible = []
+            try:
+                possible = each_part.getElementsByOffset(current_offset,
+                                                         mustBeginInSpan=False,
+                                                         classList=list_of_types)
+            except stream.StreamException:
+                pass
+            if 0 < len(possible):
+                current_events.append(possible[0])
+
+        if 0 == len(current_events):
+            # We still have to (4.7) Increment the offset
+            current_offset += settings.offset
+            continue
 
         # 4.4) Turn the objects into their string forms
         current_events = Analyzer._object_stringer(current_events, settings.types)
@@ -217,8 +215,7 @@ def _event_finder(parts, settings, record):
             # If salami, we always add the event, and always at the current offset
             record.append(current_offset, current_events)
         elif record.most_recent_event()[1] != current_events:
-            # If not salami, we only add the event if it's different from the previous, and at the
-            # offset at which it starts...
+            # If not salami, we only add the event if it's different from the previous.
             record.append(current_offset, current_events)
 
         # 4.7) Increment the offset
@@ -298,21 +295,9 @@ class AnalyzerThread(QtCore.QThread):
                     collecting.append(each_column)
             the_pieces.append(collecting)
 
-        # Sort the files according to whether their extension indicates they'll work with
-        # multiprocessing or not
-        sequential_extensions = ['.mid', '.midi']
-        multiprocess_pieces = []  # for everything that works in multiprocessing
-        sequential_pieces = []  # for everything that doesn't work (i.e., MIDI)
-        for sort_piece in the_pieces:
-            _, extension = os.path.splitext(sort_piece[ListOfPieces.filename])
-            if extension in sequential_extensions:
-                sequential_pieces.append(sort_piece)
-            else:
-                multiprocess_pieces.append(sort_piece)
-
         # Start up the multiprocessing
         self._pool = Pool()
-        for each_piece in multiprocess_pieces:
+        for each_piece in the_pieces:
             # Load up the stuff in the Pool!
             self._pool.apply_async(analyze_piece,
                                    (each_piece, which_objects,),
@@ -321,10 +306,6 @@ class AnalyzerThread(QtCore.QThread):
         self._pool.close()
         self._pool.join()
         self._pool = None
-
-        # Start up the sequential analysis
-        for each_piece in sequential_pieces:
-            self.callback(analyze_piece(each_piece, which_objects))
 
         # self.progress != self.num_pieces if a user cancelled before the analyses were completed
         if self.progress != self.num_pieces:

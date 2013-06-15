@@ -1,10 +1,18 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
-# Name:         file_output.py
-# Purpose:      Outputs files for vis and OutputLilyPond
+# Program Name:              vis
+# Program Description:       Measures sequences of vertical intervals.
 #
-# Copyright (C) 2012 Christopher Antila
+# Filename: controllers/__init__.py
+# Purpose: Load the vis controllers modules.
+#
+# Attribution:  Copied from the OutputLilyPond project; original file is
+#               available at https://github.com/crantila/OutputLilyPond/blob/
+#               fffcda98a619a8c610c77a69356ef673bfbf7898/FileOutput.py
+#
+# Copyright (C) 2012, 2013 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

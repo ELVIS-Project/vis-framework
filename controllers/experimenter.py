@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: Experimenter.py
 # Purpose: Holds the Experimenter controller.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,12 +28,15 @@ Holds the Experimenter controller.
 """
 
 # Imports from...
+# python
+from copy import deepcopy
 # PyQt4
 from PyQt4 import QtCore
 # music21
 from music21 import chord, converter, stream, note, interval, roman
 # vis
 from controller import Controller
+from models import analyzing
 from models.experimenting import ExperimentSettings
 from models import ngram
 import OutputLilyPond
@@ -48,7 +52,7 @@ class Experimenter(Controller, QtCore.QObject):
     # PyQt4 Signals
     # -------------
     # a 2-tuple: a string for a setting name and the value for the setting
-    set = QtCore.pyqtSignal(tuple)
+    set_setting = QtCore.pyqtSignal(tuple)
     # tell the Experimenter controller to perform an experiment
     run_experiment = QtCore.pyqtSignal()
     # Emitted by the Experimenter when the experiment is finished. The argument is a tuple, where
@@ -78,7 +82,7 @@ class Experimenter(Controller, QtCore.QObject):
         self._list_of_analyses = None
         self._experiment_settings = ExperimentSettings()
         # Signals
-        self.set.connect(self._change_setting)
+        self.set_setting.connect(self._change_setting)
         self.run_experiment.connect(self._run_experiment)
         self._experiment_results.connect(self._catch_experiments)
         # Hold the result emitted by an Experiment when it's finished
@@ -201,12 +205,21 @@ class Experiment(QtCore.QRunnable):
 
     def run(self):
         """
-        Just starts the perform() method.
+        Collect the results of perform(), then emit the signal that sends them to the Experimenter
         """
-        # NOTE: You do not need to reimplement this method in subclasses.
-        # Collect the results of perform(), then emit the signal that sends them to the Experimenter
-        signal_me = self.perform()
-        self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
+        # Note 1: Do not need to reimplement this method in subclasses.
+        # DEBUG
+        #signal_me = None
+        #try:
+            #signal_me = self.perform()
+        #except Exception as exc:
+            #self._controller.error.emit(u'Failure during experiment.\n\n' + str(type(exc)) +
+                #u' says:\n' + str(exc))
+            #self._controller.experiment_finished.emit((u'error', None))
+        #else:
+            #self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
+        self._controller._experiment_results.emit(QtCore.QVariant(self.perform()))
+        # END DEBUG
 
     def perform(self):
         """
@@ -339,8 +352,6 @@ class IntervalsLists(Experiment):
     def perform(self):
         """
         Perform the IntervalsLists Experiment.
-
-        This method emits an Experimenter.experimented signal when it finishes.
         """
 
         # pre-fetch the settings we'll be using repeatedly
@@ -442,6 +453,9 @@ class ChordsLists(Experiment):
     # List of strings that are the names of the Display objects suitable for this Experiment
     _good_for = ['SpreadsheetFile', 'LilyPondAnnotated']
 
+    # How chord qualities should be represented with single letters
+    _quality_dict = {u'major': u'+', u'minor': u'-', u'augmented': u'x', u'diminished': u'o'}
+
     def __init__(self, controller, records, settings):
         """
         Create a new ChordsLists.
@@ -461,6 +475,61 @@ class ChordsLists(Experiment):
         if self._settings.has('output format'):
             self._good_for = [self._settings.get('output format')]
 
+    @staticmethod
+    def make_chord_symbol(the_chord):
+        """
+        Given a music21.chord.Chord, make a chord symbol.
+
+        Parameters
+        ----------
+
+        the_chord : music21.chord.Chord
+            The chord the symbol of which you want.
+
+        Returns
+        -------
+
+        string
+            The corresponding chord symbol.
+        """
+        the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
+        if u'other' == the_chord.quality:
+            # We'll show bass and FB
+            bass_name = unicode(the_chord.bass().name).replace(u'-', u'b')  # replace flat symbols
+            return u''.join([bass_name, u' ', the_figure]) if the_figure != u'' else bass_name
+        else:
+            # We'll show root, quality, and FB
+            root = unicode(the_chord.root().name).replace(u'-', u'b')  # replace flat symbols
+            u''.join([root, ChordsLists._quality_dict[the_chord.quality]])
+            return u''.join([root, u' ', the_figure]) if the_figure != u'' else root
+
+    @staticmethod
+    def remove_rests(event):
+        """
+        Remove 'Rest' strings from iterables of strings.
+
+        Parameters
+        ----------
+
+        event : list or tuple of strings, optionally with singly-nested lists/tuples of strings
+            'Rest' strings will be removed from this
+
+        Returns
+        -------
+
+        tuple of strings
+            All elements are brought into the main tuple, and any strings == u'Rest' are removed
+        """
+        post = []
+        for chord_member in event:
+            if isinstance(chord_member, tuple) or isinstance(chord_member, list):
+                for inner_chord_member in chord_member:
+                    if u'Rest' != inner_chord_member:
+                        post.append(inner_chord_member)
+            elif u'Rest' != chord_member:
+                post.append(chord_member)
+        return post
+
     def perform(self):
         """
         Perform the ChordsListsExperiment.
@@ -468,70 +537,65 @@ class ChordsLists(Experiment):
         This method emits an Experimenter.experimented signal when it finishes.
         """
 
+        # Should we use the ChordParser?
+        if self._settings.has('chord parse length'):
+            cp = ChordParser(self._controller, self._records, self._settings)
+            res = cp.perform()
+            self._records = res if res is not None else self._records
+            if res is None:
+                return None
+
         # this is what we'll return
         post = [('chord', 'transformation', 'offset')]
 
-        def remove_rests(event):
-            """
-            Removes 'Rest' strings from a list of strings.
-            """
-            post = ''
-
-            for chord_member in event:
-                if isinstance(chord_member, list):
-                    for inner_chord_member in chord_member:
-                        post += inner_chord_member + ' '
-                elif 'Rest' != chord_member:
-                    post += chord_member + ' '
-
-            return post
+        # keep a dict of Note objects to help speed up Chord.__init__()
+        note_dict = {}
 
         for record in self._records:
             for first, second in zip(record, list(record)[1:]):
-                # find the offset
-                offset = first[0]
-
-                # hold the string-wise representation of the notes in the chords
-                first_chord, second_chord = '', ''
-
                 # prepare the string-wise representation of notes in the chords
-                # NOTE: we have the inner isinstance() call because, if a Chord object is put here,
-                #       it'll be as a tuple, rather than, like Note objects, as simply right there
-                first_chord = remove_rests(first[1])
-                second_chord = remove_rests(second[1])
+                first_chord_str = ChordsLists.remove_rests(first[1])
+                second_chord_str = ChordsLists.remove_rests(second[1])
+                first_chord_pitches = []
+                for each in first_chord_str:
+                    try:
+                        first_chord_pitches.append(note_dict[each])
+                    except KeyError:
+                        note_dict[each] = note.Note(each)
+                        first_chord_pitches.append(note_dict[each])
+                second_chord_pitches = []
+                for each in second_chord_str:
+                    try:
+                        second_chord_pitches.append(note_dict[each])
+                    except KeyError:
+                        note_dict[each] = note.Note(each)
+                        second_chord_pitches.append(note_dict[each])
+                first_chord = chord.Chord(first_chord_pitches)
+                second_chord = chord.Chord(second_chord_pitches)
 
                 # ensure neither of the chords is just a REST... if it is, we'll skip this loop
-                if '' == first_chord or '' == second_chord:
+                if 0 == len(first_chord) or 0 == len(second_chord):
                     continue
 
                 # make the chord symbol
-                the_chord = chord.Chord(first_chord)
-                the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
-                bass_name = the_chord.bass().name
-                if bass_name[-1] == u'-':
-                    bass_name = bass_name[0] + u'b'
-                chord_name = bass_name + u' ' + the_figure if the_figure != u'' else bass_name
+                chord_name = ChordsLists.make_chord_symbol(chord.Chord(first_chord))
 
                 # find the transformation
                 horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
                                                                   chord.Chord(second_chord))
-                put_me = (chord_name, u'(' + horizontal + u')', offset)
+                put_me = (chord_name, u'(' + horizontal + u')', first[0])
 
                 # add this chord-and-transformation to the list of all of them
                 post.append(put_me)
 
             # finally, add the last chord, which doesn't have a transformation
-            last = record[-1]
-            last_chord = ''
-
-            # prepare the string-wise representation of notes in the chords
-            last_chord = remove_rests(last[1])
+            last_chord = ChordsLists.remove_rests(record[-1][1])
 
             # format and add the chord, but only if the previous step didn't turn everyting to rests
             if '' != last_chord:
-                last_chord = chord.Chord(last_chord)
-                last_chord_name = last_chord.root().name + ' ' + last_chord.commonName
-                post.append((last_chord_name, None, last[0]))
+                post.append((ChordsLists.make_chord_symbol(chord.Chord(last_chord)),
+                             None,
+                             record[-1][0]))
 
         return post
 
@@ -1099,6 +1163,15 @@ class LilyPondExperiment(Experiment):
                 this_result = this_result.perform()
                 if 'ChordsList' == which_helper:
                     this_result = LilyPondExperiment._accidental_replacer(this_result)
+                # START DEBUGGING
+                #asdf = LilyPondExperiment.make_ngram_score(each_record, this_result, [2])
+                #print(u'================================================================')
+                #print(u'================================================================')
+                #print(OutputLilyPond.process_score(asdf.parts[-1]))
+                #print(u'================================================================')
+                #print(u'================================================================')
+                #all_the_scores.append(asdf)
+                # END DEBUGGING
                 all_the_scores.append(LilyPondExperiment.make_ngram_score(
                     each_record, this_result, [2]))
             for each_score in all_the_scores:
@@ -1410,7 +1483,178 @@ class TargetedIntervalNGramExperiment(Experiment):
         super(TargetedIntervalNGramExperiment, self).__init__(controller, records, settings)
 
     def perform(self):
+        # Takes an ngram entered by the user and divides it into
+        # two lists: one of the vertical intervals and the other of the lower
+        # voice's melodic intervals.
+
+        # userinput is what the user would type in. The user should be prompted
+        # with instructions along the lines of:
         """
-        This is what Alex has to write.
+        Enter the N-gram you wish to search for separating each vertical
+        and horizontal interval with a space and nothing else. Unisons are equal to
+        one and inverted vertical intervals as well as descending melodic intervals
+        should be preceded with a minus sign. Please only enter numbers,
+        spaces, and minus signs (if needed).
         """
-        pass
+
+        userinput = self._settings.get('annotate these')
+
+        # holds the Result Of The IntervalsLists Experiment
+        rotile = IntervalsLists(the_pieces).perform()
+
+        user_intervals = str.split(userinput)
+        user_ngram = []
+        for p in user_intervals:
+            user_ngram.append(int(p))
+        if len(user_ngram) <= 3:
+            self._controller.error.emit(u'Please enter an ngram with at least three elements.')
+            return
+        if len(user_ngram) % 2 == 0:
+            self._controller.error.emit(u'Please enter an odd number of intervals.')
+            return
+
+        ngram_size = (len(user_ngram) + 1) / 2
+
+        # Takes the user's ngram and puts it into a list of the vertical intervals and a
+        # list of the horizontal intervals.
+        vertify = []
+        horify = []
+        for n in xrange(len(user_ngram)):
+            if n % 2 == 0:
+                vertify.append(user_ngram[n])
+            else:
+                horify.append(user_ngram[n])
+
+        found_ngrams = []
+        for t in rotile:
+            spot = rotile.index(t)
+            if vertify[0] == t[0] and \
+                horify[(w - 1)] == rotile[(spot + w - 1)][1] and \
+                all([vertify[w] == rotile[(spot + w)][0] for w in xrange(1, ngram_size)]):
+                    found_ngrams.append(rotile[spot:(spot + ngram_size)])
+
+        return(found_ngrams)
+
+
+class ChordParser(Experiment):
+    """
+    Try to parse chords out of otherwise-impenetrable textures.
+
+    The Experiment tries the events at a particular offset, then gradually adds later offsets until
+    a triad or seventh chord is formed, or until reaching a certain duration away.
+
+    It's probably best to use this with a very small offset through the Analyzer, so this
+    experiment can have all the attacks possible.
+    """
+
+    # This is a helper experiment, only suitable for use by other experiments!
+    _good_for = ['None']
+
+    def __init__(self, controller, records, settings):
+        """
+        Create a new ChordParser Experiment.
+
+        The ExperimentSettings instance must have the "chord parse length" property.
+        """
+        if not settings.has('chord parse length'):
+            msg = u'ChordParser requires the "chord parse length" setting'
+            controller.error.emit(msg)
+            return
+        super(ChordParser, self).__init__(controller, records, settings)
+
+    def perform(self):
+        """
+        Perform the Experiment.
+        """
+        new_ars = []
+
+        for old_ar in self._records:
+            new_ar = analyzing.AnalysisRecord()
+
+            note_dict = {}  # hold the Note objects we generate
+            force_this = False  # whether to add this sonority, even if it's not "nice"
+            largest_duration = self._settings.get('chord parse length')
+            i = [0]  # list of the indices to check in old_ar
+            max_i = len(old_ar)
+            previous_i = [-1]
+
+            while 0 == 0:
+                force_this = False
+                # 1.) Did we just do the last thing?
+                if i[0] >= max_i:
+                    break
+
+                # 2.) Make sure we're not going backwards
+                if i[0] < previous_i[0]:
+                    msg = u'ChordParser started to go backwards!'
+                    self._controller.error.emit(msg)
+                    return None
+                elif i[0] == previous_i[0] and len(i) <= len(previous_i):
+                    msg = u'ChordParser is checking the same things twice!'
+                    self._controller.error.emit(msg)
+                    return None
+
+                # 3.) Update the "previous"-ly checked i values
+                previous_i = deepcopy(i)
+
+                # 4.) See if we can use this set of offsets (ensure it's not all too large)
+                # If not, we'll have to just use the first thing, no matter what it is.
+                if i[-1] >= max_i:  # check we don't go off the end of the AnalysisRecord
+                    force_this = True
+                    i = [i[0]]
+                elif old_ar[i[-1]][0] - old_ar[i[0]][0] > largest_duration:  # larger than wanted
+                    force_this = True
+                    i = [i[0]]
+
+                # 5.) Figure out what's at this set of offsets
+                this_sonority = []
+                for each_i in i:
+                    for each_pitch in old_ar[each_i][1]:  # TODO: add support for "each_pitch" being a list, meaning it came from a chord
+                        # Using this dict, we get a significant speed-up later in Chord.__init__()
+                        if 'Rest' == each_pitch:
+                            continue
+                        if each_pitch in note_dict:
+                            this_sonority.append(note_dict[each_pitch])
+                        else:
+                            new_note = note.Note(each_pitch)
+                            note_dict[each_pitch] = new_note
+                            this_sonority.append(new_note)
+
+                # 6.) Make the Chord
+                # "p_chord" for "possible chord"
+                p_chord = chord.Chord(this_sonority)
+                p_chord.removeRedundantPitchNames(inPlace=True)
+                names = [p.nameWithOctave for p in p_chord]  # string-wise chord repr
+                prev_chord = chord.Chord('')
+                if len(new_ar) > 0:
+                    prev_chord = chord.Chord([note_dict[x] for x in new_ar[-1][1]])
+
+                # 7.) See if the Chord is "nice"
+                if all([p in prev_chord.pitchClasses for p in p_chord.pitchClasses]):
+                    print('at ' + str(old_ar[i[0]][0]) + ', (CONTAINED NOT) ' + str(names) +
+                        ' is in ' + str(new_ar[-1][1]))  # DEBUG
+                    i = [i[-1] + 1]
+                elif p_chord.isTriad() or p_chord.isSeventh() or force_this:
+                    if len(new_ar) == 0:  # first item in the new_ar
+                        new_ar.append(old_ar[i[0]][0], names)
+                        print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
+                    else:
+                        if prev_chord.orderedPitchClasses != p_chord.orderedPitchClasses:
+                            # then it's the same as the previous chord
+                            new_ar.append(old_ar[i[0]][0], names)
+                            # START DEBUG
+                            print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))
+                        else:
+                            print('at ' + str(old_ar[i[0]][0]) + ', (SAME NOT) ' + str(names))
+                            # END DEBUG
+                    i = [i[-1] + 1]
+                else:
+                    print('at ' + str(old_ar[i[0]][0]) + ', NOT ' + str(names))  # DEBUG
+                    i.append(i[-1] + 1)
+                print('next i is ' + str(i))  # DEBUG
+
+            # 8.) We finished a piece!
+            new_ars.append(new_ar)
+
+        # 9.) We finished all the pieces!
+        return new_ars

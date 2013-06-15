@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -7,7 +8,7 @@
 # Filename: DisplayHandler.py
 # Purpose: Holds the DisplayHandler controller.
 #
-# Copyright (C) 2012 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -36,7 +37,7 @@ from music21 import graph, base
 # vis
 from controller import Controller
 import file_output
-from Ui_text_display import Ui_Text_Display
+from views.Ui_text_display import Ui_Text_Display
 import OutputLilyPond
 
 
@@ -66,7 +67,7 @@ class DisplayHandler(Controller):
         """
         super(DisplayHandler, self).__init__()  # required for signals
 
-    #@QtCore.pyqtSlot
+    @QtCore.pyqtSlot(tuple)  # for Experimenter.experiment_finished
     def show_result(self, signal_result):
         """
         Slot for the Experimenter.experiment_finished signal. This method is
@@ -86,9 +87,14 @@ class DisplayHandler(Controller):
         # (1) Choose which display type to use
         # Currently, we can't deal with choosing Display class after the Experiment has run,
         # so we'll have to panic if there is more than one choice.
-        if 1 < len(signal_result[0]):
+        if u'error' == signal_result[0]:
+            # there was an error in the Experimenter, already reported
+            self.display_shown.emit()
+            return
+        elif 1 < len(signal_result[0]):
             msg = 'Internal Error: DisplayHandler cannot choose its display method independently.'
             self.error.emit(msg)
+            self.display_shown.emit()
             return
         else:
             # NOTE: remember to update this selection code as different Display objects are added
@@ -263,6 +269,12 @@ class StatisticsListDisplay(Display):
         post = ''
         total_occurrences = 0
 
+        # ensure the Experiment produced valid output
+        if 0 == len(self._data):
+            msg = u'StatisticsListDisplay: The Experiment produced no data! Cannot continue.'
+            self._controller.error.emit(msg)
+            return None
+
         # prepare the header data (except total number of occurrences)
         if 3 == len(self._data[0]) and 'description' == self._data[0][0]:
             header_data += self._data[0][1] + u': ' + self._data[0][2] + u'\n'
@@ -362,6 +374,12 @@ class GraphDisplay(Display):
 
         This method emits a VisSignals.display_shown signal when it finishes.
         """
+
+        # ensure the Experiment produced valid output
+        if 0 == len(self._data):
+            msg = u'GraphDisplay: The Experiment produced no data! Cannot continue.'
+            self._controller.error.emit(msg)
+            return None
 
         # Filter out the "description" fields, if they exist
         if u'description' == self._data[0][0]:

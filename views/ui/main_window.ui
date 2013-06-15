@@ -228,7 +228,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -359,7 +359,7 @@
                  </sizepolicy>
                 </property>
                 <property name="text">
-                 <string>Add Combination</string>
+                 <string>&amp;Add Combination</string>
                 </property>
                </widget>
               </item>
@@ -468,6 +468,16 @@
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_part_boxes">
+                     <item>
+                      <widget class="QCheckBox" name="chk_all_voices">
+                       <property name="enabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="text">
+                        <string>All Voices</string>
+                       </property>
+                      </widget>
+                     </item>
                      <item>
                       <widget class="QCheckBox" name="chk_all_voice_combos">
                        <property name="enabled">
@@ -627,7 +637,23 @@
         <item>
          <widget class="QGroupBox" name="groupBox_2">
           <layout class="QGridLayout" name="gridLayout">
-           <item row="4" column="0">
+           <item row="1" column="2">
+            <widget class="QGroupBox" name="grp_ignore_inversion">
+             <property name="title">
+              <string>Voice Crossing</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
+              <item>
+               <widget class="QCheckBox" name="chk_ignore_inversion">
+                <property name="text">
+                 <string>Ignore</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="5" column="0">
             <spacer name="verticalSpacer_3">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -685,7 +711,7 @@
               <item>
                <widget class="QRadioButton" name="rdo_list">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>List</string>
@@ -695,7 +721,7 @@
               <item>
                <widget class="QRadioButton" name="rdo_chart">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Chart/Graph</string>
@@ -705,7 +731,7 @@
               <item>
                <widget class="QRadioButton" name="rdo_score">
                 <property name="enabled">
-                 <bool>false</bool>
+                 <bool>true</bool>
                 </property>
                 <property name="text">
                  <string>Score</string>
@@ -714,19 +740,6 @@
               </item>
              </layout>
             </widget>
-           </item>
-           <item row="4" column="1">
-            <spacer name="verticalSpacer_10">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
            </item>
            <item row="0" column="0">
             <widget class="QGroupBox" name="groupBox_7">
@@ -806,19 +819,6 @@
              </layout>
             </widget>
            </item>
-           <item row="4" column="2">
-            <spacer name="verticalSpacer_11">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
            <item row="0" column="2">
             <widget class="QGroupBox" name="grp_values_of_n">
              <property name="title">
@@ -838,7 +838,7 @@
              </layout>
             </widget>
            </item>
-           <item row="4" column="3">
+           <item row="5" column="3">
             <widget class="QPushButton" name="btn_show_results">
              <property name="text">
               <string>Process and &amp;Show</string>
@@ -900,22 +900,6 @@
              </layout>
             </widget>
            </item>
-           <item row="1" column="2">
-            <widget class="QGroupBox" name="grp_ignore_inversion">
-             <property name="title">
-              <string>Voice Crossing</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_14">
-              <item>
-               <widget class="QCheckBox" name="chk_ignore_inversion">
-                <property name="text">
-                 <string>Ignore</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item row="2" column="2" rowspan="2">
             <widget class="QGroupBox" name="grp_annotate_these">
              <property name="title">
@@ -934,6 +918,97 @@
               </item>
              </layout>
             </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QGroupBox" name="group_chord_parser">
+             <property name="title">
+              <string>ChordParser</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_17">
+              <item>
+               <widget class="QLabel" name="label_7">
+                <property name="text">
+                 <string>Try to find chords up to</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="line_chord_parser"/>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_8">
+                <property name="text">
+                 <string>quarter notes long.</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="4" column="1" rowspan="2">
+            <spacer name="verticalSpacer_10">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="4" column="2" rowspan="2">
+            <spacer name="verticalSpacer_11">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="6" column="0">
+            <spacer name="horizontalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="6" column="1">
+            <spacer name="horizontalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="6" column="2">
+            <spacer name="horizontalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
            </item>
           </layout>
          </widget>
@@ -1077,7 +1152,7 @@
            <item>
             <widget class="QLabel" name="label_copyright">
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;vis 9a (Branched and Revised for the 11 May 2013 CIRMMT Workshop)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan&lt;/p&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify&lt;br/&gt;it under the terms of the GNU General Public License as published by&lt;br/&gt;the Free Software Foundation, either version 3 of the License, or&lt;br/&gt;(at your option) any later version.&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful,&lt;br/&gt;but WITHOUT ANY WARRANTY; without even the implied warranty of&lt;br/&gt;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the&lt;br/&gt;GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License&lt;br/&gt;along with this program. If not, see &amp;lt;http://www.gnu.org/licenses/&amp;gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;vis 9c (&amp;quot;Stable&amp;quot; Desktop Version for Summer 2013)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan&lt;/p&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published&lt;br/&gt;by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of&lt;br/&gt;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License along with this program. If not, refer to &lt;a href=&quot;http://www.gnu.org/licenses/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;http://www.gnu.org/licenses/&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </item>

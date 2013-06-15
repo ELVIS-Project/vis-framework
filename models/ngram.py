@@ -1,5 +1,6 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.ngram.py
@@ -7,7 +8,7 @@
 # Fileame: ngram.py
 # Purpose: Class-based representation of an n-gram of vertical intervals.
 #
-# Copyright (C) 2012 Christopher Antila, Jamie Klassen
+# Copyright (C) 2012, 2013 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -571,7 +572,7 @@ class ChordNGram(NGram):
     #     12-pc-per-octave major or minor triad.
     list_of_transforms = ['LPR', 'LPRP', 'RLR', 'LRLR', 'PRP', 'PR', 'L', 'LP', 'PLR', 'RL', 'RPR',
                             'PRPR', 'LRP', 'LR', 'LPL', 'PL', 'R', 'RP', 'LRPRP', 'LRPR', 'LRL',
-                            'LPLR']
+                            'LPLR', 'P']
 
     # This is what to say when two consecutive things are identical
     identical_chords = 'ident'

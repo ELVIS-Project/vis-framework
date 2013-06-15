@@ -21,18 +21,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-
-
 # imports
 from music21.stream import Part, Score
 from music21.note import Note, Rest
 from music21.meter import TimeSignature
 
-
-
 # NOTE: These tests assume the quarterLength interval between checks is 0.5
-
-
 
 # Test 1 ----------------------------------------------------------------------
 top = Part()
@@ -45,8 +39,6 @@ bot.append(Note('G3', quarterLength=0.5))
 
 test_1 = Score([top, bot])
 #------------------------------------------------------------------------------
-
-
 
 # Test 2 ----------------------------------------------------------------------
 top = Part()
@@ -62,8 +54,6 @@ bot.append(Rest(quarterLength=0.25))
 test_2 = Score([top, bot])
 #------------------------------------------------------------------------------
 
-
-
 # Test 3 ----------------------------------------------------------------------
 top = Part()
 top.append(TimeSignature('4/4'))
@@ -77,8 +67,6 @@ bot.append(Rest(quarterLength=0.25))
 test_3 = Score([top, bot])
 #------------------------------------------------------------------------------
 
-
-
 # Test 4 ----------------------------------------------------------------------
 top = Part()
 top.append(TimeSignature('4/4'))
@@ -91,8 +79,6 @@ bot.append(Note('G3', quarterLength=0.5))
 
 test_4 = Score([top, bot])
 #------------------------------------------------------------------------------
-
-
 
 # Test 5 ----------------------------------------------------------------------
 top = Part()
@@ -108,8 +94,6 @@ bot.append(Note('A3', quarterLength=0.5))
 test_5 = Score([top, bot])
 #------------------------------------------------------------------------------
 
-
-
 # Test 6 ----------------------------------------------------------------------
 top = Part()
 top.append(TimeSignature('4/4'))
@@ -122,8 +106,6 @@ bot.append(Note('A3', quarterLength=0.5))
 
 test_6 = Score([top, bot])
 #------------------------------------------------------------------------------
-
-
 
 # Test 7 ----------------------------------------------------------------------
 top = Part()
@@ -142,8 +124,6 @@ bot.append(Note('B3', quarterLength=0.5))
 test_7 = Score([top, bot])
 #------------------------------------------------------------------------------
 
-
-
 # Test 8 ----------------------------------------------------------------------
 top = Part()
 top.append(TimeSignature('4/4'))
@@ -157,8 +137,6 @@ bot.append(Note('A3', quarterLength=0.5))
 
 test_8 = Score([top, bot])
 #------------------------------------------------------------------------------
-
-
 
 # Test 9 ----------------------------------------------------------------------
 top = Part()
@@ -176,8 +154,6 @@ bot.append(Note('B3', quarterLength=0.5))
 test_9 = Score([top, bot])
 #------------------------------------------------------------------------------
 
-
-
 # Test 10 ----------------------------------------------------------------------
 top = Part()
 top.append(TimeSignature('4/4'))
@@ -190,8 +166,6 @@ bot.append(Note('A3', quarterLength=0.75))
 
 test_10 = Score([top, bot])
 #------------------------------------------------------------------------------
-
-
 
 # Test 11 ----------------------------------------------------------------------
 top = Part()
@@ -206,8 +180,6 @@ bot.append(Note('G3', quarterLength=0.5))
 test_11 = Score([top, bot])
 #------------------------------------------------------------------------------
 
-
-
 # Test 12 ----------------------------------------------------------------------
 top = Part()
 top.append(TimeSignature('4/4'))
@@ -221,8 +193,6 @@ bot.append(Note('G3', quarterLength=0.5))
 
 test_12 = Score([top, bot])
 #------------------------------------------------------------------------------
-
-
 
 # Test 13 ----------------------------------------------------------------------
 top = Part()
@@ -240,8 +210,6 @@ bot.append(Note('G3', quarterLength=0.5))
 
 test_13 = Score([top, bot])
 #------------------------------------------------------------------------------
-
-
 
 # Test 14 ----------------------------------------------------------------------
 top = Part()
@@ -271,8 +239,6 @@ bot.append(Note('G3', quarterLength=0.5))
 test_14 = Score([top, bot])
 #------------------------------------------------------------------------------
 
-
-
 # Test 15 ----------------------------------------------------------------------
 top = Part()
 top.append(TimeSignature('4/4'))
@@ -293,8 +259,6 @@ bot.append(Note('G3', quarterLength=0.5))
 test_15 = Score([top, bot])
 #------------------------------------------------------------------------------
 
-
-
 # Test 16 ----------------------------------------------------------------------
 top = Part()
 top.append(TimeSignature('4/4'))
@@ -312,8 +276,6 @@ bot.append(Note('E3', quarterLength=0.5))
 
 test_16 = Score([top, bot])
 #------------------------------------------------------------------------------
-
-
 
 # Test 17 ----------------------------------------------------------------------
 top = Part()
@@ -333,4 +295,38 @@ bot.append(Note('G3', quarterLength=0.625))
 bot.append(Note('G3', quarterLength=0.5))
 
 test_17 = Score([top, bot])
+#------------------------------------------------------------------------------
+
+# Test 18 ----------------------------------------------------------------------
+# NB: This test is designed specifically to ensure that the _event_finder()
+# doesn't stop processing when it doesn't find an element of the expected types
+# at an offset. You should ask it to look for Rest objects only.
+top = Part()
+top.append(TimeSignature('4/4'))
+top.append(Note('G4', quarterLength=0.5))
+top.append(Rest(quarterLength=0.5))
+
+bot = Part()
+bot.append(TimeSignature('4/4'))
+bot.append(Note('G3', quarterLength=0.5))
+bot.append(Rest(quarterLength=0.5))
+
+test_18 = Score([top, bot])
+#------------------------------------------------------------------------------
+
+# Test 19 ----------------------------------------------------------------------
+# NB: This test is designed specifically to ensure that the _event_finder()
+# finds Rest objects when the happen at the same time as Note objects, when
+# only Rest objects are requested to be found.
+top = Part()
+top.append(TimeSignature('4/4'))
+top.append(Note('G4', quarterLength=0.5))
+top.append(Note('G5', quarterLength=0.5))
+
+bot = Part()
+bot.append(TimeSignature('4/4'))
+bot.append(Note('G3', quarterLength=0.5))
+bot.append(Rest(quarterLength=0.5))
+
+test_19 = Score([top, bot])
 #------------------------------------------------------------------------------
