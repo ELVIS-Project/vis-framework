@@ -154,7 +154,7 @@ class VisController(Controller):
             (self.run_the_analysis, self.analyzer.run_analysis.emit),
             (self.analyze_set_multiprocess, self.analyzer.thread.set_multiprocess),
             (self.run_the_experiment, self.experimenter.run_experiment.emit),
-            (self.experiment_setting, self.experimenter.set.emit),
+            (self.experiment_setting, self.experimenter.set_setting.emit),
             #(self.run_the_import, self.processEvents), # NOTE: does nothing?
             #(self.run_the_analysis, self.processEvents), # NOTE: does nothing?
             # Signals Sent by other Controllers (and Handled Here) ----------------

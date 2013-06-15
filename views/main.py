@@ -618,7 +618,7 @@ Do you want to go back and add the part combination?""",
                         continue
                     else:
                         first_offset = ''
-                        breaku
+                        break
             self.ui.line_offset_interval.setText(unicode(first_offset))
             # (4) Update "Compare These Parts"
             first_comp = None
@@ -691,11 +691,9 @@ Do you want to go back and add the part combination?""",
                 if u'[all]' == comparison_parts:
                     self.ui.chk_all_voice_combos.setChecked(False)
                     self.ui.chk_all_voices.setChecked(True)
-                    self._all_voice_combos()
                 elif u'[all pairs]' == comparison_parts:
                     self.ui.chk_all_voice_combos.setChecked(True)
                     self.ui.chk_all_voices.setChecked(False)
-                    self._all_voice_combos()
                 else:
                     self.ui.chk_all_voice_combos.setChecked(False)
                     self.ui.chk_all_voices.setChecked(False)
