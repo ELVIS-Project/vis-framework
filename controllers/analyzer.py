@@ -188,14 +188,17 @@ def _event_finder(parts, settings, record):
 
         # 4.2 and 4.3) Get the events at the current offset, making sure only the first ones.
         current_events = []
-        try:
-            app = [p.getElementsByOffset(current_offset,
-                                         mustBeginInSpan=False,
-                                         classList=list_of_types)
-                for p in parts]
-            current_events = [p[0] for p in app]
-        except stream.StreamException:
-            pass
+        for each_part in parts:
+            possible = []
+            try:
+                possible = each_part.getElementsByOffset(current_offset,
+                                                         mustBeginInSpan=False,
+                                                         classList=list_of_types)
+            except stream.StreamException:
+                pass
+            if 0 < len(possible):
+                current_events.append(possible[0])
+
         if 0 == len(current_events):
             # We still have to (4.7) Increment the offset
             current_offset += settings.offset
@@ -212,8 +215,7 @@ def _event_finder(parts, settings, record):
             # If salami, we always add the event, and always at the current offset
             record.append(current_offset, current_events)
         elif record.most_recent_event()[1] != current_events:
-            # If not salami, we only add the event if it's different from the previous, and at the
-            # offset at which it starts...
+            # If not salami, we only add the event if it's different from the previous.
             record.append(current_offset, current_events)
 
         # 4.7) Increment the offset
