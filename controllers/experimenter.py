@@ -52,7 +52,7 @@ class Experimenter(Controller, QtCore.QObject):
     # PyQt4 Signals
     # -------------
     # a 2-tuple: a string for a setting name and the value for the setting
-    set = QtCore.pyqtSignal(tuple)
+    set_setting = QtCore.pyqtSignal(tuple)
     # tell the Experimenter controller to perform an experiment
     run_experiment = QtCore.pyqtSignal()
     # Emitted by the Experimenter when the experiment is finished. The argument is a tuple, where
@@ -82,7 +82,7 @@ class Experimenter(Controller, QtCore.QObject):
         self._list_of_analyses = None
         self._experiment_settings = ExperimentSettings()
         # Signals
-        self.set.connect(self._change_setting)
+        self.set_setting.connect(self._change_setting)
         self.run_experiment.connect(self._run_experiment)
         self._experiment_results.connect(self._catch_experiments)
         # Hold the result emitted by an Experiment when it's finished
@@ -208,15 +208,18 @@ class Experiment(QtCore.QRunnable):
         Collect the results of perform(), then emit the signal that sends them to the Experimenter
         """
         # Note 1: Do not need to reimplement this method in subclasses.
-        signal_me = None
-        try:
-            signal_me = self.perform()
-        except Exception as exc:
-            self._controller.error.emit(u'Failure during experiment.\n\n' + str(type(exc)) +
-                u' says:\n' + str(exc))
-            self._controller.experiment_finished.emit((u'error', None))
-        else:
-            self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
+        # DEBUG
+        #signal_me = None
+        #try:
+            #signal_me = self.perform()
+        #except Exception as exc:
+            #self._controller.error.emit(u'Failure during experiment.\n\n' + str(type(exc)) +
+                #u' says:\n' + str(exc))
+            #self._controller.experiment_finished.emit((u'error', None))
+        #else:
+            #self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
+        self._controller._experiment_results.emit(QtCore.QVariant(self.perform()))
+        # END DEBUG
 
     def perform(self):
         """
@@ -571,7 +574,7 @@ class ChordsLists(Experiment):
                 second_chord = chord.Chord(second_chord_pitches)
 
                 # ensure neither of the chords is just a REST... if it is, we'll skip this loop
-                if u'' == first_chord or u'' == second_chord:
+                if 0 == len(first_chord) or 0 == len(second_chord):
                     continue
 
                 # make the chord symbol
@@ -1486,11 +1489,13 @@ class TargetedIntervalNGramExperiment(Experiment):
 
         # userinput is what the user would type in. The user should be prompted
         # with instructions along the lines of:
-        """Enter the N-gram you wish to search for separating each vertical
-        and horizontal interval with a space and nothing else.  Unisons are equal to
+        """
+        Enter the N-gram you wish to search for separating each vertical
+        and horizontal interval with a space and nothing else. Unisons are equal to
         one and inverted vertical intervals as well as descending melodic intervals
-        should be preceded with a minus sign.  Please only enter numbers,
-        spaces, and minus signs (if needed)."""
+        should be preceded with a minus sign. Please only enter numbers,
+        spaces, and minus signs (if needed).
+        """
 
         userinput = self._settings.get('annotate these')
 
@@ -1501,11 +1506,11 @@ class TargetedIntervalNGramExperiment(Experiment):
         user_ngram = []
         for p in user_intervals:
             user_ngram.append(int(p))
-        if  len(user_ngram) <= 3
-            self._controller.error.emit('Please enter an ngram with at least three elements.')
+        if len(user_ngram) <= 3:
+            self._controller.error.emit(u'Please enter an ngram with at least three elements.')
             return
-        if  len(user_ngram) % 2 == 0
-            self._controller.error.emit('Please enter an odd number of intervals.')
+        if len(user_ngram) % 2 == 0:
+            self._controller.error.emit(u'Please enter an odd number of intervals.')
             return
 
         ngram_size = (len(user_ngram) + 1) / 2
@@ -1523,16 +1528,12 @@ class TargetedIntervalNGramExperiment(Experiment):
         found_ngrams = []
         for t in rotile:
             spot = rotile.index(t)
-            if  vertify[0] == t[0] and \
+            if vertify[0] == t[0] and \
                 horify[(w - 1)] == rotile[(spot + w - 1)][1] and \
                 all([vertify[w] == rotile[(spot + w)][0] for w in xrange(1, ngram_size)]):
                     found_ngrams.append(rotile[spot:(spot + ngram_size)])
 
         return(found_ngrams)
-
-		# use the IntervalsLists Experiment
-		# return is a list of lists of 3-tuples
-        pass
 
 
 class ChordParser(Experiment):
@@ -1657,4 +1658,3 @@ class ChordParser(Experiment):
 
         # 9.) We finished all the pieces!
         return new_ars
-		print new_ars
