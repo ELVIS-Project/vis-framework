@@ -1500,12 +1500,12 @@ class TargetedIntervalNGramExperiment(Experiment):
         userinput = self._settings.get('annotate these')
 
         # holds the Result Of The IntervalsLists Experiment
-        rotile = IntervalsLists(the_pieces).perform()
+        rotile = IntervalsLists(self._records).perform()
 
         user_intervals = str.split(userinput)
         user_ngram = []
-        for p in user_intervals:
-            user_ngram.append(int(p))
+        for each_int in user_intervals:
+            user_ngram.append(int(each_int))
         if len(user_ngram) <= 3:
             self._controller.error.emit(u'Please enter an ngram with at least three elements.')
             return
@@ -1517,21 +1517,20 @@ class TargetedIntervalNGramExperiment(Experiment):
 
         # Takes the user's ngram and puts it into a list of the vertical intervals and a
         # list of the horizontal intervals.
-        vertify = []
-        horify = []
+        verts = []
+        hors = []
         for n in xrange(len(user_ngram)):
             if n % 2 == 0:
-                vertify.append(user_ngram[n])
+                verts.append(user_ngram[n])
             else:
-                horify.append(user_ngram[n])
+                hors.append(user_ngram[n])
 
         found_ngrams = []
-        for t in rotile:
-            spot = rotile.index(t)
-            if vertify[0] == t[0] and \
-                horify[(w - 1)] == rotile[(spot + w - 1)][1] and \
-                all([vertify[w] == rotile[(spot + w)][0] for w in xrange(1, ngram_size)]):
-                    found_ngrams.append(rotile[spot:(spot + ngram_size)])
+        for i in xrange(len(rotile)):
+            if verts[0] == rotile[i][0] and \
+                hors[(w - 1)] == rotile[(i + w - 1)][1] and \
+                all([verts[j] == rotile[(i + j)][0] for j in xrange(1, ngram_size)]):
+                    found_ngrams.append(rotile[i:(i + ngram_size)])
 
         return(found_ngrams)
 
