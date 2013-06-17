@@ -570,9 +570,9 @@ class ChordNGram(NGram):
     # This is a list of all the neo-Riemannian transformations we consider
     # NB: The list includes all of, and only, thost compositions that get from one to any other
     #     12-pc-per-octave major or minor triad.
-    list_of_transforms = ['LPR', 'LPRP', 'RLR', 'LRLR', 'PRP', 'PR', 'L', 'LP', 'PLR', 'RL', 'RPR',
-                            'PRPR', 'LRP', 'LR', 'LPL', 'PL', 'R', 'RP', 'LRPRP', 'LRPR', 'LRL',
-                            'LPLR', 'P']
+    list_of_transforms = ['LR', 'RL', 'PLR', 'LRP', 'L', 'P', 'R', 'LPR', 'LPRP', 'RLR', 'LRLR',
+                          'PRP', 'PR', 'LP', 'RPR', 'PRPR', 'LPL', 'PL', 'RP', 'LRPRP', 'LRPR',
+                          'LRL', 'LPLR']
 
     # This is what to say when two consecutive things are identical
     identical_chords = 'ident'
