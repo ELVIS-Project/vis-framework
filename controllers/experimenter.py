@@ -33,7 +33,7 @@ from copy import deepcopy
 # PyQt4
 from PyQt4 import QtCore
 # music21
-from music21 import chord, converter, stream, note, interval, roman
+from music21 import chord, converter, stream, note, interval, roman, freezeThaw
 # vis
 from controller import Controller
 from models import analyzing
@@ -207,19 +207,16 @@ class Experiment(QtCore.QRunnable):
         """
         Collect the results of perform(), then emit the signal that sends them to the Experimenter
         """
-        # Note 1: Do not need to reimplement this method in subclasses.
-        # DEBUG
-        #signal_me = None
-        #try:
-            #signal_me = self.perform()
-        #except Exception as exc:
-            #self._controller.error.emit(u'Failure during experiment.\n\n' + str(type(exc)) +
-                #u' says:\n' + str(exc))
-            #self._controller.experiment_finished.emit((u'error', None))
-        #else:
-            #self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
-        self._controller._experiment_results.emit(QtCore.QVariant(self.perform()))
-        # END DEBUG
+        # Note: Do not need to reimplement this method in subclasses.
+        signal_me = None
+        try:
+            signal_me = self.perform()
+        except Exception as exc:
+            self._controller.error.emit(u'Failure during experiment.\n\n' + str(type(exc)) +
+                u' says:\n' + str(exc))
+            self._controller.experiment_finished.emit((u'error', None))
+        else:
+            self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
 
     def perform(self):
         """
@@ -492,16 +489,16 @@ class ChordsLists(Experiment):
         string
             The corresponding chord symbol.
         """
-        the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
-        if u'other' == the_chord.quality:
+        the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]  # get fig-bass signature
+        if the_chord.containsTriad():  # TODO: what about seventh chords missing the fifth?
+            # We'll show root, quality, and FB
+            root = unicode(the_chord.root().name).replace(u'-', u'b')  # replace flat symbols
+            root += ChordsLists._quality_dict[the_chord.quality]
+            return u''.join([root, u' ', the_figure]) if the_figure != u'' else root
+        else:
             # We'll show bass and FB
             bass_name = unicode(the_chord.bass().name).replace(u'-', u'b')  # replace flat symbols
             return u''.join([bass_name, u' ', the_figure]) if the_figure != u'' else bass_name
-        else:
-            # We'll show root, quality, and FB
-            root = unicode(the_chord.root().name).replace(u'-', u'b')  # replace flat symbols
-            u''.join([root, ChordsLists._quality_dict[the_chord.quality]])
-            return u''.join([root, u' ', the_figure]) if the_figure != u'' else root
 
     @staticmethod
     def remove_rests(event):
@@ -538,7 +535,10 @@ class ChordsLists(Experiment):
         """
 
         # Should we use the ChordParser?
+        thawer = None  # helps with un-JSON-ing, if we need it
+        use_json = False  # whether Chord objects are JSON, because of ChordParser
         if self._settings.has('chord parse length'):
+            use_json = True
             cp = ChordParser(self._controller, self._records, self._settings)
             res = cp.perform()
             self._records = res if res is not None else self._records
@@ -553,25 +553,34 @@ class ChordsLists(Experiment):
 
         for record in self._records:
             for first, second in zip(record, list(record)[1:]):
-                # prepare the string-wise representation of notes in the chords
-                first_chord_str = ChordsLists.remove_rests(first[1])
-                second_chord_str = ChordsLists.remove_rests(second[1])
-                first_chord_pitches = []
-                for each in first_chord_str:
-                    try:
-                        first_chord_pitches.append(note_dict[each])
-                    except KeyError:
-                        note_dict[each] = note.Note(each)
-                        first_chord_pitches.append(note_dict[each])
-                second_chord_pitches = []
-                for each in second_chord_str:
-                    try:
-                        second_chord_pitches.append(note_dict[each])
-                    except KeyError:
-                        note_dict[each] = note.Note(each)
-                        second_chord_pitches.append(note_dict[each])
-                first_chord = chord.Chord(first_chord_pitches)
-                second_chord = chord.Chord(second_chord_pitches)
+                # Make the chords
+                first_chord, second_chord = None, None
+                if use_json:
+                    thawer = freezeThaw.JSONThawer()
+                    thawer.json = first[1]
+                    first_chord = thawer.storedObject
+                    thawer = freezeThaw.JSONThawer()
+                    thawer.json = second[1]
+                    second_chord = thawer.storedObject
+                else:
+                    first_chord_str = ChordsLists.remove_rests(first[1])
+                    second_chord_str = ChordsLists.remove_rests(second[1])
+                    first_chord_pitches = []
+                    for each in first_chord_str:
+                        try:
+                            first_chord_pitches.append(note_dict[each])
+                        except KeyError:
+                            note_dict[each] = note.Note(each)
+                            first_chord_pitches.append(note_dict[each])
+                    second_chord_pitches = []
+                    for each in second_chord_str:
+                        try:
+                            second_chord_pitches.append(note_dict[each])
+                        except KeyError:
+                            note_dict[each] = note.Note(each)
+                            second_chord_pitches.append(note_dict[each])
+                    first_chord = chord.Chord(first_chord_pitches)
+                    second_chord = chord.Chord(second_chord_pitches)
 
                 # ensure neither of the chords is just a REST... if it is, we'll skip this loop
                 if 0 == len(first_chord) or 0 == len(second_chord):
@@ -589,10 +598,14 @@ class ChordsLists(Experiment):
                 post.append(put_me)
 
             # finally, add the last chord, which doesn't have a transformation
-            last_chord = ChordsLists.remove_rests(record[-1][1])
+            if use_json:
+                thawer.json = record[-1][1]
+                last_chord = thawer.storedObject
+            else:
+                last_chord = ChordsLists.remove_rests(record[-1][1])
 
             # format and add the chord, but only if the previous step didn't turn everyting to rests
-            if '' != last_chord:
+            if [] != last_chord:
                 post.append((ChordsLists.make_chord_symbol(chord.Chord(last_chord)),
                              None,
                              record[-1][0]))
@@ -1163,15 +1176,6 @@ class LilyPondExperiment(Experiment):
                 this_result = this_result.perform()
                 if 'ChordsList' == which_helper:
                     this_result = LilyPondExperiment._accidental_replacer(this_result)
-                # START DEBUGGING
-                #asdf = LilyPondExperiment.make_ngram_score(each_record, this_result, [2])
-                #print(u'================================================================')
-                #print(u'================================================================')
-                #print(OutputLilyPond.process_score(asdf.parts[-1]))
-                #print(u'================================================================')
-                #print(u'================================================================')
-                #all_the_scores.append(asdf)
-                # END DEBUGGING
                 all_the_scores.append(LilyPondExperiment.make_ngram_score(
                     each_record, this_result, [2]))
             for each_score in all_the_scores:
@@ -1608,49 +1612,49 @@ class ChordParser(Experiment):
                 # 5.) Figure out what's at this set of offsets
                 this_sonority = []
                 for each_i in i:
-                    for each_pitch in old_ar[each_i][1]:  # TODO: add support for "each_pitch" being a list, meaning it came from a chord
-                        # Using this dict, we get a significant speed-up later in Chord.__init__()
-                        if 'Rest' == each_pitch:
-                            continue
-                        if each_pitch in note_dict:
-                            this_sonority.append(note_dict[each_pitch])
+                    for each_obj in old_ar[each_i][1]:
+                        def helper(add_me):
+                            "Add a Note or Rest object to this_sonority."
+                            # Using this dict, we get a significant speed-up later in
+                            # music21.chord.Chord.__init__()
+                            if 'Rest' == add_me:
+                                return
+                            if add_me in note_dict:
+                                this_sonority.append(note_dict[add_me])
+                            else:
+                                new_note = note.Note(add_me)
+                                note_dict[add_me] = new_note
+                                this_sonority.append(new_note)
+                        if isinstance(each_obj, list) or isinstance(each_obj, tuple):
+                            for each_pitch in each_obj:
+                                helper(each_pitch)
                         else:
-                            new_note = note.Note(each_pitch)
-                            note_dict[each_pitch] = new_note
-                            this_sonority.append(new_note)
+                            helper(each_obj)
 
                 # 6.) Make the Chord
                 # "p_chord" for "possible chord"
                 p_chord = chord.Chord(this_sonority)
                 p_chord.removeRedundantPitchNames(inPlace=True)
-                names = [p.nameWithOctave for p in p_chord]  # string-wise chord repr
+                names = freezeThaw.JSONFreezer(p_chord).json  # JSON-wise chord repr
                 prev_chord = chord.Chord('')
                 if len(new_ar) > 0:
-                    prev_chord = chord.Chord([note_dict[x] for x in new_ar[-1][1]])
+                    thawer = freezeThaw.JSONThawer()
+                    thawer.json = new_ar[-1][1]
+                    prev_chord = thawer.storedObject
 
                 # 7.) See if the Chord is "nice"
                 if all([p in prev_chord.pitchClasses for p in p_chord.pitchClasses]):
-                    print('at ' + str(old_ar[i[0]][0]) + ', (CONTAINED NOT) ' + str(names) +
-                        ' is in ' + str(new_ar[-1][1]))  # DEBUG
                     i = [i[-1] + 1]
                 elif p_chord.isTriad() or p_chord.isSeventh() or force_this:
                     if len(new_ar) == 0:  # first item in the new_ar
                         new_ar.append(old_ar[i[0]][0], names)
-                        print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
                     else:
                         if prev_chord.orderedPitchClasses != p_chord.orderedPitchClasses:
                             # then it's the same as the previous chord
                             new_ar.append(old_ar[i[0]][0], names)
-                            # START DEBUG
-                            print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))
-                        else:
-                            print('at ' + str(old_ar[i[0]][0]) + ', (SAME NOT) ' + str(names))
-                            # END DEBUG
                     i = [i[-1] + 1]
                 else:
-                    print('at ' + str(old_ar[i[0]][0]) + ', NOT ' + str(names))  # DEBUG
                     i.append(i[-1] + 1)
-                print('next i is ' + str(i))  # DEBUG
 
             # 8.) We finished a piece!
             new_ars.append(new_ar)
