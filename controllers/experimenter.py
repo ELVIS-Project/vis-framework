@@ -432,6 +432,9 @@ class IntervalsLists(Experiment):
 
 class ChordsLists(Experiment):
     """
+    CRA-NOTE: I temporarily disabled the neo-Riemannian part; every transformation will be u'',
+    because people don't really care about it, and they get distracted.
+
     Prepare a list of 3-tuples:
     [(chord_name, neoriemannian_transformation, offset),
     (chord_name, neoriemannian_transformation, offset)]
@@ -491,7 +494,8 @@ class ChordsLists(Experiment):
             The corresponding chord symbol.
         """
         the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]  # get fig-bass signature
-        if the_chord.containsTriad():  # TODO: what about seventh chords missing the fifth?
+        if False:  # I temporarily commented this, since people just get distracted
+        #if the_chord.containsTriad():  # TODO: what about seventh chords missing the fifth?
             # We'll show root, quality, and FB
             root = unicode(the_chord.root().name).replace(u'-', u'b')  # replace flat symbols
             try:
@@ -594,8 +598,9 @@ class ChordsLists(Experiment):
                 chord_name = ChordsLists.make_chord_symbol(chord.Chord(first_chord))
 
                 # find the transformation
-                horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
-                                                                  chord.Chord(second_chord))
+                horizontal = u''  # commented out because people don't really care about NR yet
+                #horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
+                                                                  #chord.Chord(second_chord))
                 put_me = (chord_name, u'(' + horizontal + u')', first[0])
 
                 # add this chord-and-transformation to the list of all of them
@@ -1200,8 +1205,14 @@ class LilyPondExperiment(Experiment):
         # TODO: this must be tested
         """
         Replace accidental symbols in chord labels from the ChordsLists Experiment. In the 0th
-        element of the 3-tuple, each 'b' is replaced with the LilyPond code to make a flat sign,
-        and each '#' is replaced with the code to make a sharp sign.
+        element of the 3-tuple, the following symbols are replaced with the LilyPond code for the
+        following symbols:
+            - 'b' with a flat sign
+            - '#' with a sharp sign
+            - 'o' with a diminished sign
+            - 'x' with an augmented sign
+            - 'bb' with double-flat
+            - '##' with double-sharp
 
         Parameters
         ----------
@@ -1231,13 +1242,35 @@ class LilyPondExperiment(Experiment):
         for each in source:
             left, middle, right = each
             new_left = u''
-            for char in left:
-                if u'b' == char:
-                    new_left += u'" \\raise #0.5 {\\fontsize #-4 \\flat} "'
-                elif u'#' == char:
-                    new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\sharp} "'
+            skip_next = False  # helps us with ## and bb
+            for i in xrange(len(left)):
+                if skip_next:
+                    skip_next = False
+                    continue
+                if u'b' == left[i]:
+                    try:
+                        if u'b' == left[i + 1]:
+                            new_left += u'" \\raise #0.5 {\\fontsize #-4 \\doubleflat} "'
+                            skip_next = True
+                        else:
+                            new_left += u'" \\raise #0.5 {\\fontsize #-4 \\flat} "'
+                    except IndexError:
+                        new_left += u'" \\raise #0.5 {\\fontsize #-4 \\flat} "'
+                elif u'#' == left[i]:
+                    try:
+                        if u'#' == left[i + 1]:
+                            new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\doublesharp} "'
+                            skip_next = True
+                        else:
+                            new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\sharp} "'
+                    except IndexError:
+                        new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\sharp} "'
+                elif u'o' == left[i]:
+                    new_left += u'" \\raise # 0.8 {\\fontsize #-2 o} "'
+                elif u'x' == left[i]:
+                    new_left += u'" \\raise # 0.8 {\\fontsize #-2 x} "'
                 else:
-                    new_left += char
+                    new_left += left[i]
             post.append((new_left, middle, right))
         return post
 
