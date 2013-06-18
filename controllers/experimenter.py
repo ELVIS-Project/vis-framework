@@ -69,11 +69,6 @@ class Experimenter(Controller, QtCore.QObject):
     # whatever type is required by the relevant Display class.
     _experiment_results = QtCore.pyqtSignal(QtCore.QVariant)
 
-    # List of the experiments we have
-    # TODO: do this with introspection so we don't have to update things
-    # in multiple places when these change.
-    experiments_we_have = ['IntervalsList', 'ChordsList']
-
     def __init__(self):
         """
         Create a new Experimenter controller.
@@ -124,17 +119,19 @@ class Experimenter(Controller, QtCore.QObject):
         """
         # Check there is an 'experiment' setting that refers to one we have
 
-        if self._experiment_settings.get('experiment') == 'IntervalsLists':
-            exper = IntervalsLists
-        elif self._experiment_settings.get('experiment') == 'ChordsList':
-            exper = ChordsLists
-        elif self._experiment_settings.get('experiment') == 'IntervalsStatistics':
-            exper = IntervalsStatistics
-        elif self._experiment_settings.get('experiment') == 'IntervalNGramStatistics':
-            exper = IntervalNGramStatistics
-        elif self._experiment_settings.get('experiment') == 'LilyPondExperiment':
-            exper = LilyPondExperiment
-        else:
+        # This should be a class variable, but then it's a static error since the experiments won't
+        # yet have been defined by the time it's evaluated.
+        experiments_dict = {'IntervalsLists': IntervalsLists,
+                            'ChordsList': ChordsLists,
+                            'IntervalsStatistics': IntervalsStatistics,
+                            'IntervalNGramStatistics': IntervalNGramStatistics,
+                            'LilyPondExperiment': LilyPondExperiment,
+                           }
+
+        exper = None
+        try:
+            exper = experiments_dict[self._experiment_settings.get('experiment')]
+        except KeyError:
             self.error.emit('Experimenter: could not determine which experiment to run.')
             return
 
@@ -207,16 +204,20 @@ class Experiment(QtCore.QRunnable):
         """
         Collect the results of perform(), then emit the signal that sends them to the Experimenter
         """
-        # Note: Do not need to reimplement this method in subclasses.
-        signal_me = None
-        try:
-            signal_me = self.perform()
-        except Exception as exc:
-            self._controller.error.emit(u'Failure during experiment.\n\n' + str(type(exc)) +
-                u' says:\n' + str(exc))
-            self._controller.experiment_finished.emit((u'error', None))
+        # NOTE: Do not reimplement this method in subclasses.
+        debugging = False  # remember this should be False before a commit
+        if debugging:
+            self._controller._experiment_results.emit(QtCore.QVariant(self.perform()))
         else:
-            self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
+            signal_me = None
+            try:
+                signal_me = self.perform()
+            except Exception as exc:
+                self._controller.error.emit(u'Failure during experiment.\n\n' +
+                    unicode(type(exc)) + u' says:\n' + unicode(exc))
+                self._controller.experiment_finished.emit((u'error', None))
+            else:
+                self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
 
     def perform(self):
         """
@@ -493,7 +494,10 @@ class ChordsLists(Experiment):
         if the_chord.containsTriad():  # TODO: what about seventh chords missing the fifth?
             # We'll show root, quality, and FB
             root = unicode(the_chord.root().name).replace(u'-', u'b')  # replace flat symbols
-            root += ChordsLists._quality_dict[the_chord.quality]
+            try:
+                root += ChordsLists._quality_dict[the_chord.quality]
+            except KeyError:
+                pass
             return u''.join([root, u' ', the_figure]) if the_figure != u'' else root
         else:
             # We'll show bass and FB
