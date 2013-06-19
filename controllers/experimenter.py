@@ -33,7 +33,7 @@ from copy import deepcopy
 # PyQt4
 from PyQt4 import QtCore
 # music21
-from music21 import chord, converter, stream, note, interval, roman
+from music21 import chord, converter, stream, note, interval, roman, freezeThaw
 # vis
 from controller import Controller
 from models import analyzing
@@ -68,11 +68,6 @@ class Experimenter(Controller, QtCore.QObject):
     # Emitted by an Experiment when it's finished. The argument should be a QVariant that holds
     # whatever type is required by the relevant Display class.
     _experiment_results = QtCore.pyqtSignal(QtCore.QVariant)
-
-    # List of the experiments we have
-    # TODO: do this with introspection so we don't have to update things
-    # in multiple places when these change.
-    experiments_we_have = ['IntervalsList', 'ChordsList']
 
     def __init__(self):
         """
@@ -124,17 +119,19 @@ class Experimenter(Controller, QtCore.QObject):
         """
         # Check there is an 'experiment' setting that refers to one we have
 
-        if self._experiment_settings.get('experiment') == 'IntervalsLists':
-            exper = IntervalsLists
-        elif self._experiment_settings.get('experiment') == 'ChordsList':
-            exper = ChordsLists
-        elif self._experiment_settings.get('experiment') == 'IntervalsStatistics':
-            exper = IntervalsStatistics
-        elif self._experiment_settings.get('experiment') == 'IntervalNGramStatistics':
-            exper = IntervalNGramStatistics
-        elif self._experiment_settings.get('experiment') == 'LilyPondExperiment':
-            exper = LilyPondExperiment
-        else:
+        # This should be a class variable, but then it's a static error since the experiments won't
+        # yet have been defined by the time it's evaluated.
+        experiments_dict = {'IntervalsLists': IntervalsLists,
+                            'ChordsList': ChordsLists,
+                            'IntervalsStatistics': IntervalsStatistics,
+                            'IntervalNGramStatistics': IntervalNGramStatistics,
+                            'LilyPondExperiment': LilyPondExperiment,
+                           }
+
+        exper = None
+        try:
+            exper = experiments_dict[self._experiment_settings.get('experiment')]
+        except KeyError:
             self.error.emit('Experimenter: could not determine which experiment to run.')
             return
 
@@ -207,19 +204,20 @@ class Experiment(QtCore.QRunnable):
         """
         Collect the results of perform(), then emit the signal that sends them to the Experimenter
         """
-        # Note 1: Do not need to reimplement this method in subclasses.
-        # DEBUG
-        #signal_me = None
-        #try:
-            #signal_me = self.perform()
-        #except Exception as exc:
-            #self._controller.error.emit(u'Failure during experiment.\n\n' + str(type(exc)) +
-                #u' says:\n' + str(exc))
-            #self._controller.experiment_finished.emit((u'error', None))
-        #else:
-            #self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
-        self._controller._experiment_results.emit(QtCore.QVariant(self.perform()))
-        # END DEBUG
+        # NOTE: Do not reimplement this method in subclasses.
+        debugging = False  # remember this should be False before a commit
+        if debugging:
+            self._controller._experiment_results.emit(QtCore.QVariant(self.perform()))
+        else:
+            signal_me = None
+            try:
+                signal_me = self.perform()
+            except Exception as exc:
+                self._controller.error.emit(u'Failure during experiment.\n\n' +
+                    unicode(type(exc)) + u' says:\n' + unicode(exc))
+                self._controller.experiment_finished.emit((u'error', None))
+            else:
+                self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
 
     def perform(self):
         """
@@ -434,6 +432,9 @@ class IntervalsLists(Experiment):
 
 class ChordsLists(Experiment):
     """
+    CRA-NOTE: I temporarily disabled the neo-Riemannian part; every transformation will be u'',
+    because people don't really care about it, and they get distracted.
+
     Prepare a list of 3-tuples:
     [(chord_name, neoriemannian_transformation, offset),
     (chord_name, neoriemannian_transformation, offset)]
@@ -492,16 +493,20 @@ class ChordsLists(Experiment):
         string
             The corresponding chord symbol.
         """
-        the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]
-        if u'other' == the_chord.quality:
+        the_figure = roman.romanNumeralFromChord(the_chord).figure[1:]  # get fig-bass signature
+        if False:  # I temporarily commented this, since people just get distracted
+        #if the_chord.containsTriad():  # TODO: what about seventh chords missing the fifth?
+            # We'll show root, quality, and FB
+            root = unicode(the_chord.root().name).replace(u'-', u'b')  # replace flat symbols
+            try:
+                root += ChordsLists._quality_dict[the_chord.quality]
+            except KeyError:
+                pass
+            return u''.join([root, u' ', the_figure]) if the_figure != u'' else root
+        else:
             # We'll show bass and FB
             bass_name = unicode(the_chord.bass().name).replace(u'-', u'b')  # replace flat symbols
             return u''.join([bass_name, u' ', the_figure]) if the_figure != u'' else bass_name
-        else:
-            # We'll show root, quality, and FB
-            root = unicode(the_chord.root().name).replace(u'-', u'b')  # replace flat symbols
-            u''.join([root, ChordsLists._quality_dict[the_chord.quality]])
-            return u''.join([root, u' ', the_figure]) if the_figure != u'' else root
 
     @staticmethod
     def remove_rests(event):
@@ -538,7 +543,10 @@ class ChordsLists(Experiment):
         """
 
         # Should we use the ChordParser?
+        thawer = None  # helps with un-JSON-ing, if we need it
+        use_json = False  # whether Chord objects are JSON, because of ChordParser
         if self._settings.has('chord parse length'):
+            use_json = True
             cp = ChordParser(self._controller, self._records, self._settings)
             res = cp.perform()
             self._records = res if res is not None else self._records
@@ -553,25 +561,34 @@ class ChordsLists(Experiment):
 
         for record in self._records:
             for first, second in zip(record, list(record)[1:]):
-                # prepare the string-wise representation of notes in the chords
-                first_chord_str = ChordsLists.remove_rests(first[1])
-                second_chord_str = ChordsLists.remove_rests(second[1])
-                first_chord_pitches = []
-                for each in first_chord_str:
-                    try:
-                        first_chord_pitches.append(note_dict[each])
-                    except KeyError:
-                        note_dict[each] = note.Note(each)
-                        first_chord_pitches.append(note_dict[each])
-                second_chord_pitches = []
-                for each in second_chord_str:
-                    try:
-                        second_chord_pitches.append(note_dict[each])
-                    except KeyError:
-                        note_dict[each] = note.Note(each)
-                        second_chord_pitches.append(note_dict[each])
-                first_chord = chord.Chord(first_chord_pitches)
-                second_chord = chord.Chord(second_chord_pitches)
+                # Make the chords
+                first_chord, second_chord = None, None
+                if use_json:
+                    thawer = freezeThaw.JSONThawer()
+                    thawer.json = first[1]
+                    first_chord = thawer.storedObject
+                    thawer = freezeThaw.JSONThawer()
+                    thawer.json = second[1]
+                    second_chord = thawer.storedObject
+                else:
+                    first_chord_str = ChordsLists.remove_rests(first[1])
+                    second_chord_str = ChordsLists.remove_rests(second[1])
+                    first_chord_pitches = []
+                    for each in first_chord_str:
+                        try:
+                            first_chord_pitches.append(note_dict[each])
+                        except KeyError:
+                            note_dict[each] = note.Note(each)
+                            first_chord_pitches.append(note_dict[each])
+                    second_chord_pitches = []
+                    for each in second_chord_str:
+                        try:
+                            second_chord_pitches.append(note_dict[each])
+                        except KeyError:
+                            note_dict[each] = note.Note(each)
+                            second_chord_pitches.append(note_dict[each])
+                    first_chord = chord.Chord(first_chord_pitches)
+                    second_chord = chord.Chord(second_chord_pitches)
 
                 # ensure neither of the chords is just a REST... if it is, we'll skip this loop
                 if 0 == len(first_chord) or 0 == len(second_chord):
@@ -581,18 +598,23 @@ class ChordsLists(Experiment):
                 chord_name = ChordsLists.make_chord_symbol(chord.Chord(first_chord))
 
                 # find the transformation
-                horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
-                                                                  chord.Chord(second_chord))
+                horizontal = u''  # commented out because people don't really care about NR yet
+                #horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
+                                                                  #chord.Chord(second_chord))
                 put_me = (chord_name, u'(' + horizontal + u')', first[0])
 
                 # add this chord-and-transformation to the list of all of them
                 post.append(put_me)
 
             # finally, add the last chord, which doesn't have a transformation
-            last_chord = ChordsLists.remove_rests(record[-1][1])
+            if use_json:
+                thawer.json = record[-1][1]
+                last_chord = thawer.storedObject
+            else:
+                last_chord = ChordsLists.remove_rests(record[-1][1])
 
             # format and add the chord, but only if the previous step didn't turn everyting to rests
-            if '' != last_chord:
+            if [] != last_chord:
                 post.append((ChordsLists.make_chord_symbol(chord.Chord(last_chord)),
                              None,
                              record[-1][0]))
@@ -1163,15 +1185,6 @@ class LilyPondExperiment(Experiment):
                 this_result = this_result.perform()
                 if 'ChordsList' == which_helper:
                     this_result = LilyPondExperiment._accidental_replacer(this_result)
-                # START DEBUGGING
-                #asdf = LilyPondExperiment.make_ngram_score(each_record, this_result, [2])
-                #print(u'================================================================')
-                #print(u'================================================================')
-                #print(OutputLilyPond.process_score(asdf.parts[-1]))
-                #print(u'================================================================')
-                #print(u'================================================================')
-                #all_the_scores.append(asdf)
-                # END DEBUGGING
                 all_the_scores.append(LilyPondExperiment.make_ngram_score(
                     each_record, this_result, [2]))
             for each_score in all_the_scores:
@@ -1192,8 +1205,14 @@ class LilyPondExperiment(Experiment):
         # TODO: this must be tested
         """
         Replace accidental symbols in chord labels from the ChordsLists Experiment. In the 0th
-        element of the 3-tuple, each 'b' is replaced with the LilyPond code to make a flat sign,
-        and each '#' is replaced with the code to make a sharp sign.
+        element of the 3-tuple, the following symbols are replaced with the LilyPond code for the
+        following symbols:
+            - 'b' with a flat sign
+            - '#' with a sharp sign
+            - 'o' with a diminished sign
+            - 'x' with an augmented sign
+            - 'bb' with double-flat
+            - '##' with double-sharp
 
         Parameters
         ----------
@@ -1223,13 +1242,35 @@ class LilyPondExperiment(Experiment):
         for each in source:
             left, middle, right = each
             new_left = u''
-            for char in left:
-                if u'b' == char:
-                    new_left += u'" \\raise #0.5 {\\fontsize #-4 \\flat} "'
-                elif u'#' == char:
-                    new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\sharp} "'
+            skip_next = False  # helps us with ## and bb
+            for i in xrange(len(left)):
+                if skip_next:
+                    skip_next = False
+                    continue
+                if u'b' == left[i]:
+                    try:
+                        if u'b' == left[i + 1]:
+                            new_left += u'" \\raise #0.5 {\\fontsize #-4 \\doubleflat} "'
+                            skip_next = True
+                        else:
+                            new_left += u'" \\raise #0.5 {\\fontsize #-4 \\flat} "'
+                    except IndexError:
+                        new_left += u'" \\raise #0.5 {\\fontsize #-4 \\flat} "'
+                elif u'#' == left[i]:
+                    try:
+                        if u'#' == left[i + 1]:
+                            new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\doublesharp} "'
+                            skip_next = True
+                        else:
+                            new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\sharp} "'
+                    except IndexError:
+                        new_left += u'" \\raise # 0.5 {\\fontsize #-4 \\sharp} "'
+                elif u'o' == left[i]:
+                    new_left += u'" \\raise # 0.8 {\\fontsize #-2 o} "'
+                elif u'x' == left[i]:
+                    new_left += u'" \\raise # 0.8 {\\fontsize #-2 x} "'
                 else:
-                    new_left += char
+                    new_left += left[i]
             post.append((new_left, middle, right))
         return post
 
@@ -1500,12 +1541,12 @@ class TargetedIntervalNGramExperiment(Experiment):
         userinput = self._settings.get('annotate these')
 
         # holds the Result Of The IntervalsLists Experiment
-        rotile = IntervalsLists(the_pieces).perform()
+        rotile = IntervalsLists(self._records).perform()
 
         user_intervals = str.split(userinput)
         user_ngram = []
-        for p in user_intervals:
-            user_ngram.append(int(p))
+        for each_int in user_intervals:
+            user_ngram.append(int(each_int))
         if len(user_ngram) <= 3:
             self._controller.error.emit(u'Please enter an ngram with at least three elements.')
             return
@@ -1517,21 +1558,20 @@ class TargetedIntervalNGramExperiment(Experiment):
 
         # Takes the user's ngram and puts it into a list of the vertical intervals and a
         # list of the horizontal intervals.
-        vertify = []
-        horify = []
+        verts = []
+        hors = []
         for n in xrange(len(user_ngram)):
             if n % 2 == 0:
-                vertify.append(user_ngram[n])
+                verts.append(user_ngram[n])
             else:
-                horify.append(user_ngram[n])
+                hors.append(user_ngram[n])
 
         found_ngrams = []
-        for t in rotile:
-            spot = rotile.index(t)
-            if vertify[0] == t[0] and \
-                horify[(w - 1)] == rotile[(spot + w - 1)][1] and \
-                all([vertify[w] == rotile[(spot + w)][0] for w in xrange(1, ngram_size)]):
-                    found_ngrams.append(rotile[spot:(spot + ngram_size)])
+        for i in xrange(len(rotile)):
+            if verts[0] == rotile[i][0] and \
+                hors[(w - 1)] == rotile[(i + w - 1)][1] and \
+                all([verts[j] == rotile[(i + j)][0] for j in xrange(1, ngram_size)]):
+                    found_ngrams.append(rotile[i:(i + ngram_size)])
 
         return(found_ngrams)
 
@@ -1609,49 +1649,49 @@ class ChordParser(Experiment):
                 # 5.) Figure out what's at this set of offsets
                 this_sonority = []
                 for each_i in i:
-                    for each_pitch in old_ar[each_i][1]:  # TODO: add support for "each_pitch" being a list, meaning it came from a chord
-                        # Using this dict, we get a significant speed-up later in Chord.__init__()
-                        if 'Rest' == each_pitch:
-                            continue
-                        if each_pitch in note_dict:
-                            this_sonority.append(note_dict[each_pitch])
+                    for each_obj in old_ar[each_i][1]:
+                        def helper(add_me):
+                            "Add a Note or Rest object to this_sonority."
+                            # Using this dict, we get a significant speed-up later in
+                            # music21.chord.Chord.__init__()
+                            if 'Rest' == add_me:
+                                return
+                            if add_me in note_dict:
+                                this_sonority.append(note_dict[add_me])
+                            else:
+                                new_note = note.Note(add_me)
+                                note_dict[add_me] = new_note
+                                this_sonority.append(new_note)
+                        if isinstance(each_obj, list) or isinstance(each_obj, tuple):
+                            for each_pitch in each_obj:
+                                helper(each_pitch)
                         else:
-                            new_note = note.Note(each_pitch)
-                            note_dict[each_pitch] = new_note
-                            this_sonority.append(new_note)
+                            helper(each_obj)
 
                 # 6.) Make the Chord
                 # "p_chord" for "possible chord"
                 p_chord = chord.Chord(this_sonority)
                 p_chord.removeRedundantPitchNames(inPlace=True)
-                names = [p.nameWithOctave for p in p_chord]  # string-wise chord repr
+                names = freezeThaw.JSONFreezer(p_chord).json  # JSON-wise chord repr
                 prev_chord = chord.Chord('')
                 if len(new_ar) > 0:
-                    prev_chord = chord.Chord([note_dict[x] for x in new_ar[-1][1]])
+                    thawer = freezeThaw.JSONThawer()
+                    thawer.json = new_ar[-1][1]
+                    prev_chord = thawer.storedObject
 
                 # 7.) See if the Chord is "nice"
                 if all([p in prev_chord.pitchClasses for p in p_chord.pitchClasses]):
-                    print('at ' + str(old_ar[i[0]][0]) + ', (CONTAINED NOT) ' + str(names) +
-                        ' is in ' + str(new_ar[-1][1]))  # DEBUG
                     i = [i[-1] + 1]
                 elif p_chord.isTriad() or p_chord.isSeventh() or force_this:
                     if len(new_ar) == 0:  # first item in the new_ar
                         new_ar.append(old_ar[i[0]][0], names)
-                        print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))  # DEBUG
                     else:
                         if prev_chord.orderedPitchClasses != p_chord.orderedPitchClasses:
                             # then it's the same as the previous chord
                             new_ar.append(old_ar[i[0]][0], names)
-                            # START DEBUG
-                            print('at ' + str(old_ar[i[0]][0]) + ', appended ' + str(names))
-                        else:
-                            print('at ' + str(old_ar[i[0]][0]) + ', (SAME NOT) ' + str(names))
-                            # END DEBUG
                     i = [i[-1] + 1]
                 else:
-                    print('at ' + str(old_ar[i[0]][0]) + ', NOT ' + str(names))  # DEBUG
                     i.append(i[-1] + 1)
-                print('next i is ' + str(i))  # DEBUG
 
             # 8.) We finished a piece!
             new_ars.append(new_ar)
