@@ -72,6 +72,8 @@ def import_piece(file_path):
         piece = converter.parseFile(file_path)
     except (converter.ConverterException, converter.ConverterFileException) as excep:
         return [(file_path, unicode(excep))]
+    except Exception as excep:
+        return [(file_path, unicode(excep))]
 
     if isinstance(piece, stream.Opus):  # many Pieces in this Corpus!
         for each_piece in piece.scores:
