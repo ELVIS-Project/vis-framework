@@ -780,6 +780,10 @@ class IntervalsStatistics(Experiment):
         for each_record in self._records:
             for each_event in each_record:
                 # make sure we don't try to make an Interval from a rest or a chord
+                if 2 > len(each_event[1]):
+                    # this happens when, e.g., one of the parts has a Chord while the other has
+                    # a Note...
+                    continue
                 if isinstance(each_event[1][0], basestring) and \
                 isinstance(each_event[1][1], basestring):
                     this_interval = None
