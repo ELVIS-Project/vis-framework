@@ -368,6 +368,16 @@ class IntervalsLists(Experiment):
             #    zip(a_list, list(a_list)[1:])
             #    ((1, 2), (2, 3), (3, 4))
             for first, second in zip(record, list(record)[1:]):
+                # check there are two strings at this moment
+                if 2 != len(first[1]) or 2 != len(second[1]):
+                    continue
+                if not isinstance(first[1][0], basestring) or \
+                not isinstance(first[1][1], basestring):
+                    continue
+                if not isinstance(second[1][0], basestring) or \
+                not isinstance(second[1][1], basestring):
+                    continue
+
                 offset = first[0]
                 # lower note of the fist interval
                 first_lower = first[1][0]
@@ -1018,6 +1028,13 @@ class IntervalNGramStatistics(Experiment):
                 # an IndexError
                 last_index = len(each_record) - 1
 
+                # check there are two strings at this moment
+                if 2 != len(each_record[i][1]):
+                    continue
+                if not isinstance(each_record[i][1][0], basestring) or \
+                not isinstance(each_record[i][1][1], basestring):
+                    continue
+
                 # make sure our first vertical interval doesn't have a rest
                 if 'Rest' == each_record[i][1][0] or 'Rest' == each_record[i][1][1]:
                     continue
@@ -1042,6 +1059,13 @@ class IntervalNGramStatistics(Experiment):
                         # the end of the list
                         if i + j > last_index:
                             kill_switch = True
+                            break
+                        # make sure there are 2 things
+                        elif 2 != len(each_record[i + j][1]):
+                            break
+                        # make sure they're both strings
+                        elif not isinstance(each_record[i + j][1][0], basestring) or \
+                        not isinstance(each_record[i + j][1][1], basestring):
                             break
                         # now check for rests
                         elif 'Rest' == each_record[i + j][1][0] or \
