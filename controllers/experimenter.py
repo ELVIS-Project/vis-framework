@@ -608,7 +608,7 @@ class ChordsLists(Experiment):
                 chord_name = ChordsLists.make_chord_symbol(chord.Chord(first_chord))
 
                 # find the transformation
-                horizontal = u''  # commented out because people don't really care about NR yet
+                horizontal = None  # commented out because people don't really care about NR yet
                 #horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
                                                                   #chord.Chord(second_chord))
                 put_me = (chord_name, u'(' + horizontal + u')', first[0])
@@ -1475,33 +1475,38 @@ class LilyPondExperiment(Experiment):
         # remove the first element so the iterator works more easily
         results = results[1:]
         for i in xrange(len(results)):
+            lily_markup = left_vert + unicode(results[i][0]) + right_vert
             # 6.1) Figure out what's required to fill the space between the previous and this
-            needed_qls = LilyPondExperiment.fill_space_between_offsets(new_part[-1].offset,
-                results[i][2])
-            # 6.2) Set the previous annotation note to the right quarterLength
-            new_part[-1].quarterLength = needed_qls[0]
-            # 6.3) Fill the remaining space with Rest objects, as needed
-            for each_ql in needed_qls[1]:
-                new_part.append(note.Rest(quarterLength=each_ql))
-            # 6.4) Make the annotation then Note for this vertical interval
-            the_note = note.Note('C4')
-            the_note.lily_markup = left_vert + unicode(results[i][0]) + right_vert
-            new_part.insert(results[i][2], the_note)
+            if new_part[-1].offset != results[i][2]:
+                needed_qls = LilyPondExperiment.fill_space_between_offsets(new_part[-1].offset,
+                    results[i][2])
+                # 6.2) Set the previous annotation note to the right quarterLength
+                new_part[-1].quarterLength = needed_qls[0]
+                # 6.3) Fill the remaining space with Rest objects, as needed
+                for each_ql in needed_qls[1]:
+                    new_part.append(note.Rest(quarterLength=each_ql))
+                # 6.4) Make the annotation then Note for this vertical interval
+                the_note = note.Note('C4')
+                the_note.lily_markup = lily_markup
+                new_part.insert(results[i][2], the_note)
+            elif new_part[-1].lily_markup != lily_markup:
+                new_part[-1].lily_markup += lily_markup
             # 6.5) Make this horizontal interval
-            horiz_offset = None
-            try:
-                horiz_offset = ((results[i + 1][2] - results[i][2]) / 2.0) + results[i][2]
-            except IndexError:
-                horiz_offset = results[i][2] + 0.5
-            needed_qls = LilyPondExperiment.fill_space_between_offsets(new_part[-1].offset,
-                horiz_offset)
-            new_part[-1].quarterLength = needed_qls[0]
-            for each_ql in needed_qls[1]:
-                new_part.append(note.Rest(quarterLength=each_ql))
-            the_note = note.Note('C4')
-            the_note.lily_markup = left_horiz + unicode(results[i][1]) + right_horiz
+            if results[i][1] is not None:
+                horiz_offset = None
+                try:
+                    horiz_offset = ((results[i + 1][2] - results[i][2]) / 2.0) + results[i][2]
+                except IndexError:
+                    horiz_offset = results[i][2] + 0.5
+                needed_qls = LilyPondExperiment.fill_space_between_offsets(new_part[-1].offset,
+                    horiz_offset)
+                new_part[-1].quarterLength = needed_qls[0]
+                for each_ql in needed_qls[1]:
+                    new_part.append(note.Rest(quarterLength=each_ql))
+                the_note = note.Note('C4')
+                the_note.lily_markup = left_horiz + unicode(results[i][1]) + right_horiz
 
-            new_part.insert(horiz_offset, the_note)
+                new_part.insert(horiz_offset, the_note)
 
         # 5.) Import the score we'll use
         # TODO: not assume it imports a Score... what about an Opus?
@@ -1569,19 +1574,16 @@ class TargetedIntervalNGramExperiment(Experiment):
         userinput = self._settings.get('annotate these')
 
         # holds the Result Of The IntervalsLists Experiment
-        rotile = IntervalsLists(self._records).perform()
+        rotile = IntervalsLists(self._controller, self._records, self._settings).perform()
 
-        user_intervals = str.split(userinput)
-        user_ngram = []
-        for each_int in user_intervals:
-            user_ngram.append(int(each_int))
-        if len(user_ngram) <= 3:
+        # parse the user's input... just the firsr n-gram for now
+        user_ngram = str.split(str(userinput[0]))
+        if len(user_ngram) < 3:
             self._controller.error.emit(u'Please enter an ngram with at least three elements.')
             return
         if len(user_ngram) % 2 == 0:
             self._controller.error.emit(u'Please enter an odd number of intervals.')
             return
-
         ngram_size = (len(user_ngram) + 1) / 2
 
         # Takes the user's ngram and puts it into a list of the vertical intervals and a
@@ -1596,12 +1598,20 @@ class TargetedIntervalNGramExperiment(Experiment):
 
         found_ngrams = []
         for i in xrange(len(rotile)):
-            if verts[0] == rotile[i][0] and \
-                hors[(w - 1)] == rotile[(i + w - 1)][1] and \
-                all([verts[j] == rotile[(i + j)][0] for j in xrange(1, ngram_size)]):
-                    found_ngrams.append(rotile[i:(i + ngram_size)])
+            if verts[0] == rotile[i][0]:
+                add_ngram = True
+                for j in xrange(1, ngram_size):
+                    if hors[(j - 1)] != rotile[(i + j - 1)][1] or \
+                    verts[j] != rotile[i + j][0]:
+                        add_ngram = False
+                if add_ngram:
+                    end_i = i + ngram_size - 1
+                    found_ngrams.extend(rotile[i:end_i])
+                    # the last one should not have a horizontal interval
+                    last = (rotile[end_i][0], None, rotile[end_i][2])
+                    found_ngrams.append(last)
 
-        return(found_ngrams)
+        return found_ngrams
 
 
 class ChordParser(Experiment):
