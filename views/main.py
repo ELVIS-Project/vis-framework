@@ -1042,7 +1042,7 @@ Do you want to go back and add the part combination?""",
         if self.ui.rdo_consider_intervals.isChecked():
             which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_octaves, self.ui.grp_quality,
                                self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_score,
-                               self.ui.grp_ignore_inversion]
+                               self.ui.grp_ignore_inversion, self.ui.grp_annotate_these]
         elif self.ui.rdo_consider_interval_ngrams.isChecked():
             which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
                                self.ui.grp_quality, self.ui.rdo_chart, self.ui.grp_ignore_inversion]

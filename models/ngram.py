@@ -224,9 +224,9 @@ class IntervalNGram(NGram):
                 # Check for voice crossing
                 if -1 == i.direction:
                     self._has_voice_crossing = True
-            # Still need to check the last vertical interval
-            if -1 == j.direction:
-                self._has_voice_crossing = True
+                # Still need to check the last vertical interval
+                if -1 == j.direction:
+                    self._has_voice_crossing = True
         except AttributeError:
             msg = 'NGram: One of the intervals is probably missing a Note'
             raise RuntimeError(msg)
