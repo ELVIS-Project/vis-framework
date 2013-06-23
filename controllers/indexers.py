@@ -25,6 +25,9 @@
 The controllers that deal with indexing data from music21 Score objects.
 """
 
+from music21 import stream, note
+from vis.models.indexed_piece import IndexedPiece
+
 
 class Indexer(object):
     """
@@ -54,10 +57,29 @@ class Indexer(object):
         RuntimeError :
             If the "score" argument is the wrong type.
         """
+        # NOTE: This is the only method you should reimplement in subclasses.
+
+        # Choose from these, as appropriate:
+        if not (isinstance(IndexedPiece) or isinstance(stream.Stream)):
+            raise RuntimeError('Indexer expects IndexedPiece or Stream')
+
+        # Change the class name to the current class
         super(Indexer, self).__init__()
+
+        # Leave this
         self._score = score
 
-    def run():
+        # If self._score is a Stream (subclass), change to a list of types you want to process
+        self._types = []
+
+        # Change to the function you want to use
+        self._indexer_func = lambda x: None
+
+        # If self._score is an IndexedPiece, change this to the name of the Indexer's results you
+        # want to use when creating this new index
+        self._previous_indexer = None
+
+    def run(self):
         """
         Make a new index of the piece.
 
@@ -66,4 +88,42 @@ class Indexer(object):
         pandas.Series :
             The new index. Each element is an instance of music21.base.ElementWrapper.
         """
+        # NOTE-1: Do not reimplement this method in subclasses
+        # NOTE-2: This method knows whether you're looking through a Stream or IndexedPiece, and
+        #         handles them accordingly.
+        # NOTE-3: When I write it, this method will go through everything in self._score, and if
+        #         an element matches one of the things in self._types, it will be passed through
+        #         the self._indexer_func function, then added to the new Series.
         pass
+
+
+class NoteRestIndexer(Indexer):
+    """
+    Index music21.note.Note and Rest objects found in a music21.stream.Part.
+
+    Rest objects are indexed as u'Rest', and Note objects as the unicode-format version of their
+    "pitchWithOctave" attribute.
+    """
+
+    needs_score = True
+
+    def __init__(self, score):
+        """
+        Create a new Indexer.
+
+        Parameters
+        ==========
+        score : music21.stream.Part
+            The part to index.
+
+        Raises
+        ======
+        RuntimeError :
+            If the "score" argument is the wrong type.
+        """
+        if not isinstance(score, stream.Part):
+            raise RuntimeError('NoteRestIndexer requires a music21.stream.Part')
+        super(NoteRestIndexer, self).__init__()
+        self._score = score
+        self._types = [note.Rest, note.Note]
+        self._indexer_func = lambda x: u'Rest' if isinstance(x, note.Rest) else unicode(x.pitchWithOctave)

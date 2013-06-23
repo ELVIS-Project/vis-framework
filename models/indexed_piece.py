@@ -46,27 +46,32 @@ class IndexedPiece(object):
     - number
     - opusNumber
     - title
-
-    NB-1: Indexers will record every change of every thing, and it will be up to later modules
-    (i.e., the current Experiment subclasses) to deal with "repeat consecutive identical events"
-    and "offset." This way, we only/always store changes.
-
-    NB-2: But the IndexedPiece must provide a way to iterate through the piece with dynamically-
-    chosen salami and offset values.
-
-    About the Data Model
-    ====================
-    Everything will be stored in a pandas DataFrame. Rows will be just whatever... indices can be
-    stored as integers... it's not that important. BUT our key to success is this: if we store
-    indexed events as a pandas Series of music21.base.ElementWrapper objects, we get quarterLength
-    and duration and beatStrength and measureNumber for free! Plus, we can *very* quickly cast the
-    Series into a music21.stream.Stream, so we can use getElementsAtOffset(), which will greatly
-    simplify implementation of iter().
     """
+
+    # About the Data Model (for self._data)
+    # =====================================
+    # - All the indices and experiment results are stored in a dict.
+    # - Indices of the dict will be unicode()-format class names of the Indexer or Experiment
+    # - for an Indexer, the stored item will be a pandas.Series, which we can easily convert into a
+    #   music21.stream.Stream, so we can use getElementsAtOffset() to help with the iter() method.
+    #   Items in the Series, therefore, must be stored in a music21.base.ElementWrapper.
+    # - for an Experiment, the stored item will be a 2-tuple, where element 0 holds a dict of the
+    #   settings provided to the Experiment, and element 1 holds a pandas.DataFrame of the results
+    #   produced by the Experiment.
 
     def __init__(self, pathname, **args):
         super(IndexedPiece, self).__init__(args)
-        self._pathname = pathname
+        self._metadata = {'pathname': pathname}
+        self._data = {}
+
+    def __repr(self):
+        pass
+
+    def __str__(self):
+        pass
+
+    def __unicode__(self):
+        pass
 
     def metadata(self, field, value=None):
         """
@@ -92,19 +97,9 @@ class IndexedPiece(object):
         """
         pass
 
-    def indexer_column(self, **args):
+    def experiments_used(self):
         """
-        Get the int that refers to the column in which a certain indexed datatype is stored. I
-        imaged we'll use this like this...
-
-        >>> note_column = indexed_piece.indexer_column('NoteIndexer')
-        >>> for event in indexed_piece:
-        >>>     pc = event[note_column]['pitch class']
-        >>>     print(pc)
-        u'C'
-
-        TODO: is this relevant?
-        TODO: I'm 90% sure this method should be removed.
+        Return a list of the names of the experiments used so far in this IndexedPiece.
         """
         pass
 
@@ -112,12 +107,14 @@ class IndexedPiece(object):
         """
         For internal use. Without any additional checking, just run the specified indexer and
         add its results to the DataFrame.
+
+        Maybe we won't need this.
         """
         pass
 
-    def add_indexation(self, which_indexers):
+    def add_index(self, which_indexers):
         """
-        Run an indexer on the score.
+        Run an indexer (or some indexers) on the score.
 
         During the initial import/indexation stage, you'll just call this method with a list of
         indices to add, in which case we'll run the indexation processes in parallel. If only one
@@ -139,7 +136,38 @@ class IndexedPiece(object):
         # NB: use the Indexer.needs_score attribute to know whether to import the Score
         pass
 
-    def remove_indexation(self, **args):
+    def add_experiment(self, which_experiments, which_settings):
+        """
+        Run an experiment (or some experiments) on the score and save the results. If the
+        experiment has already been run with the same settings, the previously-calculated results
+        are returned.
+
+        Parameters
+        ==========
+        which_experiments : list
+            A list of the vis.models.experiment.Experiment subclasses to run on the IndexedPiece.
+
+        which_settings : dict
+            A dict of the settings to provide the Experiment.
+
+        Returns
+        =======
+        pandas.DataFrame :
+            The result produced by the Experiment subclass.
+
+        Raises
+        ======
+        RuntimeException :
+            If "which_experiments" refers to an unknown Experiment subclass.
+
+        Side Effects
+        ============
+        Results from the Experiment, and any additional Experiment subclasses or Indexer subclasses
+        required for the "which_experiment" Experiment subclass, are saved in the IndexedPiece.
+        """
+        pass
+
+    def remove_index(self, **args):
         """
         To save on memory, or for some other reason like it's suddenly invalied, remove the
         particular indexed information from this IndexedPiece.
@@ -182,8 +210,31 @@ class IndexedPiece(object):
         """
         pass
 
-    def getitem(self, index, parts, **args):
+    def get_experiment(self, which_experiment, which_settings=None):
         """
-        We can implememnt this if we need to... better if we don't!
+        Access the results produced by a previously-run experiment.
+
+        Parameters
+        ==========
+        which_experiment : vis.models.experiment.Experiment subclass
+            The experiment whose results you wish to access.
+
+        which_settings : dict
+            A dict of the settings you want to have been provided to the experiment. You can omit
+            some or all of the settings the Experiment requires, in which case, if only one set of
+            results matches the settings you *do* provide, they will be returned, or if multiple
+            sets of results match, a RuntimeError will be raised.
+
+        Returns
+        =======
+        2-tuple :
+            0 : The dict of settings used to produce the results.
+            1 : The result of the Experiment.
+
+        Raises
+        ======
+        RuntimeError :
+            If which_experiment has not yet been run on this IndexedPiece, or if the keys in
+            which_settings are insufficient to choose a single experiment.
         """
         pass
