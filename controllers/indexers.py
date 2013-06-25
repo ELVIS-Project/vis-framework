@@ -126,4 +126,5 @@ class NoteRestIndexer(Indexer):
         super(NoteRestIndexer, self).__init__()
         self._score = score
         self._types = [note.Rest, note.Note]
-        self._indexer_func = lambda x: u'Rest' if isinstance(x, note.Rest) else unicode(x.pitchWithOctave)
+        self._indexer_func = lambda x: u'Rest' if isinstance(x, note.Rest) \
+                                               else unicode(x.pitchWithOctave)

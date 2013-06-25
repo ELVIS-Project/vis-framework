@@ -35,7 +35,7 @@ class IndexedPiece(object):
     - pathname
     - part names
     - quarterLength duration of anacrusis, if applicable
-    From musi21.metadata.Metadata:
+    From music21.metadata.Metadata:
     - alternativeTitle
     - composer
     - composers
@@ -45,16 +45,18 @@ class IndexedPiece(object):
     - movementNumber
     - number
     - opusNumber
-    - title
+    - title (only field we *must* have; at worst, it's pathname without extension)
     """
 
     # About the Data Model (for self._data)
     # =====================================
     # - All the indices and experiment results are stored in a dict.
     # - Indices of the dict will be unicode()-format class names of the Indexer or Experiment
-    # - for an Indexer, the stored item will be a pandas.Series, which we can easily convert into a
-    #   music21.stream.Stream, so we can use getElementsAtOffset() to help with the iter() method.
-    #   Items in the Series, therefore, must be stored in a music21.base.ElementWrapper.
+    # - for an Indexer, the stored item will be a list of pandas.Series objects, where the index
+    #   of a part will be the same in self._metadata{'part names'} and this list. We can easily
+    #   convert these into music21.stream.Stream objects, to use getElementsAtOffset() to help with
+    #   the iteoor() method. Items in the Series, therefore, must be stored in a
+    #   music21.base.ElementWrapper.
     # - for an Experiment, the stored item will be a 2-tuple, where element 0 holds a dict of the
     #   settings provided to the Experiment, and element 1 holds a pandas.DataFrame of the results
     #   produced by the Experiment.
@@ -148,7 +150,8 @@ class IndexedPiece(object):
             A list of the vis.models.experiment.Experiment subclasses to run on the IndexedPiece.
 
         which_settings : dict
-            A dict of the settings to provide the Experiment.
+            A dict of the settings to provide the Experiment. If required by the Experiment, the
+            part combinations will should be specified here.
 
         Returns
         =======
@@ -223,7 +226,8 @@ class IndexedPiece(object):
             A dict of the settings you want to have been provided to the experiment. You can omit
             some or all of the settings the Experiment requires, in which case, if only one set of
             results matches the settings you *do* provide, they will be returned, or if multiple
-            sets of results match, a RuntimeError will be raised.
+            sets of results match, a RuntimeError will be raised. If required by the Experiment,
+            the part combinations will should be specified here.
 
         Returns
         =======
@@ -236,5 +240,19 @@ class IndexedPiece(object):
         RuntimeError :
             If which_experiment has not yet been run on this IndexedPiece, or if the keys in
             which_settings are insufficient to choose a single experiment.
+        """
+        pass
+
+    @staticmethod
+    def _find_part_names(the_score):
+        """
+        Copy this from importer.py
+        """
+        pass
+
+    @staticmethod
+    def _find_piece_title(the_score):
+        """
+        Copy this from importer.py
         """
         pass
