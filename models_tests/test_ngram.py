@@ -29,37 +29,37 @@ from models.ngram import IntervalNGram, ChordNGram
 class TestIntervalNGram(unittest.TestCase):
     def setUp(self):
         # 'm3 P1 m3'
-        self.a = [interval.Interval(note.Note('A4'),note.Note('C5')), \
-                    interval.Interval(note.Note('A4'),note.Note('C5'))]
-        self.a_distance = [interval.Interval(note.Note('A4'),note.Note('A4'))]
+        self.a = [interval.Interval(note.Note('A4'), note.Note('C5')),
+                  interval.Interval(note.Note('A4'), note.Note('C5'))]
+        self.a_distance = [interval.Interval(note.Note('A4'), note.Note('A4'))]
         # 'm3 P1 M3'
-        self.b = [interval.Interval(note.Note('A4'),note.Note('C5')), \
-                    interval.Interval(note.Note('A4'),note.Note('C#5'))]
-        self.b_distance = [interval.Interval(note.Note('A4'),note.Note('A4'))]
+        self.b = [interval.Interval(note.Note('A4'), note.Note('C5')),
+                  interval.Interval(note.Note('A4'), note.Note('C#5'))]
+        self.b_distance = [interval.Interval(note.Note('A4'), note.Note('A4'))]
         # 'm3 +P4 m3'
-        self.c = [interval.Interval(note.Note('A4'),note.Note('C5')), \
-                    interval.Interval(note.Note('D5'),note.Note('F5'))]
-        self.c_distance = [interval.Interval(note.Note('A4'),note.Note('D5'))]
+        self.c = [interval.Interval(note.Note('A4'), note.Note('C5')),
+                  interval.Interval(note.Note('D5'), note.Note('F5'))]
+        self.c_distance = [interval.Interval(note.Note('A4'), note.Note('D5'))]
         # 'm-3 +M2 M3'
-        self.d = [interval.Interval(note.Note('C5'),note.Note('A4')), \
-                    interval.Interval(note.Note('D5'),note.Note('F#5'))]
-        self.d_distance = [interval.Interval(note.Note('C5'),note.Note('D5'))]
+        self.d = [interval.Interval(note.Note('C5'), note.Note('A4')),
+                  interval.Interval(note.Note('D5'), note.Note('F#5'))]
+        self.d_distance = [interval.Interval(note.Note('C5'), note.Note('D5'))]
         # 'm3 -P4 m3'
-        self.e = [interval.Interval(note.Note('A4'),note.Note('C5')), \
-                    interval.Interval(note.Note('E4'),note.Note('G4'))]
-        self.e_distance = [interval.Interval(note.Note('A4'),note.Note('E4'))]
+        self.e = [interval.Interval(note.Note('A4'), note.Note('C5')),
+                  interval.Interval(note.Note('E4'), note.Note('G4'))]
+        self.e_distance = [interval.Interval(note.Note('A4'), note.Note('E4'))]
         # 'm3 -m2 M-3'
-        self.f = [interval.Interval(note.Note('A4'),note.Note('C5')), \
-                    interval.Interval(note.Note('G#4'),note.Note('E4'))]
-        self.f_distance = [interval.Interval(note.Note('A4'),note.Note('G#4'))]
+        self.f = [interval.Interval(note.Note('A4'), note.Note('C5')),
+                  interval.Interval(note.Note('G#4'), note.Note('E4'))]
+        self.f_distance = [interval.Interval(note.Note('A4'), note.Note('G#4'))]
         # 'm3 +P4 M2 -m6 P5 +A9 M-10'
-        self.g = [interval.Interval(note.Note('A4'),note.Note('C5')), \
-                    interval.Interval(note.Note('D5'),note.Note('E5')), \
-                    interval.Interval(note.Note('F#4'),note.Note('C#5')), \
-                    interval.Interval(note.Note('G##5'),note.Note('E#4'))]
-        self.g_distance = [interval.Interval(note.Note('A4'),note.Note('D5')), \
-                            interval.Interval(note.Note('D5'),note.Note('F#4')), \
-                            interval.Interval(note.Note('F#4'),note.Note('G##5'))]
+        self.g = [interval.Interval(note.Note('A4'), note.Note('C5')),
+                  interval.Interval(note.Note('D5'), note.Note('E5')),
+                  interval.Interval(note.Note('F#4'), note.Note('C#5')),
+                  interval.Interval(note.Note('G##5'), note.Note('E#4'))]
+        self.g_distance = [interval.Interval(note.Note('A4'), note.Note('D5')),
+                           interval.Interval(note.Note('D5'), note.Note('F#4')),
+                           interval.Interval(note.Note('F#4'), note.Note('G##5'))]
     # end set_up()
 
     def test_calculating_n(self):
@@ -104,7 +104,7 @@ class TestIntervalNGram(unittest.TestCase):
         self.assertEqual(IntervalNGram(self.g)._list_of_connections, self.g_distance)
 
     def test_distance_calc_exception(self):
-        self.temp = [interval.Interval(note.Note('A4'),note.Note('C5')), \
+        self.temp = [interval.Interval(note.Note('A4'), note.Note('C5')),
                     interval.Interval('m3')]
         self.assertRaises(RuntimeError, IntervalNGram, self.temp)
         # Note that if we do this with
@@ -124,7 +124,7 @@ class TestIntervalNGram(unittest.TestCase):
         self.assertRaises(RuntimeError, IntervalNGram, self.g)
 
     def test_equality_2(self):
-        # if they aren't of the same "n," they're not the same
+        # if they aren't of the same "n, " they're not the same
         self.assertFalse(IntervalNGram(self.a) == IntervalNGram(self.g))
         self.assertFalse(IntervalNGram(self.a) == IntervalNGram(self.g))
 
@@ -139,7 +139,7 @@ class TestIntervalNGram(unittest.TestCase):
         self.assertTrue(IntervalNGram(self.g) == IntervalNGram(self.g))
 
     def test_inequality_2(self):
-        # if they aren't of the same "n," they're not the same
+        # if they aren't of the same "n, " they're not the same
         self.assertTrue(IntervalNGram(self.a) != IntervalNGram(self.g))
 
     def test_inequality_3(self):
@@ -153,81 +153,77 @@ class TestIntervalNGram(unittest.TestCase):
         self.assertFalse(IntervalNGram(self.g) != IntervalNGram(self.g))
 
     def test_str_1(self):
-        self.assertEqual(IntervalNGram(self.a).get_string_version(True, "compound"), 'm3 P1 m3')
-        self.assertEqual(IntervalNGram(self.b).get_string_version(True, "compound"), 'm3 P1 M3')
-        self.assertEqual(IntervalNGram(self.c).get_string_version(True, "compound"), 'm3 +P4 m3')
-        self.assertEqual(IntervalNGram(self.d).get_string_version(True, "compound"), 'm-3 +M2 M3')
-        self.assertEqual(IntervalNGram(self.e).get_string_version(True, "compound"), 'm3 -P4 m3')
-        self.assertEqual(IntervalNGram(self.f).get_string_version(True, "compound"), 'm3 -m2 M-3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(True, "compound"), 'm3 +P4 M2 -m6 P5 +A9 M-10')
+        def run_test(with_this):
+            return IntervalNGram(with_this).get_string_version(True, 'compound')
+        self.assertEqual(run_test(self.a), 'm3 P1 m3')
+        self.assertEqual(run_test(self.b), 'm3 P1 M3')
+        self.assertEqual(run_test(self.c), 'm3 +P4 m3')
+        self.assertEqual(run_test(self.d), 'm-3 +M2 M3')
+        self.assertEqual(run_test(self.e), 'm3 -P4 m3')
+        self.assertEqual(run_test(self.f), 'm3 -m2 M-3')
+        self.assertEqual(run_test(self.g), 'm3 +P4 M2 -m6 P5 +A9 M-10')
 
     def test_str_2(self):
-        self.assertEqual(IntervalNGram(self.a).get_string_version(False, "compound"), '3 1 3')
-        self.assertEqual(IntervalNGram(self.b).get_string_version(False, "compound"), '3 1 3')
-        self.assertEqual(IntervalNGram(self.c).get_string_version(False, "compound"), '3 +4 3')
-        self.assertEqual(IntervalNGram(self.d).get_string_version(False, "compound"), '-3 +2 3')
-        self.assertEqual(IntervalNGram(self.e).get_string_version(False, "compound"), '3 -4 3')
-        self.assertEqual(IntervalNGram(self.f).get_string_version(False, "compound"), '3 -2 -3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(False, "compound"), '3 +4 2 -6 5 +9 -10')
+        def run_test(with_this):
+            return IntervalNGram(with_this).get_string_version(False, 'compound')
+        self.assertEqual(run_test(self.a), '3 1 3')
+        self.assertEqual(run_test(self.b), '3 1 3')
+        self.assertEqual(run_test(self.c), '3 +4 3')
+        self.assertEqual(run_test(self.d), '-3 +2 3')
+        self.assertEqual(run_test(self.e), '3 -4 3')
+        self.assertEqual(run_test(self.f), '3 -2 -3')
+        self.assertEqual(run_test(self.g), '3 +4 2 -6 5 +9 -10')
 
     def test_string_version_1(self):
-        self.assertEqual(IntervalNGram(self.a).get_string_version(True, "compound"), 'm3 P1 m3')
-        self.assertEqual(IntervalNGram(self.b).get_string_version(True, "compound"), 'm3 P1 M3')
-        self.assertEqual(IntervalNGram(self.c).get_string_version(True,'compound'), 'm3 +P4 m3')
-        self.assertEqual(IntervalNGram(self.d).get_string_version(True,'compound'), 'm-3 +M2 M3')
-        self.assertEqual(IntervalNGram(self.e).get_string_version(True,'compound'), 'm3 -P4 m3')
-        self.assertEqual(IntervalNGram(self.f).get_string_version(True,'compound'), 'm3 -m2 M-3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(True,'compound'), 'm3 +P4 M2 -m6 P5 +A9 M-10')
+        def run_test(with_this):
+            return IntervalNGram(with_this).get_string_version(True, 'compound')
+        self.assertEqual(run_test(self.a), 'm3 P1 m3')
+        self.assertEqual(run_test(self.b), 'm3 P1 M3')
+        self.assertEqual(run_test(self.c), 'm3 +P4 m3')
+        self.assertEqual(run_test(self.d), 'm-3 +M2 M3')
+        self.assertEqual(run_test(self.e), 'm3 -P4 m3')
+        self.assertEqual(run_test(self.f), 'm3 -m2 M-3')
+        self.assertEqual(run_test(self.g), 'm3 +P4 M2 -m6 P5 +A9 M-10')
 
     def test_string_version_2(self):
-        self.assertEqual(IntervalNGram(self.a).get_string_version(True,'compound'), 'm3 P1 m3')
-        self.assertEqual(IntervalNGram(self.b).get_string_version(True,'compound'), 'm3 P1 M3')
-        self.assertEqual(IntervalNGram(self.c).get_string_version(True,'compound'), 'm3 +P4 m3')
-        self.assertEqual(IntervalNGram(self.d).get_string_version(True,'compound'), 'm-3 +M2 M3')
-        self.assertEqual(IntervalNGram(self.e).get_string_version(True,'compound'), 'm3 -P4 m3')
-        self.assertEqual(IntervalNGram(self.f).get_string_version(True,'compound'), 'm3 -m2 M-3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(True,'compound'), 'm3 +P4 M2 -m6 P5 +A9 M-10')
+        def run_test(with_this):
+            return IntervalNGram(with_this).get_string_version(True, 'simple')
+        self.assertEqual(run_test(self.a), 'm3 P1 m3')
+        self.assertEqual(run_test(self.b), 'm3 P1 M3')
+        self.assertEqual(run_test(self.c), 'm3 +P4 m3')
+        self.assertEqual(run_test(self.d), 'm-3 +M2 M3')
+        self.assertEqual(run_test(self.e), 'm3 -P4 m3')
+        self.assertEqual(run_test(self.f), 'm3 -m2 M-3')
+        self.assertEqual(run_test(self.g), 'm3 +P4 M2 -m6 P5 +A2 M-3')
 
     def test_string_version_3(self):
-        self.assertEqual(IntervalNGram(self.a).get_string_version(False,'compound'), '3 1 3')
-        self.assertEqual(IntervalNGram(self.b).get_string_version(False,'compound'), '3 1 3')
-        self.assertEqual(IntervalNGram(self.c).get_string_version(False,'compound'), '3 +4 3')
-        self.assertEqual(IntervalNGram(self.d).get_string_version(False,'compound'), '-3 +2 3')
-        self.assertEqual(IntervalNGram(self.e).get_string_version(False,'compound'), '3 -4 3')
-        self.assertEqual(IntervalNGram(self.f).get_string_version(False,'compound'), '3 -2 -3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(False,'compound'), '3 +4 2 -6 5 +9 -10')
+        def run_test(with_this):
+            return IntervalNGram(with_this).get_string_version(False, 'compound')
+        self.assertEqual(run_test(self.a), '3 1 3')
+        self.assertEqual(run_test(self.b), '3 1 3')
+        self.assertEqual(run_test(self.c), '3 +4 3')
+        self.assertEqual(run_test(self.d), '-3 +2 3')
+        self.assertEqual(run_test(self.e), '3 -4 3')
+        self.assertEqual(run_test(self.f), '3 -2 -3')
+        self.assertEqual(run_test(self.g), '3 +4 2 -6 5 +9 -10')
 
     def test_string_version_4(self):
-        self.assertEqual(IntervalNGram(self.a).get_string_version(False,'compound'), '3 1 3')
-        self.assertEqual(IntervalNGram(self.b).get_string_version(False,'compound'), '3 1 3')
-        self.assertEqual(IntervalNGram(self.c).get_string_version(False,'compound'), '3 +4 3')
-        self.assertEqual(IntervalNGram(self.d).get_string_version(False,'compound'), '-3 +2 3')
-        self.assertEqual(IntervalNGram(self.e).get_string_version(False,'compound'), '3 -4 3')
-        self.assertEqual(IntervalNGram(self.f).get_string_version(False,'compound'), '3 -2 -3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(False,'compound'), '3 +4 2 -6 5 +9 -10')
+        def run_test(with_this):
+            return IntervalNGram(with_this).get_string_version(False, 'simple')
+        self.assertEqual(run_test(self.a), '3 1 3')
+        self.assertEqual(run_test(self.b), '3 1 3')
+        self.assertEqual(run_test(self.c), '3 +4 3')
+        self.assertEqual(run_test(self.d), '-3 +2 3')
+        self.assertEqual(run_test(self.e), '3 -4 3')
+        self.assertEqual(run_test(self.f), '3 -2 -3')
+        self.assertEqual(run_test(self.g), '3 +4 2 -6 5 +2 -3')
 
     def test_string_version_5(self):
-        self.assertEqual(IntervalNGram(self.f).get_string_version(True,'simple'), 'm3 -m2 M-3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(True,'simple'), 'm3 +P4 M2 -m6 P5 +A2 M-3')
-
-    def test_string_version_6(self):
-        self.assertEqual(IntervalNGram(self.f).get_string_version(True,'simple'), 'm3 -m2 M-3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(True,'simple'), 'm3 +P4 M2 -m6 P5 +A2 M-3')
-
-    def test_string_version_7(self):
-        self.assertEqual(IntervalNGram(self.f).get_string_version(False,'simple'), '3 -2 -3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(False,'simple'), '3 +4 2 -6 5 +2 -3')
-
-    def test_string_version_8(self):
-        self.assertEqual(IntervalNGram(self.f).get_string_version(False,'simple'), '3 -2 -3')
-        self.assertEqual(IntervalNGram(self.g).get_string_version(False,'simple'), '3 +4 2 -6 5 +2 -3')
-
-    def test_string_version_9(self):
         # This test ensure you don't get something like '7 1 6 -2 1' when you choose "simple" when
         # it should instead be '7 1 6 -2 8'.
-        intervs = [interval.Interval(note.Note('C4'),note.Note('B4')),
-                    interval.Interval(note.Note('C4'),note.Note('A4')),
-                    interval.Interval(note.Note('B-3'),note.Note('B-4'))]
+        intervs = [interval.Interval(note.Note('C4'), note.Note('B4')),
+                    interval.Interval(note.Note('C4'), note.Note('A4')),
+                    interval.Interval(note.Note('B-3'), note.Note('B-4'))]
         tester = IntervalNGram(intervs)
         self.assertEqual(tester.get_string_version(False, 'simple'), '7 1 6 -2 8')
         self.assertEqual(tester.get_string_version(True, 'simple'), 'M7 P1 M6 -M2 P8')
@@ -235,25 +231,12 @@ class TestIntervalNGram(unittest.TestCase):
         self.assertEqual(tester.get_string_version(True, 'compound'), 'M7 P1 M6 -M2 P8')
 
     def test_repr_1(self):
-        self.assertEqual(IntervalNGram(self.a).__repr__(), "IntervalNGram([Interval(Note('A4'), Note('C5')), Interval(Note('A4'), Note('C5'))])")
+        exp = "IntervalNGram([Interval(Note('A4'), Note('C5')), Interval(Note('A4'), Note('C5'))])"
+        self.assertEqual(IntervalNGram(self.a).__repr__(), exp)
 
     def test_repr_2(self):
-        self.assertEqual(IntervalNGram(self.b).__repr__(), "IntervalNGram([Interval(Note('A4'), Note('C5')), Interval(Note('A4'), Note('C#5'))])")
-
-    #def test_repr_3(self):
-        #self.assertEqual(IntervalNGram(self.c).__repr__()), Note('C5')), Interval(Note('D5'), Note('F5'))])")
-
-    #def test_repr_4(self):
-        #self.assertEqual(IntervalNGram(self.d).__repr__()), Note('A4')), Interval(Note('D5'), Note('F#5'))])")
-
-    #def test_repr_5(self):
-        #self.assertEqual(IntervalNGram(self.e).__repr__()), Note('C5')), Interval(Note('E4'), Note('G4'))])")
-
-    #def test_repr_6(self):
-        #self.assertEqual(IntervalNGram(self.f).__repr__()), Note('C5')), Interval(Note('G#4'), Note('E4'))])")
-
-    #def test_repr_7(self):
-        #self.assertEqual(IntervalNGram(self.g).__repr__()), Note('C5')), Interval(Note('D5'), Note('E5')), Interval(Note('F#4'), Note('C#5')), Interval(Note('G##5'), Note('E#4'))])")
+        exp = "IntervalNGram([Interval(Note('A4'), Note('C5')), Interval(Note('A4'), Note('C#5'))])"
+        self.assertEqual(IntervalNGram(self.b).__repr__(), exp)
 
     def test_voice_crossing_1(self):
         self.assertFalse(IntervalNGram(self.a).voice_crossing())
@@ -273,27 +256,35 @@ class TestIntervalNGram(unittest.TestCase):
 
     def test_retrograde_2(self):
         self.assertEqual(IntervalNGram(self.b).retrograde(),
-                        IntervalNGram([interval.Interval(note.Note('A4'), note.Note('C#5')),interval.Interval(note.Note('A4'),note.Note('C5'))]))
+                         IntervalNGram([interval.Interval(note.Note('A4'), note.Note('C#5')),
+                                        interval.Interval(note.Note('A4'), note.Note('C5'))]))
 
     def test_retrograde_3(self):
         self.assertEqual(IntervalNGram(self.c).retrograde(),
-                        IntervalNGram([interval.Interval(note.Note('D5'), note.Note('F5')),interval.Interval(note.Note('A4'),note.Note('C5'))]))
+                         IntervalNGram([interval.Interval(note.Note('D5'), note.Note('F5')),
+                                        interval.Interval(note.Note('A4'), note.Note('C5'))]))
 
     def test_retrograde_4(self):
         self.assertEqual(IntervalNGram(self.d).retrograde(),
-                        IntervalNGram([interval.Interval(note.Note('D5'), note.Note('F#5')),interval.Interval(note.Note('C5'),note.Note('A4'))]))
+                         IntervalNGram([interval.Interval(note.Note('D5'), note.Note('F#5')),
+                                        interval.Interval(note.Note('C5'), note.Note('A4'))]))
 
     def test_retrograde_5(self):
         self.assertEqual(IntervalNGram(self.e).retrograde(),
-                        IntervalNGram([interval.Interval(note.Note('E4'), note.Note('G4')),interval.Interval(note.Note('A4'),note.Note('C5'))]))
+                         IntervalNGram([interval.Interval(note.Note('E4'), note.Note('G4')),
+                                        interval.Interval(note.Note('A4'), note.Note('C5'))]))
 
     def test_retrograde_6(self):
         self.assertEqual(IntervalNGram(self.f).retrograde(),
-                        IntervalNGram([interval.Interval(note.Note('G#4'), note.Note('E4')),interval.Interval(note.Note('A4'),note.Note('C5'))]))
+                         IntervalNGram([interval.Interval(note.Note('G#4'), note.Note('E4')),
+                                        interval.Interval(note.Note('A4'), note.Note('C5'))]))
 
     def test_retrograde_7(self):
         self.assertEqual(IntervalNGram(self.g).retrograde(),
-                        IntervalNGram([interval.Interval(note.Note('G##5'), note.Note('E#4')),interval.Interval(note.Note('F#4'),note.Note('C#5')), interval.Interval(note.Note('D5'),note.Note('E5')), interval.Interval(note.Note('A4'),note.Note('C5'))]))
+                         IntervalNGram([interval.Interval(note.Note('G##5'), note.Note('E#4')),
+                                        interval.Interval(note.Note('F#4'), note.Note('C#5')),
+                                        interval.Interval(note.Note('D5'), note.Note('E5')),
+                                        interval.Interval(note.Note('A4'), note.Note('C5'))]))
 
     def test_canonical_1(self):
         # m-3 +M2 M3
@@ -387,18 +378,19 @@ class TestIntervalNGram(unittest.TestCase):
         # heedQuality set as per whether there was quality on the way in
         str_ng = IntervalNGram.make_from_str('m3 P1 m3')
         orig_ng = IntervalNGram(self.a)
-        self.assertEqual(str_ng.get_string_version(True, 'compound'), orig_ng.get_string_version(True, 'compound'))
+        self.assertEqual(str_ng.get_string_version(True, 'compound'),
+                         orig_ng.get_string_version(True, 'compound'))
 
     def test_make_from_str_6(self):
         # heedQuality set as per whether there was quality on the way in
         str_ng = IntervalNGram.make_from_str('3 1 3')
         orig_ng = IntervalNGram(self.a)
-        self.assertEqual(str_ng.get_string_version(False, 'compound'), orig_ng.get_string_version(False, 'compound'))
+        self.assertEqual(str_ng.get_string_version(False, 'compound'),
+                         orig_ng.get_string_version(False, 'compound'))
 
     def test_make_from_str_7(self):
         # wrong number of intervals in input string
-        self.assertRaises(RuntimeError, IntervalNGram.make_from_str, \
-                            '3 1 3 1')
+        self.assertRaises(RuntimeError, IntervalNGram.make_from_str, '3 1 3 1')
 
     def test_make_from_str_8(self):
         # wrong number of intervals in input string
@@ -493,12 +485,18 @@ class TestChordNGram(unittest.TestCase):
 
     def test_repr_4(self):
         expected = "ChordNGram([Chord('C E G'), Chord('D F A'), Chord('E G B'), Chord('F A C')])"
-        actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a'), chord.Chord('e g b'), chord.Chord('f a c')])
+        actual = ChordNGram([chord.Chord('c e g'),
+                             chord.Chord('d f a'),
+                             chord.Chord('e g b'),
+                             chord.Chord('f a c')])
         self.assertEqual(actual.__repr__(), expected)
 
     def test_repr_5(self):
         expected = "ChordNGram([Chord('C E G'), Chord('D F A C'), Chord('E G B'), Chord('F A C')])"
-        actual = ChordNGram([chord.Chord('C E G'), chord.Chord('D F A C'), chord.Chord('E G B'), chord.Chord('F A C')])
+        actual = ChordNGram([chord.Chord('C E G'),
+                             chord.Chord('D F A C'),
+                             chord.Chord('E G B'),
+                             chord.Chord('F A C')])
         self.assertEqual(actual.__repr__(), expected)
 
     def test_repr_6(self):
@@ -529,12 +527,18 @@ class TestChordNGram(unittest.TestCase):
 
     def test_str_4(self):
         expected = "<C E G> ==RLR=> <D F A> ==LRPR=> <E G B> ==LRL=> <F A C>"
-        actual = ChordNGram([chord.Chord('c e g'), chord.Chord('d f a'), chord.Chord('e g b'), chord.Chord('f a c')])
+        actual = ChordNGram([chord.Chord('c e g'),
+                             chord.Chord('d f a'),
+                             chord.Chord('e g b'),
+                             chord.Chord('f a c')])
         self.assertEqual(actual.get_string_version(), expected)
 
     def test_str_5(self):
         expected = "<C E G> ==?=> <D F A C> ==?=> <E G B> ==LRL=> <F A C>"
-        actual = ChordNGram([chord.Chord('C E G'), chord.Chord('D F A C'), chord.Chord('E G B'), chord.Chord('F A C')])
+        actual = ChordNGram([chord.Chord('C E G'),
+                             chord.Chord('D F A C'),
+                             chord.Chord('E G B'),
+                             chord.Chord('F A C')])
         self.assertEqual(actual.get_string_version(), expected)
 
     def test_str_6(self):
