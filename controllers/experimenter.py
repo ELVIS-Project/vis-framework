@@ -1062,10 +1062,12 @@ class IntervalNGramStatistics(Experiment):
                             break
                         # make sure there are 2 things
                         elif 2 != len(each_record[i + j][1]):
+                            kill_switch = True
                             break
                         # make sure they're both strings
                         elif not isinstance(each_record[i + j][1][0], basestring) or \
                         not isinstance(each_record[i + j][1][1], basestring):
+                            kill_switch = True
                             break
                         # now check for rests
                         elif 'Rest' == each_record[i + j][1][0] or \
