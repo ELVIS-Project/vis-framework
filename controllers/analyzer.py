@@ -159,6 +159,14 @@ def _event_finder(parts, settings, record):
         else:
             return this_obj.offset
 
+    # Find the length of an anacrusis, if there is one
+    anacrusis_offset = 0.0
+    measures = parts[0].getElementsByClass(stream.Measure)
+    if 0 != len(measures) and \
+        measures[0].barDuration != measures[0].duration and \
+        measures[0].duration.quarterLength > settings.offset:
+            anacrusis_offset = measures[0].duration.quarterLength
+
     # Make an iterable out of the list of types we'll need, so it's easier to pass as an argument
     list_of_types = [each_type for each_type, _ in settings.types]
 
@@ -172,7 +180,7 @@ def _event_finder(parts, settings, record):
 
     # 3.) Find the starting offset of this Score
     #    NB: We'll store it in "current_offset" because that's where the loop starts
-    current_offset = min([l.offset for l in [p[0] for p in parts]])
+    current_offset = min([l.offset for l in [p[0] for p in parts]]) + anacrusis_offset
 
     # Keep track of the offset from last time, to prevent accidentally moving backward somehow.
     offset_from_last_time = None
