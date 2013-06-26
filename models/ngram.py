@@ -257,23 +257,10 @@ class IntervalNGram(NGram):
 
     def canonical(self, quality=True, size='compound'):
         """
-        Return the "canonical non-crossed" str representation of this IntervalNGram
-        object. This is like an "absolute value" function, in that it removes any
-        positive/negative signs and does not do much else.
-
-        Be cautious about interpreting the meaning of this method's return values.
-        This 'm3 M2 m3' matches any of the following:
-        - 'm-3 +M2 m-3'
-        - 'm-3 +M2 m3'
-        - 'm3 -M2 m-2'
-        - etc.
-
-        These are not necessarily experientially similar.
+        NOTE: this method exists only for compatibility, and will be removed in the future. You
+              should use the "canonical" keyword argument of get_string_version() for new stuff.
         """
-        post = self.get_string_version(quality, size)
-        post = post.replace('-', '')
-        post = post.replace('+', '')
-        return post
+        return self.get_string_version(quality, size, canonical=True)
 
     def voice_crossing(self):
         """
@@ -282,20 +269,28 @@ class IntervalNGram(NGram):
         """
         return self._has_voice_crossing
 
-    def get_string_version(self,
-                            show_quality=False,
-                            simple_or_compound='compound'):
+    def get_string_version(self, quality=False, size=u'compound', canonical=False):
         """
-        Return a string-format representation of this IntervalNGram object. With no
-        arguments, the intervals are compound, and quality not displayed.
+        Return a string-format representation of this IntervalNGram object.
 
-        There are two keyword arguments:
-        - show_quality : boolean, whether to display interval quality
-        - simple_or_compound : 'simple' or 'compound' whether to reduce compound
-            intervals to their single-octave equivalent
+        Parameters
+        ==========
+        quality : boolean
+            Whether to include the quality of the intervals. Default is False.
 
-        Example:
+        size : string
+            Either 'simple' or 'compound', depending on whether all intervals should be reduced to
+            their single-octave versions. Default is compound.
 
+        canonical : boolean
+            Whether to remove direction indication from vertical intervals.
+
+        Returns
+        =======
+        string
+
+        Example
+        =======
         >>> from music21 import *
         >>> from vis import *
         >>> a = Interval(Note('C4'), Note('E5'))
@@ -308,64 +303,63 @@ class IntervalNGram(NGram):
         """
 
         # Hold the str we're making
-        post = ''
+        post = u''
 
-        # We need to consider every index of _list_of_events, which contains
-        # the vertical intervals of this IntervalNGram.
+        # We need to consider every index of _list_of_events, which contains the vertical
+        # intervals of this IntervalNGram.
         for i, interv in enumerate(self._list_of_events):
-            # If post isn't empty, this isn't the first interval added, so we need
-            # to put a space between this and the previous int.
+            # If post isn't empty, this isn't the first interval added, so we need to put a space
+            # between this and the previous int.
             if len(post) > 0:
-                post += ' '
+                post += u' '
 
             # Calculate this interval
-            this_interval = ''
+            this_interval = u''
             # should we append some letters showing the quality?
-            if show_quality:
+            if quality:
                 # NB: this gets the quality letters from the music21.interval module...
                 #     it's kind of a hack job, but whatever
                 this_interval += interval.prefixSpecs[interv.specifier]
             # append the direction symbol and size
-            if 'simple' == simple_or_compound:
-                this_interval += str(interv.generic.semiSimpleDirected)
+            if not canonical:
+                if u'simple' == size:
+                    this_interval += unicode(interv.generic.semiSimpleDirected)
+                else:
+                    this_interval += unicode(interv.generic.directed)
             else:
-                this_interval += str(interv.generic.directed)
+                if u'simple' == size:
+                    this_interval += unicode(interv.generic.semiSimpleUndirected)
+                else:
+                    this_interval += unicode(interv.generic.undirected)
 
             # Append this interval
             post += this_interval
 
             # Calculate the lower-voice movement after this interval.
-            # NB: The final interval won't have anything, and currently we deal
-            # with this by simply catching the IndexError that would result, and
-            # ignoring it. There's probably a more elegant way.
+            # NB: The final interval won't have anything, and currently we deal with this by simply
+            # catching the IndexError that would result, and ignoring it. There's probably a more
+            # elegant way.
             this_move = None
             try:
                 this_move = self._list_of_connections[i]
             except IndexError:
                 pass
 
-            # Add the direction to the horizontal interval. The call to
-            # isinstance() means we won't try to find the direction of None, which
-            # is what would happen for the final horizontal interval.
-            if isinstance(this_move, Interval):
+            # Add the direction to the horizontal interval. The AttributeError catches the
+            # exception raised by when we ask or 'direction' on None, for the last horiz interv.
+            try:
                 if 1 == this_move.direction:
-                    post += ' +'
+                    post += u' +'
                 elif -1 == this_move.direction:
-                    post += ' -'
+                    post += u' -'
                 else:
-                    post += ' '
+                    post += u' '
 
-                if 'simple' == simple_or_compound:
-                    zzz = this_move.semiSimpleName
-                else:
-                    zzz = this_move.name
-
-                if not show_quality:
-                    zzz = zzz[1:]
-
+                zzz = this_move.semiSimpleName if u'simple' == size else this_move.name
+                zzz = zzz if quality else zzz[1:]
                 post += zzz
-
-                this_move = None
+            except AttributeError:
+                pass
 
         return post
 

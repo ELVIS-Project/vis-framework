@@ -289,34 +289,34 @@ class TestIntervalNGram(unittest.TestCase):
     def test_canonical_1(self):
         # m-3 +M2 M3
         actual = IntervalNGram(self.d)
-        self.assertEqual(actual.canonical(True, 'compound'), 'm3 M2 M3')
-        self.assertEqual(actual.canonical(True, 'simple'), 'm3 M2 M3')
-        self.assertEqual(actual.canonical(False, 'compound'), '3 2 3')
-        self.assertEqual(actual.canonical(False, 'simple'), '3 2 3')
+        self.assertEqual(actual.canonical(True, 'compound'), 'm3 +M2 M3')
+        self.assertEqual(actual.canonical(True, 'simple'), 'm3 +M2 M3')
+        self.assertEqual(actual.canonical(False, 'compound'), '3 +2 3')
+        self.assertEqual(actual.canonical(False, 'simple'), '3 +2 3')
 
     def test_canonical_2(self):
         # m3 -P4 m3
         actual = IntervalNGram(self.e)
-        self.assertEqual(actual.canonical(True, 'compound'), 'm3 P4 m3')
-        self.assertEqual(actual.canonical(True, 'simple'), 'm3 P4 m3')
-        self.assertEqual(actual.canonical(False, 'compound'), '3 4 3')
-        self.assertEqual(actual.canonical(False, 'simple'), '3 4 3')
+        self.assertEqual(actual.canonical(True, 'compound'), 'm3 -P4 m3')
+        self.assertEqual(actual.canonical(True, 'simple'), 'm3 -P4 m3')
+        self.assertEqual(actual.canonical(False, 'compound'), '3 -4 3')
+        self.assertEqual(actual.canonical(False, 'simple'), '3 -4 3')
 
     def test_canonical_3(self):
         # m3 -P4 M-3
         actual = IntervalNGram(self.f)
-        self.assertEqual(actual.canonical(True, 'compound'), 'm3 m2 M3')
-        self.assertEqual(actual.canonical(True, 'simple'), 'm3 m2 M3')
-        self.assertEqual(actual.canonical(False, 'compound'), '3 2 3')
-        self.assertEqual(actual.canonical(False, 'simple'), '3 2 3')
+        self.assertEqual(actual.canonical(True, 'compound'), 'm3 -m2 M3')
+        self.assertEqual(actual.canonical(True, 'simple'), 'm3 -m2 M3')
+        self.assertEqual(actual.canonical(False, 'compound'), '3 -2 3')
+        self.assertEqual(actual.canonical(False, 'simple'), '3 -2 3')
 
     def test_canonical_4(self):
         # m3 +P4 M2 -m6 P5 -m2 M-10
         actual = IntervalNGram(self.g)
-        self.assertEqual(actual.canonical(True, 'compound'), 'm3 P4 M2 m6 P5 A9 M10')
-        self.assertEqual(actual.canonical(True, 'simple'), 'm3 P4 M2 m6 P5 A2 M3')
-        self.assertEqual(actual.canonical(False, 'compound'), '3 4 2 6 5 9 10')
-        self.assertEqual(actual.canonical(False, 'simple'), '3 4 2 6 5 2 3')
+        self.assertEqual(actual.canonical(True, 'compound'), 'm3 +P4 M2 -m6 P5 +A9 M10')
+        self.assertEqual(actual.canonical(True, 'simple'), 'm3 +P4 M2 -m6 P5 +A2 M3')
+        self.assertEqual(actual.canonical(False, 'compound'), '3 +4 2 -6 5 +9 10')
+        self.assertEqual(actual.canonical(False, 'simple'), '3 +4 2 -6 5 +2 3')
 
     def test_inversion_1(self):
         # m3 M+2 P4 ==(12/up)==> M-10 +M2 M-9
