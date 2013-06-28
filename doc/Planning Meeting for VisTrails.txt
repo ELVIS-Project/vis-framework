@@ -1,0 +1,38 @@
+Trial Queries:
+==============
+1.) Compare the frequencies of interval n-grams in a mass and its contrapuntal model.
+2.) Plot contrapuntal entropy against composer (or any metadata field).
+3.) MISSING! (turned into 11)
+4.) Plot length of n-gram vs. frequencies in a set, coloured according to piece they occur in (scatter plot)
+5.) Plot intervals against beatStrength (i.e., "how often does a dissonant interval occur on a strong beat?")
+6.) Compute the dissonance level of set of pieces, plot on bar graph. "Aggregators. Dimensional reduction."
+7.) Given a set of pieces, divided into a set of categories (i.e., 50-year chunks), be able to treat each category as though it were its own piece, to run through all the other analyses ("categorize datasets")
+8.) Filter n-grams so that n-grams that are part of a larger-value-of-n-gram don't appear in the smaller list.
+9.) Calculate frequencies of Harrisonian harmonic functions versus year.
+10.) Create statistical models. Given a sample set, create a Markov transition matrix, for example. Calculate n-gram transition probabilities. Includes "smoothing/priors," "balances vs. proportions," etc.
+11.) Score of a piece showing all the k-voice contrapuntal modules of a length >= n, that also appear in another piece.
+
+VisTrails Modules We'll Need:
+=============================
+- piece
+    - creates an IndexedPiece
+    - imports
+    - extracts certain features straight out of the score
+    - throws out the piece
+- make k-part simultaneity (including "make intervals" shortcut for 2-part simultaneity)
+- make n-grams
+- categorize
+- choose a metadatum
+- make n-gram transition model
+- calculate entropy
+- observe n-gram 'n'
+- "repeat" sub-workflow (already in VisTrails?)
+- beatStrength
+- merge (e.g., intervals-and-beatStrength)
+- mean
+- remove embedded n-grams
+- find chords in polyphonic textures
+- label chords
+- balances
+- filter (e.g., "if n-grams appear in all categories" or "if more than one occurrence")
+- LilyPond (worry about that later)
