@@ -2,37 +2,109 @@ Trial Queries:
 ==============
 1.) Compare the frequencies of interval n-grams in a mass and its contrapuntal model.
 2.) Plot contrapuntal entropy against composer (or any metadata field).
-3.) MISSING! (turned into 11)
-4.) Plot length of n-gram vs. frequencies in a set, coloured according to piece they occur in (scatter plot)
-5.) Plot intervals against beatStrength (i.e., "how often does a dissonant interval occur on a strong beat?")
-6.) Compute the dissonance level of set of pieces, plot on bar graph. "Aggregators. Dimensional reduction."
-7.) Given a set of pieces, divided into a set of categories (i.e., 50-year chunks), be able to treat each category as though it were its own piece, to run through all the other analyses ("categorize datasets")
-8.) Filter n-grams so that n-grams that are part of a larger-value-of-n-gram don't appear in the smaller list.
-9.) Calculate frequencies of Harrisonian harmonic functions versus year.
-10.) Create statistical models. Given a sample set, create a Markov transition matrix, for example. Calculate n-gram transition probabilities. Includes "smoothing/priors," "balances vs. proportions," etc.
-11.) Score of a piece showing all the k-voice contrapuntal modules of a length >= n, that also appear in another piece.
+3.) Plot length of n-gram vs. frequencies in a set, coloured according to piece they occur in (scatter plot)
+4.) Plot intervals against beatStrength (i.e., "how often does a dissonant interval occur on a strong beat?")
+5.) Compute the dissonance level of set of pieces, plot on bar graph. "Aggregators. Dimensional reduction."
+6.) Given a set of pieces, divided into a set of categories (i.e., 50-year chunks), be able to treat each category as though it were its own piece, to run through all the other analyses ("categorize datasets")
+7.) Filter n-grams so that n-grams that are part of a larger-value-of-n-gram don't appear in the smaller list.
+8.) Calculate frequencies of Harrisonian harmonic functions versus year.
+9.) Create statistical models. Given a sample set, create a Markov transition matrix, for example. Calculate n-gram transition probabilities. Includes "smoothing/priors," "balances vs. proportions," etc.
+10.) Score of a piece showing all the k-voice contrapuntal modules of a length >= n, that also appear in another piece.
 
 VisTrails Modules We'll Need:
 =============================
+- name: description
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - piece
-    - creates an IndexedPiece
-    - imports
-    - extracts certain features straight out of the score
-    - throws out the piece
+    - inputs: list of pathnames
+    - outputs: list of IndexedPiece
+    - parameters: (optional) which indices to create
+        - if no indices specified, default is pitch/rest/chord (i.e., all the vis9c indices)
+        - we "have to" load pieces now, so we can get metadata; since we load them, might as well index too
 - make k-part simultaneity (including "make intervals" shortcut for 2-part simultaneity)
+    - inputs: list of IndexedPiece
+    - outputs: list of IndexedPiece
+        - adds an index of simultaneities according to the parameters
+    - parameters: simultaneity of what, "repeat identical," "offset between events," and list of the parts to include (probably as list of int)
 - make n-grams
-- categorize
+    - inputs: list of IndexedPiece
+    - outputs: ?
+    - parameters: thing of which to make n-grams (i.e., "interval," "chord," etc.), value of 'n', "repeat identical," "offset between events," and list of parts
+        - these are all required, so it can choose the right index from the IndexedPiece; if it doesn't exist yet, it'll be created, so in the VisTrails you don't have to use "make k-part simultaneity" unless you want
+        - sometimes we should be able to guess "thing of which to make n-grams"
 - choose a metadatum
+    Extract a metadata field from all the pieces.
+    - inputs: list of IndexedPiece
+    - outputs: dict of string
+        {'field': 'whatever field', 'pathname1': 'value', 'pathname2': 'value'}
+        --> 'field' is the "the metadata field to choose" parameter
+    - parameters: the metadata field to choose
+- categorize
+    Use a metadata field, or more than one, to create named categories for comparison
+    - inputs: list of IndexedPiece (that comes out of "piece")
+    - outputs: dict of list of pathnames
+        e.g., {'Beethoven': ['pathname1', 'pathname2'], 'Schubert': ['pathname3', 'pathname4']}
+        e.g., {'mass': ['kyrie.krn', 'gloria.krn'], 'model': ['Lhomme_armé.krn']}
+    - parameters: output(s) from "choose a metadatum" above
 - make n-gram transition model
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - calculate entropy
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - observe n-gram 'n'
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - "repeat" sub-workflow (already in VisTrails?)
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - beatStrength
+    Use an algorithm to find the beatStrength of given offsets. For now, the only algorithm is "music21," which just uses the beatStrength property of the music21 object
+    - inputs: list of IndexedPiece
+    - outputs: list of IndexedPiece
+        - adds an index of beatStrength
+    - parameters: "offset between events," algorithm to use for finding beatStrength
 - merge (e.g., intervals-and-beatStrength)
+    Combine results across categories.
+    - inputs: ?
+    - outputs: ?
+    - parameters: which category combinations to make lists of, some way to know which index/aggregation to use
+        - could be trivial, but in cases with lots of categories, it'll be really important to know the user only wants two lists: one with things that happen in categories A and B, and one with things that happen in categories C and D
 - mean
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - remove embedded n-grams
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - find chords in polyphonic textures
+    - inputs: list of IndexedPiece
+    - outputs: list of IndexedPiece
+        - adds an index of chords, with some way to know they're "reduced chords"
+    - parameters: which parts to consider (default to "all"), longest possible chord (i.e., how far to search for a complete sonority)
 - label chords
+    Given an algorithm with which to label chords, do it. We'll provide some defaults: RN, FB, RN/FB
+    - inputs: list of IndexedPiece
+    - outputs: list of IndexedPiece
+        - adds an index of chord labels
+    - parameters: which chord-labelling algorithm
 - balances
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - filter (e.g., "if n-grams appear in all categories" or "if more than one occurrence")
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
 - LilyPond (worry about that later)
+    - inputs: ?
+    - outputs: ?
+    - parameters: ?
+
