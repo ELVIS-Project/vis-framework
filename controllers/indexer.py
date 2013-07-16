@@ -31,16 +31,19 @@ from vis.models.indexed_piece import IndexedPiece
 
 class Indexer(object):
     """
-    ASDF DOCZ!
+    Create an index of a music21 stream.
 
     Use the "Indexer.needs_score" attribute to know whether the __init__() method should be given
     a subclass of music21.stream.Stream (if that attribute is False, give it an IndexedPiece).
+
+    The name of the indexer, as stored in an IndexedPiece, is the unicode-format version of the
+    class name, accessible through the "name()" function.
     """
 
     # NB: you should re-implement this in subclasses
     needs_score = False
 
-    def __init__(self, score):
+    def __init__(self, score, settings={}):
         """
         Create a new Indexer.
 
@@ -52,16 +55,23 @@ class Indexer(object):
             doesn't yet have the index/indices required for this Indexer, the appropriate indexers
             should be triggered by this Indexer.
 
+        settings : dict
+            A dict of all the settings required by this Indexer. All required settings should be
+            listed in subclasses. Default is {}.
+
         Raises
         ======
         RuntimeError :
-            If the "score" argument is the wrong type.
+            - If the "score" argument is the wrong type.
+            - If required settings are not present in the "settings" argument.
         """
         # NOTE: This is the only method you should reimplement in subclasses.
 
         # Choose from these, as appropriate:
         if not (isinstance(IndexedPiece) or isinstance(stream.Stream)):
             raise RuntimeError('Indexer expects IndexedPiece or Stream')
+
+        # Check that all required settings are present in the "settings" argument
 
         # Change the class name to the current class
         super(Indexer, self).__init__()
@@ -76,8 +86,16 @@ class Indexer(object):
         self._indexer_func = lambda x: None
 
         # If self._score is an IndexedPiece, change this to the name of the Indexer's results you
-        # want to use when creating this new index
+        # want to use when creating this new index. If this indexer has not yet been run, it will
+        # run automatically before analysis.
         self._previous_indexer = None
+
+    def name(self):
+        """
+        Return the name used to identify this indexer.
+        """
+        # NOTE: Do not reimplement this method in subclasses.
+        return unicode(self.__class__)
 
     def run(self):
         """
@@ -94,6 +112,8 @@ class Indexer(object):
         # NOTE-3: When I write it, this method will go through everything in self._score, and if
         #         an element matches one of the things in self._types, it will be passed through
         #         the self._indexer_func function, then added to the new Series.
+        # NOTE-4: This method automatically runs any required Indexers, if they haven't already
+        #         been run... which actually the IndexedPiece takes care of for us.
         pass
 
 

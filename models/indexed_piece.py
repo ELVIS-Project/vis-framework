@@ -50,12 +50,17 @@ class IndexedPiece(object):
 
     # About the Data Model (for self._data)
     # =====================================
-    # - All the indices and experiment results are stored in a dict.
-    # - Indices of the dict will be unicode()-format class names of the Indexer or Experiment
+    # - All the indices are stored in a dict.
+    # - Indices of the dict will be unicode()-format class names of the Indexer, as returned by
+    #   each Indexer subclass's "name()" function.
+    # - how can we store multiple results from the same Indexer, generated with different settings?
+
     # - for an Indexer, the stored item will be a list of pandas.Series objects, where the index
-    #   of a part will be the same in self._metadata{'part names'} and this list. We can easily
+    #   of a part will be the same in self._metadata{'part names'} and this list. Each list item
+    #   will be a 2-tuple, in which:
+    #   - index 0 shall hold We can easily
     #   convert these into music21.stream.Stream objects, to use getElementsAtOffset() to help with
-    #   the iteoor() method. Items in the Series, therefore, must be stored in a
+    #   the iter() method. Items in the Series, therefore, must be stored in a
     #   music21.base.ElementWrapper.
     # - for an Experiment, the stored item will be a 2-tuple, where element 0 holds a dict of the
     #   settings provided to the Experiment, and element 1 holds a pandas.DataFrame of the results
@@ -66,7 +71,7 @@ class IndexedPiece(object):
         self._metadata = {'pathname': pathname}
         self._data = {}
 
-    def __repr(self):
+    def __repr__(self):
         pass
 
     def __str__(self):
@@ -99,24 +104,10 @@ class IndexedPiece(object):
         """
         pass
 
-    def experiments_used(self):
+    def add_index(self, which_indexers, which_settings={}):
         """
-        Return a list of the names of the experiments used so far in this IndexedPiece.
-        """
-        pass
-
-    def _add_index(self, which_indexer):
-        """
-        For internal use. Without any additional checking, just run the specified indexer and
-        add its results to the DataFrame.
-
-        Maybe we won't need this.
-        """
-        pass
-
-    def add_index(self, which_indexers):
-        """
-        Run an indexer (or some indexers) on the score.
+        Run an indexer (or some indexers) on the score and save the results. If the indexer has
+        already been run with the same settings, the previously-calculated results are returned.
 
         During the initial import/indexation stage, you'll just call this method with a list of
         indices to add, in which case we'll run the indexation processes in parallel. If only one
@@ -131,51 +122,38 @@ class IndexedPiece(object):
         finishes, it makes sense to supply a list of all the indices you'll want, all at the same
         time, so that the import need only happen once.
 
-        BUT: I think not all the indexers will need the music21 Score object, since some of them
-        will use the results of other indexers, like the thing that labels interval series through
-        the score.
-        """
-        # NB: use the Indexer.needs_score attribute to know whether to import the Score
-        pass
-
-    def add_experiment(self, which_experiments, which_settings):
-        """
-        Run an experiment (or some experiments) on the score and save the results. If the
-        experiment has already been run with the same settings, the previously-calculated results
-        are returned.
-
         Parameters
         ==========
-        which_experiments : list
-            A list of the vis.models.experiment.Experiment subclasses to run on the IndexedPiece.
+        which_indexers : list
+            A list of the vis.controllers.indexer.Indexer subclasses to run on the IndexedPiece.
 
         which_settings : dict
-            A dict of the settings to provide the Experiment. If required by the Experiment, the
-            part combinations will should be specified here.
+            A dict of the settings to provide the Indexer. Default is {}.
 
         Returns
         =======
-        pandas.DataFrame :
-            The result produced by the Experiment subclass.
+        pandas.Series :
+            The result produced by the Indexer subclass.
 
         Raises
         ======
         RuntimeException :
-            If "which_experiments" refers to an unknown Experiment subclass.
+            If "which_experiments" refers to an unknown Indexer subclass, or the Indexer subclass
+            raises an exception.
 
         Side Effects
         ============
-        Results from the Experiment, and any additional Experiment subclasses or Indexer subclasses
-        required for the "which_experiment" Experiment subclass, are saved in the IndexedPiece.
+        Results from the Indexer, and any additional Indexer subclasses required for the
+        "which_index" Indexer subclass, are saved in the IndexedPiece.
         """
         pass
 
     def remove_index(self, **args):
         """
-        To save on memory, or for some other reason like it's suddenly invalied, remove the
-        particular indexed information from this IndexedPiece.
+        To save on memory, or for some other reason like it's suddenly invalied, remove certain
+        information from this IndexedPiece.
 
-        You might want to do this after, for example, when parsing chords from a piano texture.
+        You might want to do this, for example, after parsing chords from a piano texture.
         """
         pass
 
@@ -210,36 +188,6 @@ class IndexedPiece(object):
         ======
         RuntimeError :
             - If the "index" class has not been used in this IndexedPiece.
-        """
-        pass
-
-    def get_experiment(self, which_experiment, which_settings=None):
-        """
-        Access the results produced by a previously-run experiment.
-
-        Parameters
-        ==========
-        which_experiment : vis.models.experiment.Experiment subclass
-            The experiment whose results you wish to access.
-
-        which_settings : dict
-            A dict of the settings you want to have been provided to the experiment. You can omit
-            some or all of the settings the Experiment requires, in which case, if only one set of
-            results matches the settings you *do* provide, they will be returned, or if multiple
-            sets of results match, a RuntimeError will be raised. If required by the Experiment,
-            the part combinations will should be specified here.
-
-        Returns
-        =======
-        2-tuple :
-            0 : The dict of settings used to produce the results.
-            1 : The result of the Experiment.
-
-        Raises
-        ======
-        RuntimeError :
-            If which_experiment has not yet been run on this IndexedPiece, or if the keys in
-            which_settings are insufficient to choose a single experiment.
         """
         pass
 
