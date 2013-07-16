@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="Trial Query 4.svg">
+  <defs
+     id="defs4">
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3959"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker3072"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3074"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-6"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3959-2"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker3099"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3101"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker3103"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3105"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="415.4061"
+     inkscape:cy="762.43661"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1366"
+     inkscape:window-height="746"
+     inkscape:window-x="0"
+     inkscape:window-y="-1"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+       x="40.866573"
+       y="39.779881"
+       id="text2985"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan2987"
+         x="40.866573"
+         y="39.779881">Trial Query 4:</tspan><tspan
+         sodipodi:role="line"
+         x="40.866573"
+         y="59.779881"
+         id="tspan2989">Plot intervals against beatStrength (i.e., &quot;how often does a dissonant interval occur on a strong beat?&quot;).</tspan></text>
+    <g
+       id="g3139"
+       transform="translate(-35.597471,6.0421721)">
+      <rect
+         ry="0.13518362"
+         y="83.892288"
+         x="280.69327"
+         height="74.255981"
+         width="237.11824"
+         id="rect2985"
+         style="fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text2987"
+         y="101.80864"
+         x="287.89349"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           y="101.80864"
+           x="287.89349"
+           id="tspan2989-7"
+           sodipodi:role="line">piece</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3029"
+         y="122.01169"
+         x="299.00516"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           id="tspan3033"
+           y="122.01169"
+           x="299.00516"
+           sodipodi:role="line">User chooses the pathnames of</tspan><tspan
+           y="142.01169"
+           x="299.00516"
+           sodipodi:role="line"
+           id="tspan5023">some pieces.</tspan></text>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 460.37956,163.93302 93.94419,91.92388"
+       id="path3151"
+       inkscape:connector-curvature="0" />
+    <g
+       id="g3119"
+       transform="translate(-8.8413693,58.588849)">
+      <rect
+         ry="0.13518362"
+         y="181.61069"
+         x="56.568542"
+         height="155.56351"
+         width="176.77672"
+         id="rect3005"
+         style="fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3007"
+         y="202.82388"
+         x="62.629456"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           y="202.82388"
+           x="62.629456"
+           id="tspan3009"
+           sodipodi:role="line">k-part simultaneity</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3049"
+         y="232.11832"
+         x="60.609154"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           y="232.11832"
+           x="60.609154"
+           id="tspan3051"
+           sodipodi:role="line">User chooses:</tspan><tspan
+           id="tspan3053"
+           y="252.11832"
+           x="60.609154"
+           sodipodi:role="line">- part combinations</tspan><tspan
+           id="tspan3055"
+           y="272.11832"
+           x="60.609154"
+           sodipodi:role="line">- &quot;repeat identical&quot;</tspan><tspan
+           id="tspan3057"
+           y="292.11832"
+           x="60.609154"
+           sodipodi:role="line">- &quot;offset between events&quot;</tspan><tspan
+           y="312.11832"
+           x="60.609154"
+           sodipodi:role="line"
+           id="tspan5852">- simultaneity of what</tspan><tspan
+           y="332.11832"
+           x="60.609154"
+           sodipodi:role="line"
+           id="tspan5247">- 'k' = 2</tspan></text>
+    </g>
+    <g
+       id="g3109"
+       transform="translate(-45.206862,90.913731)">
+      <rect
+         ry="0.13518362"
+         y="351.31631"
+         x="69.700523"
+         height="118.18785"
+         width="278.80209"
+         id="rect3011"
+         style="fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3013"
+         y="368.48892"
+         x="80.873116"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           y="368.48892"
+           x="80.873116"
+           id="tspan3015"
+           sodipodi:role="line">make n-grams</tspan></text>
+      <text
+         sodipodi:linespacing="125%"
+         id="text3059"
+         y="394.75287"
+         x="75.761444"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           y="394.75287"
+           x="75.761444"
+           id="tspan3061"
+           sodipodi:role="line">User chooses lengths of 'n' (= 1).</tspan><tspan
+           id="tspan3063"
+           y="414.75287"
+           x="75.761444"
+           sodipodi:role="line" /><tspan
+           id="tspan3065"
+           y="434.75287"
+           x="75.761444"
+           sodipodi:role="line">We'll automatically know, somehow,</tspan><tspan
+           id="tspan3067"
+           y="454.75287"
+           x="75.761444"
+           sodipodi:role="line">to use the things from k-part simultaneity.</tspan></text>
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="M 337.64095,165.44825 182.07746,238.17923"
+       id="path3147"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 173.99624,394.75288 2.02031,44.44672"
+       id="path3149"
+       inkscape:connector-curvature="0" />
+    <g
+       id="g3092"
+       transform="translate(72.730988,10.606637)">
+      <rect
+         ry="0.13518362"
+         y="735.17426"
+         x="257.5889"
+         height="45.456848"
+         width="92.934029"
+         id="rect3023"
+         style="fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+      <text
+         sodipodi:linespacing="125%"
+         id="text3025"
+         y="763.45856"
+         x="286.88333"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           y="763.45856"
+           x="286.88333"
+           id="tspan3027"
+           sodipodi:role="line">output</tspan></text>
+    </g>
+    <g
+       id="g5267"
+       transform="translate(0,2)">
+      <text
+         sodipodi:linespacing="125%"
+         id="text5249"
+         y="269.49396"
+         x="452.54834"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           y="269.49396"
+           x="452.54834"
+           id="tspan5251"
+           sodipodi:role="line">beatStrength</tspan><tspan
+           id="tspan5253"
+           y="289.49396"
+           x="452.54834"
+           sodipodi:role="line" /><tspan
+           id="tspan5257"
+           y="309.49396"
+           x="452.54834"
+           sodipodi:role="line">User chooses interval between offset on</tspan><tspan
+           id="tspan5261"
+           y="329.49396"
+           x="452.54834"
+           sodipodi:role="line">which to observe a beatStrength, and an</tspan><tspan
+           id="tspan5263"
+           y="349.49396"
+           x="452.54834"
+           sodipodi:role="line">algorithm for same.</tspan></text>
+      <rect
+         ry="0.13518362"
+         y="254.34167"
+         x="447.49759"
+         height="106.06602"
+         width="267.69043"
+         id="rect5265"
+         style="fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+    </g>
+    <g
+       id="g5290"
+       transform="translate(-1.0101525,15.152288)">
+      <text
+         sodipodi:linespacing="125%"
+         id="text5276"
+         y="595.77325"
+         x="242.43661"
+         style="font-size:16px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Liberation Serif;-inkscape-font-specification:Liberation Serif"
+         xml:space="preserve"><tspan
+           y="595.77325"
+           x="242.43661"
+           id="tspan5278"
+           sodipodi:role="line">merge</tspan><tspan
+           id="tspan5280"
+           y="615.77325"
+           x="242.43661"
+           sodipodi:role="line" /><tspan
+           id="tspan5282"
+           y="635.77325"
+           x="242.43661"
+           sodipodi:role="line">User chooses to combine 2-part interval 1-grams</tspan><tspan
+           id="tspan5284"
+           y="655.77325"
+           x="242.43661"
+           sodipodi:role="line">with the beatStrength of the offset on which</tspan><tspan
+           id="tspan5286"
+           y="675.77325"
+           x="242.43661"
+           sodipodi:role="line">they begin.</tspan></text>
+      <rect
+         ry="0.13518362"
+         y="584.66156"
+         x="238.396"
+         height="100.0051"
+         width="321.22852"
+         id="rect5288"
+         style="fill:none;stroke:#000000;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0" />
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker3103)"
+       d="M 553.56359,363.43815 455.5788,599.81384"
+       id="path5301"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker3103)"
+       d="m 368.70568,700.8291 1.01015,43.43656"
+       id="path5303"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker3103)"
+       d="m 287.89348,559.40774 18.18274,40.4061"
+       id="path5875"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>
