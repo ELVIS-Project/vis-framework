@@ -138,7 +138,7 @@ class IndexedPiece(object):
         Raises
         ======
         RuntimeException :
-            If "which_experiments" refers to an unknown Indexer subclass, or the Indexer subclass
+            If "which_indexers" refers to an unknown Indexer subclass, or the Indexer subclass
             raises an exception.
 
         Side Effects
@@ -154,6 +154,57 @@ class IndexedPiece(object):
         information from this IndexedPiece.
 
         You might want to do this, for example, after parsing chords from a piano texture.
+        """
+        pass
+
+    def experimenters_used(self):
+        """
+        Return a list of the names of the experimenters used so far in this IndexedPiece.
+        """
+        pass
+
+    def add_experiment(self, which_experimenters, which_settings={}):
+        """
+        Run an experimenter (or some experimenters) on the score and save the results. If the
+        experimenter has already been run with the same settings, the previously-calculated
+        results are returned.
+
+        This method checks whether the required indexers have been run. If not, they will be run
+        now, and the indices saved in this object, but not returned.
+
+        Parameters
+        ==========
+        which_experimenters : list
+            A list of the vis.controllers.experimenter.Experimenter subclasses to run.
+
+        which_settings : dict
+            A dict of the settings to provide the Experimenter. Default is {}.
+
+        Returns
+        =======
+        pandas.Series or pandas.DataFrame :
+            The result produced by the Experimenter subclass.
+
+        Raises
+        ======
+        RuntimeException :
+            If "which_experimenters" refers to an unknown Experimenter subclass, or the Experimenter
+            subclass raises an exception.
+
+        Side Effects
+        ============
+        Results from the Indexer, and any additional Indexer subclasses required for the
+        "which_index" Indexer subclass, are saved in the IndexedPiece.
+        """
+        pass
+
+    def remove_experiment(self, **args):
+        """
+        To save on memory, or for some other reason like it's suddenly invalied, remove certain
+        information from this IndexedPiece.
+
+        You might want to do this, for example, after re-calculating an index on which an
+        Experimenter depends, but which you do not wish to recalculate.
         """
         pass
 
