@@ -1,0 +1,15 @@
+imaginary users.txt :
+    Descriptions of three imaginary users whom we believe are likely to want to use vis.
+
+
+User 1: "DDE" (Double Domain Expert)
+====================================
+User 1 knows about both music research and computer science. They will use vis from their own computer, which means the VisTrails interface. They will want to add new modules to the VisTrails interface, so they must understand how the vis back-end works and how to write a new VisTrails module connected to a new back-end module.
+
+User 2: "IM" (Invested Musicologist)
+====================================
+User 2 is a domain expert in music research, and believes in the potential importance of computer-based research. After using the Web interface, they wanted the enhanced flexibility of the VisTrails interface. Because VisTrails is complicated to learn, they will require explanations for how the Web interface's queries are built. Knowing their limits, they will not want to write new modules, though they may want to add modules written by third parties.
+
+User 3: "SM" (Skeptical Musicologist)
+=====================================
+User 3 is a domain expert in music research, and has been convinced to try vis, but will not tolerate technical jargon and complicated work-arounds. They will be able to form a query like one of the ten sample queries, but they will not be interested in the flow-chart representation it requires in VisTrails. When something unexpected happens, they are likely to stop using the application if assistance is not immediately visible.
