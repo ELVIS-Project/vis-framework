@@ -27,10 +27,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
-__all__ = ['analyzing', 'display_handling', 'experimenting', 'importing', 'ngram']
+__all__ = ['analyzing', 'display_handling', 'experimenting', 'importing', 'ngram',
+    'aggregated_pieces', 'indexed_piece']
 
 import analyzing
 import display_handling
 import experimenting
 import importing
 import ngram
+import aggregated_pieces
+import indexed_piece
