@@ -27,8 +27,7 @@ The controllers that deal with indexing data from music21 Score objects.
 
 import copy
 import pandas
-from music21 import stream, note, base
-from models.indexed_piece import IndexedPiece
+from music21 import stream, note, base, interval
 
 
 def mp_indexer(parts, indexer_func, types=None):
@@ -102,9 +101,9 @@ class Indexer(object):
     """
     Create an index of a music21 stream.
 
-    Use the "requires_score()" function to know whether the __init__() method should be given a
-    list of music21.stream.Part objects. If this function returns False, use the "required_indices"
-    attribute to get a list of the names of Indexers that should be provided instead.
+    Use the "requires_score" attribute to know whether the __init__() method should be given a
+    list of music21.stream.Part objects. If False, use the "required_indices" attribute to get a
+    list of the names of Indexers that should be provided instead.
 
     The name of the indexer, as stored in an IndexedPiece, is the unicode-format version of the
     class name, accessible through the "name()" function (or Indexer.__name__).
@@ -117,6 +116,11 @@ class Indexer(object):
     # NOTE: activate one of these in subclasses
     required_score_type = stream.Part
     #required_score_type = pandas.Series
+
+    # NOTE: re-implement these in subclasses as needed
+    possible_settings = {}
+    default_settings = {}
+    requires_score = False
 
     #def __init__(self, score, settings={}):
         #"""
@@ -141,7 +145,8 @@ class Indexer(object):
         #"""
         ## NOTE: Implement this method when writing subclasses.
 
-        ## Check all required settings are present in the "settings" argument
+        ## Check all required settings are present in the "settings" argument. You must ignore
+        ## extra settings.
         ## self._settings = settings
 
         ## Change "Indexer" to the current class name
@@ -213,8 +218,8 @@ class Indexer(object):
         # NOTE: Do not change this method; when writing subclasses, use template __init__() above.
 
         # Check the "score" argument is either uniformly Part or Series objects.
-        if not reduce(lambda x, y: x == y, [type(x) for x in score]):  # so func-y!
-            raise RuntimeError(u'All elements of "score" must be the same type.')
+        #if not reduce(lambda x, y: x == y, [type(x) for x in score]):  # so func-y!  # DEBUG
+            #raise RuntimeError(u'All elements of "score" must be the same type.')  # DEBUG
         if not isinstance(score[0], self.required_score_type):
             raise RuntimeError(u'All elements of "score" must be a ' +
                 unicode(self.required_score_type) + '.')
@@ -222,18 +227,6 @@ class Indexer(object):
         # Clean up
         super(Indexer, self).__init__()
         self._score = score
-
-    def requires_score(self):
-        """
-        Find out whether this Indexer requires unmodified Part objects directly from the music21
-        Score. If False, use the "required_indices" attribute to find the results of which Indexer
-        is required instead.
-        """
-        # NOTE: Do not reimplement this method in subclasses.
-        if [] == self.required_indices:
-            return True
-        else:
-            return False
 
     def name(self):
         """
@@ -270,6 +263,7 @@ class Indexer(object):
         """
         # NOTE: Do not reimplement this method in subclasses.
         # TODO: use the MPController
+        # TODO: make this work for IndexedPieces
 
         score_arg = None
         post = []
@@ -291,8 +285,9 @@ class NoteRestIndexer(Indexer):
 
     required_indices = []
     required_score_type = stream.Part
+    requires_score = True
 
-    def __init__(self, score):
+    def __init__(self, score, settings=None):
         """
         Create a new Indexer.
 
@@ -306,14 +301,14 @@ class NoteRestIndexer(Indexer):
         RuntimeError :
             If the "score" argument is the wrong type.
         """
-
-        ## Change "Indexer" to the current class name
+        print(str(type(score)))  # DEBUG
+        # Change "Indexer" to the current class name
         super(NoteRestIndexer, self).__init__(score)
 
-        ## If self._score is a Stream (subclass), change to a list of types you want to process
+        # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = [note.Rest, note.Note]
 
-        ## Change to the function you want to use
+        # Change to the function you want to use
         self._indexer_func = lambda x: u'Rest' if isinstance(x, note.Rest) \
                                                else unicode(x.nameWithOctave)
 
@@ -332,6 +327,7 @@ class NoteRestIndexer(Indexer):
         combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately
         return self._do_multiprocessing(combinations)
 
+
 class IntervalIndexer(Indexer):
     """
     Create an index of music21.interval.Interval objects found in the result of a NoteRestIndexer.
@@ -341,6 +337,8 @@ class IntervalIndexer(Indexer):
 
     required_indices = [u'NoteRestIndexer']
     required_score_type = pandas.Series
+    possible_settings = [u'simple or compound', u'quality']
+    default_settings = {u'simple or compound': u'compound', u'quality': False}
 
     def __init__(self, score, settings={}):
         """
@@ -370,14 +368,14 @@ class IntervalIndexer(Indexer):
         if 'simple or compound' in settings:
             self._settings['simple or compound'] = settings['simple or compound']
         else:
-            self._settings['simple or compound'] = 'compound'
+            self._settings['simple or compound'] = IntervalIndexer.default_settings['simple or compound']
         if 'quality' in settings:
             self._settings['quality'] = settings['quality']
         else:
-            self._settings['quality'] = False
+            self._settings['quality'] = IntervalIndexer.default_settings['quality']
 
         # Change "Indexer" to the current class name
-        super(Indexer, self).__init__()
+        super(IntervalIndexer, self).__init__()
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         # self._types = []
@@ -403,7 +401,7 @@ class IntervalIndexer(Indexer):
 
         # To calculate all 2-part combinations:
         for left in xrange(len(self._score)):
-            for right in xrange(left + 1, upto + 1):
+            for right in xrange(left + 1, upto + 1):  # TODO: figure out what "upto" is
                 combinations.append([left, right])
 
         # This method returns once all computation is complete. The results are returned as a list
