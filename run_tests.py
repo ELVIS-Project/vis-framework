@@ -32,12 +32,16 @@ verb = 1
 
 # Imports
 import unittest
+from analyzers_tests.test_note_rest_indexer import *
 from controllers_tests.test_importer import *
 from controllers_tests.test_analyzer import *
 from controllers_tests.test_experimenter import *
 from models_tests.test_importing import *
 from models_tests.test_analyzing import *
 from models_tests.test_ngram import *
+
+# Analyzers ---------------------------------------------------------------------------------------
+unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
 
 # Controllers ------------------------------------------------------------------
 # Importer
@@ -54,7 +58,7 @@ from models_tests.test_ngram import *
 #unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_bach)
 
 # Experimenter
-unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_stats_suite)
+#unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_stats_suite)
 #unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_lists_suite)
 
 # Models -----------------------------------------------------------------------
