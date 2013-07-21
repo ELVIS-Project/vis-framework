@@ -27,7 +27,7 @@ The controllers that deal with indexing data from music21 Score objects.
 
 import copy
 import pandas
-from music21 import stream, note, base, interval
+from music21 import stream, note, base, interval, duration
 
 
 def mp_indexer(parts, indexer_func, types=None):
@@ -86,12 +86,27 @@ def mp_indexer(parts, indexer_func, types=None):
         each_part.sliceAtOffsets(offsetList=unique_offsets, inPlace=True)
 
     # Convert to requested index format
-    all_parts = stream.Stream(all_parts)
-    post = map(lambda x: base.ElementWrapper(indexer_func(x)), all_parts.flat)
-
-    # Include offset information in the new Stream
-    for i, item in enumerate(post):
-        item.offset = all_parts[0][i].offset
+    post = []
+    for each_offset in unique_offsets:
+        # copied/modified from _event_finder() in controllers/analyzer.py of vis9c
+        current_events = []
+        for each_part in all_parts:
+            possible = []
+            try:
+                possible = each_part.getElementsByOffset(each_offset, mustBeginInSpan=False)
+            except stream.StreamException:
+                pass
+            if 0 < len(possible):
+                current_events.append(possible[0])
+        if 0 == len(current_events):
+            continue  # TODO: why do I need this?
+        new_obj = base.ElementWrapper(indexer_func(current_events))
+        new_obj.offset = each_offset  # copy offset to new Stream
+        try:  # set duration for previous event
+            post[-1].duration = duration.Duration(each_offset - post[-1].offset)
+        except IndexError:
+            pass
+        post.append(new_obj)
 
     return pandas.Series(post)
 
@@ -150,12 +165,14 @@ class Indexer(object):
         ## self._settings = settings
 
         ## Change "Indexer" to the current class name
-        #super(Indexer, self).__init__()
+        #super(Indexer, self).__init__(score)
 
         ## If self._score is a Stream (subclass), change to a list of types you want to process
         ## self._types = []
 
         ## Change to the function you want to use
+        ## NB: The lambda function receives events in a list of all voices in the current voice
+        ##     combination; if this Indexer processes one voice at a time, it's a one-element list.
         ## self._indexer_func = lambda x: None
 
     def run(self):
@@ -180,7 +197,7 @@ class Indexer(object):
 
         # To calculate all 2-part combinations:
         #for left in xrange(len(self._score)):
-            #for right in xrange(left + 1, upto + 1):
+            #for right in xrange(left + 1, len(self._score)):
                 #combinations.append([left, right])
 
         # This method returns once all computation is complete. The results are returned as a list
@@ -218,8 +235,9 @@ class Indexer(object):
         # NOTE: Do not change this method; when writing subclasses, use template __init__() above.
 
         # Check the "score" argument is either uniformly Part or Series objects.
-        #if not reduce(lambda x, y: x == y, [type(x) for x in score]):  # so func-y!  # DEBUG
-            #raise RuntimeError(u'All elements of "score" must be the same type.')  # DEBUG
+        for i in xrange(len(score) - 1):
+            if type(score[i]) != type(score[i + 1]):
+                raise RuntimeError(u'All elements of "score" must be the same type.')
         if not isinstance(score[0], self.required_score_type):
             raise RuntimeError(u'All elements of "score" must be a ' +
                 unicode(self.required_score_type) + '.')
@@ -270,7 +288,10 @@ class Indexer(object):
 
         for each_combo in combos:
             voices = [self._score[x] for x in each_combo]
-            post.append(mp_indexer(voices, self._indexer_func, self._types))
+            if self.required_score_type is stream.Part:
+                post.append(mp_indexer(voices, self._indexer_func, self._types))
+            else:
+                post.append(mp_indexer(voices, self._indexer_func))
 
         return post
 
@@ -301,7 +322,6 @@ class NoteRestIndexer(Indexer):
         RuntimeError :
             If the "score" argument is the wrong type.
         """
-        print(str(type(score)))  # DEBUG
         # Change "Indexer" to the current class name
         super(NoteRestIndexer, self).__init__(score)
 
@@ -309,8 +329,8 @@ class NoteRestIndexer(Indexer):
         self._types = [note.Rest, note.Note]
 
         # Change to the function you want to use
-        self._indexer_func = lambda x: u'Rest' if isinstance(x, note.Rest) \
-                                               else unicode(x.nameWithOctave)
+        self._indexer_func = lambda x: u'Rest' if isinstance(x[0], note.Rest) \
+                                               else unicode(x[0].nameWithOctave)
 
     def run(self):
         """
@@ -375,13 +395,15 @@ class IntervalIndexer(Indexer):
             self._settings['quality'] = IntervalIndexer.default_settings['quality']
 
         # Change "Indexer" to the current class name
-        super(IntervalIndexer, self).__init__()
+        super(IntervalIndexer, self).__init__(score)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         # self._types = []
 
         # Change to the function you want to use
-        self._indexer_func = lambda x, y: interval.Interval(y.obj, x.obj)
+        # TODO: optimize this
+        # TODO: modify this to use the settings
+        self._indexer_func = lambda x: interval.Interval(note.Note(x[0].obj), note.Note(x[1].obj)).name
 
     def run(self):
         """
@@ -401,7 +423,7 @@ class IntervalIndexer(Indexer):
 
         # To calculate all 2-part combinations:
         for left in xrange(len(self._score)):
-            for right in xrange(left + 1, upto + 1):  # TODO: figure out what "upto" is
+            for right in xrange(left + 1, len(self._score)):
                 combinations.append([left, right])
 
         # This method returns once all computation is complete. The results are returned as a list
