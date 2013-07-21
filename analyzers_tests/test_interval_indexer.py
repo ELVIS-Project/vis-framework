@@ -23,13 +23,12 @@
 #--------------------------------------------------------------------------------------------------
 
 import unittest
-import pandas
 from music21 import converter, stream, clef, bar
-from models import indexed_piece
-from analyzers.indexer import NoteRestIndexer
+from models.indexed_piece import IndexedPiece
+from analyzers.indexer import IntervalIndexer
 
 
-class TestNoteRestIndexer(unittest.TestCase):
+class TestIntervalIndexer(unittest.TestCase):
     def setUp(self):
         self.bwv77_soprano = [
             (0.0, "E4"),
@@ -211,119 +210,26 @@ class TestNoteRestIndexer(unittest.TestCase):
             (71.0, "B2")
             ]
 
-    #def test_note_rest_indexer_X(self):
+    #def test_interval_indexer_X(self):
         ## This is a pattern
         #expected = [[]]
         #test_part = None
-        #nr_indexer = NoteRestIndexer(test_part)
-        #actual = nr_indexer.run()
-        #self.assertEqual(len(expected), len(actual))
-        #self.assertEqual(len(expected[0]), len(actual[0]))
-        #for i in xrange(len(expected)):
-            #self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            #self.assertEqual(expected[0][i][1], actual[0][i].obj)
+        #test_ip = IndexedPiece('pathname')
+        #int_indexer = IntervalIndexer(test_ip._data[u'NoteRestIndexer'][u'{}'])
+        #actual = int_indexer.run()
+        #??????
 
-    def test_note_rest_indexer_1(self):
-        # The construcor must receive a Score
-        test_part = [pandas.Series(['a', 'b', 'c']), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, NoteRestIndexer, test_part)
-
-    def test_note_rest_indexer_2(self):
-        # The construcor must receive a Score
-        test_part = [pandas.Series(['a', 'b', 'c']), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, NoteRestIndexer, test_part)
-
-    def test_note_rest_indexer_3(self):
-        # Must be only one type in the list
-        test_part = [stream.Part(), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, NoteRestIndexer, test_part)
-
-    def test_note_rest_indexer_4(self):
-        # Must be only one type in the list
-        test_part = [stream.Part(), pandas.Series([1, 2, 3]), stream.Part()]
-        self.assertRaises(RuntimeError, NoteRestIndexer, test_part)
-
-    def test_note_rest_indexer_5(self):
-        # Should be fine
-        expected = [[], []]
-        test_part = [stream.Part(), stream.Part()]
-        nr_indexer = NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        self.assertEqual(len(expected[1]), len(actual[1]))
-
-    def test_note_rest_indexer_10(self):
-        # When the Part has nothing in it
+    def test_interval_indexer_1(self):
+        # This is a pattern
         expected = [[]]
-        test_part = [stream.Part()]
-        nr_indexer = NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-
-    def test_note_rest_indexer_11(self):
-        # When the part has no Note or Rest objects in it
-        expected = [[]]
-        test_part = stream.Part()
-        # add stuff to the test_part
-        for i in xrange(1000):
-            add_me = clef.BassClef()
-            add_me.offset = i
-            test_part.append(add_me)
-            add_me = bar.Barline()
-            add_me.offset = i
-            test_part.append(add_me)
-        test_part = [test_part]
-        # finished adding stuff to the test_part
-        nr_indexer = NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-
-    def test_note_rest_indexer_200(self):
-        # Soprano part of bwv77.mxl
-        expected = [self.bwv77_soprano]
-        test_part = [converter.parse('test_corpus/bwv77.mxl').parts[0]]
-        nr_indexer = NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
-
-    def test_note_rest_indexer_201(self):
-        # Bass part of bwv77.mxl
-        expected = [self.bwv77_bass]
-        test_part = [converter.parse('test_corpus/bwv77.mxl').parts[3]]
-        nr_indexer = NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
-
-    def test_note_rest_indexer_202(self):
-        # Bass part of bwv77.mxl
-        expected = [self.bwv77_soprano, self.bwv77_bass]
-        bwv77 = converter.parse('test_corpus/bwv77.mxl')
-        test_part = [bwv77.parts[0], bwv77.parts[3]]
-        nr_indexer = NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        self.assertEqual(len(expected[1]), len(actual[1]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
-        for i in xrange(len(expected[1])):
-            self.assertEqual(expected[1][i][0], actual[1][i].offset)
-            self.assertEqual(expected[1][i][1], actual[1][i].obj)
-
+        test_part = None
+        test_ip = IndexedPiece('test_corpus/Kyrie.krn')
+        test_ip.add_index(u'NoteRestIndexer')
+        int_indexer = IntervalIndexer(test_ip._data[u'NoteRestIndexer'][u'{}'])
+        actual = int_indexer.run()
+        print(str(actual))  # DEBUG
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-note_rest_indexer_suite = unittest.TestLoader().loadTestsFromTestCase(TestNoteRestIndexer)
+interval_indexer_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexer)

@@ -22,7 +22,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
-__all__ = ['test_note_rest_indexer']
+__all__ = ['test_note_rest_indexer', 'test_interval_indexer']
 
 import test_note_rest_indexer
-
+import test_interval_indexer

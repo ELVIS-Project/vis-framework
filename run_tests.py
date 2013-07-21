@@ -32,7 +32,11 @@ verb = 1
 
 # Imports
 import unittest
+# new
 from analyzers_tests.test_note_rest_indexer import *
+from analyzers_tests.test_interval_indexer import *
+from models_tests.test_indexed_piece import *
+# old
 from controllers_tests.test_importer import *
 from controllers_tests.test_analyzer import *
 from controllers_tests.test_experimenter import *
@@ -41,7 +45,10 @@ from models_tests.test_analyzing import *
 from models_tests.test_ngram import *
 
 # Analyzers ---------------------------------------------------------------------------------------
-unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
+#unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
+unittest.TextTestRunner(verbosity=verb).run(interval_indexer_suite)
+#unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)
+#unittest.TextTestRunner(verbosity=verb).run(indexed_piece_errors_suite)
 
 # Controllers ------------------------------------------------------------------
 # Importer
