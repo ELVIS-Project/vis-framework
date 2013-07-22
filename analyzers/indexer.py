@@ -209,7 +209,6 @@ class Indexer(object):
         # Return the results.
         return results
 
-
     # NOTE: Do not implement any methods below this line in subclasses. ----------------------------
     def __init__(self, score, settings={}):
         """
@@ -240,7 +239,7 @@ class Indexer(object):
                 raise RuntimeError(u'All elements of "score" must be the same type.')
         if not isinstance(score[0], self.required_score_type):
             raise RuntimeError(u'All elements of "score" must be a ' +
-                unicode(self.required_score_type) + '.')
+                               unicode(self.required_score_type) + '.')
 
         # Clean up
         super(Indexer, self).__init__()
@@ -283,7 +282,7 @@ class Indexer(object):
         # TODO: use the MPController
         # TODO: make this work for IndexedPieces
 
-        score_arg = None
+        #score_arg = None
         post = []
 
         for each_combo in combos:
@@ -330,7 +329,7 @@ class NoteRestIndexer(Indexer):
 
         # Change to the function you want to use
         self._indexer_func = lambda x: u'Rest' if isinstance(x[0], note.Rest) \
-                                               else unicode(x[0].nameWithOctave)
+                                       else unicode(x[0].nameWithOctave)
 
     def run(self):
         """

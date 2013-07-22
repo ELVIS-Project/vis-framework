@@ -213,10 +213,10 @@ class IndexedPiece(object):
             # TODO: handle add-on Indexers
             try:
                 i_module = __import__(u'analyzers.indexer',
-                                            globals(),
-                                            locals(),
-                                            this_indexer,
-                                            -1)
+                                      globals(),
+                                      locals(),
+                                      this_indexer,
+                                      -1)
             except ImportError:
                 missing_indexers.append(this_indexer)
                 continue
