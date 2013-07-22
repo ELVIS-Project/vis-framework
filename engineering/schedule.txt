@@ -1,0 +1,60 @@
+schedule.txt :
+    Defines actions we must complete, required pre-requisite actions, and projected dates for completion.
+
+
+date:
+    --> action
+        description
+
+Jul-23:
+    --> Class and Function Signatures and Documentation for Data Models, Analyzer Base Classes, and MPController
+        This amounts to a non-working prototype for these components. The WController shall be left out for now.
+    --> Proof-of-Concept for These Components
+        To demonstrate our architecture can work as intended.
+
+Jul-29:
+    --> Full Implementation and Minimal Tests for These Components
+        To demonstrate that all functionality works sometimes.
+    --> Research visual design of Web interface
+
+Aug-6:
+    --> Extensive Unit Tests and Ground Truth for These Components
+    --> Integration of These Components into Existing PyQt4 GUI
+
+Aug-13:
+    --> Bridge to R
+    --> Write VisTrails modules
+    --> Build sample workflows
+    --> Figure out how to do the WController
+    --> Write the Web interface
+
+Aug-20: ??
+
+Aug-27: ??
+
+Sep-3:
+    --> Development phase complete
+    --> Begin documentation and integration testing (i.e., run real queries to see how to mess it up)
+    (Schedule Buffer Week)
+
+Sep-10: ??
+    --> Prototype "Think Computationally with vis"
+    --> Prototype "Use the vis Web App"
+    --> Prototype "vis on VisTrails"
+    --> Prototype "Extend vis on VisTrails"
+    --> Write "Think Computationally with vis"
+    --> Write "Use the vis Web App"
+    --> Write "vis on VisTrails"
+    --> Write "Extend vis on VisTrails"
+    --> Write vis API
+    --> Write vis Extensibility API
+
+Sep-17: ??
+
+Sep-24: ??
+
+Oct-1: ??
+
+Oct-8: ??
+
+Oct-12: D-Day

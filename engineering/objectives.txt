@@ -7,18 +7,18 @@ Need:
 
 Goals:
 - robust, abstract back-end platform allowing future expansion
-    - developer documentation
-    - testing and "ground truth"
+    - documentation for developers
+    - unit/integration testing and ground truth
 - VisTrails GUI
-    - minimal documentation
-    - minimal testing
+    - documentation with references to other docs
+    - tested mostly by other moduless
 - Web GUI
     - extensive documentation
     - extensive testing
 
 Desired Features:
 - ability to dynamically choose what a "word" is
-- connection flexible visualization platform
+- connection to a flexible visualization platform
 
 Constraints:
 - time
@@ -28,5 +28,3 @@ Constraints:
 
 Priorities:
 - robust, abstract back-end platform allowing future expansion
-    - developer documentation
-    - testing and "ground truth"

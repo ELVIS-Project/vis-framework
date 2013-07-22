@@ -6,6 +6,9 @@ objectives.txt :
 specifications.txt :
     Technical specifications for how we will meet our high-level objectives.
 
+imaginary users.txt :
+    Descriptions of three imaginary users whom we believe are likely to want to use vis.
+
 schedule.txt :
     Defines actions we must complete, required pre-requisite actions, and projected dates for completion.
 
@@ -17,6 +20,3 @@ trial queries.txt :
 
 Trial Query X.svg :
     Flowcharts of how data and processes will proceed through the evaluation of a query.
-
-imaginary users.txt :
-    Descriptions of three imaginary users whom we believe are likely to want to use vis.
