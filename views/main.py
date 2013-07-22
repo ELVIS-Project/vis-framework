@@ -43,7 +43,7 @@ from Ui_main_window import Ui_MainWindow
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
-    "This class makes the GUI-controlling objects for vis' PyQt4 interface."
+    """This class makes the GUI-controlling objects for vis' PyQt4 interface."""
     # Signals for connecting to the vis_controller
     show_import = QtCore.pyqtSignal()
     show_analyze = QtCore.pyqtSignal()
@@ -109,7 +109,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         ]
         for signal, slot in mapper:
             signal.connect(slot)
-        # Setup the progress bar
+            # Setup the progress bar
         self.ui.progress_bar.setMinimum(0)
         self.ui.progress_bar.setMaximum(100)
         self.ui.progress_bar.setValue(42)
@@ -204,25 +204,25 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         else:
             # then ask the user to stop being a jerk
             QtGui.QMessageBox.information(None,
-            u"Please Select Pieces",
-            u"""The list of pieces is empty.
+                                          u"Please Select Pieces",
+                                          u"""The list of pieces is empty.
 
-You must choose pieces before we can import them.""",
-            QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
-            QtGui.QMessageBox.Ok)
+                              You must choose pieces before we can import them.""",
+                                          QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                                          QtGui.QMessageBox.Ok)
 
     @QtCore.pyqtSlot()
     def _add_files(self):
         "Add files to the 'importer' panel."
         files = QtGui.QFileDialog.getOpenFileNames(
-            None,  # parent
-            u"Choose Files to Analyze",  # title
-            u'',  # default directory
-            )  # NB: This should be the 'filter' line, which is below, but commented out... it seems
-            # that, for some reason, the filter isn't working. For me on Fedora 17, the result is
-            # that all file types are "selectable"... but others have reported occasional issues
-            # that entirely prevent them from selecting files. So here we are.
-            # 'music21 Files (*.nwc *.mid *.midi *.mxl *.krn *.xml *.md)')  # filter
+            None, # parent
+            u"Choose Files to Analyze", # title
+            u'', # default directory
+        )  # NB: This should be the 'filter' line, which is below, but commented out... it seems
+        # that, for some reason, the filter isn't working. For me on Fedora 17, the result is
+        # that all file types are "selectable"... but others have reported occasional issues
+        # that entirely prevent them from selecting files. So here we are.
+        # 'music21 Files (*.nwc *.mid *.midi *.mxl *.krn *.xml *.md)')  # filter
         if files:
             self.vis_controller.import_files_added.emit([unicode(f) for f in files])
 
@@ -230,15 +230,15 @@ You must choose pieces before we can import them.""",
     def _add_dir(self):
         "Add a directory to the 'importer' panel."
         d = QtGui.QFileDialog.getExistingDirectory(
-            None,  # parent
-            u"Choose Directory to Analyze",  # title
-            u'',  # default directory
+            None, # parent
+            u"Choose Directory to Analyze", # title
+            u'', # default directory
             QtGui.QFileDialog.ShowDirsOnly)  # options
         d = unicode(d)
         extensions = [u'.nwc.', u'.mid', u'.midi', u'.mxl', u'.krn', u'.xml', u'.md']
         possible_files = chain(*[[join(path, fp) for fp in files if
-                        splitext(fp)[1] in extensions]
-                        for path, ___, files in walk(d)])
+                                  splitext(fp)[1] in extensions]
+                                 for path, ___, files in walk(d)])
         self.vis_controller.import_files_added.emit(list(possible_files))
 
     @QtCore.pyqtSlot()
@@ -292,7 +292,7 @@ You must choose pieces before we can import them.""",
 
         if QtGui.QMessageBox.Yes != feedback:
             return None
-        # else... we'll figure out which operation is running, and cancel it
+            # else... we'll figure out which operation is running, and cancel it
         if self.vis_controller.importer.import_is_running:
             self.vis_controller.importer.cancel_import.emit()
         elif self.vis_controller.analyzer.analysis_is_running:
@@ -325,10 +325,10 @@ You must choose pieces before we can import them.""",
             if u'(no selection)' == combos:
                 # we can't analyze, but we *should* tell our user
                 QtGui.QMessageBox.information(None,
-                    u'vis',
-                    u'You forgot to add part combinations for analysis in at least one piece.',
-                    QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
-                    QtGui.QMessageBox.Ok)
+                                              u'vis',
+                                              u'You forgot to add part combinations for analysis in at least one piece.',
+                                              QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                                              QtGui.QMessageBox.Ok)
                 return None
 
         # See if any of the part-name checkboxes are checked... if so, we gotta warn our user!
@@ -338,16 +338,17 @@ You must choose pieces before we can import them.""",
                 if each_box.isChecked():
                     part_cbs_are_checked = True
                     break
-            # if a checkbox was checked, inform the user they may have made a mistake, and *don't*
-            # start the analysis yet
+                    # if a checkbox was checked, inform the user they may have made a mistake, and *don't*
+                    # start the analysis yet
             if part_cbs_are_checked:
                 response = QtGui.QMessageBox.question(None,
-                    u'vis',
-                    u"""At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
+                                                      u'vis',
+                                                      u"""At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
 
-Do you want to go back and add the part combination?""",
-                    QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
-                    QtGui.QMessageBox.Yes)
+                                  Do you want to go back and add the part combination?""",
+                                                      QtGui.QMessageBox.StandardButtons(
+                                                          QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
+                                                      QtGui.QMessageBox.Yes)
                 if response == QtGui.QMessageBox.Yes:
                     return None
 
@@ -395,16 +396,16 @@ Do you want to go back and add the part combination?""",
                 if not isinstance(piece, stream.Score):
                     was_pickled = True
                     piece = converter.thawStr(piece)
-                # Make sure there's a Metadata object
+                    # Make sure there's a Metadata object
                 if piece.metadata is None:
                     piece.insert(metadata.Metadata())
-                # Update the title, saving it for later
+                    # Update the title, saving it for later
                 new_title = unicode(self.ui.line_piece_title.text())
                 piece.metadata.title = new_title
                 # re-pickle the score, if needed
                 if was_pickled:
                     piece = converter.freezeStr(piece, fmt='pickle')
-                # Tell the Analyzer to change its setting!
+                    # Tell the Analyzer to change its setting!
                 # NB: the second argument has to be 2-tuple with the Score object
                 # and the string that is the title, as specified in ListOfPieces
                 self.vis_controller.analyzer.change_settings.emit(cell, (piece, new_title))
@@ -443,7 +444,7 @@ Do you want to go back and add the part combination?""",
         if 1 == len(selected_checkboxes):
             # If we have one checkbox, it means we need to do monophonic analysis
             vis_format = u'[' + unicode(selected_checkboxes[0]) + u',' + \
-                unicode(selected_checkboxes[0]) + u']'
+                         unicode(selected_checkboxes[0]) + u']'
         elif 1 < len(selected_checkboxes):
             # 2 or more checkboxes are selected
             vis_format = u'['
@@ -464,8 +465,8 @@ Do you want to go back and add the part combination?""",
 
             # Is curr_spec the default filler?
             if u'e.g., [[0,3]] or [[0,3],[1,3]]' == curr_spec or \
-            u'(no selection)' == curr_spec or \
-            u'' == curr_spec:
+                            u'(no selection)' == curr_spec or \
+                            u'' == curr_spec:
                 # Then just make a new one
                 new_spec = u'[' + vis_format + u']'
 
@@ -581,8 +582,8 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.parts_list == cell.column():
                     lists_of_part_names.append(self.vis_controller.l_o_pieces.data(cell,
-                        ListOfPieces.ScoreRole))
-            # 2.2: See if each piece has the same number of parts
+                                                                                   ListOfPieces.ScoreRole))
+                    # 2.2: See if each piece has the same number of parts
             number_of_parts = 0
             for parts_list in lists_of_part_names:
                 if 0 == number_of_parts:
@@ -590,12 +591,12 @@ Do you want to go back and add the part combination?""",
                 elif number_of_parts != len(parts_list):
                     number_of_parts = False
                     break
-            # 2.3: See if the names in each of the parts is the same
+                    # 2.3: See if the names in each of the parts is the same
             same_names = True
             for i in xrange(len(lists_of_part_names) - 1):
                 if lists_of_part_names[i] != lists_of_part_names[i + 1]:
                     same_names = False
-            # 2.4: If all the part names are the same, we'll use them
+                    # 2.4: If all the part names are the same, we'll use them
             if same_names:
                 self._update_part_checkboxes(currently_selected)
             # 2.5: If all the pieces have the same number of parts, we can still do it
@@ -605,16 +606,16 @@ Do you want to go back and add the part combination?""",
             else:
                 #self.ui.chk_all_voice_combos.setEnabled(True)
                 self._update_part_checkboxes(u'erase')
-            # (3) if the pieces have the same offset interval, display it
+                # (3) if the pieces have the same offset interval, display it
             first_offset = None
             for cell in currently_selected:
                 if ListOfPieces.offset_intervals == cell.column():
                     if first_offset is None:
                         # TODO: whatever
-                        first_offset = self.vis_controller.l_o_pieces.\
-                        data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_offset == self.vis_controller.l_o_pieces.\
-                    data(cell, QtCore.Qt.DisplayRole).toPyObject():
+                        first_offset = self.vis_controller.l_o_pieces. \
+                            data(cell, QtCore.Qt.DisplayRole).toPyObject()
+                    elif first_offset == self.vis_controller.l_o_pieces. \
+                        data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
                         first_offset = ''
@@ -625,10 +626,10 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.parts_combinations == cell.column():
                     if first_comp is None:
-                        first_comp = self.vis_controller.l_o_pieces.\
-                        data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_comp == self.vis_controller.l_o_pieces.\
-                    data(cell, QtCore.Qt.DisplayRole).toPyObject():
+                        first_comp = self.vis_controller.l_o_pieces. \
+                            data(cell, QtCore.Qt.DisplayRole).toPyObject()
+                    elif first_comp == self.vis_controller.l_o_pieces. \
+                        data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
                         first_comp = u''
@@ -659,16 +660,16 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.offset_intervals == cell.column():
                     self.ui.line_offset_interval.setText(unicode(
-                    self.vis_controller.l_o_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
+                        self.vis_controller.l_o_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                     break
-            # (4) Update "Compare These Parts"
+                    # (4) Update "Compare These Parts"
             self._update_comparison_parts(currently_selected)
             # (5) Update "Pice Title"
             for cell in currently_selected:
                 if ListOfPieces.score == cell.column():
                     self.ui.line_piece_title.setText(
-                    unicode(self.vis_controller.l_o_pieces.data(cell,
-                        QtCore.Qt.DisplayRole).toPyObject()))
+                        unicode(self.vis_controller.l_o_pieces.data(cell,
+                                                                    QtCore.Qt.DisplayRole).toPyObject()))
                     break
 
     # Not a pyqtSlot
@@ -686,7 +687,7 @@ Do you want to go back and add the part combination?""",
         for cell in currently_selected:
             if ListOfPieces.parts_combinations == cell.column():
                 comparison_parts = unicode(self.vis_controller.l_o_pieces.
-                    data(cell, QtCore.Qt.DisplayRole).toPyObject())
+                data(cell, QtCore.Qt.DisplayRole).toPyObject())
                 self.ui.line_compare_these_parts.setText(comparison_parts)
                 if u'[all]' == comparison_parts:
                     self.ui.chk_all_voice_combos.setChecked(False)
@@ -775,7 +776,7 @@ Do you want to go back and add the part combination?""",
             if ListOfPieces.parts_list == cell.column():
                 list_of_parts = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
                 break
-        # deal with a possible "no_name" argument
+                # deal with a possible "no_name" argument
         if no_name:
             how_many_parts = len(list_of_parts)
             list_of_parts = []
@@ -801,6 +802,7 @@ Do you want to go back and add the part combination?""",
             def the_thing(ell):
                 "This method runs when the button is clicked"
                 return lambda: self._edit_part_name(ell)
+
             n_btn.clicked.connect(the_thing(i))
 
             # Add the checkbox and button to the horizontal layout
@@ -939,14 +941,14 @@ Do you want to go back and add the part combination?""",
                     enn = enn[1:]
                 if enn[-1] == ']':
                     enn = enn[:-1]
-            # 3.) Try to convert to a single-int list
+                    # 3.) Try to convert to a single-int list
             try:
                 enn = [int(enn)]
             except ValueError:  # if it fails
                 msg = u'Could not parse "value of n!"'
                 self.report_error.emit(msg)
                 return None
-            # 4.) Everything's good and valid, so let's put it on the list of settings
+                # 4.) Everything's good and valid, so let's put it on the list of settings
             list_of_settings.append(('values of n', enn))
             return 0
 
@@ -968,7 +970,7 @@ Do you want to go back and add the part combination?""",
             "Use the ChordParser? How long the quarterLength?"
             try:
                 list_of_settings.append(('chord parse length',
-                    float(self.ui.line_chord_parser.text())))
+                                         float(self.ui.line_chord_parser.text())))
             except ValueError:
                 pass
 
@@ -985,7 +987,7 @@ Do you want to go back and add the part combination?""",
             if do_values_of_n() is None:
                 self._tool_experiment()
                 return None
-        # (1e) Threshold
+                # (1e) Threshold
         do_threshold()
         # (1f) Top X
         do_top_x()

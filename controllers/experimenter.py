@@ -126,7 +126,7 @@ class Experimenter(Controller, QtCore.QObject):
                             'IntervalsStatistics': IntervalsStatistics,
                             'IntervalNGramStatistics': IntervalNGramStatistics,
                             'LilyPondExperiment': LilyPondExperiment,
-                           }
+        }
 
         exper = None
         try:
@@ -214,7 +214,7 @@ class Experiment(QtCore.QRunnable):
                 signal_me = self.perform()
             except Exception as exc:
                 self._controller.error.emit(u'Failure during experiment.\n\n' +
-                    unicode(type(exc)) + u' says:\n' + unicode(exc))
+                                            unicode(type(exc)) + u' says:\n' + unicode(exc))
                 self._controller.experiment_finished.emit((u'error', None))
             else:
                 self._controller._experiment_results.emit(QtCore.QVariant(signal_me))
@@ -372,10 +372,10 @@ class IntervalsLists(Experiment):
                 if 2 != len(first[1]) or 2 != len(second[1]):
                     continue
                 if not isinstance(first[1][0], basestring) or \
-                not isinstance(first[1][1], basestring):
+                        not isinstance(first[1][1], basestring):
                     continue
                 if not isinstance(second[1][0], basestring) or \
-                not isinstance(second[1][1], basestring):
+                        not isinstance(second[1][1], basestring):
                     continue
 
                 offset = first[0]
@@ -610,7 +610,7 @@ class ChordsLists(Experiment):
                 # find the transformation
                 horizontal = None  # commented out because people don't really care about NR yet
                 #horizontal = ngram.ChordNGram.find_transformation(chord.Chord(first_chord),
-                                                                  #chord.Chord(second_chord))
+                #chord.Chord(second_chord))
                 put_me = (chord_name, u'(' + horizontal + u')', first[0])
 
                 # add this chord-and-transformation to the list of all of them
@@ -624,7 +624,7 @@ class ChordsLists(Experiment):
                 last_chord = ChordsLists.remove_rests(record[-1][1])
 
             # format and add the chord, but only if the previous step didn't turn everyting to rests
-            if [] != last_chord:
+            if last_chord:
                 post.append((ChordsLists.make_chord_symbol(chord.Chord(last_chord)),
                              None,
                              record[-1][0]))
@@ -795,7 +795,7 @@ class IntervalsStatistics(Experiment):
                     # a Note...
                     continue
                 if isinstance(each_event[1][0], basestring) and \
-                isinstance(each_event[1][1], basestring):
+                        isinstance(each_event[1][1], basestring):
                     this_interval = None
                     if 'Rest' != each_event[1][0] and 'Rest' != each_event[1][1]:
                         this_interval = interval.Interval(note.Note(each_event[1][0]),
@@ -803,13 +803,13 @@ class IntervalsStatistics(Experiment):
                     else:
                         continue
                     self._add_interval(IntervalsLists.interval_formatter(this_interval,
-                        quality=quality,
-                        size=interval_size,
-                        direction=include_direction))
+                                                                         quality=quality,
+                                                                         size=interval_size,
+                                                                         direction=include_direction))
 
         # (2.1) If there is a topX or threshold filter, sort by frequency now.
         if self._settings.get('topX') is not None or \
-        self._settings.get('threshold') is not None:
+                        self._settings.get('threshold') is not None:
             # returns a list of keys, sorted by descending frequency
             self._keys = sorted(self._intervals, key=lambda x: self._intervals[x], reverse=True)
 
@@ -830,7 +830,7 @@ class IntervalsStatistics(Experiment):
                     for each_key in self._keys:
                         if self._intervals[each_key] >= thresh:
                             new_keys.append(each_key)
-                    # assign
+                            # assign
                     self._keys = new_keys
         # (2.2) Otherwise, just get all the keys
         else:
@@ -902,7 +902,7 @@ class IntervalNGramStatistics(Experiment):
 
         # Check the ExperimentSettings object has the right settings
         if not settings.has('quality') or not settings.has('simple or compound') or \
-        not settings.has('values of n'):
+                not settings.has('values of n'):
             msg = 'IntervalNGramStatistics requires "quality," '
             msg += '"simple or compound," and "values of n" settings'
             raise KeyError(msg)
@@ -1032,7 +1032,7 @@ class IntervalNGramStatistics(Experiment):
                 if 2 != len(each_record[i][1]):
                     continue
                 if not isinstance(each_record[i][1][0], basestring) or \
-                not isinstance(each_record[i][1][1], basestring):
+                        not isinstance(each_record[i][1][1], basestring):
                     continue
 
                 # make sure our first vertical interval doesn't have a rest
@@ -1066,12 +1066,12 @@ class IntervalNGramStatistics(Experiment):
                             break
                         # make sure they're both strings
                         elif not isinstance(each_record[i + j][1][0], basestring) or \
-                        not isinstance(each_record[i + j][1][1], basestring):
+                                not isinstance(each_record[i + j][1][1], basestring):
                             kill_switch = True
                             break
                         # now check for rests
                         elif 'Rest' == each_record[i + j][1][0] or \
-                        'Rest' == each_record[i + j][1][1]:
+                                        'Rest' == each_record[i + j][1][1]:
                             kill_switch = True
                             break
                         # now assume we can make an n-gram
@@ -1093,11 +1093,11 @@ class IntervalNGramStatistics(Experiment):
                     else:
                         add_me = this_ngram.get_string_version(quality, interval_size)
                     self._add_ngram(add_me)
-        # (End of step 1)
+                    # (End of step 1)
 
         # (2.1) If there is a topX or threshold filter, sort by frequency now.
         if self._settings.get('topX') is not None or \
-        self._settings.get('threshold') is not None:
+                        self._settings.get('threshold') is not None:
             # returns a list of keys, sorted by descending frequency
             self._keys = sorted(self._ngrams, key=lambda x: self._ngrams[x], reverse=True)
 
@@ -1118,7 +1118,7 @@ class IntervalNGramStatistics(Experiment):
                     for each_key in self._keys:
                         if self._ngrams[each_key] >= thresh:
                             new_keys.append(each_key)
-                    # assign
+                            # assign
                     self._keys = new_keys
         # (2.2) Otherwise, just get all the keys
         else:
@@ -1141,12 +1141,12 @@ class IntervalNGramStatistics(Experiment):
         # (5a) Make a crafty tag to help with the description
         desc = u'Interval ' + unicode(values_of_n[0]) + u'-Grams\n'
         desc += u'Sorted ' + self._settings.get('sort order') + u' by ' + \
-            self._settings.get('sort by') + u'\n'
+                self._settings.get('sort by') + u'\n'
         if self._settings.get('topX'):
             desc += u'Including only the top ' + unicode(self._settings.get('topX')) + u'\n'
         if self._settings.get('threshold'):
             desc += u'With more than ' + unicode(self._settings.get('threshold')) + \
-            u' occurrences\n'
+                    u' occurrences\n'
         desc += u'With quality\n' if quality else u'Without quality\n'
         desc += u'Size: ' + interval_size + u'\n\n'
         desc += unicode(values_of_n[0]) + u'-Gram'
@@ -1203,7 +1203,7 @@ class LilyPondExperiment(Experiment):
             which_helper = self._settings.get('lilypond helper')
             TheHelper = None
             if 'IntervalsLists' == which_helper:
-                TheHelper = TargetedIntervalNGramExperiment if self._settings.has('annotate these')\
+                TheHelper = TargetedIntervalNGramExperiment if self._settings.has('annotate these') \
                     else IntervalsLists
             elif 'ChordsList' == which_helper or 'ChordsLists' == which_helper:
                 TheHelper = ChordsLists
@@ -1321,6 +1321,7 @@ class LilyPondExperiment(Experiment):
         duration representations longer than one character). The algorithm prefers
         multiple durations over a single dotted duration.
         """
+
         def highest_valid_ql(rem):
             """
             Returns the largest quarterLength that is less "rem" but not greater than 2.0
@@ -1330,7 +1331,7 @@ class LilyPondExperiment(Experiment):
             # Easy terminal condition
             if rem in list_of_durations:
                 return rem
-            # Otherwise, we have to look around
+                # Otherwise, we have to look around
             for dur in list_of_durations:
                 if dur < rem:
                     return dur
@@ -1353,12 +1354,12 @@ class LilyPondExperiment(Experiment):
                         return [ql_remains]
                     else:
                         return [possible_finish] + \
-                        the_solver(ql_remains - possible_finish)
+                               the_solver(ql_remains - possible_finish)
             elif ql_remains > 4.0:
                 return [4.0] + the_solver(ql_remains - 4.0)
             else:
                 msg = u'Impossible quarterLength remaining: ' + unicode(ql_remains) + \
-                    u'... we started with ' + unicode(start_o) + u' to ' + unicode(end_o)
+                      u'... we started with ' + unicode(start_o) + u' to ' + unicode(end_o)
                 raise RuntimeError(msg)
 
         start_o = float(start_o)
@@ -1448,7 +1449,7 @@ class LilyPondExperiment(Experiment):
         the_lily = first_left_vert
         for each_name in record._part_names:
             the_lily += each_name + u' and '
-        # remove the final " and "
+            # remove the final " and "
         the_lily = the_lily[:-5] + u': '
         # add the first vertical annotation
         the_lily += unicode(results[0][0]) + right_vert
@@ -1468,7 +1469,7 @@ class LilyPondExperiment(Experiment):
         except IndexError:
             horiz_offset = results[0][2] + 0.5
             new_part[-1].quarterLength = 0.5
-        # make annotation, then make and add the Note
+            # make annotation, then make and add the Note
         the_note = note.Note('C4')
         the_note.lily_markup = left_horiz + unicode(results[0][1]) + right_horiz
         new_part.insert(horiz_offset, the_note)
@@ -1481,19 +1482,19 @@ class LilyPondExperiment(Experiment):
             # 6.1) Figure out what's required to fill the space between the previous and this
             if new_part[-1].offset != results[i][2]:
                 needed_qls = LilyPondExperiment.fill_space_between_offsets(new_part[-1].offset,
-                    results[i][2])
+                                                                           results[i][2])
                 # 6.2) Set the previous annotation note to the right quarterLength
                 new_part[-1].quarterLength = needed_qls[0]
                 # 6.3) Fill the remaining space with Rest objects, as needed
                 for each_ql in needed_qls[1]:
                     new_part.append(note.Rest(quarterLength=each_ql))
-                # 6.4) Make the annotation then Note for this vertical interval
+                    # 6.4) Make the annotation then Note for this vertical interval
                 the_note = note.Note('C4')
                 the_note.lily_markup = lily_markup
                 new_part.insert(results[i][2], the_note)
             elif new_part[-1].lily_markup != lily_markup:
                 new_part[-1].lily_markup += lily_markup
-            # 6.5) Make this horizontal interval
+                # 6.5) Make this horizontal interval
             if results[i][1] is not None:
                 horiz_offset = None
                 try:
@@ -1501,7 +1502,7 @@ class LilyPondExperiment(Experiment):
                 except IndexError:
                     horiz_offset = results[i][2] + 0.5
                 needed_qls = LilyPondExperiment.fill_space_between_offsets(new_part[-1].offset,
-                    horiz_offset)
+                                                                           horiz_offset)
                 new_part[-1].quarterLength = needed_qls[0]
                 for each_ql in needed_qls[1]:
                     new_part.append(note.Rest(quarterLength=each_ql))
@@ -1555,7 +1556,7 @@ class TargetedIntervalNGramExperiment(Experiment):
             msg = u'TargetedIntervalsNGram requires "quality" and "simple or compound" settings'
             controller.error.emit(msg)
             return
-        # Otherwise, we're good to go!
+            # Otherwise, we're good to go!
         super(TargetedIntervalNGramExperiment, self).__init__(controller, records, settings)
 
     def perform(self):
@@ -1604,7 +1605,7 @@ class TargetedIntervalNGramExperiment(Experiment):
                 add_ngram = True
                 for j in xrange(1, ngram_size):
                     if hors[(j - 1)] != rotile[(i + j - 1)][1] or \
-                    verts[j] != rotile[i + j][0]:
+                                    verts[j] != rotile[i + j][0]:
                         add_ngram = False
                 if add_ngram:
                     end_i = i + ngram_size - 1
@@ -1702,6 +1703,7 @@ class ChordParser(Experiment):
                                 new_note = note.Note(add_me)
                                 note_dict[add_me] = new_note
                                 this_sonority.append(new_note)
+
                         if isinstance(each_obj, list) or isinstance(each_obj, tuple):
                             for each_pitch in each_obj:
                                 helper(each_pitch)

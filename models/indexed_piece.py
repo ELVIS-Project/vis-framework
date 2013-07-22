@@ -137,7 +137,7 @@ class IndexedPiece(object):
         """
         pass
 
-    def add_index(self, which_indexers, which_settings={}):
+    def add_index(self, which_indexers, which_settings=None):
         """
         Run an indexer (or some indexers) on the score and save the results. If the indexer has
         already been run with the same settings, it will not be run again.
@@ -186,6 +186,7 @@ class IndexedPiece(object):
         Results from the Indexer, and any additional Indexer subclasses required for the
         "which_index" Indexer subclass, are saved in the IndexedPiece.
         """
+        if not which_settings: which_settings = {}
         # TODO: for testing...
         # - the "missing_indexers" handling
         # - built-in Indexers
@@ -276,11 +277,11 @@ class IndexedPiece(object):
             del this_settings
 
         # If one of the Indexers doesn't exist
-        if [] != missing_indexers:
+        if missing_indexers:
             msg = u'Unable to import requested Indexers: ' + unicode(missing_indexers)
             raise RuntimeError(msg)
         # If one of the Indexers is missing a required setting
-        elif [] != missing_settings:
+        elif missing_settings:
             msg = u'Indexers missing required settings: ' + unicode(missing_indexers)
             raise RuntimeError(msg)
 
@@ -299,7 +300,7 @@ class IndexedPiece(object):
         """
         pass
 
-    def add_experiment(self, which_experimenters, which_settings={}):
+    def add_experiment(self, which_experimenters, which_settings=None):
         """
         Run an experimenter (or some experimenters) on the score and save the results. If the
         experimenter has already been run with the same settings, the previously-calculated
@@ -332,6 +333,7 @@ class IndexedPiece(object):
         Results from the Indexer, and any additional Indexer subclasses required for the
         "which_index" Indexer subclass, are saved in the IndexedPiece.
         """
+        if not which_settings: which_settings = {}
         pass
 
     def remove_experiment(self, **args):

@@ -50,7 +50,7 @@ class Experimenter(object):
     needed_indices = []
     needed_experiments = []
 
-    def __init__(self, score, settings={}):
+    def __init__(self, score, settings=None):
         """
         Create a new Experimenter.
 
@@ -68,6 +68,7 @@ class Experimenter(object):
         RuntimeError :
             - If required settings are not present in the "settings" argument.
         """
+        if not settings: settings = {}
         # NOTE: You should reimplement this method in subclasses.
 
         # Check that all required settings are present in the "settings" argument
@@ -109,7 +110,7 @@ class IntervalFrequencyExperimenter(Experimenter):
 
     needed_indices = ['NoteRestIndexer']
 
-    def __init__(self, score, settings={}):
+    def __init__(self, score, settings=None):
         """
         Create a new IntervalFrequencyExperimenter.
 
@@ -130,6 +131,7 @@ class IntervalFrequencyExperimenter(Experimenter):
         ======
         Nothing. There are no required settings.
         """
+        if not settings: settings = {}
         # Check that all required settings are present in the "settings" argument
         self._settings = {}
         if 'simple or compound' in settings:
@@ -140,7 +142,7 @@ class IntervalFrequencyExperimenter(Experimenter):
             self._settings['quality'] = settings['quality']
         else:
             self._settings['quality'] = False
-        # Other stuff
+            # Other stuff
         super(IntervalFrequencyExperimenter, self).__init__()
         self._score = score
 

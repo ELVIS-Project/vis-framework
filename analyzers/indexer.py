@@ -41,16 +41,16 @@ def mp_indexer(parts, indexer_func, types=None):
 
     Parameters:
     ===========
-    parts : [music21.stream.Part] or [pandas.Series]
+    :param parts : [music21.stream.Part] or [pandas.Series]
         A list of at least one Part or Series object. Every new event, or change of simlutaneity,
         will appear in the outputted index. Therefore, the new index will contain at least as many
         events as the inputted Part or Series with the most events.
 
-    indexer_func : function
+    :param indexer_func : function
         This function transforms found events into another suitable format. The output of this
         function is put into an ElementWrapper object.
 
-    types : list of type objects
+    :param types : list of type objects
         Required only if "parts" contains Part objects (otherwise ignored). Only objects of a type
         in this list will be passed to the indexer_func for inclusion in the resulting index.
 
@@ -138,42 +138,42 @@ class Indexer(object):
     requires_score = False
 
     #def __init__(self, score, settings={}):
-        #"""
-        #Create a new Indexer.
+    #"""
+    #Create a new Indexer.
 
-        #Parameters
-        #==========
-        #score : [pandas.Series] or [music21.stream.Part]
-            #Depending on how this Indexer works, this is a list of either Part or Series obejcts
-            #to use in creating a new index.
+    #Parameters
+    #==========
+    #score : [pandas.Series] or [music21.stream.Part]
+    #Depending on how this Indexer works, this is a list of either Part or Series obejcts
+    #to use in creating a new index.
 
-        #settings : dict
-            #A dict of all the settings required by this Indexer. All required settings should be
-            #listed in subclasses. Default is {}.
+    #settings : dict
+    #A dict of all the settings required by this Indexer. All required settings should be
+    #listed in subclasses. Default is {}.
 
-        #Raises
-        #======
-        #RuntimeError :
-            #- If the "score" argument is the wrong type.
-            #- If the "score" argument is not a list of the same types.
-            #- If required settings are not present in the "settings" argument.
-        #"""
-        ## NOTE: Implement this method when writing subclasses.
+    #Raises
+    #======
+    #RuntimeError :
+    #- If the "score" argument is the wrong type.
+    #- If the "score" argument is not a list of the same types.
+    #- If required settings are not present in the "settings" argument.
+    #"""
+    ## NOTE: Implement this method when writing subclasses.
 
-        ## Check all required settings are present in the "settings" argument. You must ignore
-        ## extra settings.
-        ## self._settings = settings
+    ## Check all required settings are present in the "settings" argument. You must ignore
+    ## extra settings.
+    ## self._settings = settings
 
-        ## Change "Indexer" to the current class name
-        #super(Indexer, self).__init__(score)
+    ## Change "Indexer" to the current class name
+    #super(Indexer, self).__init__(score)
 
-        ## If self._score is a Stream (subclass), change to a list of types you want to process
-        ## self._types = []
+    ## If self._score is a Stream (subclass), change to a list of types you want to process
+    ## self._types = []
 
-        ## Change to the function you want to use
-        ## NB: The lambda function receives events in a list of all voices in the current voice
-        ##     combination; if this Indexer processes one voice at a time, it's a one-element list.
-        ## self._indexer_func = lambda x: None
+    ## Change to the function you want to use
+    ## NB: The lambda function receives events in a list of all voices in the current voice
+    ##     combination; if this Indexer processes one voice at a time, it's a one-element list.
+    ## self._indexer_func = lambda x: None
 
     def run(self):
         """
@@ -190,15 +190,13 @@ class Indexer(object):
         # NOTE-1: Implement this method when writing subclasses.
         # NOTE-2: We recommend indexing all possible combinations, whenever feasible.
 
-        combinations = []
-
         # To calculate each part separately:
         combinations = [[x] for x in xrange(len(self._score))]
 
         # To calculate all 2-part combinations:
         #for left in xrange(len(self._score)):
-            #for right in xrange(left + 1, len(self._score)):
-                #combinations.append([left, right])
+        #for right in xrange(left + 1, len(self._score)):
+        #combinations.append([left, right])
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
@@ -210,17 +208,17 @@ class Indexer(object):
         return results
 
     # NOTE: Do not implement any methods below this line in subclasses. ----------------------------
-    def __init__(self, score, settings={}):
+    def __init__(self, score, settings=None):
         """
         Create a new Indexer.
 
         Parameters
         ==========
-        score : [pandas.Series] or [music21.stream.Part]
+        :param score : [pandas.Series] or [music21.stream.Part]
             Depending on how this Indexer works, this is a list of either Part or Series obejcts
             to use in creating a new index.
 
-        settings : dict
+        :param settings : dict
             A dict of all the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is {}.
 
@@ -231,6 +229,7 @@ class Indexer(object):
             - If the "score" argument is not a list of the same types.
             - If required settings are not present in the "settings" argument.
         """
+        if not settings: settings = {}
         # NOTE: Do not change this method; when writing subclasses, use template __init__() above.
 
         # Check the "score" argument is either uniformly Part or Series objects.
@@ -313,7 +312,7 @@ class NoteRestIndexer(Indexer):
 
         Parameters
         ==========
-        score : [music21.stream.Part]
+        :param score : [music21.stream.Part]
             A list of all the Parts to index.
 
         Raises
@@ -329,7 +328,7 @@ class NoteRestIndexer(Indexer):
 
         # Change to the function you want to use
         self._indexer_func = lambda x: u'Rest' if isinstance(x[0], note.Rest) \
-                                       else unicode(x[0].nameWithOctave)
+            else unicode(x[0].nameWithOctave)
 
     def run(self):
         """
@@ -359,16 +358,16 @@ class IntervalIndexer(Indexer):
     possible_settings = [u'simple or compound', u'quality']
     default_settings = {u'simple or compound': u'compound', u'quality': False}
 
-    def __init__(self, score, settings={}):
+    def __init__(self, score, settings=None):
         """
         Create a new IntervalIndexer.
 
         Parameters
         ==========
-        score : vis.models.IndexedPiece
+        :param score : vis.models.IndexedPiece
             The piece with parts to index.
 
-        settings : dict
+        :param settings : dict
             A dict of relevant settings, both optional. These are:
             - 'simple or compound' : 'simple' or 'compound'
                 Whether intervals should be represented in their single-octave form. Defaults to
@@ -380,6 +379,7 @@ class IntervalIndexer(Indexer):
         ======
         Nothing. There are no required settings.
         """
+        if not settings: settings = {}
         # NOTE: Implement this method when writing subclasses.
 
         # Check all required settings are present in the "settings" argument

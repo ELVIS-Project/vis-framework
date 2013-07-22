@@ -17,11 +17,13 @@ except AttributeError:
 
 try:
     _encoding = QtGui.QApplication.UnicodeUTF8
+
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig, _encoding)
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class Ui_Text_Display(object):
     def setupUi(self, Text_Display):
@@ -56,6 +58,7 @@ class Ui_Text_Display(object):
         self.gridLayout_2.addWidget(self.show_text, 0, 0, 1, 3)
 
         self.retranslateUi(Text_Display)
+        # noinspection PyArgumentList
         QtCore.QMetaObject.connectSlotsByName(Text_Display)
 
     def retranslateUi(self, Text_Display):
@@ -63,4 +66,3 @@ class Ui_Text_Display(object):
         self.btn_save_as.setText(_translate("Text_Display", "Save &As", None))
         self.btn_close.setText(_translate("Text_Display", "&Close Window", None))
 
-import icons_rc
