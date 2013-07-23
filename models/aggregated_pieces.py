@@ -61,10 +61,11 @@ class AggregatedPieces(object):
         """
         pass
 
-    def add_experiment(self, which_experiment, which_settings={}):
+    def add_experiment(self, which_experiment, which_settings=None):
         """
         ?
         """
+        if not which_settings: which_settings = {}
         pass
 
     def remove_experiment(self, **args):
