@@ -13,7 +13,7 @@ schedule.txt :
     Defines actions we must complete, required pre-requisite actions, and projected dates for completion.
 
 organization.txt :
-    Defines roles and a communication structure for how the programming team communicates and organizes.
+    Defines weekly responsibilities for task division; i.e., how we will accomplish goals in the schedule.
 
 trial queries.txt :
     Ten potential queries a user might want to run. All queries must be possible in both interfaces and the back-end, to ensure we maintain adequate flexibility in our implemented feature set.

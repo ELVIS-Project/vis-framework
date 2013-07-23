@@ -1,0 +1,17 @@
+Dear Julie, et al.:
+
+I've spent some time reading about some basic techniques used in software engineering, and thinking through things I've read about other people doing. Then I thought "if only somebody had told me these things in January 2012!" Then I realized "these things" wouldn't have made sense back then, so I decided to write an article about software development for humanities-focussed music research projects---the article I want to have read in January 2012. I'll start that in a couple of months, but the biggest lessons I've learned are about communication, so I'm going to try to communicate differently with the rest of the team.
+
+A less positive way to say this: the root cause of delays in our software development---and the reason our software appears to have fewer features than at SMT---is a lack of proper planning documentation. For what we knew about programming, Jamie and I planned as well as we could have, but we haven't properly documented our plans. This leads to situations where a software feature is fully implemented, then we realize it either has to change, or isn't what we wanted (since our plan was different from your plan). It also leads to situations where I demonstrate a partially complete feature, and it seems as though it almost never works (since things were going according to my plan, but nobody else had a plan because it was a surprise feature). It also means it's virtually impossible for the international team members to know what we're doing.
+
+So if I may, I would like to commandeer 30 minutes at our next meeting for a formal presentation. I'll basically explain all of the documents that have started appearing here:
+
+https://github.com/ELVIS-Project/vis/tree/visX-devel/engineering
+
+This doesn't represent a change to any of the plans that were in my head; it's a formalized and more detailed version. It will tell you exactly the features and interfaces we have in mind and the reasons we chose them. For example:
+
+Previously: "We want to use the 'pandas' toolkit because it's more flexible and faster."
+
+Becomes: "We will use 'pandas', which allows nearly instantaneous conversion of data between formats suitable for music21 and numpy/matplotlib/Rpy (mathematical and statistical python toolkits). Transiting two knowledge domains with little effort makes our software more appealing to a wider variety of technically savvy users, who will be able to add their own analysis modules to vis with less effort than if we retained our current music21-centric data model. Our own development efforts will also benefit from the reduced effort required to add new modules. All users will benefit from the added speed of pandas-based data objects, which is mostly a result of different design goals for music21 and pandas. The core functionality is already implemented, including X many analysis modules, leaving X to go, with a projected completion date of blank."
+
+This is a real feature we've been planning for months.

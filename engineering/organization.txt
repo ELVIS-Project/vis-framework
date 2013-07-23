@@ -1,0 +1,34 @@
+organization.txt :
+    Defines weekly responsibilities for task division; i.e., how we will accomplish goals in the schedule.
+
+
+test:
+=====
+- IndexedPiece:
+    - CJK
+- AggregatedPieces:
+    - APM
+    - APM & CJK will prototype
+- Indexer:
+    - CRA will write a script to enumerate all the possibile combinations?
+- Experimenter:
+    - CRA
+- MPController (for multiprocessing):
+    - CRA will do this
+
+implement:
+==========
+- IndexedPiece:
+    - CJK
+- AggregatedPieces:
+    - CJK
+- Indexer:
+    - CRA will break into smaller functions
+- Experimenter:
+    - CRA
+- MPController (for multiprocessing):
+    - CRA
+
+visual design research:
+=======================
+- CRA will ask his friend

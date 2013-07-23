@@ -26,12 +26,12 @@ Targeted Libraries:
 - music21 1.6.0
     This library ("software toolkit") was developed by team member Myke Cuthbert, and contains representations of and operations on a variety of musical objects. Version 1.6.0 is not yet released, but it has features and bug-fixes we require.
 - pandas 0.10.0
-    This library provides fast data structures that are compatible with music21's ubiquitous "Stream" objects and more flexible for scientific and statistical operations. We will introduce pandas with visX.
+    This library provides fast data structures that are compatible with music21's ubiquitous "Stream" objects and more flexible for scientific and statistical operations (especially through R). We will introduce pandas with visX.
 - R 3.0.1
     Supplementary programming language for statistics and visualizations.
     - Rpy 2.3.6
     Transforms our python-language data objects into R-language data objects.
-    - SOME VISUALIZATION LIBRARY
+    - ggplot2 0.9.3.1
 - PyQt4
     Mostly a GUI library. Prior to visX, all our graphical interfaces have used PyQt. Since VisTrails also uses PyQt, we may write our own PyQt code for minor tasks, like displaying the offset-selection window.
 - VisTrails 2.0 API
@@ -47,9 +47,9 @@ Two Data Models:
 
 Two Types of Analyzers:
 - Indexer:
-    For things that make sense to imagine as starting at the beginning and ending at the end of a piece, like "notes" or "chords."
+    For things that make sense to imagine as starting at the beginning and ending at the end of a piece, like "notes" or "chords." You might describe these as "observed" features.
 - Experimenter:
-    For things that correspond to a piece, but not a particular moment in it, like "number of notes" and "contrapuntal entropy."
+    For things that correspond to a piece, but not a particular moment in it, like "number of notes" and "contrapuntal entropy." You might describe these as "extracted" features.
 
 Two Controllers:
 - WController (for VisTrails workflows):
@@ -78,7 +78,6 @@ Documentation Needs:
 Interface Specifications: VisTrails
 ===================================
 Imaginary User 2, Tenured Musicologist (TM) will work at this level.
-- VisTrails docs must say how to write a new VisTrails module, connected to a vis thing
 
 Targeted Software:
 - VisTrails 2.0.2
@@ -108,12 +107,6 @@ Targeted Libraries:
 
 Documentation Needs:
 - "Think Computationally with vis"
-    Some demonstrations of how to answer a musical question by using vis.
+    Some demonstrations of how to answer a musical question by using vis. We should consider using demonstration videos to supplement the text-based version of this document.
 - "Use the vis Web App"
     Basic user guide.
-
-
-
-- 10 trial queries
-- imaginary users
-
