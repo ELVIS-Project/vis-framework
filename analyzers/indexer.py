@@ -25,9 +25,32 @@
 The controllers that deal with indexing data from music21 Score objects.
 """
 
-import copy
 import pandas
 from music21 import stream, note, base, interval, duration
+
+
+def _mpi_unique_offsets(streams):
+    """
+    For a set of streams, find the offsets at which events begin. Used by mp_indexer.
+
+    Parameters
+    ==========
+    streams : [music21.stream.Stream]
+        A list of Streams in which to find the offsets at which events begin.
+
+    Returns
+    =======
+    list :
+        A list of floating-point numbers representing offsets at which a new event begins in any of
+        the streams. Offsets are sorted from lowest to highest (start to end).
+    """
+    # inspired by music21.stream.Stream._uniqueOffsetsAndEndTimes()
+    post = []
+    for each_part in streams:
+        for each_offset in [e.offset for e in each_part.elements]:
+            if each_offset not in post:
+                post.append(each_offset)
+    return sorted(post)
 
 
 def mp_indexer(parts, indexer_func, types=None):
@@ -63,27 +86,11 @@ def mp_indexer(parts, indexer_func, types=None):
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
 
-    # copy the streams/series
-    all_parts = copy.deepcopy(parts)
-
     # flatten the streams or change Series to Parts, as required
-    if isinstance(parts[0], stream.Stream):
-        all_parts = [x.flat.getElementsByClass(types) for x in all_parts]
-    else:
-        all_parts = [stream.Part(x) for x in all_parts]
+    all_parts = [x.flat.getElementsByClass(types) for x in parts] if isinstance(parts[0], stream.Stream) else [stream.Part(x) for x in parts]
 
-    # first, collect all unique offsets for each measure
-    unique_offsets = []
-    for each_part in all_parts:
-        part_uniques = each_part._uniqueOffsetsAndEndTimes()
-        for each_offset in part_uniques:
-            if each_offset not in unique_offsets:
-                unique_offsets.append(each_offset)
-
-    unique_offsets = sorted(unique_offsets)
-
-    for each_part in all_parts:
-        each_part.sliceAtOffsets(offsetList=unique_offsets, inPlace=True)
+    # collect all unique offsets
+    unique_offsets = _mpi_unique_offsets(all_parts)
 
     # Convert to requested index format
     post = []
@@ -95,18 +102,22 @@ def mp_indexer(parts, indexer_func, types=None):
             try:
                 possible = each_part.getElementsByOffset(each_offset, mustBeginInSpan=False)
             except stream.StreamException:
+                pass  # TODO: what happens when we don't do this?
+            current_events.extend([x for x in possible])
+        new_obj = indexer_func(current_events)
+        if new_obj:
+            new_obj = base.ElementWrapper(new_obj)
+            new_obj.offset = each_offset  # copy offset to new Stream
+            try:  # set duration for previous event
+                post[-1].duration = duration.Duration(each_offset - post[-1].offset)
+            except IndexError:
                 pass
-            if 0 < len(possible):
-                current_events.append(possible[0])
-        if 0 == len(current_events):
-            continue  # TODO: why do I need this?
-        new_obj = base.ElementWrapper(indexer_func(current_events))
-        new_obj.offset = each_offset  # copy offset to new Stream
-        try:  # set duration for previous event
-            post[-1].duration = duration.Duration(each_offset - post[-1].offset)
-        except IndexError:
-            pass
-        post.append(new_obj)
+            post.append(new_obj)
+
+    # Ensure the last items have the correct duration
+    if post:
+        end_offset = all_parts[0][-1].offset + all_parts[0][-1].duration.quarterLength
+        post[-1].duration = duration.Duration(end_offset - post[-1].offset)
 
     return pandas.Series(post)
 
@@ -137,46 +148,44 @@ class Indexer(object):
     default_settings = {}
     requires_score = False
 
-    #def __init__(self, score, settings=None):
-        """
-        Create a new Indexer.
+#    def __init__(self, score, settings=None):
+#        """
+#        Create a new Indexer.
+#
+#        Parameters
+#        ==========
+#        score : [pandas.Series] or [music21.stream.Part]
+#            Depending on how this Indexer works, this is a list of either Part or Series obejcts
+#            to use in creating a new index.
 
-        Parameters
-        ==========
-        score : [pandas.Series] or [music21.stream.Part]
-            Depending on how this Indexer works, this is a list of either Part or Series obejcts
-            to use in creating a new index.
+#        settings : dict
+#            A dict of all the settings required by this Indexer. All required settings should be
+#            listed in subclasses. Default is {}.
 
-        settings : dict
-            A dict of all the settings required by this Indexer. All required settings should be
-            listed in subclasses. Default is {}.
+#        Raises
+#        ======
+#        RuntimeError :
+#            - If the "score" argument is the wrong type.
+#            - If the "score" argument is not a list of the same types.
+#            - If required settings are not present in the "settings" argument.
+#        """
+#        # NOTE: Implement this method when writing subclasses.
 
-        Raises
-        ======
-        RuntimeError :
-            - If the "score" argument is the wrong type.
-            - If the "score" argument is not a list of the same types.
-            - If required settings are not present in the "settings" argument.
-        """
-        """
-        # NOTE: Implement this method when writing subclasses.
+#        # Check all required settings are present in the "settings" argument. You must ignore
+#        # extra settings.
+#        if not settings: settings = {}
+#        self._settings = settings
 
-        # Check all required settings are present in the "settings" argument. You must ignore
-        # extra settings.
-        if not settings: settings = {}
-        self._settings = settings
+#        # Change "Indexer" to the current class name
+#        super(Indexer, self).__init__(score)
 
-        # Change "Indexer" to the current class name
-        super(Indexer, self).__init__(score)
+#        # If self._score is a Stream (subclass), change to a list of types you want to process
+#        self._types = []
 
-        # If self._score is a Stream (subclass), change to a list of types you want to process
-        self._types = []
-
-        # Change to the function you want to use
-        # NB: The lambda function receives events in a list of all voices in the current voice
-        #     combination; if this Indexer processes one voice at a time, it's a one-element list.
-        self._indexer_func = lambda x: None
-        """
+#        # Change to the function you want to use
+#        # NB: The lambda function receives events in a list of all voices in the current voice
+#        #     combination; if this Indexer processes one voice at a time, it's a one-element list.
+#        self._indexer_func = lambda x: None
 
     def run(self):
         """
@@ -197,11 +206,9 @@ class Indexer(object):
         combinations = [[x] for x in xrange(len(self._score))]
 
         # To calculate all 2-part combinations:
-        """
-        for left in xrange(len(self._score)):
-            for right in xrange(left + 1, len(self._score)):
-                combinations.append([left, right])
-        """
+        #for left in xrange(len(self._score)):
+        #    for right in xrange(left + 1, len(self._score)):
+        #        combinations.append([left, right])
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
@@ -234,8 +241,10 @@ class Indexer(object):
             - If the "score" argument is not a list of the same types.
             - If required settings are not present in the "settings" argument.
         """
-        if not settings: settings = {}
         # NOTE: Do not change this method; when writing subclasses, use template __init__() above.
+
+        if not settings:
+            settings = {}
 
         # Check the "score" argument is either uniformly Part or Series objects.
         for i in xrange(len(score) - 1):
@@ -248,13 +257,15 @@ class Indexer(object):
         # Clean up
         super(Indexer, self).__init__()
         self._score = score
+        self._indexer_func = None
+        self._types = None
 
     def name(self):
         """
         Return the name used to identify this indexer.
         """
         # NOTE: Do not reimplement this method in subclasses.
-        return unicode(self.__name__)
+        return unicode(self.__name__)  # pylint: disable=E1101
 
     def _do_multiprocessing(self, combos):
         """
@@ -366,6 +377,10 @@ class IntervalIndexer(Indexer):
     def __init__(self, score, settings=None):
         """
         Create a new IntervalIndexer.
+        TODO: describe output format
+        TODO: it puts u'Rest' when there's a rest in at least one of the two parts; because of this,
+              you can compare the duration of the piece where the two parts don't have an interval
+              together, and the duration that they do.
 
         Parameters
         ==========
@@ -384,8 +399,10 @@ class IntervalIndexer(Indexer):
         ======
         Nothing. There are no required settings.
         """
-        if not settings: settings = {}
         # NOTE: Implement this method when writing subclasses.
+
+        if not settings:
+            settings = {}
 
         # Check all required settings are present in the "settings" argument
         self._settings = {}
@@ -407,7 +424,31 @@ class IntervalIndexer(Indexer):
         # Change to the function you want to use
         # TODO: optimize this
         # TODO: modify this to use the settings
-        self._indexer_func = lambda x: interval.Interval(note.Note(x[0].obj), note.Note(x[1].obj)).name
+        def indexer_func(ecks):
+            """
+            Turn a notes-and-rests simultaneity into the name of the interval it represents.
+
+            Parameters
+            ==========
+            :param ecks : [string, string]
+                A two-item iterable of strings like 'Rest' or 'G4'.
+
+            Returns
+            =======
+            string :
+                Like 'M3' or similar.
+            u'Rest' :
+                If one of the elements of "ecks" == u'Rest'.
+            None :
+                If there "ecks" has greater or fewer than two elements.
+            """
+            if 2 != len(ecks):
+                return None
+            if u'Rest' == ecks[0].obj or u'Rest' == ecks[1].obj:
+                return u'Rest'
+            else:
+                return interval.Interval(note.Note(ecks[0].obj), note.Note(ecks[1].obj)).name
+        self._indexer_func = indexer_func
 
     def run(self):
         """

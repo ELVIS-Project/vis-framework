@@ -306,7 +306,7 @@ class TestNoteRestIndexer(unittest.TestCase):
             self.assertEqual(expected[0][i][1], actual[0][i].obj)
 
     def test_note_rest_indexer_202(self):
-        # Bass part of bwv77.mxl
+        # Soprano and Bass parts of bwv77.mxl
         expected = [self.bwv77_soprano, self.bwv77_bass]
         bwv77 = converter.parse('test_corpus/bwv77.mxl')
         test_part = [bwv77.parts[0], bwv77.parts[3]]

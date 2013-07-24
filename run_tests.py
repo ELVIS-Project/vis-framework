@@ -33,6 +33,7 @@ verb = 1
 # Imports
 import unittest
 # new
+from analyzers_tests.test_indexer import *
 from analyzers_tests.test_note_rest_indexer import *
 from analyzers_tests.test_interval_indexer import *
 from models_tests.test_indexed_piece import *
@@ -45,6 +46,7 @@ from models_tests.test_analyzing import *
 from models_tests.test_ngram import *
 
 # Analyzers ---------------------------------------------------------------------------------------
+unittest.TextTestRunner(verbosity=verb).run(indexer_suite)
 #unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
 unittest.TextTestRunner(verbosity=verb).run(interval_indexer_suite)
 #unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)
