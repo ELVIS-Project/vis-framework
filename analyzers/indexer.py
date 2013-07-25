@@ -58,16 +58,37 @@ def mp_indexer(parts, indexer_func, types=None):
     Perform the indexation of a part, or part combination. This is a module-level function designed
     to ease implementation of multiprocessing with the MPController module.
 
-    Calling Indexers with settings should adjust for these before calling mp_indexer().
+    If your Indexer has settings, use the indexer_func() to adjust for them.
 
-    Calling Indexers with required indexers must ensure their presence before calling mp_indexer().
+    If an offset has multiple events of the correct type, all will be included in the new index. If
+    this is the case, events are grouped and processed as simultaneities across parts, according to
+    their order of appearance in the "parts" argument. In these examples, each [x] is an event in
+    the part at the offset indicated above, and the integer indicates the order of processing.
+
+    offset:  0.0  |  0.5  |  1.0  |  1.5  |  2.0
+    part 1:  [1]  |  [1]  |  [1]  |  [1]  |  [1]
+    part 2:  [1]  |  [1]  |  [1]  |  [1]  |  [1]
+
+    offset:  0.0  |  0.5     |  1.0     |  1.5     |  2.0
+    part 1:  [1]  |  [1][2]  |  [1]     |  [1][2]  |  [1][2]
+    part 2:  [1]  |  [1][2]  |  [1][2]  |  [1]     |  [1][2]
+
+    offset:  0.0  |  0.5     |  1.0        |  1.5     |  2.0
+    part 1:  [1]  |  [1][2]  |  [1][2][3]  |  [1][2]  |  [1][2][3]
+    part 2:  [1]  |  [1][2]  |  [1][2]     |  [1]     |  [1]
+    part 3:  [1]  |  [1][2]  |  [1][2]     |  [1][2]  |  [1][2]
+
+    This situation is probably rare, since there are not usually simultaneous events that properly
+    belong in the same index (i.e., one part will not have both a note and rest at the same time,
+    or even two notes at the same time---the first situation is probably two parts on the same
+    staff, and the second situation is more profitably treated as a chord).
 
     Parameters:
     ===========
-    :param parts : [music21.stream.Part] or [pandas.Series]
-        A list of at least one Part or Series object. Every new event, or change of simlutaneity,
-        will appear in the outputted index. Therefore, the new index will contain at least as many
-        events as the inputted Part or Series with the most events.
+    :param parts : [music21.stream.Stream] or [pandas.Series]
+        A list of at least one Stream (should be Part) or Series object. Every new event, or change
+        of simlutaneity, will appear in the outputted index. Therefore, the new index will contain
+        at least as many events as the inputted Part or Series with the most events.
 
     :param indexer_func : function
         This function transforms found events into another suitable format. The output of this
@@ -83,41 +104,94 @@ def mp_indexer(parts, indexer_func, types=None):
         The new index. Each element is an instance of music21.base.ElementWrapper. The output of
         the indexer_func is stored in the "obj" attribute. Each ElementWrapper has an appropriate
         offset according to its place in the score.
+
+    Raises:
+    =======
+    RuntimeError :
+        If "parts" is a list of Stream objects but "types" is None (the default value).
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
 
     # flatten the streams or change Series to Parts, as required
-    all_parts = [x.flat.getElementsByClass(types) for x in parts] if isinstance(parts[0], stream.Stream) else [stream.Part(x) for x in parts]
+    all_parts = None
+    if isinstance(parts[0], stream.Stream):
+        if types is None:
+            raise RuntimeError(u'mp_indexer requires a list of types when given Stream objects')
+        all_parts = [x.flat.getElementsByClass(types) for x in parts]
+    else:
+        all_parts = [stream.Part(x) for x in parts]
 
     # collect all unique offsets
     unique_offsets = _mpi_unique_offsets(all_parts)
+    #print(str(len(unique_offsets)))  # DEBUG
+    #print(str(len(all_parts[0])))  # DEBUG
+    #print(str(len(parts[0])))  # DEBUG
 
     # Convert to requested index format
     post = []
-    for each_offset in unique_offsets:
-        # copied/modified from _event_finder() in controllers/analyzer.py of vis9c
+    #asdf = 0  # DEBUG
+    for off in unique_offsets:
+        # inspired by vis.controllers.analyzer._event_finder() in vis9c
         current_events = []
-        for each_part in all_parts:
-            possible = []
-            try:
-                possible = each_part.getElementsByOffset(each_offset, mustBeginInSpan=False)
-            except stream.StreamException:
-                pass  # TODO: what happens when we don't do this?
-            current_events.extend([x for x in possible])
-        new_obj = indexer_func(current_events)
-        if new_obj:
-            new_obj = base.ElementWrapper(new_obj)
-            new_obj.offset = each_offset  # copy offset to new Stream
-            try:  # set duration for previous event
-                post[-1].duration = duration.Duration(each_offset - post[-1].offset)
-            except IndexError:
-                pass
-            post.append(new_obj)
+        for part in all_parts:  # find the events happening at this offset in all parts
+            current_events.append([x for x in part.getElementsByOffset(off, mustBeginInSpan=False)])
+        # START DEBUG
+        #asdf += 1
+        #if 0 == len(current_events):
+            #print('panic: ' + str(off))
+            #raise RuntimeError('asdf!')
+        #else:
+            #print(str(current_events))
+            #print(str(current_events[0].obj))
+            #pass
+        #try:
+            #print(str([current_events[0][0], current_events[1][0]]))
+        #except IndexError:
+            #print(str(current_events[0]))
+        # END DEBUG
+
+        # Arrange groups of things to index
+        if 1 == len(current_events):
+            # there's only one part
+            current_events = [[x] for x in current_events[0]]
+        else:
+            new_ce = []
+            for i in xrange(max([len(x) for x in current_events])):
+                # for every 'i' from 0 to the highest index of any object at this offset
+                this_e = []
+                for j in xrange(len(current_events)):
+                    # for every part
+                    try:
+                        this_e.append(current_events[j][i])
+                    except IndexError:
+                        # when some parts have fewer objects at this offset
+                        pass
+                new_ce.append(this_e)
+            current_events = new_ce
+
+        # Index previously-arranged groups
+        for each_obj in current_events:
+            #print('indexing ' + str(each_obj))  # DEBUG
+            new_obj = indexer_func(each_obj)
+            if new_obj is not None:
+                new_obj = base.ElementWrapper(new_obj)
+                new_obj.offset = off  # copy offset to new Stream
+                try:  # set duration for previous event
+                    post[-1].duration = duration.Duration(off - post[-1].offset)
+                except IndexError:
+                    # Happens when this is the first element in "post"; faster than using an "if"
+                    pass
+                post.append(new_obj)
+            #else:
+                #print('NOOOO')  # DEBUG
+                #print('   ' + str(new_obj))  # DEBUG
 
     # Ensure the last items have the correct duration
     if post:
         end_offset = all_parts[0][-1].offset + all_parts[0][-1].duration.quarterLength
         post[-1].duration = duration.Duration(end_offset - post[-1].offset)
+    #print(str(len(post)))  # DEBUG
+    #print('asdf: ' + str(asdf))  # DEBUG
 
     return pandas.Series(post)
 
@@ -185,6 +259,8 @@ class Indexer(object):
 #        # Change to the function you want to use
 #        # NB: The lambda function receives events in a list of all voices in the current voice
 #        #     combination; if this Indexer processes one voice at a time, it's a one-element list.
+#        #     The function receives the unmodified object, the type of which is either in
+#        #     self._types object or music21.base.ElementWrapper.
 #        self._indexer_func = lambda x: None
 
     def run(self):
@@ -374,13 +450,59 @@ class IntervalIndexer(Indexer):
     possible_settings = [u'simple or compound', u'quality']
     default_settings = {u'simple or compound': u'compound', u'quality': False}
 
+    @staticmethod
+    def indexer_func(ecks, simple, qual):
+        """
+        Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
+        because of the u'Rest' strings, you can compare the duration of the piece in which the two
+        parts do or do not have notes sounding together.
+
+        Parameters
+        ==========
+        :param ecks : [music21.base.ElementWrapper]
+            A two-item iterable of ElementWrapper objects, for which the "obj" attribute should be
+            strings like 'Rest' or 'G4'; the upper voice should have index 0.
+
+        :param simple : boolean
+            True if intervals should be reduced to their single-octave version.
+
+        :param qual : boolean
+            True if the interval's quality should be prepended.
+
+        Returns
+        =======
+        string :
+            Like 'M3' or similar.
+        u'Rest' :
+            If one of the elements of "ecks" == u'Rest'.
+        None :
+            If there "ecks" has greater or fewer than two elements.
+        """
+        if 2 != len(ecks):
+            return None
+        if u'Rest' == ecks[0].obj or u'Rest' == ecks[1].obj:
+            return u'Rest'
+        else:
+            interv = interval.Interval(note.Note(ecks[1].obj), note.Note(ecks[0].obj))
+            post = u'-' if interv.direction < 0 else u''
+            if qual:
+                # We must get all of the quality, and none of the size (important for AA, dd, etc.)
+                q_str = u''
+                for each in interv.name:
+                    if each in [u'A', u'M', u'P', u'm', u'd']:
+                        q_str += each
+                post += q_str
+            if simple:
+                post += u'8' if 8 == interv.generic.undirected \
+                        else unicode(interv.generic.simpleUndirected)
+            else:
+                post += unicode(interv.generic.undirected)
+            return post
+
     def __init__(self, score, settings=None):
         """
-        Create a new IntervalIndexer.
-        TODO: describe output format
-        TODO: it puts u'Rest' when there's a rest in at least one of the two parts; because of this,
-              you can compare the duration of the piece where the two parts don't have an interval
-              together, and the duration that they do.
+        Create a new IntervalIndexer. For the output format, see the docs for
+        IntervalIndexer.indexer_func().
 
         Parameters
         ==========
@@ -422,33 +544,7 @@ class IntervalIndexer(Indexer):
         # self._types = []
 
         # Change to the function you want to use
-        # TODO: optimize this
-        # TODO: modify this to use the settings
-        def indexer_func(ecks):
-            """
-            Turn a notes-and-rests simultaneity into the name of the interval it represents.
-
-            Parameters
-            ==========
-            :param ecks : [string, string]
-                A two-item iterable of strings like 'Rest' or 'G4'.
-
-            Returns
-            =======
-            string :
-                Like 'M3' or similar.
-            u'Rest' :
-                If one of the elements of "ecks" == u'Rest'.
-            None :
-                If there "ecks" has greater or fewer than two elements.
-            """
-            if 2 != len(ecks):
-                return None
-            if u'Rest' == ecks[0].obj or u'Rest' == ecks[1].obj:
-                return u'Rest'
-            else:
-                return interval.Interval(note.Note(ecks[0].obj), note.Note(ecks[1].obj)).name
-        self._indexer_func = indexer_func
+        self._indexer_func = lambda x: IntervalIndexer.indexer_func(x, False, True)
 
     def run(self):
         """

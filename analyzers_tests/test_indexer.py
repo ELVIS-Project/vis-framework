@@ -23,12 +23,193 @@
 #--------------------------------------------------------------------------------------------------
 
 import unittest
+import pandas
+from music21 import base, stream, duration, note
 from analyzers import indexer
 from test_corpus import int_indexer_short
 
 
-class TestIndexer(unittest.TestCase):
-    # _mpi_unique_offsets -----------------------------------------------------
+class TestIndexerSinglePart(unittest.TestCase):
+    def setUp(self):
+        # prepare a valid list of ElementWrappers (with proper offset and duration)
+        self.in_list = [base.ElementWrapper(x) for x in xrange(100)]
+        for i, elem in enumerate(self.in_list):
+            elem.offset = i * 0.25
+            elem.duration = duration.Duration(0.25)
+        # lambda for mp_indexer() that returns the object unmodified
+        self.verbatim = lambda x: x[0].obj
+        # prepare a valid list of Rests and ElementWrappers, happening simultaneously, to see that
+        # we can properly filter by type
+        self.mixed_list = []
+        for i in xrange(100):
+            app_me = note.Rest(quarterLength=0.25)
+            app_me.offset = i * 0.5
+            self.mixed_list.append(app_me)
+            app_me = base.ElementWrapper(i)
+            app_me.offset = i * 0.5 + 0.25
+            app_me.duration = duration.Duration(0.25)
+            self.mixed_list.append(app_me)
+        # same list as previous, but with a Rest and ElementerWrapper sharing each offset
+        self.shared_mixed_list = []
+        for i in xrange(100):
+            app_me = note.Rest(quarterLength=0.25)
+            app_me.offset = i * 0.25
+            self.shared_mixed_list.append(app_me)
+            app_me = base.ElementWrapper(i)
+            app_me.offset = i * 0.25
+            app_me.duration = duration.Duration(0.25)
+            self.shared_mixed_list.append(app_me)
+        # lambda that deals with Rest objects
+        self.verbatim_rests = lambda x: u'Rest' if isinstance(x[0], note.Rest) else x[0].obj
+
+    def test_mp_indexer_1(self):
+        # that we get a Series back when a Series is given
+        input_series = pandas.Series(self.in_list)
+        result = indexer.mp_indexer([input_series], self.verbatim)
+        self.assertTrue(isinstance(result, pandas.Series))
+
+    def test_mp_indexer_2(self):
+        # that we get a Series back when a Stream is given
+        input_stream = stream.Stream(self.in_list)
+        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        self.assertTrue(isinstance(result, pandas.Series))
+
+    def test_mp_indexer_3(self):
+        # that ommitting the "types" argument when giving a list of Streams raises RuntimeError
+        input_stream = stream.Stream(self.in_list)
+        self.assertRaises(RuntimeError, indexer.mp_indexer, [input_stream], self.verbatim)
+
+    def test_mp_indexer_4(self):
+        # that the resulting Series is the same length (given a Series)
+        input_series = pandas.Series(self.in_list)
+        result = indexer.mp_indexer([input_series], self.verbatim)
+        self.assertEqual(len(self.in_list), len(result))
+
+    def test_mp_indexer_5(self):
+        # that the resulting Series is the same length (given a Stream)
+        input_stream = stream.Stream(self.in_list)
+        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        self.assertEqual(len(self.in_list), len(result))
+
+    def test_mp_indexer_6(self):
+        # that the resulting Series has the same objects (given a Series)
+        input_series = pandas.Series(self.in_list)
+        result = indexer.mp_indexer([input_series], self.verbatim)
+        for i in xrange(len(self.in_list)):
+            self.assertEqual(self.in_list[i].obj, result[i].obj)
+
+    def test_mp_indexer_7(self):
+        # that the resulting Series has the same objects (given a Stream)
+        input_stream = stream.Stream(self.in_list)
+        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        for i in xrange(len(self.in_list)):
+            self.assertEqual(self.in_list[i].obj, result[i].obj)
+
+    def test_mp_indexer_8(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test lengths
+        # --> one event at each offset
+        input_stream = stream.Stream(self.mixed_list)
+        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        self.assertEqual(len(self.in_list), len(result))
+
+    def test_mp_indexer_9(self):
+        # that a list with two types is not filtered when it's given as a Series, even if there's
+        # a value for the "types" parameter
+        # --> test lengths
+        # --> one event at each offset
+        input_series = pandas.Series(self.mixed_list)
+        result = indexer.mp_indexer([input_series], self.verbatim_rests, [base.ElementWrapper])
+        self.assertEqual(len(self.mixed_list), len(result))
+
+    def test_mp_indexer_10(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test values
+        # --> one event at each offset
+        input_stream = stream.Stream(self.mixed_list)
+        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        for i in xrange(len(self.in_list)):
+            self.assertEqual(self.in_list[i].obj, result[i].obj)
+
+    def test_mp_indexer_11(self):
+        # that a list with two types is not filtered when it's given as a Series, even if there's
+        # a value for the "types" parameter
+        # --> test values
+        # --> one event at each offset
+        input_series = pandas.Series(self.mixed_list)
+        result = indexer.mp_indexer([input_series], self.verbatim_rests, [base.ElementWrapper])
+        for i in xrange(len(self.in_list)):
+            if isinstance(self.mixed_list[i], note.Rest):
+                self.assertEqual(result[i].obj, u'Rest')
+            else:
+                self.assertEqual(self.mixed_list[i].obj, result[i].obj)
+
+    def test_mp_indexer_12(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test lengths
+        # --> two events at each offset
+        input_stream = stream.Stream(self.shared_mixed_list)
+        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        self.assertEqual(len(self.in_list), len(result))
+
+    def test_mp_indexer_12a(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test lengths
+        # --> two events at each offset
+        # --> if we want ElementWrappers and Rests
+        input_stream = stream.Stream(self.shared_mixed_list)
+        result = indexer.mp_indexer([input_stream],
+                                    self.verbatim_rests,
+                                    [base.ElementWrapper, note.Rest])
+        self.assertEqual(len(self.shared_mixed_list), len(result))
+
+    def test_mp_indexer_13(self):
+        # that a list with two types is not filtered when it's given as a Series, even if there's
+        # a value for the "types" parameter
+        # --> test lengths
+        # --> two events at each offset
+        input_series = pandas.Series(self.shared_mixed_list)
+        result = indexer.mp_indexer([input_series], self.verbatim_rests, [base.ElementWrapper])
+        self.assertEqual(len(self.shared_mixed_list), len(result))
+
+    def test_mp_indexer_14(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test values
+        # --> two events at each offset
+        input_stream = stream.Stream(self.shared_mixed_list)
+        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        for i in xrange(len(self.in_list)):
+            self.assertEqual(self.in_list[i].obj, result[i].obj)
+
+    def test_mp_indexer_14a(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test values
+        # --> two events at each offset
+        # --> if we want ElementWrappers and Rests
+        input_stream = stream.Stream(self.shared_mixed_list)
+        result = indexer.mp_indexer([input_stream],
+                                    self.verbatim_rests,
+                                    [base.ElementWrapper, note.Rest])
+        for i in xrange(len(self.shared_mixed_list)):
+            if isinstance(self.shared_mixed_list[i], note.Rest):
+                self.assertEqual(result[i].obj, u'Rest')
+            else:
+                self.assertEqual(self.shared_mixed_list[i].obj, result[i].obj)
+
+    def test_mp_indexer_15(self):
+        # that a list with two types is not filtered when it's given as a Series, even if there's
+        # a value for the "types" parameter
+        # --> test values
+        # --> two events at each offset
+        input_series = pandas.Series(self.shared_mixed_list)
+        result = indexer.mp_indexer([input_series], self.verbatim_rests, [base.ElementWrapper])
+        for i in xrange(len(self.in_list)):
+            if isinstance(self.mixed_list[i], note.Rest):
+                self.assertEqual(result[i].obj, u'Rest')
+            else:
+                self.assertEqual(self.mixed_list[i].obj, result[i].obj)
+
+class TestMpiUniqueOffsets(unittest.TestCase):
     def test_mpi_unique_offsets_1(self):
         streams = int_indexer_short.test_1
         expected = [0.0]
@@ -144,4 +325,5 @@ class TestIndexer(unittest.TestCase):
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-indexer_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexer)
+indexer_1_part_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerSinglePart)
+unique_offsets_suite = unittest.TestLoader().loadTestsFromTestCase(TestMpiUniqueOffsets)
