@@ -159,7 +159,7 @@ class IndexedPiece(object):
 
         Parameters
         ==========
-        which_indexers : [string]
+        :param which_indexers: [string]
             A list of the vis.controllers.indexer.Indexer subclasses to run on the IndexedPiece. If
             you are using a built-in Indexer (the code for which is stored in
             "analyzers/indexer.py"), the string should look like this:
@@ -168,7 +168,7 @@ class IndexedPiece(object):
             subdirectory, so the string should look like this:
                 u'my_indexers.MyIndexer'
 
-        which_settings : dict
+        :param which_settings: dict
             A dict of the settings to provide the Indexers. Default is {}. This is the same for all
             Indexers in "which_indexers", so you may specify settings that apply only to one or some
             of the Indexers, but you may not specify different settings of the same name for
@@ -186,7 +186,8 @@ class IndexedPiece(object):
         Results from the Indexer, and any additional Indexer subclasses required for the
         "which_index" Indexer subclass, are saved in the IndexedPiece.
         """
-        if not which_settings: which_settings = {}
+        if not which_settings:
+            which_settings = {}
         # TODO: for testing...
         # - the "missing_indexers" handling
         # - built-in Indexers
@@ -311,10 +312,10 @@ class IndexedPiece(object):
 
         Parameters
         ==========
-        which_experimenters : list
+        :param which_experimenters: list
             A list of the vis.controllers.experimenter.Experimenter subclasses to run.
 
-        which_settings : dict
+        :param which_settings: dict
             A dict of the settings to provide the Experimenter. Default is {}.
 
         Returns
@@ -333,7 +334,8 @@ class IndexedPiece(object):
         Results from the Indexer, and any additional Indexer subclasses required for the
         "which_index" Indexer subclass, are saved in the IndexedPiece.
         """
-        if not which_settings: which_settings = {}
+        if not which_settings:
+            which_settings = {}
         pass
 
     def remove_experiment(self, **args):
@@ -386,11 +388,11 @@ class IndexedPiece(object):
 
         Parameters
         ==========
-        parts : [int] or [[int]]
+        :param parts: [int] or [[int]]
             A list of the integers or a list of integer lists corresponding to the parts or part
             combinations you want. The indices are the same as the result of "metadata('parts')".
 
-        index : string
+        :param index: string
             The name of the index you want, as provided to "add_index()". This is the string-wise
             representation of the Indexer class's name.
 
