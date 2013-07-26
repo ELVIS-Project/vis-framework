@@ -326,13 +326,6 @@ class Indexer(object):
         self._indexer_func = None
         self._types = None
 
-    def name(self):
-        """
-        Return the name used to identify this indexer.
-        """
-        # NOTE: Do not reimplement this method in subclasses.
-        return unicode(self.__name__)  # pylint: disable=E1101
-
     def _do_multiprocessing(self, combos):
         """
         Dispatch jobs to the MPController for multiprocessing, then await the jobs' completion.

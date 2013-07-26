@@ -54,8 +54,7 @@ class IndexedPiece(object):
     # About the Data Model (for self._data)
     # =====================================
     # - All the indices are stored in a dict.
-    # - Indices of the dict will be unicode()-format class names of the Indexer, as returned by
-    #   each Indexer subclass's "name()" function.
+    # - Indices of the dict will be unicode()-format class names of the Indexer.
     # - how can we store multiple results from the same Indexer, generated with different settings?
 
     # - For an Indexer, the stored item will be a dict of pandas.Series objects.
