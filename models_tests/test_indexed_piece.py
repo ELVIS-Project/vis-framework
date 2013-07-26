@@ -247,10 +247,10 @@ class TestIndexedPiece(TestCase):
         value = self.ip.metadata('field')
         self.assertEquals(value, 2)
 
-    def test_metadata_access_invalid_unimported(self):
+    def test_metadata_access_invalid_pre_import(self):
         self.assertRaises(KeyError, self.ip.metadata, 'invalid_field')
 
-    def test_metadata_access_invalid_imported(self):
+    def test_metadata_access_invalid_post_import(self):
         self.ip._import_score()
         value = self.ip.metadata('invalid_field')
         self.assertEquals(value, None)
