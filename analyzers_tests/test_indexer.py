@@ -66,43 +66,43 @@ class TestIndexerSinglePart(unittest.TestCase):
     def test_mp_indexer_1(self):
         # that we get a Series back when a Series is given
         input_series = pandas.Series(self.in_list)
-        result = indexer.mp_indexer([input_series], self.verbatim)
+        result = indexer.mp_indexer(0, [input_series], self.verbatim)[1]
         self.assertTrue(isinstance(result, pandas.Series))
 
     def test_mp_indexer_2(self):
         # that we get a Series back when a Stream is given
         input_stream = stream.Stream(self.in_list)
-        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
         self.assertTrue(isinstance(result, pandas.Series))
 
     def test_mp_indexer_3(self):
         # that ommitting the "types" argument when giving a list of Streams raises RuntimeError
         input_stream = stream.Stream(self.in_list)
-        self.assertRaises(RuntimeError, indexer.mp_indexer, [input_stream], self.verbatim)
+        self.assertRaises(RuntimeError, indexer.mp_indexer, 0, [input_stream], self.verbatim)
 
     def test_mp_indexer_4(self):
         # that the resulting Series is the same length (given a Series)
         input_series = pandas.Series(self.in_list)
-        result = indexer.mp_indexer([input_series], self.verbatim)
+        result = indexer.mp_indexer(0, [input_series], self.verbatim)[1]
         self.assertEqual(len(self.in_list), len(result))
 
     def test_mp_indexer_5(self):
         # that the resulting Series is the same length (given a Stream)
         input_stream = stream.Stream(self.in_list)
-        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
     def test_mp_indexer_6(self):
         # that the resulting Series has the same objects (given a Series)
         input_series = pandas.Series(self.in_list)
-        result = indexer.mp_indexer([input_series], self.verbatim)
+        result = indexer.mp_indexer(0, [input_series], self.verbatim)[1]
         for i in xrange(len(self.in_list)):
             self.assertEqual(self.in_list[i].obj, result[i].obj)
 
     def test_mp_indexer_7(self):
         # that the resulting Series has the same objects (given a Stream)
         input_stream = stream.Stream(self.in_list)
-        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             self.assertEqual(self.in_list[i].obj, result[i].obj)
 
@@ -111,7 +111,7 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test lengths
         # --> one event at each offset
         input_stream = stream.Stream(self.mixed_list)
-        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
     def test_mp_indexer_9(self):
@@ -120,7 +120,7 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test lengths
         # --> one event at each offset
         input_series = pandas.Series(self.mixed_list)
-        result = indexer.mp_indexer([input_series], self.verbatim_rests, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_series], self.verbatim_rests, [base.ElementWrapper])[1]
         self.assertEqual(len(self.mixed_list), len(result))
 
     def test_mp_indexer_10(self):
@@ -128,7 +128,7 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test values
         # --> one event at each offset
         input_stream = stream.Stream(self.mixed_list)
-        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             self.assertEqual(self.in_list[i].obj, result[i].obj)
 
@@ -138,7 +138,7 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test values
         # --> one event at each offset
         input_series = pandas.Series(self.mixed_list)
-        result = indexer.mp_indexer([input_series], self.verbatim_rests, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_series], self.verbatim_rests, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             if isinstance(self.mixed_list[i], note.Rest):
                 self.assertEqual(result[i].obj, u'Rest')
@@ -150,7 +150,7 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test lengths
         # --> two events at each offset
         input_stream = stream.Stream(self.shared_mixed_list)
-        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
     def test_mp_indexer_12a(self):
@@ -159,9 +159,9 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> two events at each offset
         # --> if we want ElementWrappers and Rests
         input_stream = stream.Stream(self.shared_mixed_list)
-        result = indexer.mp_indexer([input_stream],
+        result = indexer.mp_indexer(0, [input_stream],
                                     self.verbatim_rests,
-                                    [base.ElementWrapper, note.Rest])
+                                    [base.ElementWrapper, note.Rest])[1]
         self.assertEqual(len(self.shared_mixed_list), len(result))
 
     def test_mp_indexer_13(self):
@@ -170,7 +170,7 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test lengths
         # --> two events at each offset
         input_series = pandas.Series(self.shared_mixed_list)
-        result = indexer.mp_indexer([input_series], self.verbatim_rests, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_series], self.verbatim_rests, [base.ElementWrapper])[1]
         self.assertEqual(len(self.shared_mixed_list), len(result))
 
     def test_mp_indexer_14(self):
@@ -178,7 +178,7 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test values
         # --> two events at each offset
         input_stream = stream.Stream(self.shared_mixed_list)
-        result = indexer.mp_indexer([input_stream], self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             self.assertEqual(self.in_list[i].obj, result[i].obj)
 
@@ -188,9 +188,9 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> two events at each offset
         # --> if we want ElementWrappers and Rests
         input_stream = stream.Stream(self.shared_mixed_list)
-        result = indexer.mp_indexer([input_stream],
+        result = indexer.mp_indexer(0, [input_stream],
                                     self.verbatim_rests,
-                                    [base.ElementWrapper, note.Rest])
+                                    [base.ElementWrapper, note.Rest])[1]
         for i in xrange(len(self.shared_mixed_list)):
             if isinstance(self.shared_mixed_list[i], note.Rest):
                 self.assertEqual(result[i].obj, u'Rest')
@@ -203,7 +203,7 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test values
         # --> two events at each offset
         input_series = pandas.Series(self.shared_mixed_list)
-        result = indexer.mp_indexer([input_series], self.verbatim_rests, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [input_series], self.verbatim_rests, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             if isinstance(self.mixed_list[i], note.Rest):
                 self.assertEqual(result[i].obj, u'Rest')
@@ -255,7 +255,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [pandas.Series(self.in_list),
                          pandas.Series(copy.deepcopy(self.in_list)),
                          pandas.Series(copy.deepcopy(self.in_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         self.assertTrue(isinstance(result, pandas.Series))
 
     def test_mpi_triple_2(self):
@@ -263,7 +263,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [stream.Stream(self.in_list),
                          stream.Stream(copy.deepcopy(self.in_list)),
                          stream.Stream(copy.deepcopy(self.in_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         self.assertTrue(isinstance(result, pandas.Series))
 
     def test_mpi_triple_5(self):
@@ -271,7 +271,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [stream.Stream(self.in_list),
                          stream.Stream(copy.deepcopy(self.in_list)),
                          stream.Stream(copy.deepcopy(self.in_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
     def test_mpi_triple_6(self):
@@ -279,7 +279,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [pandas.Series(self.in_list),
                          pandas.Series(copy.deepcopy(self.in_list)),
                          pandas.Series(copy.deepcopy(self.in_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
     def test_mpi_triple_7(self):
@@ -287,7 +287,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [stream.Stream(self.in_list),
                          stream.Stream(copy.deepcopy(self.in_list)),
                          stream.Stream(copy.deepcopy(self.in_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
             self.assertEqual(res, result[i].obj)
@@ -297,7 +297,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [pandas.Series(self.in_list),
                          pandas.Series(copy.deepcopy(self.in_list)),
                          pandas.Series(copy.deepcopy(self.in_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim)
+        result = indexer.mp_indexer(0, input_streams, self.verbatim)[1]
         for i in xrange(len(self.in_list)):
             res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
             self.assertEqual(res, result[i].obj)
@@ -309,7 +309,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [stream.Stream(self.mixed_list),
                          stream.Stream(copy.deepcopy(self.mixed_list)),
                          stream.Stream(copy.deepcopy(self.mixed_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
     def test_mpi_triple_9(self):
@@ -319,7 +319,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [pandas.Series(self.mixed_list),
                          pandas.Series(copy.deepcopy(self.mixed_list)),
                          pandas.Series(copy.deepcopy(self.mixed_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim_rests)
+        result = indexer.mp_indexer(0, input_streams, self.verbatim_rests)[1]
         self.assertEqual(len(self.mixed_list), len(result))
 
     def test_mpi_triple_10(self):
@@ -329,7 +329,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [stream.Stream(self.mixed_list),
                          stream.Stream(copy.deepcopy(self.mixed_list)),
                          stream.Stream(copy.deepcopy(self.mixed_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
             self.assertEqual(res, result[i].obj)
@@ -341,7 +341,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [pandas.Series(self.mixed_list),
                          pandas.Series(copy.deepcopy(self.mixed_list)),
                          pandas.Series(copy.deepcopy(self.mixed_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim_rests)
+        result = indexer.mp_indexer(0, input_streams, self.verbatim_rests)[1]
         for i in xrange(len(self.mixed_list)):
             res = None
             if isinstance(self.mixed_list[i], note.Rest):
@@ -357,7 +357,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [stream.Stream(self.shared_mixed_list),
                          stream.Stream(copy.deepcopy(self.shared_mixed_list)),
                          stream.Stream(copy.deepcopy(self.shared_mixed_list))]
-        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
     def test_mpi_triple_12a(self):
@@ -368,9 +368,9 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_streams = [stream.Stream(self.shared_mixed_list),
                          stream.Stream(copy.deepcopy(self.shared_mixed_list)),
                          stream.Stream(copy.deepcopy(self.shared_mixed_list))]
-        result = indexer.mp_indexer(input_streams,
+        result = indexer.mp_indexer(0, input_streams,
                                     self.verbatim_rests,
-                                    [base.ElementWrapper, note.Rest])
+                                    [base.ElementWrapper, note.Rest])[1]
         self.assertEqual(len(self.shared_mixed_list), len(result))
 
     def test_mpi_triple_13(self):
@@ -381,7 +381,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_series = [pandas.Series(self.shared_mixed_list),
                         pandas.Series(copy.deepcopy(self.shared_mixed_list)),
                         pandas.Series(copy.deepcopy(self.shared_mixed_list))]
-        result = indexer.mp_indexer(input_series, self.verbatim_rests, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_series, self.verbatim_rests, [base.ElementWrapper])[1]
         self.assertEqual(len(self.shared_mixed_list), len(result))
 
     def test_mpi_triple_14(self):
@@ -391,7 +391,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_stream = [stream.Stream(self.shared_mixed_list),
                         stream.Stream(copy.deepcopy(self.shared_mixed_list)),
                         stream.Stream(copy.deepcopy(self.shared_mixed_list))]
-        result = indexer.mp_indexer(input_stream, self.verbatim, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_stream, self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
             self.assertEqual(res, result[i].obj)
@@ -404,9 +404,9 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_stream = [stream.Stream(self.shared_mixed_list),
                         stream.Stream(copy.deepcopy(self.shared_mixed_list)),
                         stream.Stream(copy.deepcopy(self.shared_mixed_list))]
-        result = indexer.mp_indexer(input_stream,
+        result = indexer.mp_indexer(0, input_stream,
                                     self.verbatim_rests,
-                                    [base.ElementWrapper, note.Rest])
+                                    [base.ElementWrapper, note.Rest])[1]
         for i in xrange(len(self.mixed_list)):
             res = None
             if isinstance(self.mixed_list[i], note.Rest):
@@ -423,7 +423,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         input_series = [pandas.Series(self.shared_mixed_list),
                         pandas.Series(copy.deepcopy(self.shared_mixed_list)),
                         pandas.Series(copy.deepcopy(self.shared_mixed_list))]
-        result = indexer.mp_indexer(input_series, self.verbatim_rests, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, input_series, self.verbatim_rests, [base.ElementWrapper])[1]
         for i in xrange(len(self.mixed_list)):
             res = None
             if isinstance(self.mixed_list[i], note.Rest):
@@ -452,7 +452,7 @@ class TestIndexerThreeParts(unittest.TestCase):
                     (1.0, u'(2, 2)'),
                     (1.5, u'(3, 3)'),
                     (2.0, u'(4, 4)')]
-        result = indexer.mp_indexer([part_1, part_2], self.verbatim_variable)
+        result = indexer.mp_indexer(0, [part_1, part_2], self.verbatim_variable)[1]
         for i in xrange(len(expected)):
             self.assertEqual(expected[i][0], result[i].offset)
             self.assertEqual(expected[i][1], result[i].obj)
@@ -499,7 +499,7 @@ class TestIndexerThreeParts(unittest.TestCase):
                     (1.5, u'(300,)'),
                     (2.0, u'(4, 4)'),
                     (2.0, u'(400, 400)')]
-        result = indexer.mp_indexer([part_1, part_2], self.verbatim_variable, [base.ElementWrapper])
+        result = indexer.mp_indexer(0, [part_1, part_2], self.verbatim_variable, [base.ElementWrapper])[1]
         for i in xrange(len(expected)):
             self.assertEqual(expected[i][0], result[i].offset)
             self.assertEqual(expected[i][1], result[i].obj)
@@ -572,9 +572,9 @@ class TestIndexerThreeParts(unittest.TestCase):
                     (2.0, u'(4, 4, 4)'),
                     (2.0, u'(401, 402)'),
                     (2.0, u'(451,)')]
-        result = indexer.mp_indexer([part_1, part_2, part_3],
+        result = indexer.mp_indexer(0, [part_1, part_2, part_3],
                                     self.verbatim_variable,
-                                    [base.ElementWrapper])
+                                    [base.ElementWrapper])[1]
         for i in xrange(len(expected)):
             self.assertEqual(expected[i][0], result[i].offset)
             self.assertEqual(expected[i][1], result[i].obj)
