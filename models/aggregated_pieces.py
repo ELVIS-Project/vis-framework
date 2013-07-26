@@ -37,8 +37,9 @@ class AggregatedPieces(object):
 
     # TODO: how to know which pieces are stored here?
 
-    def __init__(self, pathname, **args):
-        super(AggregatedPieces, self).__init__(args)
+    def __init__(self, pathname):
+        super(AggregatedPieces, self).__init__()
+        self.experiments = []
 
     def __repr__(self):
         pass
@@ -47,12 +48,6 @@ class AggregatedPieces(object):
         pass
 
     def __unicode__(self):
-        pass
-
-    def experimenters_used(self):
-        """
-        Return a list of the names of the experimenters used so far in this AggregatedPieces.
-        """
         pass
 
     def add_experiment(self, which_experiment, which_settings=None):
