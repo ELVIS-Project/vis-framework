@@ -129,7 +129,8 @@ class IndexedPiece(object):
         >>> piece.metadata('parts')
         [u'Flute 1', u'Flute 2', u'Oboe 1', u'Oboe 2', u'Clarinet 1', u'Clarinet 2', ... ]
         """
-        pass
+        if not value:
+            return self._metadata[field]
 
     def indexers_used(self):
         """

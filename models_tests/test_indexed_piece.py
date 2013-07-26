@@ -22,12 +22,11 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
-import unittest
-from music21 import converter, stream, clef, bar
+from unittest import TestCase, TestLoader
 from models.indexed_piece import IndexedPiece
 
 
-class TestIndexedPieceNormal(unittest.TestCase):
+class TestIndexedPieceNormal(TestCase):
     def setUp(self):
         self.bwv77_soprano = [
             (0.0, "E4"),
@@ -111,7 +110,7 @@ class TestIndexedPieceNormal(unittest.TestCase):
             (69.0, "D5"),
             (70.0, "C#5"),
             (71.0, "B4")
-            ]
+        ]
         self.bwv77_bass = [
             (0.0, "E3"),
             (1.0, "E3"),
@@ -207,7 +206,7 @@ class TestIndexedPieceNormal(unittest.TestCase):
             (69.5, "E3"),
             (70.0, "F#3"),
             (71.0, "B2")
-            ]
+        ]
 
     def test_indexed_piece_200(self):
         # Soprano and Bass parts of bwv77.mxl
@@ -221,12 +220,24 @@ class TestIndexedPieceNormal(unittest.TestCase):
         self.assertEqual(len(expected_3), len(actual_3))
 
 
-class TestIndexedPieceErrors(unittest.TestCase):
+class TestIndexedPieceErrors(TestCase):
     pass
 
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-indexed_piece_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
-indexed_piece_errors_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexedPieceErrors)
+indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
+indexed_piece_errors_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceErrors)
+
+
+class TestIndexedPiece(TestCase):
+    def setUp(self):
+        """
+        Use ``ip`` as a test piece.
+        """
+        self.ip = IndexedPiece('')
+
+    def test_metadata(self):
+        pathname = self.ip.metadata('pathname')
+        self.assertEquals(pathname, '')
