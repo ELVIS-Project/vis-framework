@@ -49,12 +49,6 @@ class AggregatedPieces(object):
     def __unicode__(self):
         pass
 
-    def metadata(self, field, value=None):
-        """
-        ?
-        """
-        pass
-
     def experimenters_used(self):
         """
         Return a list of the names of the experimenters used so far in this AggregatedPieces.
@@ -65,7 +59,8 @@ class AggregatedPieces(object):
         """
         ?
         """
-        if not which_settings: which_settings = {}
+        if not which_settings:
+            which_settings = {}
         pass
 
     def remove_experiment(self, **args):
