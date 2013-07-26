@@ -15,7 +15,7 @@ class MPController(Thread):
 
     def __init__(self):
         super(MPController, self).__init__()
-        self.pool = Pool()
+        self._pool = None
         self._pipes = [None for i in xrange(100)]  # we'll obviously have to make this robuster
         self._next_pipe_index = 0
         self._jobs_started = 0
@@ -74,21 +74,29 @@ class MPController(Thread):
         """
         Monitor all the pipes for new jobs to complete. You cannot submit jobs to this instance
         before calling this method.
+
+        This method knows whether it has already been started, so you can call it multiple times
+        with indemnity---you will not accidentally interfere.
         """
+        # make sure we won't start another Pool-and-loop by accient
+        if self._pool is not None:
+            return None
+        # set up
+        self._pool = Pool()
         keep_going = True
         while keep_going:
             for pipe_i in xrange(len(self._pipes)):
                 if self._pipes[pipe_i] is None:
                     continue
                 this = None
-                try:
-                    if self._pipes[pipe_i].poll():
-                        this = self._pipes[pipe_i].recv()
-                except EOFError:
-                    print('EOFError')  # DEBUG
+                if self._pipes[pipe_i].poll():
+                    this = self._pipes[pipe_i].recv()
 
                 if this is not None:
                     if u'shutdown' == this:
+                        # TODO: what if jobs are submitted before this, but we would only see them
+                        # after? As in: job submitted to lower-index pipe that we passed before
+                        # "shutdown" was sent on a higher-index pipe...
                         keep_going = False
                         self._pipes[pipe_i].close()
                     elif u'finished' == this:
@@ -100,10 +108,9 @@ class MPController(Thread):
                         # so we know how many jobs we've started
                         self._jobs_started += 1
                         # start it
-                        self.pool.apply_async(
-                            this[0],
-                            tuple(the_args),
-                            callback=self._return_result)
+                        self._pool.apply_async(this[0],
+                                               tuple(the_args),
+                                               callback=self._return_result)
 
     def shutdown(self):
         """
@@ -117,9 +124,9 @@ class MPController(Thread):
         pipe_end.send(u'shutdown')
         pipe_end.close()
         # stop the pool
-        self.pool.close()
-        self.pool.join()
-        del self.pool
+        self._pool.close()
+        self._pool.join()
+        del self._pool
         # wait until all jobs have been returned
         while self._jobs_started > self._jobs_completed:
             pass
