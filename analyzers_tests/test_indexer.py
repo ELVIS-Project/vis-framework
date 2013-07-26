@@ -23,6 +23,7 @@
 #--------------------------------------------------------------------------------------------------
 
 import unittest
+import copy
 import pandas
 from music21 import base, stream, duration, note
 from analyzers import indexer
@@ -209,6 +210,375 @@ class TestIndexerSinglePart(unittest.TestCase):
             else:
                 self.assertEqual(self.mixed_list[i].obj, result[i].obj)
 
+class TestIndexerThreeParts(unittest.TestCase):
+    def setUp(self):
+        # prepare a valid list of ElementWrappers (with proper offset and duration)
+        self.in_list = [base.ElementWrapper(x) for x in xrange(100)]
+        for i, elem in enumerate(self.in_list):
+            elem.offset = i * 0.25
+            elem.duration = duration.Duration(0.25)
+        # lambda for mp_indexer() that returns the object unmodified
+        self.verbatim = lambda x: str((x[0].obj, x[1].obj, x[2].obj))
+        # prepare a valid list of Rests and ElementWrappers, happening simultaneously, to see that
+        # we can properly filter by type
+        self.mixed_list = []
+        for i in xrange(100):
+            app_me = note.Rest(quarterLength=0.25)
+            app_me.offset = i * 0.5
+            self.mixed_list.append(app_me)
+            app_me = base.ElementWrapper(i)
+            app_me.offset = i * 0.5 + 0.25
+            app_me.duration = duration.Duration(0.25)
+            self.mixed_list.append(app_me)
+        ## same list as previous, but with a Rest and ElementerWrapper sharing each offset
+        self.shared_mixed_list = []
+        for i in xrange(100):
+            app_me = note.Rest(quarterLength=0.25)
+            app_me.offset = i * 0.25
+            self.shared_mixed_list.append(app_me)
+            app_me = base.ElementWrapper(i)
+            app_me.offset = i * 0.25
+            app_me.duration = duration.Duration(0.25)
+            self.shared_mixed_list.append(app_me)
+        ## lambda that deals with Rest objects
+        def verb_r(x):
+            if isinstance(x[0], note.Rest):
+                return str((u'Rest', u'Rest', u'Rest'))
+            else:
+                return str((x[0].obj, x[1].obj, x[2].obj))
+        self.verbatim_rests = lambda x: verb_r(x)
+        ## lambda that deals with an unknown number of objects
+        self.verbatim_variable = lambda x: str(tuple([zed.obj for zed in x]))
+
+    def test_mpi_triple_1(self):
+        # that we get a Series back when a Series is given
+        input_streams = [pandas.Series(self.in_list),
+                         pandas.Series(copy.deepcopy(self.in_list)),
+                         pandas.Series(copy.deepcopy(self.in_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        self.assertTrue(isinstance(result, pandas.Series))
+
+    def test_mpi_triple_2(self):
+        # that we get a Series back when a Stream is given
+        input_streams = [stream.Stream(self.in_list),
+                         stream.Stream(copy.deepcopy(self.in_list)),
+                         stream.Stream(copy.deepcopy(self.in_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        self.assertTrue(isinstance(result, pandas.Series))
+
+    def test_mpi_triple_5(self):
+        # that the resulting Series is the same length (given a Stream)
+        input_streams = [stream.Stream(self.in_list),
+                         stream.Stream(copy.deepcopy(self.in_list)),
+                         stream.Stream(copy.deepcopy(self.in_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        self.assertEqual(len(self.in_list), len(result))
+
+    def test_mpi_triple_6(self):
+        # that the resulting Series is the same length (given a Series)
+        input_streams = [pandas.Series(self.in_list),
+                         pandas.Series(copy.deepcopy(self.in_list)),
+                         pandas.Series(copy.deepcopy(self.in_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        self.assertEqual(len(self.in_list), len(result))
+
+    def test_mpi_triple_7(self):
+        # that the resulting Series has the same objects (given a Stream)
+        input_streams = [stream.Stream(self.in_list),
+                         stream.Stream(copy.deepcopy(self.in_list)),
+                         stream.Stream(copy.deepcopy(self.in_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        for i in xrange(len(self.in_list)):
+            res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
+            self.assertEqual(res, result[i].obj)
+
+    def test_mpi_triple_8(self):
+        # that the resulting Series has the same objects (given a Series)
+        input_streams = [pandas.Series(self.in_list),
+                         pandas.Series(copy.deepcopy(self.in_list)),
+                         pandas.Series(copy.deepcopy(self.in_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim)
+        for i in xrange(len(self.in_list)):
+            res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
+            self.assertEqual(res, result[i].obj)
+
+    def test_mpi_triple_8(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test lengths
+        # --> one event at each offset
+        input_streams = [stream.Stream(self.mixed_list),
+                         stream.Stream(copy.deepcopy(self.mixed_list)),
+                         stream.Stream(copy.deepcopy(self.mixed_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        self.assertEqual(len(self.in_list), len(result))
+
+    def test_mpi_triple_9(self):
+        # that a list with two types is not filtered when it's given as a Series
+        # --> test lengths
+        # --> one event at each offset
+        input_streams = [pandas.Series(self.mixed_list),
+                         pandas.Series(copy.deepcopy(self.mixed_list)),
+                         pandas.Series(copy.deepcopy(self.mixed_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim_rests)
+        self.assertEqual(len(self.mixed_list), len(result))
+
+    def test_mpi_triple_10(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test values
+        # --> one event at each offset
+        input_streams = [stream.Stream(self.mixed_list),
+                         stream.Stream(copy.deepcopy(self.mixed_list)),
+                         stream.Stream(copy.deepcopy(self.mixed_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        for i in xrange(len(self.in_list)):
+            res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
+            self.assertEqual(res, result[i].obj)
+
+    def test_mpi_triple_11(self):
+        # that a list with two types is not filtered when it's given as a Series
+        # --> test values
+        # --> one event at each offset
+        input_streams = [pandas.Series(self.mixed_list),
+                         pandas.Series(copy.deepcopy(self.mixed_list)),
+                         pandas.Series(copy.deepcopy(self.mixed_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim_rests)
+        for i in xrange(len(self.mixed_list)):
+            res = None
+            if isinstance(self.mixed_list[i], note.Rest):
+                res = str((u'Rest', u'Rest', u'Rest'))
+            else:
+                res = str((self.mixed_list[i].obj, self.mixed_list[i].obj, self.mixed_list[i].obj))
+            self.assertEqual(res, result[i].obj)
+
+    def test_mpi_triple_12(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test lengths
+        # --> two events at each offset
+        input_streams = [stream.Stream(self.shared_mixed_list),
+                         stream.Stream(copy.deepcopy(self.shared_mixed_list)),
+                         stream.Stream(copy.deepcopy(self.shared_mixed_list))]
+        result = indexer.mp_indexer(input_streams, self.verbatim, [base.ElementWrapper])
+        self.assertEqual(len(self.in_list), len(result))
+
+    def test_mpi_triple_12a(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test lengths
+        # --> two events at each offset
+        # --> if we want ElementWrappers and Rests
+        input_streams = [stream.Stream(self.shared_mixed_list),
+                         stream.Stream(copy.deepcopy(self.shared_mixed_list)),
+                         stream.Stream(copy.deepcopy(self.shared_mixed_list))]
+        result = indexer.mp_indexer(input_streams,
+                                    self.verbatim_rests,
+                                    [base.ElementWrapper, note.Rest])
+        self.assertEqual(len(self.shared_mixed_list), len(result))
+
+    def test_mpi_triple_13(self):
+        # that a list with two types is not filtered when it's given as a Series, even if there's
+        # a value for the "types" parameter
+        # --> test lengths
+        # --> two events at each offset
+        input_series = [pandas.Series(self.shared_mixed_list),
+                        pandas.Series(copy.deepcopy(self.shared_mixed_list)),
+                        pandas.Series(copy.deepcopy(self.shared_mixed_list))]
+        result = indexer.mp_indexer(input_series, self.verbatim_rests, [base.ElementWrapper])
+        self.assertEqual(len(self.shared_mixed_list), len(result))
+
+    def test_mpi_triple_14(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test values
+        # --> two events at each offset
+        input_stream = [stream.Stream(self.shared_mixed_list),
+                        stream.Stream(copy.deepcopy(self.shared_mixed_list)),
+                        stream.Stream(copy.deepcopy(self.shared_mixed_list))]
+        result = indexer.mp_indexer(input_stream, self.verbatim, [base.ElementWrapper])
+        for i in xrange(len(self.in_list)):
+            res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
+            self.assertEqual(res, result[i].obj)
+
+    def test_mpi_triple_14a(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # --> test values
+        # --> two events at each offset
+        # --> if we want ElementWrappers and Rests
+        input_stream = [stream.Stream(self.shared_mixed_list),
+                        stream.Stream(copy.deepcopy(self.shared_mixed_list)),
+                        stream.Stream(copy.deepcopy(self.shared_mixed_list))]
+        result = indexer.mp_indexer(input_stream,
+                                    self.verbatim_rests,
+                                    [base.ElementWrapper, note.Rest])
+        for i in xrange(len(self.mixed_list)):
+            res = None
+            if isinstance(self.mixed_list[i], note.Rest):
+                res = str((u'Rest', u'Rest', u'Rest'))
+            else:
+                res = str((self.mixed_list[i].obj, self.mixed_list[i].obj, self.mixed_list[i].obj))
+            self.assertEqual(res, result[i].obj)
+
+    def test_mpi_triple_15(self):
+        # that a list with two types is not filtered when it's given as a Series, even if there's
+        # a value for the "types" parameter
+        # --> test values
+        # --> two events at each offset
+        input_series = [pandas.Series(self.shared_mixed_list),
+                        pandas.Series(copy.deepcopy(self.shared_mixed_list)),
+                        pandas.Series(copy.deepcopy(self.shared_mixed_list))]
+        result = indexer.mp_indexer(input_series, self.verbatim_rests, [base.ElementWrapper])
+        for i in xrange(len(self.mixed_list)):
+            res = None
+            if isinstance(self.mixed_list[i], note.Rest):
+                res = str((u'Rest', u'Rest', u'Rest'))
+            else:
+                res = str((self.mixed_list[i].obj, self.mixed_list[i].obj, self.mixed_list[i].obj))
+            self.assertEqual(res, result[i].obj)
+
+    def test_mpi_triple_16(self):
+        # Test this:
+        # offset:  0.0  |  0.5  |  1.0  |  1.5  |  2.0
+        # part 1:  [1]  |  [1]  |  [1]  |  [1]  |  [1]
+        # part 2:  [1]  |  [1]  |  [1]  |  [1]  |  [1]
+        part_1 = [base.ElementWrapper(x) for x in xrange(5)]
+        for i, elem in enumerate(part_1):
+            elem.offset = i * 0.5
+            elem.duration = duration.Duration(0.5)
+        part_2 = [base.ElementWrapper(x) for x in xrange(5)]
+        for i, elem in enumerate(part_2):
+            elem.offset = i * 0.5
+            elem.duration = duration.Duration(0.5)
+        part_1 = pandas.Series(part_1)
+        part_2 = pandas.Series(part_2)
+        expected = [(0.0, u'(0, 0)'),
+                    (0.5, u'(1, 1)'),
+                    (1.0, u'(2, 2)'),
+                    (1.5, u'(3, 3)'),
+                    (2.0, u'(4, 4)')]
+        result = indexer.mp_indexer([part_1, part_2], self.verbatim_variable)
+        for i in xrange(len(expected)):
+            self.assertEqual(expected[i][0], result[i].offset)
+            self.assertEqual(expected[i][1], result[i].obj)
+
+    def test_mpi_triple_17(self):
+        # Test this:
+        # offset:  0.0  |  0.5     |  1.0     |  1.5     |  2.0
+        # part 1:  [1]  |  [1][2]  |  [1]     |  [1][2]  |  [1][2]
+        # part 2:  [1]  |  [1][2]  |  [1][2]  |  [1]     |  [1][2]
+        part_1 = [base.ElementWrapper(x) for x in xrange(5)]
+        for i, elem in enumerate(part_1):
+            elem.offset = i * 0.5
+            elem.duration = duration.Duration(0.5)
+        part_2 = [base.ElementWrapper(x) for x in xrange(5)]
+        for i, elem in enumerate(part_2):
+            elem.offset = i * 0.5
+            elem.duration = duration.Duration(0.5)
+        part_1 = stream.Stream(part_1)
+        part_2 = stream.Stream(part_2)
+        zed = base.ElementWrapper(100)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(0.5, zed)
+        zed = base.ElementWrapper(100)
+        zed.duration = duration.Duration(0.5)
+        part_2.insert(0.5, zed)
+        zed = base.ElementWrapper(200)
+        zed.duration = duration.Duration(0.5)
+        part_2.insert(1.0, zed)
+        zed = base.ElementWrapper(300)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(1.5, zed)
+        zed = base.ElementWrapper(400)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(2.0, zed)
+        zed = base.ElementWrapper(400)
+        zed.duration = duration.Duration(0.5)
+        part_2.insert(2.0, zed)
+        expected = [(0.0, u'(0, 0)'),
+                    (0.5, u'(1, 1)'),
+                    (0.5, u'(100, 100)'),
+                    (1.0, u'(2, 2)'),
+                    (1.0, u'(200,)'),
+                    (1.5, u'(3, 3)'),
+                    (1.5, u'(300,)'),
+                    (2.0, u'(4, 4)'),
+                    (2.0, u'(400, 400)')]
+        result = indexer.mp_indexer([part_1, part_2], self.verbatim_variable, [base.ElementWrapper])
+        for i in xrange(len(expected)):
+            self.assertEqual(expected[i][0], result[i].offset)
+            self.assertEqual(expected[i][1], result[i].obj)
+
+    def test_mpi_triple_18(self):
+        ## offset:  0.0  |  0.5     |  1.0        |  1.5     |  2.0
+        ## part 1:  [1]  |  [1][2]  |  [1][2][3]  |  [1][2]  |  [1][2][3]
+        ## part 2:  [1]  |  [1][2]  |  [1][2]     |  [1]     |  [1]
+        ## part 3:  [1]  |  [1][2]  |  [1][2]     |  [1][2]  |  [1][2]
+        part_1 = [base.ElementWrapper(x) for x in xrange(5)]
+        for i, elem in enumerate(part_1):
+            elem.offset = i * 0.5
+            elem.duration = duration.Duration(0.5)
+        part_2 = [base.ElementWrapper(x) for x in xrange(5)]
+        for i, elem in enumerate(part_2):
+            elem.offset = i * 0.5
+            elem.duration = duration.Duration(0.5)
+        part_3 = [base.ElementWrapper(x) for x in xrange(5)]
+        for i, elem in enumerate(part_3):
+            elem.offset = i * 0.5
+            elem.duration = duration.Duration(0.5)
+        part_1 = stream.Stream(part_1)
+        part_2 = stream.Stream(part_2)
+        part_3 = stream.Stream(part_3)
+        # add stuff
+        zed = base.ElementWrapper(101)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(0.5, zed)
+        zed = base.ElementWrapper(102)
+        zed.duration = duration.Duration(0.5)
+        part_2.insert(0.5, zed)
+        zed = base.ElementWrapper(103)
+        zed.duration = duration.Duration(0.5)
+        part_3.insert(0.5, zed)
+        zed = base.ElementWrapper(201)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(1.0, zed)
+        zed = base.ElementWrapper(202)
+        zed.duration = duration.Duration(0.5)
+        part_2.insert(1.0, zed)
+        zed = base.ElementWrapper(203)
+        zed.duration = duration.Duration(0.5)
+        part_3.insert(1.0, zed)
+        zed = base.ElementWrapper(251)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(1.0, zed)
+        zed = base.ElementWrapper(301)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(1.5, zed)
+        zed = base.ElementWrapper(302)
+        zed.duration = duration.Duration(0.5)
+        part_2.insert(1.5, zed)
+        zed = base.ElementWrapper(401)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(2.0, zed)
+        zed = base.ElementWrapper(451)
+        zed.duration = duration.Duration(0.5)
+        part_1.insert(2.0, zed)
+        zed = base.ElementWrapper(402)
+        zed.duration = duration.Duration(0.5)
+        part_2.insert(2.0, zed)
+        expected = [(0.0, u'(0, 0, 0)'),
+                    (0.5, u'(1, 1, 1)'),
+                    (0.5, u'(101, 102, 103)'),
+                    (1.0, u'(2, 2, 2)'),
+                    (1.0, u'(201, 202, 203)'),
+                    (1.0, u'(251,)'),
+                    (1.5, u'(3, 3, 3)'),
+                    (1.5, u'(301, 302)'),
+                    (2.0, u'(4, 4, 4)'),
+                    (2.0, u'(401, 402)'),
+                    (2.0, u'(451,)')]
+        result = indexer.mp_indexer([part_1, part_2, part_3],
+                                    self.verbatim_variable,
+                                    [base.ElementWrapper])
+        for i in xrange(len(expected)):
+            self.assertEqual(expected[i][0], result[i].offset)
+            self.assertEqual(expected[i][1], result[i].obj)
+
 class TestMpiUniqueOffsets(unittest.TestCase):
     def test_mpi_unique_offsets_1(self):
         streams = int_indexer_short.test_1
@@ -326,4 +696,5 @@ class TestMpiUniqueOffsets(unittest.TestCase):
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 indexer_1_part_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerSinglePart)
+indexer_3_parts_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerThreeParts)
 unique_offsets_suite = unittest.TestLoader().loadTestsFromTestCase(TestMpiUniqueOffsets)

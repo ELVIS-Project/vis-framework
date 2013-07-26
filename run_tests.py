@@ -47,6 +47,7 @@ from models_tests.test_ngram import *
 
 # Analyzers ---------------------------------------------------------------------------------------
 unittest.TextTestRunner(verbosity=verb).run(indexer_1_part_suite)
+unittest.TextTestRunner(verbosity=verb).run(indexer_3_parts_suite)
 unittest.TextTestRunner(verbosity=verb).run(unique_offsets_suite)
 unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
 unittest.TextTestRunner(verbosity=verb).run(interval_indexer_suite)

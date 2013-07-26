@@ -123,32 +123,14 @@ def mp_indexer(parts, indexer_func, types=None):
 
     # collect all unique offsets
     unique_offsets = _mpi_unique_offsets(all_parts)
-    #print(str(len(unique_offsets)))  # DEBUG
-    #print(str(len(all_parts[0])))  # DEBUG
-    #print(str(len(parts[0])))  # DEBUG
 
     # Convert to requested index format
     post = []
-    #asdf = 0  # DEBUG
     for off in unique_offsets:
         # inspired by vis.controllers.analyzer._event_finder() in vis9c
         current_events = []
         for part in all_parts:  # find the events happening at this offset in all parts
             current_events.append([x for x in part.getElementsByOffset(off, mustBeginInSpan=False)])
-        # START DEBUG
-        #asdf += 1
-        #if 0 == len(current_events):
-            #print('panic: ' + str(off))
-            #raise RuntimeError('asdf!')
-        #else:
-            #print(str(current_events))
-            #print(str(current_events[0].obj))
-            #pass
-        #try:
-            #print(str([current_events[0][0], current_events[1][0]]))
-        #except IndexError:
-            #print(str(current_events[0]))
-        # END DEBUG
 
         # Arrange groups of things to index
         if 1 == len(current_events):
@@ -171,7 +153,6 @@ def mp_indexer(parts, indexer_func, types=None):
 
         # Index previously-arranged groups
         for each_obj in current_events:
-            #print('indexing ' + str(each_obj))  # DEBUG
             new_obj = indexer_func(each_obj)
             if new_obj is not None:
                 new_obj = base.ElementWrapper(new_obj)
@@ -182,16 +163,11 @@ def mp_indexer(parts, indexer_func, types=None):
                     # Happens when this is the first element in "post"; faster than using an "if"
                     pass
                 post.append(new_obj)
-            #else:
-                #print('NOOOO')  # DEBUG
-                #print('   ' + str(new_obj))  # DEBUG
 
     # Ensure the last items have the correct duration
     if post:
         end_offset = all_parts[0][-1].offset + all_parts[0][-1].duration.quarterLength
         post[-1].duration = duration.Duration(end_offset - post[-1].offset)
-    #print(str(len(post)))  # DEBUG
-    #print('asdf: ' + str(asdf))  # DEBUG
 
     return pandas.Series(post)
 
