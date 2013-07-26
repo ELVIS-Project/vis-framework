@@ -79,7 +79,7 @@ def _mpi_vert_aligner(events):
     return post
 
 
-def mp_indexer(parts, indexer_func, types=None):
+def mp_indexer(pipe_index, parts, indexer_func, types=None):
     """
     Perform the indexation of a part, or part combination. This is a module-level function designed
     to ease implementation of multiprocessing with the MPController module.
@@ -183,11 +183,10 @@ def mp_indexer(parts, indexer_func, types=None):
         end_offset = all_parts[0][-1].offset + all_parts[0][-1].duration.quarterLength
         post[-1].duration = duration.Duration(end_offset - post[-1].offset)
 
-    return pandas.Series(post)
+    return (pipe_index, pandas.Series(post))
 
 
 class Indexer(object):
-    # NOTE: Change "object" to "Indexer" in subclasses.
     """
     Create an index of a music21 stream.
 
@@ -196,97 +195,21 @@ class Indexer(object):
     list of the names of Indexers that should be provided instead.
 
     The name of the indexer, as stored in an IndexedPiece, is the unicode-format version of the
-    class name, accessible through the "name()" function (or Indexer.__name__).
+    class name.
     """
 
-    # NOTE: re-implement this in subclasses as needed. The default value, an empty list, means this
-    # Indexer operates directly on Part objects.
-    required_indices = []
-
-    # NOTE: activate one of these in subclasses
-    required_score_type = stream.Part
-    #required_score_type = pandas.Series
-
-    # NOTE: re-implement these in subclasses as needed
-    possible_settings = {}
-    default_settings = {}
+    # just the standard instance variables
+    required_indices = None
+    required_score_type = None
+    possible_settings = None
+    default_settings = None
     requires_score = False
+    # self._score
+    # self._mpc
+    # self._indexer_func
+    # self._types
 
-#    def __init__(self, score, settings=None):
-#        """
-#        Create a new Indexer.
-#
-#        Parameters
-#        ==========
-#        score : [pandas.Series] or [music21.stream.Part]
-#            Depending on how this Indexer works, this is a list of either Part or Series obejcts
-#            to use in creating a new index.
-
-#        settings : dict
-#            A dict of all the settings required by this Indexer. All required settings should be
-#            listed in subclasses. Default is {}.
-
-#        Raises
-#        ======
-#        RuntimeError :
-#            - If the "score" argument is the wrong type.
-#            - If the "score" argument is not a list of the same types.
-#            - If required settings are not present in the "settings" argument.
-#        """
-#        # NOTE: Implement this method when writing subclasses.
-
-#        # Check all required settings are present in the "settings" argument. You must ignore
-#        # extra settings.
-#        if not settings: settings = {}
-#        self._settings = settings
-
-#        # Change "Indexer" to the current class name
-#        super(Indexer, self).__init__(score)
-
-#        # If self._score is a Stream (subclass), change to a list of types you want to process
-#        self._types = []
-
-#        # Change to the function you want to use
-#        # NB: The lambda function receives events in a list of all voices in the current voice
-#        #     combination; if this Indexer processes one voice at a time, it's a one-element list.
-#        #     The function receives the unmodified object, the type of which is either in
-#        #     self._types object or music21.base.ElementWrapper.
-#        self._indexer_func = lambda x: None
-
-    def run(self):
-        """
-        Make a new index of the piece.
-
-        Returns
-        =======
-        [pandas.Series] :
-            A list of the new indices. The index of each Series corresponds to the index of the Part
-            used to generate it, in the order specified to the constructor. Each element in the
-            Series is an instance of music21.base.ElementWrapper.
-        """
-
-        # NOTE-1: Implement this method when writing subclasses.
-        # NOTE-2: We recommend indexing all possible combinations, whenever feasible.
-
-        # To calculate each part separately:
-        combinations = [[x] for x in xrange(len(self._score))]
-
-        # To calculate all 2-part combinations:
-        #for left in xrange(len(self._score)):
-        #    for right in xrange(left + 1, len(self._score)):
-        #        combinations.append([left, right])
-
-        # This method returns once all computation is complete. The results are returned as a list
-        # of Series objects in the same order as the "combinations" argument.
-        results = self._do_multiprocessing(combinations)
-
-        # Do applicable post-processing, like adding a label for voice combinations.
-
-        # Return the results.
-        return results
-
-    # NOTE: Do not implement any methods below this line in subclasses. ----------------------------
-    def __init__(self, score, settings=None):
+    def __init__(self, score, settings=None, mpc=None):
         """
         Create a new Indexer.
 
@@ -300,6 +223,10 @@ class Indexer(object):
             A dict of all the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is {}.
 
+        :param mpc : MPController
+            An optional instance of MPController. If this is present, the Indexer will use it to
+            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+
         Raises
         ======
         RuntimeError :
@@ -307,9 +234,8 @@ class Indexer(object):
             - If the "score" argument is not a list of the same types.
             - If required settings are not present in the "settings" argument.
         """
-        # NOTE: Do not change this method; when writing subclasses, use template __init__() above.
 
-        if not settings:
+        if settings is None:
             settings = {}
 
         # Check the "score" argument is either uniformly Part or Series objects.
@@ -320,11 +246,25 @@ class Indexer(object):
             raise RuntimeError(u'All elements of "score" must be a ' +
                                unicode(self.required_score_type) + '.')
 
-        # Clean up
+        # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
         self._score = score
+        self._mpc = mpc
         self._indexer_func = None
         self._types = None
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        Returns
+        =======
+        [pandas.Series] :
+            A list of the new indices. The index of each Series corresponds to the index of the Part
+            used to generate it, in the order specified to the constructor. Each element in the
+            Series is an instance of music21.base.ElementWrapper.
+        """
+        pass
 
     def _do_multiprocessing(self, combos):
         """
@@ -352,19 +292,25 @@ class Indexer(object):
         ============
         1.) Blocks until all voice combinations have completed.
         """
-        # NOTE: Do not reimplement this method in subclasses.
-        # TODO: use the MPController
-        # TODO: make this work for IndexedPieces
 
-        #score_arg = None
         post = []
 
-        for each_combo in combos:
-            voices = [self._score[x] for x in each_combo]
-            if self.required_score_type is stream.Part:
-                post.append(mp_indexer(voices, self._indexer_func, self._types))
-            else:
-                post.append(mp_indexer(voices, self._indexer_func))
+        if self._mpc is None:
+            # use serial processing
+            for each_combo in combos:
+                voices = [self._score[x] for x in each_combo]
+                post.append(mp_indexer(0, voices, self._indexer_func, self._types)[1])
+        else:
+            # use the MPController for multiprocessing
+            self._mpc.run()
+            pipe_end = mpc.get_pipe()
+            jobs_submitted = 0
+            for each_combo in combos:
+                jobs_submitted += 1
+                voices = [self._score[x] for x in each_combo]
+                pipe_end.send((mp_indexer, [voices, self._indexer_func, self._types]))
+            for each in xrange(jobs_submitted):
+                post.append(pipe_end.recv())
 
         return post
 
@@ -381,7 +327,7 @@ class NoteRestIndexer(Indexer):
     required_score_type = stream.Part
     requires_score = True
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score, settings=None, mpc=None):
         """
         Create a new Indexer.
 
@@ -390,13 +336,19 @@ class NoteRestIndexer(Indexer):
         :param score : [music21.stream.Part]
             A list of all the Parts to index.
 
+        :param settings : dict
+            This is ignored, but present for superclass compatibility.
+
+        :param mpc : MPController
+            An optional instance of MPController. If this is present, the Indexer will use it to
+            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+
         Raises
         ======
         RuntimeError :
             If the "score" argument is the wrong type.
         """
-        # Change "Indexer" to the current class name
-        super(NoteRestIndexer, self).__init__(score)
+        super(NoteRestIndexer, self).__init__(score, None, mpc)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = [note.Rest, note.Note]
@@ -482,7 +434,7 @@ class IntervalIndexer(Indexer):
                 post += unicode(interv.generic.undirected)
             return post
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score, settings=None, mpc=None):
         """
         Create a new IntervalIndexer. For the output format, see the docs for
         IntervalIndexer.indexer_func().
@@ -500,13 +452,16 @@ class IntervalIndexer(Indexer):
             - 'quality' : boolean
                 Whether to consider the quality of intervals. Optional. Defaults to False.
 
+        :param mpc : MPController
+            An optional instance of MPController. If this is present, the Indexer will use it to
+            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+
         Raises
         ======
         Nothing. There are no required settings.
         """
-        # NOTE: Implement this method when writing subclasses.
 
-        if not settings:
+        if settings is None:
             settings = {}
 
         # Check all required settings are present in the "settings" argument
@@ -514,19 +469,14 @@ class IntervalIndexer(Indexer):
         if 'simple or compound' in settings:
             self._settings['simple or compound'] = settings['simple or compound']
         else:
-            self._settings['simple or compound'] = IntervalIndexer.default_settings['simple or compound']
+            self._settings['simple or compound'] = \
+                IntervalIndexer.default_settings['simple or compound']
         if 'quality' in settings:
             self._settings['quality'] = settings['quality']
         else:
             self._settings['quality'] = IntervalIndexer.default_settings['quality']
 
-        # Change "Indexer" to the current class name
-        super(IntervalIndexer, self).__init__(score)
-
-        # If self._score is a Stream (subclass), change to a list of types you want to process
-        # self._types = []
-
-        # Change to the function you want to use
+        super(IntervalIndexer, self).__init__(score, None, mpc)
         self._indexer_func = lambda x: IntervalIndexer.indexer_func(x, False, True)
 
     def run(self):
@@ -561,3 +511,94 @@ class IntervalIndexer(Indexer):
 
         # Return the results.
         return post
+
+
+class TemplateIndexer(Indexer):
+    """
+    Template for a class to make an index of a music21 stream.
+
+    Use this class when you want to write a new Indexer subclass.
+    """
+
+    required_indices = []  # empty list means the Indexer uses Part objects
+    required_score_type = stream.Part  # or pandas.Series
+    requires_score = True  # adjust according to previous
+    possible_settings = []  # list of strings
+    default_settings = {}  # keys are strings, values are anything
+
+    def __init__(self, score, settings=None):
+        """
+        Create a new Indexer.
+
+        Parameters
+        ==========
+        score : [pandas.Series] or [music21.stream.Part]
+            Depending on how this Indexer works, this is a list of either Part or Series obejcts
+            to use in creating a new index.
+
+        settings : dict
+            A dict of all the settings required by this Indexer. All required settings should be
+            listed in subclasses. Default is {}.
+
+        :param mpc : MPController
+            An optional instance of MPController. If this is present, the Indexer will use it to
+            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+
+        Raises
+        ======
+        RuntimeError :
+            - If the "score" argument is the wrong type.
+            - If the "score" argument is not a list of the same types.
+            - If required settings are not present in the "settings" argument.
+        """
+
+        # Check all required settings are present in the "settings" argument. You must ignore
+        # extra settings.
+        if settings is None:
+            self._settings = {}
+
+        # Change "TemplateIndexer" to the current class name. The superclass will handle the
+        # "score" and "mpc" arguments, but you should have processed "settings" above, so it should
+        # not be sent to the superclass constructor.
+        super(TemplateIndexer, self).__init__(score, None, mpc)
+
+        # If self._score is a Stream (subclass), change to a list of types you want to process
+        self._types = []
+
+        # Change to the function you want to use
+        # NB: The lambda function receives events in a list of all voices in the current voice
+        #     combination; if this Indexer processes one voice at a time, it's a one-element list.
+        #     The function receives the unmodified object, the type of which is either in
+        #     self._types object or music21.base.ElementWrapper.
+        self._indexer_func = lambda x: None
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        Returns
+        =======
+        [pandas.Series] :
+            A list of the new indices. The index of each Series corresponds to the index of the Part
+            used to generate it, in the order specified to the constructor. Each element in the
+            Series is an instance of music21.base.ElementWrapper.
+        """
+
+        # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
+
+        # To calculate each part separately:
+        combinations = [[x] for x in xrange(len(self._score))]
+
+        # To calculate all 2-part combinations:
+        #for left in xrange(len(self._score)):
+        #    for right in xrange(left + 1, len(self._score)):
+        #        combinations.append([left, right])
+
+        # This method returns once all computation is complete. The results are returned as a list
+        # of Series objects in the same order as the "combinations" argument.
+        results = self._do_multiprocessing(combinations)
+
+        # Do applicable post-processing, like adding a label for voice combinations.
+
+        # Return the results.
+        return results
