@@ -1,6 +1,30 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
+#--------------------------------------------------------------------------------------------------
+# Program Name:           vis
+# Program Description:    Helps analyze music with computers.
+#
+# Filename:               controllers/mpcontroller.py
+# Purpose:                Manage a process pool for use by vis
+#
+# Copyright (C) 2013 Christopher Antila
+#
+# This program is free software: you can redistribute it and/or modify it under the terms of the
+# GNU General Public License as published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with this program.
+# If not, see <http://www.gnu.org/licenses/>.
+#--------------------------------------------------------------------------------------------------
+"""
+Manage a process pool for use by vis.
+"""
+
 # Test file for a multiprocessing model for vis.
 from multiprocessing import Pool, Pipe
 from threading import Thread
@@ -9,6 +33,8 @@ from threading import Thread
 class MPController(Thread):
     """
     Use the "shutdown()" method to properly shut down the MPController.
+
+    Before you submit a job, you must call MPController.start(), which must be done only once.
 
     See "get_pipe()" for instructions on sending jobs.
     """
@@ -74,9 +100,6 @@ class MPController(Thread):
         """
         Monitor all the pipes for new jobs to complete. You cannot submit jobs to this instance
         before calling this method.
-
-        This method knows whether it has already been started, so you can call it multiple times
-        with indemnity---you will not accidentally interfere.
         """
         # make sure we won't start another Pool-and-loop by accient
         if self._pool is not None:
@@ -86,12 +109,16 @@ class MPController(Thread):
         keep_going = True
         while keep_going:
             for pipe_i in xrange(len(self._pipes)):
+                # don't ask None for a message
                 if self._pipes[pipe_i] is None:
                     continue
+
+                # see if there's a message; if so, get it
                 this = None
                 if self._pipes[pipe_i].poll():
                     this = self._pipes[pipe_i].recv()
 
+                # if we got a message, process it
                 if this is not None:
                     if u'shutdown' == this:
                         # TODO: what if jobs are submitted before this, but we would only see them
