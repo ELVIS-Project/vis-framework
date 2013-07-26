@@ -113,7 +113,13 @@ class IndexedPiece(object):
         """
         Get or set metadata about the piece, like filename, title, and composer.
 
-        It'll be like this:
+        :param basestring field: The name of the field to be accessed or modified
+        :param value: If not None, the new value to be assigned to ``field``
+        :type value: object or None
+        :returns: object -- the field accessed, or None -- if assigning a field or attempting to access a field which
+        does not exist.
+        :raises: KeyError if attempting to access a nonexistent field on a piece which has not yet been imported.
+
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
         u'Jean Sibelius'
@@ -122,11 +128,6 @@ class IndexedPiece(object):
         1919
         >>> piece.metadata('parts')
         [u'Flute 1', u'Flute 2', u'Oboe 1', u'Oboe 2', u'Clarinet 1', u'Clarinet 2', ... ]
-
-        If the piece hasn't yet been imported, and none of the file-derived metadata are available
-        yet, an exception will be raised (KeyError) *unless* the field has been set manually, in
-        which case its value is returned. If the piece *has* been imported, and you try to get a
-        metadatum that isn't available, we'll just return None.
         """
         pass
 
