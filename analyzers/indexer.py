@@ -53,6 +53,32 @@ def _mpi_unique_offsets(streams):
     return sorted(post)
 
 
+def _mpi_vert_aligner(events):
+    """
+    When there is more than one event at an offset, call this method to ensure parsing
+    simultaneities.
+
+    Example:
+    Transforms this...
+    [[1, 2, 3], [1, 2, 3], [1, 2]]
+    ... into this...
+    [[1, 1, 1], [2, 2, 2], [3, 3]]
+    """
+    post = []
+    for i in xrange(max([len(x) for x in events])):
+        # for every 'i' from 0 to the highest index of any object at this offset
+        this_e = []
+        for j in xrange(len(events)):
+            # for every part
+            try:
+                this_e.append(events[j][i])
+            except IndexError:
+                # when some parts have fewer objects at this offset
+                pass
+        post.append(this_e)
+    return post
+
+
 def mp_indexer(parts, indexer_func, types=None):
     """
     Perform the indexation of a part, or part combination. This is a module-level function designed
@@ -133,27 +159,15 @@ def mp_indexer(parts, indexer_func, types=None):
             current_events.append([x for x in part.getElementsByOffset(off, mustBeginInSpan=False)])
 
         # Arrange groups of things to index
-        if 1 == len(current_events):
-            # there's only one part
-            current_events = [[x] for x in current_events[0]]
+        if 1 == max([len(x) for x in current_events]):
+            # each offset has only one event
+            current_events = [[current_events[i][0] for i in xrange(len(current_events))]]
         else:
-            new_ce = []
-            for i in xrange(max([len(x) for x in current_events])):
-                # for every 'i' from 0 to the highest index of any object at this offset
-                this_e = []
-                for j in xrange(len(current_events)):
-                    # for every part
-                    try:
-                        this_e.append(current_events[j][i])
-                    except IndexError:
-                        # when some parts have fewer objects at this offset
-                        pass
-                new_ce.append(this_e)
-            current_events = new_ce
+            current_events = _mpi_vert_aligner(current_events)
 
         # Index previously-arranged groups
-        for each_obj in current_events:
-            new_obj = indexer_func(each_obj)
+        for each_simul in current_events:
+            new_obj = indexer_func(each_simul)
             if new_obj is not None:
                 new_obj = base.ElementWrapper(new_obj)
                 new_obj.offset = off  # copy offset to new Stream
