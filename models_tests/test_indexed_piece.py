@@ -236,8 +236,26 @@ class TestIndexedPiece(TestCase):
         """
         Use ``ip`` as a test piece.
         """
-        self.ip = IndexedPiece('')
+        self.ip = IndexedPiece('../test_corpus/bwv77.mxl')
 
-    def test_metadata(self):
+    def test_metadata_access_default(self):
         pathname = self.ip.metadata('pathname')
-        self.assertEquals(pathname, '')
+        self.assertEquals(pathname, '../test_corpus/bwv77.mxl')
+
+    def test_metadata_assign_value(self):
+        self.ip.metadata('field', 2)
+        value = self.ip.metadata('field')
+        self.assertEquals(value, 2)
+
+    def test_metadata_access_invalid_unimported(self):
+        self.assertRaises(KeyError, self.ip.metadata, 'invalid_field')
+
+    def test_metadata_access_invalid_imported(self):
+        self.ip._import_score()
+        value = self.ip.metadata('invalid_field')
+        self.assertEquals(value, None)
+
+    def test_metadata_invalid_field_type(self):
+        self.assertRaises(TypeError, self.ip.metadata, 2)
+        self.assertRaises(TypeError, self.ip.metadata, [])
+        self.assertRaises(TypeError, self.ip.metadata, {})

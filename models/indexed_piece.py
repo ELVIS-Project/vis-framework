@@ -86,6 +86,7 @@ class IndexedPiece(object):
         super(IndexedPiece, self).__init__()
         self._metadata = {'pathname': pathname}
         self._data = {}
+        self._score = None
 
     def __repr__(self):
         pass
@@ -113,7 +114,7 @@ class IndexedPiece(object):
         """
         Get or set metadata about the piece, like filename, title, and composer.
 
-        :param basestring field: The name of the field to be accessed or modified
+        :param str field: The name of the field to be accessed or modified
         :param value: If not None, the new value to be assigned to ``field``
         :type value: object or None
         :returns: object -- the field accessed, or None -- if assigning a field or attempting to access a field which
@@ -129,8 +130,17 @@ class IndexedPiece(object):
         >>> piece.metadata('parts')
         [u'Flute 1', u'Flute 2', u'Oboe 1', u'Oboe 2', u'Clarinet 1', u'Clarinet 2', ... ]
         """
-        if not value:
-            return self._metadata[field]
+        if not isinstance(field, str):
+            raise TypeError("parameter 'field' must be of type 'str'")
+        if value is None:
+            if field in self._metadata:
+                return self._metadata[field]
+            elif self._score is None:
+                raise KeyError('field {0!r} does not exist in metadata'.format(field))
+            else:
+                return None
+        else:
+            self._metadata[field] = value
 
     def indexers_used(self):
         """
