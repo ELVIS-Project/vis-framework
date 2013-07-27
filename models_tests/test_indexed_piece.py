@@ -266,10 +266,11 @@ with patch('music21.stream.Score', autospec=True) and patch('music21.stream.Part
             self.assertRaises(TypeError, self.ip.metadata, 2)
             self.assertRaises(TypeError, self.ip.metadata, [])
             self.assertRaises(TypeError, self.ip.metadata, {})
-        with patch('analyzers.indexer', autospec=True):
-            def test_add_index(self):
-                """
-                Tests the method :py:meth:`~IndexedPiece.add_index`.
-                :return: None
-                """
+
+        def test_add_index(self):
+            """
+            Tests the method :py:meth:`~IndexedPiece.add_index`.
+            :return: None
+            """
+            with patch('analyzers.indexer', autospec=True):
                 self.ip.add_index([u'NoteRestIndexer'], {})
