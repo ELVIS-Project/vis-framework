@@ -23,8 +23,9 @@
 #--------------------------------------------------------------------------------------------------
 
 from unittest import TestCase, TestLoader
-from mock import patch, MagicMock
+from mock import patch, MagicMock, Mock
 import music21
+from analyzers.indexer import Indexer
 from models.indexed_piece import IndexedPiece
 
 
@@ -233,6 +234,12 @@ indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
 indexed_piece_errors_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceErrors)
 
 
+class MockIndexerModule:
+    Indexer = Indexer
+    TestIndexer = Mock(spec=Indexer).__class__
+    NotAnIndexer = 1
+
+@patch('models.indexed_piece.indexer', MockIndexerModule)
 @patch('music21.converter.parse', lambda path: MagicMock(spec=music21.stream.Score))
 class TestIndexedPiece(TestCase):
     def setUp(self):
@@ -271,13 +278,17 @@ class TestIndexedPiece(TestCase):
         Tests the method :py:meth:`~IndexedPiece.add_index`.
         :return: None
         """
-        with patch('analyzers.indexer', autospec=True):
-            # TODO: for testing...
-            # - the "missing_indexers" handling
-            # - built-in Indexers
-            # - add-on Indexers
-            # - required indexer already there
-            # - required indexer not already there
-            self.ip.add_index([u'NoteRestIndexer'], {})
-            # add an indexer which doesn't exist
-            self.assertRaises(RuntimeError, self.ip.add_index, [u'not an indexer'], {})
+        # TODO: for testing...
+        # - the "missing_indexers" handling
+        # - built-in Indexers
+        # - add-on Indexers
+        # - required indexer already there
+        # - required indexer not already there
+        # add an existing indexer
+        self.ip.add_index([u'TestIndexer'], {})
+        # add a non-string key
+        self.assertRaises(TypeError, self.ip.add_index, [3], {})
+        # add something which exists, but isn't an indexer
+        self.assertRaises(TypeError, self.ip.add_index, [u'NotAnIndexer'])
+        # add an indexer which doesn't exist
+        self.assertRaises(RuntimeError, self.ip.add_index, [u'NonExistentIndexer'], {})
