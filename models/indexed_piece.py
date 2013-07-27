@@ -110,6 +110,7 @@ class IndexedPiece(object):
         """
         # TODO: actually write this method
         self._score = converter.parse(self.metadata('pathname'))
+        return self._score
 
     def metadata(self, field, value=None):
         # TODO: update doctest so that it actually works (e.g. the piece must be imported before calling metadata)
@@ -230,8 +231,8 @@ class IndexedPiece(object):
             # Make a dict of the settings relevant for this Indexer
             # We'll check all the possible settings for this Indexer. If the setting isn't given by
             # the user, we'll use the default; if there is no default, we can't use the Indexer.
-            poss_sett = getattr(i_module, this_indexer).possible_settings
-            def_sett = getattr(i_module, this_indexer).default_settings
+            poss_sett = getattr(i_module, this_indexer).possible_settings or {}
+            def_sett = getattr(i_module, this_indexer).default_settings or {}
             this_settings = {}
             for sett in poss_sett:
                 if sett in which_settings:
