@@ -324,7 +324,7 @@ class NoteRestIndexer(Indexer):
     required_score_type = stream.Part
     requires_score = True
 
-    def __init__(self, score, mpc=None):
+    def __init__(self, score, settings=None, mpc=None):
         """
         Create a new Indexer.
 
