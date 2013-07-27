@@ -239,6 +239,10 @@ class TestIndexedPiece(TestCase):
         self.ip = IndexedPiece('../test_corpus/bwv77.mxl')
 
     def test_metadata_access_default(self):
+        """
+        By definition of the constructor, accessing the 'pathname' metadatum should always return the path the piece
+        was instantiated with.
+        """
         pathname = self.ip.metadata('pathname')
         self.assertEquals(pathname, '../test_corpus/bwv77.mxl')
 
@@ -259,3 +263,6 @@ class TestIndexedPiece(TestCase):
         self.assertRaises(TypeError, self.ip.metadata, 2)
         self.assertRaises(TypeError, self.ip.metadata, [])
         self.assertRaises(TypeError, self.ip.metadata, {})
+
+    def test_indexers(self):
+        self.assertEquals(self.ip.indexers, [])

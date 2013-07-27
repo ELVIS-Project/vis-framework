@@ -87,6 +87,7 @@ class IndexedPiece(object):
         self._metadata = {'pathname': pathname}
         self._data = {}
         self._score = None
+        self.indexers = []
 
     def __repr__(self):
         pass
@@ -99,7 +100,7 @@ class IndexedPiece(object):
 
     def _import_score(self):
         """
-        Import the score to music21 format. Uses multiprocessin, but blocks until the import is
+        Import the score to music21 format. Uses multiprocessing, but blocks until the import is
         complete.
 
         Returns
@@ -108,7 +109,7 @@ class IndexedPiece(object):
             The score.
         """
         # TODO: actually write this method
-        return converter.parse(self._metadata['pathname'])
+        return converter.parse(self.metadata('pathname'))
 
     def metadata(self, field, value=None):
         """
@@ -141,12 +142,6 @@ class IndexedPiece(object):
                 return None
         else:
             self._metadata[field] = value
-
-    def indexers_used(self):
-        """
-        Return a list of the names of the indexers used so far in this IndexedPiece.
-        """
-        pass
 
     def add_index(self, which_indexers, which_settings=None):
         """
