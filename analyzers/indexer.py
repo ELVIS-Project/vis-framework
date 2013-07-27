@@ -215,15 +215,15 @@ class Indexer(object):
 
         Parameters
         ==========
-        :param score : [pandas.Series] or [music21.stream.Part]
+        :param score: [pandas.Series] or [music21.stream.Part]
             Depending on how this Indexer works, this is a list of either Part or Series obejcts
             to use in creating a new index.
 
-        :param settings : dict
+        :param settings: dict
             A dict of all the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is {}.
 
-        :param mpc : MPController
+        :param mpc: MPController
             An optional instance of MPController. If this is present, the Indexer will use it to
             submit jobs for multiprocessing. If not present, jobs will be executed in series.
 
