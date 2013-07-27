@@ -112,6 +112,7 @@ class IndexedPiece(object):
         return converter.parse(self.metadata('pathname'))
 
     def metadata(self, field, value=None):
+        # TODO: update doctest so that it actually works (e.g. the piece must be imported before calling metadata)
         """
         Get or set metadata about the piece, like filename, title, and composer.
 
