@@ -324,7 +324,7 @@ class NoteRestIndexer(Indexer):
     required_score_type = stream.Part
     requires_score = True
 
-    def __init__(self, score, settings=None, mpc=None):
+    def __init__(self, score, mpc=None):
         """
         Create a new Indexer.
 
@@ -332,9 +332,6 @@ class NoteRestIndexer(Indexer):
         ==========
         :param score : [music21.stream.Part]
             A list of all the Parts to index.
-
-        :param settings : dict
-            This is ignored, but present for superclass compatibility.
 
         :param mpc : MPController
             An optional instance of MPController. If this is present, the Indexer will use it to
@@ -494,6 +491,7 @@ class IntervalIndexer(Indexer):
 
         # To calculate all 2-part combinations:
         for left in xrange(len(self._score)):
+            # noinspection PyArgumentList
             for right in xrange(left + 1, len(self._score)):
                 combinations.append([left, right])
 
@@ -557,7 +555,7 @@ class TemplateIndexer(Indexer):
         # Change "TemplateIndexer" to the current class name. The superclass will handle the
         # "score" and "mpc" arguments, but you should have processed "settings" above, so it should
         # not be sent to the superclass constructor.
-        super(TemplateIndexer, self).__init__(score, None, self._mpc)
+        super(TemplateIndexer, self).__init__(score, None, mpc)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []
