@@ -27,6 +27,7 @@ The model representing an indexed and analyzed piece of music.
 
 # Imports
 from music21 import converter
+from analyzers import indexer
 
 
 class IndexedPiece(object):
@@ -161,7 +162,7 @@ class IndexedPiece(object):
             If you are using an Indexer not stored there, you should add the name of the
             subdirectory, so the string should look like this:
                 u'my_indexers.MyIndexer'
-        :type which_indexers: list of basestring
+        :type which_indexers: list of (str or unicode)
 
         :param which_settings:
             A dict of the settings to provide the :py:class:`controllers.indexer.Indexer`. Default is {}.
@@ -172,10 +173,12 @@ class IndexedPiece(object):
 
         :returns: None
 
-        :raises: RuntimeException -- if one of the specified :py:class:`controllers.indexer.Indexer`s cannot
+        :raises: RuntimeError -- if one of the specified :py:class:`controllers.indexer.Indexer`s cannot
         be located, or if a required setting for one of the :py:class:`controllers.indexer.Indexer`s is absent.
         The exception is raised but only for the :py:class:`controllers.indexer.Indexer`s with problems. The
         others run as normal.
+        :raises: TypeError -- if one of the strings in `which_indexers` does not correspond to a subclass of
+        :py:class:`controllers.indexer.Indexer`.
         """
         if not which_settings:
             which_settings = {}
@@ -189,26 +192,36 @@ class IndexedPiece(object):
 
         # If one of the indexers requires another indexer, we'll run it automatically. If the user
         # specifies pre-requisite indexers out of order (i.e., which_indexers is
-        # [u'InertvalIndexer', u'NoteRestIndexer']), then we'll find the NoteRestIndexer is already
+        # [u'IntervalIndexer', u'NoteRestIndexer']), then we'll find the NoteRestIndexer is already
         # calculated, and skip it.
         for this_indexer in which_indexers:
+            if not isinstance(this_indexer, (str, unicode)):
+                raise TypeError('Indexer names must be strings')
             # Does this Indexer exist?
             # TODO: handle add-on Indexers
-            try:
-                i_module = __import__(u'analyzers.indexer',
-                                      globals(),
-                                      locals(),
-                                      this_indexer,
-                                      -1)
-            except ImportError:
-                missing_indexers.append(this_indexer)
-                continue
+            if hasattr(indexer, this_indexer):
+                i_module = indexer
+            else:
+                try:
+                    i_module = __import__(unicode(this_indexer),
+                                          globals(),
+                                          locals())
+                except ImportError:
+                    missing_indexers.append(this_indexer)
+                    continue
 
             # Make a dict of the settings relevant for this Indexer
             # We'll check all the possible settings for this Indexer. If the setting isn't given by
             # the user, we'll use the default; if there is no default, we can't use the Indexer.
-            poss_sett = getattr(i_module, this_indexer).possible_settings or {}
-            def_sett = getattr(i_module, this_indexer).default_settings or {}
+            indexer_cls = getattr(i_module, this_indexer)
+            if not issubclass(indexer_cls, indexer.Indexer):
+                missing_indexers.append(this_indexer)
+            poss_sett = indexer_cls.possible_settings
+            if not poss_sett:
+                poss_sett = {}
+            def_sett = indexer_cls.default_settings
+            if not def_sett:
+                def_sett = {}
             this_settings = {}
             for sett in poss_sett:
                 if sett in which_settings:
@@ -234,20 +247,20 @@ class IndexedPiece(object):
 
             # Does the Indexer require the Score?
             required_score = None
-            if getattr(i_module, this_indexer).requires_score:
+            if indexer_cls.requires_score:
                 if the_score is None:
                     the_score = self._import_score()
                 required_score = [the_score.parts[i] for i in xrange(len(the_score.parts))]
                 # TODO: what about imports to Opus objects?
                 # TODO: find and store metadata
             else:
-                req_ind = getattr(i_module, this_indexer).required_indices
+                req_ind = indexer_cls.required_indices
                 for ind in req_ind:
                     if ind not in self._data:
                         self.add_index(ind, which_settings)
 
             # Run the Indexer and store the results
-            indexer_instance = getattr(i_module, this_indexer)(required_score, this_settings)
+            indexer_instance = indexer_cls(required_score, this_settings)
             if this_indexer not in self._data:
                 self._data[this_indexer] = {}
             self._data[this_indexer][unicode(this_settings)] = indexer_instance.run()

@@ -261,7 +261,7 @@ class TestIndexedPiece(TestCase):
         self.ip._import_score()
         # access an invalid value, after importing the piece
         value = self.ip.metadata('invalid_field')
-        self.assertEquals(value, None)
+        self.assertEquals(None, value)
         # try accessing keys with invalid types
         self.assertRaises(TypeError, self.ip.metadata, 2)
         self.assertRaises(TypeError, self.ip.metadata, [])
@@ -280,3 +280,5 @@ class TestIndexedPiece(TestCase):
             # - required indexer already there
             # - required indexer not already there
             self.ip.add_index([u'NoteRestIndexer'], {})
+            # add an indexer which doesn't exist
+            self.assertRaises(RuntimeError, self.ip.add_index, [u'not an indexer'], {})
