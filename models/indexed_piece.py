@@ -109,7 +109,7 @@ class IndexedPiece(object):
             The score.
         """
         # TODO: actually write this method
-        return converter.parse(self.metadata('pathname'))
+        self._score = converter.parse(self.metadata('pathname'))
 
     def metadata(self, field, value=None):
         # TODO: update doctest so that it actually works (e.g. the piece must be imported before calling metadata)
@@ -180,6 +180,7 @@ class IndexedPiece(object):
             Indexers in "which_indexers", so you may specify settings that apply only to one or some
             of the Indexers, but you may not specify different settings of the same name for
             different Indexers.
+        :returns: None
 
         Raises
         ======

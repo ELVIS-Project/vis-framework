@@ -23,6 +23,7 @@
 #--------------------------------------------------------------------------------------------------
 
 from unittest import TestCase, TestLoader
+from mock import patch
 from models.indexed_piece import IndexedPiece
 
 
@@ -230,14 +231,14 @@ class TestIndexedPieceErrors(TestCase):
 indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
 indexed_piece_errors_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceErrors)
 
-
+@patch('music21.converter.parse', lambda path: 1)
 class TestIndexedPiece(TestCase):
     def setUp(self):
         """
         Initialize a sample :py:class:`IndexedPiece` instance for use in each test.
         :return: None
         """
-        self.ip = IndexedPiece('../test_corpus/bwv77.mxl')
+        self.ip = IndexedPiece('')
 
     def test_metadata(self):
         """
@@ -246,7 +247,7 @@ class TestIndexedPiece(TestCase):
         """
         # access fields which are set by default
         pathname = self.ip.metadata('pathname')
-        self.assertEquals(pathname, '../test_corpus/bwv77.mxl')
+        self.assertEquals(pathname, '')
         # assign a value
         self.ip.metadata('field', 2)
         value = self.ip.metadata('field')
@@ -263,5 +264,5 @@ class TestIndexedPiece(TestCase):
         self.assertRaises(TypeError, self.ip.metadata, [])
         self.assertRaises(TypeError, self.ip.metadata, {})
 
-    def test_indexers(self):
-        self.assertEquals(self.ip.indexers, [])
+    def test_add_index(self):
+        pass
