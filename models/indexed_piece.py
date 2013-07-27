@@ -196,7 +196,7 @@ class IndexedPiece(object):
         # calculated, and skip it.
         for this_indexer in which_indexers:
             if not isinstance(this_indexer, (str, unicode)):
-                raise TypeError('Indexer names must be strings')
+                raise TypeError('Indexer names must be string or unicode')
             # Does this Indexer exist?
             # TODO: handle add-on Indexers
             if hasattr(indexer, this_indexer):
