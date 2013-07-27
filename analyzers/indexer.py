@@ -228,20 +228,16 @@ class Indexer(object):
 
         Raises
         ======
-        RuntimeError :
-            - If the "score" argument is the wrong type.
-            - If the "score" argument is not a list of the same types.
+        RuntimeError:
+            - If the "score" argument is not a list of the right type.
             - If required settings are not present in the "settings" argument.
         """
         if settings is None:
             settings = {}
         # Check the "score" argument is either uniformly Part or Series objects.
-        for i in xrange(len(score) - 1):
-            if type(score[i]) != type(score[i + 1]):
-                raise RuntimeError(u'All elements of "score" must be the same type.')
-        if not isinstance(score[0], self.required_score_type):
-            raise RuntimeError(u'All elements of "score" must be a ' +
-                               unicode(self.required_score_type) + '.')
+        for el in score:
+            if not isinstance(el, self.required_score_type):
+                raise RuntimeError(u'All elements of "score" must be a %s.'.format(unicode(self.required_score_type)))
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
         self._score = score
