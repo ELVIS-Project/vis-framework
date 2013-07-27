@@ -234,32 +234,31 @@ indexed_piece_errors_suite = TestLoader().loadTestsFromTestCase(TestIndexedPiece
 class TestIndexedPiece(TestCase):
     def setUp(self):
         """
-        Use ``ip`` as a test piece.
+        Initialize a sample :py:class:`IndexedPiece` instance for use in each test.
+        :return: None
         """
         self.ip = IndexedPiece('../test_corpus/bwv77.mxl')
 
-    def test_metadata_access_default(self):
+    def test_metadata(self):
         """
-        By definition of the constructor, accessing the 'pathname' metadatum should always return the path the piece
-        was instantiated with.
+        Tests for the method :py:meth:`~IndexedPiece.metadata`.
+        :return: None
         """
+        # access fields which are set by default
         pathname = self.ip.metadata('pathname')
         self.assertEquals(pathname, '../test_corpus/bwv77.mxl')
-
-    def test_metadata_assign_value(self):
+        # assign a value
         self.ip.metadata('field', 2)
         value = self.ip.metadata('field')
         self.assertEquals(value, 2)
-
-    def test_metadata_access_invalid_pre_import(self):
+        # access an invalid value, before importing the piece
         self.assertRaises(KeyError, self.ip.metadata, 'invalid_field')
-
-    def test_metadata_access_invalid_post_import(self):
+        # import the piece
         self.ip._import_score()
+        # access an invalid value, after importing the piece
         value = self.ip.metadata('invalid_field')
         self.assertEquals(value, None)
-
-    def test_metadata_invalid_field_type(self):
+        # try accessing keys with invalid types
         self.assertRaises(TypeError, self.ip.metadata, 2)
         self.assertRaises(TypeError, self.ip.metadata, [])
         self.assertRaises(TypeError, self.ip.metadata, {})
