@@ -147,62 +147,38 @@ class IndexedPiece(object):
 
     def add_index(self, which_indexers, which_settings=None):
         """
-        Run an indexer (or some indexers) on the score and save the results. If the indexer has
-        already been run with the same settings, it will not be run again.
+        Run one or more :py:class:`controllers.indexer.Indexer`s on the score and save the results.
+        If any of the :py:class:`controllers.indexer.Indexer`s have already been run with the same
+        settings, they will not be run again.
 
-        During the initial import/indexation stage, you'll just call this method with a list of
-        indices to add, in which case we'll run the indexation processes in parallel. If only one
-        indexer is given, we'll not use multiprocessing. Not sure this is possible quite like
-        this, but I guess we'll figure it out.
+        Access the result with :py:meth:`get_parts`.
 
-        This method checks whether the piece has ever been imported yet. If not, it'll be done now,
-        and the offsets will be indexed first, since it's needed for everything else, and the
-        metadata will also be collected from the file.
-
-        Access the result with "get_parts()".
-
-        Parameters
-        ==========
-        :param which_indexers: [string]
-            A list of the vis.controllers.indexer.Indexer subclasses to run on the IndexedPiece. If
+        :param which_indexers:
+            the :py:class:`controllers.indexer.Indexer` subclasses to run on the IndexedPiece. If
             you are using a built-in Indexer (the code for which is stored in
             "analyzers/indexer.py"), the string should look like this:
                 u'IntervalIndexer'
             If you are using an Indexer not stored there, you should add the name of the
             subdirectory, so the string should look like this:
                 u'my_indexers.MyIndexer'
+        :type which_indexers: list of basestring
 
-        :param which_settings: dict
-            A dict of the settings to provide the Indexers. Default is {}. This is the same for all
-            Indexers in "which_indexers", so you may specify settings that apply only to one or some
-            of the Indexers, but you may not specify different settings of the same name for
-            different Indexers.
+        :param which_settings:
+            A dict of the settings to provide the :py:class:`controllers.indexer.Indexer`. Default is {}.
+            This is the same for all Indexers in "which_indexers", so you may specify settings that apply
+            only to one or some of the Indexers, but you may not specify different settings of the same
+            name for different Indexers.
+        :type which_settings: dict
+
         :returns: None
 
-        Raises
-        ======
-        RuntimeException :
-            - If one of the "which_indexers" refers to an unknown Indexer subclass. All the other
-              Indexers will still be run.
-            - If a required setting for an Indexer is absent. All the other Indexers will still run.
-
-        Side Effects
-        ============
-        Results from the Indexer, and any additional Indexer subclasses required for the
-        "which_index" Indexer subclass, are saved in the IndexedPiece.
+        :raises: RuntimeException -- if one of the specified :py:class:`controllers.indexer.Indexer`s cannot
+        be located, or if a required setting for one of the :py:class:`controllers.indexer.Indexer`s is absent.
+        The exception is raised but only for the :py:class:`controllers.indexer.Indexer`s with problems. The
+        others run as normal.
         """
         if not which_settings:
             which_settings = {}
-        # TODO: for testing...
-        # - the "missing_indexers" handling
-        # - built-in Indexers
-        # - add-on Indexers
-        # - required indexer already there
-        # - required indexer not already there
-
-        # Just in case
-        if isinstance(which_indexers, basestring):
-            which_indexers = [which_indexers]
 
         # If one of the indexers doesn't exist, add its name to this list.
         missing_indexers = []
