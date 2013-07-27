@@ -1,0 +1,16 @@
+When You Commit to vis
+======================
+
+1.) To the fullest extent possible, include one task per commit. Avoid committing partially
+    completed work or more than one task.
+
+2.) Check modified lines for spelling mistakes.
+
+3.) Run pylint on all modified files, using the "engineering/pylint_rc" rcfile:
+>>> pylint --rcfile=engineering/pylint_rc modified_file.py
+
+4.) Run all automated tests. If any tests fail, check that:
+    - there is an issue on GitHub, or
+    - there is a TODO in the "run_tests.py" file
+
+5.) Commit.
