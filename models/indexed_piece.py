@@ -173,10 +173,10 @@ class IndexedPiece(object):
 
         :returns: None
 
-        :raises: RuntimeError -- if one of the specified :py:class:`controllers.indexer.Indexer`s cannot
-        be located, or if a required setting for one of the :py:class:`controllers.indexer.Indexer`s is absent.
-        The exception is raised but only for the :py:class:`controllers.indexer.Indexer`s with problems. The
-        others run as normal.
+        :raises: RuntimeError -- if one of the specified :py:class:`controllers.indexer.Indexer`s (or one of
+        its requirements) cannot be located, or if a required setting for one of the
+        :py:class:`controllers.indexer.Indexer`s is absent. The exception is raised but only for the
+        :py:class:`controllers.indexer.Indexer`s with problems. The others run as normal.
         :raises: TypeError -- if one of the strings in `which_indexers` does not correspond to a subclass of
         :py:class:`controllers.indexer.Indexer`.
         """
