@@ -197,13 +197,11 @@ class IndexedPiece(object):
         for this_indexer in which_indexers:
             if not isinstance(this_indexer, (str, unicode)):
                 raise TypeError('Indexer names must be string or unicode')
-            # Does this Indexer exist?
-            # TODO: handle add-on Indexers
             if hasattr(indexer, this_indexer):
                 i_module = indexer
             else:
                 try:
-                    i_module = __import__(unicode(this_indexer),
+                    i_module = __import__(this_indexer,
                                           globals(),
                                           locals())
                 except ImportError:
