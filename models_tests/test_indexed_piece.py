@@ -250,7 +250,7 @@ class TestIndexedPiece(TestCase):
         # TODO: add assert messages
         # access fields which are set by default
         pathname = self.ip.metadata('pathname')
-        self.assertEquals('b', pathname)
+        self.assertEquals('', pathname)
         # assign a value
         self.ip.metadata('field', 2)
         value = self.ip.metadata('field')
