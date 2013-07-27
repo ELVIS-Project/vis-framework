@@ -231,6 +231,7 @@ class TestIndexedPieceErrors(TestCase):
 indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
 indexed_piece_errors_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceErrors)
 
+
 @patch('music21.converter.parse', lambda path: 1)
 class TestIndexedPiece(TestCase):
     def setUp(self):

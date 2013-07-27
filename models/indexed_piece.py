@@ -158,10 +158,6 @@ class IndexedPiece(object):
         and the offsets will be indexed first, since it's needed for everything else, and the
         metadata will also be collected from the file.
 
-        Also, since the Score object is never actually retained after the add_indexation() method
-        finishes, it makes sense to supply a list of all the indices you'll want, all at the same
-        time, so that the import need only happen once.
-
         Access the result with "get_parts()".
 
         Parameters
@@ -234,8 +230,8 @@ class IndexedPiece(object):
             # Make a dict of the settings relevant for this Indexer
             # We'll check all the possible settings for this Indexer. If the setting isn't given by
             # the user, we'll use the default; if there is no default, we can't use the Indexer.
-            poss_sett = eval(u'i_module.' + this_indexer + u'.possible_settings')
-            def_sett = eval(u'i_module.' + this_indexer + u'.default_settings')
+            poss_sett = getattr(i_module, this_indexer).possible_settings
+            def_sett = getattr(i_module, this_indexer).default_settings
             this_settings = {}
             for sett in poss_sett:
                 if sett in which_settings:
@@ -261,22 +257,20 @@ class IndexedPiece(object):
 
             # Does the Indexer require the Score?
             required_score = None
-            if eval(u'i_module.' + this_indexer + u'.requires_score'):
+            if getattr(i_module, this_indexer).requires_score:
                 if the_score is None:
                     the_score = self._import_score()
                 required_score = [the_score.parts[i] for i in xrange(len(the_score.parts))]
                 # TODO: what about imports to Opus objects?
                 # TODO: find and store metadata
             else:
-                req_ind = eval(u'i_module.' + this_indexer + u'.required_indices')
+                req_ind = getattr(i_module, this_indexer).required_indices
                 for ind in req_ind:
                     if ind not in self._data:
                         self.add_index(ind, which_settings)
 
             # Run the Indexer and store the results
-            indexer_instance = eval(u'i_module.' +
-                                    this_indexer +
-                                    u'(required_score, this_settings)')
+            indexer_instance = getattr(i_module, this_indexer)(required_score, this_settings)
             if this_indexer not in self._data:
                 self._data[this_indexer] = {}
             self._data[this_indexer][unicode(this_settings)] = indexer_instance.run()
