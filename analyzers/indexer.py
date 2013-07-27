@@ -303,7 +303,7 @@ class Indexer(object):
         else:
             # use the MPController for multiprocessing
             self._mpc.run()
-            pipe_end = mpc.get_pipe()
+            pipe_end = self._mpc.get_pipe()
             jobs_submitted = 0
             for each_combo in combos:
                 jobs_submitted += 1
@@ -560,7 +560,7 @@ class TemplateIndexer(Indexer):
         # Change "TemplateIndexer" to the current class name. The superclass will handle the
         # "score" and "mpc" arguments, but you should have processed "settings" above, so it should
         # not be sent to the superclass constructor.
-        super(TemplateIndexer, self).__init__(score, None, mpc)
+        super(TemplateIndexer, self).__init__(score, None, self._mpc)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []
