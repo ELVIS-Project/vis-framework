@@ -216,6 +216,7 @@ class IndexedPiece(object):
             indexer_cls = getattr(i_module, this_indexer)
             if not issubclass(indexer_cls, indexer.Indexer):
                 missing_indexers.append(this_indexer)
+                continue
             poss_sett = indexer_cls.possible_settings
             if not poss_sett:
                 poss_sett = {}
