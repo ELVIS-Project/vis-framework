@@ -198,10 +198,10 @@ class Indexer(object):
     """
 
     # just the standard instance variables
-    required_indices = None
+    required_indices = []
     required_score_type = None
-    possible_settings = None
-    default_settings = None
+    possible_settings = {}
+    default_settings = {}
     requires_score = False
     # self._score
     # self._mpc
@@ -235,9 +235,10 @@ class Indexer(object):
         if settings is None:
             settings = {}
         # Check the "score" argument is either uniformly Part or Series objects.
-        for el in score:
-            if not isinstance(el, self.required_score_type):
-                raise RuntimeError(u'All elements of "score" must be a %s.'.format(unicode(self.required_score_type)))
+        if self.__class__.requires_score:
+            for el in score:
+                if not isinstance(el, self.required_score_type):
+                    raise RuntimeError(u'All elements of "score" must be a %s.'.format(unicode(self.required_score_type)))
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
         self._score = score
