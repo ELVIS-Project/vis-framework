@@ -23,7 +23,7 @@
 #--------------------------------------------------------------------------------------------------
 
 from unittest import TestCase, TestLoader
-from mock import patch
+from mock import patch, MagicMock
 import music21
 from models.indexed_piece import IndexedPiece
 
@@ -233,44 +233,50 @@ indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
 indexed_piece_errors_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceErrors)
 
 
-with patch('music21.stream.Score', autospec=True) and patch('music21.stream.Part', autospec=True):
-    @patch('music21.converter.parse', lambda path: music21.stream.Score([music21.stream.Part()]))
-    class TestIndexedPiece(TestCase):
-        def setUp(self):
-            """
-            Initialize a sample :py:class:`IndexedPiece` instance for use in each test.
-            :return: None
-            """
-            self.ip = IndexedPiece('')
+@patch('music21.converter.parse', lambda path: MagicMock(spec=music21.stream.Score))
+class TestIndexedPiece(TestCase):
+    def setUp(self):
+        """
+        Initialize a sample :py:class:`IndexedPiece` instance for use in each test.
+        :return: None
+        """
+        self.ip = IndexedPiece('')
 
-        def test_metadata(self):
-            """
-            Tests for the method :py:meth:`~IndexedPiece.metadata`.
-            :return: None
-            """
-            # access fields which are set by default
-            pathname = self.ip.metadata('pathname')
-            self.assertEquals(pathname, '')
-            # assign a value
-            self.ip.metadata('field', 2)
-            value = self.ip.metadata('field')
-            self.assertEquals(value, 2)
-            # access an invalid value, before importing the piece
-            self.assertRaises(KeyError, self.ip.metadata, 'invalid_field')
-            # import the piece
-            self.ip._import_score()
-            # access an invalid value, after importing the piece
-            value = self.ip.metadata('invalid_field')
-            self.assertEquals(value, None)
-            # try accessing keys with invalid types
-            self.assertRaises(TypeError, self.ip.metadata, 2)
-            self.assertRaises(TypeError, self.ip.metadata, [])
-            self.assertRaises(TypeError, self.ip.metadata, {})
+    def test_metadata(self):
+        """
+        Tests for the method :py:meth:`~IndexedPiece.metadata`.
+        :return: None
+        """
+        # TODO: add assert messages
+        # access fields which are set by default
+        pathname = self.ip.metadata('pathname')
+        self.assertEquals('b', pathname)
+        # assign a value
+        self.ip.metadata('field', 2)
+        value = self.ip.metadata('field')
+        self.assertEquals(2, value)
+        # access an invalid value, before importing the piece
+        self.assertRaises(KeyError, self.ip.metadata, 'invalid_field')
+        # import the piece
+        self.ip._import_score()
+        # access an invalid value, after importing the piece
+        value = self.ip.metadata('invalid_field')
+        self.assertEquals(value, None)
+        # try accessing keys with invalid types
+        self.assertRaises(TypeError, self.ip.metadata, 2)
+        self.assertRaises(TypeError, self.ip.metadata, [])
+        self.assertRaises(TypeError, self.ip.metadata, {})
 
-        def test_add_index(self):
-            """
-            Tests the method :py:meth:`~IndexedPiece.add_index`.
-            :return: None
-            """
-            with patch('analyzers.indexer', autospec=True):
-                self.ip.add_index([u'NoteRestIndexer'], {})
+    def test_add_index(self):
+        """
+        Tests the method :py:meth:`~IndexedPiece.add_index`.
+        :return: None
+        """
+        with patch('analyzers.indexer', autospec=True):
+            # TODO: for testing...
+            # - the "missing_indexers" handling
+            # - built-in Indexers
+            # - add-on Indexers
+            # - required indexer already there
+            # - required indexer not already there
+            self.ip.add_index([u'NoteRestIndexer'], {})
