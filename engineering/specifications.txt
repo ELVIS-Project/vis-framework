@@ -34,6 +34,8 @@ Targeted Libraries:
     - ggplot2 0.9.3.1
 - PyQt4
     Mostly a GUI library. Prior to visX, all our graphical interfaces have used PyQt. Since VisTrails also uses PyQt, we may write our own PyQt code for minor tasks, like displaying the offset-selection window.
+- mock 1.0.1
+    A library for unit testing, to create mock objects and patch dependencies.
 - VisTrails 2.0 API
     http://www.vistrails.org/usersguide/v2.0/html/batch.html#finding-methods-via-the-command-line
 - Haskell 2010
