@@ -247,14 +247,13 @@ class TestIndexedPiece(TestCase):
         Tests for the method :py:meth:`~IndexedPiece.metadata`.
         :return: None
         """
-        # TODO: add assert messages
         # access fields which are set by default
         pathname = self.ip.metadata('pathname')
-        self.assertEquals('', pathname)
+        self.assertEquals('', pathname, "pathname variable doesn't match initialization value")
         # assign a value
         self.ip.metadata('field', 2)
         value = self.ip.metadata('field')
-        self.assertEquals(2, value)
+        self.assertEquals(2, value, "extracted metadata field doesn't match assigned value")
         # access an invalid value, before importing the piece
         self.assertRaises(KeyError, self.ip.metadata, 'invalid_field')
         # import the piece
