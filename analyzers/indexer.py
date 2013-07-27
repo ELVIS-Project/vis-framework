@@ -139,7 +139,6 @@ def mp_indexer(pipe_index, parts, indexer_func, types=None):
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
 
     # flatten the streams or change Series to Parts, as required
-    all_parts = None
     if isinstance(parts[0], stream.Stream):
         if types is None:
             raise RuntimeError(u'mp_indexer requires a list of types when given Stream objects')
@@ -183,7 +182,7 @@ def mp_indexer(pipe_index, parts, indexer_func, types=None):
         end_offset = all_parts[0][-1].offset + all_parts[0][-1].duration.quarterLength
         post[-1].duration = duration.Duration(end_offset - post[-1].offset)
 
-    return (pipe_index, pandas.Series(post))
+    return pipe_index, pandas.Series(post)
 
 
 class Indexer(object):
@@ -234,10 +233,8 @@ class Indexer(object):
             - If the "score" argument is not a list of the same types.
             - If required settings are not present in the "settings" argument.
         """
-
         if settings is None:
             settings = {}
-
         # Check the "score" argument is either uniformly Part or Series objects.
         for i in xrange(len(score) - 1):
             if type(score[i]) != type(score[i + 1]):
@@ -245,13 +242,13 @@ class Indexer(object):
         if not isinstance(score[0], self.required_score_type):
             raise RuntimeError(u'All elements of "score" must be a ' +
                                unicode(self.required_score_type) + '.')
-
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
         self._score = score
         self._mpc = mpc
         self._indexer_func = None
         self._types = None
+        self._settings = settings
 
     def run(self):
         """
@@ -526,17 +523,17 @@ class TemplateIndexer(Indexer):
     possible_settings = []  # list of strings
     default_settings = {}  # keys are strings, values are anything
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score, settings=None, mpc=None):
         """
         Create a new Indexer.
 
         Parameters
         ==========
-        score : [pandas.Series] or [music21.stream.Part]
+        :param score: [pandas.Series] or [music21.stream.Part]
             Depending on how this Indexer works, this is a list of either Part or Series obejcts
             to use in creating a new index.
 
-        settings : dict
+        :param settings: dict
             A dict of all the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is {}.
 
