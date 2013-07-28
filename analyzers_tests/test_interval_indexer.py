@@ -58,12 +58,6 @@ class TestIntervalIndexerShort(unittest.TestCase):
             post.append(pandas.Series(past))
         return post
 
-    def setUp(self):
-        # NB: each of these is one of the _event_finder() tests
-        # NB: [[tuples_for_part_1], [tuples_for_part_2]]
-        # NB: [[(offset, obj, quarterLength)]]
-        pass
-
     def test_int_indexer_short_1(self):
         expected = [(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name)]
         not_processed = [[(0.0, u'G4', 0.5)], [(0.0, u'G3', 0.5)]]
@@ -91,7 +85,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
     def test_int_indexer_short_3(self):
         expected = [(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
                     (0.25, u'Rest')]
-        not_processed = [[(0.5, u'G4', 0.5)], [(0.0, u'G3', 0.25), (0.25, u'Rest', 0.25)]]
+        not_processed = [[(0.0, u'G4', 0.5)], [(0.0, u'G3', 0.25), (0.25, u'Rest', 0.25)]]
         test_in = TestIntervalIndexerShort.elem_wrapper(not_processed)
         int_indexer = IntervalIndexer(test_in)
         actual = int_indexer.run()[u'[0, 1]']
@@ -228,7 +222,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]
         not_processed = [[(0.0, u'G4', 1.0)],
                    [(0.0, u'G3', 0.125), (0.125, u'Rest', 0.125),
-                    (0.25, u'A3', 0,125), (0.375, u'Rest', 0.125), (0.5, u'G3', 0.5)]]
+                    (0.25, u'A3', 0.125), (0.375, u'Rest', 0.125), (0.5, u'G3', 0.5)]]
         test_in = TestIntervalIndexerShort.elem_wrapper(not_processed)
         int_indexer = IntervalIndexer(test_in)
         actual = int_indexer.run()[u'[0, 1]']
@@ -443,7 +437,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         return post
 
     def test_interval_indexer_1(self):
-        # assemble the "parts"
+        # BWV7.7: soprano and bass parts
         test_parts = [self.bwv77_soprano, self.bwv77_bass]
         expected = self.bwv77_S_B
         int_indexer = IntervalIndexer(test_parts)
