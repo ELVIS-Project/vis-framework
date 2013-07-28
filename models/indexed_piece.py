@@ -8,7 +8,7 @@
 # Filename:               models/indexed_piece.py
 # Purpose:                Hold the model representing an indexed and analyzed piece of music.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify it under the terms of the
 # GNU General Public License as published by the Free Software Foundation, either version 3 of
@@ -27,7 +27,7 @@ The model representing an indexed and analyzed piece of music.
 
 # Imports
 from music21 import converter
-from analyzers import indexer
+from vis.analyzers import indexer
 
 
 class IndexedPiece(object):

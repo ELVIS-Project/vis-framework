@@ -27,8 +27,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
+# Ensure we can import "vis"
+try:
+    import vis
+except ImportError:
+    import sys
+    sys.path.insert(0, '..')
 
-
-__all__ = ['controllers', 'models', 'views', 'OutputLilyPond']
+__all__ = ['analyzers', 'controllers', 'models']
 
 from vis import *

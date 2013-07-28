@@ -25,8 +25,8 @@
 import unittest
 import pandas
 from music21 import converter, stream, clef, bar
-from models import indexed_piece
-from analyzers.indexer import NoteRestIndexer
+from vis.models import indexed_piece
+from vis.analyzers.indexers.noterest import NoteRestIndexer
 
 
 class TestNoteRestIndexer(unittest.TestCase):

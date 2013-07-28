@@ -24,9 +24,10 @@
 
 import unittest
 from music21 import interval, note
-from models.indexed_piece import IndexedPiece
-from analyzers.indexer import IntervalIndexer, NoteRestIndexer
-from test_corpus import int_indexer_short
+from vis.models.indexed_piece import IndexedPiece
+from vis.analyzers.indexers.interval import IntervalIndexer
+from vis.analyzers.indexers.noterest import NoteRestIndexer
+from vis.test_corpus import int_indexer_short
 
 
 class TestIntervalIndexer(unittest.TestCase):

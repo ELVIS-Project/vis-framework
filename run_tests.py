@@ -27,25 +27,32 @@
 Run the tests for the models
 """
 
+# Ensure we can import "vis"
+try:
+    import vis
+except ImportError:
+    import sys
+    sys.path.insert(0, '..')
+
 # Verbosity
 verb = 1
 
 # Imports
 import unittest
 # new
-from analyzers_tests.test_indexer import *
-from analyzers_tests.test_note_rest_indexer import *
-from analyzers_tests.test_interval_indexer import *
-from models_tests.test_indexed_piece import *
+from vis.analyzers_tests.test_indexer import *
+from vis.analyzers_tests.test_note_rest_indexer import *
+from vis.analyzers_tests.test_interval_indexer import *
+from vis.models_tests.test_indexed_piece import *
 # old
-from controllers_tests.test_importer import *
-from controllers_tests.test_analyzer import *
-from controllers_tests.test_experimenter import *
-from models_tests.test_importing import *
-from models_tests.test_analyzing import *
-from models_tests.test_ngram import *
+#from controllers_tests.test_importer import *
+#from controllers_tests.test_analyzer import *
+#from controllers_tests.test_experimenter import *
+#from models_tests.test_importing import *
+#from models_tests.test_analyzing import *
+#from models_tests.test_ngram import *
 
-# Analyzers ---------------------------------------------------------------------------------------
+# New ---------------------------------------------------------------------------------------------
 unittest.TextTestRunner(verbosity=verb).run(indexer_1_part_suite)
 unittest.TextTestRunner(verbosity=verb).run(indexer_3_parts_suite)
 unittest.TextTestRunner(verbosity=verb).run(unique_offsets_suite)
@@ -54,6 +61,8 @@ unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
 unittest.TextTestRunner(verbosity=verb).run(interval_indexer_suite)
 unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)
 unittest.TextTestRunner(verbosity=verb).run(indexed_piece_errors_suite)
+
+# Old ---------------------------------------------------------------------------------------------
 
 # Controllers ------------------------------------------------------------------
 # Importer
