@@ -447,11 +447,13 @@ class TestIndexerThreeParts(unittest.TestCase):
             elem.duration = duration.Duration(0.5)
         part_1 = pandas.Series(part_1)
         part_2 = pandas.Series(part_2)
+        # define expected
         expected = [(0.0, u'(0, 0)'),
                     (0.5, u'(1, 1)'),
                     (1.0, u'(2, 2)'),
                     (1.5, u'(3, 3)'),
                     (2.0, u'(4, 4)')]
+        # do the test
         result = indexer.mp_indexer(0, [part_1, part_2], self.verbatim_variable)[1]
         for i in xrange(len(expected)):
             self.assertEqual(expected[i][0], result[i].offset)
@@ -472,24 +474,17 @@ class TestIndexerThreeParts(unittest.TestCase):
             elem.duration = duration.Duration(0.5)
         part_1 = stream.Stream(part_1)
         part_2 = stream.Stream(part_2)
-        zed = base.ElementWrapper(100)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(0.5, zed)
-        zed = base.ElementWrapper(100)
-        zed.duration = duration.Duration(0.5)
-        part_2.insert(0.5, zed)
-        zed = base.ElementWrapper(200)
-        zed.duration = duration.Duration(0.5)
-        part_2.insert(1.0, zed)
-        zed = base.ElementWrapper(300)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(1.5, zed)
-        zed = base.ElementWrapper(400)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(2.0, zed)
-        zed = base.ElementWrapper(400)
-        zed.duration = duration.Duration(0.5)
-        part_2.insert(2.0, zed)
+        # add_these = [(part, offset, number), (part, offset, number), ...]
+        # ... for offsets that have more than one event
+        add_these = [(part_1, 0.5, 100), (part_2, 0.5, 100),
+                     (part_2, 1.0, 200),
+                     (part_1, 1.5, 300),
+                     (part_1, 2.0, 400), (part_2, 2.0, 400)]
+        for part, offset, number in add_these:
+            zed = base.ElementWrapper(number)
+            zed.duration = duration.Duration(0.5)
+            part.insert(offset, zed)
+        # define expected
         expected = [(0.0, u'(0, 0)'),
                     (0.5, u'(1, 1)'),
                     (0.5, u'(100, 100)'),
@@ -499,6 +494,7 @@ class TestIndexerThreeParts(unittest.TestCase):
                     (1.5, u'(300,)'),
                     (2.0, u'(4, 4)'),
                     (2.0, u'(400, 400)')]
+        # do the test
         result = indexer.mp_indexer(0, [part_1, part_2], self.verbatim_variable, [base.ElementWrapper])[1]
         for i in xrange(len(expected)):
             self.assertEqual(expected[i][0], result[i].offset)
@@ -524,43 +520,17 @@ class TestIndexerThreeParts(unittest.TestCase):
         part_1 = stream.Stream(part_1)
         part_2 = stream.Stream(part_2)
         part_3 = stream.Stream(part_3)
-        # add stuff
-        zed = base.ElementWrapper(101)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(0.5, zed)
-        zed = base.ElementWrapper(102)
-        zed.duration = duration.Duration(0.5)
-        part_2.insert(0.5, zed)
-        zed = base.ElementWrapper(103)
-        zed.duration = duration.Duration(0.5)
-        part_3.insert(0.5, zed)
-        zed = base.ElementWrapper(201)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(1.0, zed)
-        zed = base.ElementWrapper(202)
-        zed.duration = duration.Duration(0.5)
-        part_2.insert(1.0, zed)
-        zed = base.ElementWrapper(203)
-        zed.duration = duration.Duration(0.5)
-        part_3.insert(1.0, zed)
-        zed = base.ElementWrapper(251)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(1.0, zed)
-        zed = base.ElementWrapper(301)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(1.5, zed)
-        zed = base.ElementWrapper(302)
-        zed.duration = duration.Duration(0.5)
-        part_2.insert(1.5, zed)
-        zed = base.ElementWrapper(401)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(2.0, zed)
-        zed = base.ElementWrapper(451)
-        zed.duration = duration.Duration(0.5)
-        part_1.insert(2.0, zed)
-        zed = base.ElementWrapper(402)
-        zed.duration = duration.Duration(0.5)
-        part_2.insert(2.0, zed)
+        # add_these = [(part, offset, number), (part, offset, number), ...]
+        # ... for offsets that have more than one event
+        add_these = [(part_1, 0.5, 101), (part_2, 0.5, 102), (part_3, 0.5, 103),
+                     (part_1, 1.0, 201), (part_2, 1.0, 202), (part_3, 1.0, 203), (part_1, 1.0, 251),
+                     (part_1, 1.5, 301), (part_2, 1.5, 302),
+                     (part_1, 2.0, 401), (part_2, 2.0, 402), (part_1, 2.0, 451)]
+        for part, offset, number in add_these:
+            zed = base.ElementWrapper(number)
+            zed.duration = duration.Duration(0.5)
+            part.insert(offset, zed)
+        # define expected
         expected = [(0.0, u'(0, 0, 0)'),
                     (0.5, u'(1, 1, 1)'),
                     (0.5, u'(101, 102, 103)'),
@@ -572,6 +542,7 @@ class TestIndexerThreeParts(unittest.TestCase):
                     (2.0, u'(4, 4, 4)'),
                     (2.0, u'(401, 402)'),
                     (2.0, u'(451,)')]
+        # do the test
         result = indexer.mp_indexer(0, [part_1, part_2, part_3],
                                     self.verbatim_variable,
                                     [base.ElementWrapper])[1]

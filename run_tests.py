@@ -53,14 +53,17 @@ from vis.models_tests.test_indexed_piece import *
 #from models_tests.test_ngram import *
 
 # New ---------------------------------------------------------------------------------------------
+# Indexer and Subclasses
 unittest.TextTestRunner(verbosity=verb).run(indexer_1_part_suite)
 unittest.TextTestRunner(verbosity=verb).run(indexer_3_parts_suite)
 unittest.TextTestRunner(verbosity=verb).run(unique_offsets_suite)
 unittest.TextTestRunner(verbosity=verb).run(vert_aligner_suite)
 unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
-unittest.TextTestRunner(verbosity=verb).run(interval_indexer_suite)
-unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)
-unittest.TextTestRunner(verbosity=verb).run(indexed_piece_errors_suite)
+unittest.TextTestRunner(verbosity=verb).run(interval_indexer_short_suite)
+unittest.TextTestRunner(verbosity=verb).run(interval_indexer_long_suite)
+# IndexedPiece
+unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)  # TODO: fails
+unittest.TextTestRunner(verbosity=verb).run(mock_indexed_piece_suite)  # TODO: fails
 
 # Old ---------------------------------------------------------------------------------------------
 

@@ -65,7 +65,9 @@ class IndexedPiece(object):
     #      - self._data[u'NoteRestIndexer'][u'{}'][0]
     #         Notes-and-rests index of the highest part; Indexer has no settings.
     #         NB: since this is a single-part reference, it is a list. Indices are integers.
-    #      - self._data[u'IntervalIndexer'][u'{u'quality': False, u'simple or compound': u'simple'}'][u'[0, 1]']
+    #      - self._data[u'IntervalIndexer']
+    #                  [u'{u'quality': False, u'simple or compound': u'simple'}']
+    #                  [u'[0, 1]']
     #         Intervals index of the two highest parts.
     #         NB: since this lists part combinations, it is a dict. Indices are list-like strings.
     #    - Be aware that settings can be tricky to deal with, since a dict object does not always
@@ -114,16 +116,22 @@ class IndexedPiece(object):
         return self._score
 
     def metadata(self, field, value=None):
-        # TODO: update doctest so that it actually works (e.g. the piece must be imported before calling metadata)
+        # TODO: update doctest so that it actually works (e.g. the piece must be imported before
+        #       calling metadata)
         """
         Get or set metadata about the piece, like filename, title, and composer.
 
         :param str field: The name of the field to be accessed or modified
+
         :param value: If not None, the new value to be assigned to ``field``
+
         :type value: object or None
-        :returns: object -- the field accessed, or None -- if assigning a field or attempting to access a field which
-        does not exist.
-        :raises: KeyError if attempting to access a nonexistent field on a piece which has not yet been imported.
+
+        :returns: object -- the field accessed, or None -- if assigning a field or attempting to
+            access a field that does not exist.
+
+        :raises: KeyError if attempting to access a nonexistent field on a piece which has not yet
+            been imported.
 
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
@@ -165,20 +173,22 @@ class IndexedPiece(object):
         :type which_indexers: list of (str or unicode)
 
         :param which_settings:
-            A dict of the settings to provide the :py:class:`controllers.indexer.Indexer`. Default is {}.
-            This is the same for all Indexers in "which_indexers", so you may specify settings that apply
-            only to one or some of the Indexers, but you may not specify different settings of the same
-            name for different Indexers.
+            A dict of the settings to provide the :py:class:`controllers.indexer.Indexer`. Default
+            is {}. This is the same for all Indexers in "which_indexers", so you may specify
+            settings that apply only to one or some of the Indexers, but you may not specify
+            different settings of the same name for different Indexers.
         :type which_settings: dict
 
         :returns: None
 
-        :raises: RuntimeError -- if one of the specified :py:class:`controllers.indexer.Indexer`s (or one of
-        its requirements) cannot be located, or if a required setting for one of the
-        :py:class:`controllers.indexer.Indexer`s is absent. The exception is raised but only for the
-        :py:class:`controllers.indexer.Indexer`s with problems. The others run as normal.
-        :raises: TypeError -- if one of the strings in `which_indexers` does not correspond to a subclass of
-        :py:class:`controllers.indexer.Indexer`.
+        :raises: RuntimeError -- if one of the specified :py:class:`controllers.indexer.Indexer`s
+            (or one of its requirements) cannot be located, or if a required setting for one of the
+            :py:class:`controllers.indexer.Indexer`s is absent. The exception is raised but only
+            for the :py:class:`controllers.indexer.Indexer`s with problems. The others run as
+            normal.
+
+        :raises: TypeError -- if one of the strings in `which_indexers` does not correspond to a
+            subclass of :py:class:`controllers.indexer.Indexer`.
         """
         if not which_settings:
             which_settings = {}

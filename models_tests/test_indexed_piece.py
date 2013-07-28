@@ -223,17 +223,6 @@ class TestIndexedPieceNormal(TestCase):
         self.assertEqual(len(expected_3), len(actual_3))
 
 
-class TestIndexedPieceErrors(TestCase):
-    pass
-
-
-#--------------------------------------------------------------------------------------------------#
-# Definitions                                                                                      #
-#--------------------------------------------------------------------------------------------------#
-indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
-indexed_piece_errors_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceErrors)
-
-
 class MockIndexerModule:
     Indexer = Indexer
     TestIndexer = Mock(spec=Indexer).__class__
@@ -292,3 +281,10 @@ class TestIndexedPiece(TestCase):
         self.assertRaises(TypeError, self.ip.add_index, [u'NotAnIndexer'])
         # add an indexer which doesn't exist
         self.assertRaises(RuntimeError, self.ip.add_index, [u'NonExistentIndexer'], {})
+
+
+#--------------------------------------------------------------------------------------------------#
+# Definitions                                                                                      #
+#--------------------------------------------------------------------------------------------------#
+indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
+mock_indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPiece)
