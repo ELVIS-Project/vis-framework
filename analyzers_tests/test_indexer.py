@@ -22,12 +22,18 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
+# allow "no docstring" for everything
+# pylint: disable=C0111
+# allow "too many public methods" for TestCase
+# pylint: disable=R0904
+
+
 import unittest
 import copy
 import pandas
-from music21 import base, stream, duration, note
-from analyzers import indexer
-from test_corpus import int_indexer_short
+from music21 import base, stream, duration, note, converter
+from vis.analyzers import indexer
+from vis.test_corpus import int_indexer_short
 
 
 class TestIndexerSinglePart(unittest.TestCase):
@@ -128,6 +134,16 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test values
         # --> one event at each offset
         input_stream = stream.Stream(self.mixed_list)
+        result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
+        for i in xrange(len(self.in_list)):
+            self.assertEqual(self.in_list[i].obj, result[i].obj)
+
+    def test_mp_indexer_10_pickle(self):
+        # that a list with two types is properly filtered when it's given as a Stream
+        # ** inputted Streams are pickled
+        # --> test values
+        # --> one event at each offset
+        input_stream = converter.freeze(stream.Stream(self.mixed_list), u'pickle')
         result = indexer.mp_indexer(0, [input_stream], self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_list)):
             self.assertEqual(self.in_list[i].obj, result[i].obj)
@@ -551,6 +567,8 @@ class TestIndexerThreeParts(unittest.TestCase):
             self.assertEqual(expected[i][1], result[i].obj)
 
 class TestMpiUniqueOffsets(unittest.TestCase):
+    # the whole point is to test a "private" function
+    # pylint: disable=W0212
     def test_mpi_unique_offsets_1(self):
         streams = int_indexer_short.test_1
         expected = [0.0]
@@ -664,6 +682,8 @@ class TestMpiUniqueOffsets(unittest.TestCase):
         self.assertEqual(expected, actual)
 
 class TestMpiVertAligner(unittest.TestCase):
+    # the whole point is to test a "private" function
+    # pylint: disable=W0212
     def test_mpi_vert_aligner_1(self):
         in_list = [[1]]
         expected = [[1]]
