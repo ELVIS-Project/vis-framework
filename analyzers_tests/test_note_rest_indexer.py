@@ -22,11 +22,19 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
+# allow "no docstring" for everything
+# pylint: disable=C0111
+# allow "too many public methods" for TestCase
+# pylint: disable=R0904
+
+
 import unittest
+import mock
 import pandas
-from music21 import converter, stream, clef, bar
-from vis.models import indexed_piece
-from vis.analyzers.indexers.noterest import NoteRestIndexer
+from music21 import converter, stream, clef, bar, note
+from vis.analyzers import indexer
+from vis.analyzers.indexers import noterest
+from vis.controllers import mpcontroller
 
 
 class TestNoteRestIndexer(unittest.TestCase):
@@ -208,43 +216,31 @@ class TestNoteRestIndexer(unittest.TestCase):
         (70.0, "F#3"),
         (71.0, "B2")]
 
-    #def test_note_rest_indexer_X(self):
-        ## This is a pattern
-        #expected = [[]]
-        #test_part = None
-        #nr_indexer = NoteRestIndexer(test_part)
-        #actual = nr_indexer.run()
-        #self.assertEqual(len(expected), len(actual))
-        #self.assertEqual(len(expected[0]), len(actual[0]))
-        #for i in xrange(len(expected)):
-            #self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            #self.assertEqual(expected[0][i][1], actual[0][i].obj)
-
     def test_note_rest_indexer_1(self):
         # The construcor must receive a Score
         test_part = [pandas.Series(['a', 'b', 'c']), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, NoteRestIndexer, test_part)
+        self.assertRaises(RuntimeError, noterest.NoteRestIndexer, test_part)
 
     def test_note_rest_indexer_2(self):
         # The construcor must receive a Score
         test_part = [pandas.Series(['a', 'b', 'c']), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, NoteRestIndexer, test_part)
+        self.assertRaises(RuntimeError, noterest.NoteRestIndexer, test_part)
 
     def test_note_rest_indexer_3(self):
         # Must be only one type in the list
         test_part = [stream.Part(), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, NoteRestIndexer, test_part)
+        self.assertRaises(RuntimeError, noterest.NoteRestIndexer, test_part)
 
     def test_note_rest_indexer_4(self):
         # Must be only one type in the list
         test_part = [stream.Part(), pandas.Series([1, 2, 3]), stream.Part()]
-        self.assertRaises(RuntimeError, NoteRestIndexer, test_part)
+        self.assertRaises(RuntimeError, noterest.NoteRestIndexer, test_part)
 
     def test_note_rest_indexer_5(self):
         # Should be fine
         expected = [[], []]
         test_part = [stream.Part(), stream.Part()]
-        nr_indexer = NoteRestIndexer(test_part)
+        nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
@@ -254,7 +250,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         # When the Part has nothing in it
         expected = [[]]
         test_part = [stream.Part()]
-        nr_indexer = NoteRestIndexer(test_part)
+        nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
@@ -273,16 +269,61 @@ class TestNoteRestIndexer(unittest.TestCase):
             test_part.append(add_me)
         test_part = [test_part]
         # finished adding stuff to the test_part
-        nr_indexer = NoteRestIndexer(test_part)
+        nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
+
+    def test_note_rest_indexer_12(self):
+        # When there are a bunch of notes
+        expected = [[(0.0, u'C4'), (1.0, u'C4'), (2.0, u'C4'), (3.0, u'C4'), (4.0, u'C4'),
+                     (5.0, u'C4'), (6.0, u'C4'), (7.0, u'C4'), (8.0, u'C4'), (9.0, u'C4')]]
+        test_part = stream.Part()
+        # add stuff to the test_part
+        for i in xrange(10):
+            add_me = note.Note(u'C4', quarterLength=1.0)
+            add_me.offset = i
+            test_part.append(add_me)
+        test_part = [test_part]
+        # finished adding stuff to the test_part
+        nr_indexer = noterest.NoteRestIndexer(test_part)
+        actual = nr_indexer.run()
+        self.assertEqual(len(expected), len(actual))
+        self.assertEqual(len(expected[0]), len(actual[0]))
+        for i in xrange(len(expected[0])):
+            self.assertEqual(expected[0][i][0], actual[0][i].offset)
+            self.assertEqual(expected[0][i][1], actual[0][i].obj)
+
+    def test_note_rest_indexer_12_mpc(self):
+        # When there are a bunch of notes
+        # ... but with a real MPController
+        expected = [[(0.0, u'C4'), (1.0, u'C4'), (2.0, u'C4'), (3.0, u'C4'), (4.0, u'C4'),
+                     (5.0, u'C4'), (6.0, u'C4'), (7.0, u'C4'), (8.0, u'C4'), (9.0, u'C4')]]
+        test_part = stream.Part()
+        # add stuff to the test_part
+        for i in xrange(10):
+            add_me = note.Note(u'C4', quarterLength=1.0)
+            add_me.offset = i
+            test_part.append(add_me)
+        test_part = [test_part]
+        # finished adding stuff to the test_part
+        mpc = mpcontroller.MPController()
+        mpc.start()
+        nr_indexer = noterest.NoteRestIndexer(test_part, {}, mpc)
+        actual = nr_indexer.run()
+        del nr_indexer
+        mpc.shutdown()
+        self.assertEqual(len(expected), len(actual))
+        self.assertEqual(len(expected[0]), len(actual[0]))
+        for i in xrange(len(expected[0])):
+            self.assertEqual(expected[0][i][0], actual[0][i].offset)
+            self.assertEqual(expected[0][i][1], actual[0][i].obj)
 
     def test_note_rest_indexer_200(self):
         # Soprano part of bwv77.mxl
         expected = [self.bwv77_soprano]
         test_part = [converter.parse('test_corpus/bwv77.mxl').parts[0]]
-        nr_indexer = NoteRestIndexer(test_part)
+        nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
@@ -294,7 +335,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         # Bass part of bwv77.mxl
         expected = [self.bwv77_bass]
         test_part = [converter.parse('test_corpus/bwv77.mxl').parts[3]]
-        nr_indexer = NoteRestIndexer(test_part)
+        nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
@@ -307,7 +348,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         expected = [self.bwv77_soprano, self.bwv77_bass]
         bwv77 = converter.parse('test_corpus/bwv77.mxl')
         test_part = [bwv77.parts[0], bwv77.parts[3]]
-        nr_indexer = NoteRestIndexer(test_part)
+        nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
@@ -318,6 +359,80 @@ class TestNoteRestIndexer(unittest.TestCase):
         for i in xrange(len(expected[1])):
             self.assertEqual(expected[1][i][0], actual[1][i].offset)
             self.assertEqual(expected[1][i][1], actual[1][i].obj)
+
+    def test_note_rest_indexer_201_mpc(self):
+        # Bass part of bwv77.mxl
+        # with MPController
+        expected = [self.bwv77_bass]
+        test_part = [converter.parse('test_corpus/bwv77.mxl').parts[3]]
+        mpc = mpcontroller.MPController()
+        mpc.start()
+        nr_indexer = noterest.NoteRestIndexer(test_part, {}, mpc)
+        actual = nr_indexer.run()
+        del nr_indexer
+        mpc.shutdown()
+        self.assertEqual(len(expected), len(actual))
+        self.assertEqual(len(expected[0]), len(actual[0]))
+        for i in xrange(len(expected[0])):
+            self.assertEqual(expected[0][i][0], actual[0][i].offset)
+            self.assertEqual(expected[0][i][1], actual[0][i].obj)
+
+    def test_note_rest_indexer_200_mock_mpc(self):
+        # Soprano part of bwv77.mxl
+        # ** with mock MPController
+        bwv77 = converter.parse('test_corpus/bwv77.mxl')
+        test_part = [bwv77.parts[0]]
+        # prepare mocks
+        mpc = mock.MagicMock(spec=mpcontroller.MPController)
+        mock_conn = mock.MagicMock()
+        mpc.get_pipe.return_value = mock_conn
+        mock_conn.recv.return_value = u'returned by mock pipe'
+        # run
+        nr_indexer = noterest.NoteRestIndexer(test_part, {}, mpc)
+        nr_indexer.run()
+        # test mocks were used correctly
+        mpc.get_pipe.assert_called_once_with()
+        ccallz = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send"
+        self.assertEqual(ccallz[0], indexer.mp_indexer)
+        self.assertTrue(isinstance(ccallz[1][0][0], basestring))
+        self.assertEqual(ccallz[1][1], noterest.indexer_func)
+        self.assertEqual(ccallz[1][2], [note.Note, note.Rest])
+        mock_conn.recv.assert_called_once_with()
+
+    def test_note_rest_indexer_202_mock_mpc(self):
+        # Soprano and Bass parts of bwv77.mxl
+        # ** with mock MPController
+        bwv77 = converter.parse('test_corpus/bwv77.mxl')
+        test_part = [bwv77.parts[0], bwv77.parts[3]]
+        # prepare mocks
+        mpc = mock.MagicMock(spec=mpcontroller.MPController)
+        mock_conn = mock.MagicMock()
+        mpc.get_pipe.return_value = mock_conn
+        mock_conn.recv.return_value = u'returned by mock pipe'
+        # run
+        nr_indexer = noterest.NoteRestIndexer(test_part, {}, mpc)
+        nr_indexer.run()
+        # test mocks were used correctly
+        mpc.get_pipe.assert_called_once_with()
+        ccallz = mock_conn.mock_calls
+        self.assertEqual(4, len(ccallz))
+        send_call = ((indexer.mp_indexer,
+                      [[test_part[0]], noterest.indexer_func, [note.Note, note.Rest]]),)
+        self.assertEqual(ccallz[0][0], u'send')
+        send_1 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (first call)
+        self.assertEqual(send_1[0], indexer.mp_indexer)
+        self.assertTrue(isinstance(send_1[1][0][0], basestring))
+        self.assertEqual(send_1[1][1], noterest.indexer_func)
+        self.assertEqual(send_1[1][2], [note.Note, note.Rest])
+        self.assertEqual(ccallz[1][0], u'send')
+        send_2 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (second call)
+        self.assertEqual(send_2[0], indexer.mp_indexer)
+        self.assertTrue(isinstance(send_2[1][0][0], basestring))
+        self.assertEqual(send_2[1][1], noterest.indexer_func)
+        self.assertEqual(send_2[1][2], [note.Note, note.Rest])
+        # two recv() calls
+        self.assertEqual(ccallz[2][0], u'recv')
+        self.assertEqual(ccallz[3][0], u'recv')
 
 
 #--------------------------------------------------------------------------------------------------#
