@@ -44,6 +44,7 @@ from vis.analyzers_tests.test_indexer import *
 from vis.analyzers_tests.test_note_rest_indexer import *
 from vis.analyzers_tests.test_interval_indexer import *
 from vis.models_tests.test_indexed_piece import *
+from vis.controllers_tests.test_mpcontroller import *
 # old
 #from controllers_tests.test_importer import *
 #from controllers_tests.test_analyzer import *
@@ -64,6 +65,10 @@ unittest.TextTestRunner(verbosity=verb).run(interval_indexer_long_suite)
 # IndexedPiece
 unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)  # TODO: fails
 unittest.TextTestRunner(verbosity=verb).run(mock_indexed_piece_suite)  # TODO: fails
+# MPController
+unittest.TextTestRunner(verbosity=verb).run(mpc_tester_suite)
+unittest.TextTestRunner(verbosity=verb).run(mpcontroller_suite)  # TODO: fails
+unittest.TextTestRunner(verbosity=verb).run(mpcontroller_runs_suite)
 
 # Old ---------------------------------------------------------------------------------------------
 

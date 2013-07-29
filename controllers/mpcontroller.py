@@ -25,9 +25,19 @@
 Manage a process pool for use by vis.
 """
 
-# Test file for a multiprocessing model for vis.
 from multiprocessing import Pool, Pipe
 from threading import Thread
+from time import sleep
+import random
+
+
+def _string_of_n_letters(n):
+    """
+    Generate a string of n pseudo-random letters.
+
+    This function is currently used to create indices for storage of Pipe ends.
+    """
+    return u''.join([random.choice(u'qwertyuiopasdfghjklzxcvbnm') for _ in xrange(n)])
 
 
 class MPController(Thread):
@@ -42,7 +52,7 @@ class MPController(Thread):
     def __init__(self):
         super(MPController, self).__init__()
         self._pool = None
-        self._pipes = [None for i in xrange(100)]  # we'll obviously have to make this robuster
+        self._pipes = {}  # we'll obviously have to make this robuster
         self._next_pipe_index = 0
         self._jobs_started = 0
         self._jobs_completed = 0
@@ -77,7 +87,10 @@ class MPController(Thread):
         * Send u'shutdown' when no more jobs will be sent through any Pipes.
         """
         mine, yours = Pipe()
-        self._pipes[self._next_pipe_index] = mine
+        possible_name = _string_of_n_letters(30)  # choose new pipe_i, ensuring no conflict
+        while possible_name in self._pipes:
+            possible_name = _string_of_n_letters(30)
+        self._pipes[possible_name] = mine
         self._next_pipe_index += 1
         return yours
 
@@ -101,43 +114,60 @@ class MPController(Thread):
         Monitor all the pipes for new jobs to complete. You cannot submit jobs to this instance
         before calling this method.
         """
+        # TODO: this whole method is stupid
         # make sure we won't start another Pool-and-loop by accient
         if self._pool is not None:
             return None
         # set up
         self._pool = Pool()
         keep_going = True
+        # list of Connections to delete
+        del_these = []
         while keep_going:
-            for pipe_i in xrange(len(self._pipes)):
+            sleep(0.01)  # wait a moment---no need to overload the processor
+            # see if there are old pipes we should remove from the dict
+            if [] != del_these:
+                for pipe_i in del_these:
+                    del self._pipes[pipe_i]
+                del_these = []
+            # now check out the remaining keys
+            for pipe_i in self._pipes.iterkeys():
                 # don't ask None for a message
                 if self._pipes[pipe_i] is None:
+                    del_these.append(pipe_i)
                     continue
-
                 # see if there's a message; if so, get it
                 this = None
                 if self._pipes[pipe_i].poll():
-                    this = self._pipes[pipe_i].recv()
-
-                # if we got a message, process it
-                if this is not None:
-                    if u'shutdown' == this:
-                        # TODO: what if jobs are submitted before this, but we would only see them
-                        # after? As in: job submitted to lower-index pipe that we passed before
-                        # "shutdown" was sent on a higher-index pipe...
-                        keep_going = False
-                        self._pipes[pipe_i].close()
-                    elif u'finished' == this:
-                        self._pipes[pipe_i].close()
-                    else:
-                        # prepare the list of arguments
-                        the_args = [pipe_i]  # pipe index
-                        the_args.extend([each for each in this[1]])  # actual arguments
-                        # so we know how many jobs we've started
-                        self._jobs_started += 1
-                        # start it
-                        self._pool.apply_async(this[0],
-                                               tuple(the_args),
-                                               callback=self._return_result)
+                    try:
+                        this = self._pipes[pipe_i].recv()
+                    except EOFError:
+                        # TODO: figure out why this happens more often when you increase the sleep
+                        # duraiton above, and whether it's a problem
+                        msg = u'EOFError with pipe ' + str(pipe_i) + ' (which is ' + \
+                              str(self._pipes[pipe_i]) + ').'
+                        print(msg)
+                else:
+                    continue
+                # process our message
+                if u'shutdown' == this:
+                    # TODO: what if jobs are submitted before this, but we would only see them
+                    # after? As in: job submitted to lower-index pipe that we passed before
+                    # "shutdown" was sent on a higher-index pipe...
+                    keep_going = False
+                    self._pipes[pipe_i].close()
+                elif u'finished' == this:
+                    self._pipes[pipe_i].close()
+                else:
+                    # prepare the list of arguments
+                    the_args = [pipe_i]  # pipe index
+                    the_args.extend([each for each in this[1]])  # actual arguments
+                    # so we know how many jobs we've started
+                    self._jobs_started += 1
+                    # start it
+                    self._pool.apply_async(this[0],
+                                            tuple(the_args),
+                                            callback=self._return_result)
 
     def shutdown(self):
         """
