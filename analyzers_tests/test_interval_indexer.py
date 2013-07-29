@@ -22,6 +22,12 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
+# allow "no docstring" for everything
+# pylint: disable=C0111
+# allow "too many public methods" for TestCase
+# pylint: disable=R0904
+
+
 import unittest
 import pandas
 from music21 import interval, note, duration, base
@@ -30,6 +36,7 @@ from vis.analyzers.indexers.interval import IntervalIndexer
 from vis.analyzers.indexers.noterest import NoteRestIndexer
 from vis.test_corpus import int_indexer_short
 from vis.analyzers_tests.test_note_rest_indexer import TestNoteRestIndexer
+from vis.controllers import mpcontroller
 
 
 class TestIntervalIndexerShort(unittest.TestCase):
@@ -440,8 +447,25 @@ class TestIntervalIndexerLong(unittest.TestCase):
         # BWV7.7: soprano and bass parts
         test_parts = [self.bwv77_soprano, self.bwv77_bass]
         expected = self.bwv77_S_B
-        int_indexer = IntervalIndexer(test_parts)
+        setts = {u'simple or compound': u'compound', u'quality': True}
+        int_indexer = IntervalIndexer(test_parts, setts)
         actual = int_indexer.run()[u'[0, 1]']
+        self.assertEqual(len(expected), len(actual))
+        for i in xrange(len(expected)):
+            self.assertEqual(expected[i][0], actual[i].offset)
+            self.assertEqual(expected[i][1], actual[i].obj)
+
+    def test_interval_indexer_1_mpc(self):
+        # BWV7.7: soprano and bass parts with MPController
+        test_parts = [self.bwv77_soprano, self.bwv77_bass]
+        expected = self.bwv77_S_B
+        setts = {u'simple or compound': u'compound', u'quality': True}
+        mpc = mpcontroller.MPController()
+        mpc.start()
+        int_indexer = IntervalIndexer(test_parts, setts, mpc)
+        actual = int_indexer.run()[u'[0, 1]']
+        del int_indexer
+        mpc.shutdown()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
             self.assertEqual(expected[i][0], actual[i].offset)

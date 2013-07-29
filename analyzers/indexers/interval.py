@@ -30,6 +30,78 @@ from music21 import note, interval
 from vis.analyzers import indexer
 
 
+def real_indexer(ecks, simple, qual):
+    """
+    Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
+    because of the u'Rest' strings, you can compare the duration of the piece in which the two
+    parts do or do not have notes sounding together.
+
+    Parameters
+    ==========
+    :param ecks : [music21.base.ElementWrapper]
+        A two-item iterable of ElementWrapper objects, for which the "obj" attribute should be
+        strings like 'Rest' or 'G4'; the upper voice should have index 0.
+
+    :param simple : boolean
+        True if intervals should be reduced to their single-octave version.
+
+    :param qual : boolean
+        True if the interval's quality should be prepended.
+
+    Returns
+    =======
+    string :
+        Like 'M3' or similar.
+    u'Rest' :
+        If one of the elements of "ecks" == u'Rest'.
+    None :
+        If there "ecks" has greater or fewer than two elements.
+    """
+
+    if 2 != len(ecks):
+        return None
+    if u'Rest' == ecks[0].obj or u'Rest' == ecks[1].obj:
+        return u'Rest'
+    else:
+        interv = interval.Interval(note.Note(ecks[1].obj), note.Note(ecks[0].obj))
+        post = u'-' if interv.direction < 0 else u''
+        if qual:
+            # We must get all of the quality, and none of the size (important for AA, dd, etc.)
+            q_str = u''
+            for each in interv.name:
+                if each in [u'A', u'M', u'P', u'm', u'd']:
+                    q_str += each
+            post += q_str
+        if simple:
+            post += u'8' if 8 == interv.generic.undirected \
+                    else unicode(interv.generic.simpleUndirected)
+        else:
+            post += unicode(interv.generic.undirected)
+        return post
+
+
+# We give these functions to the multiprocessor; they're pickle-able, they let us choose settings,
+# and the function still only requires one argument at run-time from the Indexer.mp_indexer().
+def indexer_qual_simple(ecks):
+    "Call real_indexer() with settings to print simple intervals with quality."
+    return real_indexer(ecks, True, True)
+
+
+def indexer_qual_comp(ecks):
+    "Call real_indexer() with settings to print compound intervals with quality."
+    return real_indexer(ecks, False, True)
+
+
+def indexer_nq_simple(ecks):
+    "Call real_indexer() with settings to print simple intervals without quality."
+    return real_indexer(ecks, True, False)
+
+
+def indexer_nq_comp(ecks):
+    "Call real_indexer() with settings to print compound intervals without quality."
+    return real_indexer(ecks, False, False)
+
+
 class IntervalIndexer(indexer.Indexer):
     """
     Create an index of music21.interval.Interval objects found in the result of a NoteRestIndexer.
@@ -41,55 +113,6 @@ class IntervalIndexer(indexer.Indexer):
     required_score_type = pandas.Series
     possible_settings = [u'simple or compound', u'quality']
     default_settings = {u'simple or compound': u'compound', u'quality': False}
-
-    @staticmethod
-    def indexer_func(ecks, simple, qual):
-        """
-        Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
-        because of the u'Rest' strings, you can compare the duration of the piece in which the two
-        parts do or do not have notes sounding together.
-
-        Parameters
-        ==========
-        :param ecks : [music21.base.ElementWrapper]
-            A two-item iterable of ElementWrapper objects, for which the "obj" attribute should be
-            strings like 'Rest' or 'G4'; the upper voice should have index 0.
-
-        :param simple : boolean
-            True if intervals should be reduced to their single-octave version.
-
-        :param qual : boolean
-            True if the interval's quality should be prepended.
-
-        Returns
-        =======
-        string :
-            Like 'M3' or similar.
-        u'Rest' :
-            If one of the elements of "ecks" == u'Rest'.
-        None :
-            If there "ecks" has greater or fewer than two elements.
-        """
-        if 2 != len(ecks):
-            return None
-        if u'Rest' == ecks[0].obj or u'Rest' == ecks[1].obj:
-            return u'Rest'
-        else:
-            interv = interval.Interval(note.Note(ecks[1].obj), note.Note(ecks[0].obj))
-            post = u'-' if interv.direction < 0 else u''
-            if qual:
-                # We must get all of the quality, and none of the size (important for AA, dd, etc.)
-                q_str = u''
-                for each in interv.name:
-                    if each in [u'A', u'M', u'P', u'm', u'd']:
-                        q_str += each
-                post += q_str
-            if simple:
-                post += u'8' if 8 == interv.generic.undirected \
-                        else unicode(interv.generic.simpleUndirected)
-            else:
-                post += unicode(interv.generic.undirected)
-            return post
 
     def __init__(self, score, settings=None, mpc=None):
         """
@@ -126,15 +149,25 @@ class IntervalIndexer(indexer.Indexer):
         if 'simple or compound' in settings:
             self._settings['simple or compound'] = settings['simple or compound']
         else:
-            self._settings['simple or compound'] = \
-                IntervalIndexer.default_settings['simple or compound']
+            self._settings['simple or compound'] = IntervalIndexer.default_settings['simple or compound']  # pylint: disable=C0301
         if 'quality' in settings:
             self._settings['quality'] = settings['quality']
         else:
             self._settings['quality'] = IntervalIndexer.default_settings['quality']
 
         super(IntervalIndexer, self).__init__(score, None, mpc)
-        self._indexer_func = lambda x: IntervalIndexer.indexer_func(x, False, True)
+
+        # Which indexer function to set?
+        if self._settings['quality']:
+            if 'simple' == self._settings['simple or compound']:
+                self._indexer_func = indexer_qual_simple
+            else:
+                self._indexer_func = indexer_qual_comp
+        else:
+            if 'simple' == self._settings['simple or compound']:
+                self._indexer_func = indexer_nq_simple
+            else:
+                self._indexer_func = indexer_nq_comp
 
     def run(self):
         """

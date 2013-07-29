@@ -29,6 +29,13 @@ from music21 import stream
 from vis.analyzers import indexer
 
 
+def indexer_func(obj):
+    """
+    docstring
+    """
+    return None
+
+
 class TemplateIndexer(indexer.Indexer):
     """
     Template for a class to make an index of a music21 stream.
@@ -81,12 +88,13 @@ class TemplateIndexer(indexer.Indexer):
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []
 
-        # Change to the function you want to use
+        # You probably do not want to change this
         # NB: The lambda function receives events in a list of all voices in the current voice
         #     combination; if this Indexer processes one voice at a time, it's a one-element list.
         #     The function receives the unmodified object, the type of which is either in
         #     self._types object or music21.base.ElementWrapper.
-        self._indexer_func = lambda x: None
+        # NB: For an example of how to use settings, see vis.analyzers.indexers.interval.py
+        self._indexer_func = indexer_func
 
     def run(self):
         """

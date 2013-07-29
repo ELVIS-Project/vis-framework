@@ -37,6 +37,7 @@ from vis.test_corpus import int_indexer_short
 
 
 class TestIndexerSinglePart(unittest.TestCase):
+    # TODO: test that _do_multiprocessing() with an MPController only tries to "freeze" Streams
     def setUp(self):
         # prepare a valid list of ElementWrappers (with proper offset and duration)
         self.in_list = [base.ElementWrapper(x) for x in xrange(100)]

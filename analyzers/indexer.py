@@ -26,7 +26,7 @@ The controllers that deal with indexing data from music21 Score objects.
 """
 
 import pandas
-from music21 import stream, base, duration
+from music21 import stream, base, duration, converter
 
 
 def _mpi_unique_offsets(streams):
@@ -138,6 +138,10 @@ def mp_indexer(pipe_index, parts, indexer_func, types=None):
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
 
+    # Convert "frozen" Streams, if needed
+    if isinstance(parts[0], basestring):
+        parts = [converter.thaw(each) for each in parts]
+
     # flatten the streams or change Series to Parts, as required
     if isinstance(parts[0], stream.Stream):
         if types is None:
@@ -178,7 +182,7 @@ def mp_indexer(pipe_index, parts, indexer_func, types=None):
                 post.append(new_obj)
 
     # Ensure the last items have the correct duration
-    if post:
+    if post != []:
         end_offset = all_parts[0][-1].offset + all_parts[0][-1].duration.quarterLength
         post[-1].duration = duration.Duration(end_offset - post[-1].offset)
 
@@ -232,13 +236,11 @@ class Indexer(object):
             - If the "score" argument is not a list of the right type.
             - If required settings are not present in the "settings" argument.
         """
-        if settings is None:
-            settings = {}
         # Check the "score" argument is either uniformly Part or Series objects.
         for elem in score:
             if not isinstance(elem, self.required_score_type):
-                msg = u'All elements of "score" must be a {}.'
-                msg.format(unicode(self.required_score_type))
+                msg = unicode(self.__class__) + u' requires ' + unicode(self.required_score_type) \
+                      +  u' objects, not ' + str(type(elem))
                 raise RuntimeError(msg)
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
@@ -246,7 +248,11 @@ class Indexer(object):
         self._mpc = mpc
         self._indexer_func = None
         self._types = None
-        self._settings = settings
+        if hasattr(self, u'_settings'):
+            if self._settings is None:
+                self._settings = {}
+        else:
+            self._settings = {}
 
     def run(self):
         """
@@ -289,6 +295,7 @@ class Indexer(object):
         """
 
         post = []
+        voices = None
 
         if self._mpc is None:
             # use serial processing
@@ -297,12 +304,14 @@ class Indexer(object):
                 post.append(mp_indexer(0, voices, self._indexer_func, self._types)[1])
         else:
             # use the MPController for multiprocessing
-            self._mpc.run()
             pipe_end = self._mpc.get_pipe()
             jobs_submitted = 0
             for each_combo in combos:
                 jobs_submitted += 1
-                voices = [self._score[x] for x in each_combo]
+                if isinstance(self._score[0], stream.Stream):
+                    voices = [converter.freeze(self._score[x], u'pickle') for x in each_combo]
+                else:
+                    voices = [self._score[x] for x in each_combo]
                 pipe_end.send((mp_indexer, [voices, self._indexer_func, self._types]))
             for each in xrange(jobs_submitted):
                 post.append(pipe_end.recv())

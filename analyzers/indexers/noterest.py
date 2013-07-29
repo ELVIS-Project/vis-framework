@@ -28,6 +28,12 @@ Index note and rest objects.
 from music21 import stream, note
 from vis.analyzers import indexer
 
+def indexer_func(obj):
+    """
+    Convert the first item of a list to u'Rest' or its "nameWithOctave" attribute.
+    """
+    return u'Rest' if isinstance(obj[0], note.Rest) else unicode(obj[0].nameWithOctave)
+
 
 class NoteRestIndexer(indexer.Indexer):
     """
@@ -62,11 +68,10 @@ class NoteRestIndexer(indexer.Indexer):
         super(NoteRestIndexer, self).__init__(score, None, mpc)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
-        self._types = [note.Rest, note.Note]
+        self._types = [note.Note, note.Rest]
 
-        # Change to the function you want to use
-        self._indexer_func = lambda x: u'Rest' if isinstance(x[0], note.Rest) \
-                                       else unicode(x[0].nameWithOctave)
+        # You probably do not want to change this
+        self._indexer_func = indexer_func
 
     def run(self):
         """
