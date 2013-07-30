@@ -55,6 +55,7 @@ from vis.controllers_tests.test_mpcontroller import *
 
 # New ---------------------------------------------------------------------------------------------
 # Indexer and Subclasses
+unittest.TextTestRunner(verbosity=verb).run(indexer_hardcore_suite)
 unittest.TextTestRunner(verbosity=verb).run(indexer_1_part_suite)
 unittest.TextTestRunner(verbosity=verb).run(indexer_3_parts_suite)
 unittest.TextTestRunner(verbosity=verb).run(unique_offsets_suite)
@@ -62,7 +63,8 @@ unittest.TextTestRunner(verbosity=verb).run(vert_aligner_suite)
 unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
 unittest.TextTestRunner(verbosity=verb).run(interval_indexer_short_suite)
 unittest.TextTestRunner(verbosity=verb).run(interval_indexer_long_suite)
-unittest.TextTestRunner(verbosity=verb).run(indexer_hardcore_suite)
+unittest.TextTestRunner(verbosity=verb).run(int_ind_indexer_suite)
+
 # IndexedPiece
 unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)  # TODO: fails
 unittest.TextTestRunner(verbosity=verb).run(mock_indexed_piece_suite)  # TODO: fails

@@ -31,7 +31,7 @@
 import unittest
 import pandas
 from music21 import interval, note, duration, base
-from vis.analyzers.indexers.interval import IntervalIndexer
+from vis.analyzers.indexers.interval import IntervalIndexer, real_indexer
 from vis.analyzers_tests.test_note_rest_indexer import TestNoteRestIndexer
 from vis.controllers import mpcontroller
 
@@ -486,8 +486,175 @@ class TestIntervalIndexerLong(unittest.TestCase):
             self.assertEqual(expected[i][1], actual[i].obj)
 
 
+class TestIntervalIndexerIndexer(unittest.TestCase):
+    def test_int_ind_indexer_1(self):
+        # ascending simple: quality, simple
+        notes = [u'E4', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'M3'
+        actual = real_indexer(notes, qual=True, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_2(self):
+        # ascending simple: quality, compound
+        notes = [u'E4', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'M3'
+        actual = real_indexer(notes, qual=True, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_3(self):
+        # ascending simple: noQuality, simple
+        notes = [u'E4', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'3'
+        actual = real_indexer(notes, qual=False, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_4(self):
+        # ascending simple: noQuality, compound
+        notes = [u'E4', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'3'
+        actual = real_indexer(notes, qual=False, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_5(self):
+        # ascending compound: quality, simple
+        notes = [u'E5', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'M3'
+        actual = real_indexer(notes, qual=True, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_6(self):
+        # ascending compound: quality, compound
+        notes = [u'E5', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'M10'
+        actual = real_indexer(notes, qual=True, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_7(self):
+        # ascending compound: noQuality, simple
+        notes = [u'E5', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'3'
+        actual = real_indexer(notes, qual=False, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_8(self):
+        # ascending compound: noQuality, compound
+        notes = [u'E5', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'10'
+        actual = real_indexer(notes, qual=False, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_9(self):
+        # descending simple: quality, simple
+        notes = [u'C4', u'E4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-M3'
+        actual = real_indexer(notes, qual=True, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_10(self):
+        # descending simple: quality, compound
+        notes = [u'C4', u'E4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-M3'
+        actual = real_indexer(notes, qual=True, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_11(self):
+        # descending simple: noQuality, simple
+        notes = [u'C4', u'E4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-3'
+        actual = real_indexer(notes, qual=False, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_12(self):
+        # descending simple: noQuality, compound
+        notes = [u'C4', u'E4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-3'
+        actual = real_indexer(notes, qual=False, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_13(self):
+        # descending compound: quality, simple
+        notes = [u'C4', u'E5']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-M3'
+        actual = real_indexer(notes, qual=True, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_14(self):
+        # descending compound: quality, compound
+        notes = [u'C4', u'E5']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-M10'
+        actual = real_indexer(notes, qual=True, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_15(self):
+        # descending compound: noQuality, simple
+        notes = [u'C4', u'E5']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-3'
+        actual = real_indexer(notes, qual=False, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_16(self):
+        # descending compound: noQuality, compound
+        notes = [u'C4', u'E5']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-10'
+        actual = real_indexer(notes, qual=False, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_17(self):
+        # rest in upper part
+        notes = [u'C4', u'Rest']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'Rest'
+        actual = real_indexer(notes, qual=False, simple=False)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_18(self):
+        # rest in lower part
+        notes = [u'Rest', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'Rest'
+        actual = real_indexer(notes, qual=True, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_19(self):
+        # triple augmented ascending
+        notes = [u'G###4', u'C4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'AAA5'
+        actual = real_indexer(notes, qual=True, simple=False)
+        self.assertEqual(expected, actual)
+        actual = real_indexer(notes, qual=True, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_int_ind_indexer_20(self):
+        # triple diminished descending
+        notes = [u'C###4', u'G4']
+        notes = [base.ElementWrapper(x) for x in notes]
+        expected = u'-ddd5'
+        actual = real_indexer(notes, qual=True, simple=False)
+        self.assertEqual(expected, actual)
+        actual = real_indexer(notes, qual=True, simple=True)
+        self.assertEqual(expected, actual)
+
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 interval_indexer_short_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerShort)
 interval_indexer_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerLong)
+int_ind_indexer_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerIndexer)
