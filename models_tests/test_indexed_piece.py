@@ -275,8 +275,16 @@ class TestIndexedPiece(TestCase):
         # - required indexer not already there
         # add an existing indexer
         self.ip.add_index([u'TestIndexer'], {})
+        self.assertEquals(None, self.ip.get_index(u'TestIndexer'))
         # add a non-string key
         self.assertRaises(TypeError, self.ip.add_index, [3], {})
+        # add an add-on indexer
+        patcher = patch('__builtin__.__import__')
+        mock_import = patcher.start()
+        mock_import.return_value = MockIndexerModule
+        self.ip.add_index([u'extra_stuff.TestIndexer'])
+        self.assertEquals(None, self.ip.get_index(u'extra_stuff.TestIndexer'))
+        patcher.stop()
         # add something which exists, but isn't an indexer
         self.assertRaises(TypeError, self.ip.add_index, [u'NotAnIndexer'])
         # add an indexer which doesn't exist

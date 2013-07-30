@@ -255,7 +255,7 @@ class IndexedPiece(object):
                 continue
 
             # Does the Indexer require the Score?
-            required_score = None
+            required_score = []
             if indexer_cls.requires_score:
                 if the_score is None:
                     the_score = self._import_score()
@@ -383,45 +383,44 @@ class IndexedPiece(object):
         """
         pass
 
-    def get_parts(self, parts, index):
+    def get_index(self, index, settings=None):
         """
         Get a list of an index of specific parts.
 
-        Parameters
-        ==========
-        :param parts: [int] or [[int]]
-            A list of the integers or a list of integer lists corresponding to the parts or part
-            combinations you want. The indices are the same as the result of "metadata('parts')".
-
-        :param index: string
+        :param index:
             The name of the index you want, as provided to "add_index()". This is the string-wise
             representation of the Indexer class's name.
+        :type index: basestring
 
-        Returns
-        =======
-        [pandas.Series]
-            A list of the specified index for each requested part.
+        :param settings: A dictionary of settings for the index.
+        :type settings: dict
 
-        Raises
-        ======
-        RuntimeError :
-            - If the index has not yet been calculated.
-            - If the parts or part combinations are invalid (i.e., the part index does not exist in
-              the IndexedPiece or the part combination has not been calculated for this index).
+        :returns: The specified index with the given settings.
+        :rtype: pandas.Series
 
-        Examples
-        ========
+        :raises: RuntimeError -- If the index has not yet been calculated, or if the parts or
+            part combinations are invalid (i.e., the part index does not exist in the
+            IndexedPiece or the part combination has not been calculated for this index).
+
         >>> piece = IndexedPiece('test_corpus/bwv77.mxl')
         >>> piece.metadata('parts')
         [u'Soprano', u'Alto', u'Tenor', u'Bass']
         >>> piece.add_index(u'NoteRestIndexer')
-        >>> piece.get_parts([0, 3], u'NoteRestIndexer')
-        [<Series with Soprano NoteRestIndexer>, <Series with Bass NoteRestIndexer>]
-        >>> piece.add_index(u'IntervalIndexer')
-        >>> piece.get_parts([[0, 3]], u'IntervalIndexer')
-        [[<Series with Soprano-and-Bass interval index>]]
+        >>> piece.get_index(u'NoteRestIndexer')
+        [<Series with Soprano NoteRestIndexer>, <Series with Bass NoteRestIndexer>, ...]
         """
-        pass
+        if not index in self._data:
+            raise RuntimeError('the index {0!r} has not been calculated'.format(index))
+        indices = self._data[index]
+        if settings is None:
+            if 1 == len(indices):
+                return indices.values()[0]
+            settings = u'{}'
+        if not settings in indices.keys():
+            raise RuntimeError('the index {0!r} has not been calculated with the given settings'.format(index))
+        return self._data[index][settings]
+
+
 
     @staticmethod
     def _find_part_names(the_score):

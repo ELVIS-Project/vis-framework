@@ -239,8 +239,9 @@ class Indexer(object):
         # Check the "score" argument is either uniformly Part or Series objects.
         for elem in score:
             if not isinstance(elem, self.required_score_type):
-                msg = unicode(self.__class__) + u' requires ' + unicode(self.required_score_type) \
-                      +  u' objects, not ' + str(type(elem))
+                msg = u'%s requires %s objects, not %s'.format(unicode(self.__class__),
+                                                               unicode(self.required_score_type),
+                                                               unicode(type(elem)))
                 raise RuntimeError(msg)
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
