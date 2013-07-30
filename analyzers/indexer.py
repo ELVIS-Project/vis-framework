@@ -162,9 +162,9 @@ def mp_indexer(pipe_index, parts, indexer_func, types=None):
             current_events.append([x for x in part.getElementsByOffset(off, mustBeginInSpan=False)])
 
         # Arrange groups of things to index
-        if 1 == max([len(x) for x in current_events]):
+        if 1 == max(len(x) for x in current_events):
             # each offset has only one event
-            current_events = [[current_events[i][0] for i in xrange(len(current_events))]]
+            current_events = [[event[0] for event in current_events]]
         else:
             current_events = _mpi_vert_aligner(current_events)
 
