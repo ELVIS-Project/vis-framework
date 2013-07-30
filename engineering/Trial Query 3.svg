@@ -101,10 +101,10 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="746"
-     inkscape:window-x="0"
-     inkscape:window-y="-1"
+     inkscape:window-width="1920"
+     inkscape:window-height="1200"
+     inkscape:window-x="-2"
+     inkscape:window-y="-27"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -136,7 +136,11 @@
          sodipodi:role="line"
          x="40.866573"
          y="59.779881"
-         id="tspan2989">Plot length of n-gram vs. frequencies in a set, coloured according to piece they occur in (scatter plot)</tspan></text>
+         id="tspan2989">In these ten pieces, I want to know the number of interval n-grams at every n value that happen</tspan><tspan
+         sodipodi:role="line"
+         x="40.866573"
+         y="79.779877"
+         id="tspan3052">at least three times.</tspan></text>
     <g
        id="g3139"
        transform="translate(-35.597471,6.0421721)">

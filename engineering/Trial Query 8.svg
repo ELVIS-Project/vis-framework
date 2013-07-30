@@ -114,10 +114,10 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="746"
-     inkscape:window-x="0"
-     inkscape:window-y="-1"
+     inkscape:window-width="1920"
+     inkscape:window-height="1200"
+     inkscape:window-x="-2"
+     inkscape:window-y="-27"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -127,7 +127,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -149,7 +149,7 @@
          sodipodi:role="line"
          x="40.866573"
          y="59.779881"
-         id="tspan6233">Calculate frequency of Roman numerals against year.</tspan></text>
+         id="tspan6233">When did augmented-sixth chords become prominent?</tspan></text>
     <g
        id="g3139"
        transform="translate(-35.597471,40.042172)">
