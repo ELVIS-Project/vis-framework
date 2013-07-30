@@ -101,10 +101,10 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="746"
-     inkscape:window-x="0"
-     inkscape:window-y="-1"
+     inkscape:window-width="1920"
+     inkscape:window-height="1200"
+     inkscape:window-x="-2"
+     inkscape:window-y="-27"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -114,7 +114,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -136,7 +136,7 @@
          sodipodi:role="line"
          x="40.866573"
          y="59.779881"
-         id="tspan2989">Compute the dissonance level of a set of pieces, plot on bar graph. &quot;Aggregators. Dimensional reduction.&quot;</tspan></text>
+         id="tspan2989">How dissonant are these pieces?</tspan></text>
     <g
        id="g3139"
        transform="translate(-35.597471,6.0421721)">

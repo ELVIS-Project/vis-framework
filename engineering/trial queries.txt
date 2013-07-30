@@ -1,0 +1,50 @@
+trial queries.txt :
+    Ten potential queries a user might want to run. All queries must be possible in both interfaces and the back-end, to ensure we maintain adequate flexibility in our implemented feature set.
+
+
+Trial Query 1:
+    -> Musicologist asks: "Are the same interval n-grams common in both a mass and its contrapuntal model?"
+    Translation: Compare the frequencies of interval n-grams in a set of pieces against a single piece.
+
+Trial Query 2:
+    --> Musicologist asks: "If we know one interval n-gram, how certain can we be when predicting the next one? Let's use this to compare composers!"
+    --> Translation: Plot contrapuntal entropy against composer.
+
+Trial Query 3:
+    --> Musicologist asks: "In these ten pieces, I want to know the number of interval n-grams at every n value that happen at least three times."
+    --> Translation: Plot length of n-gram vs. number of n-grams with frequency greater than 3, coloured according to category.
+
+Trial Query 4:
+    --> Musicologist asks: "How often do dissonant intervals happen on strong compared to weak beats?")
+    --> Translation: Compare a category of interval against frequency of occurrences that coincide with a category of beat.
+    --> Elaboration: We'll need to let the user choose which intervals are "dissonant" either manually or using some algorithm we may or may not have. We'll need to let the user choose how to classify the "downbeatness" of a beat (i.e., do they want only beat 1, or beat 1 and 3 in 4/4, or beat 1 and 2 in 3/4 [for a sarabande]). We'll need to somehow compare the number of occurrences on "downbeats" vs. "non-downbeats," then display only the results for "downbeats."
+
+Trial Query 5:
+    --> Musicologist asks: "How dissonant are these pieces?"
+    --> Translation: Use some algorithm to calculate a "dissonance quotient" for each in a set of pieces, then plot them.
+    --> Elaboration: This is complicated because we'll have to calculate the "dissonance quotient" for every moment in a piece, then for the piece as a whole. And we know that "dissonance" is a complicated topic for which people will want to provide their own definitions in the VisTrails interface.
+
+Trial Query 6:
+    --> Musicologist asks: "Trial Query 3, but in 50-year chunks by date of composition."
+    --> Translation: Use a metadatum field to automatically create categories that will then be treated as independent units.
+
+Trial Query 7:
+    --> Musicologist asks: "I don't want to see n-grams that are just a part of large n-grams."
+    --> Translation: Filter n-grams so that, for example, a 4-gram that's part of a 5-gram will not appear in th 4-gram results.
+    --> Elaboration: This probably requires some sort of "only if there are at least z repetitions of the larger n-gram" qualification.
+
+Trial Query 8:
+    --> Musicologist asks: "When did augmented-sixth chords become prominent?"
+    --> Translation: Classify chords, then plot the year of each piece against the number of occurrences of a set of chords in it.
+    --> Elaboration: This query is mostly for the back-end features it requires, but the huge difference between the musicologist's question and the programmatic actions necessary to answer it are also important.
+    --> Schedule Note: We may not implement this feature during our grant period, but we want to ensure it's possible.
+
+Trial Query 9:
+    --> Musicologist asks: "If you write a new Gloris based on the statistics of Paletrina's Glorias, will it sound like Palestrina?"
+    --> Translation: Use k-part interval n-grams and k-part duration n-grams to create Markov transition matrices to use for generating new "most probable" pieces.
+    --> Elaboration: This may include "smoothing/priors," "balances vs. proportions," and other fancy things.
+
+Trial Query 10:
+    --> Musicologist asks: "Show me the labelled score of a Kyrie showing all five-voice contrapuntal modules at least 3 notes long (i.e., 5-voice interval >=3-grams) that also appear in another movement of the same mass."
+    --> Translation: Not that difficult
+    --> Elaboration: This query exists mostly for the back-end features it requires (k-voice interval n-grams and output to LilyPond).

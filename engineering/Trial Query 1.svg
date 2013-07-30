@@ -40,14 +40,14 @@
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
      inkscape:cx="356.81725"
-     inkscape:cy="439.1878"
+     inkscape:cy="600.81221"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1680"
-     inkscape:window-height="1028"
-     inkscape:window-x="0"
-     inkscape:window-y="-1"
+     inkscape:window-width="1920"
+     inkscape:window-height="1200"
+     inkscape:window-x="-2"
+     inkscape:window-y="-27"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -57,7 +57,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -355,7 +355,7 @@
          y="49.280704">Trial Query 1:</tspan><tspan
          sodipodi:role="line"
          x="77.781746"
-         y="69.280708"
-         id="tspan3182">Compare the frequencies of interval n-grams in a mass and its contrapuntal model.</tspan></text>
+         y="69.280701"
+         id="tspan3182">Are the same interval n-grams common in both a mass and its contrapuntal model?</tspan></text>
   </g>
 </svg>

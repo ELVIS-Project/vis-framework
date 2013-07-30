@@ -14,7 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="Trial Query 5.svg">
+   sodipodi:docname="Trial Query 9.svg">
   <defs
      id="defs4">
     <marker
@@ -101,10 +101,10 @@
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="746"
-     inkscape:window-x="0"
-     inkscape:window-y="-1"
+     inkscape:window-width="1920"
+     inkscape:window-height="1200"
+     inkscape:window-x="-2"
+     inkscape:window-y="-27"
      inkscape:window-maximized="1" />
   <metadata
      id="metadata7">
@@ -114,7 +114,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -136,11 +136,7 @@
          sodipodi:role="line"
          x="40.866573"
          y="59.779881"
-         id="tspan2989">Create statistical models. Given a sample set, create a Markov transition matrix, for example.</tspan><tspan
-         sodipodi:role="line"
-         x="40.866573"
-         y="79.779877"
-         id="tspan8405">Calculate n-gram transition probabilities. Includes &quot;smoothing/priors,&quot; &quot;balances vs. proportions,&quot; etc.</tspan></text>
+         id="tspan8405">If you write a new Gloris based on the statistics of Paletrina's Glorias, will it sound like Palestrina?</tspan></text>
     <g
        id="g3139"
        transform="translate(-35.597471,36.042172)">

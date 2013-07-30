@@ -27,11 +27,15 @@ Targeted Libraries:
     This library ("software toolkit") was developed by team member Myke Cuthbert, and contains representations of and operations on a variety of musical objects. Version 1.6.0 is not yet released, but it has features and bug-fixes we require.
 - pandas 0.10.0
     This library provides fast data structures that are compatible with music21's ubiquitous "Stream" objects and more flexible for scientific and statistical operations (especially through R). We will introduce pandas with visX.
+- django 1.5.1 (object-relational mapper)
+    This library provides an easy and power way to connect to relational databases. This will be useful for our internal query processes, and for the future situation where we will store analysis results on a Web server.
 - R 3.0.1
     Supplementary programming language for statistics and visualizations.
     - Rpy 2.3.6
     Transforms our python-language data objects into R-language data objects.
     - ggplot2 0.9.3.1
+- Abjad 2.12
+    Python library to help with output to LilyPond.
 - PyQt4
     Mostly a GUI library. Prior to visX, all our graphical interfaces have used PyQt. Since VisTrails also uses PyQt, we may write our own PyQt code for minor tasks, like displaying the offset-selection window.
 - mock 1.0.1
@@ -83,6 +87,7 @@ Imaginary User 2, Tenured Musicologist (TM) will work at this level.
 
 Targeted Software:
 - VisTrails 2.0.2
+- Deducer (an R package)
 
 Documentation Needs:
 - "vis on VisTrails"
@@ -90,7 +95,6 @@ Documentation Needs:
     - Description of all existing modules.
     - Descriptive samples, probably of our 10 trial queries.
     - How to add third-party modules.
-
 
 
 Interface Specifications: HTML5

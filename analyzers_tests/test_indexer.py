@@ -29,15 +29,183 @@
 
 
 import unittest
+import mock
 import copy
 import pandas
 from music21 import base, stream, duration, note, converter
 from vis.analyzers import indexer
+from vis.controllers import mpcontroller
 from vis.test_corpus import int_indexer_short
 
 
+def fake_indexer_func(ecks):
+    return unicode(ecks)
+
+
+class TestIndexerHardcore(unittest.TestCase):
+    # accessing TestIndexer._indexer_func is part of the test
+    # pylint: disable=W0212
+    def test_indexer_hardcore_1(self):
+        # that _do_multiprocessing() with an MPController will "freeze" Streams
+        class TestIndexer(indexer.Indexer):
+            # Class with bare minimum changes, since we can't instantiate Indexer directly
+            required_score_type = stream.Stream
+            def run(self):
+                self._do_multiprocessing([[0]])
+        test_parts = [stream.Part()]
+        settings = {}
+        # prepare mocks
+        mpc = mock.MagicMock(spec=mpcontroller.MPController)
+        mock_conn = mock.MagicMock()
+        mpc.get_pipe.return_value = mock_conn
+        mock_conn.recv.return_value = u'returned by mock pipe'
+        # run test
+        t_ind = TestIndexer(test_parts, settings, mpc)
+        t_ind._indexer_func = fake_indexer_func
+        t_ind.run()
+        # check results
+        mpc.get_pipe.assert_called_once_with()
+        ccallz = mock_conn.mock_calls
+        self.assertEqual(2, len(ccallz))
+        self.assertEqual(ccallz[0][0], u'send')
+        send_1 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (first call)
+        self.assertEqual(send_1[0], indexer.mp_indexer)  # always the same
+        self.assertTrue(isinstance(send_1[1][0][0], basestring))  # <-- did it get pickled?
+        self.assertEqual(send_1[1][1], fake_indexer_func)  # self._indexer_func
+        self.assertEqual(send_1[1][2], None)  # self._types
+        # one recv() calls
+        self.assertEqual(ccallz[1][0], u'recv')
+
+    def test_indexer_hardcore_2(self):
+        # that _do_multiprocessing() with an MPController will not "freeze" Streams
+        class TestIndexer(indexer.Indexer):
+            # Class with bare minimum changes, since we can't instantiate Indexer directly
+            required_score_type = pandas.Series
+            def run(self):
+                self._do_multiprocessing([[0]])
+        test_parts = [pandas.Series([1, 2])]
+        settings = {}
+        # prepare mocks
+        mpc = mock.MagicMock(spec=mpcontroller.MPController)
+        mock_conn = mock.MagicMock()
+        mpc.get_pipe.return_value = mock_conn
+        mock_conn.recv.return_value = u'returned by mock pipe'
+        # run test
+        t_ind = TestIndexer(test_parts, settings, mpc)
+        t_ind._indexer_func = fake_indexer_func
+        t_ind.run()
+        # check results
+        mpc.get_pipe.assert_called_once_with()
+        ccallz = mock_conn.mock_calls
+        self.assertEqual(2, len(ccallz))
+        self.assertEqual(ccallz[0][0], u'send')
+        send_1 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (first call)
+        self.assertEqual(send_1[0], indexer.mp_indexer)  # always the same
+        self.assertTrue(isinstance(send_1[1][0][0], pandas.Series))  # <-- did it get pickled?
+        self.assertEqual(send_1[1][1], fake_indexer_func)  # self._indexer_func
+        self.assertEqual(send_1[1][2], None)  # self._types
+        # one recv() calls
+        self.assertEqual(ccallz[1][0], u'recv')
+
+    def test_indexer_hardcore_3(self):
+        # That _do_multiprocessing() doesn't pickle Streams when no MPController is given
+        # That _do_multiprocessing() doesn't try to use an MPController when none is given
+        class TestIndexer(indexer.Indexer):
+            # Class with bare minimum changes, since we can't instantiate Indexer directly
+            required_score_type = stream.Stream
+            def run(self):
+                self._do_multiprocessing([[0]])
+        test_parts = [stream.Stream()]
+        settings = {}
+        # prepare mocks
+        with mock.patch(u'vis.analyzers.indexer.mp_indexer') as mpi_mock:
+            # run test
+            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind._indexer_func = fake_indexer_func
+            t_ind.run()
+            # check results
+            mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
+
+    def test_indexer_hardcore_4(self):
+        # That _do_multiprocessing() calls mp_indexer() with the right arguments, given many parts
+        # individually.
+        class TestIndexer(indexer.Indexer):
+            # Class with bare minimum changes, since we can't instantiate Indexer directly
+            required_score_type = stream.Stream
+            def run(self):
+                self._do_multiprocessing([[0], [1], [2], [3]])
+        test_parts = [stream.Stream() for _ in xrange(4)]
+        settings = {}
+        # prepare mocks
+        with mock.patch(u'vis.analyzers.indexer.mp_indexer') as mpi_mock:
+            # run test
+            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind._indexer_func = fake_indexer_func
+            t_ind.run()
+            # check results
+            callz = mpi_mock.mock_calls
+            self.assertEqual(8, len(callz))
+            for i in xrange(4):
+                # we must skip every other thing in the call list, but we still need "i" for the
+                # test_parts index
+                this = callz[i * 2][1]
+                self.assertEqual(0, this[0])  # pipe_i
+                self.assertEqual([test_parts[i]], this[1])  # score
+                self.assertEqual(fake_indexer_func, this[2])  # self._indexer_func
+                self.assertEqual(None, this[3])  # self._types
+
+    def test_indexer_hardcore_5(self):
+        # That _do_multiprocessing() calls mp_indexer() with the right arguments, given a single
+        # combination of many parts.
+        class TestIndexer(indexer.Indexer):
+            # Class with bare minimum changes, since we can't instantiate Indexer directly
+            required_score_type = stream.Stream
+            def run(self):
+                self._do_multiprocessing([[0, 1, 2, 3]])
+        test_parts = [stream.Stream() for _ in xrange(4)]
+        settings = {}
+        # prepare mocks
+        with mock.patch(u'vis.analyzers.indexer.mp_indexer') as mpi_mock:
+            # run test
+            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind._indexer_func = fake_indexer_func
+            t_ind.run()
+            # check results
+            mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
+
+    def test_indexer_hardcore_6(self):
+        # That _do_multiprocessing() calls mp_indexer() with the right arguments, given many
+        # combinations of many parts.
+        class TestIndexer(indexer.Indexer):
+            # Class with bare minimum changes, since we can't instantiate Indexer directly
+            required_score_type = stream.Stream
+            def run(self):
+                self._do_multiprocessing([[0, 1], [1, 3], [0, 1, 2]])
+        test_parts = [stream.Stream() for _ in xrange(4)]
+        settings = {}
+        # prepare mocks
+        with mock.patch(u'vis.analyzers.indexer.mp_indexer') as mpi_mock:
+            # run test
+            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind._indexer_func = fake_indexer_func
+            t_ind.run()
+            # check results
+            callz = mpi_mock.mock_calls
+            self.assertEqual(6, len(callz))
+            for i in xrange(0, 6, 2):
+                # we must skip every other thing in the call list
+                this = callz[i][1]
+                self.assertEqual(0, this[0])  # pipe_i
+                # won't test the score combinations here
+                self.assertEqual(fake_indexer_func, this[2])  # self._indexer_func
+                self.assertEqual(None, this[3])  # self._types
+            # check each part combination
+            self.assertEqual([test_parts[0], test_parts[1]], callz[0][1][1])
+            self.assertEqual([test_parts[1], test_parts[3]], callz[2][1][1])
+            self.assertEqual([test_parts[0], test_parts[1], test_parts[2]], callz[4][1][1])
+
+
 class TestIndexerSinglePart(unittest.TestCase):
-    # TODO: test that _do_multiprocessing() with an MPController only tries to "freeze" Streams
     def setUp(self):
         # prepare a valid list of ElementWrappers (with proper offset and duration)
         self.in_list = [base.ElementWrapper(x) for x in xrange(100)]
@@ -319,7 +487,7 @@ class TestIndexerThreeParts(unittest.TestCase):
             res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
             self.assertEqual(res, result[i].obj)
 
-    def test_mpi_triple_8(self):
+    def test_mpi_triple_9(self):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test lengths
         # --> one event at each offset
@@ -329,7 +497,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
-    def test_mpi_triple_9(self):
+    def test_mpi_triple_10(self):
         # that a list with two types is not filtered when it's given as a Series
         # --> test lengths
         # --> one event at each offset
@@ -339,7 +507,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         result = indexer.mp_indexer(0, input_streams, self.verbatim_rests)[1]
         self.assertEqual(len(self.mixed_list), len(result))
 
-    def test_mpi_triple_10(self):
+    def test_mpi_triple_11(self):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test values
         # --> one event at each offset
@@ -351,7 +519,7 @@ class TestIndexerThreeParts(unittest.TestCase):
             res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
             self.assertEqual(res, result[i].obj)
 
-    def test_mpi_triple_11(self):
+    def test_mpi_triple_12(self):
         # that a list with two types is not filtered when it's given as a Series
         # --> test values
         # --> one event at each offset
@@ -367,7 +535,7 @@ class TestIndexerThreeParts(unittest.TestCase):
                 res = str((self.mixed_list[i].obj, self.mixed_list[i].obj, self.mixed_list[i].obj))
             self.assertEqual(res, result[i].obj)
 
-    def test_mpi_triple_12(self):
+    def test_mpi_triple_13(self):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test lengths
         # --> two events at each offset
@@ -377,7 +545,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         result = indexer.mp_indexer(0, input_streams, self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_list), len(result))
 
-    def test_mpi_triple_12a(self):
+    def test_mpi_triple_13a(self):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test lengths
         # --> two events at each offset
@@ -390,7 +558,7 @@ class TestIndexerThreeParts(unittest.TestCase):
                                     [base.ElementWrapper, note.Rest])[1]
         self.assertEqual(len(self.shared_mixed_list), len(result))
 
-    def test_mpi_triple_13(self):
+    def test_mpi_triple_14(self):
         # that a list with two types is not filtered when it's given as a Series, even if there's
         # a value for the "types" parameter
         # --> test lengths
@@ -401,7 +569,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         result = indexer.mp_indexer(0, input_series, self.verbatim_rests, [base.ElementWrapper])[1]
         self.assertEqual(len(self.shared_mixed_list), len(result))
 
-    def test_mpi_triple_14(self):
+    def test_mpi_triple_15(self):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test values
         # --> two events at each offset
@@ -413,7 +581,7 @@ class TestIndexerThreeParts(unittest.TestCase):
             res = str((self.in_list[i].obj, self.in_list[i].obj, self.in_list[i].obj))
             self.assertEqual(res, result[i].obj)
 
-    def test_mpi_triple_14a(self):
+    def test_mpi_triple_15a(self):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test values
         # --> two events at each offset
@@ -432,7 +600,7 @@ class TestIndexerThreeParts(unittest.TestCase):
                 res = str((self.mixed_list[i].obj, self.mixed_list[i].obj, self.mixed_list[i].obj))
             self.assertEqual(res, result[i].obj)
 
-    def test_mpi_triple_15(self):
+    def test_mpi_triple_16(self):
         # that a list with two types is not filtered when it's given as a Series, even if there's
         # a value for the "types" parameter
         # --> test values
@@ -449,7 +617,7 @@ class TestIndexerThreeParts(unittest.TestCase):
                 res = str((self.mixed_list[i].obj, self.mixed_list[i].obj, self.mixed_list[i].obj))
             self.assertEqual(res, result[i].obj)
 
-    def test_mpi_triple_16(self):
+    def test_mpi_triple_17(self):
         # Test this:
         # offset:  0.0  |  0.5  |  1.0  |  1.5  |  2.0
         # part 1:  [1]  |  [1]  |  [1]  |  [1]  |  [1]
@@ -476,7 +644,7 @@ class TestIndexerThreeParts(unittest.TestCase):
             self.assertEqual(expected[i][0], result[i].offset)
             self.assertEqual(expected[i][1], result[i].obj)
 
-    def test_mpi_triple_17(self):
+    def test_mpi_triple_18(self):
         # Test this:
         # offset:  0.0  |  0.5     |  1.0     |  1.5     |  2.0
         # part 1:  [1]  |  [1][2]  |  [1]     |  [1][2]  |  [1][2]
@@ -517,7 +685,7 @@ class TestIndexerThreeParts(unittest.TestCase):
             self.assertEqual(expected[i][0], result[i].offset)
             self.assertEqual(expected[i][1], result[i].obj)
 
-    def test_mpi_triple_18(self):
+    def test_mpi_triple_19(self):
         ## offset:  0.0  |  0.5     |  1.0        |  1.5     |  2.0
         ## part 1:  [1]  |  [1][2]  |  [1][2][3]  |  [1][2]  |  [1][2][3]
         ## part 2:  [1]  |  [1][2]  |  [1][2]     |  [1]     |  [1]
@@ -746,3 +914,4 @@ indexer_1_part_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerSi
 indexer_3_parts_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerThreeParts)
 unique_offsets_suite = unittest.TestLoader().loadTestsFromTestCase(TestMpiUniqueOffsets)
 vert_aligner_suite = unittest.TestLoader().loadTestsFromTestCase(TestMpiVertAligner)
+indexer_hardcore_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerHardcore)
