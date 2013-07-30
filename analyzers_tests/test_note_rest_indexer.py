@@ -416,8 +416,6 @@ class TestNoteRestIndexer(unittest.TestCase):
         mpc.get_pipe.assert_called_once_with()
         ccallz = mock_conn.mock_calls
         self.assertEqual(4, len(ccallz))
-        send_call = ((indexer.mp_indexer,
-                      [[test_part[0]], noterest.indexer_func, [note.Note, note.Rest]]),)
         self.assertEqual(ccallz[0][0], u'send')
         send_1 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (first call)
         self.assertEqual(send_1[0], indexer.mp_indexer)
