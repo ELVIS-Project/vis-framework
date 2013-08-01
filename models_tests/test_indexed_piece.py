@@ -226,6 +226,10 @@ class TestIndexedPieceNormal(TestCase):
 class MockIndexerModule:
     Indexer = Indexer
     TestIndexer = Mock(spec=Indexer).__class__
+    TestIndexer.run = lambda self: 5
+    AnotherIndexer = Mock(spec=Indexer).__class__
+    RequiredIndexer = Mock(spec=Indexer).__class__
+    AnotherIndexer.required_indices = [RequiredIndexer]
     NotAnIndexer = 1
 
 @patch('models.indexed_piece.indexer', MockIndexerModule)
@@ -265,17 +269,14 @@ class TestIndexedPiece(TestCase):
     def test_add_index(self):
         """
         Tests the method :py:meth:`~IndexedPiece.add_index`.
-        :return: None
+        :returns: None
         """
         # TODO: for testing...
-        # - the "missing_indexers" handling
-        # - built-in Indexers
-        # - add-on Indexers
         # - required indexer already there
         # - required indexer not already there
         # add an existing indexer
         self.ip.add_index([u'TestIndexer'], {})
-        self.assertEquals(None, self.ip.get_index(u'TestIndexer'))
+        self.assertEquals(5, self.ip.get_index(u'TestIndexer'))
         # add a non-string key
         self.assertRaises(TypeError, self.ip.add_index, [3], {})
         # add an add-on indexer
@@ -283,7 +284,7 @@ class TestIndexedPiece(TestCase):
         mock_import = patcher.start()
         mock_import.return_value = MockIndexerModule
         self.ip.add_index([u'extra_stuff.TestIndexer'])
-        self.assertEquals(None, self.ip.get_index(u'extra_stuff.TestIndexer'))
+        self.assertEquals(5, self.ip.get_index(u'extra_stuff.TestIndexer'))
         patcher.stop()
         # add something which exists, but isn't an indexer
         self.assertRaises(TypeError, self.ip.add_index, [u'NotAnIndexer'])
