@@ -208,20 +208,19 @@ class IndexedPiece(object):
             if not isinstance(this_indexer, (str, unicode)):
                 raise TypeError('Indexer names must be string or unicode')
             if hasattr(indexer, this_indexer):
-                i_module = indexer
+                indexer_cls = getattr(indexer, this_indexer)
             else:
                 try:
-                    i_module = __import__(this_indexer,
-                                          globals(),
-                                          locals())
-                except ImportError:
+                    indexer_cls = __import__(this_indexer)
+                    for n in this_indexer.split(".")[1:]:
+                        indexer_cls = getattr(indexer_cls, n)
+                except (ImportError, AttributeError):
                     missing_indexers.append(this_indexer)
                     continue
 
             # Make a dict of the settings relevant for this Indexer
             # We'll check all the possible settings for this Indexer. If the setting isn't given by
             # the user, we'll use the default; if there is no default, we can't use the Indexer.
-            indexer_cls = getattr(i_module, this_indexer)
             if not issubclass(indexer_cls, indexer.Indexer):
                 missing_indexers.append(this_indexer)
                 continue
