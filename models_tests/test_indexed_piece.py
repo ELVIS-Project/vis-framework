@@ -272,9 +272,6 @@ class TestIndexedPiece(TestCase):
         Tests the method :py:meth:`~IndexedPiece.add_index`.
         :returns: None
         """
-        # TODO: for testing...
-        # - required indexer already there
-        # - required indexer not already there
         # add an existing indexer
         self.ip.add_index([u'TestIndexer'], {})
         self.assertEquals(5, self.ip.get_index(u'TestIndexer'))
@@ -291,6 +288,10 @@ class TestIndexedPiece(TestCase):
         self.assertRaises(TypeError, self.ip.add_index, [u'NotAnIndexer'])
         # add an indexer which doesn't exist
         self.assertRaises(RuntimeError, self.ip.add_index, [u'NonExistentIndexer'], {})
+        # add in indexer which requires another indexer
+        self.ip.add_index([u'AnotherIndexer'], {})
+        self.assertEquals(5, self.ip.get_index(u'AnotherIndexer'))
+        self.assertEquals(5, self.ip.get_index(u'RequiredIndexer'))
 
 
 #--------------------------------------------------------------------------------------------------#

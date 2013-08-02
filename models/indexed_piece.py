@@ -225,10 +225,10 @@ class IndexedPiece(object):
                 missing_indexers.append(this_indexer)
                 continue
             poss_sett = indexer_cls.possible_settings
-            if not poss_sett:
+            if poss_sett is None:
                 poss_sett = {}
             def_sett = indexer_cls.default_settings
-            if not def_sett:
+            if def_sett is None:
                 def_sett = {}
             this_settings = {}
             for sett in poss_sett:
@@ -258,14 +258,12 @@ class IndexedPiece(object):
             if indexer_cls.requires_score:
                 if the_score is None:
                     the_score = self._import_score()
-                required_score = [the_score.parts[i] for i in xrange(len(the_score.parts))]
+                required_score = the_score.parts
                 # TODO: what about imports to Opus objects?
                 # TODO: find and store metadata
             else:
                 req_ind = indexer_cls.required_indices
-                for ind in req_ind:
-                    if ind not in self._data:
-                        self.add_index(ind, which_settings)
+                self.add_index(filter(lambda ind: not ind in self._data, req_ind), which_settings)
 
             # Run the Indexer and store the results
             indexer_instance = indexer_cls(required_score, this_settings)
