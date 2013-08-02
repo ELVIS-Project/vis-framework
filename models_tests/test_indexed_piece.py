@@ -223,17 +223,6 @@ class TestIndexedPieceNormal(TestCase):
         self.assertEqual(len(expected_3), len(actual_3))
 
 
-class MockIndexerModule:
-    Indexer = Indexer
-    TestIndexer = Mock(spec=Indexer).__class__
-    TestIndexer.run = lambda self: 5
-    AnotherIndexer = Mock(spec=Indexer).__class__
-    RequiredIndexer = Mock(spec=Indexer).__class__
-    AnotherIndexer.required_indices = [RequiredIndexer]
-    NotAnIndexer = 1
-
-@patch('models.indexed_piece.indexer', MockIndexerModule)
-@patch('music21.converter.parse', lambda path: MagicMock(spec=music21.stream.Score))
 class TestIndexedPiece(TestCase):
     def setUp(self):
         """
@@ -242,6 +231,7 @@ class TestIndexedPiece(TestCase):
         """
         self.ip = IndexedPiece('')
 
+    @patch('music21.converter.parse', lambda path: MagicMock(spec=music21.stream.Score))
     def test_metadata(self):
         """
         Tests for the method :py:meth:`~IndexedPiece.metadata`.
@@ -266,6 +256,17 @@ class TestIndexedPiece(TestCase):
         self.assertRaises(TypeError, self.ip.metadata, [])
         self.assertRaises(TypeError, self.ip.metadata, {})
 
+    class MockIndexerModule:
+        Indexer = Indexer
+        TestIndexer = Mock(spec=Indexer).__class__
+        TestIndexer.run = lambda self: 5
+        RequiredIndexer = type('RequiredIndexer', (TestIndexer,), {})
+        AnotherIndexer = type('AnotherIndexer',
+                              (TestIndexer,),
+                              {'required_indices': [u'RequiredIndexer']})
+        NotAnIndexer = 1
+
+    @patch('models.indexed_piece.indexer', MockIndexerModule)
     def test_add_index(self):
         """
         Tests the method :py:meth:`~IndexedPiece.add_index`.
@@ -282,8 +283,8 @@ class TestIndexedPiece(TestCase):
         # add an add-on indexer
         patcher = patch('__builtin__.__import__')
         mock_import = patcher.start()
-        mock_import.return_value = MockIndexerModule
-        self.ip.add_index([u'extra_stuff.TestIndexer'])
+        mock_import.return_value = self.__class__.MockIndexerModule
+        self.ip.add_index([u'extra_stuff.TestIndexer'], {})
         self.assertEquals(5, self.ip.get_index(u'extra_stuff.TestIndexer'))
         patcher.stop()
         # add something which exists, but isn't an indexer
@@ -293,7 +294,6 @@ class TestIndexedPiece(TestCase):
 
 
 #--------------------------------------------------------------------------------------------------#
-# Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
 mock_indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPiece)
