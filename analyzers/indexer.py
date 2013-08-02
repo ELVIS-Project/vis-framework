@@ -218,14 +218,10 @@ def _series_indexer(pipe_index, parts, indexer_func):
     deeframe = pandas.DataFrame(in_dict)
 
     # do the indexing
-    new_series_index = []
-    new_series_data = []
-    for each in deeframe.itertuples():  # TODO: use apply(), map(), or applymap()? Or combine()?
-        new_series_index.append(each[0])
-        new_series_data.append(indexer_func(each[1:]))
+    new_series_data = deeframe.apply(indexer_func, axis=1)
 
     # make the new index
-    return pipe_index, pandas.Series(new_series_data, index=new_series_index)
+    return pipe_index, pandas.Series(new_series_data, index=deeframe.index)
 
 
 class Indexer(object):
