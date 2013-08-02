@@ -231,6 +231,18 @@ class TestIndexedPiece(TestCase):
         """
         self.ip = IndexedPiece('')
 
+    class MockIndexerModule:
+        Indexer = Indexer
+        TestIndexer = Mock(spec=Indexer).__class__
+        TestIndexer.run = lambda self: 5
+        NoteRestIndexer = type('NoteRestIndexer', (TestIndexer,), {})
+        RequiredIndexer = type('RequiredIndexer', (TestIndexer,), {})
+        AnotherIndexer = type('AnotherIndexer',
+                              (TestIndexer,),
+                              {'required_indices': [u'RequiredIndexer']})
+        NotAnIndexer = 1
+
+    @patch('models.indexed_piece.indexer', MockIndexerModule)
     @patch('music21.converter.parse', lambda path: MagicMock(spec=music21.stream.Score))
     def test_metadata(self):
         """
@@ -244,27 +256,13 @@ class TestIndexedPiece(TestCase):
         self.ip.metadata('field', 2)
         value = self.ip.metadata('field')
         self.assertEquals(2, value, "extracted metadata field doesn't match assigned value")
-        # access an invalid value, before importing the piece
-        self.assertRaises(KeyError, self.ip.metadata, 'invalid_field')
-        # import the piece
-        self.ip._import_score()
-        # access an invalid value, after importing the piece
+        # access an invalid value
         value = self.ip.metadata('invalid_field')
         self.assertEquals(None, value)
         # try accessing keys with invalid types
         self.assertRaises(TypeError, self.ip.metadata, 2)
         self.assertRaises(TypeError, self.ip.metadata, [])
         self.assertRaises(TypeError, self.ip.metadata, {})
-
-    class MockIndexerModule:
-        Indexer = Indexer
-        TestIndexer = Mock(spec=Indexer).__class__
-        TestIndexer.run = lambda self: 5
-        RequiredIndexer = type('RequiredIndexer', (TestIndexer,), {})
-        AnotherIndexer = type('AnotherIndexer',
-                              (TestIndexer,),
-                              {'required_indices': [u'RequiredIndexer']})
-        NotAnIndexer = 1
 
     @patch('models.indexed_piece.indexer', MockIndexerModule)
     def test_add_index(self):
