@@ -26,7 +26,7 @@ Index vertical intervals.
 """
 
 import pandas
-from music21 import note, interval
+from music21 import note, interval, pitch
 from vis.analyzers import indexer
 
 
@@ -60,10 +60,11 @@ def real_indexer(ecks, simple, qual):
 
     if 2 != len(ecks):
         return None
-    if u'Rest' == ecks[0].obj or u'Rest' == ecks[1].obj:
-        return u'Rest'
     else:
-        interv = interval.Interval(note.Note(ecks[1].obj), note.Note(ecks[0].obj))
+        try:
+            interv = interval.Interval(note.Note(ecks[1]), note.Note(ecks[0]))
+        except pitch.PitchException:
+            return u'Rest'
         post = u'-' if interv.direction < 0 else u''
         if qual:
             # We must get all of the quality, and none of the size (important for AA, dd, etc.)
