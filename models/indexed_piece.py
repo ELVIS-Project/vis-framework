@@ -69,8 +69,10 @@ class IndexedPiece(object):
     #   - The Experimenter's output may be either a pandas.Series or pandas.DataFrame.
 
     class Metadata:
+        # TODO: docs
         def __init__(self, **kwargs):
-            d = {
+            # TODO: docs
+            data = {
                 'pathname': None,
                 'parts': None,
                 'anacrusis': None,
@@ -85,10 +87,11 @@ class IndexedPiece(object):
                 'opus_number': None,
                 'title': None
             }
-            d.update(kwargs)
-            self.__dict__.update(d)
+            data.update(kwargs)
+            self.__dict__.update(data)
 
     def __init__(self, pathname):
+        # TODO: docs
         super(IndexedPiece, self).__init__()
         self._metadata = self.__class__.Metadata(pathname=pathname)
         self._data = {}
@@ -118,8 +121,11 @@ class IndexedPiece(object):
         # TODO: actually write this method
         score = converter.parse(self.metadata('pathname'))
         if not self._imported:
-            self.add_index([u'NoteRestIndexer'], {})
+            # NOTE: we have to set self._imported to True *before* we run add_index(), or else
+            # when we import the Score for the add_index(), it would call us again and we would
+            # call it, and there would be an infinite loop. This isn't very robust, but it works.
             self._imported = True
+            self.add_index([u'noterest.NoteRestIndexer'], {})
         return score
 
     def metadata(self, field, value=None):
@@ -167,14 +173,12 @@ class IndexedPiece(object):
         Access the result with :py:meth:`get_parts`.
 
         :param which_indexers:
-            the :py:class:`controllers.indexer.Indexer` subclasses to run on the IndexedPiece. If
-            you are using a built-in Indexer (the code for which is stored in
-            "analyzers/indexer.py"), the string should look like this:
-                u'IntervalIndexer'
-            If you are using an Indexer not stored there, you should add the name of the
-            subdirectory, so the string should look like this:
-                u'my_indexers.MyIndexer'
-        :type which_indexers: list of (str or unicode)
+            the :py:class:`controllers.indexer.Indexer` subclasses to run on the IndexedPiece. You
+            may safely provide either a list of basestrings or a single basestring. You must write
+            these as the module name and class, as found in the indexers directory. For example:
+            - u'noterest.NoteRestIndexer'
+            - u'interval.IntervalIndexer'
+        :type which_indexers: list of (str or unicode) or (str or unicode)
 
         :param which_settings:
             A dict of the settings to provide the :py:class:`controllers.indexer.Indexer`. Default
@@ -194,8 +198,11 @@ class IndexedPiece(object):
         :raises: TypeError -- if one of the strings in `which_indexers` does not correspond to a
             subclass of :py:class:`controllers.indexer.Indexer`.
         """
+
         if not which_settings:
             which_settings = {}
+        if not isinstance(which_indexers, list):
+            which_indexers = [which_indexers]
 
         # If one of the indexers doesn't exist, add its name to this list.
         missing_indexers = []
@@ -211,16 +218,19 @@ class IndexedPiece(object):
         for this_indexer in which_indexers:
             if not isinstance(this_indexer, (str, unicode)):
                 raise TypeError('Indexer names must be string or unicode')
-            if hasattr(indexer, this_indexer):
-                indexer_cls = getattr(indexer, this_indexer)
+            if u'noterest.NoteRestIndexer' == this_indexer:
+                from vis.analyzers.indexers.noterest import NoteRestIndexer
+                indexer_cls = NoteRestIndexer
             else:
-                try:
-                    indexer_cls = __import__(this_indexer)
-                    for n in this_indexer.split(".")[1:]:
-                        indexer_cls = getattr(indexer_cls, n)
-                except (ImportError, AttributeError):
-                    missing_indexers.append(this_indexer)
-                    continue
+                missing_indexers.append(this_indexer)
+                continue
+            #try:
+                #indexer_cls = __import__(this_indexer)
+                #for n in this_indexer.split(".")[1:]:
+                    #indexer_cls = getattr(indexer_cls, n)
+            #except (ImportError, AttributeError):
+                #missing_indexers.append(this_indexer)
+                #continue
 
             # Make a dict of the settings relevant for this Indexer
             # We'll check all the possible settings for this Indexer. If the setting isn't given by
@@ -247,16 +257,6 @@ class IndexedPiece(object):
                 missing_settings.append(this_indexer)
                 continue
 
-            # Do we already have this index with the same settings?
-            if this_indexer in self._data:
-                # Is there an index with the same settings?
-                for each_setts in self._data[this_indexer].iterkeys():
-                    if eval(each_setts) == this_settings:
-                        this_settings = u'found'
-                        break
-            if u'found' == this_settings:
-                continue
-
             # Does the Indexer require the Score?
             required_score = []
             if indexer_cls.requires_score:
@@ -268,6 +268,19 @@ class IndexedPiece(object):
             else:
                 req_ind = indexer_cls.required_indices
                 self.add_index(filter(lambda ind: not ind in self._data, req_ind), which_settings)
+
+            # Do we already have this index with the same settings?
+            # NOTE: we must do this *after* the Score import. If our indexer_cls is NoteRestIndexer,
+            # we'll have to import the Score, and if it wasn't already imported, the NRI will run
+            # automatically, but we wouldn't know to return it.
+            if this_indexer in self._data:
+                # Is there an index with the same settings?
+                for each_setts in self._data[this_indexer].iterkeys():
+                    if eval(each_setts) == this_settings:
+                        this_settings = u'found'
+                        break
+            if u'found' == this_settings:
+                continue
 
             # Run the Indexer and store the results
             indexer_instance = indexer_cls(required_score, this_settings)
@@ -299,8 +312,8 @@ class IndexedPiece(object):
         :type index: basestring
         :returns: None
         """
-        x = self._data.get(index, None)
-        if not x is None:
+        remove_me = self._data.get(index, None)
+        if not remove_me is None:
             del self._data[index]
 
     def add_experiment(self, which_experimenters, which_settings=None):
@@ -338,7 +351,6 @@ class IndexedPiece(object):
         """
         if not which_settings:
             which_settings = {}
-        pass
 
     def remove_experiment(self, **args):
         """
@@ -384,5 +396,6 @@ class IndexedPiece(object):
                 return indices.values()[0]
             settings = u'{}'
         if not settings in indices.keys():
-            raise RuntimeError('the index {0!r} has not been calculated with the given settings'.format(index))
+            msg = 'the index {0!r} has not been calculated with the given settings'.format(index)
+            raise RuntimeError(msg)
         return self._data[index][settings]
