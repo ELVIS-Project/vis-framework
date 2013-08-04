@@ -65,6 +65,7 @@ unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
 unittest.TextTestRunner(verbosity=verb).run(interval_indexer_short_suite)
 unittest.TextTestRunner(verbosity=verb).run(interval_indexer_long_suite)
 unittest.TextTestRunner(verbosity=verb).run(int_ind_indexer_suite)
+unittest.TextTestRunner(verbosity=verb).run(horiz_int_ind_long_suite)
 
 # IndexedPiece
 #unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)  # TODO: fails

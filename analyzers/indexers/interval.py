@@ -105,7 +105,8 @@ def indexer_nq_comp(ecks):
 
 class IntervalIndexer(indexer.Indexer):
     """
-    Create an index of music21.interval.Interval objects found in the result of a NoteRestIndexer.
+    Create an index of music21.interval.Interval objects found in two-part combinations of the
+    result from NoteRestIndexer.
 
     This indexer does not require a score.
     """
@@ -122,8 +123,8 @@ class IntervalIndexer(indexer.Indexer):
 
         Parameters
         ==========
-        :param score : vis.models.IndexedPiece
-            The piece with parts to index.
+        :param score: [pandas.Series]
+            The output of NoteRestIndexer for all parts in a piece.
 
         :param settings : dict
             A dict of relevant settings, both optional. These are:
@@ -191,6 +192,116 @@ class IntervalIndexer(indexer.Indexer):
             # noinspection PyArgumentList
             for right in xrange(left + 1, len(self._score)):
                 combinations.append([left, right])
+
+        # This method returns once all computation is complete. The results are returned as a list
+        # of Series objects in the same order as the "combinations" argument.
+        results = self._do_multiprocessing(combinations)
+
+        # Do applicable post-processing, like adding a label for voice combinations.
+        post = {}
+        for i, combo in enumerate(combinations):
+            post[str(combo)] = results[i]
+
+        # Return the results.
+        return post
+
+
+class HorizontalIntervalIndexer(indexer.Indexer):
+    """
+    Create an index of music21.interval.Interval objects found between consecutive events in the
+    same part, from the results of NoteRestIndexer.
+
+    This indexer does not require a score.
+    """
+
+    required_indices = [u'NoteRestIndexer']
+    required_score_type = pandas.Series
+    possible_settings = [u'simple or compound', u'quality']
+    default_settings = {u'simple or compound': u'compound', u'quality': False}
+
+    def __init__(self, score, settings=None, mpc=None):
+        """
+        Create a new HorizontalIntervalIndexer. For the output format, see the docs for
+        IntervalIndexer.indexer_func().
+
+        Parameters
+        ==========
+        :param score: [pandas.Series]
+            The output of NoteRestIndexer for all parts in a piece.
+
+        :param settings : dict
+            A dict of relevant settings, both optional. These are:
+            - 'simple or compound' : 'simple' or 'compound'
+                Whether intervals should be represented in their single-octave form. Defaults to
+                'compound'.
+            - 'quality' : boolean
+                Whether to consider the quality of intervals. Optional. Defaults to False.
+
+        :param mpc : MPController
+            An optional instance of MPController. If this is present, the Indexer will use it to
+            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+
+        Raises
+        ======
+        Nothing. There are no required settings.
+        """
+
+        if settings is None:
+            settings = {}
+
+        # Check all required settings are present in the "settings" argument
+        self._settings = {}
+        if 'simple or compound' in settings:
+            self._settings['simple or compound'] = settings['simple or compound']
+        else:
+            self._settings['simple or compound'] = IntervalIndexer.default_settings['simple or compound']  # pylint: disable=C0301
+        if 'quality' in settings:
+            self._settings['quality'] = settings['quality']
+        else:
+            self._settings['quality'] = IntervalIndexer.default_settings['quality']
+
+        super(HorizontalIntervalIndexer, self).__init__(score, None, mpc)
+
+        # Which indexer function to set?
+        if self._settings['quality']:
+            if 'simple' == self._settings['simple or compound']:
+                self._indexer_func = indexer_qual_simple
+            else:
+                self._indexer_func = indexer_qual_comp
+        else:
+            if 'simple' == self._settings['simple or compound']:
+                self._indexer_func = indexer_nq_simple
+            else:
+                self._indexer_func = indexer_nq_comp
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        Returns
+        =======
+        {pandas.Series} :
+            A dict of the new indices. The index of each Series corresponds to the indices of the
+            Part combinations used to generate it, in the order specified to the constructor. Each
+            element in the Series is an instance of music21.base.ElementWrapper.
+            Example, if you stored output of run() in the "result" variable:
+                result['[0, 1]'] : the highest and second highest parts
+        """
+        # TODO: test this
+
+        # This indexer is a little tricky, since we must fake "horizontality" so we can use the
+        # same _do_multiprocessing() method as always.
+
+        # First we'll make a copy of each part's NoteRest index, missing the first element. We also
+        # have to coerce the use of a different index, or the original offset values will be kept.
+        new_parts = [pandas.Series(list(x[1:]), index=list(x.index[:-1])) for x in self._score]
+
+        new_zero = len(self._score)
+        self._score.extend(new_parts)
+
+        # Calculate each voice with its copy. The copy is put first, so it's considered the "upper
+        # voice," so ascending intervals don't get an accidental.
+        combinations = [[new_zero + x, x] for x in xrange(new_zero)]
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.

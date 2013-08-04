@@ -31,7 +31,7 @@
 import unittest
 import pandas
 from music21 import interval, note
-from vis.analyzers.indexers.interval import IntervalIndexer, real_indexer
+from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, real_indexer
 from vis.analyzers_tests.test_note_rest_indexer import TestNoteRestIndexer
 from vis.controllers import mpcontroller
 
@@ -640,9 +640,42 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
         self.assertEqual(expected, actual)
 
 
+class TestHorizIntervalIndexerLong(unittest.TestCase):
+    bwv77_S_B_basis = []
+
+    def setUp(self):
+        self.bwv77_soprano = TestIntervalIndexerLong.do_wrapping(TestNoteRestIndexer.bwv77_soprano)
+        self.bwv77_bass = TestIntervalIndexerLong.do_wrapping(TestNoteRestIndexer.bwv77_bass)
+
+    @staticmethod
+    def do_wrapping(of_this):
+        "Convert a list of tuples (offset, obj) into the expected Series version."
+        post_data = []
+        post_offsets = []
+        for each_obj in of_this:
+            post_data.append(unicode(each_obj[1]))
+            post_offsets.append(each_obj[0])
+        return pandas.Series(post_data, index=post_offsets)
+
+    def test_interval_indexer_1(self):
+        # BWV7.7: soprano part
+        # TODO: write the testing part of this
+        test_parts = [self.bwv77_soprano]
+        expected = TestIntervalIndexerLong.bwv77_S_B_basis
+        setts = {u'simple or compound': u'compound', u'quality': True}
+        int_indexer = HorizontalIntervalIndexer(test_parts, setts)
+        actual = int_indexer.run()#[u'[0, 1]']
+        print(str(actual))
+        #self.assertEqual(len(expected), len(actual))
+        #for i, ind in enumerate(list(actual.index)):
+            #self.assertEqual(expected[i][0], ind)
+            #self.assertEqual(expected[i][1], actual[ind])
+
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 interval_indexer_short_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerShort)
 interval_indexer_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerLong)
 int_ind_indexer_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerIndexer)
+horiz_int_ind_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestHorizIntervalIndexerLong)
