@@ -54,7 +54,7 @@ class ListOfPieces(QAbstractTableModel):
     # Here's the data model:
     # self._pieces : a list of lists. For each sub-list...
     #    sublist[0] : filename
-    #    sublist[1] : a music21 score object (index 0) and piece title (index 1)
+    #    sublist[1] : an IndexedPiece object (index 0) and piece title (index 1)
     #    sublist[2] : list of names of parts in the score
     #    sublist[3] : offset intervals to analyze
     #    sublist[4] : list of pairs of indices for part combinations to prepare
@@ -119,7 +119,7 @@ class ListOfPieces(QAbstractTableModel):
         was followed when calling setData(). If the index is...
         - ListOfPieces.filename : string
         - ListOfPieces.score : either...
-            - music21.stream.Score (for ListOfPieces.ScoreRole)
+            - vis.models.inexed_piece.IndexedPiece (for ListOfPieces.ScoreRole)
             - string (for Qt.DisplayRole)
         - ListOfPieces.parts_list : either...
             - list of string objects that are the part names (for ListOfPiece.ScoreRole)
@@ -153,29 +153,24 @@ class ListOfPieces(QAbstractTableModel):
         if 0 <= row < len(self._pieces) and 0 <= column < self._number_of_columns:
             # most things will have the Qt.DisplayRole
             if Qt.DisplayRole == role:
-                # get the object
-                post = self._pieces[row][column]
-                # for the "score" column, we have to choose the right sub-index
-                if column is ListOfPieces.score:
-                    post = post.toPyObject()[1] if isinstance(post, QVariant) else post[1]
-                # for the "list of parts" columns, convert the list into a string
-                elif column is ListOfPieces.parts_list:
+                if ListOfPieces.filename is column:
+                    post = self._pieces[row][1][0].metadata(u'pathname')
+                elif ListOfPieces.score is column:
+                    post = self._pieces[row][1][0].metadata(u'title')
+                elif ListOfPieces.parts_list is column:
+                    post = self._pieces[row][1][0].metadata(u'parts')
                     post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
-                    # also trim the [] around the list
-                    post = post[1:-1]
-                # for the "list of offsets" columns, convert the list into a string
-                elif column is ListOfPieces.offset_intervals:
+                    post = post[1:-1]  # trim the [] around the list
+                else:  # the others can just do this
+                    post = self._pieces[row][column]
+                if ListOfPieces.offset_intervals == column:
                     post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
             # some things will have the ListOfPieces.ScoreRole
             elif role is ListOfPieces.ScoreRole:
-                # get the object
-                post = self._pieces[row][column]
-                # if it's the score
                 if column is ListOfPieces.score:
-                    post = post.toPyObject()[0] if isinstance(post, QVariant) else post[0]
-                # else if it's the list of parts
+                    post = self._pieces[row][1][0]
                 elif column is ListOfPieces.parts_list:
-                    pass  # just to avoid obliteration
+                    post = self._pieces[row][1][0].metadata(u'parts')
             # everything else must return nothing
             else:
                 post = None

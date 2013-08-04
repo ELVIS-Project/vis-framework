@@ -6,10 +6,7 @@
 # Program Description:        Measures sequences of vertical intervals.
 #
 # Filename: __main__.py
-# Purpose: Starts vis with the PyQt4 interface.
-#
-# Attribution:  Based on the 'harrisonHarmony.py' module available at...
-#               https://github.com/crantila/harrisonHarmony/
+# Purpose: Start vis with the PyQt4 interface.
 #
 # Copyright (C) 2012, 2013 Christopher Antila, Jamie Klassen
 #
@@ -27,24 +24,25 @@
 # along with this program.   If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 '''
-Starts vis with the PyQt4 interface.
+Start vis with the PyQt4 interface.
 '''
 
-
+# Ensure we can import "vis"
+try:
+    import vis
+except ImportError:
+    import sys
+    sys.path.insert(0, '..')
 
 import sys
 from controllers.vis_controller import VisController
 from multiprocessing import freeze_support
 
 
-
 def main():
-    '''
-    The main execution loop.
-    '''
+    "The main execution loop."
     gui_controller = VisController(sys.argv)
     sys.exit(gui_controller.exec_())
-
 
 
 if __name__ == '__main__':

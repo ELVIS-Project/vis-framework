@@ -40,6 +40,7 @@ from music21 import metadata, converter, stream
 from models.analyzing import ListOfPieces
 from views.VisOffsetSelector import VisOffsetSelector
 from Ui_main_window import Ui_MainWindow
+from vis.models.indexed_piece import IndexedPiece
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
@@ -113,6 +114,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.progress_bar.setMinimum(0)
         self.ui.progress_bar.setMaximum(100)
         self.ui.progress_bar.setValue(42)
+        # visX setup
+        self._list_of_ips = None  # holds the IndexedPiece instances
 
     # Methods Doing GUI Stuff ---------------------------------------------------
     # Pressing Buttons in the Toolbar -----------------------
@@ -200,7 +203,30 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         if self.vis_controller.importer.has_files():
             # then go!
             self._tool_working()
-            self.vis_controller.run_the_import.emit()
+            # if there are previously-added pieces, warn the user they'll be removed
+            if self._list_of_ips is not None:
+                QtGui.QMessageBox.information(None,
+                u"Information Loss Imminent",
+                u"We're gonna, like, just delete all those pieces you already had.",
+                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                QtGui.QMessageBox.Ok)
+            # make the list
+            self._list_of_ips = []
+            for each_path in self.vis_controller.importer._list_of_files:
+                self._list_of_ips.append(IndexedPiece(each_path))
+            # do the importing and run the NoteRestIndexer
+            for each_ip in self._list_of_ips:
+                each_ip.add_index(u'noterest.NoteRestIndexer')
+            # put everything in the ListOfPieces, so we can collect settings and whatever
+            post = self.vis_controller.analyzer._list_of_pieces
+            for i_piece in self._list_of_ips:
+                post.insertRows(post.rowCount(), 1)
+                new_row = post.rowCount() - 1
+                post.setData((new_row, ListOfPieces.score),
+                            (i_piece,),  # it's a tuple for historical reasons
+                            QtCore.Qt.EditRole)
+            # done!
+            self._tool_analyze()
         else:
             # then ask the user to stop being a jerk
             QtGui.QMessageBox.information(None,
@@ -264,7 +290,7 @@ You must choose pieces before we can import them.""",
         - If the argument is another string, the text below the progress bar is
         set to that string.
         """
-        if not isinstance(progress, (str, QtCore.QString)):
+        if not isinstance(progress, (basestring, QtCore.QString)):
             return None
         else:
             if u'100' == progress:

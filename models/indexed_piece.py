@@ -26,6 +26,7 @@ The model representing an indexed and analyzed piece of music.
 """
 
 # Imports
+import os
 from music21 import converter
 from vis.analyzers import indexer
 
@@ -126,6 +127,21 @@ class IndexedPiece(object):
             # call it, and there would be an infinite loop. This isn't very robust, but it works.
             self._imported = True
             self.add_index([u'noterest.NoteRestIndexer'], {})
+            # collect metadata
+            self.metadata('parts', IndexedPiece._find_part_names(score))
+            self.metadata('title', IndexedPiece._find_piece_title(score))
+            # TODO: fill in the rest of these using music21
+            # TODO: test all of these
+            #'anacrusis': None,
+            #'alternative_title': None,
+            #'composer': None,
+            #'composers': None,
+            #'date': None,
+            #'locale_of_composition': None,
+            #'movement_name': None,
+            #'movement_number': None,
+            #'number': None,
+            #'opus_number': None,
         return score
 
     def metadata(self, field, value=None):
@@ -152,8 +168,8 @@ class IndexedPiece(object):
         >>> piece.metadata('parts')
         [u'Flute 1', u'Flute 2', u'Oboe 1', u'Oboe 2', u'Clarinet 1', u'Clarinet 2', ... ]
         """
-        if not isinstance(field, str):
-            raise TypeError("parameter 'field' must be of type 'str'")
+        if not isinstance(field, basestring):
+            raise TypeError("parameter 'field' must be of type 'basestring'")
         if value is None:
             if hasattr(self._metadata, field):
                 return getattr(self._metadata, field)
@@ -399,3 +415,77 @@ class IndexedPiece(object):
             msg = 'the index {0!r} has not been calculated with the given settings'.format(index)
             raise RuntimeError(msg)
         return self._data[index][settings]
+
+    @staticmethod
+    def _find_part_names(the_score):
+        """
+        Return a list of part names in a score. If the score does not have proper names, return a
+        list of enumerated parts.
+
+        Parameters
+        ==========
+        :param the_score:
+            The score in which to find the part names.
+        :type the_score: music21.stream.Score
+
+        Returns
+        =======
+        :returns: The title of the score.
+        :rtype: list of unicode
+        """
+        # hold the list of part names
+        post = []
+
+        # First try to find Instrument objects. If that doesn't work, use the "id"
+        for each_part in the_score.parts:
+            instr = each_part.getInstrument()
+            if instr is not None and instr.partName != u'':
+                post.append(unicode(instr.partName))
+            else:
+                post.append(unicode(each_part.id))
+
+        # Make sure none of the part names are just numbers; if they are, use
+        # a part name like "Part 1" instead.
+        for part_index in xrange(len(post)):
+            try:
+                int(post[part_index])
+                # if that worked, the part name is just an integer...
+                post[part_index] = u'Part ' + unicode(part_index + 1)
+            except ValueError:
+                pass
+
+        return post
+
+    @staticmethod
+    def _find_piece_title(the_score):
+        """
+        Find the title of a Score. If there is none, return the filename without extension.
+
+        Parameters
+        ==========
+        :param the_score:
+            The score of which to find the title.
+        :type the_score: music21.stream.Score
+
+        Returns
+        =======
+        :returns: The title of the score.
+        :rtype: unicode
+        """
+        post = u''
+
+        # First try to get the title from a Metadata object, but if it doesn't
+        # exist, use the filename without directory.
+        if the_score.metadata is not None:
+            post = the_score.metadata.title
+        elif hasattr(the_score, 'filePath'):
+            post = os.path.basename(the_score.filePath)
+        else:  # if the Score was part of an Opus
+            post = u'Unknown Piece'
+
+        # Now check that there is no file extension. This could happen either if
+        # we used the filename or if music21 did a less-than-great job at the
+        # Metadata object.
+        post = os.path.splitext(post)[0]
+
+        return post
