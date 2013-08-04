@@ -29,62 +29,67 @@ and going to the end of a piece.
 """
 
 
+def _mp_wrapper(pipe_i, func, **args):
+    """
+    So subclass authors don't need to worry about the extra first parameter required by the
+    MPController, we wrap their function in this function.
+    """
+    return pipe_i, func(args)
+
+
 class Experimenter(object):
-    # NB: Change "object" to "Experimenter" in subclasses.
     """
     Run an experiment on an IndexedPiece.
 
-    Use the "Experimenter.needed_indices" attribute to know which Indexer subclasses should have
-    been run on the IndexedPiece. If they have not been run, they will be run before this experiment
-    is conducted.
+    Use the "Experimenter.required_indices" attribute to know which Indexer subclasses should be
+    provided to this Experimenter's constructor. If the list is None or [], use the
+    "Experimenter.required_experiments" attribute to know which Experimenter should be provided
+    to the constructor.
 
-    Use the "Experimenter.needed_experiments" attribute to know which, if any, Experimenter
-    subclasses should have been run on the IndexedPiece. If they have not yet been run, they will
-    be run before this experiment is conducted.
-
-    The name of the experimenter, as stored in an IndexedPiece, is the unicode-format version of
-    the class name, accessible through the "name()" function (or Experimenter.__name__).
+    The name of the Experimenter, as stored in an IndexedPiece, is the same as for Indexers: the
+    unicode-format class name.
     """
 
-    # NB: you should re-implement these in subclasses
-    needed_indices = []
-    needed_experiments = []
+    # just the standard instance variables
+    required_indices = []
+    required_experiments = []
+    possible_settings = []
+    default_settings = None
+    # self._index
 
-    def __init__(self, score, settings=None):
+    def __init__(self, index, settings=None, mpc=None):
         """
         Create a new Experimenter.
 
         Parameters
         ==========
-        score : vis.models.IndexedPiece
-            The score on which to conduct this experiment.
+        :param index: lists or nested lists of pandas.Series or pandas.DataFrame objects.
+            A list (or list of lists) of Series. The minimum and maximum numbers, and whether to use
+            embedded lists, depends on the Experimenter subclass.
 
-        settings : dict
+        :param settings: dict
             A dict of all the settings required by this Experimenter. All required settings should
             be listed in subclasses. Default is {}.
+
+        :param mpc: MPController
+            An optional instance of MPController. If this is present, the Indexer will use it to
+            submit jobs for multiprocessing. If not present, jobs will be executed in series.
 
         Raises
         ======
         RuntimeError :
             - If required settings are not present in the "settings" argument.
         """
-        if not settings: settings = {}
-        # NOTE: You should reimplement this method in subclasses.
 
-        # Check that all required settings are present in the "settings" argument
-
-        # Change the class name to the current class
+        # Call our superclass constructor, then set instance variables
         super(Experimenter, self).__init__()
-
-        # Leave this
-        self._score = score
-
-    def name(self):
-        """
-        Return the name used to identify this experimenter.
-        """
-        # NOTE: Do not reimplement this method in subclasses.
-        return unicode(self.__name__)
+        self._index = index
+        self._mpc = mpc
+        if hasattr(self, u'_settings'):
+            if self._settings is None:
+                self._settings = {}
+        else:
+            self._settings = {}
 
     def run(self):
         """
@@ -93,80 +98,51 @@ class Experimenter(object):
         Returns
         =======
         pandas.Series or pandas.DataFrame :
-            The result of the experiment. Data is stored somehow.
+            The result of the experiment. Data is stored uniquely depending on the Experiment.
         """
-        # NOTE-1: You should reimplement this method in subclasses.
-        # NOTE-2: You should update the "Returns" part of the docstring to describe the format of
-        #         data returned by the Experimenter.
-        # NOTE-3: You must run any required Indexers or Experimenters, as specified in the
-        #         "needed_indices" and "needed_experiments" class properties.
         pass
 
-
-class IntervalFrequencyExperimenter(Experimenter):
-    """
-    Count the number of occurrences of intervals in a piece.
-    """
-
-    needed_indices = ['NoteRestIndexer']
-
-    def __init__(self, score, settings=None):
+    def _do_multiprocessing(self, func, func_args):
         """
-        Create a new IntervalFrequencyExperimenter.
+        Dispatch jobs for completion, either through the MPController for multiprocessing (if one
+        is present in this Experimenter) or serially (if no MPController is available). Await and
+        return the results.
 
         Parameters
         ==========
-        score : vis.models.IndexedPiece
-            The score on which to conduct this experiment.
+        :param func: module-level function
+            The function to call. The function should return a pandas.Series or DataFrame
 
-        settings : dict
-            A dict of all the settings required by this Experimenter. Includes:
-            - 'simple or compound' : 'simple' or 'compound'
-                Whether intervals should be represented in their single-octave form. Optional.
-                Defaults to 'compound'
-            - 'quality' : boolean
-                Whether to consider the quality of intervals. Optional. Defaults to False.
-
-        Raises
-        ======
-        Nothing. There are no required settings.
-        """
-        if not settings: settings = {}
-        # Check that all required settings are present in the "settings" argument
-        self._settings = {}
-        if 'simple or compound' in settings:
-            self._settings['simple or compound'] = settings['simple or compound']
-        else:
-            self._settings['simple or compound'] = 'compound'
-        if 'quality' in settings:
-            self._settings['quality'] = settings['quality']
-        else:
-            self._settings['quality'] = False
-        # Other stuff
-        super(IntervalFrequencyExperimenter, self).__init__()
-        self._score = score
-
-    def run(self):
-        """
-        Count the number of occurrences of intervals in all voice-pair combinations, then create a
-        summary of all of them.
+        :param func_args: [[?]]
+            A nested list of the arguments to be passed to "func". Each outer list element will be
+            a single call to "func".
 
         Returns
         =======
-        pandas.DataFrame :
-            Data is stored somehow. We'll always just run all voice pairs the first time, and
-            create another field that stores totals for all voice pairs together.
-        """
-        # NOTE-1: You should reimplement this method in subclasses.
-        # NOTE-2: You should update the "Returns" part of the docstring to describe the format of
-        #         data returned by the Experimenter.
-        # NOTE-3: You must run any required Indexers or Experimenters, as specified in the
-        #         "needed_indices" and "needed_experiments" class properties.
+        [pandas.Series] or [pandas.DataFrame]
+            A list of whatever was returned by the "func" function.
 
-        # Implementation notes:
-        # - I'll probably want to somehow accumulate a list of all the intervals in each of the
-        #   voice-pair combinations.
-        # - I'll probably want to do multiprocessing, one process per voice pair
-        # - I'll want to make sure to have already run the Indexer that labels intervals from start
-        #   to finish, in all voice pairs... wonder how to coordinate that!
-        pass
+        Side Effects
+        ============
+        1.) Blocks until all calculations have completed.
+        """
+
+        post = []
+
+        if self._mpc is None:
+            # use serial processing
+            for arg_list in func_args:
+                post.append(func(*arg_list))
+        else:
+            # use the MPController for multiprocessing
+            pipe_end = self._mpc.get_pipe()
+            jobs_submitted = 0
+            for arg_list in func_args:
+                jobs_submitted += 1
+                these_args = [func]
+                these_args.extend(func_args)
+                pipe_end.send((_mp_wrapper, these_args))
+            for _ in xrange(jobs_submitted):
+                post.append(pipe_end.recv())
+
+        return post
