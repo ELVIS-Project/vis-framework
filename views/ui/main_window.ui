@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>953</width>
-    <height>678</height>
+    <height>685</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -228,7 +228,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>2</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -463,8 +463,8 @@
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>373</width>
-                      <height>79</height>
+                      <width>126</width>
+                      <height>56</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_part_boxes">
@@ -1152,7 +1152,7 @@
            <item>
             <widget class="QLabel" name="label_copyright">
              <property name="text">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;vis 9c (&amp;quot;Stable&amp;quot; Desktop Version for Summer 2013)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan&lt;/p&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published&lt;br/&gt;by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of&lt;br/&gt;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License along with this program. If not, refer to &lt;a href=&quot;http://www.gnu.org/licenses/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;http://www.gnu.org/licenses/&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;vis X-devel (&amp;quot;Unstable&amp;quot; Desktop Development Version)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Copyright (c) 2012, 2013 Christopher Antila, Jamie Klassen, Alexander Morgan&lt;/p&gt;&lt;p&gt;This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published&lt;br/&gt;by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.&lt;/p&gt;&lt;p&gt;This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of&lt;br/&gt;MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.&lt;/p&gt;&lt;p&gt;You should have received a copy of the GNU General Public License along with this program. If not, refer to &lt;a href=&quot;http://www.gnu.org/licenses/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;http://www.gnu.org/licenses/&lt;/span&gt;&lt;/a&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </item>
