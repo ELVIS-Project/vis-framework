@@ -32,7 +32,7 @@ import pkgutil
 import re
 import os
 from music21 import converter
-from analyzers import indexers
+from vis.analyzers import indexers
 from vis.analyzers import indexer
 
 
@@ -79,19 +79,19 @@ class IndexedPiece(object):
         def __init__(self, **kwargs):
             # TODO: docs
             data = {
-                'pathname': None,
-                'parts': None,
-                'anacrusis': None,
-                'alternative_title': None,
-                'composer': None,
-                'composers': None,
-                'date': None,
-                'locale_of_composition': None,
-                'movement_name': None,
-                'movement_number': None,
-                'number': None,
-                'opus_number': None,
-                'title': None
+                u'pathname': None,
+                u'parts': None,
+                u'anacrusis': None,
+                u'alternative_title': None,
+                u'composer': None,
+                u'composers': None,
+                u'date': None,
+                u'locale_of_composition': None,
+                u'movement_name': None,
+                u'movement_number': None,
+                u'number': None,
+                u'opus_number': None,
+                u'title': None
             }
             data.update(kwargs)
             self.__dict__.update(data)
@@ -143,8 +143,12 @@ class IndexedPiece(object):
             # find all the properties (i.e. methods with the @property decorator)
             # for music21.metadata.Metadata which are also in our Metadata prototype
             for name, obj in getmembers(score.metadata.__class__, isdatadescriptor):
-                if isinstance(obj, property) and hasattr(self._metadata, convert(name)):
+                if u'title' == name:
+                    self.metadata(name, IndexedPiece._find_piece_title(score))
+                elif isinstance(obj, property) and hasattr(self._metadata, convert(name)):
                     self.metadata(convert(name), obj)
+            # music21 doesn't have a "part names" attribute in its Metadata objects
+            self.metadata(u'parts', IndexedPiece._find_part_names(score))
 
             self._imported = True
             self.add_index([u'NoteRestIndexer'], {})
@@ -197,9 +201,9 @@ class IndexedPiece(object):
         :param which_indexers:
             the :py:class:`controllers.indexer.Indexer` subclasses to run on the IndexedPiece. You
             may safely provide either a list of basestrings or a single basestring. You must write
-            these as the module name and class, as found in the indexers directory. For example:
-            - u'noterest.NoteRestIndexer'
-            - u'interval.IntervalIndexer'
+            these as the class name, ignoring the module name. For example:
+            - u'NoteRestIndexer' for noterest.NoteRestIndexer
+            - u'IntervalIndexer' for interval.IntervalIndexer
         :type which_indexers: list of (str or unicode) or (str or unicode)
 
         :param which_settings:
@@ -300,7 +304,6 @@ class IndexedPiece(object):
                     the_score = self._import_score()
                 required_score = list(the_score.parts)
                 # TODO: what about imports to Opus objects?
-                # TODO: find and store metadata
             else:
                 req_ind = indexer_cls.required_indices
                 self.add_index(filter(lambda ind: not ind in self._data, req_ind), which_settings)
