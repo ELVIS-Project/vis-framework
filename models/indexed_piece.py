@@ -26,8 +26,13 @@ The model representing an indexed and analyzed piece of music.
 """
 
 # Imports
+from importlib import import_module
+from inspect import getmembers, isdatadescriptor
+import pkgutil
+import re
 import os
 from music21 import converter
+from analyzers import indexers
 from vis.analyzers import indexer
 
 
@@ -122,26 +127,27 @@ class IndexedPiece(object):
         # TODO: actually write this method
         score = converter.parse(self.metadata('pathname'))
         if not self._imported:
-            # NOTE: we have to set self._imported to True *before* we run add_index(), or else
-            # when we import the Score for the add_index(), it would call us again and we would
-            # call it, and there would be an infinite loop. This isn't very robust, but it works.
+            def convert(name):
+                """
+                converts camelCase strings (as properties in music21 are named) to snake-case
+                strings (which are what Python idiom dictates we should use)
+
+                Taken from :
+                http://stackoverflow.com/
+                questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case
+                :param name: a camelCase string
+                :return: a snake-case string
+                """
+                s1 = re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)
+                return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+            # find all the properties (i.e. methods with the @property decorator)
+            # for music21.metadata.Metadata which are also in our Metadata prototype
+            for name, obj in getmembers(score.metadata.__class__, isdatadescriptor):
+                if isinstance(obj, property) and hasattr(self._metadata, convert(name)):
+                    self.metadata(convert(name), obj)
+
             self._imported = True
-            self.add_index([u'noterest.NoteRestIndexer'], {})
-            # collect metadata
-            self.metadata('parts', IndexedPiece._find_part_names(score))
-            self.metadata('title', IndexedPiece._find_piece_title(score))
-            # TODO: fill in the rest of these using music21
-            # TODO: test all of these
-            #'anacrusis': None,
-            #'alternative_title': None,
-            #'composer': None,
-            #'composers': None,
-            #'date': None,
-            #'locale_of_composition': None,
-            #'movement_name': None,
-            #'movement_number': None,
-            #'number': None,
-            #'opus_number': None,
+            self.add_index([u'NoteRestIndexer'], {})
         return score
 
     def metadata(self, field, value=None):
@@ -234,19 +240,33 @@ class IndexedPiece(object):
         for this_indexer in which_indexers:
             if not isinstance(this_indexer, (str, unicode)):
                 raise TypeError('Indexer names must be string or unicode')
-            if u'noterest.NoteRestIndexer' == this_indexer:
-                from vis.analyzers.indexers.noterest import NoteRestIndexer
-                indexer_cls = NoteRestIndexer
             else:
-                missing_indexers.append(this_indexer)
-                continue
-            #try:
-                #indexer_cls = __import__(this_indexer)
-                #for n in this_indexer.split(".")[1:]:
-                    #indexer_cls = getattr(indexer_cls, n)
-            #except (ImportError, AttributeError):
-                #missing_indexers.append(this_indexer)
-                #continue
+                found = False
+                s = this_indexer.split('.')
+                # iterate through the directory of indexers
+                for _, name, ispkg in pkgutil.iter_modules(indexers.__path__):
+                    if not ispkg:
+                        mod = import_module('.' + name, package=indexers.__package__)
+                        if hasattr(mod, this_indexer):
+                            indexer_cls = getattr(mod, this_indexer)
+                            found = True
+                            break
+                    else:
+                        # we have an add-on indexer
+                        indexer_cls = s[-1]
+                        pkg = __import__(indexers.__package__ + '.' + '.'.join(s[:-1]), fromlist=[indexer_cls])
+                        if hasattr(pkg, indexer_cls):
+                            indexer_cls = getattr(pkg, indexer_cls)
+                            found = True
+                            break
+                if not found:
+                    try:
+                        indexer_cls = __import__(this_indexer)
+                        for n in s[1:]:
+                            indexer_cls = getattr(indexer_cls, n)
+                    except (ImportError, AttributeError):
+                        missing_indexers.append(this_indexer)
+                        continue
 
             # Make a dict of the settings relevant for this Indexer
             # We'll check all the possible settings for this Indexer. If the setting isn't given by

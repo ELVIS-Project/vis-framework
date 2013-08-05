@@ -5,8 +5,8 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexer.py
-# Purpose:                Help with indexing data from musical scores.
+# Filename:               models_tests/test_indexed_piece.py
+# Purpose:                Tests for models/indexed_piece.py.
 #
 # Copyright (C) 2013 Christopher Antila
 #
@@ -21,10 +21,12 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
-
+import os
+import shutil
 from unittest import TestCase, TestLoader
 from mock import patch, MagicMock, Mock
 import music21
+from analyzers import indexers
 from analyzers.indexer import Indexer
 from models.indexed_piece import IndexedPiece
 
@@ -264,8 +266,20 @@ class TestIndexedPiece(TestCase):
         self.assertRaises(TypeError, self.ip.metadata, [])
         self.assertRaises(TypeError, self.ip.metadata, {})
 
+    def create_mock_package(self):
+        addon_path = indexers.__path__[0] + '/addon'
+        os.mkdir(addon_path)
+        open(addon_path + '/__init__.py', 'w').close()
+        filepath = addon_path + '/extra_stuff.py'
+        extra_stuff = open(filepath, 'w')
+        extra_stuff.write('from models_tests.test_indexed_piece import TestIndexedPiece\n')
+        extra_stuff.write('TestIndexer = TestIndexedPiece.MockIndexerModule.TestIndexer')
+        extra_stuff.close()
+        return addon_path
+
     @patch('models.indexed_piece.indexer', MockIndexerModule)
     def test_add_index(self):
+        # add an existing indexer
         """
         Tests the method :py:meth:`~IndexedPiece.add_index`.
         :returns: None
@@ -276,12 +290,10 @@ class TestIndexedPiece(TestCase):
         # add a non-string key
         self.assertRaises(TypeError, self.ip.add_index, [3], {})
         # add an add-on indexer
-        patcher = patch('__builtin__.__import__')
-        mock_import = patcher.start()
-        mock_import.return_value = self.__class__.MockIndexerModule
-        self.ip.add_index([u'extra_stuff.TestIndexer'], {})
-        self.assertEquals(5, self.ip.get_index(u'extra_stuff.TestIndexer'))
-        patcher.stop()
+        addon_path = self.create_mock_package()
+        self.ip.add_index([u'addon.extra_stuff.TestIndexer'], {})
+        self.assertEquals(5, self.ip.get_index(u'addon.extra_stuff.TestIndexer'))
+        shutil.rmtree(addon_path)
         # add something which exists, but isn't an indexer
         self.assertRaises(TypeError, self.ip.add_index, [u'NotAnIndexer'])
         # add an indexer which doesn't exist
