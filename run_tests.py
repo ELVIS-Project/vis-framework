@@ -43,6 +43,7 @@ import unittest
 from vis.analyzers_tests.test_indexer import *
 from vis.analyzers_tests.test_note_rest_indexer import *
 from vis.analyzers_tests.test_interval_indexer import *
+from vis.analyzers_tests.test_frequency_experimenter import *
 from vis.models_tests.test_indexed_piece import *
 from vis.controllers_tests.test_mpcontroller import *
 # old
@@ -66,6 +67,10 @@ unittest.TextTestRunner(verbosity=verb).run(interval_indexer_short_suite)
 unittest.TextTestRunner(verbosity=verb).run(interval_indexer_long_suite)
 unittest.TextTestRunner(verbosity=verb).run(int_ind_indexer_suite)
 unittest.TextTestRunner(verbosity=verb).run(horiz_int_ind_long_suite)
+
+# Experimenter and Subclasses
+unittest.TextTestRunner(verbosity=verb).run(frequency_func_suite)
+unittest.TextTestRunner(verbosity=verb).run(frequency_run_suite)
 
 # IndexedPiece
 #unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)  # TODO: fails
