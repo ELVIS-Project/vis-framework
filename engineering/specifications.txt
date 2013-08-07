@@ -25,8 +25,10 @@ Targeted Libraries:
     This is the most recent version of our primary programming language, which we chose because of the availability of music21.
 - music21 1.6.0
     This library ("software toolkit") was developed by team member Myke Cuthbert, and contains representations of and operations on a variety of musical objects. Version 1.6.0 is not yet released, but it has features and bug-fixes we require.
-- pandas 0.10.0
-    This library provides fast data structures that are compatible with music21's ubiquitous "Stream" objects and more flexible for scientific and statistical operations (especially through R). We will introduce pandas with visX.
+- pandas 0.12.0
+    This library provides fast data structures that are compatible with music21's ubiquitous "Stream" objects and more flexible for scientific and statistical operations (especially through R). We will introduce pandas with visX. Also the optional dependency libraries:
+    - numexpr
+    - bottleneck
 - django 1.5.1 (object-relational mapper)
     This library provides an easy and power way to connect to relational databases. This will be useful for our internal query processes, and for the future situation where we will store analysis results on a Web server.
 - R 3.0.1
