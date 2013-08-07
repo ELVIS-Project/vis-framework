@@ -29,6 +29,7 @@ from music21 import stream
 from vis.analyzers import indexer
 
 
+# NB: remove this comment and the pylint disable when you write a subclass
 # pylint: disable=W0613
 def indexer_func(obj):
     """
@@ -44,7 +45,7 @@ class TemplateIndexer(indexer.Indexer):
     Use this class when you want to write a new Indexer subclass.
     """
 
-    required_indices = []  # empty list means the Indexer uses Part objects
+    required_indices = []  # empty list accepts results of any Indexer
     required_score_type = stream.Part  # or pandas.Series
     requires_score = True  # adjust according to previous
     possible_settings = []  # list of strings
@@ -104,10 +105,10 @@ class TemplateIndexer(indexer.Indexer):
 
         Returns
         =======
-        [pandas.Series] :
+        :returns: [pandas.Series]
             A list of the new indices. The index of each Series corresponds to the index of the Part
             used to generate it, in the order specified to the constructor. Each element in the
-            Series is an instance of music21.base.ElementWrapper.
+            Series is a basestring.
         """
 
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
