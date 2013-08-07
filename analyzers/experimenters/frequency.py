@@ -45,12 +45,11 @@ def experimenter_func(obj):
         Where the index is the names of objects found in "obj," and the value is the number of
         occurrences.
     """
-    thing_dict = defaultdict(lambda: 0)
-    for thing in obj:
-        thing_dict[thing] += 1
-    keys = thing_dict.keys()
-    vals = [thing_dict[k] for k in keys]
-    return pandas.Series(vals, index=keys)
+    thing_dict = {}
+    for each in obj:
+        if each not in thing_dict:
+            thing_dict[each] = sum(obj == each)
+    return pandas.Series(thing_dict)
 
 
 class FrequencyExperimenter(experimenter.Experimenter):
@@ -100,8 +99,8 @@ class FrequencyExperimenter(experimenter.Experimenter):
         """
         post = self._do_multiprocessing(experimenter_func, [[x] for x in self._index])
         tokens = []
-        for part_total in post:
-            tokens.extend(list(part_total.index))
+        for part_freqs in post:
+            tokens.extend(list(part_freqs.index))
         tokens = set(tokens)
         in_dict = {}
         for i in xrange(len(post)):
