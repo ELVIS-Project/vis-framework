@@ -31,11 +31,12 @@ worthwhile like 'vis is an awesome program for data analysis with music'!
 """
 # Ensure we can import "vis"
 try:
-    import vis
+    import imp
+    imp.find_module('vis')
 except ImportError:
     import sys
     sys.path.insert(0, '..')
 
 __all__ = ['analyzers', 'controllers', 'models']
 
-from vis import *
+from vis import analyzers, controllers, models
