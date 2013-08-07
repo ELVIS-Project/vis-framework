@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -21,9 +20,12 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
-
+"""
+Package docstring: Tests for indexers.
+"""
 __all__ = ['test_note_rest_indexer', 'test_interval_indexer', 'test_indexer']
 
-import test_note_rest_indexer
-import test_interval_indexer
-import test_indexer
+from vis.analyzers_tests import test_indexer
+from vis.analyzers_tests import test_note_rest_indexer
+from vis.analyzers_tests import test_interval_indexer
+

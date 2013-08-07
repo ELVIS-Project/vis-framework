@@ -32,7 +32,7 @@ import pkgutil
 import re
 import os
 from music21 import converter
-from analyzers import indexers
+from vis.analyzers import indexers
 from vis.analyzers import indexer
 
 
@@ -240,6 +240,8 @@ class IndexedPiece(object):
         for this_indexer in which_indexers:
             if not isinstance(this_indexer, (str, unicode)):
                 raise TypeError('Indexer names must be string or unicode')
+            if hasattr(indexer, this_indexer):
+                indexer_cls = getattr(indexer, this_indexer)
             else:
                 found = False
                 s = this_indexer.split('.')

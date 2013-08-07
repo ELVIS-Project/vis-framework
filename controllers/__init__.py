@@ -26,7 +26,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-
+"""
+Package docstring: controllers, which do cool actions universal to the program's functioning?
+"""
 __all__ = ['mpcontroller']
 
-import mpcontroller
+from vis.controllers import mpcontroller

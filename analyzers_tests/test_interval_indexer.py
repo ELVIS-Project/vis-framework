@@ -37,7 +37,10 @@ from vis.controllers import mpcontroller
 
 
 class TestIntervalIndexerShort(unittest.TestCase):
-    "These 'short' tests were brought over from the vis9 tests for _event_finder()."
+    """
+    These 'short' tests were brought over from the vis9 tests for _event_finder().
+    """
+
     @staticmethod
     def pandas_maker(wrap_this):
         """
@@ -162,8 +165,8 @@ class TestIntervalIndexerShort(unittest.TestCase):
         expected = [(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
                     (0.25, u'Rest'),
                     (0.5, interval.Interval(note.Note('A3'), note.Note('G4')).name)]
-        not_processed =  [[(0.0, u'G4', 1.0)],
-                  [(0.0, u'G3'), (0.25, u'Rest'), (0.5, u'A3')]]
+        not_processed = [[(0.0, u'G4', 1.0)],
+                         [(0.0, u'G3'), (0.25, u'Rest'), (0.5, u'A3')]]
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
@@ -179,7 +182,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                     (0.5, interval.Interval(note.Note('A3'), note.Note('G4')).name),
                     (1.0, interval.Interval(note.Note('B3'), note.Note('G4')).name)]
         not_processed = [[(0.0, u'G4', 1.0), (1.0, u'G4')],
-                [(0.0, u'G3'), (0.25, u'Rest'), (0.5, u'A3'), (1.0, u'B3')]]
+                         [(0.0, u'G3'), (0.25, u'Rest'), (0.5, u'A3'), (1.0, u'B3')]]
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
@@ -220,7 +223,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                     (0.25, u'Rest'),
                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]
         not_processed = [[(0.0, u'G4', 1.0)],
-                   [(0.0, u'G3'), (0.25, u'Rest'), (0.5, u'G3')]]
+                         [(0.0, u'G3'), (0.25, u'Rest'), (0.5, u'G3')]]
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
@@ -237,8 +240,8 @@ class TestIntervalIndexerShort(unittest.TestCase):
                     (0.375, u'Rest'),
                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]
         not_processed = [[(0.0, u'G4', 1.0)],
-                   [(0.0, u'G3', 0.125), (0.125, u'Rest', 0.125),
-                    (0.25, u'A3', 0.125), (0.375, u'Rest', 0.125), (0.5, u'G3')]]
+                         [(0.0, u'G3', 0.125), (0.125, u'Rest', 0.125),
+                          (0.25, u'A3', 0.125), (0.375, u'Rest', 0.125), (0.5, u'G3')]]
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
@@ -259,12 +262,12 @@ class TestIntervalIndexerShort(unittest.TestCase):
                     (0.4375, u'Rest'),
                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]
         not_processed = [[(0.0, u'G4', 0.0625), (0.0625, u'G4', 0.0625),
-                    (0.125, u'G4', 0.0625), (0.1875, u'G4', 0.0625),
-                    (0.25, u'G4', 0.0625), (0.3125, u'G4', 0.0625),
-                    (0.375, u'G4', 0.0625), (0.4375, u'G4', 0.0625),
-                    (0.5, u'G4')],
-                   [(0.0, u'G3', 0.125), (0.125, u'Rest', 0.125), (0.25, u'A3', 0.125),
-                    (0.375, u'Rest', 0.0625), (0.4375, u'Rest', 0.0625), (0.5, u'G3')]]
+                          (0.125, u'G4', 0.0625), (0.1875, u'G4', 0.0625),
+                          (0.25, u'G4', 0.0625), (0.3125, u'G4', 0.0625),
+                          (0.375, u'G4', 0.0625), (0.4375, u'G4', 0.0625),
+                          (0.5, u'G4')],
+                         [(0.0, u'G3', 0.125), (0.125, u'Rest', 0.125), (0.25, u'A3', 0.125),
+                          (0.375, u'Rest', 0.0625), (0.4375, u'Rest', 0.0625), (0.5, u'G3')]]
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
@@ -281,9 +284,9 @@ class TestIntervalIndexerShort(unittest.TestCase):
                     (1.0, u'Rest'),
                     (1.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]
         not_processed = [[(0.0, u'G4'), (0.5, u'G4'), (0.75, u'Rest'),
-                    (1.0, u'G4'), (1.5, u'G4')],
-                   [(0.0, u'G3'), (0.5, u'G3'), (0.75, u'Rest'),
-                    (1.0, u'Rest'), (1.5, u'G3')]]
+                          (1.0, u'G4'), (1.5, u'G4')],
+                         [(0.0, u'G3'), (0.5, u'G3'), (0.75, u'Rest'),
+                          (1.0, u'Rest'), (1.5, u'G3')]]
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
@@ -439,7 +442,8 @@ class TestIntervalIndexerLong(unittest.TestCase):
     def setUp(self):
         self.bwv77_soprano = TestIntervalIndexerLong.do_wrapping(TestNoteRestIndexer.bwv77_soprano)
         self.bwv77_bass = TestIntervalIndexerLong.do_wrapping(TestNoteRestIndexer.bwv77_bass)
-        #self.bwv77_S_B = TestIntervalIndexerLong.do_wrapping(TestIntervalIndexerLong.bwv77_S_B_basis)
+        # self.bwv77_S_B = TestIntervalIndexerLong.do_wrapping(TestIntervalIndexerLong
+        #                                                      .bwv77_S_B_basis)
 
     @staticmethod
     def do_wrapping(of_this):
@@ -661,21 +665,21 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         # BWV7.7: soprano part
         # TODO: write the testing part of this
         test_parts = [self.bwv77_soprano]
-        expected = TestIntervalIndexerLong.bwv77_S_B_basis
+        # expected = TestIntervalIndexerLong.bwv77_S_B_basis
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()#[u'[0, 1]']
+        actual = int_indexer.run()  # [u'[0, 1]']
         print(str(actual))
         #self.assertEqual(len(expected), len(actual))
         #for i, ind in enumerate(list(actual.index)):
-            #self.assertEqual(expected[i][0], ind)
-            #self.assertEqual(expected[i][1], actual[ind])
+        #self.assertEqual(expected[i][0], ind)
+        #self.assertEqual(expected[i][1], actual[ind])
 
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-interval_indexer_short_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerShort)
-interval_indexer_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerLong)
-int_ind_indexer_suite = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerIndexer)
-horiz_int_ind_long_suite = unittest.TestLoader().loadTestsFromTestCase(TestHorizIntervalIndexerLong)
+INTERVAL_INDEXER_SHORT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerShort)
+INTERVAL_INDEXER_LONG_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerLong)
+INT_IND_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerIndexer)
+HORIZ_INT_IND_LONG_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestHorizIntervalIndexerLong)
