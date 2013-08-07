@@ -28,6 +28,9 @@ Run the tests for the models
 """
 
 # Ensure we can import "vis"
+from vis.analyzers_tests.test_interval_indexer import INTERVAL_INDEXER_SHORT_SUITE, \
+    INTERVAL_INDEXER_LONG_SUITE, INT_IND_INDEXER_SUITE, HORIZ_INT_IND_LONG_SUITE
+
 try:
     import vis
 except ImportError:
@@ -35,17 +38,19 @@ except ImportError:
     sys.path.insert(0, '..')
 
 # Verbosity
-verb = 1
+VERBOSITY = 1
 
 # Imports
 import unittest
 # new
-from vis.analyzers_tests.test_indexer import *
-from vis.analyzers_tests.test_note_rest_indexer import *
 from vis.analyzers_tests.test_interval_indexer import *
 from vis.analyzers_tests.test_frequency_experimenter import *
 from vis.models_tests.test_indexed_piece import *
 from vis.controllers_tests.test_mpcontroller import *
+from vis.analyzers_tests import test_indexer
+from vis.analyzers_tests import test_note_rest_indexer
+# from vis.models_tests.test_indexed_piece import *
+from vis.controllers_tests import test_mpcontroller
 # old
 #from controllers_tests.test_importer import *
 #from controllers_tests.test_analyzer import *
@@ -56,17 +61,18 @@ from vis.controllers_tests.test_mpcontroller import *
 
 # New ---------------------------------------------------------------------------------------------
 # Indexer and Subclasses
-unittest.TextTestRunner(verbosity=verb).run(indexer_hardcore_suite)
-unittest.TextTestRunner(verbosity=verb).run(indexer_1_part_suite)
-# TODO: this is lower priority, since it doesn't test meaningfully differently from 1_part_suite
-#unittest.TextTestRunner(verbosity=verb).run(indexer_3_parts_suite)
-unittest.TextTestRunner(verbosity=verb).run(unique_offsets_suite)
-unittest.TextTestRunner(verbosity=verb).run(vert_aligner_suite)
-unittest.TextTestRunner(verbosity=verb).run(note_rest_indexer_suite)
-unittest.TextTestRunner(verbosity=verb).run(interval_indexer_short_suite)
-unittest.TextTestRunner(verbosity=verb).run(interval_indexer_long_suite)
-unittest.TextTestRunner(verbosity=verb).run(int_ind_indexer_suite)
-unittest.TextTestRunner(verbosity=verb).run(horiz_int_ind_long_suite)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_1_PART_SUITE)
+# TODO: this is lower priority, since it doesn't test meaningfully differently from
+# INDEXER_1_PART_SUITE
+#unittest.TextTestRunner(verbosity=verb).run(INDEXER_3_PARTS_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.UNIQUE_OFFSETS_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.VERT_ALIGNER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_note_rest_indexer.NOTE_REST_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_SHORT_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_LONG_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(INT_IND_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(HORIZ_INT_IND_LONG_SUITE)
 
 # Experimenter and Subclasses
 unittest.TextTestRunner(verbosity=verb).run(frequency_func_suite)
@@ -76,9 +82,9 @@ unittest.TextTestRunner(verbosity=verb).run(frequency_run_suite)
 #unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)  # TODO: fails
 #unittest.TextTestRunner(verbosity=verb).run(mock_indexed_piece_suite)  # TODO: fails
 # MPController
-unittest.TextTestRunner(verbosity=verb).run(mpc_tester_suite)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.mpc_tester_suite)
 #unittest.TextTestRunner(verbosity=verb).run(mpcontroller_suite)  # TODO: fails epically
-unittest.TextTestRunner(verbosity=verb).run(mpcontroller_runs_suite)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.mpcontroller_runs_suite)
 
 # Old ---------------------------------------------------------------------------------------------
 

@@ -1,6 +1,5 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
-
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -26,7 +25,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-
+"""
+Package docstring: This is the root for our Sphinx documentation. Let's say something
+worthwhile like 'vis is an awesome program for data analysis with music'!
+"""
 # Ensure we can import "vis"
 try:
     import vis

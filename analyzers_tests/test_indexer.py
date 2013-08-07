@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -50,10 +49,13 @@ class TestIndexerHardcore(unittest.TestCase):
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
+
         test_parts = [pandas.Series()]
         settings = {}
         self.assertRaises(RuntimeError, TestIndexer, test_parts, settings)
-        error_msg = u"<class 'vis.analyzers_tests.test_indexer.TestIndexer'> requires <class 'music21.stream.Stream'> objects, not <class 'pandas.core.series.Series'>"
+        error_msg = unicode("<class 'vis.analyzers_tests.test_indexer.TestIndexer'> requires "
+                            "<class 'music21.stream.Stream'> objects, not <class 'pandas.core"
+                            ".series.Series'>")
         try:
             TestIndexer(test_parts, settings)
         except RuntimeError as err:
@@ -64,8 +66,10 @@ class TestIndexerHardcore(unittest.TestCase):
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
+
             def run(self):
                 self._do_multiprocessing([[0]])
+
         test_parts = [stream.Part()]
         settings = {}
         # prepare mocks
@@ -95,8 +99,10 @@ class TestIndexerHardcore(unittest.TestCase):
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = pandas.Series
+
             def run(self):
                 self._do_multiprocessing([[0]])
+
         test_parts = [pandas.Series([1, 2])]
         settings = {}
         # prepare mocks
@@ -126,8 +132,10 @@ class TestIndexerHardcore(unittest.TestCase):
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
+
             def run(self):
                 self._do_multiprocessing([[0]])
+
         test_parts = [stream.Stream()]
         settings = {}
         # prepare mocks
@@ -145,8 +153,10 @@ class TestIndexerHardcore(unittest.TestCase):
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
+
             def run(self):
                 self._do_multiprocessing([[0], [1], [2], [3]])
+
         test_parts = [stream.Stream() for _ in xrange(4)]
         settings = {}
         # prepare mocks
@@ -174,8 +184,10 @@ class TestIndexerHardcore(unittest.TestCase):
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = pandas.Series
+
             def run(self):
                 self._do_multiprocessing([[0], [1], [2], [3]])
+
         test_parts = [pandas.Series() for _ in xrange(4)]
         settings = {}
         # prepare mocks
@@ -201,8 +213,10 @@ class TestIndexerHardcore(unittest.TestCase):
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
+
             def run(self):
                 self._do_multiprocessing([[0, 1, 2, 3]])
+
         test_parts = [stream.Stream() for _ in xrange(4)]
         settings = {}
         # prepare mocks
@@ -220,8 +234,10 @@ class TestIndexerHardcore(unittest.TestCase):
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
+
             def run(self):
                 self._do_multiprocessing([[0, 1], [1, 3], [0, 1, 2]])
+
         test_parts = [stream.Stream() for _ in xrange(4)]
         settings = {}
         # prepare mocks
@@ -240,13 +256,24 @@ class TestIndexerHardcore(unittest.TestCase):
                 # won't test the score combinations here
                 self.assertEqual(fake_indexer_func, this[2])  # self._indexer_func
                 self.assertEqual(None, this[3])  # self._types
-            # check each part combination
+                # check each part combination
             self.assertEqual([test_parts[0], test_parts[1]], callz[0][1][1])
             self.assertEqual([test_parts[1], test_parts[3]], callz[2][1][1])
             self.assertEqual([test_parts[0], test_parts[1], test_parts[2]], callz[4][1][1])
 
 
 class TestIndexerSinglePart(unittest.TestCase):
+    def verbatim(self, x):
+        """
+        lambda for mp_indexer() that returns the object unmodified
+        :param x:
+        :return x:
+        """
+        return x[0].obj
+
+    def verbatim_ser(self, x):
+        return x[0]
+
     def setUp(self):
         # prepare a valid list of ElementWrappers (with proper offset and duration)
         self.in_series = pandas.Series([x for x in xrange(100)],
@@ -256,9 +283,6 @@ class TestIndexerSinglePart(unittest.TestCase):
             elem.offset = i * 0.25
             elem.duration = duration.Duration(0.25)
         self.in_stream = stream.Stream(self.in_stream)
-        # lambda for mp_indexer() that returns the object unmodified
-        self.verbatim = lambda x: x[0].obj
-        self.verbatim_ser = lambda x: x[0]
         # prepare a valid list of Rests and ElementWrappers, happening simultaneously, to see that
         # we can properly filter by type
         self.mixed_list = []
@@ -285,8 +309,10 @@ class TestIndexerSinglePart(unittest.TestCase):
             mixed_series_notes.append(unicode(i))
             self.mixed_list.append(app_me)
         self.mixed_series = pandas.Series(mixed_series_data, index=mixed_series_offsets)
-        self.mixed_series_notes = pandas.Series(mixed_series_notes, index=mixed_series_notes_offsets)
-        self.mixed_series_rests = pandas.Series(mixed_series_rests, index=mixed_series_rests_offsets)
+        self.mixed_series_notes = pandas.Series(mixed_series_notes,
+                                                index=mixed_series_notes_offsets)
+        self.mixed_series_rests = pandas.Series(mixed_series_rests,
+                                                index=mixed_series_rests_offsets)
         self.mixed_list = stream.Stream(self.mixed_list)
         # same list as previous, but with a Rest and ElementerWrapper sharing each offset
         self.shared_mixed_list = []
@@ -307,7 +333,8 @@ class TestIndexerSinglePart(unittest.TestCase):
         self.shared_mixed_list = stream.Stream(self.shared_mixed_list)
         self.shared_mixed_series = pandas.Series(s_m_series, index=s_m_series_offsets)
         # lambda that deals with Rest objects
-        self.verbatim_rests = lambda x: u'Rest' if isinstance(x[0], note.Rest) else unicode(x[0].obj)
+        self.verbatim_rests = lambda x: u'Rest' if isinstance(x[0], note.Rest) else unicode(
+            x[0].obj)
 
     def test_mp_indexer_1(self):
         # that we get a Series back when a Series is given
@@ -316,7 +343,8 @@ class TestIndexerSinglePart(unittest.TestCase):
 
     def test_mp_indexer_2(self):
         # that we get a Series back when a Stream is given
-        result = indexer._stream_indexer(0, [self.in_stream], self.verbatim, [base.ElementWrapper])[1]
+        result = indexer._stream_indexer(0, [self.in_stream],
+                                         self.verbatim, [base.ElementWrapper])[1]
         self.assertTrue(isinstance(result, pandas.Series))
 
     def test_mp_indexer_4(self):
@@ -326,7 +354,8 @@ class TestIndexerSinglePart(unittest.TestCase):
 
     def test_mp_indexer_5(self):
         # that the resulting Series is the same length (given a Stream)
-        result = indexer._stream_indexer(0, [self.in_stream], self.verbatim, [base.ElementWrapper])[1]
+        result = indexer._stream_indexer(0, [self.in_stream],
+                                         self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_stream), len(result))
 
     def test_mp_indexer_6(self):
@@ -337,7 +366,8 @@ class TestIndexerSinglePart(unittest.TestCase):
 
     def test_mp_indexer_7(self):
         # that the resulting Series has the same objects (given a Stream)
-        result = indexer._stream_indexer(0, [self.in_stream], self.verbatim, [base.ElementWrapper])[1]
+        result = indexer._stream_indexer(0, [self.in_stream],
+                                         self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.in_series)):
             self.assertEqual(self.in_series[i], result[i])
 
@@ -345,8 +375,9 @@ class TestIndexerSinglePart(unittest.TestCase):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test lengths
         # --> one event at each offset
-        input_stream = stream.Stream(self.mixed_list)
-        result = indexer._stream_indexer(0, [self.in_stream], self.verbatim, [base.ElementWrapper])[1]
+        # input_stream = stream.Stream(self.mixed_list)
+        result = indexer._stream_indexer(0, [self.in_stream],
+                                         self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_series), len(result))
 
     def test_mp_indexer_9(self):
@@ -365,7 +396,8 @@ class TestIndexerSinglePart(unittest.TestCase):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test values
         # --> one event at each offset
-        result = indexer._stream_indexer(0, [self.mixed_list], self.verbatim, [base.ElementWrapper])[1]
+        result = \
+            indexer._stream_indexer(0, [self.mixed_list], self.verbatim, [base.ElementWrapper])[1]
         for i in xrange(len(self.mixed_series_notes)):
             self.assertEqual(self.mixed_series_notes[i], result[i])
 
@@ -383,7 +415,8 @@ class TestIndexerSinglePart(unittest.TestCase):
         # that a list with two types is properly filtered when it's given as a Stream
         # --> test lengths
         # --> two events at each offset
-        result = indexer._stream_indexer(0, [self.in_stream], self.verbatim, [base.ElementWrapper])[1]
+        result = indexer._stream_indexer(0, [self.in_stream],
+                                         self.verbatim, [base.ElementWrapper])[1]
         self.assertEqual(len(self.in_series), len(result))
 
     def test_mp_indexer_12a(self):
@@ -391,13 +424,13 @@ class TestIndexerSinglePart(unittest.TestCase):
         # --> test lengths
         # --> two events at each offset
         # --> if we want ElementWrappers and Rests
-        input_stream = stream.Stream(self.shared_mixed_list)
+        # input_stream = stream.Stream(self.shared_mixed_list)
         result = indexer._stream_indexer(0, [self.shared_mixed_list],
-                                        self.verbatim_rests,
-                                        [base.ElementWrapper, note.Rest])[1]
+                                         self.verbatim_rests,
+                                         [base.ElementWrapper, note.Rest])[1]
         self.assertEqual(len(self.shared_mixed_list), len(result))
 
-    #def test_mp_indexer_13(self):  # TODO: fails pending implementation of MultiIndex
+        #def test_mp_indexer_13(self):  # TODO: fails pending implementation of MultiIndex
         ## that a list with two types is not filtered when it's given as a Series, even if there's
         ## a value for the "types" parameter
         ## --> test lengths
@@ -415,27 +448,39 @@ class TestIndexerSinglePart(unittest.TestCase):
         for i in xrange(len(self.in_stream)):
             self.assertEqual(self.in_series[i], result[i])
 
-    #def test_mp_indexer_14a(self):  # TODO: fails pending implementation of MultiIndex
-        ## that a list with two types is properly filtered when it's given as a Stream
-        ## --> test values
-        ## --> two events at each offset
-        ## --> if we want ElementWrappers and Rests
-        #result = indexer._stream_indexer(0, [self.shared_mixed_list],
-                                        #self.verbatim_rests,
-                                        #[base.ElementWrapper, note.Rest])[1]
-        #for i in self.shared_mixed_series.index:
+            #def test_mp_indexer_14a(self):  # TODO: fails pending implementation of MultiIndex
+            ## that a list with two types is properly filtered when it's given as a Stream
+            ## --> test values
+            ## --> two events at each offset
+            ## --> if we want ElementWrappers and Rests
+            #result = indexer._stream_indexer(0, [self.shared_mixed_list],
+            #self.verbatim_rests,
+            #[base.ElementWrapper, note.Rest])[1]
+            #for i in self.shared_mixed_series.index:
             #self.assertEqual(result[i], pandas.Series([u'Rest', unicode(i)], index=[i, i]))
 
-    #def test_mp_indexer_15(self):  # TODO: fails pending implementation of MultiIndex
-        ## that a list with two types is not filtered when it's given as a Series, even if there's
-        ## a value for the "types" parameter
-        ## --> test values
-        ## --> two events at each offset
-        #result = indexer._series_indexer(0, [self.shared_mixed_series], self.verbatim_rests)[1]
-        #for i in self.shared_mixed_series.index:
+            #def test_mp_indexer_15(self):  # TODO: fails pending implementation of MultiIndex
+            ## that a list with two types is not filtered when it's given as a Series,
+            # even if there's a value for the "types" parameter
+            ## --> test values
+            ## --> two events at each offset
+            #result = indexer._series_indexer(0, [self.shared_mixed_series], self.verbatim_rests)[1]
+            #for i in self.shared_mixed_series.index:
             #self.assertEqual(result[i], pandas.Series([u'Rest', unicode(i)], index=[i, i]))
+
 
 class TestIndexerThreeParts(unittest.TestCase):
+    def verbatim(self, x):
+        """
+        lambda for mp_indexer() that returns the object unmodified
+        :param x:
+        :return x:
+        """
+        return x[0].obj
+
+    def verbatim_ser(self, x):
+        return x[0]
+
     def setUp(self):
         # prepare a valid list of ElementWrappers (with proper offset and duration)
         self.in_series = pandas.Series([x for x in xrange(100)],
@@ -445,9 +490,6 @@ class TestIndexerThreeParts(unittest.TestCase):
             elem.offset = i * 0.25
             elem.duration = duration.Duration(0.25)
         self.in_stream = stream.Stream(self.in_stream)
-        # lambda for mp_indexer() that returns the object unmodified
-        self.verbatim = lambda x: x[0].obj
-        self.verbatim_ser = lambda x: x[0]
         # prepare a valid list of Rests and ElementWrappers, happening simultaneously, to see that
         # we can properly filter by type
         self.mixed_list = []
@@ -474,8 +516,10 @@ class TestIndexerThreeParts(unittest.TestCase):
             mixed_series_notes.append(unicode(i))
             self.mixed_list.append(app_me)
         self.mixed_series = pandas.Series(mixed_series_data, index=mixed_series_offsets)
-        self.mixed_series_notes = pandas.Series(mixed_series_notes, index=mixed_series_notes_offsets)
-        self.mixed_series_rests = pandas.Series(mixed_series_rests, index=mixed_series_rests_offsets)
+        self.mixed_series_notes = pandas.Series(mixed_series_notes,
+                                                index=mixed_series_notes_offsets)
+        self.mixed_series_rests = pandas.Series(mixed_series_rests,
+                                                index=mixed_series_rests_offsets)
         self.mixed_list = stream.Stream(self.mixed_list)
         # same list as previous, but with a Rest and ElementerWrapper sharing each offset
         self.shared_mixed_list = []
@@ -496,7 +540,8 @@ class TestIndexerThreeParts(unittest.TestCase):
         self.shared_mixed_list = stream.Stream(self.shared_mixed_list)
         self.shared_mixed_series = pandas.Series(s_m_series, index=s_m_series_offsets)
         # lambda that deals with Rest objects
-        self.verbatim_rests = lambda x: u'Rest' if isinstance(x[0], note.Rest) else unicode(x[0].obj)
+        self.verbatim_rests = lambda x: u'Rest' if isinstance(x[0], note.Rest) else unicode(
+            x[0].obj)
 
     def test_mpi_triple_1(self):
         # that we get a Series back when a Series is given
@@ -732,7 +777,7 @@ class TestIndexerThreeParts(unittest.TestCase):
             zed = base.ElementWrapper(number)
             zed.duration = duration.Duration(0.5)
             part.insert(offset, zed)
-        # define expected
+            # define expected
         expected = [(0.0, u'(0, 0)'),
                     (0.5, u'(1, 1)'),
                     (0.5, u'(100, 100)'),
@@ -743,7 +788,9 @@ class TestIndexerThreeParts(unittest.TestCase):
                     (2.0, u'(4, 4)'),
                     (2.0, u'(400, 400)')]
         # do the test
-        result = indexer.mp_indexer(0, [part_1, part_2], self.verbatim_variable, [base.ElementWrapper])[1]
+        result = \
+            indexer.mp_indexer(0, [part_1, part_2], self.verbatim_variable, [base.ElementWrapper])[
+                1]
         for i in xrange(len(expected)):
             self.assertEqual(expected[i][0], result[i].offset)
             self.assertEqual(expected[i][1], result[i].obj)
@@ -778,7 +825,7 @@ class TestIndexerThreeParts(unittest.TestCase):
             zed = base.ElementWrapper(number)
             zed.duration = duration.Duration(0.5)
             part.insert(offset, zed)
-        # define expected
+            # define expected
         expected = [(0.0, u'(0, 0, 0)'),
                     (0.5, u'(1, 1, 1)'),
                     (0.5, u'(101, 102, 103)'),
@@ -797,6 +844,7 @@ class TestIndexerThreeParts(unittest.TestCase):
         for i in xrange(len(expected)):
             self.assertEqual(expected[i][0], result[i].offset)
             self.assertEqual(expected[i][1], result[i].obj)
+
 
 class TestMpiUniqueOffsets(unittest.TestCase):
     # the whole point is to test a "private" function
@@ -913,6 +961,7 @@ class TestMpiUniqueOffsets(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
+
 class TestMpiVertAligner(unittest.TestCase):
     # the whole point is to test a "private" function
     # pylint: disable=W0212
@@ -973,8 +1022,8 @@ class TestMpiVertAligner(unittest.TestCase):
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-indexer_1_part_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerSinglePart)
-indexer_3_parts_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerThreeParts)
-unique_offsets_suite = unittest.TestLoader().loadTestsFromTestCase(TestMpiUniqueOffsets)
-vert_aligner_suite = unittest.TestLoader().loadTestsFromTestCase(TestMpiVertAligner)
-indexer_hardcore_suite = unittest.TestLoader().loadTestsFromTestCase(TestIndexerHardcore)
+INDEXER_1_PART_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerSinglePart)
+INDEXER_3_PARTS_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerThreeParts)
+UNIQUE_OFFSETS_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMpiUniqueOffsets)
+VERT_ALIGNER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMpiVertAligner)
+INDEXER_HARDCORE_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerHardcore)

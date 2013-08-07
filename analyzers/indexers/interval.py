@@ -75,7 +75,7 @@ def real_indexer(ecks, simple, qual):
             post += q_str
         if simple:
             post += u'8' if 8 == interv.generic.undirected \
-                    else unicode(interv.generic.simpleUndirected)
+                else unicode(interv.generic.simpleUndirected)
         else:
             post += unicode(interv.generic.undirected)
         return post
@@ -151,7 +151,8 @@ class IntervalIndexer(indexer.Indexer):
         if 'simple or compound' in settings:
             self._settings['simple or compound'] = settings['simple or compound']
         else:
-            self._settings['simple or compound'] = IntervalIndexer.default_settings['simple or compound']  # pylint: disable=C0301
+            self._settings['simple or compound'] = \
+                IntervalIndexer.default_settings['simple or compound']  # pylint: disable=C0301
         if 'quality' in settings:
             self._settings['quality'] = settings['quality']
         else:
@@ -254,7 +255,8 @@ class HorizontalIntervalIndexer(indexer.Indexer):
         if 'simple or compound' in settings:
             self._settings['simple or compound'] = settings['simple or compound']
         else:
-            self._settings['simple or compound'] = IntervalIndexer.default_settings['simple or compound']  # pylint: disable=C0301
+            self._settings['simple or compound'] = IntervalIndexer.default_settings[
+                'simple or compound']  # pylint: disable=C0301
         if 'quality' in settings:
             self._settings['quality'] = settings['quality']
         else:

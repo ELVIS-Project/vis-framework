@@ -134,7 +134,6 @@ def _stream_indexer(pipe_index, parts, indexer_func, types):
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
 
     # Convert "frozen" Streams, if needed; flatten the streams and filter classes
-    all_parts = None
     if isinstance(parts[0], basestring):
         all_parts = [converter.thaw(each).flat.getElementsByClass(types) for each in parts]
     else:
@@ -247,6 +246,7 @@ class Indexer(object):
     # self._indexer_func
     # self._types
 
+    # pylint: disable=W0613
     def __init__(self, score, settings=None, mpc=None):
         """
         Create a new Indexer.

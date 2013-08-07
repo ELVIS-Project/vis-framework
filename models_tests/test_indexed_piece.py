@@ -26,9 +26,9 @@ import shutil
 from unittest import TestCase, TestLoader
 from mock import patch, MagicMock, Mock
 import music21
-from analyzers import indexers
-from analyzers.indexer import Indexer
-from models.indexed_piece import IndexedPiece
+from vis.analyzers import indexers
+from vis.analyzers.indexer import Indexer
+from vis.models.indexed_piece import IndexedPiece
 
 
 class TestIndexedPieceNormal(TestCase):
@@ -244,7 +244,7 @@ class TestIndexedPiece(TestCase):
                               {'required_indices': [u'RequiredIndexer']})
         NotAnIndexer = 1
 
-    @patch('models.indexed_piece.indexer', MockIndexerModule)
+    @patch('vis.models.indexed_piece.indexer', MockIndexerModule)
     @patch('music21.converter.parse', lambda path: MagicMock(spec=music21.stream.Score))
     def test_metadata(self):
         """
@@ -272,12 +272,12 @@ class TestIndexedPiece(TestCase):
         open(addon_path + '/__init__.py', 'w').close()
         filepath = addon_path + '/extra_stuff.py'
         extra_stuff = open(filepath, 'w')
-        extra_stuff.write('from models_tests.test_indexed_piece import TestIndexedPiece\n')
+        extra_stuff.write('from vis.models_tests.test_indexed_piece import TestIndexedPiece\n')
         extra_stuff.write('TestIndexer = TestIndexedPiece.MockIndexerModule.TestIndexer')
         extra_stuff.close()
         return addon_path
 
-    @patch('models.indexed_piece.indexer', MockIndexerModule)
+    @patch('vis.models.indexed_piece.indexer', MockIndexerModule)
     def test_add_index(self):
         # add an existing indexer
         """

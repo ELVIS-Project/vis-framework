@@ -35,10 +35,9 @@ from PyQt4 import QtCore, QtGui
 # music21
 from music21 import graph, base
 # vis
-from controller import Controller
-import file_output
-from views.Ui_text_display import Ui_Text_Display
-import OutputLilyPond
+from vis.controllers.controller import Controller
+from vis.controllers import file_output
+from vis.views.Ui_text_display import Ui_Text_Display
 
 
 class DisplayHandler(Controller):
@@ -216,7 +215,7 @@ class SpreadsheetFileDisplay(Display):
         for each_row in self._data:
             for each_column in each_row:
                 post += str(each_column) + ', '
-            # remove the final ', ' and append a newline
+                # remove the final ', ' and append a newline
             post = post[:-2] + '\n'
 
         # We will *not* emit this signal, but rather let the FileOutputDisplay do it.
@@ -308,6 +307,7 @@ class VisTextDisplay(Ui_Text_Display):
     I brought this class back from vis7 as a temporary measure, meant to satisfy our need to see
     results before saving them, just for the Hack Day in May 2013.
     """
+
     def __init__(self, text):
         """
         Make a new VisTextDisplay
@@ -330,17 +330,17 @@ class VisTextDisplay(Ui_Text_Display):
         Save the file.
         """
         filename = str(QtGui.QFileDialog.getSaveFileName(None,
-                        'Save As',
-                        '',
-                        '*.txt'))
+                                                         'Save As',
+                                                         '',
+                                                         '*.txt'))
         result = file_output.file_outputter(self.text, filename, overwrite=True)
         if result[1] is not None:
             QtGui.QMessageBox.information(None,
-                'File Output Failed',
-                result[1],
-                QtGui.QMessageBox.StandardButtons(
-                    QtGui.QMessageBox.Ok),
-                    QtGui.QMessageBox.Ok)
+                                          'File Output Failed',
+                                          result[1],
+                                          QtGui.QMessageBox.StandardButtons(
+                                              QtGui.QMessageBox.Ok),
+                                          QtGui.QMessageBox.Ok)
 
     def close(self):
         """
@@ -368,6 +368,58 @@ class GraphDisplay(Display):
         # NOTE: You must re-implement this, and change "object" to "Display"
         super(GraphDisplay, self).__init__(controller, data, settings)
 
+    def prep_graph(self):
+        """
+        Prepares a histogram of the data in this DisplayHandler
+        :return: the prepared graph
+        """
+        the_graph = graph.GraphHistogram(doneAction=None)
+        the_graph.setData(self._data)
+        the_graph.setTitle('A Chart Produced by vis')
+        # figure out x-axis ticks
+        garbage_tick_list = []
+        for i in xrange(len(self._data)):
+            # make a label that's like "things: occurrences"
+            x_label = self._data[i][0] + u': ' + unicode(self._data[i][1])
+            garbage_tick_list.append((i + 0.4, x_label))
+        the_graph.setTicks('x', garbage_tick_list)
+        the_graph.xTickLabelHorizontalAlignment = 'center'
+        setattr(the_graph, 'xTickLabelRotation', 45)
+        the_graph.setAxisLabel('x', 'Object')
+        the_graph.setAxisLabel('y', 'Number')
+        # figure out y-axis ticks
+        max_height = max([i[1] for i in self._data])
+        tick_dist = max(max_height / 10, 1)
+        ticks = []
+        k = 0
+        while k * tick_dist <= max_height:
+            k += 1
+            ticks.append(k * tick_dist)
+        the_graph.setTicks('y', [(k, k) for k in ticks])
+        # process and show the data; emit completion signal
+        # BEGIN SEGMENT COPIED FROM graph.py
+        # figure size can be set w/ figsize=(5,10)
+        the_graph.fig = plt.figure()
+        the_graph.fig.subplots_adjust(left=0.15)
+        the_subplot = the_graph.fig.add_subplot(1, 1, 1)
+        list_of_x = []
+        list_of_y = []
+        color = graph.getColor('Steel Blue')
+        for ecks in xrange(len(self._data)):
+            list_of_x.append(ecks + 0.4)
+            list_of_y.append(self._data[ecks][1])
+        the_subplot.bar(list_of_x,
+                        list_of_y,
+                        width=the_graph.binWidth,
+                        alpha=the_graph.alpha,
+                        color=color,
+                        edgecolor=color)
+        the_graph._adjustAxisSpines(the_subplot)
+        the_graph._applyFormatting(the_subplot)
+        the_graph.done()
+        # END SEGMENT COPIED FROM graph.py
+        return the_graph
+
     def show(self):
         """
         Show the data in the display.
@@ -388,61 +440,12 @@ class GraphDisplay(Display):
         # prepare the GraphHistogram
         try:  # this has something to do with Windows being Windows
             import matplotlib
+
             if 'matplotlib' in base._missingImport:
                 base._missingImport.remove('matplotlib')
-        except:
+        except ImportError:
             pass
-        the_graph = graph.GraphHistogram(doneAction=None)
-        the_graph.setData(self._data)
-        the_graph.setTitle('A Chart Produced by vis')
-
-        # figure out x-axis ticks
-        garbage_tick_list = []
-        for i in xrange(len(self._data)):
-            # make a label that's like "things: occurrences"
-            x_label = self._data[i][0] + u': ' + unicode(self._data[i][1])
-            garbage_tick_list.append((i + 0.4, x_label))
-        the_graph.setTicks('x', garbage_tick_list)
-        the_graph.xTickLabelHorizontalAlignment = 'center'
-        setattr(the_graph, 'xTickLabelRotation', 45)
-        the_graph.setAxisLabel('x', 'Object')
-        the_graph.setAxisLabel('y', 'Number')
-
-        # figure out y-axis ticks
-        max_height = max([i[1] for i in self._data])
-        tick_dist = max(max_height / 10, 1)
-        ticks = []
-        k = 0
-        while k * tick_dist <= max_height:
-            k += 1
-            ticks.append(k * tick_dist)
-        the_graph.setTicks('y', [(k, k) for k in ticks])
-
-        # process and show the data; emit completion signal
-        # BEGIN SEGMENT COPIED FROM graph.py
-        # figure size can be set w/ figsize=(5,10)
-        the_graph.fig = plt.figure()
-        the_graph.fig.subplots_adjust(left=0.15)
-        the_subplot = the_graph.fig.add_subplot(1, 1, 1)
-
-        list_of_x = []
-        list_of_y = []
-        color = graph.getColor('Steel Blue')
-        for ecks in xrange(len(self._data)):
-            list_of_x.append(ecks + 0.4)
-            list_of_y.append(self._data[ecks][1])
-        the_subplot.bar(list_of_x,
-            list_of_y,
-            width=the_graph.binWidth,
-            alpha=the_graph.alpha,
-            color=color,
-            edgecolor=color)
-
-        the_graph._adjustAxisSpines(the_subplot)
-        the_graph._applyFormatting(the_subplot)
-        the_graph.done()
-        # END SEGMENT COPIED FROM graph.py
-
+        the_graph = self.prep_graph()
         the_graph.show()
         self._controller.display_shown.emit()
 
@@ -474,10 +477,10 @@ class LilyPondDisplay(Display):
             extension = '.ly'
             # get the place they want to save the LilyPond file
             file_save = QtGui.QFileDialog.getSaveFileName(None,
-                u'Where to Save the LilyPond File?',
-                u'.ly',
-                u'',
-                None)
+                                                          u'Where to Save the LilyPond File?',
+                                                          u'.ly',
+                                                          u'',
+                                                          None)
             # remove the extension, if they put it
             if len(file_save) > '.ly' == file_save[-3:]:
                 pathname = file_save[:-3]

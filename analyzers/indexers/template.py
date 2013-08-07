@@ -29,6 +29,7 @@ from music21 import stream
 from vis.analyzers import indexer
 
 
+# pylint: disable=W0613
 def indexer_func(obj):
     """
     docstring

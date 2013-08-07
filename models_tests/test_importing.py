@@ -22,7 +22,6 @@
 #-------------------------------------------------------------------------------
 
 
-
 # Imports from...
 # python
 import unittest
@@ -30,255 +29,206 @@ import unittest
 from PyQt4.QtCore import Qt, QVariant
 from PyQt4 import QtCore
 # vis
-from models import importing
-
+from vis.models import importing
 
 
 class TestBasics(unittest.TestCase):
-   # Test the constructor, rowCount(), headerData(), flags()
-   def setUp(self):
-      self.lof = importing.ListOfFiles()
+    # Test the constructor, rowCount(), headerData(), flags()
+    def setUp(self):
+        self.lof = importing.ListOfFiles()
 
+    def test_constructor_1(self):
+        self.assertEqual([], self.lof._files)
 
+    def test_rowCount_1(self):
+        self.assertEqual(0, self.lof.rowCount())
 
-   def test_constructor_1(self):
-      self.assertEqual([], self.lof._files)
+    def test_rowCount_2(self):
+        self.lof._files = ['allegro.midi']
+        self.assertEqual(1, self.lof.rowCount())
 
+    def test_rowCount_3(self):
+        self.lof._files = ['allegro.midi', 'langsam.md']
+        self.assertEqual(2, self.lof.rowCount())
 
-
-   def test_rowCount_1(self):
-      self.assertEqual(0, self.lof.rowCount())
-
-
-
-   def test_rowCount_2(self):
-      self.lof._files = ['allegro.midi']
-      self.assertEqual(1, self.lof.rowCount())
-
-
-
-   def test_rowCount_3(self):
-      self.lof._files = ['allegro.midi', 'langsam.md']
-      self.assertEqual(2, self.lof.rowCount())
 # End TestInit -----------------------------------------------------------------
 
 
-
 class TestData(unittest.TestCase):
-   # Test data()
-   def setUp(self):
-      self.lof = importing.ListOfFiles()
+    # Test data()
+    def setUp(self):
+        self.lof = importing.ListOfFiles()
 
+    def test_data_1(self):
+        self.lof._files = ['a']
+        self.assertEqual('a', self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
 
+    def test_data_2(self):
+        self.lof._files = ['a', 'b', 'c']
+        self.assertEqual('a', self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
+        self.assertEqual('b', self.lof.data(self.lof.createIndex(1, 0), Qt.DisplayRole))
+        self.assertEqual('c', self.lof.data(self.lof.createIndex(2, 0), Qt.DisplayRole))
+        self.assertEqual(QVariant(), self.lof.data(self.lof.createIndex(3, 0), Qt.DisplayRole))
 
-   def test_data_1(self):
-      self.lof._files = ['a']
-      self.assertEqual('a', self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
+    def test_data_4(self):
+        self.assertEqual(QVariant(), self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
 
-
-
-   def test_data_2(self):
-      self.lof._files = ['a', 'b', 'c']
-      self.assertEqual('a', self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
-      self.assertEqual('b', self.lof.data(self.lof.createIndex(1, 0), Qt.DisplayRole))
-      self.assertEqual('c', self.lof.data(self.lof.createIndex(2, 0), Qt.DisplayRole))
-      self.assertEqual(QVariant(), self.lof.data(self.lof.createIndex(3, 0), Qt.DisplayRole))
-
-
-
-   def test_data_4(self):
-      self.assertEqual(QVariant(), self.lof.data(self.lof.createIndex(0, 0), Qt.DisplayRole))
 # End TestData -----------------------------------------------------------------
 
 
-
-
 class TestSetData(unittest.TestCase):
-   # Test setData()
-   def setUp(self):
-      self.lof = importing.ListOfFiles()
+    # Test setData()
+    def setUp(self):
+        self.lof = importing.ListOfFiles()
 
+    def test_set_data_1(self):
+        self.lof._files = ['']
+        self.lof.setData(self.lof.createIndex(0, 0), 'kyrie.krn', Qt.EditRole)
+        self.assertEqual(['kyrie.krn'], self.lof._files)
 
-   def test_set_data_1(self):
-      self.lof._files = ['']
-      self.lof.setData(self.lof.createIndex(0, 0), 'kyrie.krn', Qt.EditRole)
-      self.assertEqual(['kyrie.krn'], self.lof._files)
+    def test_set_data_2(self):
+        self.lof._files = ['', '', '', '', '']
+        self.lof.setData(self.lof.createIndex(2, 0), 'kyrie.krn', Qt.EditRole)
+        self.assertEqual(['', '', 'kyrie.krn', '', ''], self.lof._files)
 
+    def test_set_data_3(self):
+        self.lof._files = ['', '', '']
+        self.lof.setData(self.lof.createIndex(3, 0), 'kyrie.krn', Qt.EditRole)
+        self.assertEqual(['', '', ''], self.lof._files)
 
-   def test_set_data_2(self):
-      self.lof._files = ['', '', '', '', '']
-      self.lof.setData(self.lof.createIndex(2, 0), 'kyrie.krn', Qt.EditRole)
-      self.assertEqual(['', '', 'kyrie.krn', '', ''], self.lof._files)
+    def test_set_data_4(self):
+        self.lof._files = ['', '', '', '', '']
+        self.lof.setData(self.lof.createIndex(1, 0), 'kyrie.krn', Qt.EditRole)
+        self.lof.setData(self.lof.createIndex(2, 0), 'gloria.krn', Qt.EditRole)
+        self.lof.setData(self.lof.createIndex(3, 0), 'minuet.krn', Qt.EditRole)
+        self.assertEqual(['', 'kyrie.krn', 'gloria.krn', 'minuet.krn', ''],
+                         self.lof._files)
 
-
-   def test_set_data_3(self):
-      self.lof._files = ['', '', '']
-      self.lof.setData(self.lof.createIndex(3, 0), 'kyrie.krn', Qt.EditRole)
-      self.assertEqual(['', '', ''], self.lof._files)
-
-
-   def test_set_data_4(self):
-      self.lof._files = ['', '', '', '', '']
-      self.lof.setData(self.lof.createIndex(1, 0), 'kyrie.krn', Qt.EditRole)
-      self.lof.setData(self.lof.createIndex(2, 0), 'gloria.krn', Qt.EditRole)
-      self.lof.setData(self.lof.createIndex(3, 0), 'minuet.krn', Qt.EditRole)
-      self.assertEqual(['', 'kyrie.krn', 'gloria.krn', 'minuet.krn', ''],
-                       self.lof._files)
 # End TestSetData --------------------------------------------------------------
 
 
-
 class TestInsertRows(unittest.TestCase):
-   # Test insertRows()
-   def setUp(self):
-      self.lof = importing.ListOfFiles()
+    # Test insertRows()
+    def setUp(self):
+        self.lof = importing.ListOfFiles()
 
+    def test_insert_rows_1(self):
+        #self.lof._files = []
+        self.lof.insertRows(0, 1)
+        self.assertEqual([''], self.lof._files)
 
+    def test_insert_rows_2(self):
+        #self.lof._files = []
+        self.lof.insertRows(0, 2)
+        self.assertEqual(['', ''], self.lof._files)
 
-   def test_insert_rows_1(self):
-      #self.lof._files = []
-      self.lof.insertRows(0, 1)
-      self.assertEqual([''], self.lof._files)
+    def test_insert_rows_3(self):
+        #self.lof._files = []
+        self.lof.insertRows(0, 5)
+        self.assertEqual(['', '', '', '', ''], self.lof._files)
 
+    def test_insert_rows_4(self):
+        self.lof._files = ['a']
+        self.lof.insertRows(0, 1)
+        self.assertEqual(['', 'a'], self.lof._files)
 
-   def test_insert_rows_2(self):
-      #self.lof._files = []
-      self.lof.insertRows(0, 2)
-      self.assertEqual(['', ''], self.lof._files)
+    def test_insert_rows_5(self):
+        self.lof._files = ['a', 'b', 'c', 'd']
+        self.lof.insertRows(0, 2)
+        self.assertEqual(['', '', 'a', 'b', 'c', 'd'], self.lof._files)
 
+    def test_insert_rows_6(self):
+        self.lof._files = ['a', 'b', 'c', 'd']
+        self.lof.insertRows(3, 1)
+        self.assertEqual(['a', 'b', 'c', '', 'd'], self.lof._files)
 
-   def test_insert_rows_3(self):
-      #self.lof._files = []
-      self.lof.insertRows(0, 5)
-      self.assertEqual(['', '', '', '', ''], self.lof._files)
-
-
-   def test_insert_rows_4(self):
-      self.lof._files = ['a']
-      self.lof.insertRows(0, 1)
-      self.assertEqual(['', 'a'], self.lof._files)
-
-
-   def test_insert_rows_5(self):
-      self.lof._files = ['a', 'b', 'c', 'd']
-      self.lof.insertRows(0, 2)
-      self.assertEqual(['', '', 'a', 'b', 'c', 'd'], self.lof._files)
-
-
-   def test_insert_rows_6(self):
-      self.lof._files = ['a', 'b', 'c', 'd']
-      self.lof.insertRows(3, 1)
-      self.assertEqual(['a', 'b', 'c', '', 'd'], self.lof._files)
 # End TestInsertRows -----------------------------------------------------------
 
 
-
 class TestIsPresent(unittest.TestCase):
-   # Test isPresent()
-   def setUp(self):
-      self.lof = importing.ListOfFiles()
+    # Test isPresent()
+    def setUp(self):
+        self.lof = importing.ListOfFiles()
 
+    def test_is_present_1(self):
+        self.lof._files = ['a', 'b', 'c', 'd']
+        actual = self.lof.isPresent('b')
+        self.assertEqual(type(actual), QtCore.QModelIndex)
+        self.assertEqual(actual.row(), 1)
 
+    def test_is_present_2(self):
+        self.lof._files = ['a']
+        actual = self.lof.isPresent('a')
+        self.assertEqual(type(actual), QtCore.QModelIndex)
+        self.assertEqual(actual.row(), 0)
 
-   def test_is_present_1(self):
-      self.lof._files = ['a', 'b', 'c', 'd']
-      actual = self.lof.isPresent('b')
-      self.assertEqual(type(actual), QtCore.QModelIndex)
-      self.assertEqual(actual.row(), 1)
+    def test_is_present_3(self):
+        self.lof._files = ['a', 'b', 'c', 'd']
+        actual = self.lof.isPresent('l')
+        self.assertEqual(type(actual), bool)
+        self.assertFalse(actual)
 
+    def test_is_present_4(self):
+        actual = self.lof.isPresent('anything')
+        self.assertEqual(type(actual), bool)
+        self.assertFalse(actual)
 
+    def test_is_present_5(self):
+        # test inputting a valid QModelIndex
+        self.lof._files = ['a', 'b', 'c', 'd']
+        actual = self.lof.isPresent(self.lof.createIndex(2, 0))
+        self.assertEqual(type(actual), QtCore.QModelIndex)
+        self.assertEqual(actual.row(), 2)
 
-   def test_is_present_2(self):
-      self.lof._files = ['a']
-      actual = self.lof.isPresent('a')
-      self.assertEqual(type(actual), QtCore.QModelIndex)
-      self.assertEqual(actual.row(), 0)
+    def test_is_present_6(self):
+        # test inputting an invalid QModelIndex
+        self.lof._files = ['a', 'b', 'c', 'd']
+        actual = self.lof.isPresent(self.lof.createIndex(12, 0))
+        self.assertEqual(type(actual), bool)
+        self.assertFalse(actual)
 
-
-
-   def test_is_present_3(self):
-      self.lof._files = ['a', 'b', 'c', 'd']
-      actual = self.lof.isPresent('l')
-      self.assertEqual(type(actual), bool)
-      self.assertFalse(actual)
-
-
-
-   def test_is_present_4(self):
-      actual = self.lof.isPresent('anything')
-      self.assertEqual(type(actual), bool)
-      self.assertFalse(actual)
-
-
-
-   def test_is_present_5(self):
-      # test inputting a valid QModelIndex
-      self.lof._files = ['a', 'b', 'c', 'd']
-      actual = self.lof.isPresent(self.lof.createIndex(2, 0))
-      self.assertEqual(type(actual), QtCore.QModelIndex)
-      self.assertEqual(actual.row(), 2)
-
-
-
-   def test_is_present_6(self):
-      # test inputting an invalid QModelIndex
-      self.lof._files = ['a', 'b', 'c', 'd']
-      actual = self.lof.isPresent(self.lof.createIndex(12, 0))
-      self.assertEqual(type(actual), bool)
-      self.assertFalse(actual)
 # End TestIsPresent ------------------------------------------------------------
 
 
-
 class TestIterator(unittest.TestCase):
-   # Test iterateRows()
-   # TODO: how to test this?
-   pass
+    # Test iterateRows()
+    # TODO: how to test this?
+    pass
+
 # End TestIterator -------------------------------------------------------------
 
 
-
 class TestRemoveRows(unittest.TestCase):
-   # Test removeRows()
-   def setUp(self):
-      self.lof = importing.ListOfFiles()
+    # Test removeRows()
+    def setUp(self):
+        self.lof = importing.ListOfFiles()
 
+    def test_remove_rows_1(self):
+        self.lof._files = ['a', 'b', 'c']
+        self.lof.removeRows(2, 1)
+        self.assertEqual(['a', 'b'], self.lof._files)
 
+    def test_remove_rows_2(self):
+        self.lof._files = ['a', 'b', 'c']
+        self.lof.removeRows(1, 2)
+        self.assertEqual(['a'], self.lof._files)
 
-   def test_remove_rows_1(self):
-      self.lof._files = ['a', 'b', 'c']
-      self.lof.removeRows(2, 1)
-      self.assertEqual(['a', 'b'], self.lof._files)
+    def test_remove_rows_3(self):
+        self.lof._files = ['a', 'b', 'c']
+        self.lof.removeRows(0, 1)
+        self.assertEqual(['b', 'c'], self.lof._files)
 
+    def test_remove_rows_4(self):
+        self.lof._files = ['a', 'b', 'c']
+        self.lof.removeRows(2, 4)
+        self.assertEqual(['a', 'b'], self.lof._files)
 
+    def test_remove_rows_5(self):
+        self.lof._files = ['a', 'b', 'c']
+        self.lof.removeRows(0, 3)
+        self.assertEqual([], self.lof._files)
 
-   def test_remove_rows_2(self):
-      self.lof._files = ['a', 'b', 'c']
-      self.lof.removeRows(1, 2)
-      self.assertEqual(['a'], self.lof._files)
-
-
-
-   def test_remove_rows_3(self):
-      self.lof._files = ['a', 'b', 'c']
-      self.lof.removeRows(0, 1)
-      self.assertEqual(['b', 'c'], self.lof._files)
-
-
-
-   def test_remove_rows_4(self):
-      self.lof._files = ['a', 'b', 'c']
-      self.lof.removeRows(2, 4)
-      self.assertEqual(['a', 'b'], self.lof._files)
-
-
-
-   def test_remove_rows_5(self):
-      self.lof._files = ['a', 'b', 'c']
-      self.lof.removeRows(0, 3)
-      self.assertEqual([], self.lof._files)
 # End TestRemoveRows -----------------------------------------------------------
-
 
 
 #-------------------------------------------------------------------------------

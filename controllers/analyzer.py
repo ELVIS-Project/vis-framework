@@ -35,8 +35,8 @@ from music21 import note, chord, converter, stream
 # PyQt4
 from PyQt4 import QtCore
 # vis
-from controller import Controller
-from models.analyzing import ListOfPieces, AnalysisRecord, AnalysisSettings
+from vis.controllers.controller import Controller
+from vis.models.analyzing import ListOfPieces, AnalysisRecord, AnalysisSettings
 
 
 def analyze_piece(each_piece, which_objects):
@@ -46,7 +46,7 @@ def analyze_piece(each_piece, which_objects):
     records = []
     try:
         piece_name = str(each_piece[ListOfPieces.score][1])
-    except Exception as exc:
+    except (IndexError, KeyError) as exc:
         return str(exc)
     # (1) Decode the part-combination specification
     this_combos = str(each_piece[ListOfPieces.parts_combinations])
@@ -108,8 +108,8 @@ def analyze_piece(each_piece, which_objects):
                                          settings=this_settings,
                                          record=this_record))
         except RuntimeError as excep:
-            return (piece_name, str(excep))
-    return (piece_name, records)
+            return piece_name, str(excep)
+    return piece_name, records
 
 
 def _event_finder(parts, settings, record):
@@ -240,7 +240,7 @@ class AnalyzerThread(QtCore.QThread):
         self.progress = 0
         self.num_pieces = 0
         self._multiprocess = True
-        self._pool = None
+        self.pool = None
         super(QtCore.QThread, self).__init__()
 
     def set_multiprocess(self, state):
@@ -265,7 +265,7 @@ class AnalyzerThread(QtCore.QThread):
             self._analyzer.status.emit(str(int(float(self.progress) / self.num_pieces * 100)))
             self._analyzer.status.emit(unicode(piece_name) + " completed.")
             for record in result:
-                self._analyzer._list_of_analyses.append(record)
+                self._analyzer.list_of_analyses.append(record)
 
     def run(self):
         """
@@ -274,7 +274,7 @@ class AnalyzerThread(QtCore.QThread):
         self._analyzer.analysis_is_running = True
         self._analyzer.status.emit('0')
         self._analyzer.status.emit('Analyzing...')
-        self.num_pieces = self._analyzer._list_of_pieces.rowCount()
+        self.num_pieces = self._analyzer.get_pieces().rowCount()
         self.progress = 0
 
         # figure out 'which_objects,' to make sure we have a valid/useful list
@@ -286,7 +286,7 @@ class AnalyzerThread(QtCore.QThread):
 
         # Convert everything in "each_piece" to *not* a QVariant
         the_pieces = []
-        for each_raw_piece in self._analyzer._list_of_pieces:
+        for each_raw_piece in self._analyzer.get_pieces():
             collecting = []
             for each_column in each_raw_piece:
                 if isinstance(each_column, QtCore.QVariant):
@@ -296,16 +296,16 @@ class AnalyzerThread(QtCore.QThread):
             the_pieces.append(collecting)
 
         # Start up the multiprocessing
-        self._pool = Pool()
+        self.pool = Pool()
         for each_piece in the_pieces:
             # Load up the stuff in the Pool!
-            self._pool.apply_async(analyze_piece,
+            self.pool.apply_async(analyze_piece,
                                    (each_piece, which_objects,),
                                    callback=self.callback)
         # Wait for the multiprocessing to finish
-        self._pool.close()
-        self._pool.join()
-        self._pool = None
+        self.pool.close()
+        self.pool.join()
+        self.pool = None
 
         # self.progress != self.num_pieces if a user cancelled before the analyses were completed
         if self.progress != self.num_pieces:
@@ -313,9 +313,9 @@ class AnalyzerThread(QtCore.QThread):
 
         self._analyzer.status.emit('100')
         self._analyzer.status.emit('Done!')
-        self._analyzer.analysis_finished.emit(self._analyzer._list_of_analyses)
+        self._analyzer.analysis_finished.emit(self._analyzer.list_of_analyses)
         # last thing: must clear these analyses, so they don't get re-used!
-        self._analyzer._list_of_analyses = []
+        self._analyzer.list_of_analyses = []
         self._analyzer.analysis_is_running = False
 
 
@@ -362,7 +362,7 @@ class Analyzer(Controller):
         super(Analyzer, self).__init__()  # required for signals
         # other things
         self._list_of_pieces = ListOfPieces()
-        self._list_of_analyses = []
+        self.list_of_analyses = []
         self.thread = AnalyzerThread(self)
 
     def setup_signals(self):
@@ -378,8 +378,8 @@ class Analyzer(Controller):
         """
         Determine whether there is an analysis operation running, then cancel it.
         """
-        if self.thread._pool is not None:
-            self.thread._pool.terminate()
+        if self.thread.pool is not None:
+            self.thread.pool.terminate()
 
     @QtCore.pyqtSlot(QtCore.QModelIndex, QtCore.QVariant)
     def set_data(self, index, change_to):
@@ -418,6 +418,13 @@ class Analyzer(Controller):
         of the AnalysisRecord objects generated.
         """
         self.thread.start()
+
+    def get_pieces(self):
+        """
+        Get the pieces stored by this Analyzer.
+        :rtype: ListOfPieces
+        """
+        return self._list_of_pieces
 
     @staticmethod
     def _object_stringer(string_me, specs):

@@ -376,7 +376,7 @@ class TestNoteRestIndexer(unittest.TestCase):
             self.assertEqual(expected[0][i][0], ind)
             self.assertEqual(expected[0][i][1], actual[0][ind])
 
-    def test_note_rest_indexer_200_mock_mpc(self):
+    def test_n_r_i_200_mock_mpc(self):
         # Soprano part of bwv77.mxl
         # ** with mock MPController
         bwv77 = converter.parse('test_corpus/bwv77.mxl')
@@ -398,7 +398,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         self.assertEqual(ccallz[1][2], [note.Note, note.Rest])
         mock_conn.recv.assert_called_once_with()
 
-    def test_note_rest_indexer_202_mock_mpc(self):
+    def test_n_r_i_202_mock_mpc(self):
         # Soprano and Bass parts of bwv77.mxl
         # ** with mock MPController
         bwv77 = converter.parse('test_corpus/bwv77.mxl')
@@ -435,4 +435,4 @@ class TestNoteRestIndexer(unittest.TestCase):
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-note_rest_indexer_suite = unittest.TestLoader().loadTestsFromTestCase(TestNoteRestIndexer)
+NOTE_REST_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNoteRestIndexer)

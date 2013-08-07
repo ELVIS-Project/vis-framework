@@ -57,6 +57,7 @@ class Experimenter(object):
     default_settings = None
     # self._index
 
+    # pylint: disable=W0613
     def __init__(self, index, settings=None, mpc=None):
         """
         Create a new Experimenter.
@@ -132,6 +133,7 @@ class Experimenter(object):
         if self._mpc is None:
             # use serial processing
             for arg_list in func_args:
+                # pylint: disable=W0142
                 post.append(func(*arg_list))
         else:
             # use the MPController for multiprocessing
