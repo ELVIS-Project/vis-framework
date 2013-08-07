@@ -29,7 +29,7 @@ import pandas
 from music21 import stream, converter
 
 
-def _mpi_unique_offsets(streams):
+def mpi_unique_offsets(streams):
     """
     For a set of streams, find the offsets at which events begin. Used by mp_indexer.
 
@@ -44,16 +44,11 @@ def _mpi_unique_offsets(streams):
         A list of floating-point numbers representing offsets at which a new event begins in any of
         the streams. Offsets are sorted from lowest to highest (start to end).
     """
-    # inspired by music21.stream.Stream._uniqueOffsetsAndEndTimes()
-    post = []
-    for each_part in streams:
-        for each_offset in [e.offset for e in each_part.elements]:
-            if each_offset not in post:
-                post.append(each_offset)
-    return sorted(post)
+    offsets = ({e.offset for e in part.elements} for part in streams)
+    return sorted(set.union(*offsets))  # pylint: disable=W0142
 
 
-def _mpi_vert_aligner(events):
+def mpi_vert_aligner(events):
     """
     When there is more than one event at an offset, call this method to ensure parsing
     simultaneities.
@@ -79,7 +74,7 @@ def _mpi_vert_aligner(events):
     return post
 
 
-def _stream_indexer(pipe_index, parts, indexer_func, types):
+def stream_indexer(pipe_index, parts, indexer_func, types=None):
     # TODO: adjust this to use the proper index-which-is-offset for the returned Series
     # TODO: adjust this to not return a Seris of ElementWrapper objects
     """
@@ -132,15 +127,19 @@ def _stream_indexer(pipe_index, parts, indexer_func, types):
         of the Series corresponds to the offset at which each event begins.
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
+    if types is None:
+        getter = lambda thing: thing
+    else:
+        getter = lambda thing: thing.getElementsByClass(types)
 
     # Convert "frozen" Streams, if needed; flatten the streams and filter classes
     if isinstance(parts[0], basestring):
-        all_parts = [converter.thaw(each).flat.getElementsByClass(types) for each in parts]
+        all_parts = [getter(converter.thaw(each).flat) for each in parts]
     else:
-        all_parts = [x.flat.getElementsByClass(types) for x in parts]
+        all_parts = [getter(part.flat) for part in parts]
 
     # collect all unique offsets
-    unique_offsets = _mpi_unique_offsets(all_parts)
+    unique_offsets = mpi_unique_offsets(all_parts)
 
     # in cases where there will be more than one event at an offset, we need this
     offsets_for_series = []
@@ -151,14 +150,14 @@ def _stream_indexer(pipe_index, parts, indexer_func, types):
         # inspired by vis.controllers.analyzer._event_finder() in vis9c
         current_events = []
         for part in all_parts:  # find the events happening at this offset in all parts
-            current_events.append([x for x in part.getElementsByOffset(off, mustBeginInSpan=False)])
+            current_events.append(list(part.getElementsByOffset(off, mustBeginInSpan=False)))
 
         # Arrange groups of things to index
-        if 1 == max(len(x) for x in current_events):
+        if 1 == max(len(event) for event in current_events):
             # each offset has only one event
             current_events = [[event[0] for event in current_events]]
         else:
-            current_events = _mpi_vert_aligner(current_events)
+            current_events = mpi_vert_aligner(current_events)
 
         # Index previously-arranged groups
         for each_simul in current_events:
@@ -168,7 +167,7 @@ def _stream_indexer(pipe_index, parts, indexer_func, types):
     return pipe_index, pandas.Series(new_series_data, index=offsets_for_series)
 
 
-def _series_indexer(pipe_index, parts, indexer_func):
+def series_indexer(pipe_index, parts, indexer_func, types=None):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing with the MPController module.
@@ -202,25 +201,20 @@ def _series_indexer(pipe_index, parts, indexer_func):
     """
 
     # find the offsets at which things happen
-    all_offsets = set(parts[0].index)
-    if 1 < len(parts):
-        for i in xrange(1, len(parts)):
-            all_offsets = set(all_offsets) | set(parts[i].index)
-    all_offsets = sorted(all_offsets)
+    indices = (set(part.index) for part in parts)
+    all_offsets = sorted(set.union(*indices))  # pylint: disable=W0142
 
     # Copy each Series with index=offset values that match all_offsets, filling in non-existant
     # offsets with the value that was at the most recent offset with a value. We put these in a
     # dict so DataFrame.__init__() puts parts in columns.
-    in_dict = {}
-    for i in xrange(len(parts)):
-        in_dict[i] = parts[i].reindex(index=all_offsets, method='ffill')
-    deeframe = pandas.DataFrame(in_dict)
+    in_dict = {i: part.reindex(index=all_offsets, method='ffill') for i, part in enumerate(parts)}
+    dframe = pandas.DataFrame(in_dict)
 
     # do the indexing
-    new_series_data = deeframe.apply(indexer_func, axis=1)
+    new_series_data = dframe.apply(indexer_func, axis=1)
 
     # make the new index
-    return pipe_index, pandas.Series(new_series_data, index=deeframe.index)
+    return pipe_index, pandas.Series(new_series_data, index=dframe.index)
 
 
 class Indexer(object):
@@ -338,9 +332,9 @@ class Indexer(object):
             for each_combo in combos:
                 voices = [self._score[x] for x in each_combo]
                 if isinstance(self._score[0], stream.Stream):
-                    post.append(_stream_indexer(0, voices, self._indexer_func, self._types)[1])
+                    post.append(stream_indexer(0, voices, self._indexer_func, self._types)[1])
                 else:
-                    post.append(_series_indexer(0, voices, self._indexer_func)[1])
+                    post.append(series_indexer(0, voices, self._indexer_func)[1])
         else:
             # use the MPController for multiprocessing
             pipe_end = self._mpc.get_pipe()
@@ -349,10 +343,10 @@ class Indexer(object):
                 jobs_submitted += 1
                 if isinstance(self._score[0], stream.Stream):
                     voices = [converter.freeze(self._score[x], u'pickle') for x in each_combo]
-                    pipe_end.send((_stream_indexer, [voices, self._indexer_func, self._types]))
+                    pipe_end.send((stream_indexer, [voices, self._indexer_func, self._types]))
                 else:
                     voices = [self._score[x] for x in each_combo]
-                    pipe_end.send((_series_indexer, [voices, self._indexer_func]))
+                    pipe_end.send((series_indexer, [voices, self._indexer_func]))
             for _ in xrange(jobs_submitted):
                 post.append(pipe_end.recv())
 

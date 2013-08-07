@@ -29,7 +29,8 @@ Start vis with the PyQt4 interface.
 
 # Ensure we can import "vis"
 try:
-    import vis
+    import imp
+    imp.find_module('vis')
 except ImportError:
     import sys
     sys.path.insert(0, '..')

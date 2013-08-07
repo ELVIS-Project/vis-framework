@@ -27,9 +27,9 @@
 This module contains the statistical machinery required to apply a measure of repetition
 discovered for use in genomics to strings. Also it can be used to convert vis
 AnalysisRecords into strings, where the statistical computations are the same. One can use
-`python elvis_repetition.py` to see a sample computation done to compare the repretition
-of sample strings randomly generated with English-like and Dutch-like patterns, or in a 
-shell or scope with vis AnalysisRecords:
+`python elvis_repetition.py` to see a sample computation done to compare the repretition of
+sample strings randomly generated with English-like and Dutch-like patterns, or in a shell or
+scope with vis AnalysisRecords:
 >>> from vis.models.analyzing import AnalysisRecord
 >>> record = AnalysisRecord
 >>> from vis.elvis_repetition import repetition_index
