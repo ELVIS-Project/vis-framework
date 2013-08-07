@@ -26,12 +26,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
+__all__ = ['test_inexed_piece']
 
-
-__all__ = ['test_analyzing', 'test_importing']# 'test_display_handling', 'test_ngram', 'test_experimenting']
-
-import test_analyzing
-import test_importing
-#import test_display_handling
-#import test_experimenting
-#import test_ngram
+import indexed_piece

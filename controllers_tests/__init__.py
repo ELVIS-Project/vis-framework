@@ -26,12 +26,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 
+__all__ = ['test_mpcontroller']
 
-
-__all__ = ['test_importer']#, 'test_analyzer', 'test_display_handler_', 'test_experimenter', 'test_vis_controller']
-
-import test_importer
-#import test_analyzer
-#import test_display_handler
-#import test_experimenter
-#import test_vis_controller
+import test_mp_controller
