@@ -56,7 +56,7 @@ class TemplateIndexer(indexer.Indexer):
         Parameters
         ==========
         :param score: [pandas.Series] or [music21.stream.Part]
-            Depending on how this Indexer works, this is a list of either Part or Series obejcts
+            Depending on how this Indexer works, this is a list of either Part or Series objects
             to use in creating a new index.
 
         :param settings: dict
@@ -77,6 +77,7 @@ class TemplateIndexer(indexer.Indexer):
 
         # Check all required settings are present in the "settings" argument. You must ignore
         # extra settings.
+        # If there are no settings, you may safely remove this.
         if settings is None:
             self._settings = {}
 
