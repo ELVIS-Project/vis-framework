@@ -28,4 +28,4 @@
 
 __all__ = ['test_inexed_piece']
 
-import indexed_piece
+import test_indexed_piece
