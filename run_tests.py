@@ -55,9 +55,9 @@ from vis.controllers_tests import test_mpcontroller
 # Indexer and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_1_PART_SUITE)
-## TODO: this is lower priority, since it doesn't test meaningfully differently from
+# TODO: this is lower priority, since it doesn't test meaningfully differently from
 # INDEXER_1_PART_SUITE
-##unittest.TextTestRunner(verbosity=verb).run(INDEXER_3_PARTS_SUITE)
+#unittest.TextTestRunner(verbosity=verb).run(INDEXER_3_PARTS_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.UNIQUE_OFFSETS_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.VERT_ALIGNER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_note_rest_indexer.NOTE_REST_INDEXER_SUITE)
@@ -65,6 +65,8 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_SHORT_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_LONG_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(INT_IND_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(HORIZ_INT_IND_LONG_SUITE)
+# TODO: OFFSET_INDEXER_SUITE has many failures; we can't fix them until we decide how to deal with
+#       knowing the duration of the last thing in a Series.
 unittest.TextTestRunner(verbosity=VERBOSITY).run(OFFSET_INDEXER_SUITE)
 
 # Experimenter and Subclasses
@@ -72,7 +74,7 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(FREQUENCY_FUNC_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(FREQUENCY_RUN_SUITE)
 
 # IndexedPiece
-#unittest.TextTestRunner(verbosity=verb).run(INDEXED_PIECE_SUITE)  # TODO: fails
+unittest.TextTestRunner(verbosity=verb).run(INDEXED_PIECE_SUITE)  # TODO: fails
 # MPController
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.MPC_TESTER_SUITE)
 #unittest.TextTestRunner(verbosity=verb).run(MPCONTROLLER_SUITE)  # TODO: fails epically
