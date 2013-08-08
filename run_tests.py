@@ -42,6 +42,11 @@ from vis.analyzers_tests.test_interval_indexer import INTERVAL_INDEXER_SHORT_SUI
 from vis.analyzers_tests.test_frequency_experimenter import FREQUENCY_FUNC_SUITE, \
     FREQUENCY_RUN_SUITE
 # from vis.models_tests.test_indexed_piece import *
+from vis.analyzers_tests.test_frequency_experimenter import *
+from vis.analyzers_tests.test_offset import OFFSET_INDEXER_SUITE
+from vis.models_tests.test_indexed_piece import *
+from vis.controllers_tests.test_mpcontroller import MPC_TESTER_SUITE, MPCONTROLLER_SUITE, \
+    MPCONTROLLER_RUNS_SUITE
 from vis.analyzers_tests import test_indexer
 from vis.analyzers_tests import test_note_rest_indexer
 from vis.controllers_tests import test_mpcontroller
@@ -50,9 +55,9 @@ from vis.controllers_tests import test_mpcontroller
 # Indexer and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_1_PART_SUITE)
-# TODO: this is lower priority, since it doesn't test meaningfully differently from
+## TODO: this is lower priority, since it doesn't test meaningfully differently from
 # INDEXER_1_PART_SUITE
-#unittest.TextTestRunner(verbosity=verb).run(INDEXER_3_PARTS_SUITE)
+##unittest.TextTestRunner(verbosity=verb).run(INDEXER_3_PARTS_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.UNIQUE_OFFSETS_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.VERT_ALIGNER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_note_rest_indexer.NOTE_REST_INDEXER_SUITE)
@@ -60,6 +65,7 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_SHORT_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_LONG_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(INT_IND_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(HORIZ_INT_IND_LONG_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(OFFSET_INDEXER_SUITE)
 
 # Experimenter and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(FREQUENCY_FUNC_SUITE)

@@ -239,6 +239,7 @@ class Indexer(object):
     # self._indexer_func
     # self._types
 
+    # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
     # pylint: disable=W0613
     def __init__(self, score, settings=None, mpc=None):
         """
