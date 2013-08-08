@@ -267,6 +267,7 @@ class TestIndexedPiece(TestCase):
         self.assertEquals(None, self.ip.get_data(AnotherIndexer))
         # get data for a basic Experimenter
         TestExperimenter = type('TestExperimenter', (Experimenter,), {})
+        TestExperimenter.run = lambda self: None
         self.assertEquals(None, self.ip.get_data(TestExperimenter))
         # try getting data for a non-Indexer, non-Experimenter class
         NonIndexer = Mock()

@@ -21,7 +21,8 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-This module outlines the Experimenter base class.
+This module outlines the Experimenter base class, which helps with transforming time-attached
+analytic information to other types.
 """
 
 
@@ -33,6 +34,7 @@ def _mp_wrapper(pipe_i, func, **args):
     return pipe_i, func(args)
 
 
+# noinspection PyUnusedLocal
 class Experimenter(object):
     """
     Run an experiment on an IndexedPiece.
@@ -126,8 +128,8 @@ class Experimenter(object):
         if self._mpc is None:
             # use serial processing
             for arg_list in func_args:
-                # pylint: disable=W0142
-                post.append(func(*arg_list))
+                post.append(func(*arg_list))  # pylint: disable=W0142
+
         else:
             # use the MPController for multiprocessing
             pipe_end = self._mpc.get_pipe()
