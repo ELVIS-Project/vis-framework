@@ -25,7 +25,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+"""
+Tests for the "models" module in vis.
+"""
 
-__all__ = ['test_inexed_piece']
+__all__ = ['test_indexed_piece']
 
-import test_indexed_piece
+from vis.models_tests import test_indexed_piece

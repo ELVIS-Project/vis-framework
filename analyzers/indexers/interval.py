@@ -28,9 +28,10 @@ Index vertical intervals.
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
+from vis.analyzers.indexers.noterest import NoteRestIndexer
 
 
-def real_indexer(ecks, simple, qual):
+def real_indexer(simultaneity, simple, quality):
     """
     Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
     because of the u'Rest' strings, you can compare the duration of the piece in which the two
@@ -38,14 +39,14 @@ def real_indexer(ecks, simple, qual):
 
     Parameters
     ==========
-    :param ecks : [music21.base.ElementWrapper]
+    :param simultaneity : [music21.base.ElementWrapper]
         A two-item iterable of ElementWrapper objects, for which the "obj" attribute should be
         strings like 'Rest' or 'G4'; the upper voice should have index 0.
 
     :param simple : boolean
         True if intervals should be reduced to their single-octave version.
 
-    :param qual : boolean
+    :param quality : boolean
         True if the interval's quality should be prepended.
 
     Returns
@@ -53,24 +54,25 @@ def real_indexer(ecks, simple, qual):
     string :
         Like 'M3' or similar.
     u'Rest' :
-        If one of the elements of "ecks" == u'Rest'.
+        If one of the elements of "simultaneity" == u'Rest'.
     None :
-        If there "ecks" has greater or fewer than two elements.
+        If there "simultaneity" has greater or fewer than two elements.
     """
 
-    if 2 != len(ecks):
+    if 2 != len(simultaneity):
         return None
     else:
         try:
-            interv = interval.Interval(note.Note(ecks[1]), note.Note(ecks[0]))
+            upper, lower = simultaneity
+            interv = interval.Interval(note.Note(lower), note.Note(upper))
         except pitch.PitchException:
             return u'Rest'
         post = u'-' if interv.direction < 0 else u''
-        if qual:
+        if quality:
             # We must get all of the quality, and none of the size (important for AA, dd, etc.)
             q_str = u''
             for each in interv.name:
-                if each in [u'A', u'M', u'P', u'm', u'd']:
+                if each in u'AMPmd':
                     q_str += each
             post += q_str
         if simple:
@@ -84,22 +86,30 @@ def real_indexer(ecks, simple, qual):
 # We give these functions to the multiprocessor; they're pickle-able, they let us choose settings,
 # and the function still only requires one argument at run-time from the Indexer.mp_indexer().
 def indexer_qual_simple(ecks):
-    "Call real_indexer() with settings to print simple intervals with quality."
+    """
+    Call real_indexer() with settings to print simple intervals with quality.
+    """
     return real_indexer(ecks, True, True)
 
 
 def indexer_qual_comp(ecks):
-    "Call real_indexer() with settings to print compound intervals with quality."
+    """
+    Call real_indexer() with settings to print compound intervals with quality.
+    """
     return real_indexer(ecks, False, True)
 
 
 def indexer_nq_simple(ecks):
-    "Call real_indexer() with settings to print simple intervals without quality."
+    """
+    Call real_indexer() with settings to print simple intervals without quality.
+    """
     return real_indexer(ecks, True, False)
 
 
 def indexer_nq_comp(ecks):
-    "Call real_indexer() with settings to print compound intervals without quality."
+    """
+    Call real_indexer() with settings to print compound intervals without quality.
+    """
     return real_indexer(ecks, False, False)
 
 
@@ -111,7 +121,7 @@ class IntervalIndexer(indexer.Indexer):
     This indexer does not require a score.
     """
 
-    required_indices = [u'NoteRestIndexer']
+    required_indices = [NoteRestIndexer]
     required_score_type = pandas.Series
     possible_settings = [u'simple or compound', u'quality']
     default_settings = {u'simple or compound': u'compound', u'quality': False}
@@ -123,8 +133,8 @@ class IntervalIndexer(indexer.Indexer):
 
         Parameters
         ==========
-        :param score: [pandas.Series]
-            The output of NoteRestIndexer for all parts in a piece.
+        :param score: The output of NoteRestIndexer for all parts in a piece.
+        :type score: list of pandas.Series
 
         :param settings : dict
             A dict of relevant settings, both optional. These are:

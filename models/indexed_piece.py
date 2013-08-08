@@ -25,14 +25,12 @@ The model representing an indexed and analyzed piece of music.
 """
 
 # Imports
-from vis.analyzers import indexer
-from importlib import import_module
 from inspect import getmembers, isdatadescriptor
-import pkgutil
 import re
 import os
 from music21 import converter
-from vis.analyzers import indexers
+from vis.analyzers.experimenter import Experimenter
+from vis.analyzers.indexer import Indexer
 
 
 def _find_piece_title(the_score):
@@ -166,6 +164,7 @@ class IndexedPiece(object):
     def __init__(self, pathname):
         super(IndexedPiece, self).__init__()
         self._metadata = self.__class__.Metadata(pathname=pathname)
+        self._imported = False
 
     def __repr__(self):
         pass
@@ -178,15 +177,11 @@ class IndexedPiece(object):
 
     def _import_score(self):
         """
-        Import the score to music21 format. Uses multiprocessing, but blocks until the import is
-        complete.
+        Import the score to music21 format.
 
-        Returns
-        =======
-        music21.stream.Score or Opus
-            The score.
+        :returns: the score
+        :rtype: music21.stream.Score or music21.stream.Opus
         """
-        # TODO: actually write this method
         score = converter.parse(self.metadata('pathname'))
         if not self._imported:
             def convert(name):
@@ -200,8 +195,8 @@ class IndexedPiece(object):
                 :param name: a camelCase string
                 :return: a snake-case string
                 """
-                s1 = re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)
-                return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+                name = re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)
+                return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', name).lower()
 
             # find all the properties (i.e. methods with the @property decorator)
             # for music21.metadata.Metadata which are also in our Metadata prototype
@@ -212,14 +207,11 @@ class IndexedPiece(object):
                     self.metadata(convert(name), obj)
                 # music21 doesn't have a "part names" attribute in its Metadata objects
             self.metadata(u'parts', _find_part_names(score))
-
             self._imported = True
-            self.add_index([u'NoteRestIndexer'], {})
         return score
 
     def metadata(self, field, value=None):
-        # TODO: update doctest so that it actually works (e.g. the piece must be imported before \
-        #     calling metadata)
+        # TODO: update doctest so that it actually works
         """
         Get or set metadata about the piece, like filename, title, and composer.
 
@@ -251,159 +243,21 @@ class IndexedPiece(object):
         else:
             setattr(self._metadata, field, value)
 
-    def add_index(self, which_indexers, which_settings=None):
+    def get_data(self, analyzer_cls, data=None, settings=None):
         """
-        Run one or more :py:class:`controllers.indexer.Indexer`s on the score and save the results.
-        If any of the :py:class:`controllers.indexer.Indexer`s have already been run with the same
-        settings, they will not be run again.
+        Get the analysis from a specific analyzer run on this piece.
 
-        Access the result with :py:meth:`get_parts`.
-
-        :param which_indexers:
-            the :py:class:`controllers.indexer.Indexer` subclasses to run on the IndexedPiece. You
-            may safely provide either a list of basestrings or a single basestring. You must write
-            these as the class name, ignoring the module name. For example:
-            - u'NoteRestIndexer' for noterest.NoteRestIndexer
-            - u'IntervalIndexer' for interval.IntervalIndexer
-        :type which_indexers: list of (str or unicode) or (str or unicode)
-
-        :param which_settings:
-            A dict of the settings to provide the :py:class:`controllers.indexer.Indexer`. Default
-            is {}. This is the same for all Indexers in "which_indexers", so you may specify
-            settings that apply only to one or some of the Indexers, but you may not specify
-            different settings of the same name for different Indexers.
-        :type which_settings: dict
-
-        :returns: None
-
-        :raises: RuntimeError -- if one of the specified :py:class:`controllers.indexer.Indexer`s
-            (or one of its requirements) cannot be located, or if a required setting for one of the
-            :py:class:`controllers.indexer.Indexer`s is absent. The exception is raised but only
-            for the :py:class:`controllers.indexer.Indexer`s with problems. The others run as
-            normal.
-
-        :raises: TypeError -- if one of the strings in `which_indexers` does not correspond to a
-            subclass of :py:class:`controllers.indexer.Indexer`.
+        :param analyzer_cls: the analyzer to run
+        :type analyzer_cls: type
+        :param data: the information for the analyzer to use
+        :type data: pandas.Series or pandas.DataFrame
+        :param settings: the settings to be used with the analyzer
+        :type settings: dict
+        :return: the results of the analysis
         """
-
-        if not which_settings:
-            which_settings = {}
-        if not isinstance(which_indexers, list):
-            which_indexers = [which_indexers]
-
-        # If one of the indexers doesn't exist, add its name to this list.
-        missing_indexers = []
-        missing_settings = []
-
-        # Hold the music21 Score object, if we use it
-        the_score = None
-
-        # If one of the indexers requires another indexer, we'll run it automatically. If the user
-        # specifies pre-requisite indexers out of order (i.e., which_indexers is
-        # [u'IntervalIndexer', u'NoteRestIndexer']), then we'll find the NoteRestIndexer is already
-        # calculated, and skip it.
-        for this_indexer in which_indexers:
-            if not isinstance(this_indexer, (str, unicode)):
-                raise TypeError('Indexer names must be string or unicode')
-            if hasattr(indexer, this_indexer):
-                indexer_cls = getattr(indexer, this_indexer)
-            else:
-                found = False
-                s = this_indexer.split('.')
-                # iterate through the directory of indexers
-                for _, name, ispkg in pkgutil.iter_modules(indexers.__path__):
-                    if not ispkg:
-                        mod = import_module('.' + name, package=indexers.__package__)
-                        if hasattr(mod, this_indexer):
-                            indexer_cls = getattr(mod, this_indexer)
-                            found = True
-                            break
-                    else:
-                        # we have an add-on indexer
-                        indexer_cls = s[-1]
-                        pkg = __import__(indexers.__package__ + '.' + '.'.join(s[:-1]),
-                                         fromlist=[indexer_cls])
-                        if hasattr(pkg, indexer_cls):
-                            indexer_cls = getattr(pkg, indexer_cls)
-                            found = True
-                            break
-                if not found:
-                    try:
-                        indexer_cls = __import__(this_indexer)
-                        for n in s[1:]:
-                            indexer_cls = getattr(indexer_cls, n)
-                    except (ImportError, AttributeError):
-                        missing_indexers.append(this_indexer)
-                        continue
-
-            # Make a dict of the settings relevant for this Indexer
-            # We'll check all the possible settings for this Indexer. If the setting isn't given by
-            # the user, we'll use the default; if there is no default, we can't use the Indexer.
-            if not issubclass(indexer_cls, indexer.Indexer):
-                missing_indexers.append(this_indexer)
-                continue
-            poss_sett = indexer_cls.possible_settings
-            if poss_sett is None:
-                poss_sett = {}
-            def_sett = indexer_cls.default_settings
-            if def_sett is None:
-                def_sett = {}
-            this_settings = {}
-            for sett in poss_sett:
-                if sett in which_settings:
-                    this_settings[sett] = which_settings[sett]
-                elif sett in def_sett:
-                    this_settings[sett] = def_sett[sett]
-                else:
-                    this_settings = u'spoiled'
-                    break
-            if u'spoiled' == this_settings:
-                missing_settings.append(this_indexer)
-                continue
-
-            # Does the Indexer require the Score?
-            required_score = []
-            if indexer_cls.requires_score:
-                if the_score is None:
-                    the_score = self._import_score()
-                required_score = list(the_score.parts)
-                # TODO: what about imports to Opus objects?
-            else:
-                req_ind = indexer_cls.required_indices
-                self.add_index([ind for ind in req_ind if not ind in self._data],
-                               which_settings)
-
-            # Do we already have this index with the same settings?
-            # NOTE: we must do this *after* the Score import. If our indexer_cls is NoteRestIndexer,
-            # we'll have to import the Score, and if it wasn't already imported, the NRI will run
-            # automatically, but we wouldn't know to return it.
-            if this_indexer in self._data:
-                # Is there an index with the same settings?
-                for each_setts in self._data[this_indexer].iterkeys():
-                    if eval(each_setts) == this_settings:
-                        this_settings = u'found'
-                        break
-            if u'found' == this_settings:
-                continue
-
-            # Run the Indexer and store the results
-            indexer_instance = indexer_cls(required_score, this_settings)
-            if this_indexer not in self._data:
-                self._data[this_indexer] = {}
-            self._data[this_indexer][unicode(this_settings)] = indexer_instance.run()
-
-            # Be explicit about memory
-            del indexer_instance
-            del this_settings
-
-        # If one of the Indexers doesn't exist
-        if missing_indexers:
-            msg = u'Unable to import requested Indexers: ' + unicode(missing_indexers)
-            raise RuntimeError(msg)
-        # If one of the Indexers is missing a required setting
-        elif missing_settings:
-            msg = u'Indexers missing required settings: ' + unicode(missing_indexers)
-            raise RuntimeError(msg)
-
-    def get_data(self, cls, settings=None):
-        pass
+        if data is None:
+            data = self._import_score()
+        if not issubclass(analyzer_cls, (Indexer, Experimenter)):
+            raise TypeError(u'can only get data for Indexers or Experimenters, not {}'.format(analyzer_cls))
+        instance = analyzer_cls(data, settings)
+        return instance.run()
