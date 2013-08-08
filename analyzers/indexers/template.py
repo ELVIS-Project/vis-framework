@@ -57,17 +57,17 @@ class TemplateIndexer(indexer.Indexer):
 
         Parameters
         ==========
-        :param score: [pandas.Series] or [music21.stream.Part]
-            Depending on how this Indexer works, this is a list of either Part or Series objects
-            to use in creating a new index.
+        :param score: Depending on how this Indexer works, this is a list of either Part or Series
+            objects to use in creating a new index.
+        :type: list of pandas.Series or list of music21.stream.Part
 
-        :param settings: dict
-            A dict of all the settings required by this Indexer. All required settings should be
+        :param settings: All the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is {}.
+        :type: dict
 
-        :param mpc : MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+        :param mpc: An optional instance of MPController. If this is present, the Indexer will use
+            it to submit jobs for multiprocessing. If not present, jobs will be executed in series.
+        :type: MPController
 
         Raises
         ======
@@ -105,10 +105,10 @@ class TemplateIndexer(indexer.Indexer):
 
         Returns
         =======
-        :returns: [pandas.Series]
-            A list of the new indices. The index of each Series corresponds to the index of the Part
-            used to generate it, in the order specified to the constructor. Each element in the
-            Series is a basestring.
+        :returns: A list of the new indices. The index of each Series corresponds to the index of
+            the Part used to generate it, in the order specified to the constructor. Each element
+            in the Series is a basestring.
+        :rtype: list of pandas.Series
         """
 
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
