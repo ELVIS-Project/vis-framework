@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -25,7 +24,6 @@
 Frequency experimenter.
 """
 
-from collections import defaultdict
 import pandas
 from vis.analyzers import experimenter
 

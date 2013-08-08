@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -60,6 +59,7 @@ class TestExperimenterFunc(unittest.TestCase):
             self.assertEqual(expected[each_i], actual[each_i])
 
 
+# pylint: disable=W0212
 class TestRun(unittest.TestCase):
     def test_run_1(self):
         # should have the same output as test_run_2, but _do_multiprocessing() is a MagicMock
@@ -110,5 +110,5 @@ class TestRun(unittest.TestCase):
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-frequency_func_suite = unittest.TestLoader().loadTestsFromTestCase(TestExperimenterFunc)
-frequency_run_suite = unittest.TestLoader().loadTestsFromTestCase(TestRun)
+FREQUENCY_FUNC_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestExperimenterFunc)
+FREQUENCY_RUN_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestRun)

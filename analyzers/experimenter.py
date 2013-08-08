@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -22,10 +21,7 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-The controllers that deal with experimenting on indices or the results of other experiments.
-Whereas an Indexer produces information that can be attached to a particular moment of a score,
-an Experimenter produces information that can't sensibly be described as starting at the beginning
-and going to the end of a piece.
+This module outlines the Experimenter base class.
 """
 
 
@@ -45,9 +41,6 @@ class Experimenter(object):
     provided to this Experimenter's constructor. If the list is None or [], use the
     "Experimenter.required_experiments" attribute to know which Experimenter should be provided
     to the constructor.
-
-    The name of the Experimenter, as stored in an IndexedPiece, is the same as for Indexers: the
-    unicode-format class name.
     """
 
     # just the standard instance variables

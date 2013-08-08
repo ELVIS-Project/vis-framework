@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -25,10 +24,10 @@
 Template experimenter.
 """
 
-from music21 import stream
 from vis.analyzers import experimenter
 
 
+# pylint: disable=W0613
 def experimenter_func(obj):
     """
     docstring

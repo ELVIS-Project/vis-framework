@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -167,6 +166,7 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
     return pipe_index, pandas.Series(new_series_data, index=offsets_for_series)
 
 
+# pylint: disable=W0613
 def series_indexer(pipe_index, parts, indexer_func, types=None):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed

@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -94,16 +93,16 @@ class MPController(Thread):
         self._next_pipe_index += 1
         return yours
 
-    def _return_result(self, res):
+    def _return_result(self, res_tuple):
         """
         A callback method for Pool.apply_async().
 
-        "res" is a 2-tuple that has the index, in self._pipes, for where to send the result, and
-        the result to send.
+        "res_tuple" is a 2-tuple that has the index, in self._pipes, for where to send the
+        result, and the result to send.
         """
         self._jobs_completed += 1
         try:
-            self._pipes[res[0]].send(res[1])
+            self._pipes[res_tuple[0]].send(res_tuple[1])
         except IOError:
             # TODO: this happens when the Pipe was closed before we could send the result; we should
             # do something more useful about this, but what?!
@@ -193,7 +192,17 @@ class MPController(Thread):
 
 
 def add_something(pipe_i, add_this, the_list):
-        return (pipe_i, [z + add_this for z in the_list])
+    """
+    Add the given value to everything in the list.
+
+    :param pipe_i: the process pipe
+    :param add_this: the amount to be added
+    :param the_list: the list to add stuff to
+    :type the_list: list
+    :return: The same pipe and the modified list
+    :rtype: tuple
+    """
+    return pipe_i, [z + add_this for z in the_list]
 
 
 class ThingProducer(object):
@@ -201,18 +210,18 @@ class ThingProducer(object):
     Add things to lists of integers.
     """
 
-    def __init__(self, things, mpc):
+    def __init__(self, things, mp_c):
         """
         Parameters
         ==========
         :param things : [[int]]
             A list of lists of integers that we'll add things to.
 
-        :param mpc : MPController
+        :param mp_c : MPController
             An instance of MPController that we'll use for multiprocessing.
         """
         self._things = things
-        self._pipe_end = mpc.get_pipe()
+        self._pipe_end = mp_c.get_pipe()
         self._jobs_submitted = 0
 
     def start_stuff(self):
@@ -233,7 +242,7 @@ class ThingProducer(object):
         Return a list of the results. Also closes the Pipe.
         """
         post = []
-        for times in xrange(self._jobs_submitted):
+        for _ in xrange(self._jobs_submitted):
             shoop = self._pipe_end.recv()
             post.append(shoop)
         self._pipe_end.send('finished')
@@ -241,7 +250,7 @@ class ThingProducer(object):
         return post
 
 
-if '__main__' == __name__:
+def main():
     the_lists = [[-5, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                  [-4, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                  [-3, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -256,14 +265,15 @@ if '__main__' == __name__:
                  [6, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                  [7, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                  [8, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
-
     mpc = MPController()
     mpc.start()
-
     the_tp = ThingProducer(the_lists, mpc)
     the_tp.start_stuff()
     results = the_tp.get_stuff()
     for res in results:
         print('ThingProducer produced ' + str(res))
-
     mpc.shutdown()
+
+
+if '__main__' == __name__:
+    main()

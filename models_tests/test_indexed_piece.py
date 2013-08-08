@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -21,12 +20,10 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
-import os
-import shutil
 from unittest import TestCase, TestLoader
 from mock import patch, MagicMock, Mock
 import music21
-from vis.analyzers import indexers
+from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.models.indexed_piece import IndexedPiece
 
@@ -229,27 +226,15 @@ class TestIndexedPiece(TestCase):
     def setUp(self):
         """
         Initialize a sample :py:class:`IndexedPiece` instance for use in each test.
-        :return: None
+        :returns: None
         """
         self.ip = IndexedPiece('')
 
-    class MockIndexerModule:
-        Indexer = Indexer
-        TestIndexer = Mock(spec=Indexer).__class__
-        TestIndexer.run = lambda self: 5
-        NoteRestIndexer = type('NoteRestIndexer', (TestIndexer,), {})
-        RequiredIndexer = type('RequiredIndexer', (TestIndexer,), {})
-        AnotherIndexer = type('AnotherIndexer',
-                              (TestIndexer,),
-                              {'required_indices': [u'RequiredIndexer']})
-        NotAnIndexer = 1
-
-    @patch('vis.models.indexed_piece.indexer', MockIndexerModule)
     @patch('music21.converter.parse', lambda path: MagicMock(spec=music21.stream.Score))
     def test_metadata(self):
         """
         Tests for the method :py:meth:`~IndexedPiece.metadata`.
-        :return: None
+        :returns: None
         """
         # access fields which are set by default
         pathname = self.ip.metadata('pathname')
@@ -266,45 +251,28 @@ class TestIndexedPiece(TestCase):
         self.assertRaises(TypeError, self.ip.metadata, [])
         self.assertRaises(TypeError, self.ip.metadata, {})
 
-    def create_mock_package(self):
-        addon_path = indexers.__path__[0] + '/addon'
-        os.mkdir(addon_path)
-        open(addon_path + '/__init__.py', 'w').close()
-        filepath = addon_path + '/extra_stuff.py'
-        extra_stuff = open(filepath, 'w')
-        extra_stuff.write('from vis.models_tests.test_indexed_piece import TestIndexedPiece\n')
-        extra_stuff.write('TestIndexer = TestIndexedPiece.MockIndexerModule.TestIndexer')
-        extra_stuff.close()
-        return addon_path
-
-    @patch('vis.models.indexed_piece.indexer', MockIndexerModule)
-    def test_add_index(self):
-        # add an existing indexer
+    def test_get_data(self):
         """
-        Tests the method :py:meth:`~IndexedPiece.add_index`.
+        Tests for the method :py:meth:`~IndexedPiece.get_data`.
         :returns: None
         """
-        # add an existing indexer
-        self.ip.add_index([u'TestIndexer'], {})
-        self.assertEquals(5, self.ip.get_index(u'TestIndexer'))
-        # add a non-string key
-        self.assertRaises(TypeError, self.ip.add_index, [3], {})
-        # add an add-on indexer
-        addon_path = self.create_mock_package()
-        self.ip.add_index([u'addon.extra_stuff.TestIndexer'], {})
-        self.assertEquals(5, self.ip.get_index(u'addon.extra_stuff.TestIndexer'))
-        shutil.rmtree(addon_path)
-        # add something which exists, but isn't an indexer
-        self.assertRaises(TypeError, self.ip.add_index, [u'NotAnIndexer'])
-        # add an indexer which doesn't exist
-        self.assertRaises(RuntimeError, self.ip.add_index, [u'NonExistentIndexer'], {})
-        # add in indexer which requires another indexer
-        self.ip.add_index([u'AnotherIndexer'], {})
-        self.assertEquals(5, self.ip.get_index(u'AnotherIndexer'))
-        self.assertEquals(5, self.ip.get_index(u'RequiredIndexer'))
+        # get data for a basic Indexer
+        MockIndexer = type('TestIndexer', (Indexer,), {})
+        MockIndexer.run = lambda self: None
+        self.assertEquals(None, self.ip.get_data(MockIndexer))
+        # get data for an Indexer which requires another Indexer
+        RequiredIndexer = type('RequiredIndexer', (MockIndexer,), {})
+        AnotherIndexer = type('AnotherIndexer', (MockIndexer,),
+                              {'required_indices': [RequiredIndexer]})
+        self.assertEquals(None, self.ip.get_data(AnotherIndexer))
+        # get data for a basic Experimenter
+        TestExperimenter = type('TestExperimenter', (Experimenter,), {})
+        self.assertEquals(None, self.ip.get_data(TestExperimenter))
+        # try getting data for a non-Indexer, non-Experimenter class
+        NonIndexer = Mock()
+        self.assertRaises(TypeError, self.ip.get_data, NonIndexer)
 
 
 #--------------------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------------------------------#
-indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPieceNormal)
-mock_indexed_piece_suite = TestLoader().loadTestsFromTestCase(TestIndexedPiece)
+INDEXED_PIECE_SUITE = TestLoader().loadTestsFromTestCase(TestIndexedPiece)

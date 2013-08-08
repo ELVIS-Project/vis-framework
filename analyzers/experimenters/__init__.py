@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -21,7 +20,13 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
+"""
+The controllers that deal with experimenting on indices or the results of other experiments.
+Whereas an Indexer produces information that can be attached to a particular moment of a score,
+an Experimenter produces information that can't sensibly be described as starting at the beginning
+and going to the end of a piece.
+"""
 
 __all__ = ['frequency']
 
-import frequency
+from vis.analyzers.experimenters import frequency

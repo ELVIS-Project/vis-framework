@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -40,12 +39,11 @@ VERBOSITY = 1
 import unittest
 from vis.analyzers_tests.test_interval_indexer import INTERVAL_INDEXER_SHORT_SUITE, \
     INTERVAL_INDEXER_LONG_SUITE, INT_IND_INDEXER_SUITE, HORIZ_INT_IND_LONG_SUITE
-from vis.analyzers_tests.test_frequency_experimenter import *
-from vis.models_tests.test_indexed_piece import *
-from vis.controllers_tests.test_mpcontroller import *
+from vis.analyzers_tests.test_frequency_experimenter import FREQUENCY_FUNC_SUITE, \
+    FREQUENCY_RUN_SUITE
+# from vis.models_tests.test_indexed_piece import *
 from vis.analyzers_tests import test_indexer
 from vis.analyzers_tests import test_note_rest_indexer
-# from vis.models_tests.test_indexed_piece import *
 from vis.controllers_tests import test_mpcontroller
 
 # New ---------------------------------------------------------------------------------------------
@@ -64,13 +62,12 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(INT_IND_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(HORIZ_INT_IND_LONG_SUITE)
 
 # Experimenter and Subclasses
-unittest.TextTestRunner(verbosity=verb).run(frequency_func_suite)
-unittest.TextTestRunner(verbosity=verb).run(frequency_run_suite)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(FREQUENCY_FUNC_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(FREQUENCY_RUN_SUITE)
 
 # IndexedPiece
-#unittest.TextTestRunner(verbosity=verb).run(indexed_piece_suite)  # TODO: fails
-#unittest.TextTestRunner(verbosity=verb).run(mock_indexed_piece_suite)  # TODO: fails
+#unittest.TextTestRunner(verbosity=verb).run(INDEXED_PIECE_SUITE)  # TODO: fails
 # MPController
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.mpc_tester_suite)
-#unittest.TextTestRunner(verbosity=verb).run(mpcontroller_suite)  # TODO: fails epically
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.mpcontroller_runs_suite)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.MPC_TESTER_SUITE)
+#unittest.TextTestRunner(verbosity=verb).run(MPCONTROLLER_SUITE)  # TODO: fails epically
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.MPCONTROLLER_RUNS_SUITE)
