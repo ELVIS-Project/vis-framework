@@ -354,19 +354,21 @@ class TestIndexerSinglePart(IndexerTestBase):
         # that we get a Series back when a Series is given
         self.assertIs(type(result_uniform), pandas.Series, msg='')
         # the verbatim_ser function is designed to produce exactly what is given
-        self.assertSequenceEqual(result_uniform, self.in_series)
+        self.assertSequenceEqual(list(result_uniform.index), list(self.in_series.index))
+        self.assertSequenceEqual(list(result_uniform), list(self.in_series))
         result_mixed = indexer.series_indexer(0, [self.mixed_series], verbatim_ser)[1]
         # that a list with two types is not filtered when it's given as a Series
         self.assertEqual(len(self.mixed_series), len(result_mixed))
-        expect_mixed = [u'Rest' if isinstance(elt, note.Rest) else elt for elt in self.mixed_list]
-        self.assertSequenceEqual(expect_mixed, result_mixed)
+        expect_mixed = [u'Rest' if isinstance(elt, note.Rest) else elt.obj for elt in self.mixed_list]
+        self.assertSequenceEqual(list(expect_mixed), list(result_mixed))
 
     def test_stream_indexer(self):
         result = indexer.stream_indexer(0, [self.in_stream], verbatim, [base.ElementWrapper])[1]
         # that we get a Series back when a Stream is given
         self.assertIs(type(result), pandas.Series)
         # the verbatim function is designed to produce exactly what is given
-        self.assertSequenceEqual(result, self.in_stream)
+        self.assertEqual(len(result), len(self.in_stream))
+        self.assertSequenceEqual(list(result), [elt.obj for elt in self.in_stream])
 
     def test_mp_indexer_8(self):
         # that a list with two types is properly filtered when it's given as a Stream
