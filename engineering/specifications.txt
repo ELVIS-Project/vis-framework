@@ -63,12 +63,19 @@ Two Controllers:
 - WController (for VisTrails workflows):
     The model-view-adapter adapter component for the Web interface
 - MPController (for multiprocessing):
-    Easier way to coordinate and optimize our use of multiprocessing for any computationally-intense tasks.
-    - must be accessible to all modules
+    Easy way to coordinate and optimize our use of multiprocessing.
     - shall be used whenever possible, for any computation
-    - communication between MPController and client modules through Pipe
     - avoids the problem of making multiple Pool objects, resulting in a total of more processes than CPUs/cores available in the computer
     - avoids overhead of thinking how to use a Pool, and whether to use multiprocessing; just do it
+    - classes shouldn't call the MPC directly...
+    - provides an "interface" class: MPCInterface, and we can call this a controller too
+        - classes that want to do multiprocessing should create an instance, and it'll have two methods:
+            - send_jobs(): to submit work
+            - get_results(): to collect submitted work
+        - allow abstraction about how to contact the MPController
+            - initial implementation communicates with MPC through a Pipe
+            - later implementation may use DBus, which could connect to a remote computer
+            - even later implementation may use a "cloud" or "cluster"
 
 Documentation Needs:
 - "Extend vis on VisTrails"
