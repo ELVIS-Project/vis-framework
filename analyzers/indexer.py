@@ -166,7 +166,6 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
     return pipe_index, pandas.Series(new_series_data, index=offsets_for_series)
 
 
-# pylint: disable=W0613
 def series_indexer(pipe_index, parts, indexer_func, types=None):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
@@ -268,9 +267,9 @@ class Indexer(object):
         # Check the "score" argument is either uniformly Part or Series objects.
         for elem in score:
             if not isinstance(elem, self.required_score_type):
-                msg = u'{} requires {} objects, not {}'.format(unicode(self.__class__),
-                                                               unicode(self.required_score_type),
-                                                               unicode(type(elem)))
+                msg = u'{} requires {} objects, not {}'.format(self.__class__,
+                                                               self.required_score_type,
+                                                               type(elem))
                 raise RuntimeError(msg)
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
@@ -303,7 +302,7 @@ class Indexer(object):
 
         Parameters
         ==========
-        combos : list of list of integers
+        :param combos: list of list of integers
             A list of all voice combinations to be analyzed. For example:
             - [[0], [1], [2], [3]]
                 Analyze each of four parts independently.
@@ -323,9 +322,7 @@ class Indexer(object):
         ============
         1.) Blocks until all voice combinations have completed.
         """
-
         post = []
-        voices = None
 
         if self._mpc is None:
             # use serial processing
