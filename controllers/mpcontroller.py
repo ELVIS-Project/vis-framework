@@ -21,7 +21,8 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Manage a process pool for use by vis.
+This module provides the MPController class, which is designed to manage a process pool for use by
+vis.
 """
 
 from multiprocessing import Pool, Pipe
@@ -188,9 +189,6 @@ class MPController(Thread):
             pass
 
 
-# Sample MPController program below ----------------------------------------------------------------
-
-
 def add_something(pipe_i, add_this, the_list):
     """
     Add the given value to everything in the list.
@@ -205,52 +203,54 @@ def add_something(pipe_i, add_this, the_list):
     return pipe_i, [z + add_this for z in the_list]
 
 
-class ThingProducer(object):
-    """
-    Add things to lists of integers.
-    """
-
-    def __init__(self, things, mp_c):
-        """
-        Parameters
-        ==========
-        :param things : [[int]]
-            A list of lists of integers that we'll add things to.
-
-        :param mp_c : MPController
-            An instance of MPController that we'll use for multiprocessing.
-        """
-        self._things = things
-        self._pipe_end = mp_c.get_pipe()
-        self._jobs_submitted = 0
-
-    def start_stuff(self):
-        """
-        Submit jobs to the MPController. Each list given to the constructor will have two versions
-        produced: one with 5 added to each item, and one with 10 added to each item.
-
-        You cannot call this method after calling get_stuff().
-        """
-        for i in xrange(len(self._things)):
-            self._jobs_submitted += 1
-            self._pipe_end.send((add_something, [5, self._things[i]]))
-            self._jobs_submitted += 1
-            self._pipe_end.send((add_something, [10, self._things[i]]))
-
-    def get_stuff(self):
-        """
-        Return a list of the results. Also closes the Pipe.
-        """
-        post = []
-        for _ in xrange(self._jobs_submitted):
-            shoop = self._pipe_end.recv()
-            post.append(shoop)
-        self._pipe_end.send('finished')
-        self._pipe_end.close()
-        return post
-
-
 def main():
+    """
+    Run a sample MPController program.
+    :returns: None
+    """
+    class ThingProducer(object):
+        """
+        Add things to lists of integers.
+        """
+        def __init__(self, things, mp_c):
+            """
+            Parameters
+            ==========
+            :param things : [[int]]
+                A list of lists of integers that we'll add things to.
+
+            :param mp_c : MPController
+                An instance of MPController that we'll use for multiprocessing.
+            """
+            self._things = things
+            self._pipe_end = mp_c.get_pipe()
+            self._jobs_submitted = 0
+
+        def start_stuff(self):
+            """
+            Submit jobs to the MPController. Each list given to the constructor will have two versions
+            produced: one with 5 added to each item, and one with 10 added to each item.
+
+            You cannot call this method after calling get_stuff().
+            """
+            for i in xrange(len(self._things)):
+                self._jobs_submitted += 1
+                self._pipe_end.send((add_something, [5, self._things[i]]))
+                self._jobs_submitted += 1
+                self._pipe_end.send((add_something, [10, self._things[i]]))
+
+        def get_stuff(self):
+            """
+            Return a list of the results. Also closes the Pipe.
+            """
+            post = []
+            for _ in xrange(self._jobs_submitted):
+                shoop = self._pipe_end.recv()
+                post.append(shoop)
+            self._pipe_end.send('finished')
+            self._pipe_end.close()
+            return post
+
     the_lists = [[-5, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                  [-4, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                  [-3, 2, 3, 4, 5, 6, 7, 8, 9, 10],
