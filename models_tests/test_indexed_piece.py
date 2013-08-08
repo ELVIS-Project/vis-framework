@@ -38,7 +38,6 @@ class TestIndexedPiece(TestCase):
     """
     Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
     """
-
     def setUp(self):
         """
         Initialize a sample :py:class:`IndexedPiece` instance for use in each test.

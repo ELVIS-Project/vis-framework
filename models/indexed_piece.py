@@ -258,6 +258,7 @@ class IndexedPiece(object):
         if data is None:
             data = self._import_score()
         if not issubclass(analyzer_cls, (Indexer, Experimenter)):
-            raise TypeError(u'can only get data for Indexers or Experimenters, not {}'.format(analyzer_cls))
+            raise TypeError(u'can only get data for Indexers or Experimenters, '
+                            u'not {}'.format(analyzer_cls))
         instance = analyzer_cls(data, settings)
         return instance.run()
