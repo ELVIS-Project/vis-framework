@@ -23,9 +23,9 @@
 """
 Package docstring: Tests for indexers.
 """
-__all__ = ['test_note_rest_indexer', 'test_interval_indexer', 'test_indexer']
+__all__ = ['test_note_rest_indexer', 'test_interval_indexer', 'test_indexer', 'test_repeat']
 
 from vis.analyzers_tests import test_indexer
 from vis.analyzers_tests import test_note_rest_indexer
 from vis.analyzers_tests import test_interval_indexer
-
+from vis.analyzers_tests import test_repeat
