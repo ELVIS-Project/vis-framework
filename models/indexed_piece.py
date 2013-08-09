@@ -229,8 +229,8 @@ class IndexedPiece(object):
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
         u'Jean Sibelius'
-        >>> piece.metadata('year', 1919)
-        >>> piece.metadata('year')
+        >>> piece.metadata('date', 1919)
+        >>> piece.metadata('date')
         1919
         >>> piece.metadata('parts')
         [u'Flute 1', u'Flute 2', u'Oboe 1', u'Oboe 2', u'Clarinet 1', u'Clarinet 2', ... ]
