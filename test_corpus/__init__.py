@@ -26,6 +26,6 @@
 Module docstring: Native music21 Corpus Tests
 """
 
-__all__ = ['test_theSixth', 'test_triplet_bug', 'event_finder_short', 'int_indexer_short']
+__all__ = ['test_the_sixth.py', 'test_triplet_bug', 'int_indexer_short']
 
-from vis.test_corpus import test_theSixth, test_triplet_bug, event_finder_short, int_indexer_short
+from vis.test_corpus import test_the_sixth, test_triplet_bug, int_indexer_short
