@@ -222,7 +222,9 @@ class IndexedPiece(object):
         :param value: If not None, the new value to be assigned to ``field``
         :type value: object or None
         :returns: object -- the field accessed, or None -- if assigning a field or attempting to
-            access a field that does not exist..
+            access a field that does not exist.
+        :raises: TypeError -- if ``field`` is not a basestring, AttributeError -- if attempting
+            to set a field which is not in the :py:class:`IndexedPiece.Metadata` prototype.
 
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
@@ -243,6 +245,8 @@ class IndexedPiece(object):
                     self._import_score()
                     return self.metadata(field, value)
         else:
+            # since we explicitly set the __slots__ variable in the Metadata class definition,
+            # this will raise an AttributeError if you try to set a nonexistent field.
             setattr(self._metadata, field, value)
 
     def get_data(self, analyzer_cls, data=None, settings=None):
