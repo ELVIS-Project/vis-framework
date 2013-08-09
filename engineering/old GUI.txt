@@ -1,0 +1,24 @@
+old GUI.txt :
+    Explanation of the previous (PyQt4) GUI.
+
+
+This GUI was designed to represent the workflow as one goes through music analytic activities with the program. I was inspired by the "ribbon" GUI component present in many Microsoft products, which explains the three large buttons at the top-left of the window. Unlike the "ribbon," where each button would represent a type of activity, each of which is relevant to the application's current state, in vis the buttons map a user's progress through the three stages of a workflow.
+
+The three stages of the workflow correspond to the names we use internally for the controller responsible for the stage. The particular separation we chose is too complicated for the present functionality, but we imagined a situation where the appearance of each stage would be dramatically different depending on the actions taken at the previous stage. We were closer to this in the "Experimenter," but if you refer to the "Trial Queries" we created, we imagined that all of these types of activity would have to be possible through the current PyQt4 interface.
+
+Refer to the images for further discussion.
+
+old GUI-1.png
+    This image shows the Importer stage, where users would choose directories/folders or files to use in analysis. Users choose the arrow to the right of the "Importer" icon to continue.
+
+old GUI-2.png
+    This image shows the "processing" screen.
+
+old GUI-3.png
+    This image shows the Analyzer stage, where users must choose part combinations to analyze. If they were present in the file, we now display a piece's title and the names of its parts. Accessing accurate metadata like this is and will always be troublesome, so we provide a way for users to manually change the title and part names. Ideally, we would no longer need to display the pathname at this point, but there are many cases where it would otherwise be impossible to distinguish between 50 pieces called "Kyrie" with all the same part names. Categorization with other metadata may be possible.
+    The "look for these objects," groupbox betrays the primary processing role of the Analyzer: create indices of certain musical elements in the piece. "Offset interval" refers to the duration between points at the piece we will index. This provides a crude but simple way to remove ornaments we wouldn't consider to be "structural" to the music. Part combinations and offsets are now chosen at the last possible moment, so they no longer determine which experiments can be run, but are determined by which experiments will be run. This eliminates the situation where somebody would want to label chords but they chose "all voice pairs" rather than "all voices.," and it also allows us to treat offset like what it really is: a crude way to filter ornamentation.
+
+old GUI-4.png
+    I took this image from the "Qt Designer" application, so you can see the vast array of interface components on this screen. Both "Object to Consider" and "How to Show Results" are always displayed, but the "How to Show Results" list changes depending on the "Object to Consider," and both of these together determine which of the other settings is displayed.
+    This interface is only usable because of the dynamic updates. Before I implemented that feature, users were confused as to why they couldn't click in certain objects sometimes, since I simply disabled non-applicable controls. However, some things didn't and won't make sense: to get a list of interval n-gram frequencies, you must choose "Interval N-Gram" then "List," but to label interval n-grams on a score you must choose "Intervals" then "Score," since "Interval N-Gram" then "Score" will display a "summary score," where each of the "top X" n-grams is displayed in notation, with the number of occurrences written underneath.
+    For our new VisTrails interface, we're going to connect to the "ggplot2" library in R, with the "Deducer" GUI front-end. We don't want this much flexibility in the Web interface, since musicologists would likely think the learning curve is too steep. Deducer also does not provide output to LilyPond, which is an important feature for us.

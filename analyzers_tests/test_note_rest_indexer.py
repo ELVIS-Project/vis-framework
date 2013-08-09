@@ -290,9 +290,9 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
+        for i, ind in enumerate(list(actual[0].index)):
+            self.assertEqual(expected[0][i][0], ind)
+            self.assertEqual(expected[0][i][1], actual[0][ind])
 
     def test_note_rest_indexer_12_mpc(self):
         # When there are a bunch of notes
@@ -315,9 +315,9 @@ class TestNoteRestIndexer(unittest.TestCase):
         mpc.shutdown()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
+        for i, ind in enumerate(list(actual[0].index)):
+            self.assertEqual(expected[0][i][0], ind)
+            self.assertEqual(expected[0][i][1], actual[0][ind])
 
     def test_note_rest_indexer_200(self):
         # Soprano part of bwv77.mxl
@@ -327,9 +327,9 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
+        for i, ind in enumerate(list(actual[0].index)):
+            self.assertEqual(expected[0][i][0], ind)
+            self.assertEqual(expected[0][i][1], actual[0][ind])
 
     def test_note_rest_indexer_201(self):
         # Bass part of bwv77.mxl
@@ -339,9 +339,9 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
+        for i, ind in enumerate(list(actual[0].index)):
+            self.assertEqual(expected[0][i][0], ind)
+            self.assertEqual(expected[0][i][1], actual[0][ind])
 
     def test_note_rest_indexer_202(self):
         # Soprano and Bass parts of bwv77.mxl
@@ -352,13 +352,12 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
-        self.assertEqual(len(expected[1]), len(actual[1]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
-        for i in xrange(len(expected[1])):
-            self.assertEqual(expected[1][i][0], actual[1][i].offset)
-            self.assertEqual(expected[1][i][1], actual[1][i].obj)
+        for i, ind in enumerate(list(actual[0].index)):
+            self.assertEqual(expected[0][i][0], ind)
+            self.assertEqual(expected[0][i][1], actual[0][ind])
+        for i, ind in enumerate(list(actual[1].index)):
+            self.assertEqual(expected[1][i][0], ind)
+            self.assertEqual(expected[1][i][1], actual[1][ind])
 
     def test_note_rest_indexer_201_mpc(self):
         # Bass part of bwv77.mxl
@@ -373,11 +372,11 @@ class TestNoteRestIndexer(unittest.TestCase):
         mpc.shutdown()
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
-        for i in xrange(len(expected[0])):
-            self.assertEqual(expected[0][i][0], actual[0][i].offset)
-            self.assertEqual(expected[0][i][1], actual[0][i].obj)
+        for i, ind in enumerate(list(actual[0].index)):
+            self.assertEqual(expected[0][i][0], ind)
+            self.assertEqual(expected[0][i][1], actual[0][ind])
 
-    def test_note_rest_indexer_200_mock_mpc(self):
+    def test_n_r_i_200_mock_mpc(self):
         # Soprano part of bwv77.mxl
         # ** with mock MPController
         bwv77 = converter.parse('test_corpus/bwv77.mxl')
@@ -393,13 +392,13 @@ class TestNoteRestIndexer(unittest.TestCase):
         # test mocks were used correctly
         mpc.get_pipe.assert_called_once_with()
         ccallz = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send"
-        self.assertEqual(ccallz[0], indexer.mp_indexer)
+        self.assertEqual(ccallz[0], indexer.stream_indexer)
         self.assertTrue(isinstance(ccallz[1][0][0], basestring))
         self.assertEqual(ccallz[1][1], noterest.indexer_func)
         self.assertEqual(ccallz[1][2], [note.Note, note.Rest])
         mock_conn.recv.assert_called_once_with()
 
-    def test_note_rest_indexer_202_mock_mpc(self):
+    def test_n_r_i_202_mock_mpc(self):
         # Soprano and Bass parts of bwv77.mxl
         # ** with mock MPController
         bwv77 = converter.parse('test_corpus/bwv77.mxl')
@@ -416,17 +415,15 @@ class TestNoteRestIndexer(unittest.TestCase):
         mpc.get_pipe.assert_called_once_with()
         ccallz = mock_conn.mock_calls
         self.assertEqual(4, len(ccallz))
-        send_call = ((indexer.mp_indexer,
-                      [[test_part[0]], noterest.indexer_func, [note.Note, note.Rest]]),)
         self.assertEqual(ccallz[0][0], u'send')
         send_1 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (first call)
-        self.assertEqual(send_1[0], indexer.mp_indexer)
+        self.assertEqual(send_1[0], indexer.stream_indexer)
         self.assertTrue(isinstance(send_1[1][0][0], basestring))
         self.assertEqual(send_1[1][1], noterest.indexer_func)
         self.assertEqual(send_1[1][2], [note.Note, note.Rest])
         self.assertEqual(ccallz[1][0], u'send')
         send_2 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (second call)
-        self.assertEqual(send_2[0], indexer.mp_indexer)
+        self.assertEqual(send_2[0], indexer.stream_indexer)
         self.assertTrue(isinstance(send_2[1][0][0], basestring))
         self.assertEqual(send_2[1][1], noterest.indexer_func)
         self.assertEqual(send_2[1][2], [note.Note, note.Rest])
@@ -438,4 +435,4 @@ class TestNoteRestIndexer(unittest.TestCase):
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-note_rest_indexer_suite = unittest.TestLoader().loadTestsFromTestCase(TestNoteRestIndexer)
+NOTE_REST_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNoteRestIndexer)

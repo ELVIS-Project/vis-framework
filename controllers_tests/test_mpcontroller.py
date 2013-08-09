@@ -183,6 +183,6 @@ class TestMPController(unittest.TestCase):
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-mpc_tester_suite = unittest.TestLoader().loadTestsFromTestCase(TestMpcTests)
-mpcontroller_suite = unittest.TestLoader().loadTestsFromTestCase(TestMPController)
-mpcontroller_runs_suite = unittest.TestLoader().loadTestsFromTestCase(TestMPControllerRuns)
+MPC_TESTER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMpcTests)
+MPCONTROLLER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMPController)
+MPCONTROLLER_RUNS_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMPControllerRuns)

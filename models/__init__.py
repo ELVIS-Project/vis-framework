@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -26,14 +25,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+"""
+This module contains the data model classes for vis.
+"""
 
-__all__ = ['analyzing', 'display_handling', 'experimenting', 'importing', 'ngram',
-    'aggregated_pieces', 'indexed_piece']
+__all__ = ['aggregated_pieces', 'indexed_piece']
 
-import analyzing
-import display_handling
-import experimenting
-import importing
-import ngram
-import aggregated_pieces
-import indexed_piece
+from vis.models import aggregated_pieces
+from vis.models import indexed_piece

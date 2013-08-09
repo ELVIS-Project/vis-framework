@@ -21,8 +21,10 @@
 # You should have received a copy of the GNU General Public License along with this program.
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
-
+"""
+Package docstring for analyzers: They analyze stuff, and it's totally awesome!
+"""
 __all__ = ['experimenter', 'indexer']
 
-import experimenter
-import indexer
+from vis.analyzers import experimenter
+from vis.analyzers import indexer

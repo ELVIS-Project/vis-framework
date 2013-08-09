@@ -29,6 +29,8 @@ from music21 import stream
 from vis.analyzers import indexer
 
 
+# NB: remove this comment and the pylint disable when you write a subclass
+# pylint: disable=W0613
 def indexer_func(obj):
     """
     docstring
@@ -43,7 +45,7 @@ class TemplateIndexer(indexer.Indexer):
     Use this class when you want to write a new Indexer subclass.
     """
 
-    required_indices = []  # empty list means the Indexer uses Part objects
+    required_indices = []  # empty list accepts results of any Indexer
     required_score_type = stream.Part  # or pandas.Series
     requires_score = True  # adjust according to previous
     possible_settings = []  # list of strings
@@ -55,17 +57,17 @@ class TemplateIndexer(indexer.Indexer):
 
         Parameters
         ==========
-        :param score: [pandas.Series] or [music21.stream.Part]
-            Depending on how this Indexer works, this is a list of either Part or Series obejcts
-            to use in creating a new index.
+        :param score: Depending on how this Indexer works, this is a list of either Part or Series
+            objects to use in creating a new index.
+        :type: list of pandas.Series or list of music21.stream.Part
 
-        :param settings: dict
-            A dict of all the settings required by this Indexer. All required settings should be
+        :param settings: All the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is {}.
+        :type: dict
 
-        :param mpc : MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+        :param mpc: An optional instance of MPController. If this is present, the Indexer will use
+            it to submit jobs for multiprocessing. If not present, jobs will be executed in series.
+        :type: MPController
 
         Raises
         ======
@@ -77,6 +79,7 @@ class TemplateIndexer(indexer.Indexer):
 
         # Check all required settings are present in the "settings" argument. You must ignore
         # extra settings.
+        # If there are no settings, you may safely remove this.
         if settings is None:
             self._settings = {}
 
@@ -102,10 +105,10 @@ class TemplateIndexer(indexer.Indexer):
 
         Returns
         =======
-        [pandas.Series] :
-            A list of the new indices. The index of each Series corresponds to the index of the Part
-            used to generate it, in the order specified to the constructor. Each element in the
-            Series is an instance of music21.base.ElementWrapper.
+        :returns: A list of the new indices. The index of each Series corresponds to the index of
+            the Part used to generate it, in the order specified to the constructor. Each element
+            in the Series is a basestring.
+        :rtype: list of pandas.Series
         """
 
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.

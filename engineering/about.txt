@@ -20,3 +20,9 @@ trial queries.txt :
 
 Trial Query X.svg :
     Flowcharts of how data and processes will proceed through the evaluation of a query.
+
+old GUI.txt :
+    Explanation of the previous (PyQt4) GUI.
+
+old GUI-x.png :
+    To help explaining the previous GUI.

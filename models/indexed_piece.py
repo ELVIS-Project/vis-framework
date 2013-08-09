@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -26,71 +25,146 @@ The model representing an indexed and analyzed piece of music.
 """
 
 # Imports
+from inspect import getmembers, isdatadescriptor
+import re
+import os
 from music21 import converter
-from vis.analyzers import indexer
+from vis.analyzers.experimenter import Experimenter
+from vis.analyzers.indexer import Indexer
+
+
+def _find_piece_title(the_score):
+    """
+    Find the title of a Score. If there is none, return the filename without extension.
+
+    Parameters
+    ==========
+    :param the_score: The score of which to find the title.
+    :type the_score: music21.stream.Score
+
+    Returns
+    =======
+    :returns: The title of the score.
+    :rtype: unicode
+    """
+    # First try to get the title from a Metadata object, but if it doesn't
+    # exist, use the filename without directory.
+    if the_score.metadata is not None:
+        post = the_score.metadata.title
+    elif hasattr(the_score, 'filePath'):
+        post = os.path.basename(the_score.filePath)
+    else:  # if the Score was part of an Opus
+        post = u'Unknown Piece'
+
+    # Now check that there is no file extension. This could happen either if
+    # we used the filename or if music21 did a less-than-great job at the
+    # Metadata object.
+    post = os.path.splitext(post)[0]
+
+    return post
+
+
+def _find_part_names(the_score):
+    """
+    Return a list of part names in a score. If the score does not have proper names, return a
+    list of enumerated parts.
+
+    Parameters
+    ==========
+    :param the_score:
+        The score in which to find the part names.
+    :type the_score: music21.stream.Score
+
+    Returns
+    =======
+    :returns: The title of the score.
+    :rtype: list of unicode
+    """
+    # hold the list of part names
+    post = []
+
+    # First try to find Instrument objects. If that doesn't work, use the "id"
+    for each_part in the_score.parts:
+        instr = each_part.getInstrument()
+        if instr is not None and instr.partName != u'':
+            post.append(unicode(instr.partName))
+        else:
+            post.append(unicode(each_part.id))
+
+    # Make sure none of the part names are just numbers; if they are, use
+    # a part name like "Part 1" instead.
+    for part_index in xrange(len(post)):
+        try:
+            int(post[part_index])
+            # if that worked, the part name is just an integer...
+            post[part_index] = u'Part ' + unicode(part_index + 1)
+        except ValueError:
+            pass
+
+    return post
 
 
 class IndexedPiece(object):
     """
     Holds the indexed data from a musical score.
-
-    Here is a list of all the metadata we'll have about a piece:
-    From vis:
-    - pathname
-    - parts (an ordered list of part names)
-    - quarterLength duration of anacrusis, if applicable
-    From music21.metadata.Metadata:
-    - alternativeTitle
-    - composer
-    - composers
-    - date
-    - localeOfComposition
-    - movementName
-    - movementNumber
-    - number
-    - opusNumber
-    - title (only required field; at worst, it's the filename without extension)
     """
+    class Metadata:
+        """
+        Holds metadata for an IndexedPiece. At present, it contains the following fields:
 
-    # About the Data Model (for self._data)
-    # =====================================
-    # - All the indices are stored in a dict.
-    # - Indices of the dict will be unicode()-format class names of the Indexer.
-    # - how can we store multiple results from the same Indexer, generated with different settings?
-
-    # - For an Indexer, the stored item will be a dict of pandas.Series objects.
-    #    - Access a particular index by specifying the Indexer name, the settings, and either the
-    #      index of the part in the Score object or a list of parts in a part combination.
-    #      Examples:
-    #      - self._data[u'NoteRestIndexer'][u'{}'][0]
-    #         Notes-and-rests index of the highest part; Indexer has no settings.
-    #         NB: since this is a single-part reference, it is a list. Indices are integers.
-    #      - self._data[u'IntervalIndexer']
-    #                  [u'{u'quality': False, u'simple or compound': u'simple'}']
-    #                  [u'[0, 1]']
-    #         Intervals index of the two highest parts.
-    #         NB: since this lists part combinations, it is a dict. Indices are list-like strings.
-    #    - Be aware that settings can be tricky to deal with, since a dict object does not always
-    #      present its keys to str() in the same order. The only way to know whether specific
-    #      settings are present in an IndexedPiece is to eval() the settings strings and compare
-    #      them to another settings dict.
-    #    - Each of the objects you get is a pandas.Series, where:
-    #      - each element is an instance music21.base.ElementWrapper
-    #      - each element has an "offset" corresponding to its place in the score
-    #      - each element has its proper "duration" attribute
-
-    # - For an Experimenter, results are stored in the same way as for an Indexer.
-    #   There are two differences:
-    #   - There is an additional part specification: u'all'. This may appear alongside or instead
-    #     of other parts or part combinations.
-    #   - The Experimenter's output may be either a pandas.Series or pandas.DataFrame.
+        alternative_title
+            A possible alternate title for the piece; e.g. Beethoven's Symphony No. 6 in F Major
+            is also known as the 'Pastoral' Symphony. Taken from music21.
+        anacrusis
+            The length of the pick-up measure, if there is one.
+        composer
+            The author of the piece. Taken from music21.
+        composers
+            If the piece has multiple authors. Taken from music21.
+        date
+            The date that the piece was composed or published. Taken from music21.
+        locale_of_composition
+            Where the piece was composed. Taken from music21.
+        movement_name
+            If the piece is part of a larger work, the name of this subsection. Taken from music21.
+        movement_number
+            If the piece is part of a larger work, the number of this subsection. Taken from
+            music21.
+        number
+            Taken from music21.
+        opus_number
+            Number assigned by the composer to the piece or a group containing it, to help with
+            identification or cataloguing. Taken from music21.
+        parts
+            A list of the parts in a multi-voice work.
+        pathname
+            The filesystem path to the music file encoding the piece.
+        title
+            The title of the piece. Taken from music21.
+        """
+        def __init__(self, **kwargs):
+            data = {
+                u'alternative_title': None,
+                u'anacrusis': None,
+                u'composer': None,
+                u'composers': None,
+                u'date': None,
+                u'locale_of_composition': None,
+                u'movement_name': None,
+                u'movement_number': None,
+                u'number': None,
+                u'opus_number': None,
+                u'parts': None,
+                u'pathname': None,
+                u'title': None
+            }
+            data.update(kwargs)
+            self.__dict__.update(data)
 
     def __init__(self, pathname):
         super(IndexedPiece, self).__init__()
-        self._metadata = {'pathname': pathname}
-        self._data = {}
-        self._score = None
-        self.indexers = []
+        self._metadata = self.__class__.Metadata(pathname=pathname)
+        self._imported = False
 
     def __repr__(self):
         pass
@@ -103,35 +177,50 @@ class IndexedPiece(object):
 
     def _import_score(self):
         """
-        Import the score to music21 format. Uses multiprocessing, but blocks until the import is
-        complete.
+        Import the score to music21 format.
 
-        Returns
-        =======
-        music21.stream.Score or Opus
-            The score.
+        :returns: the score
+        :rtype: music21.stream.Score or music21.stream.Opus
         """
-        # TODO: actually write this method
-        self._score = converter.parse(self.metadata('pathname'))
-        return self._score
+        score = converter.parse(self.metadata('pathname'))
+        if not self._imported:
+            def convert(name):
+                """
+                converts camelCase strings (as properties in music21 are named) to snake-case
+                strings (which are what Python idiom dictates we should use)
+
+                Taken from :
+                http://stackoverflow.com/
+                questions/1175208/elegant-python-function-to-convert-camelcase-to-camel-case
+                :param name: a camelCase string
+                :return: a snake-case string
+                """
+                name = re.sub(r'(.)([A-Z][a-z]+)', r'\1_\2', name)
+                return re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+
+            # find all the properties (i.e. methods with the @property decorator)
+            # for music21.metadata.Metadata which are also in our Metadata prototype
+            for name, obj in getmembers(score.metadata.__class__, isdatadescriptor):
+                if u'title' == name:
+                    self.metadata(name, _find_piece_title(score))
+                elif isinstance(obj, property) and hasattr(self._metadata, convert(name)):
+                    self.metadata(convert(name), obj)
+                # music21 doesn't have a "part names" attribute in its Metadata objects
+            self.metadata(u'parts', _find_part_names(score))
+            self._imported = True
+        return score
 
     def metadata(self, field, value=None):
-        # TODO: update doctest so that it actually works (e.g. the piece must be imported before
-        #       calling metadata)
+        # TODO: update doctest so that it actually works
         """
         Get or set metadata about the piece, like filename, title, and composer.
 
-        :param str field: The name of the field to be accessed or modified
-
+        :param field: The name of the field to be accessed or modified
+        :type field: str or unicode
         :param value: If not None, the new value to be assigned to ``field``
-
         :type value: object or None
-
         :returns: object -- the field accessed, or None -- if assigning a field or attempting to
-            access a field that does not exist.
-
-        :raises: KeyError if attempting to access a nonexistent field on a piece which has not yet
-            been imported.
+            access a field that does not exist..
 
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
@@ -142,297 +231,33 @@ class IndexedPiece(object):
         >>> piece.metadata('parts')
         [u'Flute 1', u'Flute 2', u'Oboe 1', u'Oboe 2', u'Clarinet 1', u'Clarinet 2', ... ]
         """
-        if not isinstance(field, str):
-            raise TypeError("parameter 'field' must be of type 'str'")
+        if not isinstance(field, basestring):
+            raise TypeError("parameter 'field' must be of type 'basestring'")
         if value is None:
-            if field in self._metadata:
-                return self._metadata[field]
-            elif self._score is None:
-                raise KeyError('field {0!r} does not exist in metadata'.format(field))
+            if hasattr(self._metadata, field):
+                return getattr(self._metadata, field)
             else:
-                return None
+                if not self._imported:
+                    self._import_score()
+                    return self.metadata(field, value)
         else:
-            self._metadata[field] = value
+            setattr(self._metadata, field, value)
 
-    def add_index(self, which_indexers, which_settings=None):
+    def get_data(self, analyzer_cls, data=None, settings=None):
         """
-        Run one or more :py:class:`controllers.indexer.Indexer`s on the score and save the results.
-        If any of the :py:class:`controllers.indexer.Indexer`s have already been run with the same
-        settings, they will not be run again.
+        Get the analysis from a specific analyzer run on this piece.
 
-        Access the result with :py:meth:`get_parts`.
-
-        :param which_indexers:
-            the :py:class:`controllers.indexer.Indexer` subclasses to run on the IndexedPiece. If
-            you are using a built-in Indexer (the code for which is stored in
-            "analyzers/indexer.py"), the string should look like this:
-                u'IntervalIndexer'
-            If you are using an Indexer not stored there, you should add the name of the
-            subdirectory, so the string should look like this:
-                u'my_indexers.MyIndexer'
-        :type which_indexers: list of (str or unicode)
-
-        :param which_settings:
-            A dict of the settings to provide the :py:class:`controllers.indexer.Indexer`. Default
-            is {}. This is the same for all Indexers in "which_indexers", so you may specify
-            settings that apply only to one or some of the Indexers, but you may not specify
-            different settings of the same name for different Indexers.
-        :type which_settings: dict
-
-        :returns: None
-
-        :raises: RuntimeError -- if one of the specified :py:class:`controllers.indexer.Indexer`s
-            (or one of its requirements) cannot be located, or if a required setting for one of the
-            :py:class:`controllers.indexer.Indexer`s is absent. The exception is raised but only
-            for the :py:class:`controllers.indexer.Indexer`s with problems. The others run as
-            normal.
-
-        :raises: TypeError -- if one of the strings in `which_indexers` does not correspond to a
-            subclass of :py:class:`controllers.indexer.Indexer`.
+        :param analyzer_cls: the analyzer to run
+        :type analyzer_cls: type
+        :param data: the information for the analyzer to use
+        :type data: pandas.Series or pandas.DataFrame
+        :param settings: the settings to be used with the analyzer
+        :type settings: dict
+        :return: the results of the analysis
         """
-        if not which_settings:
-            which_settings = {}
-
-        # If one of the indexers doesn't exist, add its name to this list.
-        missing_indexers = []
-        missing_settings = []
-
-        # Hold the music21 Score object, if we use it
-        the_score = None
-
-        # If one of the indexers requires another indexer, we'll run it automatically. If the user
-        # specifies pre-requisite indexers out of order (i.e., which_indexers is
-        # [u'IntervalIndexer', u'NoteRestIndexer']), then we'll find the NoteRestIndexer is already
-        # calculated, and skip it.
-        for this_indexer in which_indexers:
-            if not isinstance(this_indexer, (str, unicode)):
-                raise TypeError('Indexer names must be string or unicode')
-            if hasattr(indexer, this_indexer):
-                i_module = indexer
-            else:
-                try:
-                    i_module = __import__(this_indexer,
-                                          globals(),
-                                          locals())
-                except ImportError:
-                    missing_indexers.append(this_indexer)
-                    continue
-
-            # Make a dict of the settings relevant for this Indexer
-            # We'll check all the possible settings for this Indexer. If the setting isn't given by
-            # the user, we'll use the default; if there is no default, we can't use the Indexer.
-            indexer_cls = getattr(i_module, this_indexer)
-            if not issubclass(indexer_cls, indexer.Indexer):
-                missing_indexers.append(this_indexer)
-                continue
-            poss_sett = indexer_cls.possible_settings
-            if not poss_sett:
-                poss_sett = {}
-            def_sett = indexer_cls.default_settings
-            if not def_sett:
-                def_sett = {}
-            this_settings = {}
-            for sett in poss_sett:
-                if sett in which_settings:
-                    this_settings[sett] = which_settings[sett]
-                elif sett in def_sett:
-                    this_settings[sett] = def_sett[sett]
-                else:
-                    this_settings = u'spoiled'
-                    break
-            if u'spoiled' == this_settings:
-                missing_settings.append(this_indexer)
-                continue
-
-            # Do we already have this index with the same settings?
-            if this_indexer in self._data:
-                # Is there an index with the same settings?
-                for each_setts in self._data[this_indexer].iterkeys():
-                    if eval(each_setts) == this_settings:
-                        this_settings = u'found'
-                        break
-            if u'found' == this_settings:
-                continue
-
-            # Does the Indexer require the Score?
-            required_score = None
-            if indexer_cls.requires_score:
-                if the_score is None:
-                    the_score = self._import_score()
-                required_score = [the_score.parts[i] for i in xrange(len(the_score.parts))]
-                # TODO: what about imports to Opus objects?
-                # TODO: find and store metadata
-            else:
-                req_ind = indexer_cls.required_indices
-                for ind in req_ind:
-                    if ind not in self._data:
-                        self.add_index(ind, which_settings)
-
-            # Run the Indexer and store the results
-            indexer_instance = indexer_cls(required_score, this_settings)
-            if this_indexer not in self._data:
-                self._data[this_indexer] = {}
-            self._data[this_indexer][unicode(this_settings)] = indexer_instance.run()
-
-            # Be explicit about memory
-            del indexer_instance
-            del this_settings
-
-        # If one of the Indexers doesn't exist
-        if missing_indexers:
-            msg = u'Unable to import requested Indexers: ' + unicode(missing_indexers)
-            raise RuntimeError(msg)
-        # If one of the Indexers is missing a required setting
-        elif missing_settings:
-            msg = u'Indexers missing required settings: ' + unicode(missing_indexers)
-            raise RuntimeError(msg)
-
-    def remove_index(self, **args):
-        """
-        To save on memory, or for some other reason like it's suddenly invalied, remove certain
-        information from this IndexedPiece.
-
-        You might want to do this, for example, after parsing chords from a piano texture.
-        """
-        pass
-
-    def experimenters_used(self):
-        """
-        Return a list of the names of the experimenters used so far in this IndexedPiece.
-        """
-        pass
-
-    def add_experiment(self, which_experimenters, which_settings=None):
-        """
-        Run an experimenter (or some experimenters) on the score and save the results. If the
-        experimenter has already been run with the same settings, the previously-calculated
-        results are returned.
-
-        This method checks whether the required indexers have been run. If not, they will be run
-        now, and the indices saved in this object, but not returned.
-
-        Parameters
-        ==========
-        :param which_experimenters: list
-            A list of the vis.controllers.experimenter.Experimenter subclasses to run.
-
-        :param which_settings: dict
-            A dict of the settings to provide the Experimenter. Default is {}.
-
-        Returns
-        =======
-        pandas.Series or pandas.DataFrame :
-            The result produced by the Experimenter subclass.
-
-        Raises
-        ======
-        RuntimeException :
-            If "which_experimenters" refers to an unknown Experimenter subclass, or the Experimenter
-            subclass raises an exception.
-
-        Side Effects
-        ============
-        Results from the Indexer, and any additional Indexer subclasses required for the
-        "which_index" Indexer subclass, are saved in the IndexedPiece.
-        """
-        if not which_settings:
-            which_settings = {}
-        pass
-
-    def remove_experiment(self, **args):
-        """
-        To save on memory, or for some other reason like it's suddenly invalied, remove certain
-        information from this IndexedPiece.
-
-        You might want to do this, for example, after re-calculating an index on which an
-        Experimenter depends, but which you do not wish to recalculate.
-        """
-        pass
-
-    def iter(self, index, parts, offset=None, repeated=False):
-        """
-        Get an iterable for events from the beginning to the end of the piece.
-
-        Parameters
-        ==========
-        index : subclass of vis.controllers.indexers.Indexer
-            The indexer whose output you wish to access.
-
-        parts : list or integer
-            Either an integer, corresponding to the part whose index you want, or a list of the
-            integers corresponding to the parts whose indices you want.
-
-        offset : float or None
-            Either the quarterLength offset between events you wish to consider, or "None," which
-            is the default, which returns every recorded event.
-
-        repeated : boolean
-            Whether to return events that are identical to the previously-returned event. Default
-            is False.
-
-        Returns
-        =======
-        Either a music21.base.ElementWrapper (if "parts" was an integer) or else a list of
-        ElementWrapper objects. The "obj" attribute of an ElementWrapper instance holds the
-        indexed data.
-
-        Raises
-        ======
-        RuntimeError :
-            - If the "index" class has not been used in this IndexedPiece.
-        """
-        pass
-
-    def get_parts(self, parts, index):
-        """
-        Get a list of an index of specific parts.
-
-        Parameters
-        ==========
-        :param parts: [int] or [[int]]
-            A list of the integers or a list of integer lists corresponding to the parts or part
-            combinations you want. The indices are the same as the result of "metadata('parts')".
-
-        :param index: string
-            The name of the index you want, as provided to "add_index()". This is the string-wise
-            representation of the Indexer class's name.
-
-        Returns
-        =======
-        [pandas.Series]
-            A list of the specified index for each requested part.
-
-        Raises
-        ======
-        RuntimeError :
-            - If the index has not yet been calculated.
-            - If the parts or part combinations are invalid (i.e., the part index does not exist in
-              the IndexedPiece or the part combination has not been calculated for this index).
-
-        Examples
-        ========
-        >>> piece = IndexedPiece('test_corpus/bwv77.mxl')
-        >>> piece.metadata('parts')
-        [u'Soprano', u'Alto', u'Tenor', u'Bass']
-        >>> piece.add_index(u'NoteRestIndexer')
-        >>> piece.get_parts([0, 3], u'NoteRestIndexer')
-        [<Series with Soprano NoteRestIndexer>, <Series with Bass NoteRestIndexer>]
-        >>> piece.add_index(u'IntervalIndexer')
-        >>> piece.get_parts([[0, 3]], u'IntervalIndexer')
-        [[<Series with Soprano-and-Bass interval index>]]
-        """
-        pass
-
-    @staticmethod
-    def _find_part_names(the_score):
-        """
-        Copy this from importer.py
-        """
-        pass
-
-    @staticmethod
-    def _find_piece_title(the_score):
-        """
-        Copy this from importer.py
-        """
-        pass
+        if data is None:
+            data = self._import_score()
+        if not issubclass(analyzer_cls, (Indexer, Experimenter)):
+            raise TypeError(u'can only get data for Indexers or Experimenters, not {}'.format(analyzer_cls))
+        instance = analyzer_cls(data, settings)
+        return instance.run()

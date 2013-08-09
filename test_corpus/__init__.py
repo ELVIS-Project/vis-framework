@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
@@ -8,7 +7,7 @@
 # Filename: test_corpus/__init__.py
 # Purpose: Import the Native music21 Corpus Tests
 #
-# Copyright (C) 2012, 2013 Christopher Antila
+# Copyright (C) 2012, 2013 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,7 +22,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
+"""
+Module docstring: Native music21 Corpus Tests
+"""
 
 __all__ = ['test_theSixth', 'test_triplet_bug', 'event_finder_short', 'int_indexer_short']
 
-import test_theSixth, test_triplet_bug, event_finder_short, int_indexer_short
+from vis.test_corpus import test_theSixth, test_triplet_bug, event_finder_short, int_indexer_short

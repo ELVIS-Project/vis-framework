@@ -1,6 +1,5 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
@@ -26,10 +25,10 @@ The controllers that deal with indexing data from music21 Score objects.
 """
 
 import pandas
-from music21 import stream, base, duration, converter
+from music21 import stream, converter
 
 
-def _mpi_unique_offsets(streams):
+def mpi_unique_offsets(streams):
     """
     For a set of streams, find the offsets at which events begin. Used by mp_indexer.
 
@@ -44,16 +43,11 @@ def _mpi_unique_offsets(streams):
         A list of floating-point numbers representing offsets at which a new event begins in any of
         the streams. Offsets are sorted from lowest to highest (start to end).
     """
-    # inspired by music21.stream.Stream._uniqueOffsetsAndEndTimes()
-    post = []
-    for each_part in streams:
-        for each_offset in [e.offset for e in each_part.elements]:
-            if each_offset not in post:
-                post.append(each_offset)
-    return sorted(post)
+    offsets = ({e.offset for e in part.elements} for part in streams)
+    return sorted(set.union(*offsets))  # pylint: disable=W0142
 
 
-def _mpi_vert_aligner(events):
+def mpi_vert_aligner(events):
     """
     When there is more than one event at an offset, call this method to ensure parsing
     simultaneities.
@@ -79,9 +73,11 @@ def _mpi_vert_aligner(events):
     return post
 
 
-def mp_indexer(pipe_index, parts, indexer_func, types=None):
+def stream_indexer(pipe_index, parts, indexer_func, types=None):
+    # TODO: adjust this to use the proper index-which-is-offset for the returned Series
+    # TODO: adjust this to not return a Seris of ElementWrapper objects
     """
-    Perform the indexation of a part, or part combination. This is a module-level function designed
+    Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing with the MPController module.
 
     If your Indexer has settings, use the indexer_func() to adjust for them.
@@ -111,82 +107,113 @@ def mp_indexer(pipe_index, parts, indexer_func, types=None):
 
     Parameters:
     ===========
-    :param parts : [music21.stream.Stream] or [pandas.Series]
-        A list of at least one Stream (should be Part) or Series object. Every new event, or change
-        of simlutaneity, will appear in the outputted index. Therefore, the new index will contain
-        at least as many events as the inputted Part or Series with the most events.
+    :param parts: [music21.stream.Stream]
+        A list of at least one Stream object. Every new event, or change of simlutaneity, will
+        appear in the outputted index. Therefore, the new index will contain at least as many
+        events as the inputted Part or Series with the most events.
 
-    :param indexer_func : function
-        This function transforms found events into another suitable format. The output of this
-        function is put into an ElementWrapper object.
+    :param indexer_func: function
+        This function transforms found events into a unicode object (i.e., a unicode string).
 
-    :param types : list of type objects
-        Required only if "parts" contains Part objects (otherwise ignored). Only objects of a type
-        in this list will be passed to the indexer_func for inclusion in the resulting index.
+    :param types: list of type objects
+        Only objects of a type in this list will be passed to the indexer_func for inclusion in
+        the resulting index.
 
     Returns:
     ========
-    pandas.Series :
-        The new index. Each element is an instance of music21.base.ElementWrapper. The output of
-        the indexer_func is stored in the "obj" attribute. Each ElementWrapper has an appropriate
-        offset according to its place in the score.
-
-    Raises:
-    =======
-    RuntimeError :
-        If "parts" is a list of Stream objects but "types" is None (the default value).
+    pandas.Series:
+        The new index. Each element is a unicode object (i.e., a unicode string), and the "index"
+        of the Series corresponds to the offset at which each event begins.
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
-
-    # Convert "frozen" Streams, if needed
-    if isinstance(parts[0], basestring):
-        parts = [converter.thaw(each) for each in parts]
-
-    # flatten the streams or change Series to Parts, as required
-    if isinstance(parts[0], stream.Stream):
-        if types is None:
-            raise RuntimeError(u'mp_indexer requires a list of types when given Stream objects')
-        all_parts = [x.flat.getElementsByClass(types) for x in parts]
+    if types is None:
+        getter = lambda thing: thing
     else:
-        all_parts = [stream.Part(x) for x in parts]
+        getter = lambda thing: thing.getElementsByClass(types)
+
+    # Convert "frozen" Streams, if needed; flatten the streams and filter classes
+    if isinstance(parts[0], basestring):
+        all_parts = [getter(converter.thaw(each).flat) for each in parts]
+    else:
+        all_parts = [getter(part.flat) for part in parts]
 
     # collect all unique offsets
-    unique_offsets = _mpi_unique_offsets(all_parts)
+    unique_offsets = mpi_unique_offsets(all_parts)
+
+    # in cases where there will be more than one event at an offset, we need this
+    offsets_for_series = []
 
     # Convert to requested index format
-    post = []
+    new_series_data = []
     for off in unique_offsets:
         # inspired by vis.controllers.analyzer._event_finder() in vis9c
         current_events = []
         for part in all_parts:  # find the events happening at this offset in all parts
-            current_events.append([x for x in part.getElementsByOffset(off, mustBeginInSpan=False)])
+            current_events.append(list(part.getElementsByOffset(off, mustBeginInSpan=False)))
 
         # Arrange groups of things to index
-        if 1 == max([len(x) for x in current_events]):
+        if 1 == max(len(event) for event in current_events):
             # each offset has only one event
-            current_events = [[current_events[i][0] for i in xrange(len(current_events))]]
+            current_events = [[event[0] for event in current_events]]
         else:
-            current_events = _mpi_vert_aligner(current_events)
+            current_events = mpi_vert_aligner(current_events)
 
         # Index previously-arranged groups
         for each_simul in current_events:
-            new_obj = indexer_func(each_simul)
-            if new_obj is not None:
-                new_obj = base.ElementWrapper(new_obj)
-                new_obj.offset = off  # copy offset to new Stream
-                try:  # set duration for previous event
-                    post[-1].duration = duration.Duration(off - post[-1].offset)
-                except IndexError:
-                    # Happens when this is the first element in "post"; faster than using an "if"
-                    pass
-                post.append(new_obj)
+            new_series_data.append(indexer_func(each_simul))
+            offsets_for_series.append(off)
 
-    # Ensure the last items have the correct duration
-    if post != []:
-        end_offset = all_parts[0][-1].offset + all_parts[0][-1].duration.quarterLength
-        post[-1].duration = duration.Duration(end_offset - post[-1].offset)
+    return pipe_index, pandas.Series(new_series_data, index=offsets_for_series)
 
-    return pipe_index, pandas.Series(post)
+
+def series_indexer(pipe_index, parts, indexer_func, types=None):
+    """
+    Perform the indexation of a part or part combination. This is a module-level function designed
+    to ease implementation of multiprocessing with the MPController module.
+
+    If your Indexer has settings, use the indexer_func() to adjust for them.
+
+    If an offset has multiple events of the correct type, they will hypothetically be included in
+    the new index. However, I'm not entirely sure how to implement this (with pandas MultiIndex?),
+    and it's not important, so it doesn't really work yet.
+
+    Parameters:
+    ===========
+    :param parts: [pandas.Series]
+        A list of at least one Series object. Every new event, or change of simlutaneity, will
+        appear in the outputted index. Therefore, the new index will contain at least as many
+        events as the inputted Part or Series with the most events. This is not a DataFrame, since
+        each part will likely have different offsets.
+
+    :param indexer_func: function
+        This function transforms found events into a unicode object (i.e., a unicode string).
+
+    :param types: list of type objects
+        Only objects of a type in this list will be passed to the indexer_func for inclusion in
+        the resulting index.
+
+    Returns:
+    ========
+    pandas.Series:
+        The new index. Each element is a unicode object (i.e., a unicode string), and the "index"
+        of the Series corresponds to the offset at which each event begins.
+    """
+
+    # find the offsets at which things happen
+    indices = (set(part.index) for part in parts)
+    all_offsets = sorted(set.union(*indices))  # pylint: disable=W0142
+
+    # Copy each Series with index=offset values that match all_offsets, filling in non-existant
+    # offsets with the value that was at the most recent offset with a value. We put these in a
+    # dict so DataFrame.__init__() puts parts in columns.
+    in_dict = {i: part.reindex(index=all_offsets, method='ffill') for i, part in enumerate(parts)}
+    dframe = pandas.DataFrame(in_dict)
+
+    # do the indexing
+    new_series_data = dframe.apply(indexer_func, axis=1)
+
+    # make the new index
+    return pipe_index, pandas.Series(new_series_data, index=dframe.index)
 
 
 class Indexer(object):
@@ -212,6 +239,8 @@ class Indexer(object):
     # self._indexer_func
     # self._types
 
+    # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
+    # pylint: disable=W0613
     def __init__(self, score, settings=None, mpc=None):
         """
         Create a new Indexer.
@@ -239,8 +268,9 @@ class Indexer(object):
         # Check the "score" argument is either uniformly Part or Series objects.
         for elem in score:
             if not isinstance(elem, self.required_score_type):
-                msg = unicode(self.__class__) + u' requires ' + unicode(self.required_score_type) \
-                      +  u' objects, not ' + str(type(elem))
+                msg = u'{} requires {} objects, not {}'.format(self.__class__,
+                                                               self.required_score_type,
+                                                               type(elem))
                 raise RuntimeError(msg)
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
@@ -273,7 +303,7 @@ class Indexer(object):
 
         Parameters
         ==========
-        combos : list of list of integers
+        :param combos: list of list of integers
             A list of all voice combinations to be analyzed. For example:
             - [[0], [1], [2], [3]]
                 Analyze each of four parts independently.
@@ -293,15 +323,16 @@ class Indexer(object):
         ============
         1.) Blocks until all voice combinations have completed.
         """
-
         post = []
-        voices = None
 
         if self._mpc is None:
             # use serial processing
             for each_combo in combos:
                 voices = [self._score[x] for x in each_combo]
-                post.append(mp_indexer(0, voices, self._indexer_func, self._types)[1])
+                if isinstance(self._score[0], stream.Stream):
+                    post.append(stream_indexer(0, voices, self._indexer_func, self._types)[1])
+                else:
+                    post.append(series_indexer(0, voices, self._indexer_func)[1])
         else:
             # use the MPController for multiprocessing
             pipe_end = self._mpc.get_pipe()
@@ -310,10 +341,11 @@ class Indexer(object):
                 jobs_submitted += 1
                 if isinstance(self._score[0], stream.Stream):
                     voices = [converter.freeze(self._score[x], u'pickle') for x in each_combo]
+                    pipe_end.send((stream_indexer, [voices, self._indexer_func, self._types]))
                 else:
                     voices = [self._score[x] for x in each_combo]
-                pipe_end.send((mp_indexer, [voices, self._indexer_func, self._types]))
-            for each in xrange(jobs_submitted):
+                    pipe_end.send((series_indexer, [voices, self._indexer_func]))
+            for _ in xrange(jobs_submitted):
                 post.append(pipe_end.recv())
 
         return post

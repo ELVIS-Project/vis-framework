@@ -96,16 +96,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
-     inkscape:cx="309.06207"
-     inkscape:cy="237.15729"
+     inkscape:cx="376.10428"
+     inkscape:cy="1045.2793"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="746"
-     inkscape:window-x="0"
-     inkscape:window-y="-1"
-     inkscape:window-maximized="1" />
+     inkscape:window-width="481"
+     inkscape:window-height="413"
+     inkscape:window-x="20"
+     inkscape:window-y="18"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -114,7 +114,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -136,11 +136,11 @@
          sodipodi:role="line"
          x="40.866573"
          y="59.779881"
-         id="tspan6233">Score of a piece showing all the k-voice contrapuntal modules of a length &gt;= n that also appear</tspan><tspan
+         id="tspan8754">Show me the labelled score of a Kyrie showing all five-voice contrapuntal modules at least 3 notes</tspan><tspan
          sodipodi:role="line"
          x="40.866573"
          y="79.779877"
-         id="tspan8754">in another piece.</tspan></text>
+         id="tspan3064">long (i.e., 5-voice interval &gt;=3-grams) that also appear in another movement of the same mass.</tspan></text>
     <g
        id="g3139"
        transform="translate(-35.597471,40.042172)">
