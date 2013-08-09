@@ -108,8 +108,7 @@ class IndexedPiece(object):
     """
     Holds the indexed data from a musical score.
     """
-    # TODO: pylint says too few public methods, which is fair. Basically I want an immutable dict
-    #       for this class. Does that exist?
+    # pylint: diable=R0903
     class Metadata(object):
         """
         Holds metadata for an IndexedPiece. At present, it contains the following fields:
@@ -144,29 +143,29 @@ class IndexedPiece(object):
         title
             The title of the piece. Taken from music21.
         """
-        def __init__(self, **kwargs):
+        __slots__ = (u'opus_number', u'movement_name', u'composer', u'number', u'anacrusis',
+                     u'movement_number', u'date', u'composers', u'alternative_title', u'title',
+                     u'locale_of_composition', u'parts', u'pathname')
+
+        def __init__(self, pathname):
             super(IndexedPiece.Metadata, self).__init__()
-            data = {
-                u'alternative_title': None,
-                u'anacrusis': None,
-                u'composer': None,
-                u'composers': None,
-                u'date': None,
-                u'locale_of_composition': None,
-                u'movement_name': None,
-                u'movement_number': None,
-                u'number': None,
-                u'opus_number': None,
-                u'parts': None,
-                u'pathname': None,
-                u'title': None
-            }
-            data.update(kwargs)
-            self.__dict__.update(data)
+            self.opus_number = None
+            self.movement_name = None
+            self.composer = None
+            self.number = None
+            self.anacrusis = None
+            self.movement_number = None
+            self.date = None
+            self.composers = None
+            self.alternative_title = None
+            self.title = None
+            self.locale_of_composition = None
+            self.parts = None
+            self.pathname = pathname
 
     def __init__(self, pathname):
         super(IndexedPiece, self).__init__()
-        self._metadata = self.__class__.Metadata(pathname=pathname)
+        self._metadata = self.__class__.Metadata(pathname)
         self._imported = False
 
     def __repr__(self):
@@ -208,7 +207,7 @@ class IndexedPiece(object):
                     self.metadata(name, _find_piece_title(score))
                 elif isinstance(obj, property) and hasattr(self._metadata, convert(name)):
                     self.metadata(convert(name), obj)
-                # music21 doesn't have a "part names" attribute in its Metadata objects
+                    # music21 doesn't have a "part names" attribute in its Metadata objects
             self.metadata(u'parts', _find_part_names(score))
             self._imported = True
         return score
