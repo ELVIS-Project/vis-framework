@@ -289,6 +289,7 @@ def verbatim_variable(iterable):
     return str(tuple(item.obj for item in iterable))
 
 
+# TODO: pylint says we have 8 instance attributes on this bad boy, which is just too many.
 class IndexerTestBase(unittest.TestCase):
     def setUp(self):
         # prepare a valid list of ElementWrappers (with proper offset and duration)
@@ -359,7 +360,8 @@ class TestIndexerSinglePart(IndexerTestBase):
         result_mixed = indexer.series_indexer(0, [self.mixed_series], verbatim_ser)[1]
         # that a list with two types is not filtered when it's given as a Series
         self.assertEqual(len(self.mixed_series), len(result_mixed))
-        expect_mixed = [u'Rest' if isinstance(elt, note.Rest) else elt.obj for elt in self.mixed_list]
+        expect_mixed = [u'Rest' if isinstance(elt, note.Rest) else elt.obj
+                        for elt in self.mixed_list]
         self.assertSequenceEqual(list(expect_mixed), list(result_mixed))
 
     def test_stream_indexer(self):
@@ -731,112 +733,112 @@ class TestIndexerThreeParts(IndexerTestBase):
 
 class TestMpiUniqueOffsets(unittest.TestCase):
     def test_mpi_unique_offsets_1(self):
-        streams = int_indexer_short.test_1
+        streams = int_indexer_short.test_1()
         expected = [0.0]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_2(self):
-        streams = int_indexer_short.test_2
+        streams = int_indexer_short.test_2()
         expected = [0.0, 0.25]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_3(self):
-        streams = int_indexer_short.test_3
+        streams = int_indexer_short.test_3()
         expected = [0.0, 0.25]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_4(self):
-        streams = int_indexer_short.test_4
+        streams = int_indexer_short.test_4()
         expected = [0.0, 0.25]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_5(self):
-        streams = int_indexer_short.test_5
+        streams = int_indexer_short.test_5()
         expected = [0.0, 0.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_6(self):
-        streams = int_indexer_short.test_6
+        streams = int_indexer_short.test_6()
         expected = [0.0, 0.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_7(self):
-        streams = int_indexer_short.test_7
+        streams = int_indexer_short.test_7()
         expected = [0.0, 0.5, 1.0, 1.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_8(self):
-        streams = int_indexer_short.test_8
+        streams = int_indexer_short.test_8()
         expected = [0.0, 0.25, 0.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_9(self):
-        streams = int_indexer_short.test_9
+        streams = int_indexer_short.test_9()
         expected = [0.0, 0.25, 0.5, 1.0]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_10(self):
-        streams = int_indexer_short.test_10
+        streams = int_indexer_short.test_10()
         expected = [0.0, 0.25]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_12(self):
-        streams = int_indexer_short.test_12
+        streams = int_indexer_short.test_12()
         expected = [0.0, 0.25, 0.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_13(self):
-        streams = int_indexer_short.test_13
+        streams = int_indexer_short.test_13()
         expected = [0.0, 0.125, 0.25, 0.375, 0.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_14(self):
-        streams = int_indexer_short.test_14
+        streams = int_indexer_short.test_14()
         expected = [0.0, 0.0625, 0.125, 0.1875, 0.25, 0.3125, 0.375, 0.4375, 0.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_15(self):
-        streams = int_indexer_short.test_15
+        streams = int_indexer_short.test_15()
         expected = [0.0, 0.5, 0.75, 1.0, 1.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_16(self):
-        streams = int_indexer_short.test_16
+        streams = int_indexer_short.test_16()
         expected = [0.0, 0.5, 0.75, 1.25, 1.5]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(expected, actual)
 
     def test_mpi_unique_offsets_17(self):
-        streams = int_indexer_short.test_17
+        streams = int_indexer_short.test_17()
         expected = [0.0, 0.5, 0.75, 1.125, 1.25, 1.375, 2.0]
         actual = indexer.mpi_unique_offsets(streams)
         self.assertEqual(len(expected), len(actual))
