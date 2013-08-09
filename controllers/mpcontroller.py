@@ -228,8 +228,8 @@ def main():
 
         def start_stuff(self):
             """
-            Submit jobs to the MPController. Each list given to the constructor will have two versions
-            produced: one with 5 added to each item, and one with 10 added to each item.
+            Submit jobs to the MPController. Each list given to the constructor will have two
+            versions produced: one with 5 added to each item, and one with 10 added to each item.
 
             You cannot call this method after calling get_stuff().
             """

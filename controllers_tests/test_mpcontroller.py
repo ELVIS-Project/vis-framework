@@ -27,23 +27,13 @@ Test file for multiprocessing in vis.
 
 import unittest
 import mock
-from vis.controllers.mpcontroller import MPController
-
-
-def add_something(pipe_i, add_this, the_list):
-    """
-    anything, number, list of numbers
-    ==>
-    anything, list of numbers with "number" added
-    """
-    return pipe_i, [z + add_this for z in the_list]
+from vis.controllers.mpcontroller import MPController, add_something
 
 
 class ThingProducer(object):
     """
     Add things to lists of integers.
     """
-
     def __init__(self, things, add, mpc):
         """
         Parameters
@@ -78,14 +68,19 @@ class ThingProducer(object):
         Return a list of the results. Also closes the Pipe.
         """
         post = []
-        for times in xrange(self._jobs_submitted):
+        for _ in xrange(self._jobs_submitted):
             shoop = self._pipe_end.recv()
             post.append(shoop)
         self._pipe_end.send('finished')
         self._pipe_end.close()
         return post
 
+
+# pylint: disable=R0904,C0111
 class TestMpcTests(unittest.TestCase):
+    """
+    Tests for the module-scope `add_something` function
+    """
     # TODO: test ThingProducer with mock objects
     def test_add_something_1(self):
         in_val = (0, 0, [0])
@@ -168,6 +163,8 @@ class TestMPControllerRuns(unittest.TestCase):
         actual = the_tp.get_stuff()
         self.assertEqual(expected, actual)
 
+
+# pylint: disable=R0904
 class TestMPController(unittest.TestCase):
     def test_mpc_1(self):
         # that calling MPController.get_pipe() calls the Pipe() constructor once

@@ -108,7 +108,9 @@ class IndexedPiece(object):
     """
     Holds the indexed data from a musical score.
     """
-    class Metadata:
+    # TODO: pylint says too few public methods, which is fair. Basically I want an immutable dict
+    #       for this class. Does that exist?
+    class Metadata(object):
         """
         Holds metadata for an IndexedPiece. At present, it contains the following fields:
 
@@ -143,6 +145,7 @@ class IndexedPiece(object):
             The title of the piece. Taken from music21.
         """
         def __init__(self, **kwargs):
+            super(IndexedPiece.Metadata, self).__init__()
             data = {
                 u'alternative_title': None,
                 u'anacrusis': None,
