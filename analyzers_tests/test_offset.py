@@ -29,10 +29,10 @@
 
 import unittest
 import pandas
+import numpy
 from vis.analyzers.indexers.offset import FilterByOffsetIndexer
 
 
-# TODO: add tests for more than one part
 # TODO: add tests for the dealing-with-zero-length part of run()
 class TestOffsetIndexerSinglePart(unittest.TestCase):
     def test_offset_1part_0(self):
@@ -218,7 +218,144 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
             for j in expected[0].index:  # compare each offset
                 self.assertEqual(expected[i][j], actual[i][j])
 
+
+class TestOffsetIndexerManyParts(unittest.TestCase):
+    def test_offset_xparts_1(self):
+        # input is expected output; 2 parts
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5])]
+        expected = pandas.DataFrame({0: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     1: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5])})
+        offset_interval = 0.5
+        ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
+        actual = ind.run()
+        self.assertEqual(len(expected.columns), len(actual.columns))  # same number of columns?
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))  # same column index?
+        self.assertEqual(len(expected.index), len(actual.index))  # same number of rows?
+        self.assertSequenceEqual(list(expected.index), list(actual.index))  # same row index?
+        for i in xrange(len(expected.columns)):  # compare each Series
+            for j in expected[0].index:  # compare each offset
+                self.assertEqual(expected[i][j], actual[i][j])
+
+    def test_offset_xparts_2(self):
+        # input is expected output; 10 parts
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),
+                  pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5])]
+        expected = pandas.DataFrame({0: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     1: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     2: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     3: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     4: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     5: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     6: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     7: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     8: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5]),
+                                     9: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 0.5, 1.0, 1.5])})
+        offset_interval = 0.5
+        ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
+        actual = ind.run()
+        self.assertEqual(len(expected.columns), len(actual.columns))  # same number of columns?
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))  # same column index?
+        self.assertEqual(len(expected.index), len(actual.index))  # same number of rows?
+        self.assertSequenceEqual(list(expected.index), list(actual.index))  # same row index?
+        for i in xrange(len(expected.columns)):  # compare each Series
+            for j in expected[0].index:  # compare each offset
+                self.assertEqual(expected[i][j], actual[i][j])
+
+    def test_offset_xparts_3(self):
+        # irregular offset interval to 1.0; 3 parts, same offsets
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.1]),
+                  pandas.Series(['q', 'w', 'e', 'r'], index=[0.0, 0.4, 1.1, 2.1]),
+                  pandas.Series(['t', 'a', 'l', 'l'], index=[0.0, 0.4, 1.1, 2.1])]
+        expected = pandas.DataFrame({0: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 1.0, 2.0, 3.0]),
+                                     1: pandas.Series(['q', 'w', 'e', 'r'],
+                                                      index=[0.0, 1.0, 2.0, 3.0]),
+                                     2: pandas.Series(['t', 'a', 'l', 'l'],
+                                                      index=[0.0, 1.0, 2.0, 3.0])})
+        offset_interval = 1.0
+        ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
+        actual = ind.run()
+        self.assertEqual(len(expected.columns), len(actual.columns))  # same number of columns?
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))  # same column index?
+        self.assertEqual(len(expected.index), len(actual.index))  # same number of rows?
+        self.assertSequenceEqual(list(expected.index), list(actual.index))  # same row index?
+        for i in xrange(len(expected.columns)):  # compare each Series
+            for j in expected[0].index:  # compare each offset
+                self.assertEqual(expected[i][j], actual[i][j])
+
+    def test_offset_xparts_4(self):
+        # irregular offset interval to 1.0; 3 parts, same offsets
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.9]),
+                  pandas.Series(['q', 'w', 'e', 'r'], index=[0.0, 0.3, 1.4, 2.6]),
+                  pandas.Series(['t', 'a', 'l', 'l'], index=[0.0, 0.2, 1.9, 2.555])]
+        expected = pandas.DataFrame({0: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 1.0, 2.0, 3.0]),
+                                     1: pandas.Series(['q', 'w', 'e', 'r'],
+                                                      index=[0.0, 1.0, 2.0, 3.0]),
+                                     2: pandas.Series(['t', 'a', 'l', 'l'],
+                                                      index=[0.0, 1.0, 2.0, 3.0])})
+        offset_interval = 1.0
+        ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
+        actual = ind.run()
+        self.assertEqual(len(expected.columns), len(actual.columns))  # same number of columns?
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))  # same column index?
+        self.assertEqual(len(expected.index), len(actual.index))  # same number of rows?
+        self.assertSequenceEqual(list(expected.index), list(actual.index))  # same row index?
+        for i in xrange(len(expected.columns)):  # compare each Series
+            for j in expected[0].index:  # compare each offset
+                self.assertEqual(expected[i][j], actual[i][j])
+
+    def test_offset_xparts_5(self):
+        # irregular offset interval to 1.0; 3 parts, same offsets, one much longer
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.9]),
+                  pandas.Series(['q', 'w', 'e', 'r'], index=[0.0, 0.3, 1.4, 2.6]),
+                  pandas.Series(['t', 'a', 'l', 'l', 'o', 'r', 'd', 'e', 'r'],
+                                index=[0.0, 0.2, 1.9, 2.5, 4.0, 5.0, 6.0, 7.0, 8.0])]
+        expected = pandas.DataFrame({0: pandas.Series(['a', 'b', 'c', 'd'],
+                                                      index=[0.0, 1.0, 2.0, 3.0]),
+                                     1: pandas.Series(['q', 'w', 'e', 'r'],
+                                                      index=[0.0, 1.0, 2.0, 3.0]),
+                                     2: pandas.Series(['t', 'a', 'l', 'l', 'o', 'r', 'd', 'e', 'r'],
+                                                      index=[0.0, 1.0, 2.0, 3.0, 4.0,
+                                                             5.0, 6.0, 7.0, 8.0])})
+        offset_interval = 1.0
+        ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
+        actual = ind.run()
+        self.assertEqual(len(expected.columns), len(actual.columns))  # same number of columns?
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))  # same column index?
+        self.assertEqual(len(expected.index), len(actual.index))  # same number of rows?
+        self.assertSequenceEqual(list(expected.index), list(actual.index))  # same row index?
+        for i in xrange(len(expected.columns)):  # compare each Series
+            for j in expected[0].index:  # compare each offset
+                if expected[i][j] is numpy.nan:  # apparently, NaN != NaN usually
+                    self.assertTrue(actual[i][j] is numpy.nan)
+                else:
+                    self.assertEqual(expected[i][j], actual[i][j])
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-OFFSET_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestOffsetIndexerSinglePart)
+OFFSET_INDEXER_SINGLE_SUITE = \
+    unittest.TestLoader().loadTestsFromTestCase(TestOffsetIndexerSinglePart)
+OFFSET_INDEXER_MULTI_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestOffsetIndexerManyParts)

@@ -44,22 +44,39 @@ class FilterByOffsetIndexer(indexer.Indexer):
         """
         Create a new FilterByOffsetIndexer.
 
+        The Indexer regularizes observations from offsets spaced any, possibly irregular,
+        quarterLength durations apart, to be observed at regularized observations. This has two
+        effects:
+            - events that do not begin at an observed offset will only be included in the output if
+              no other event occurs before the next observed offset
+            - events that last for many observed offsets will be repeated for those offsets
+
+        Since elements' durations are not recorded, the last observation in a Series will always be
+        included in the results. If it does not start on an observed offset, it will be included as
+        the next observed offset---again, whether or not this is true in the actual music. However,
+        the last observation will only ever be counted once, even if a part ends before others in
+        a piece with many parts. See the doctests for examples.
+
+        Examples
+        ========
+        TODO: totally gotta write these!
+
         Parameters
         ==========
-        :param score: [pandas.Series] or [music21.stream.Part]
-            Depending on how this Indexer works, this is a list of either Part or Series objects
-            to use in creating a new index.
+        :param score: A list of Series you wish to filter by offset values (the Index).
+        :type: list of pandas.Series
 
-        :param settings: dict
-            There is one required setting:
+        :param settings: There is one required setting:
             - u'quarterLength': float
                 The quarterLength duration between observations desired in the output. This value
                 must not have more than three digits to the right of the decimal (i.e. 0.001 is the
                 smallest possible value).
+        :type: dict
 
-        :param mpc : MPController
+        :param mpc:
             An optional instance of MPController. If this is present, the Indexer will use it to
             submit jobs for multiprocessing. If not present, jobs will be executed in series.
+        :type: MPController
 
         Raises
         ======
@@ -101,10 +118,9 @@ class FilterByOffsetIndexer(indexer.Indexer):
         """
         if 0 == len(self._score):
             return pandas.DataFrame()
-        start_offset, end_offset = None, None
+        start_offset = None
         try:
             start_offset = int(min([part.index[0] for part in self._score]) * 1000)
-            end_offset = int(max([part.index[-1] for part in self._score]) * 1000)
         except IndexError:
             # if one of the parts has 0 length
             for part in self._score:
@@ -114,11 +130,10 @@ class FilterByOffsetIndexer(indexer.Indexer):
                 # all the parts have no length, so return a DataFrame with as many empty parts
                 return pandas.DataFrame({i: pandas.Series() for i in xrange(len(self._score))})
             start_offset = int(min(start_offset))
-            for part in self._score:
-                if 0 < len(part.index):
-                    end_offset.append(part.index[-1])
-            end_offset = int(min(end_offset))
         step = int(self._settings[u'quarterLength'] * 1000)
-        off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))
-        post = {i: x.reindex(index=off_list, method='ffill') for i, x in enumerate(self._score)}
+        post = {}
+        for i in xrange(len(self._score)):
+            end_offset = int(self._score[i].index[-1] * 1000)
+            off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))
+            post[i] = self._score[i].reindex(index=off_list, method='ffill')
         return pandas.DataFrame(post)
