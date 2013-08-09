@@ -53,7 +53,9 @@ class FilterByOffsetIndexer(indexer.Indexer):
         :param settings: dict
             There is one required setting:
             - u'quarterLength': float
-                The quarterLength duration between observations desired in the output.
+                The quarterLength duration between observations desired in the output. This value
+                must not have more than three digits to the right of the decimal (i.e. 0.001 is the
+                smallest possible value).
 
         :param mpc : MPController
             An optional instance of MPController. If this is present, the Indexer will use it to
@@ -64,13 +66,17 @@ class FilterByOffsetIndexer(indexer.Indexer):
         RuntimeError :
             - If the "score" argument is the wrong type.
             - If the "score" argument is not a list of the same types.
-            - If required settings are not present in the "settings" argument.
+            - If a "quarterLength" setting is not found in the "settings" argument.
+            - If the "quarterLength" setting has a value less than 0.001.
         """
         super(FilterByOffsetIndexer, self).__init__(score, None, mpc)
 
         # check the settings instance has a u'quarterLength' property.
         if settings is None or u'quarterLength' not in settings:
             err_msg = u'FilterByOffsetIndexer requires a "quarterLength" setting.'
+            raise RuntimeError(err_msg)
+        elif settings[u'quarterLength'] < 0.001:
+            err_msg = u'FilterByOffsetIndexer requires a "quarterLength" greater than 0.001'
             raise RuntimeError(err_msg)
         else:
             self._settings[u'quarterLength'] = settings[u'quarterLength']
@@ -97,8 +103,8 @@ class FilterByOffsetIndexer(indexer.Indexer):
             return pandas.DataFrame()
         start_offset, end_offset = None, None
         try:
-            start_offset = int(min([part.index[0] for part in self._score]) * 10)
-            end_offset = int(max([part.index[-1] for part in self._score]) * 10)
+            start_offset = int(min([part.index[0] for part in self._score]) * 1000)
+            end_offset = int(max([part.index[-1] for part in self._score]) * 1000)
         except IndexError:
             # if one of the parts has 0 length
             for part in self._score:
@@ -112,7 +118,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
                 if 0 < len(part.index):
                     end_offset.append(part.index[-1])
             end_offset = int(min(end_offset))
-        step = int(self._settings[u'quarterLength'] * 10)
-        off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(10.0))
+        step = int(self._settings[u'quarterLength'] * 1000)
+        off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))
         post = {i: x.reindex(index=off_list, method='ffill') for i, x in enumerate(self._score)}
         return pandas.DataFrame(post)
