@@ -108,7 +108,7 @@ class IndexedPiece(object):
     """
     Holds the indexed data from a musical score.
     """
-    # pylint: diable=R0903
+    # pylint: disable=R0903
     class Metadata(object):
         """
         Holds metadata for an IndexedPiece. At present, it contains the following fields:
@@ -207,7 +207,7 @@ class IndexedPiece(object):
                     self.metadata(name, _find_piece_title(score))
                 elif isinstance(obj, property) and hasattr(self._metadata, convert(name)):
                     self.metadata(convert(name), obj)
-                    # music21 doesn't have a "part names" attribute in its Metadata objects
+            # music21 doesn't have a "part names" attribute in its Metadata objects
             self.metadata(u'parts', _find_part_names(score))
             self._imported = True
         return score
