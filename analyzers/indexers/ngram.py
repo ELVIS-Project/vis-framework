@@ -29,11 +29,11 @@ import pandas
 from vis.analyzers import indexer
 
 
-def indexer_func(obj):
-    """
-    docstring
-    """
-    return None
+#def indexer_func(obj):
+#    """
+#    docstring
+#    """
+#    return None
 
 
 class NGramIndexer(indexer.Indexer):
@@ -63,13 +63,17 @@ class NGramIndexer(indexer.Indexer):
 
     If you want n-grams to terminate when finding one or several particular values, you can specify
     this with the u'terminator' setting.
+
+    To show that a horizontal event continues, we use the u'_' character by default, but this can
+    be set separately, to u'P1' or u'0' or similar, if desired.
     """
 
     required_indices = []  # empty list accepts results of any Indexer
     required_score_type = pandas.Series
     requires_score = False
     possible_settings = [u'horizontal', u'vertical', u'n', u'mark singles', u'terminator']
-    default_settings = {u'mark singles': True, u'horizontal': [], u'terminator': []}
+    default_settings = {u'mark singles': True, u'horizontal': [], u'terminator': [],
+                        u'continuer': u'_'}
 
     def __init__(self, score, settings=None, mpc=None):
         """
@@ -91,8 +95,10 @@ class NGramIndexer(indexer.Indexer):
             - n: number of "vertical" events to include per n-gram
             - mark singles: whether to include brackets or parentheses for directions of which
                 there is only one index. Optional; default is True
-            - terminator: do not find an n-gram that contains any of these values. A list. Optional;
-                default is []
+            - terminator: do not find an n-gram with a vertical item that contains any of these
+                values. A list. Optional; default is []
+            - continuer: when there is no "horizontal" event that corresponds to a vertical event,
+                this is printed instead, to show that the previous "horizontal" event continues
         :type: dict
 
         :param mpc: An optional instance of MPController. If this is present, the Indexer will use
@@ -124,14 +130,16 @@ class NGramIndexer(indexer.Indexer):
                 settings else NGramIndexer.default_settings[u'mark singles']
             self._settings[u'terminator'] = settings[u'terminator'] if u'terminator' in settings \
                 else NGramIndexer.default_settings[u'terminator']
+            self._settings[u'continuer'] = settings[u'continuer'] if u'continuer' in settings \
+                else NGramIndexer.default_settings[u'continuer']
 
         # Change "TemplateIndexer" to the current class name. The superclass will handle the
         # "score" and "mpc" arguments, but you should have processed "settings" above, so it should
         # not be sent to the superclass constructor.
         super(NGramIndexer, self).__init__(score, None, mpc)
 
-        # TODO: decide what to do here
-        self._indexer_func = indexer_func
+        # not using it
+        self._indexer_func = None
 
     def run(self):
         """
@@ -153,6 +161,7 @@ class NGramIndexer(indexer.Indexer):
 
         # functions for formatting
         def format_vert(ins):
+            # NOTE: format_vert() and format_horiz() may be different in subtle ways!
             """
             Format "vertical" things. Provide an iterable of all the vertical things. They'll be
             outputted with a space between them, with the appropriate grouping symbol.
@@ -161,12 +170,18 @@ class NGramIndexer(indexer.Indexer):
             if n_verts > 1:
                 post = u'['
                 for obj in ins:
-                    post += obj + u' '
+                    if obj in self._settings[u'terminator']:
+                        raise RuntimeWarning(u'hit a terminator')
+                    else:
+                        post += unicode(obj) + u' '
                 post = post[:-1] + u']'  # remove last space
             elif m_singles:
-                post = u''.join([u'[', ins[0][0], u']'])
+                if ins[0][0] in self._settings[u'terminator']:
+                    raise RuntimeWarning(u'hit a terminator')
+                else:
+                    post = u''.join([u'[', unicode(ins[0][0]), u']'])
             else:
-                post = ins[0][0]
+                post = unicode(ins[0][0])
             return post
 
         def format_horiz(ins):
@@ -178,34 +193,55 @@ class NGramIndexer(indexer.Indexer):
             if n_horizs > 1:
                 post = u'('
                 for obj in ins:
-                    post += obj + u' '
+                    post += unicode(obj) + u' '
                 post = post[:-1] + u')'  # remove last space
             elif m_singles:
-                post = u''.join([u'(', ins[ins.index[0]], u')'])
+                post = u''.join([u'(', unicode(ins[ins.index[0]]), u')'])
             else:
-                post = ins[ins.index[0]]
+                post = unicode(ins[ins.index[0]])
             return post
 
-        # get the parts in the order specified; we have to track "i" and "name" separately so we
-        # have a new order for the dict but can keep self._score straight
-        vert = {}
+        # Order the parts as specified. We have to track "i" and "name" separately so we have a new
+        # order for the dict but can keep self._score straight. We'll use these tuples to keep
+        # vertical and horizontal events separated in the DataFrame with a MultiIndex
+        events = {}
         for i, name in enumerate(self._settings[u'vertical']):
-            vert[i] = self._score[name]
-        vert = pandas.DataFrame(vert)
-        horiz = {}
+            events[(u'v', i)] = self._score[name]
         for i, name in enumerate(self._settings[u'horizontal']):
-            horiz[i] = self._score[name]
-        horiz = pandas.DataFrame(horiz)
-        
-        for i in xrange(len(vert) - 1):  # iterate each offset
-            zoop = format_vert(vert.ix[i])  # first vertical event
+            events[(u'h', i)] = self._score[name]
+
+        # Make the MultiIndex and DataFrame with all events
+        events = pandas.DataFrame(events, columns=pandas.MultiIndex.from_tuples(events.keys()))
+
+        # Fill in all "vertical" NaN values with the previous value
+        for i in events[u'v'].columns:
+            events[u'v'][i].fillna(method=u'ffill', inplace=True)
+
+        # Fill in all "horizontal" NaN values with the continuer
+        if u'h' in events:
+            for i in events[u'h'].columns:
+                events[u'h'][i].fillna(value=self._settings[u'continuer'], inplace=True)
+
+        # Iterate the offsets
+        for i in xrange(len(events)):
+            try:
+                zoop = format_vert(events[u'v'].ix[i])  # first vertical event
+            except RuntimeWarning:  # we hit a terminator
+                continue
             try:
                 for j in xrange(self._settings[u'n'] - 1):  # iterate to the end of 'n'
-                    zoop += u' ' + format_horiz(horiz.ix[i + j]) + u' ' + \
-                            format_vert(vert.ix[i + j + 1])
-            except KeyError:
-                break
+                    ell = i + j + 1  # the index we need (it's an "L" but spelled out
+                    if u'h' in events:  # are there "horizontal" events?
+                        zoop += u' ' + format_horiz(events[u'h'].ix[ell]) + u' ' + \
+                                format_vert(events[u'v'].ix[ell])
+                    else:
+                        zoop += u' ' + format_vert(events[u'v'].ix[ell])
+            except (KeyError, RuntimeWarning) as the_err:
+                if isinstance(the_err, KeyError):  # end of inputted Series
+                    break
+                else:  # we hit a terminator
+                    continue
             post.append(zoop)
-            post_offsets.append(i)
+            post_offsets.append(events.index[i])
 
         return [pandas.Series(post, post_offsets)]
