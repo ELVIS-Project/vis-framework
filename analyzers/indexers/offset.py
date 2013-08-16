@@ -123,16 +123,20 @@ class FilterByOffsetIndexer(indexer.Indexer):
             start_offset = int(min([part.index[0] for part in self._score]) * 1000)
         except IndexError:
             # if one of the parts has 0 length
+            start_offset = []
             for part in self._score:
                 if 0 < len(part.index):
                     start_offset.append(part.index[0])
-            if start_offset is None:
+            if start_offset == []:
                 # all the parts have no length, so return a DataFrame with as many empty parts
                 return pandas.DataFrame({i: pandas.Series() for i in xrange(len(self._score))})
             start_offset = int(min(start_offset))
         step = int(self._settings[u'quarterLength'] * 1000)
         post = {}
         for i in xrange(len(self._score)):
+            if len(self._score[i].index) < 1:
+                post[i] = self._score[i]
+                continue
             end_offset = int(self._score[i].index[-1] * 1000)
             off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))
             post[i] = self._score[i].reindex(index=off_list, method='ffill')

@@ -53,10 +53,12 @@ class TestIndexedPiece(TestCase):
         # access fields which are set by default
         pathname = self.ind_piece.metadata('pathname')
         self.assertEquals('', pathname, "pathname variable doesn't match initialization value")
-        # assign a value
-        self.ind_piece.metadata('field', 2)
-        value = self.ind_piece.metadata('field')
+        # assign a value to a valid field
+        self.ind_piece.metadata('date', 2)
+        value = self.ind_piece.metadata('date')
         self.assertEquals(2, value, "extracted metadata field doesn't match assigned value")
+        # assign a value to an invalid field
+        self.assertRaises(AttributeError, self.ind_piece.metadata, 'field', 2)
         # access an invalid value
         value = self.ind_piece.metadata('invalid_field')
         self.assertEquals(None, value)

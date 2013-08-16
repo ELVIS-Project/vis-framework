@@ -1,11 +1,12 @@
-#!/usr/bin/env python
+#! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 #--------------------------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers_tests/__init__.py
-# Purpose:                Init file.
+# Filename:               models/aggregated_pieces.py
+# Purpose:                Hold the model representing data from multiple IndexedPieces.
 #
 # Copyright (C) 2013 Christopher Antila
 #
@@ -21,11 +22,44 @@
 # If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Package docstring: Tests for indexers.
+The model representing data from multiple IndexedPieces.
 """
-__all__ = ['test_note_rest_indexer', 'test_interval_indexer', 'test_indexer', 'test_repeat']
 
-from vis.analyzers_tests import test_indexer
-from vis.analyzers_tests import test_note_rest_indexer
-from vis.analyzers_tests import test_interval_indexer
-from vis.analyzers_tests import test_repeat
+
+class AggregatedPieces(object):
+    """
+    Holds data from multiple IndexedPieces.
+    """
+
+    # About the Data Model (for self._data)
+    # =====================================
+    # - ?
+
+    # TODO: how to know which pieces are stored here?
+
+    def __init__(self, pathname):
+        super(AggregatedPieces, self).__init__()
+        self.experiments = []
+
+    def __repr__(self):
+        pass
+
+    def __str__(self):
+        pass
+
+    def __unicode__(self):
+        pass
+
+    def add_experiment(self, which_experiment, which_settings=None):
+        """
+        ?
+        """
+        if not which_settings:
+            which_settings = {}
+        pass
+
+    def remove_experiment(self, **args):
+        """
+        ?
+        """
+        pass

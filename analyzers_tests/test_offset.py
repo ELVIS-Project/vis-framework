@@ -33,7 +33,6 @@ import numpy
 from vis.analyzers.indexers.offset import FilterByOffsetIndexer
 
 
-# TODO: add tests for the dealing-with-zero-length part of run()
 class TestOffsetIndexerSinglePart(unittest.TestCase):
     def test_offset_1part_0(self):
         # 0 parts
@@ -47,7 +46,6 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
 
     def test_offset_1part_1(self):
         # 0 length
-        # NOTE: this requires much more extensive testing in the multi-part suite
         in_val = [pandas.Series()]
         expected = pandas.DataFrame({0: pandas.Series()})
         offset_interval = 0.5
@@ -220,6 +218,33 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
 
 
 class TestOffsetIndexerManyParts(unittest.TestCase):
+    def test_offset_xparts_0a(self):
+        # 0 length, many parts
+        in_val = [pandas.Series(), pandas.Series(), pandas.Series(), pandas.Series()]
+        expected = pandas.DataFrame({0: pandas.Series(),
+                                     1: pandas.Series(),
+                                     2: pandas.Series(),
+                                     3: pandas.Series()})
+        offset_interval = 12.0
+        ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
+        actual = ind.run()
+        self.assertEqual(len(expected.columns), len(actual.columns))  # same number of columns?
+        self.assertEqual(len(expected.index), len(actual.index))  # same number of rows?
+
+    def test_offset_xparts_0b(self):
+        # 0 length, many parts, but one part has stuff
+        in_val = [pandas.Series(), pandas.Series(['a', 'b', 'c'], index=[0.0, 0.5, 1.0]),
+                  pandas.Series(), pandas.Series()]
+        expected = pandas.DataFrame({0: pandas.Series(),
+                                     1: pandas.Series(['a', 'b', 'c'], index=[0.0, 0.5, 1.0]),
+                                     2: pandas.Series(),
+                                     3: pandas.Series()})
+        offset_interval = 0.5
+        ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
+        actual = ind.run()
+        self.assertEqual(len(expected.columns), len(actual.columns))  # same number of columns?
+        self.assertEqual(len(expected.index), len(actual.index))  # same number of rows?
+
     def test_offset_xparts_1(self):
         # input is expected output; 2 parts
         in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5]),

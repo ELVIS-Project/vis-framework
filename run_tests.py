@@ -27,9 +27,9 @@ Run the tests for the models
 """
 
 # Ensure we can import "vis"
-
 try:
-    import vis
+    # pylint: disable=W0611
+    import vis  # it's totally used, I don't know what pylint's problem is
 except ImportError:
     import sys
     sys.path.insert(0, '..')
@@ -43,18 +43,15 @@ from vis.analyzers_tests.test_interval_indexer import INTERVAL_INDEXER_SHORT_SUI
 from vis.analyzers_tests.test_frequency_experimenter import FREQUENCY_FUNC_SUITE, \
     FREQUENCY_RUN_SUITE
 from vis.models_tests.test_indexed_piece import INDEXED_PIECE_SUITE
-from vis.analyzers_tests.test_offset import OFFSET_INDEXER_SINGLE_SUITE
-from vis.analyzers_tests import test_indexer
-from vis.analyzers_tests import test_note_rest_indexer
+from vis.analyzers_tests.test_offset import OFFSET_INDEXER_SINGLE_SUITE, OFFSET_INDEXER_MULTI_SUITE
+from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat
 from vis.controllers_tests import test_mpcontroller
 
-# New ---------------------------------------------------------------------------------------------
 # Indexer and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_1_PART_SUITE)
-# TODO: this is lower priority, since it doesn't test meaningfully differently from
-#       INDEXER_1_PART_SUITE
-#unittest.TextTestRunner(verbosity=verb).run(INDEXER_3_PARTS_SUITE)
+# TODO: make this suite pass, and be quite different from INDEXER_1_PART_SUITE
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_3_PARTS_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.UNIQUE_OFFSETS_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.VERT_ALIGNER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_note_rest_indexer.NOTE_REST_INDEXER_SUITE)
@@ -62,17 +59,16 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_SHORT_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_LONG_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(INT_IND_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(HORIZ_INT_IND_LONG_SUITE)
-# TODO: OFFSET_INDEXER_SUITE has many failures; we can't fix them until we decide how to deal with
-#       knowing the duration of the last thing in a Series.
 unittest.TextTestRunner(verbosity=VERBOSITY).run(OFFSET_INDEXER_SINGLE_SUITE)
-
+unittest.TextTestRunner(verbosity=VERBOSITY).run(OFFSET_INDEXER_MULTI_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_repeat.REPEAT_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_ngram.NGRAM_INDEXER_SUITE)
 # Experimenter and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(FREQUENCY_FUNC_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(FREQUENCY_RUN_SUITE)
-
 # IndexedPiece
 unittest.TextTestRunner(verbosity=VERBOSITY).run(INDEXED_PIECE_SUITE)
-# MPController
+# MPController -- TODO: MPCONTROLLER_SUITE fails
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.MPC_TESTER_SUITE)
-#unittest.TextTestRunner(verbosity=verb).run(MPCONTROLLER_SUITE)  # TODO: fails epically
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.MPCONTROLLER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpcontroller.MPCONTROLLER_RUNS_SUITE)
