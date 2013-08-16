@@ -12,8 +12,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-CRISPY_TEMPLATE_PACK = 'uni_form'
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'mysql',

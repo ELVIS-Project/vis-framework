@@ -1,7 +1,7 @@
-from crispy_forms import helper
-from crispy_forms import layout
+from crispy_forms import helper, layout, bootstrap
 from django import forms
 from django.views import generic
+from jsonview import decorators
 
 
 class ExampleForm(forms.Form):
@@ -39,10 +39,24 @@ class ExampleForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.helper = helper.FormHelper()
         self.helper.form_id = 'id-exampleForm'
-        self.helper.form_class = 'blueForms'
-        self.helper.form_method = 'post'
-        self.helper.form_action = 'submit_survey'
-        self.helper.add_input(layout.Submit('submit', 'Submit'))
+        self.helper.layout = layout.Layout(
+            bootstrap.TabHolder(
+                bootstrap.Tab(
+                    'Import',
+                    'like_website',
+                    layout.Div('favourite_food')
+                ),
+                bootstrap.Tab(
+                    'Analyze',
+                    layout.Field('favourite_colour', css_class='extra')
+                ),
+                bootstrap.Tab(
+                    'Experiment',
+                    'notes',
+                    layout.Field('favourite_number')
+                )
+            )
+        )
         super(ExampleForm, self).__init__(*args, **kwargs)
 
 
@@ -53,3 +67,8 @@ class MainView(generic.TemplateView):
         context = super(MainView, self).get_context_data(**kwargs)
         context['form'] = ExampleForm()
         return context
+
+
+@decorators.json_view
+def bob(request):
+    return {'success': True}
