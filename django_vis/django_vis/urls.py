@@ -1,4 +1,5 @@
 from django.conf.urls import patterns, url
+from django_vis import views
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -7,7 +8,7 @@ from django.conf.urls import patterns, url
 urlpatterns = patterns(
     '',
     # Examples:
-    url(r'^$', 'django_vis.views.main'),
+    url(r'^$', views.MainView.as_view(), name='main'),
     # url(r'^django_vis/', include('django_vis.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

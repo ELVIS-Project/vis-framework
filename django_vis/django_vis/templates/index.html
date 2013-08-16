@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>it worked!</title>
-</head>
-<body>
-<h1>Hey, vis totally works!</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}
+    it worked!
+{% endblock %}
+{% block content %}
+    <h1>Hey, vis totally works!</h1>
+    {% load crispy_forms_tags %}
+    {% crispy form %}
+{% endblock %}
