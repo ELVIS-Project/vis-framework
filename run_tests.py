@@ -27,12 +27,12 @@ Run the tests for the models
 """
 
 # Ensure we can import "vis"
+import imp
 try:
-    # pylint: disable=W0611
-    import vis  # it's totally used, I don't know what pylint's problem is
+    imp.find_module(u'vis')
 except ImportError:
     import sys
-    sys.path.insert(0, '..')
+    sys.path.insert(0, u'..')
 
 VERBOSITY = 1
 

@@ -29,13 +29,14 @@
 Package docstring: This is the root for our Sphinx documentation. Let's say something
 worthwhile like 'vis is an awesome program for data analysis with music'!
 """
+
 # Ensure we can import "vis"
+import imp
 try:
-    import imp
-    imp.find_module('vis')
+    imp.find_module(u'vis')
 except ImportError:
     import sys
-    sys.path.insert(0, '..')
+    sys.path.insert(0, u'..')
 
 __all__ = ['analyzers', 'controllers', 'models']
 
