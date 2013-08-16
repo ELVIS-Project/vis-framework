@@ -47,13 +47,25 @@ class ExampleForm(forms.Form):
                     layout.Div('favourite_food')
                 ),
                 bootstrap.Tab(
+                    'working',
+                    css_class='next-button'
+                ),
+                bootstrap.Tab(
                     'Analyze',
                     layout.Field('favourite_colour', css_class='extra')
                 ),
                 bootstrap.Tab(
+                    'working',
+                    css_class='next-button'
+                ),
+                bootstrap.Tab(
                     'Experiment',
-                    'notes',
                     layout.Field('favourite_number')
+                ),
+                bootstrap.Tab(
+                    'About',
+                    'notes',
+                    css_class='secondary-nav'
                 )
             )
         )

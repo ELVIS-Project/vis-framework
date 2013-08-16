@@ -11,10 +11,22 @@
             $("form.uniForm").uniform();
         });
     </script>
+    <style>
+        .nav-tabs .secondary-nav {
+            float: right;
+            margin-left: 10px;
+            margin-right: 0;
+        }
+    </style>
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
 {% block content %}
 {% endblock %}
+<script type="text/javascript">
+    $(".nav-tabs .next-button > a").html(
+            "<i class='icon-chevron-right'>"
+    );
+</script>
 </body>
 </html>
