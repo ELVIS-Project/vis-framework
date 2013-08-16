@@ -12,6 +12,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+CRISPY_TEMPLATE_PACK = 'uni_form'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'mysql',
@@ -74,7 +76,7 @@ STATIC_URL = '/static/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
-    '{}/static'.format(PROJECT_PATH)
+    '{}/static/'.format(PROJECT_PATH),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -114,7 +116,7 @@ ROOT_URLCONF = 'django_vis.urls'
 WSGI_APPLICATION = 'django_vis.wsgi.application'
 
 TEMPLATE_DIRS = (
-    '{}/templates'.format(PROJECT_PATH)
+    '{}/templates'.format(PROJECT_PATH),
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -127,6 +129,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'crispy_forms',
     'django_vis'
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
