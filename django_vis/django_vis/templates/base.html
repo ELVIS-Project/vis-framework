@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.css" type="text/css"/>
+    <script type="text/javascript"
+            src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="{{ STATIC_URL }}js/bootstrap.js" type="text/javascript"></script>
+    <script src="{{ STATIC_URL }}js/bootstrap-tab.js" type="text/javascript"></script>
+    <script>
+        $(function () {
+            $("form.uniForm").uniform();
+        });
+    </script>
+    <style>
+        .nav-tabs .secondary-nav {
+            float: right;
+            margin-left: 10px;
+            margin-right: 0;
+        }
+    </style>
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+{% block content %}
+{% endblock %}
+<script type="text/javascript">
+    $(".nav-tabs .next-button > a").html(
+            "<i class='icon-chevron-right'>"
+    );
+</script>
+</body>
+</html>
