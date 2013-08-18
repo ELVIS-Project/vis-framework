@@ -31,6 +31,52 @@ import unittest
 import pandas
 from vis.analyzers.indexers import ngram
 
+VERTICAL_TUPLES = [(0.0, u'P4'),
+                   (4.0, u'M3'),
+                   (8.0, u'M6'),
+                   (12.0, u'P8'),
+                   (14.0, u'm6'),
+                   (16.0, u'm7'),
+                   (18.0, u'M6'),
+                   (20.0, u'M6'),
+                   (22.0, u'P5'),
+                   (26.0, u'P8'),
+                   (28.0, u'P4'),
+                   (30.0, u'M3'),
+                   (31.0, u'A4'),
+                   (32.0, u'P4'),
+                   (34.0, u'm3'),
+                   (36.0, u'Rest'),
+                   (38.0, u'Rest')]
+
+HORIZONTAL_TUPLES = [(4.0, u'P4'),
+                     (8.0, u'-m3'),
+                     (12.0, u'-M2'),
+                     (14.0, u'M3'),
+                     (16.0, u'-M2'),
+                     (20.0, u'-M2'),
+                     (28.0, u'P5'),
+                     (31.0, u'-M2'),
+                     (32.0, u'-m2'),
+                     (36.0, u'Rest')]
+
+EXPECTED = [(0.0, u'[P4] (P4) [M3] (-m3) [M6] (-M2) [P8]'),
+            (4.0, u'[M3] (-m3) [M6] (-M2) [P8] (M3) [m6]'),
+            (8.0, u'[M6] (-M2) [P8] (M3) [m6] (-M2) [m7]'),
+            (12.0, u'[P8] (M3) [m6] (-M2) [m7] (P1) [M6]'),
+            (14.0, u'[m6] (-M2) [m7] (P1) [M6] (-M2) [M6]'),
+            (16.0, u'[m7] (P1) [M6] (-M2) [M6] (P1) [P5]'),
+            (18.0, u'[M6] (-M2) [M6] (P1) [P5] (P1) [P8]'),
+            (20.0, u'[M6] (P1) [P5] (P1) [P8] (P5) [P4]'),
+            (22.0, u'[P5] (P1) [P8] (P5) [P4] (P1) [M3]'),
+            (26.0, u'[P8] (P5) [P4] (P1) [M3] (-M2) [A4]'),
+            (28.0, u'[P4] (P1) [M3] (-M2) [A4] (-m2) [P4]'),
+            (30.0, u'[M3] (-M2) [A4] (-m2) [P4] (P1) [m3]')]
+
+def series_maker(lotuples):
+    "Turn a List Of TUPLES (offset, 'value') into a Series"
+    return pandas.Series([x[1] for x in lotuples], index=[x[0] for x in lotuples])
+
 
 class TestNGramIndexer(unittest.TestCase):
     def test_ngram_0(self):
@@ -275,8 +321,24 @@ class TestNGramIndexer(unittest.TestCase):
             for j in expected[i].index:
                 self.assertEqual(expected[i][j], actual[i][j])
 
+    def test_ngram_15(self):
+        # longer test, inspired by the first five measures of "Kyrie.krn" parts 1 and 3
+        vertical = series_maker(VERTICAL_TUPLES)
+        horizontal = series_maker(HORIZONTAL_TUPLES)
+        setts = {u'n': 4, u'horizontal': [1], u'vertical': [0], u'continuer': u'P1',
+                 u'terminator': u'Rest', u'mark singles': True}
+        expected = [series_maker(EXPECTED)]
+        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
+        actual = ng_ind.run()
+        self.assertEqual(len(expected), len(actual))
+        for i in xrange(len(expected)):
+            self.assertEqual(len(expected[i]), len(actual[i]))
+        for i in xrange(len(expected)):
+            for j in expected[i].index:
+                self.assertEqual(expected[i][j], actual[i][j])
+
     # TODO:
-    # - add some longer corpus-inspired tests
+    # - add a more difficult corpus-inspired tests
     # - break out the formatting functions and test them
     # - set up for multiprocessing(?)
     # - change melodic interval indexer so the offset it gives is that of the 2nd note

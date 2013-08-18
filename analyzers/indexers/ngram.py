@@ -176,12 +176,12 @@ class NGramIndexer(indexer.Indexer):
                         post += unicode(obj) + u' '
                 post = post[:-1] + u']'  # remove last space
             elif m_singles:
-                if ins[0][0] in self._settings[u'terminator']:
+                if ins[0] in self._settings[u'terminator']:
                     raise RuntimeWarning(u'hit a terminator')
                 else:
-                    post = u''.join([u'[', unicode(ins[0][0]), u']'])
+                    post = u''.join([u'[', unicode(ins[0]), u']'])
             else:
-                post = unicode(ins[0][0])
+                post = unicode(ins[0])
             return post
 
         def format_horiz(ins):
@@ -236,8 +236,8 @@ class NGramIndexer(indexer.Indexer):
                                 format_vert(events[u'v'].ix[ell])
                     else:
                         zoop += u' ' + format_vert(events[u'v'].ix[ell])
-            except (KeyError, RuntimeWarning) as the_err:
-                if isinstance(the_err, KeyError):  # end of inputted Series
+            except (KeyError, IndexError, RuntimeWarning) as the_err:
+                if isinstance(the_err, (IndexError, KeyError)):  # end of inputted Series
                     break
                 else:  # we hit a terminator
                     continue
