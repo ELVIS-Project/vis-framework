@@ -35,28 +35,37 @@ from vis.analyzers.experimenters.frequency import FrequencyExperimenter, experim
 
 class TestExperimenterFunc(unittest.TestCase):
     def test_func_1(self):
+        ident = 2343
         in_series = Series([1, 2, 1, 1, 3, 1, 4, 5, 3, 2, 1])
-        expected = Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1})
-        actual = experimenter_func(in_series)
+        expected = (ident, Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1}))
+        actual = experimenter_func((ident, in_series))
         self.assertEqual(len(expected), len(actual))
-        for each_i in expected.index:
-            self.assertEqual(expected[each_i], actual[each_i])
+        self.assertEqual(expected[0], actual[0])
+        self.assertEqual(len(expected[1]), len(actual[1]))
+        for each_i in expected[1].index:
+            self.assertEqual(expected[1][each_i], actual[1][each_i])
 
     def test_func_2(self):
+        ident = 7743
         in_series = Series([12])
-        expected = Series({12: 1})
-        actual = experimenter_func(in_series)
+        expected = (ident, Series({12: 1}))
+        actual = experimenter_func((ident, in_series))
         self.assertEqual(len(expected), len(actual))
-        for each_i in expected.index:
-            self.assertEqual(expected[each_i], actual[each_i])
+        self.assertEqual(expected[0], actual[0])
+        self.assertEqual(len(expected[1]), len(actual[1]))
+        for each_i in expected[1].index:
+            self.assertEqual(expected[1][each_i], actual[1][each_i])
 
     def test_func_3(self):
+        ident = u'swamp'
         in_series = Series([])
-        expected = Series({})
-        actual = experimenter_func(in_series)
+        expected = (ident, Series({}))
+        actual = experimenter_func((ident, in_series))
         self.assertEqual(len(expected), len(actual))
-        for each_i in expected.index:
-            self.assertEqual(expected[each_i], actual[each_i])
+        self.assertEqual(expected[0], actual[0])
+        self.assertEqual(len(expected[1]), len(actual[1]))
+        for each_i in expected[1].index:
+            self.assertEqual(expected[1][each_i], actual[1][each_i])
 
 
 # pylint: disable=W0212
@@ -73,14 +82,16 @@ class TestRun(unittest.TestCase):
                               u'all': Series({1: 15, 2: 6, 3: 6, 4: 3, 5: 3})})
         exp = FrequencyExperimenter(in_series)
         exp._do_multiprocessing = mock.MagicMock()
-        exp._do_multiprocessing.return_value = [Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1}),
-                                                Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1}),
-                                                Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1})]
+        exp._do_multiprocessing.return_value = [(0, Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1})),
+                                                (1, Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1})),
+                                                (2, Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1}))]
         actual = exp.run()
-        exp._do_multiprocessing.assert_called_once_with(experimenter_func, [[in_a], [in_b], [in_c]])
+        exp._do_multiprocessing.assert_called_once_with(experimenter_func, [[(0, in_a)],
+            [(1, in_b)], [(2, in_c)]])
         self.assertTrue(expected.sort(axis=1) == actual.sort(axis=1))
 
     def test_run_2(self):
+        # should have the same output as test_run_1, but without the MagicMock
         in_a = Series([1, 2, 1, 1, 3, 1, 4, 5, 3, 2, 1])
         in_b = Series([1, 2, 1, 1, 3, 1, 4, 5, 3, 2, 1])
         in_c = Series([1, 2, 1, 1, 3, 1, 4, 5, 3, 2, 1])
@@ -94,6 +105,7 @@ class TestRun(unittest.TestCase):
         self.assertTrue(expected.sort(axis=1) == actual.sort(axis=1))
 
     def test_run_3(self):
+        # more complicated arithmetic
         in_a = Series([1, 2, 1, 1, 3, 1, 4, 5, 3, 2, 1])
         in_b = Series([1, 2, 1, 1, 3, 1, 4, 5, 3, 2, 1, 4, 4, 3, 5, 1, 1, 1])
         in_c = Series([1, 2, 1, 1, 3, 1, 3, 2, 1])
@@ -101,6 +113,20 @@ class TestRun(unittest.TestCase):
         expected = DataFrame({0: Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1}),
                               1: Series({1: 8, 2: 2, 3: 3, 4: 3, 5: 2}),
                               2: Series({1: 5, 2: 2, 3: 2}),
+                              u'all': Series({1: 18, 2: 6, 3: 7, 4: 7, 5: 3})})
+        exp = FrequencyExperimenter(in_series)
+        actual = exp.run()
+        self.assertTrue(expected.sort(axis=1) == actual.sort(axis=1))
+
+    def test_run_4(self):
+        # same as test_run_3, but input is a dict
+        in_a = Series([1, 2, 1, 1, 3, 1, 4, 5, 3, 2, 1])
+        in_b = Series([1, 2, 1, 1, 3, 1, 4, 5, 3, 2, 1, 4, 4, 3, 5, 1, 1, 1])
+        in_c = Series([1, 2, 1, 1, 3, 1, 3, 2, 1])
+        in_series = {u'hello': in_a, u'zello': in_b, u'jello': in_c}
+        expected = DataFrame({u'hello': Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1}),
+                              u'zello': Series({1: 8, 2: 2, 3: 3, 4: 3, 5: 2}),
+                              u'jello': Series({1: 5, 2: 2, 3: 2}),
                               u'all': Series({1: 18, 2: 6, 3: 7, 4: 7, 5: 3})})
         exp = FrequencyExperimenter(in_series)
         actual = exp.run()

@@ -34,20 +34,21 @@ def experimenter_func(obj):
 
     Parameters
     ==========
-    :param obj: pandas.Series
-        The results of an indexer.
+    :param obj: An identifier plus the results of an indexer.
+    :type obj: (anything, pandas.Series)
 
     Returns
     =======
-    :returns: pandas.Series
-        Where the index is the names of objects found in "obj," and the value is the number of
-        occurrences.
+    :returns: An identifier plus the result of this indexation. In the series, the index is the
+        names of objects found in the inputted series, and the value is the number of occurrences.
+        The first element is the first element given here, used for identification purposes.
+    :rtype: (anything, pandas.Series)
     """
     thing_dict = {}
-    for each in obj:
+    for each in obj[1]:
         if each not in thing_dict:
-            thing_dict[each] = sum(obj == each)
-    return pandas.Series(thing_dict)
+            thing_dict[each] = sum(obj[1] == each)
+    return obj[0], pandas.Series(thing_dict)
 
 
 class FrequencyExperimenter(experimenter.Experimenter):
@@ -64,14 +65,13 @@ class FrequencyExperimenter(experimenter.Experimenter):
         """
         Create a new FrequencyExperimenter.
 
+        NOTE: It is the caller's responsibility to provide the index with the proper settings.
+
         Parameters
         ==========
-        :param index: [pandas.Series]
-            A list of Series, where each Series is the result of an indexer for one of the parts in
-            this score.
-
-            NOTE: It is the caller's responsibility to provide the proper index with the proper
-            settings.
+        :param index: A list of Series, where each Series is the result of an indexer for one of
+            the parts in this score.
+        :type index: list or dict of Series
 
         :param settings: None
             This experiment does not use any settings.
@@ -95,14 +95,23 @@ class FrequencyExperimenter(experimenter.Experimenter):
             "all" column, and that not every part combination will have every interval; in case an
             interval does not appear in a part combination, the value is NaN.
         """
-        post = self._do_multiprocessing(experimenter_func, [[x] for x in self._index])
+        # assemble results per-part
+        results = None
+        if isinstance(self._index, dict):
+            results = [[(x, self._index[x])] for x in self._index.iterkeys()]
+        else:
+            results = [[(i, x)] for i, x in enumerate(self._index)]
+        results = self._do_multiprocessing(experimenter_func, results)
+        post = {}
+        for result in results:
+            post[result[0]] = result[1]
+        # assemble all-part results
         tokens = []
-        for part_freqs in post:
-            tokens.extend(list(part_freqs.index))
+        for part_i in post.iterkeys():
+            tokens.extend(list(post[part_i].index))
         tokens = set(tokens)
-        in_dict = {}
-        for i in xrange(len(post)):
-            in_dict[i] = post[i].reindex(index=tokens)
-        post = pandas.DataFrame(in_dict)
+        for i in post.iterkeys():
+            post[i].reindex(index=tokens)
+        post = pandas.DataFrame(post)
         post[u'all'] = post.sum(axis=1, skipna=True)
         return post

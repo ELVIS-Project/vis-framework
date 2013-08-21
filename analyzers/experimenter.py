@@ -129,7 +129,6 @@ class Experimenter(object):
             # use serial processing
             for arg_list in func_args:
                 post.append(func(*arg_list))  # pylint: disable=W0142
-
         else:
             # use the MPController for multiprocessing
             pipe_end = self._mpc.get_pipe()
