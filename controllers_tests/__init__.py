@@ -29,6 +29,6 @@
 Module docstring: Tests for the controllers!
 """
 
-__all__ = ['test_mpcontroller']
+__all__ = ['test_mpinterface']
 
-from vis.controllers_tests import test_mpcontroller
+from vis.controllers_tests import test_mpinterface

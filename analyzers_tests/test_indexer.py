@@ -33,7 +33,7 @@ import copy
 import pandas
 from music21 import base, stream, duration, note, converter
 from vis.analyzers import indexer
-from vis.controllers import mpcontroller
+#from vis.controllers import mpcontroller
 from vis.test_corpus import int_indexer_short
 
 

@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 #-------------------------------------------------------------------------------
@@ -29,6 +29,7 @@
 """
 Package docstring: controllers, which do cool actions universal to the program's functioning?
 """
-__all__ = ['mpcontroller']
 
-from vis.controllers import mpcontroller
+__all__ = ['mpinterface']
+
+from vis.controllers import mpinterface

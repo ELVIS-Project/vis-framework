@@ -33,7 +33,7 @@ import pandas
 from music21 import interval, note
 from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, real_indexer
 from vis.analyzers_tests.test_note_rest_indexer import TestNoteRestIndexer
-from vis.controllers import mpcontroller
+#from vis.controllers import mpcontroller
 
 
 class TestIntervalIndexerShort(unittest.TestCase):

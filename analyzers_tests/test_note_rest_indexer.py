@@ -34,7 +34,7 @@ import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers import indexer
 from vis.analyzers.indexers import noterest
-from vis.controllers import mpcontroller
+#from vis.controllers import mpcontroller
 
 
 class TestNoteRestIndexer(unittest.TestCase):
