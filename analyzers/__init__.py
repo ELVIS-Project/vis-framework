@@ -24,7 +24,9 @@
 """
 Package docstring for analyzers: They analyze stuff, and it's totally awesome!
 """
-__all__ = ['experimenter', 'indexer']
+__all__ = ['experimenter', 'indexer', 'experimenters', 'indexers']
 
 from vis.analyzers import experimenter
 from vis.analyzers import indexer
+from vis.analyzers import experimenters
+from vis.analyzers import indexers
