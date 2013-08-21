@@ -28,7 +28,7 @@ The model representing an indexed and analyzed piece of music.
 from inspect import getmembers, isdatadescriptor
 import re
 import os
-from music21 import converter
+from music21 import converter, stream
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 
@@ -263,6 +263,11 @@ class IndexedPiece(object):
         """
         if data is None:
             data = self._import_score()
+            if isinstance(data, stream.Opus):
+                # TODO: finish this and test it (we'll need to deal with Opus objects somehow)
+                raise NotImplementedError(u'IndexedPiece cannot process music21 Opus objects')
+            else:
+                data = [x for x in data.parts]
         if not issubclass(analyzer_cls, (Indexer, Experimenter)):
             raise TypeError(u'can only get data for Indexers or Experimenters, '
                             u'not {}'.format(analyzer_cls))
