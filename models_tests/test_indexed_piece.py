@@ -27,13 +27,13 @@ Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
 from unittest import TestCase, TestLoader
 from mock import patch, MagicMock, Mock
 import music21
-from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.models.indexed_piece import IndexedPiece
 
 
 # pylint: disable=R0904
-@patch('music21.converter.parse', lambda path: MagicMock(spec=music21.stream.Score))
+@patch('music21.converter.parse', new=lambda path: MagicMock(name=u'ScoreMock: ' + path,
+                                                             spec=music21.stream.Score))
 class TestIndexedPiece(TestCase):
     """
     Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
@@ -43,7 +43,8 @@ class TestIndexedPiece(TestCase):
         Initialize a sample :py:class:`IndexedPiece` instance for use in each test.
         :returns: None
         """
-        self.ind_piece = IndexedPiece('')
+        self._pathname = u'test_path'
+        self.ind_piece = IndexedPiece(self._pathname)
 
     def test_metadata(self):
         """
@@ -52,7 +53,7 @@ class TestIndexedPiece(TestCase):
         """
         # access fields which are set by default
         pathname = self.ind_piece.metadata('pathname')
-        self.assertEquals('', pathname, "pathname variable doesn't match initialization value")
+        self.assertEquals(self._pathname, pathname, "pathname has changed!")
         # assign a value to a valid field
         self.ind_piece.metadata('date', 2)
         value = self.ind_piece.metadata('date')
@@ -72,19 +73,20 @@ class TestIndexedPiece(TestCase):
         Tests for the method :py:meth:`~IndexedPiece.get_data`.
         :returns: None
         """
-        # get data for a basic Indexer
+        # get data for an Indexer requiring a Score
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
-        mock_indexer_cls.run = lambda self: None
-        self.assertEquals(None, self.ind_piece.get_data(mock_indexer_cls))
-        # get data for an Indexer which requires another Indexer
-        required_indexer_cls = type('RequiredIndexer', (mock_indexer_cls,), {})
-        another_indexer_cls = type('AnotherIndexer', (mock_indexer_cls,),
-                                   {'required_indices': [required_indexer_cls]})
-        self.assertEquals(None, self.ind_piece.get_data(another_indexer_cls))
-        # get data for a basic Experimenter
-        mock_experimenter_cls = type('MockExperimenter', (Experimenter,), {})
-        mock_experimenter_cls.run = lambda self: None
-        self.assertEquals(None, self.ind_piece.get_data(mock_experimenter_cls))
+        mock_indexer_cls.run = MagicMock()
+        mock_indexer_cls.run.return_value = u'ahhh!'
+        self.assertEquals(u'ahhh!', self.ind_piece.get_data(mock_indexer_cls))
+        mock_indexer_cls.run.assert_called_once_with()
+        # get data for an Indexer requiring other data
+        mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+        mock_indexer_cls.run = MagicMock()
+        mock_indexer_cls.run.return_value = u'ahhh!'
+        mock_indexer_cls.requires_score = False
+        mock_indexer_cls.required_score_type = int
+        self.assertEqual(u'ahhh!', self.ind_piece.get_data(mock_indexer_cls, [14]))
+        mock_indexer_cls.run.assert_called_once_with()
         # try getting data for a non-Indexer, non-Experimenter class
         non_analyzer = Mock()
         self.assertRaises(TypeError, self.ind_piece.get_data, non_analyzer)
