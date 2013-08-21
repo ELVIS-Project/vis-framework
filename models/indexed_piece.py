@@ -210,7 +210,7 @@ class IndexedPiece(object):
             # music21 doesn't have a "part names" attribute in its Metadata objects
             self.metadata(u'parts', _find_part_names(score))
             self._imported = True
-        return [x for x in score.parts]  # TODO: test this; needed for list-of-Parts rather than Score
+        return score
 
     def metadata(self, field, value=None):
         # TODO: update doctest so that it actually works
