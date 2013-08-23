@@ -43,7 +43,8 @@ from vis.analyzers_tests.test_interval_indexer import INTERVAL_INDEXER_SHORT_SUI
 from vis.analyzers_tests import test_frequency_experimenter
 from vis.models_tests.test_indexed_piece import INDEXED_PIECE_SUITE
 from vis.analyzers_tests.test_offset import OFFSET_INDEXER_SINGLE_SUITE, OFFSET_INDEXER_MULTI_SUITE
-from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat
+from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
+    test_aggregator
 #from vis.controllers_tests import test_mpinterface
 
 # Indexer and Subclasses
@@ -62,10 +63,11 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(OFFSET_INDEXER_SINGLE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(OFFSET_INDEXER_MULTI_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_repeat.REPEAT_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_ngram.NGRAM_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregator.COLUMN_AGGREGATOR_SUITE)
 # Experimenter and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_FUNC_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_RUN_SUITE)
-# IndexedPiece
+# IndexedPiece and AggregatedPieces
 unittest.TextTestRunner(verbosity=VERBOSITY).run(INDEXED_PIECE_SUITE)
 # MPInterface
 #unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpinterface.MPINTERFACE_SUITE)
