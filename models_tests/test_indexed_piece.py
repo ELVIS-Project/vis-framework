@@ -28,6 +28,7 @@ from unittest import TestCase, TestLoader
 from mock import patch, MagicMock, Mock
 import music21
 from vis.analyzers.indexer import Indexer
+from vis.analyzers.experimenter import Experimenter
 from vis.models.indexed_piece import IndexedPiece
 
 
@@ -68,29 +69,104 @@ class TestIndexedPiece(TestCase):
         self.assertRaises(TypeError, self.ind_piece.metadata, [])
         self.assertRaises(TypeError, self.ind_piece.metadata, {})
 
-    def test_get_data(self):
+    def test_get_data_0(self):
         """
-        Tests for the method :py:meth:`~IndexedPiece.get_data`.
+        Test for the method :py:meth:`~IndexedPiece.get_data`.
+        :returns: None
+        """
+        # try getting data for a non-Indexer, non-Experimenter class
+        non_analyzer = Mock()
+        self.assertRaises(TypeError, self.ind_piece.get_data, non_analyzer)
+
+    def test_get_data_1(self):
+        """
+        Test for the method :py:meth:`~IndexedPiece.get_data`.
         :returns: None
         """
         # get data for an Indexer requiring a Score
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+        mock_indexer_cls.requires_score = True
         mock_indexer_cls.run = MagicMock()
         mock_indexer_cls.run.return_value = u'ahhh!'
-        self.assertEquals(u'ahhh!', self.ind_piece.get_data(mock_indexer_cls))
+        self.assertEquals(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls]))
         mock_indexer_cls.run.assert_called_once_with()
+
+    def test_get_data_2(self):
+        """
+        Test for the method :py:meth:`~IndexedPiece.get_data`.
+        :returns: None
+        """
         # get data for an Indexer requiring other data
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
         mock_indexer_cls.run = MagicMock()
         mock_indexer_cls.run.return_value = u'ahhh!'
         mock_indexer_cls.requires_score = False
         mock_indexer_cls.required_score_type = int
-        self.assertEqual(u'ahhh!', self.ind_piece.get_data(mock_indexer_cls, [14]))
+        self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls], data=[14]))
         mock_indexer_cls.run.assert_called_once_with()
-        # try getting data for a non-Indexer, non-Experimenter class
-        non_analyzer = Mock()
-        self.assertRaises(TypeError, self.ind_piece.get_data, non_analyzer)
+        # TODO: does it give mock_indexer_cls.__init__() the list?
 
+    def test_get_data_3(self):
+        """
+        Test for the method :py:meth:`~IndexedPiece.get_data`.
+        :returns: None
+        """
+        # get data from a chained Indexer
+        first_indexer_cls = type('MockIndexer', (Indexer,), {})
+        first_indexer_cls.run = MagicMock()
+        first_indexer_cls.run.return_value = [14]
+        first_indexer_cls.requires_score = True
+        second_indexer_cls = type('MockIndexer', (Indexer,), {})
+        second_indexer_cls.run = MagicMock()
+        second_indexer_cls.run.return_value = u'ahhh!'
+        second_indexer_cls.requires_score = False
+        second_indexer_cls.required_score_type = int
+        self.assertEqual(u'ahhh!', self.ind_piece.get_data([first_indexer_cls, second_indexer_cls]))
+        first_indexer_cls.run.assert_called_once_with()
+        second_indexer_cls.run.assert_called_once_with()
+        # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
+
+    def test_get_data_4(self):
+        """
+        Tests for the method :py:meth:`~IndexedPiece.get_data`.
+        :returns: None
+        """
+        # chained Indexer plus settings
+        # TODO: write the settings
+        first_indexer_cls = type('MockIndexer', (Indexer,), {})
+        first_indexer_cls.run = MagicMock()
+        first_indexer_cls.run.return_value = [14]
+        first_indexer_cls.requires_score = True
+        second_indexer_cls = type('MockIndexer', (Indexer,), {})
+        second_indexer_cls.run = MagicMock()
+        second_indexer_cls.run.return_value = u'ahhh!'
+        second_indexer_cls.requires_score = False
+        second_indexer_cls.required_score_type = int
+        self.assertEqual(u'ahhh!', self.ind_piece.get_data([first_indexer_cls, second_indexer_cls],
+                                                           {u'fake setting': u'so good!'}))
+        first_indexer_cls.run.assert_called_once_with()
+        second_indexer_cls.run.assert_called_once_with()
+        # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
+        # TODO: are the settings shared between all analyzers?
+
+    def test_get_data_5(self):
+        """
+        Test for the method :py:meth:`~IndexedPiece.get_data`.
+        :returns: None
+        """
+        # get data from an Experimenter that requires an Indexer
+        # (same as test 3, but second_indexer_cls is an Experimenter subclass)
+        mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+        mock_indexer_cls.run = MagicMock()
+        mock_indexer_cls.run.return_value = [14]
+        mock_indexer_cls.requires_score = True
+        mock_experimenter_cls = type('MockIndexer', (Experimenter,), {})
+        mock_experimenter_cls.run = MagicMock()
+        mock_experimenter_cls.run.return_value = u'ahhh!'
+        self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls, mock_experimenter_cls]))
+        mock_indexer_cls.run.assert_called_once_with()
+        mock_experimenter_cls.run.assert_called_once_with()
+        # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
 
 #--------------------------------------------------------------------------------------------------#
 #--------------------------------------------------------------------------------------------------#

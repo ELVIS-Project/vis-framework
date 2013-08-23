@@ -249,27 +249,51 @@ class IndexedPiece(object):
             # this will raise an AttributeError if you try to set a nonexistent field.
             setattr(self._metadata, field, value)
 
-    def get_data(self, analyzer_cls, data=None, settings=None):
+    def get_data(self, analyzer_cls, settings=None, data=None):
         """
-        Get the analysis from a specific analyzer run on this piece.
+        Get the results of an Experimenter or Indexer run on this IndexedPiece.
 
-        :param analyzer_cls: the analyzer to run
-        :type analyzer_cls: type
-        :param data: the information for the analyzer to use
-        :type data: pandas.Series or pandas.DataFrame
-        :param settings: the settings to be used with the analyzer
+        Parameters
+        ==========
+        :param analyzer_cls: the analyzers to run, in the order they should be run
+        :type analyzer_cls: list of types
+
+        :param settings: Settings to be used with the analyzers.
         :type settings: dict
-        :return: the results of the analysis
+
+        :param data: Input data for the first analyzer to run. If the first indexer uses a Score,
+            you should leave this as None.
+        :type data: list of pandas.Series or pandas.DataFrame
+
+        Returns
+        =======
+        :returns: Results of the analyzer.
+        :rtype: pandas.DataFrame or list of pandas.Series
+
+        Raises
+        ======
+        TypeError: If the "analyzer_cls" is invalid or cannot be found.
+        RuntimeError: If the first analyzer class in "analyzer_cls" does not use Score objects, and
+            the "data" argument is None.
+        NotImplementedError: If the file imports as a music21.stream.Opus object, since we cannot
+            yet deal with those properly (since they should be treated as more than one piece).
         """
+        for each_cls in analyzer_cls:
+            if not issubclass(each_cls, (Indexer, Experimenter)):
+                raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
+                                u'(received {})'.format(analyzer_cls))
         if data is None:
-            data = self._import_score()
+            if issubclass(analyzer_cls[0], Indexer) and analyzer_cls[0].requires_score:
+                data = self._import_score()
+            else:
+                msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])
+                raise RuntimeError(msg)
             if isinstance(data, stream.Opus):
                 # TODO: finish this and test it (we'll need to deal with Opus objects somehow)
                 raise NotImplementedError(u'IndexedPiece cannot process music21 Opus objects')
             else:
-                data = [x for x in data.parts]
-        if not issubclass(analyzer_cls, (Indexer, Experimenter)):
-            raise TypeError(u'can only get data for Indexers or Experimenters, '
-                            u'not {}'.format(analyzer_cls))
-        instance = analyzer_cls(data, settings)
-        return instance.run()
+                data = [x for x in data.parts]  # Indexers require a list of Parts
+        if len(analyzer_cls) > 1:
+            return self.get_data(analyzer_cls[1:], settings, analyzer_cls[0](data, settings).run())
+        else:
+            return analyzer_cls[0](data, settings).run()
