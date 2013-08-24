@@ -1,11 +1,131 @@
 {% extends 'base.html' %}
+{% block head_inject %}
+    <script type="text/javascript">
+        $(document).ready(function () {
+            function MyViewModel () {
+                var self = this;
+                self.items = ko.observableArray();
+                self.selectedItems = ko.observableArray();
+            }
+            window.model = new MyViewModel();
+            ko.applyBindings(model);
+            ko.bindingHandlers.selectedItems = {
+                init: function (element, valueAccessor) {
+                    $(element).on("rowSelected", function () {
+                        var selectedData = TableTools.fnGetInstance(element).fnGetSelectedData();
+                        valueAccessor()(selectedData);
+                    });
+                },
+                update: function (element, valueAccessor) {
+                    var tools = TableTools.fnGetInstance(element);
+                    var value = valueAccessor();
+                    ko.unwrap(value).forEach(tools.fnSelect);
+                }
+            };
+        });
+    </script>
+    <style>
+        img.step-img {
+            max-width: auto;
+            max-height: 80%;
+            padding-bottom: 5px;
+            padding-right: 5px;
+        }
+    </style>
+{% endblock %}
 {% block title %}
     vis X
 {% endblock %}
 {% block content %}
     <div class='container'>
-        <h1>vis X</h1>
-        {% load crispy_forms_tags %}
-        {% crispy form %}
+        <div class='row'>
+            <div class='span2'></div>
+            <div class='span8'>
+                <div class="page-header">
+                    <h1>vis X</h1>
+                </div>
+                <div id="MyWizard" class="wizard">
+                    <ul class="steps">
+                        <li data-target="#step1" class="active">
+                            <span>
+                                <img class="step-img" src="{{ STATIC_URL }}img/choose_files.png">
+                            </span>
+                            Import
+                            <span class="chevron"></span>
+                        </li>
+                        <li data-target="#step2">
+                            <span>
+                                <img class="step-img" src="{{ STATIC_URL }}img/analyze.png">
+                            </span>
+                            Analyze
+                            <span class="chevron"></span>
+                        </li>
+                        <li data-target="#step3">
+                            <span>
+                                <img class="step-img" src="{{ STATIC_URL }}img/show_results.png">
+                            </span>
+                            Experiment
+                            <span class="chevron"></span></li>
+                    </ul>
+                    <div class="actions">
+                        <button type="button" class="btn btn-mini btn-next" data-last="Visualize">
+                            Next<i class="icon-arrow-right"></i></button>
+                    </div>
+                </div>
+                <div class="step-content">
+                    <div class="step-pane active" id="step1">
+                        <div class="well">
+                            <div class="navbar">
+                                <div class="navbar-inner">
+                                    <a class="brand">
+                                        Add files to the list so they will be imported.
+                                    </a>
+                                    <ul class="nav pull-right">
+                                        <li>
+                                            <a href="#">
+                                                <i class="icon-file"></i> Add File(s)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="#">
+                                                <i class="icon-folder-open"></i> Add Folder(s)
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a id="remove-selected" href="#">
+                                                <i class="icon-remove"></i> Remove Selected
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <table data-bind="selectedItems: selectedItems" class="table datatable">
+                                <thead>
+                                <tr>
+                                    <th>Header 1</th>
+                                    <th>Header 2</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Item 1, Prop 1</td>
+                                    <td>Item 1, Prop 2</td>
+                                </tr>
+                                <tr>
+                                    <td>Item 2, Prop 1</td>
+                                    <td>Item 2, Prop 2</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="step-pane" id="step2">This is step 2</div>
+                    <div class="step-pane" id="step3">This is step 3</div>
+                </div>
+{#                {% load crispy_forms_tags %}#}
+{#                {% crispy form %}#}
+            </div>
+            <div class='span2'></div>
+        </div>
     </div>
 {% endblock %}
