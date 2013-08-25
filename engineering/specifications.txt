@@ -25,23 +25,37 @@ Targeted Libraries:
     This is the most recent version of our primary programming language, which we chose because of the availability of music21.
 - music21 1.6.0
     This library ("software toolkit") was developed by team member Myke Cuthbert, and contains representations of and operations on a variety of musical objects. Version 1.6.0 is not yet released, but it has features and bug-fixes we require.
+    - Uses "LGPL" licence.
 - pandas 0.12.0
     This library provides fast data structures that are compatible with music21's ubiquitous "Stream" objects and more flexible for scientific and statistical operations (especially through R). We will introduce pandas with visX. Also the optional dependency libraries:
+    - Uses 3-clause BSD license.
     - numexpr
+        "Numexpr is a fast numerical expression evaluator for NumPy."
+        - Uses MIT license.
     - bottleneck
+        "Bottleneck is a collection of fast NumPy array functions written in Cython."
+        - Uses Simplified BSD license.
 - django 1.5.1 (object-relational mapper)
     This library provides an easy and power way to connect to relational databases. This will be useful for our internal query processes, and for the future situation where we will store analysis results on a Web server.
+    - Uses 3-clause BSD license.
 - R 3.0.1
     Supplementary programming language for statistics and visualizations.
+    - Uses GPLv2+ license.
     - Rpy 2.3.6
-    Transforms our python-language data objects into R-language data objects.
+        Transforms our python-language data objects into R-language data objects.
+        - Uses "GPL" license.
     - ggplot2 0.9.3.1
+        "ggplot2 is a plotting system for R, based on the grammar of graphics, which tries to take the good parts of base and lattice graphics and none of the bad parts."
+        - license?
 - Abjad 2.12
     Python library to help with output to LilyPond.
+    - Uses "GPL" license.
 - PyQt4
     Mostly a GUI library. Prior to visX, all our graphical interfaces have used PyQt. Since VisTrails also uses PyQt, we may write our own PyQt code for minor tasks, like displaying the offset-selection window.
+    - Uses GPLv3 license.
 - mock 1.0.1
     A library for unit testing, to create mock objects and patch dependencies.
+    - Uses 3-clause BSD license.
 - VisTrails 2.0 API
     http://www.vistrails.org/usersguide/v2.0/html/batch.html#finding-methods-via-the-command-line
 - Haskell 2010
