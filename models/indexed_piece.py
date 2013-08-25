@@ -164,6 +164,19 @@ class IndexedPiece(object):
             self.pathname = pathname
 
     def __init__(self, pathname):
+        """
+        Create a new IndexedPiece
+
+        Parameters
+        ==========
+        :param pathname: Pathname to the file music21 will import for this IndexedPiece.
+        :type pathname: basestring
+
+        Returns
+        =======
+        :returns: A new IndexedPiece.
+        :rtype: IndexedPiece
+        """
         super(IndexedPiece, self).__init__()
         self._metadata = self.__class__.Metadata(pathname)
         self._imported = False
@@ -181,6 +194,8 @@ class IndexedPiece(object):
         """
         Import the score to music21 format.
 
+        Returns
+        =======
         :returns: the score
         :rtype: music21.stream.Score or music21.stream.Opus
         """
@@ -217,15 +232,27 @@ class IndexedPiece(object):
         """
         Get or set metadata about the piece, like filename, title, and composer.
 
+        Parameters
+        ==========
         :param field: The name of the field to be accessed or modified
         :type field: str or unicode
+
         :param value: If not None, the new value to be assigned to ``field``
         :type value: object or None
-        :returns: object -- the field accessed, or None -- if assigning a field or attempting to
-            access a field that does not exist.
-        :raises: TypeError -- if ``field`` is not a basestring, AttributeError -- if attempting
-            to set a field which is not in the :py:class:`IndexedPiece.Metadata` prototype.
 
+        Returns
+        =======
+        :returns: The value of the requested field or None, if assigning, or if accessing a
+            non-existant field or a field that has not yet been initialized.
+        :rtype: object or None
+
+        Raises
+        ======
+        :raises: TypeError if ``field`` is not a basestring.
+        :raises: AttributeError if seting a field not in :py:class:`IndexedPiece.Metadata`.
+
+        Examples
+        ========
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
         u'Jean Sibelius'
