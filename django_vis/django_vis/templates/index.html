@@ -81,8 +81,8 @@
                     });
                 },
                 update: function (element, valueAccessor) {
-                    var tryGo, value, val;
-                    tryGo = function (direction) {
+                    var tryNext, value, val;
+                    tryNext = function (direction) {
                         var curVal;
                         curVal = selectedItem(element);
                         if (direction) $(element).wizard('next');
@@ -91,8 +91,8 @@
                     };
                     value = valueAccessor();
                     val = ko.unwrap(value);
-                    while (val > selectedItem(element)) if (!tryGo(true)) break;
-                    while (val < selectedItem(element)) if (!tryGo(false)) break;
+                    while (val > selectedItem(element)) if (!tryNext(true)) break;
+                    while (val < selectedItem(element)) if (!tryNext(false)) break;
                     value(selectedItem(element));
                 }
             };
