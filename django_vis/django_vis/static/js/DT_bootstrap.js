@@ -81,7 +81,7 @@ $.extend( $.fn.dataTableExt.oPagination, {
 
 				// Add the new list items and their event handlers
 				for ( j=iStart ; j<=iEnd ; j++ ) {
-					sClass = (j==oPaging.iPage+1) ? 'class="active"' : '';
+					sClass = (j==oPaging.iPage+1) ? 'class="selected"' : '';
 					$('<li '+sClass+'><a href="#">'+j+'</a></li>')
 						.insertBefore( $('li:last', an[i])[0] )
 						.bind('click', function (e) {
@@ -132,7 +132,7 @@ if ( $.fn.DataTable.TableTools ) {
 			"info": "DTTT_print_info modal"
 		},
 		"select": {
-			"row": "active"
+			"row": "selected"
 		}
 	} );
 
@@ -150,17 +150,23 @@ if ( $.fn.DataTable.TableTools ) {
 /* Table initialisation */
 $(document).ready(function() {
 	$('table.datatable').dataTable( {
-		"sDom": "T<'clear'>rt",
+		"sDom": "rt<'clear'>T",
 //        "sPaginationType": "bootstrap",
+//        "sScrollY": "100%",
+        "bPaginate": false,
         "oTableTools": {
             "sRowSelect": "multi",
             "aButtons": [ "select_all", "select_none" ],
+            "sSelectedClass": "selected",
             "fnRowSelected": function ( nodes ) {
-                $(this).trigger("rowSelected");
+                $(this.dom.table).trigger("selectionChanged");
+            },
+            "fnRowDeselected": function ( nodes ) {
+                $(this.dom.table).trigger("selectionChanged");
             }
         },
 		"oLanguage": {
-			"sLengthMenu": "_MENU_ records per page"
+			"sEmptyTable": "No files added"
 		}
 	} );
 } );
