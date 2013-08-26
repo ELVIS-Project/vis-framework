@@ -33,7 +33,6 @@ import pandas
 from music21 import interval, note
 from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, real_indexer
 from vis.analyzers_tests.test_note_rest_indexer import TestNoteRestIndexer
-#from vis.controllers import mpcontroller
 
 
 class TestIntervalIndexerShort(unittest.TestCase):
@@ -467,22 +466,6 @@ class TestIntervalIndexerLong(unittest.TestCase):
             self.assertEqual(expected[i][0], ind)
             self.assertEqual(expected[i][1], actual[ind])
 
-    def test_interval_indexer_1_mpc(self):
-        # BWV7.7: soprano and bass parts with MPController
-        test_parts = [self.bwv77_soprano, self.bwv77_bass]
-        expected = TestIntervalIndexerLong.bwv77_S_B_basis
-        setts = {u'simple or compound': u'compound', u'quality': True}
-        mpc = mpcontroller.MPController()
-        mpc.start()
-        int_indexer = IntervalIndexer(test_parts, setts, mpc)
-        actual = int_indexer.run()[u'[0, 1]']
-        del int_indexer
-        mpc.shutdown()
-        self.assertEqual(len(expected), len(actual))
-        for i, ind in enumerate(list(actual.index)):
-            self.assertEqual(expected[i][0], ind)
-            self.assertEqual(expected[i][1], actual[ind])
-
 
 class TestIntervalIndexerIndexer(unittest.TestCase):
     def test_int_ind_indexer_1(self):
@@ -645,7 +628,113 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
 
 
 class TestHorizIntervalIndexerLong(unittest.TestCase):
-    bwv77_S_B_basis = []
+    bwv77_S_B_basis_short = [(0.5, "M2"),
+                             (1.0, "m2"),
+                             (2.0, "M2"),
+                             (3.0, "M2"),
+                             (4.0, "-M2"),
+                             (5.0, "P4"),
+                             (6.0, "-m2"),
+                             (7.0, "-M2"),
+                             (8.0, "-M2"),
+                             (9.0, "P4"),
+                             (10.0, "-m2"),
+                             (11.0, "-M2"),
+                             (12.0, "-M2"),
+                             (13.0, "-M2"),
+                             (14.0, "-m2"),
+                             (15.0, "-M2"),
+                             (16.0, "P1"),
+                             (16.5, "M2"),
+                             (17.0, "m2"),
+                             (18.0, "M2"),
+                             (19.0, "M2"),
+                             (20.0, "-M2"),
+                             (21.0, "P4"),
+                             (22.0, "-m2"),
+                             (23.0, "-M2"),
+                             (24.0, "-M2")]
+
+    bwv77_S_B_basis = [(0.5, "M2"),
+                       (1.0, "m2"),
+                       (2.0, "M2"),
+                       (3.0, "M2"),
+                       (4.0, "-M2"),
+                       (5.0, "P4"),
+                       (6.0, "-m2"),
+                       (7.0, "-M2"),
+                       (8.0, "-M2"),
+                       (9.0, "P4"),
+                       (10.0, "-m2"),
+                       (11.0, "-M2"),
+                       (12.0, "-M2"),
+                       (13.0, "-M2"),
+                       (14.0, "-m2"),
+                       (15.0, "-M2"),
+                       (16.0, "P1"),
+                       (16.5, "M2"),
+                       (17.0, "m2"),
+                       (18.0, "M2"),
+                       (19.0, "M2"),
+                       (20.0, "-M2"),
+                       (21.0, "P4"),
+                       (22.0, "-m2"),
+                       (23.0, "-M2"),
+                       (24.0, "-M2"),
+                       (25.0, "P4"),
+                       (26.0, "-m2"),
+                       (27.0, "-M2"),
+                       (28.0, "-M2"),
+                       (29.0, "-M2"),
+                       (30.0, "-m2"),
+                       (31.0, "-M2"),
+                       (32.0, "P1"),
+                       (33.0, "P4"),
+                       (34.0, "P1"),
+                       (34.5, "-M2"),
+                       (35.0, "-m2"),
+                       (36.0, "P4"),
+                       (37.0, "P1"),
+                       (38.0, "-m2"),
+                       (39.0, "m2"),
+                       (40.0, "P1"),
+                       (41.0, "P4"),
+                       (42.0, "P1"),
+                       (43.0, "M2"),
+                       (43.5, "-M2"),
+                       (44.0, "-M2"),
+                       (45.0, "M2"),
+                       (45.5, "-M2"),
+                       (46.0, "-m2"),
+                       (47.0, "-M2"),
+                       (48.0, "M2"),
+                       (49.0, "m2"),
+                       (50.0, "-m2"),
+                       (51.0, "-M2"),
+                       (52.0, "-M2"),
+                       (53.0, "M2"),
+                       (53.5, "-M2"),
+                       (54.0, "-M2"),
+                       (55.0, "-m2"),
+                       (56.0, "-M2"),
+                       (56.5, "M2"),
+                       (57.0, "m2"),
+                       (58.0, "M2"),
+                       (59.0, "M2"),
+                       (60.0, "-M2"),
+                       (60.5, "-M2"),
+                       (61.0, "M2"),
+                       (61.5, "-M2"),
+                       (62.0, "-m2"),
+                       (63.0, "-M2"),
+                       (64.0, "P8"),
+                       (65.0, "P1"),
+                       (66.0, "P1"),
+                       (67.0, "M2"),
+                       (68.0, "-M2"),
+                       (69.0, "-M2"),
+                       (70.0, "-m2"),
+                       (71.0, "-M2")]
 
     def setUp(self):
         self.bwv77_soprano = TestIntervalIndexerLong.do_wrapping(TestNoteRestIndexer.bwv77_soprano)
@@ -662,18 +751,30 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         return pandas.Series(post_data, index=post_offsets)
 
     def test_interval_indexer_1(self):
-        # BWV7.7: soprano part
-        # TODO: write the testing part of this
+        # BWV7.7: first 26 things in soprano part
         test_parts = [self.bwv77_soprano]
-        # expected = TestIntervalIndexerLong.bwv77_S_B_basis
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_basis_short
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()  # [u'[0, 1]']
-        print(str(actual))
-        #self.assertEqual(len(expected), len(actual))
-        #for i, ind in enumerate(list(actual.index)):
-        #self.assertEqual(expected[i][0], ind)
-        #self.assertEqual(expected[i][1], actual[ind])
+        res = int_indexer.run()
+        actual = res[u'[1, 0]'][:26]
+        self.assertEqual(len(expected), len(actual))
+        for i, ind in enumerate(list(actual.index)):
+            self.assertEqual(expected[i][0], ind)
+            self.assertEqual(expected[i][1], actual[ind])
+
+    def test_interval_indexer_2(self):
+        # BWV7.7: whole soprano part
+        test_parts = [self.bwv77_soprano]
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_basis
+        setts = {u'simple or compound': u'compound', u'quality': True}
+        int_indexer = HorizontalIntervalIndexer(test_parts, setts)
+        res = int_indexer.run()
+        actual = res[u'[1, 0]']
+        self.assertEqual(len(expected), len(actual))
+        for i, ind in enumerate(list(actual.index)):
+            self.assertEqual(expected[i][0], ind)
+            self.assertEqual(expected[i][1], actual[ind])
 
 
 #--------------------------------------------------------------------------------------------------#

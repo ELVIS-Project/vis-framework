@@ -299,20 +299,21 @@ class HorizontalIntervalIndexer(indexer.Indexer):
             Example, if you stored output of run() in the "result" variable:
                 result['[0, 1]'] : the highest and second highest parts
         """
-        # TODO: test this
-
         # This indexer is a little tricky, since we must fake "horizontality" so we can use the
         # same _do_multiprocessing() method as always.
 
-        # First we'll make a copy of each part's NoteRest index, missing the first element. We also
-        # have to coerce the use of a different index, or the original offset values will be kept.
-        new_parts = [pandas.Series(list(x[1:]), index=list(x.index[:-1])) for x in self._score]
+        # First we'll make two copies of each part's NoteRest index. One copy will be missing the
+        # first element, and the other will be missing the last element. We'll also use the index
+        # values starting at the second element, so that each "horizontal" interval is presented
+        # as occurring at the offset of the second note involved.
+        new_parts = [pandas.Series(list(x[1:]), index=list(x.index[1:])) for x in self._score]
+        self._score = [pandas.Series(list(x[:-1]), index=list(x.index[1:])) for x in self._score]
 
         new_zero = len(self._score)
         self._score.extend(new_parts)
 
-        # Calculate each voice with its copy. The copy is put first, so it's considered the "upper
-        # voice," so ascending intervals don't get an accidental.
+        # Calculate each voice with its copy. "new_parts" is put first, so it's considered the
+        # "upper voice," so ascending intervals don't get a direction.
         combinations = [[new_zero + x, x] for x in xrange(new_zero)]
 
         # This method returns once all computation is complete. The results are returned as a list
@@ -326,3 +327,4 @@ class HorizontalIntervalIndexer(indexer.Indexer):
 
         # Return the results.
         return post
+
