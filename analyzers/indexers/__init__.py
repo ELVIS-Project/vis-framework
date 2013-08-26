@@ -24,7 +24,10 @@
 """
 Package docstring for indexers: They index things!
 """
-__all__ = ['noterest', 'interval']
+__all__ = ['noterest', 'interval', 'ngram', 'offset', 'repeat']
 
 from vis.analyzers.indexers import interval
 from vis.analyzers.indexers import noterest
+from vis.analyzers.indexers import ngram
+from vis.analyzers.indexers import offset
+from vis.analyzers.indexers import repeat
