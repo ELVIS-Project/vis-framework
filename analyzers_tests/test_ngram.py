@@ -28,6 +28,7 @@
 
 
 import unittest
+import mock
 import pandas
 from vis.analyzers.indexers import ngram
 
@@ -337,11 +338,87 @@ class TestNGramIndexer(unittest.TestCase):
             for j in expected[i].index:
                 self.assertEqual(expected[i][j], actual[i][j])
 
+    def test_ngram_16a(self):
+        # test _9 but with three "vertical" parts and no terminator
+        vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
+        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
+        vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
+        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
+        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
+        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0, 4]}
+        expected = [pandas.Series([u'[A Z Q] (a z) [B X R]', u'[B X R] (b x) [C Y S]',
+                                   u'[C Y S] (c y) [D W T]', u'[D W T] (d w) [E V U]'],
+                                   index=[0, 1, 2, 3])]
+        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a,
+                                     vertical_a, vertical_c], setts)
+        actual = ng_ind.run()
+        self.assertEqual(len(expected), len(actual))
+        for i in xrange(len(expected)):
+            self.assertEqual(len(expected[i]), len(actual[i]))
+        for i in xrange(len(expected)):
+            for j in expected[i].index:
+                self.assertEqual(expected[i][j], actual[i][j])
+
+    def test_ngram_16b(self):
+        # test _16a but with a MagicMock for the formatter
+        vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
+        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
+        vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
+        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
+        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
+        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0, 4]}
+        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a,
+                                     vertical_a, vertical_c], setts)
+        with mock.patch(u'vis.analyzers.indexers.ngram.NGramIndexer._format_thing') as mock_f:
+            mock_f.return_value = u''
+            ng_ind.run()
+            calls = mock_f.call_args_list
+            # 13 calls because there's one at the end when we run off the end of the list
+            self.assertEqual(13, len(calls))
+            expected_calls = [['A', 'Z', 'Q'],
+                              ['a', 'z'],
+                              ['B', 'X', 'R'],
+                              ['B', 'X', 'R'],
+                              ['b', 'x'],
+                              ['C', 'Y', 'S'],
+                              ['C', 'Y', 'S'],
+                              ['c', 'y'],
+                              ['D', 'W', 'T'],
+                              ['D', 'W', 'T'],
+                              ['d', 'w'],
+                              ['E', 'V', 'U'],
+                              ['E', 'V', 'U']]
+            actual_calls = [x[0][0] for x in calls]  # just the "things" argument
+            self.assertSequenceEqual(expected_calls, actual_calls)
+
+    def test_ngram_17(self):
+        # test _16a but with four "vertical" parts
+        vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
+        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
+        vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
+        vertical_d = pandas.Series(['J', 'K', 'L', 'M', 'N'])
+        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
+        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
+        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0, 4, 5]}
+        expected = [pandas.Series([u'[A Z Q J] (a z) [B X R K]', u'[B X R K] (b x) [C Y S L]',
+                                   u'[C Y S L] (c y) [D W T M]', u'[D W T M] (d w) [E V U N]'],
+                                   index=[0, 1, 2, 3])]
+        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a,
+                                     vertical_a, vertical_c, vertical_d],
+                                     setts)
+        actual = ng_ind.run()
+        self.assertEqual(len(expected), len(actual))
+        for i in xrange(len(expected)):
+            self.assertEqual(len(expected[i]), len(actual[i]))
+        for i in xrange(len(expected)):
+            for j in expected[i].index:
+                self.assertEqual(expected[i][j], actual[i][j])
+
     # TODO:
     # - add a more difficult corpus-inspired tests
-    # - break out the formatting functions and test them
+    #   - we'll use René's ground truth for BWV 2
+    # - test formatting functions
     # - set up for multiprocessing(?)
-    # - change melodic interval indexer so the offset it gives is that of the 2nd note
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
