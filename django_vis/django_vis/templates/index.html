@@ -2,34 +2,116 @@
 {% block head_inject %}
     <script type="text/javascript">
         $(document).ready(function () {
-            function MyViewModel () {
+            var cmp = function(x, y) {
+                if (x instanceof Array && y instanceof Array) {
+                    if (x.length != y.length) return false;
+                    for (var i = 0; i < x.length; ++i) {
+                        if (x[i] != y[i]) return false;
+                    }
+                    return true;
+                } else return x == y;
+            };
+            function ListOfFiles () {
                 var self = this;
-                self.items = ko.observableArray();
+                self.items = ko.observableArray([["bwv77.mxl"], ["Jos2308.krn"], ["Kyrie.krn"],
+                    ["madrigal51.mxl"], ["prolationum-sanctus.midi"], ["Sanctus.krn"]]);
                 self.selectedItems = ko.observableArray();
+                self.removeSelected = function () {
+                    var selected;
+                    selected = self.selectedItems();
+                    self.items.remove(function (item) {
+                        for (var i = 0; i < selected.length; ++i)
+                            if (cmp(selected[i], item)) return true;
+                        return false;
+                    });
+                    self.selectedItems.removeAll();
+                    self.selectedItems.valueHasMutated();
+                    self.items.valueHasMutated();
+                }
             }
-            window.model = new MyViewModel();
-            ko.applyBindings(model);
-            ko.bindingHandlers.selectedItems = {
+            ko.bindingHandlers.selectedRows = {
                 init: function (element, valueAccessor) {
-                    $(element).on("rowSelected", function () {
-                        var selectedData = TableTools.fnGetInstance(element).fnGetSelectedData();
-                        valueAccessor()(selectedData);
+                    // maybe should throw an error if the element is not a datatable
+                    $(element).parent().on("selectionChanged", function () {
+                        var value, selectedData, tools;
+                        tools = TableTools.fnGetInstance($(element).parent().attr('id'));
+                        selectedData = tools.fnGetSelectedData();
+                        value = valueAccessor();
+                        value(selectedData);
+                    });
+                },
+                update: function (element, valueAccessor, allBindingsAccessor, viewModel) {
+                    var parent, tools, val, data, dt;
+                    parent = $(element).parent();
+                    tools = TableTools.fnGetInstance(parent.attr("id"));
+                    val = ko.unwrap(valueAccessor());
+                    data = viewModel.items();
+                    dt = parent.dataTable();
+                    for (var i = 0; i < val.length; ++i) {
+                        for (var j = 0; j < data.length; ++j) {
+                            if (cmp(data[j], val[i])) tools.fnSelect(dt.fnGetNodes(j));
+                        }
+                    }
+                }
+            };
+            ko.bindingHandlers.tableData = {
+                init: function (element, valueAccessor) {
+                    var data, value;
+                    data = $(element).dataTable().fnGetData();
+                    value = valueAccessor();
+                    for (var i = 0; i < data.length; ++i) {
+                        value.push(data[i]);
+                    }
+                },
+                update: function (element, valueAccessor) {
+                    var val = ko.unwrap(valueAccessor());
+                    var dt = $(element).dataTable();
+                    dt.fnClearTable();
+                    dt.fnAddData(val);
+                }
+            };
+            var selectedItem = function (element) {
+                return $(element).wizard('selectedItem').step;
+            };
+            ko.bindingHandlers.wizardStep = {
+                init: function (element, valueAccessor) {
+                    $(element).on('changed', function () {
+                        var value = valueAccessor();
+                        value(selectedItem(element));
                     });
                 },
                 update: function (element, valueAccessor) {
-                    var tools = TableTools.fnGetInstance(element);
-                    var value = valueAccessor();
-                    ko.unwrap(value).forEach(tools.fnSelect);
+                    var tryGo, value, val;
+                    tryGo = function (direction) {
+                        var curVal;
+                        curVal = selectedItem(element);
+                        if (direction) $(element).wizard('next');
+                        else $(element).wizard('previous');
+                        return curVal != selectedItem(element);
+                    };
+                    value = valueAccessor();
+                    val = ko.unwrap(value);
+                    while (val > selectedItem(element)) if (!tryGo(true)) break;
+                    while (val < selectedItem(element)) if (!tryGo(false)) break;
+                    value(selectedItem(element));
                 }
             };
+            function Wizard () {
+                var self = this;
+                self.state = ko.observable();
+            }
+            ko.applyBindings(new Wizard(), document.getElementById('wizard'));
+            ko.applyBindings(new ListOfFiles(), document.getElementById('import'));
         });
     </script>
     <style>
         img.step-img {
-            max-width: auto;
             max-height: 80%;
             padding-bottom: 5px;
             padding-right: 5px;
+        }
+        .fuelux .step-content tr.active {
+            display: table-row;
         }
     </style>
 {% endblock %}
@@ -44,23 +126,23 @@
                 <div class="page-header">
                     <h1>vis X</h1>
                 </div>
-                <div id="MyWizard" class="wizard">
+                <div id="wizard" class="wizard" data-bind="wizardStep: state">
                     <ul class="steps">
-                        <li data-target="#step1" class="active">
+                        <li data-target="#import" class="active">
                             <span>
                                 <img class="step-img" src="{{ STATIC_URL }}img/choose_files.png">
                             </span>
                             Import
                             <span class="chevron"></span>
                         </li>
-                        <li data-target="#step2">
+                        <li data-target="#analyze">
                             <span>
                                 <img class="step-img" src="{{ STATIC_URL }}img/analyze.png">
                             </span>
                             Analyze
                             <span class="chevron"></span>
                         </li>
-                        <li data-target="#step3">
+                        <li data-target="#experiment">
                             <span>
                                 <img class="step-img" src="{{ STATIC_URL }}img/show_results.png">
                             </span>
@@ -73,7 +155,7 @@
                     </div>
                 </div>
                 <div class="step-content">
-                    <div class="step-pane active" id="step1">
+                    <div class="step-pane active" id="import">
                         <div class="well">
                             <div class="navbar">
                                 <div class="navbar-inner">
@@ -82,48 +164,37 @@
                                     </a>
                                     <ul class="nav pull-right">
                                         <li>
-                                            <a href="#">
+                                            <a href="javascript:void(0);">
                                                 <i class="icon-file"></i> Add File(s)
                                             </a>
                                         </li>
                                         <li>
-                                            <a href="#">
+                                            <a href="javascript:void(0);">
                                                 <i class="icon-folder-open"></i> Add Folder(s)
                                             </a>
                                         </li>
                                         <li>
-                                            <a id="remove-selected" href="#">
+                                            <a id="remove-selected" href="javascript:void(0);"
+                                               data-bind="click: removeSelected">
                                                 <i class="icon-remove"></i> Remove Selected
                                             </a>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
-                            <table data-bind="selectedItems: selectedItems" class="table datatable">
+                            <table data-bind="tableData: items" class="table datatable">
                                 <thead>
                                 <tr>
-                                    <th>Header 1</th>
-                                    <th>Header 2</th>
+                                    <th>Filename</th>
                                 </tr>
                                 </thead>
-                                <tbody>
-                                <tr>
-                                    <td>Item 1, Prop 1</td>
-                                    <td>Item 1, Prop 2</td>
-                                </tr>
-                                <tr>
-                                    <td>Item 2, Prop 1</td>
-                                    <td>Item 2, Prop 2</td>
-                                </tr>
-                                </tbody>
+                                <tbody data-bind="selectedRows: selectedItems"></tbody>
                             </table>
                         </div>
                     </div>
-                    <div class="step-pane" id="step2">This is step 2</div>
-                    <div class="step-pane" id="step3">This is step 3</div>
+                    <div class="step-pane" id="analyze">This is step 2</div>
+                    <div class="step-pane" id="experiment">This is step 3</div>
                 </div>
-{#                {% load crispy_forms_tags %}#}
-{#                {% crispy form %}#}
             </div>
             <div class='span2'></div>
         </div>
