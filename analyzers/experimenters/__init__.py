@@ -27,6 +27,7 @@ an Experimenter produces information that can't sensibly be described as startin
 and going to the end of a piece.
 """
 
-__all__ = ['frequency']
+__all__ = ['frequency', 'aggregator']
 
 from vis.analyzers.experimenters import frequency
+from vis.analyzers.experimenters import aggregator
