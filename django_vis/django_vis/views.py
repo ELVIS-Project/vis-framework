@@ -2,6 +2,7 @@ from crispy_forms import helper, layout, bootstrap
 from django import forms
 from django.views import generic
 from jsonview import decorators
+import settings
 
 
 class ExampleForm(forms.Form):
@@ -77,7 +78,7 @@ class MainView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(MainView, self).get_context_data(**kwargs)
-        context['form'] = ExampleForm()
+        context['settings'] = settings
         return context
 
 
