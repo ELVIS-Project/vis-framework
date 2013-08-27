@@ -141,6 +141,119 @@ class NGramIndexer(indexer.Indexer):
         # not using it
         self._indexer_func = None
 
+    @staticmethod
+    def _format_thing(things, m_singles, markers=(u'[', u']'), terminator=None):
+        """
+        Format unicode objects by concatenating them with a space between and the appropriate
+        grouping symbol, if relevant. This method is used by _format_vert() and _format_horiz().
+
+        Parameters
+        ==========
+        :param things: All the events for this moment.
+        :type things: iterable of basestring
+
+        :param m_singles: Whether to put marker characters around single-item iterables.
+        :type m_singles: boolean
+
+        :param markers: The "marker" strings to put around the output, if desired. Defualt is [].
+        :type markers: 2-tuple of unicode
+
+        :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
+            is [None].
+        :type terminator: list of unicode or None
+
+        Returns
+        =======
+        :returns: A unicode with a space between every event and marker characters if there is more
+            than one event or m_singles is True.
+        :rtype: unicode
+
+        Raises
+        ======
+        RuntimeError: If the one of the events is a "terminator."
+        """
+        terminator = [] if terminator is None else terminator
+        post = []
+        if len(things) > 1:
+            post.append(markers[0])
+            for obj in things:
+                if obj in terminator:
+                    raise RuntimeWarning(u'hit a terminator')
+                else:
+                    post.append(unicode(obj))
+                    post.append(u' ')
+            post = post[:-1] # remove last space
+            post.append(markers[1])
+        elif m_singles:
+            if things[0] in terminator:
+                raise RuntimeWarning(u'hit a terminator')
+            else:
+                post.extend([markers[0], unicode(things[0]), markers[1]])
+        else:
+            post.append(things[0])
+        return u''.join(post)
+
+    @staticmethod
+    def _format_vert(verts, m_singles, terminator=None):
+        # NOTE: format_vert() and format_horiz() may be different in subtle ways!
+        """
+        Format "vertical" unicode objects by concatenating them with a space between and the
+        appropriate grouping symbol, if relevant.
+
+        Parameters
+        ==========
+        :param verts: All the "vertical" events for this moment.
+        :type verts: iterable of basestring
+
+        :param m_singles: Whether to put marker characters around single-item iterables.
+        :type m_singles: boolean
+
+        :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
+            is [None].
+        :type terminator: list of unicode or None
+
+        Returns
+        =======
+        :returns: A unicode with a space between every event and marker characters if there is more
+            than one event or m_singles is True.
+        :rtype: unicode
+
+        Raises
+        ======
+        RuntimeError: If the one of the events is a "terminator."
+        """
+        return NGramIndexer._format_thing(verts, m_singles, (u'[', u']'), terminator)
+
+    @staticmethod
+    def _format_horiz(horizs, m_singles, terminator=None):
+        """
+        Format "horizontal" unicode objects by concatenating them with a space between and the
+        appropriate grouping symbol, if relevant.
+
+        Parameters
+        ==========
+        :param verts: All the "horizontal" events for this moment.
+        :type verts: iterable of basestring
+
+        :param m_singles: Whether to put marker characters around single-item iterables.
+        :type m_singles: boolean
+
+        :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
+            is [None].
+        :type terminator: list of unicode or None
+
+        Returns
+        =======
+        :returns: A unicode with a space between every event and marker characters if there is more
+            than one event or m_singles is True.
+        :rtype: unicode
+
+        Raises
+        ======
+        RuntimeError: If the one of the events is a "terminator."
+        """
+        return NGramIndexer._format_thing(horizs, m_singles, (u'(', u')'), terminator)
+
     def run(self):
         """
         Make an index of k-part n-grams of anything.
@@ -153,53 +266,10 @@ class NGramIndexer(indexer.Indexer):
 
         post = []
         post_offsets = []
-        
-        # settings for formatting
+
+        # for the formatting methods
         m_singles = self._settings[u'mark singles']
-        n_verts = len(self._settings[u'vertical'])
-        n_horizs = len(self._settings[u'horizontal'])
-
-        # functions for formatting
-        def format_vert(ins):
-            # NOTE: format_vert() and format_horiz() may be different in subtle ways!
-            """
-            Format "vertical" things. Provide an iterable of all the vertical things. They'll be
-            outputted with a space between them, with the appropriate grouping symbol.
-            """
-            post = u''
-            if n_verts > 1:
-                post = u'['
-                for obj in ins:
-                    if obj in self._settings[u'terminator']:
-                        raise RuntimeWarning(u'hit a terminator')
-                    else:
-                        post += unicode(obj) + u' '
-                post = post[:-1] + u']'  # remove last space
-            elif m_singles:
-                if ins[0] in self._settings[u'terminator']:
-                    raise RuntimeWarning(u'hit a terminator')
-                else:
-                    post = u''.join([u'[', unicode(ins[0]), u']'])
-            else:
-                post = unicode(ins[0])
-            return post
-
-        def format_horiz(ins):
-            """
-            Format "horizontal" things. Provide an iterable of all the horizontal things. They'll be
-            outputted with a space between them, with the appropriate grouping symbol.
-            """
-            post = u''
-            if n_horizs > 1:
-                post = u'('
-                for obj in ins:
-                    post += unicode(obj) + u' '
-                post = post[:-1] + u')'  # remove last space
-            elif m_singles:
-                post = u''.join([u'(', unicode(ins[ins.index[0]]), u')'])
-            else:
-                post = unicode(ins[ins.index[0]])
-            return post
+        term = self._settings[u'terminator']
 
         # Order the parts as specified. We have to track "i" and "name" separately so we have a new
         # order for the dict but can keep self._score straight. We'll use these tuples to keep
@@ -224,24 +294,38 @@ class NGramIndexer(indexer.Indexer):
 
         # Iterate the offsets
         for i in xrange(len(events)):
+            loop_post = None
             try:
-                zoop = format_vert(events[u'v'].ix[i])  # first vertical event
+                # first vertical event
+                loop_post = [NGramIndexer._format_vert(list(events[u'v'].ix[i].sort_index()),
+                                                            m_singles,
+                                                            term)]
             except RuntimeWarning:  # we hit a terminator
                 continue
             try:
                 for j in xrange(self._settings[u'n'] - 1):  # iterate to the end of 'n'
-                    ell = i + j + 1  # the index we need (it's an "L" but spelled out
+                    ell = i + j + 1  # the index we need (it's an "L" but spelled out)
+                    ilp = None  # it means "Inner Loop Post"
                     if u'h' in events:  # are there "horizontal" events?
-                        zoop += u' ' + format_horiz(events[u'h'].ix[ell]) + u' ' + \
-                                format_vert(events[u'v'].ix[ell])
+                        ilp = [u' ',
+                               NGramIndexer._format_horiz(list(events[u'h'].ix[ell].sort_index()),
+                                                          m_singles),
+                               u' ',
+                               NGramIndexer._format_vert(list(events[u'v'].ix[ell].sort_index()),
+                                                         m_singles,
+                                                         term)]
                     else:
-                        zoop += u' ' + format_vert(events[u'v'].ix[ell])
+                        ilp = [u' ',
+                               NGramIndexer._format_vert(list(events[u'v'].ix[ell].sort_index()),
+                                                         m_singles,
+                                                         term)]
+                    loop_post.extend(ilp)
             except (KeyError, IndexError, RuntimeWarning) as the_err:
                 if isinstance(the_err, (IndexError, KeyError)):  # end of inputted Series
                     break
                 else:  # we hit a terminator
                     continue
-            post.append(zoop)
+            post.append(u''.join(loop_post))
             post_offsets.append(events.index[i])
 
         return [pandas.Series(post, post_offsets)]
