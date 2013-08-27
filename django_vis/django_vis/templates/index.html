@@ -2,106 +2,52 @@
 {% block head_inject %}
     <script type="text/javascript">
         $(document).ready(function () {
-            var cmp = function(x, y) {
-                if (x instanceof Array && y instanceof Array) {
-                    if (x.length != y.length) return false;
-                    for (var i = 0; i < x.length; ++i) {
-                        if (x[i] != y[i]) return false;
-                    }
-                    return true;
-                } else return x == y;
-            };
-            function ListOfFiles () {
-                var self = this;
-                self.items = ko.observableArray([["bwv77.mxl"], ["Jos2308.krn"], ["Kyrie.krn"],
-                    ["madrigal51.mxl"], ["prolationum-sanctus.midi"], ["Sanctus.krn"]]);
-                self.selectedItems = ko.observableArray();
-                self.removeSelected = function () {
-                    var selected;
-                    selected = self.selectedItems();
-                    self.items.remove(function (item) {
-                        for (var i = 0; i < selected.length; ++i)
-                            if (cmp(selected[i], item)) return true;
-                        return false;
-                    });
-                    self.selectedItems.removeAll();
-                    self.selectedItems.valueHasMutated();
-                    self.items.valueHasMutated();
-                }
-            }
-            ko.bindingHandlers.selectedRows = {
-                init: function (element, valueAccessor) {
-                    // maybe should throw an error if the element is not a datatable
-                    $(element).parent().on("selectionChanged", function () {
-                        var value, selectedData, tools;
-                        tools = TableTools.fnGetInstance($(element).parent().attr('id'));
-                        selectedData = tools.fnGetSelectedData();
-                        value = valueAccessor();
-                        value(selectedData);
-                    });
-                },
-                update: function (element, valueAccessor, allBindingsAccessor, viewModel) {
-                    var parent, tools, val, data, dt;
-                    parent = $(element).parent();
-                    tools = TableTools.fnGetInstance(parent.attr("id"));
-                    val = ko.unwrap(valueAccessor());
-                    data = viewModel.items();
-                    dt = parent.dataTable();
-                    for (var i = 0; i < val.length; ++i) {
-                        for (var j = 0; j < data.length; ++j) {
-                            if (cmp(data[j], val[i])) tools.fnSelect(dt.fnGetNodes(j));
-                        }
-                    }
-                }
-            };
-            ko.bindingHandlers.tableData = {
-                init: function (element, valueAccessor) {
-                    var data, value;
-                    data = $(element).dataTable().fnGetData();
-                    value = valueAccessor();
-                    for (var i = 0; i < data.length; ++i) {
-                        value.push(data[i]);
+            $("#files-list").dataTable({
+                "aoColumns": [{"sTitle": "Filename", "mData": "Filename"}],
+                "sDom": "rt<'clear'>T",
+                "oTableTools": {
+                    "sRowSelect": "multi",
+                    "aButtons": [ "select_all", "select_none" ],
+                    "sSelectedClass": "selected",
+                    "fnRowSelected": function (nodes) {
+                        $(this.dom.table).trigger("selectionChanged");
+                    },
+                    "fnRowDeselected": function (nodes) {
+                        $(this.dom.table).trigger("selectionChanged");
                     }
                 },
-                update: function (element, valueAccessor) {
-                    var val = ko.unwrap(valueAccessor());
-                    var dt = $(element).dataTable();
-                    dt.fnClearTable();
-                    dt.fnAddData(val);
+                "oLanguage": {
+                    "sEmptyTable": "No files added"
                 }
-            };
-            var selectedItem = function (element) {
-                return $(element).wizard('selectedItem').step;
-            };
-            ko.bindingHandlers.wizardStep = {
-                init: function (element, valueAccessor) {
-                    $(element).on('changed', function () {
-                        var value = valueAccessor();
-                        value(selectedItem(element));
-                    });
+            });
+            $("#pieces-list").dataTable({
+                "aoColumns": [
+                    {"sTitle": "Path", "mData": "Path"},
+                    {"sTitle": "Title", "mData": "Title"},
+                    {"sTitle": "Part Names", "mData": "Part Names"},
+                    {"sTitle": "Offset", "mData": "Offset"},
+                    {"sTitle": "Part Combinations", "mData": "Part Combinations"},
+                    {"sTitle": "Repeat Identical", "mData": "Repeat Identical"}
+                ],
+                "sDom": "rt<'clear'>T",
+                "oTableTools": {
+                    "sRowSelect": "multi",
+                    "aButtons": [ "select_all", "select_none" ],
+                    "sSelectedClass": "selected",
+                    "fnRowSelected": function (nodes) {
+                        $(this.dom.table).trigger("selectionChanged");
+                    },
+                    "fnRowDeselected": function (nodes) {
+                        $(this.dom.table).trigger("selectionChanged");
+                    }
                 },
-                update: function (element, valueAccessor) {
-                    var tryNext, value, val;
-                    tryNext = function (direction) {
-                        var curVal;
-                        curVal = selectedItem(element);
-                        if (direction) $(element).wizard('next');
-                        else $(element).wizard('previous');
-                        return curVal != selectedItem(element);
-                    };
-                    value = valueAccessor();
-                    val = ko.unwrap(value);
-                    while (val > selectedItem(element)) if (!tryNext(true)) break;
-                    while (val < selectedItem(element)) if (!tryNext(false)) break;
-                    value(selectedItem(element));
+                "oLanguage": {
+                    "sEmptyTable": "No pieces imported"
                 }
-            };
-            function Wizard () {
-                var self = this;
-                self.state = ko.observable();
-            }
+            });
             ko.applyBindings(new Wizard(), document.getElementById('wizard'));
             ko.applyBindings(new ListOfFiles(), document.getElementById('import'));
+            ko.applyBindings(new ListOfPieces(), document.getElementById('analyze'));
         });
     </script>
     <style>
@@ -182,17 +128,17 @@
                                     </ul>
                                 </div>
                             </div>
-                            <table data-bind="tableData: items" class="table datatable">
-                                <thead>
-                                <tr>
-                                    <th>Filename</th>
-                                </tr>
-                                </thead>
+                            <table data-bind="tableData: items" class="table display datatable"
+                                   id="files-list">
                                 <tbody data-bind="selectedRows: selectedItems"></tbody>
                             </table>
                         </div>
                     </div>
-                    <div class="step-pane" id="analyze">This is step 2</div>
+                    <div class="step-pane" id="analyze">
+                        <div class="well">
+                            <table class="table display datatable" id="pieces-list"></table>
+                        </div>
+                    </div>
                     <div class="step-pane" id="experiment">This is step 3</div>
                 </div>
             </div>

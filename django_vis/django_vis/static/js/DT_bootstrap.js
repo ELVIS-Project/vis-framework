@@ -155,25 +155,3 @@ if ( $.fn.DataTable.TableTools ) {
         }
     } );
 }
-
-
-/* Table initialisation */
-$(document).ready(function() {
-    $('.datatable').dataTable( {
-        "sDom": "rt<'clear'>T",
-        "oTableTools": {
-            "sRowSelect": "multi",
-            "aButtons": [ "select_all", "select_none" ],
-            "sSelectedClass": "selected",
-            "fnRowSelected": function ( nodes ) {
-                $(this.dom.table).trigger("selectionChanged");
-            },
-            "fnRowDeselected": function ( nodes ) {
-                $(this.dom.table).trigger("selectionChanged");
-            }
-        },
-        "oLanguage": {
-            "sEmptyTable": "No files added"
-        }
-    } );
-} );
