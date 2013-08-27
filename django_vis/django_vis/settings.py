@@ -2,6 +2,7 @@
 import os
 
 PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
+TEST_CORPUS_PATH = os.path.abspath('{}/../../test_corpus'.format(PROJECT_PATH))
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
