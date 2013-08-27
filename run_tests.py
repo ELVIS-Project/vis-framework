@@ -45,7 +45,7 @@ from vis.models_tests import test_indexed_piece, test_aggregated_pieces
 from vis.analyzers_tests.test_offset import OFFSET_INDEXER_SINGLE_SUITE, OFFSET_INDEXER_MULTI_SUITE
 from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
     test_aggregator
-#from vis.controllers_tests import test_mpinterface
+from vis.controllers_tests import test_mpinterface
 
 # Indexer and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
@@ -71,4 +71,4 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FRE
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregated_pieces.AGGREGATED_PIECES_SUITE)
 # MPInterface
-#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpinterface.MPINTERFACE_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_mpinterface.MPINTERFACE_SUITE)
