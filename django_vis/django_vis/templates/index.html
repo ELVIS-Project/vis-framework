@@ -45,9 +45,32 @@
                     "sEmptyTable": "No pieces imported"
                 }
             });
-            ko.applyBindings(new Wizard(), document.getElementById('wizard'));
-            ko.applyBindings(new ListOfFiles(), document.getElementById('import'));
-            ko.applyBindings(new ListOfPieces(), document.getElementById('analyze'));
+            var wizard = new Wizard();
+            var files_list = new ListOfFiles();
+            var pieces_list = new ListOfPieces();
+            ko.applyBindings(wizard, document.getElementById('wizard'));
+            ko.applyBindings(files_list, document.getElementById('import'));
+            ko.applyBindings(pieces_list, document.getElementById('analyze'));
+            $("#wizard").on('change', function () {
+                switch (selectedItem(this)) {
+                    case 1:
+                        $.ajax({
+                            method: 'get',
+                            url: '/api/import',
+                            data: {
+                                'filenames': _.map(files_list.items(),
+                                        function (element) { return element.Filename; })
+                            },
+                            dataType: "json",
+                            success: function (data, textStatus, jqXHR) {
+                                pieces_list.items(data);
+                            }
+                        });
+                        break;
+                    case 2:
+                        break;
+                }
+            });
         });
     </script>
     <style>
