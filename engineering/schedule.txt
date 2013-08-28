@@ -18,24 +18,25 @@ Jul-29:
     --> Research visual design of Web interface
 
 Aug-6:
-    --> Extensive Unit Tests and Ground Truth for These Components
-    --> Integration of These Components into Existing PyQt4 GUI
+    --> fall behind schedule
 
 Aug-13:
-    --> Bridge to R
-    --> Write VisTrails modules
-    --> Build sample workflows
-    --> Figure out how to do the WController
-    --> Write the Web interface
+    --> fall further behind schedule
 
-Aug-20: ??
+Aug-21:
+    --> even more schedule-busting
 
-Aug-27: ??
+Aug-28:
+    --> Indexer, Experimenter, IndexedPiece: fully implemented and tested (bare minimum number of indexers and experimenters)
+    --> Aggregated Piece: base implementation; minimal tests
+    --> base implementation of the Web interface (doesn't work, but it exists)
+    --> base implementation of the new MPInterface-and-Multiprocessor implementation
+    --> Alex has figured out how to use R, ggplot2, and Deducer
 
-Sep-3:
-    --> Development phase complete
+Sep-4:
+    --> Web app development phase complete
     --> Begin documentation and integration testing (i.e., run real queries to see how to mess it up)
-    (Schedule Buffer Week)
+    --> Bridge to R
 
 Sep-10: ??
     --> Prototype "Think Computationally with vis"
@@ -48,6 +49,8 @@ Sep-10: ??
     --> Write "Extend vis on VisTrails"
     --> Write vis API
     --> Write vis Extensibility API
+    --> Write VisTrails modules?
+        --> Build sample workflows
 
 Sep-17: ??
 
