@@ -39,24 +39,20 @@ def real_indexer(simultaneity, simple, quality):
 
     Parameters
     ==========
-    :param simultaneity : [music21.base.ElementWrapper]
-        A two-item iterable of ElementWrapper objects, for which the "obj" attribute should be
-        strings like 'Rest' or 'G4'; the upper voice should have index 0.
+    :param simultaneity: A two-item iterable that with the note names (or u'Rest') for the top then
+        lower voice.
+    :type simultaneity: list of basestring
 
-    :param simple : boolean
-        True if intervals should be reduced to their single-octave version.
+    :param simple: Whether intervals should be reduced to their single-octave version.
+    :type simple: boolean
 
-    :param quality : boolean
-        True if the interval's quality should be prepended.
+    :param quality: Whether the interval's quality should be prepended.
+    :type quality: boolean
 
     Returns
     =======
-    string :
-        Like 'M3' or similar.
-    u'Rest' :
-        If one of the elements of "simultaneity" == u'Rest'.
-    None :
-        If there "simultaneity" has greater or fewer than two elements.
+    :returns: u'Rest' if one or more of the parts is u'Rest'; otherwise, the interval between parts.
+    :rtype: unicode
     """
 
     if 2 != len(simultaneity):
