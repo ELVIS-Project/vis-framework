@@ -38,32 +38,27 @@ VERBOSITY = 1
 
 # Imports
 import unittest
-from vis.analyzers_tests.test_interval_indexer import INTERVAL_INDEXER_SHORT_SUITE, \
-    INTERVAL_INDEXER_LONG_SUITE, INT_IND_INDEXER_SUITE, HORIZ_INT_IND_LONG_SUITE
-from vis.analyzers_tests import test_frequency_experimenter
 from vis.models_tests import test_indexed_piece, test_aggregated_pieces
-from vis.analyzers_tests.test_offset import OFFSET_INDEXER_SINGLE_SUITE, OFFSET_INDEXER_MULTI_SUITE
 from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
-    test_aggregator
+    test_aggregator, test_interval_indexer, test_frequency_experimenter, test_offset
 from vis.controllers_tests import test_mpinterface
 
 # Indexer and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_1_PART_SUITE)
-# TODO: make this suite pass, and be quite different from INDEXER_1_PART_SUITE
-#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_3_PARTS_SUITE)
+# TODO: revive the INDEXER_3_PARTS_SUITE
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.UNIQUE_OFFSETS_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.VERT_ALIGNER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_note_rest_indexer.NOTE_REST_INDEXER_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_SHORT_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(INTERVAL_INDEXER_LONG_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(INT_IND_INDEXER_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(HORIZ_INT_IND_LONG_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(OFFSET_INDEXER_SINGLE_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(OFFSET_INDEXER_MULTI_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.INT_IND_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.HORIZ_INT_IND_LONG_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_repeat.REPEAT_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_ngram.NGRAM_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregator.COLUMN_AGGREGATOR_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_SINGLE_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_MULTI_SUITE)
 # Experimenter and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_FUNC_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_RUN_SUITE)
