@@ -24,8 +24,10 @@
 The controllers that deal with indexing data from music21 Score objects.
 """
 
+import time
 import pandas
 from music21 import stream, converter
+from vis.controllers.mpinterface import MPInterface
 
 
 def mpi_unique_offsets(streams):
@@ -74,8 +76,6 @@ def mpi_vert_aligner(events):
 
 
 def stream_indexer(pipe_index, parts, indexer_func, types=None):
-    # TODO: adjust this to use the proper index-which-is-offset for the returned Series
-    # TODO: adjust this to not return a Seris of ElementWrapper objects
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing with the MPController module.
@@ -107,17 +107,20 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
 
     Parameters:
     ===========
-    :param parts: [music21.stream.Stream]
-        A list of at least one Stream object. Every new event, or change of simlutaneity, will
-        appear in the outputted index. Therefore, the new index will contain at least as many
+    :param pipe_index: An identifier value for use by the caller.
+    :type pipe_index: any
+
+    :param parts: A list of at least one Stream object. Every new event, or change of simlutaneity,
+        will appear in the outputted index. Therefore, the new index will contain at least as many
         events as the inputted Part or Series with the most events.
+    :type parts: list of music21.stream.Stream
 
-    :param indexer_func: function
-        This function transforms found events into a unicode object (i.e., a unicode string).
+    :param indexer_func: This function transforms found events into a unicode object.
+    :type indexer_func: function
 
-    :param types: list of type objects
-        Only objects of a type in this list will be passed to the indexer_func for inclusion in
-        the resulting index.
+    :param types: Only objects of a type in this list will be passed to the indexer_func for
+        inclusion in the resulting index.
+    :type types: list of types
 
     Returns:
     ========
@@ -173,26 +176,28 @@ def series_indexer(pipe_index, parts, indexer_func):
 
     If your Indexer has settings, use the indexer_func() to adjust for them.
 
-    If an offset has multiple events of the correct type, they will hypothetically be included in
-    the new index. However, I'm not entirely sure how to implement this (with pandas MultiIndex?),
-    and it's not important, so it doesn't really work yet.
+    Multiple events at an offset causes undefined behaviour.
 
     Parameters:
     ===========
-    :param parts: [pandas.Series]
-        A list of at least one Series object. Every new event, or change of simlutaneity, will
-        appear in the outputted index. Therefore, the new index will contain at least as many
+    :param pipe_index: An identifier value for use by the caller.
+    :type pipe_index: any
+
+    :param parts: A list of at least one Series object. Every new event, or change of simlutaneity,
+        will appear in the outputted index. Therefore, the new index will contain at least as many
         events as the inputted Part or Series with the most events. This is not a DataFrame, since
         each part will likely have different offsets.
+    :type parts: list of pandas.Series
 
-    :param indexer_func: function
-        This function transforms found events into a unicode object (i.e., a unicode string).
+    :param indexer_func: This function transforms found events into a unicode object.
+    :type indexer_func: function
 
     Returns:
     ========
-    pandas.Series:
-        The new index. Each element is a unicode object (i.e., a unicode string), and the "index"
-        of the Series corresponds to the offset at which each event begins.
+    :returns: The new index where each element is a unicode object and the "index" of the pandas
+        object corresponds to the offset at which each event begins. Index 0 is the argument
+        "pipe_index" unchanged.
+    :rtype: 2-tuple with "pipe_index" and pandas.Series or pandas.DataFrame
     """
 
     # find the offsets at which things happen
@@ -237,23 +242,22 @@ class Indexer(object):
 
     # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
     # pylint: disable=W0613
-    def __init__(self, score, settings=None, mpc=None):
+    def __init__(self, score, settings=None, mpc=True):
         """
         Create a new Indexer.
 
         Parameters
         ==========
-        :param score: [pandas.Series] or [music21.stream.Part]
-            Depending on how this Indexer works, this is a list of either Part or Series obejcts
-            to use in creating a new index.
+        :param score: Depending on how this Indexer works, this is a list of either Part or Series
+            obejcts to use in creating a new index.
+        :type score: list of pandas.Series or of music21.stream.Part
 
-        :param settings: dict
-            A dict of all the settings required by this Indexer. All required settings should be
-            listed in subclasses. Default is {}.
+        :param settings: A dict of all the settings required by this Indexer. All required
+            settings should be listed in subclasses. Default is {}.
+        :type settings: dict
 
-        :param mpc: MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+        :param mpc: Whether to use an MPInterface instance for multiprocessing. Default is True.
+        :type mpc: boolean
 
         Raises
         ======
@@ -286,10 +290,10 @@ class Indexer(object):
 
         Returns
         =======
-        [pandas.Series] :
-            A list of the new indices. The index of each Series corresponds to the index of the Part
-            used to generate it, in the order specified to the constructor. Each element in the
-            Series is an instance of music21.base.ElementWrapper.
+        :returns: A list of the new indices. The index of each Series corresponds to the index of
+            the Part used to generate it, in the order specified to the constructor. Each element in
+            the Series is an instance of music21.base.ElementWrapper.
+        :rtype: list of pandas.Series
         """
         pass
 
@@ -299,8 +303,7 @@ class Indexer(object):
 
         Parameters
         ==========
-        :param combos: list of list of integers
-            A list of all voice combinations to be analyzed. For example:
+        :param combos: A list of all voice combinations to be analyzed. For example:
             - [[0], [1], [2], [3]]
                 Analyze each of four parts independently.
             - [[0, 1], [0, 2], [0, 3]]
@@ -309,19 +312,34 @@ class Indexer(object):
                 Analyze all parts at once.
             The function stored in "self._indexer_func" must know how to deal with the number of
             simultaneous events it will receive.
+        :type combos: list of list of integers
 
         Returns
         =======
-        [pandas.Series]
-            A list of Series.
+        :returns: Analysis results.
+        :rtype: list of pandas.Series
 
         Side Effects
         ============
-        1.) Blocks until all voice combinations have completed.
+        Blocks until all voice combinations have completed.
         """
         post = []
 
-        if self._mpc is None:
+        if self._mpc:
+            # use an MPInterface for multiprocessing
+            mpi = MPInterface()
+            for each_combo in combos:
+                if isinstance(self._score[0], stream.Stream):
+                    voices = [converter.freeze(self._score[x], u'pickle') for x in each_combo]
+                    mpi.submit(stream_indexer, (voices, self._indexer_func, self._types))
+                else:
+                    voices = [self._score[x] for x in each_combo]
+                    mpi.submit(series_indexer, (voices, self._indexer_func))
+            while mpi.waiting_on() > 0:
+                time.sleep(0.5)
+            while mpi.poll() is True:
+                post.append(mpi.fetch()[1])
+        else:
             # use serial processing
             for each_combo in combos:
                 voices = [self._score[x] for x in each_combo]
@@ -329,19 +347,5 @@ class Indexer(object):
                     post.append(stream_indexer(0, voices, self._indexer_func, self._types)[1])
                 else:
                     post.append(series_indexer(0, voices, self._indexer_func)[1])
-        else:
-            # use the MPController for multiprocessing
-            pipe_end = self._mpc.get_pipe()
-            jobs_submitted = 0
-            for each_combo in combos:
-                jobs_submitted += 1
-                if isinstance(self._score[0], stream.Stream):
-                    voices = [converter.freeze(self._score[x], u'pickle') for x in each_combo]
-                    pipe_end.send((stream_indexer, [voices, self._indexer_func, self._types]))
-                else:
-                    voices = [self._score[x] for x in each_combo]
-                    pipe_end.send((series_indexer, [voices, self._indexer_func]))
-            for _ in xrange(jobs_submitted):
-                post.append(pipe_end.recv())
 
         return post

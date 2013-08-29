@@ -33,7 +33,7 @@ import copy
 import pandas
 from music21 import base, stream, duration, note, converter
 from vis.analyzers import indexer
-#from vis.controllers import mpcontroller
+from vis.controllers import mpinterface
 from vis.test_corpus import int_indexer_short
 
 
@@ -62,171 +62,194 @@ class TestIndexerHardcore(unittest.TestCase):
             self.assertEqual(err.args[0], error_msg)
 
     def test_indexer_hardcore_1(self):
-        # that _do_multiprocessing() with an MPController will "freeze" Streams
+        # that _do_multiprocessing() with MPInterface will "freeze" Streams
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
-
             def run(self):
                 self._do_multiprocessing([[0]])
-
+        # the actual testing
         test_parts = [stream.Part()]
         settings = {}
-        # prepare mocks
-        mpc = mock.MagicMock(spec=mpcontroller.MPController)
-        mock_conn = mock.MagicMock()
-        mpc.get_pipe.return_value = mock_conn
-        mock_conn.recv.return_value = u'returned by mock pipe'
-        # run test
-        t_ind = TestIndexer(test_parts, settings, mpc)
-        t_ind._indexer_func = fake_indexer_func
-        t_ind.run()
-        # check results
-        mpc.get_pipe.assert_called_once_with()
-        ccallz = mock_conn.mock_calls
-        self.assertEqual(2, len(ccallz))
-        self.assertEqual(ccallz[0][0], u'send')
-        send_1 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (first call)
-        self.assertEqual(send_1[0], indexer.stream_indexer)  # always the same
-        self.assertTrue(isinstance(send_1[1][0][0], basestring))  # <-- did it get pickled?
-        self.assertEqual(send_1[1][1], fake_indexer_func)  # self._indexer_func
-        self.assertEqual(send_1[1][2], None)  # self._types
-        # one recv() calls
-        self.assertEqual(ccallz[1][0], u'recv')
+        with mock.patch(u'vis.analyzers.indexer.MPInterface') as the_mock:
+            # setup the mocks
+            m_mpi = mock.MagicMock(spec_set=mpinterface.MPInterface, name=u'MockMPI')
+            m_mpi.waiting_on = mock.MagicMock(return_value = 0)
+            poll_returns = [True, False]
+            def poll_ret_func(*args):
+                return poll_returns.pop(0)
+            m_mpi.poll = mock.MagicMock(side_effect=poll_ret_func)
+            m_mpi.fetch = mock.MagicMock(return_value=(0, 1))  # needs at least two things
+            the_mock.return_value = m_mpi
+            # run test
+            t_ind = TestIndexer(test_parts, settings, True)
+            t_ind._indexer_func = fake_indexer_func
+            t_ind.run()
+            # check results
+            m_mpi.submit.assert_called_once_with(indexer.stream_indexer,
+                                                 ([mock.ANY], fake_indexer_func, None))
+            # get what should be a unicode that's a pathname to the pickled music21 Score
+            self.assertTrue(isinstance(m_mpi.submit.mock_calls[0][1][1][0][0], basestring))
+            m_mpi.waiting_on.assert_called_once_with()
+            m_mpi.fetch.assert_called_once_with()
+            self.assertEqual(2, m_mpi.poll.call_count)
 
     def test_indexer_hardcore_2(self):
-        # that _do_multiprocessing() with an MPController will not "freeze" Series
+        # that _do_multiprocessing() with MPInterface will not "freeze" Series
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = pandas.Series
-
             def run(self):
                 self._do_multiprocessing([[0]])
-
+        # the actual testing
         test_parts = [pandas.Series([1, 2])]
         settings = {}
-        # prepare mocks
-        mpc = mock.MagicMock(spec=mpcontroller.MPController)
-        mock_conn = mock.MagicMock()
-        mpc.get_pipe.return_value = mock_conn
-        mock_conn.recv.return_value = u'returned by mock pipe'
-        # run test
-        t_ind = TestIndexer(test_parts, settings, mpc)
-        t_ind._indexer_func = fake_indexer_func
-        t_ind.run()
-        # check results
-        mpc.get_pipe.assert_called_once_with()
-        ccallz = mock_conn.mock_calls
-        self.assertEqual(2, len(ccallz))
-        self.assertEqual(ccallz[0][0], u'send')
-        send_1 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (first call)
-        self.assertEqual(send_1[0], indexer.series_indexer)  # always the same
-        self.assertTrue(isinstance(send_1[1][0][0], pandas.Series))  # <-- did it get pickled?
-        self.assertEqual(send_1[1][1], fake_indexer_func)  # self._indexer_func
-        # one recv() calls
-        self.assertEqual(ccallz[1][0], u'recv')
+        with mock.patch(u'vis.analyzers.indexer.MPInterface') as the_mock:
+            # setup the mocks
+            m_mpi = mock.MagicMock(spec_set=mpinterface.MPInterface, name=u'MockMPI')
+            m_mpi.waiting_on = mock.MagicMock(return_value = 0)
+            poll_returns = [True, False]
+            def poll_ret_func(*args):
+                return poll_returns.pop(0)
+            m_mpi.poll = mock.MagicMock(side_effect=poll_ret_func)
+            m_mpi.fetch = mock.MagicMock(return_value=(0, 1))  # needs at least two things
+            the_mock.return_value = m_mpi
+            # run test
+            t_ind = TestIndexer(test_parts, settings, True)
+            t_ind._indexer_func = fake_indexer_func
+            t_ind.run()
+            # check results
+            m_mpi.submit.assert_called_once_with(indexer.series_indexer,
+                                                 (test_parts, fake_indexer_func))
+            m_mpi.waiting_on.assert_called_once_with()
+            m_mpi.fetch.assert_called_once_with()
+            self.assertEqual(2, m_mpi.poll.call_count)
 
     def test_indexer_hardcore_3(self):
-        # That _do_multiprocessing() doesn't pickle Streams when no MPController is given
-        # That _do_multiprocessing() doesn't try to use an MPController when none is given
+        # That _do_multiprocessing() doesn't pickle Streams when not using MPInterface
+        # That _do_multiprocessing() doesn't try to use MPInterface when told not to
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
-
             def run(self):
                 self._do_multiprocessing([[0]])
-
+        # the actual testing
         test_parts = [stream.Stream()]
         settings = {}
         # prepare mocks
         with mock.patch(u'vis.analyzers.indexer.stream_indexer') as mpi_mock:
             # run test
-            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind = TestIndexer(test_parts, settings, False)
             t_ind._indexer_func = fake_indexer_func
             t_ind.run()
             # check results
             mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
 
-    def test_indexer_hardcore_4(self):
-        # That _do_multiprocessing() calls mp_indexer() with the right arguments, given many parts
-        # individually.
+    def test_indexer_hardcore_4a(self):
+        # That _do_multiprocessing() calls mp_indexer() appropriately with many individual parts.
+        # --> Use Stream
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = stream.Stream
-
             def run(self):
                 self._do_multiprocessing([[0], [1], [2], [3]])
-
+        # the actual testing
         test_parts = [stream.Stream() for _ in xrange(4)]
         settings = {}
-        # prepare mocks
-        with mock.patch(u'vis.analyzers.indexer.stream_indexer') as mpi_mock:
+        with mock.patch(u'vis.analyzers.indexer.MPInterface') as the_mock:
+            # setup the mocks
+            m_mpi = mock.MagicMock(spec_set=mpinterface.MPInterface, name=u'MockMPI')
+            waiting_returns = [4, 3, 2, 1, 0]
+            def waiting_ret_func(*args):
+                return waiting_returns.pop(0)
+            m_mpi.waiting_on = mock.MagicMock(side_effect=waiting_ret_func)
+            poll_returns = [True, True, True, True, False]
+            def poll_ret_func(*args):
+                return poll_returns.pop(0)
+            m_mpi.poll = mock.MagicMock(side_effect=poll_ret_func)
+            m_mpi.fetch = mock.MagicMock(return_value=(0, 1))  # needs at least two things
+            the_mock.return_value = m_mpi
             # run test
-            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind = TestIndexer(test_parts, settings, True)
             t_ind._indexer_func = fake_indexer_func
             t_ind.run()
             # check results
-            callz = mpi_mock.mock_calls
-            self.assertEqual(8, len(callz))
+            self.assertEqual(4, m_mpi.submit.call_count)
+            self.assertEqual(5, m_mpi.waiting_on.call_count)
+            self.assertEqual(4, m_mpi.fetch.call_count)
+            self.assertEqual(5, m_mpi.poll.call_count)
+            # check the stream_indexer() was used
             for i in xrange(4):
-                # we must skip every other thing in the call list, but we still need "i" for the
-                # test_parts index
-                this = callz[i * 2][1]
-                self.assertEqual(0, this[0])  # pipe_i
-                self.assertEqual([test_parts[i]], this[1])  # score
-                self.assertEqual(fake_indexer_func, this[2])  # self._indexer_func
-                self.assertEqual(None, this[3])  # self._types
+                self.assertEqual(indexer.stream_indexer, m_mpi.submit.call_args_list[i][0][0])
 
-    def test_indexer_hardcore_4a(self):
+    def test_indexer_hardcore_4b(self):
         # That _do_multiprocessing() calls mp_indexer() with the right arguments, given many parts
         # individually.
         # --> Use Series
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
             required_score_type = pandas.Series
-
             def run(self):
                 self._do_multiprocessing([[0], [1], [2], [3]])
-
+        # the actual testing
         test_parts = [pandas.Series() for _ in xrange(4)]
         settings = {}
-        # prepare mocks
-        with mock.patch(u'vis.analyzers.indexer.series_indexer') as mpi_mock:
+        with mock.patch(u'vis.analyzers.indexer.MPInterface') as the_mock:
+            # setup the mocks
+            m_mpi = mock.MagicMock(spec_set=mpinterface.MPInterface, name=u'MockMPI')
+            waiting_returns = [1, 0]
+            def waiting_ret_func(*args):
+                return waiting_returns.pop(0)
+            m_mpi.waiting_on = mock.MagicMock(side_effect=waiting_ret_func)
+            poll_returns = [True, True, True, True, False]
+            def poll_ret_func(*args):
+                return poll_returns.pop(0)
+            m_mpi.poll = mock.MagicMock(side_effect=poll_ret_func)
+            m_mpi.fetch = mock.MagicMock(return_value=(0, 1))  # needs at least two things
+            the_mock.return_value = m_mpi
             # run test
-            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind = TestIndexer(test_parts, settings, True)
             t_ind._indexer_func = fake_indexer_func
             t_ind.run()
             # check results
-            callz = mpi_mock.mock_calls
-            self.assertEqual(8, len(callz))
+            self.assertEqual(4, m_mpi.submit.call_count)
+            self.assertEqual(2, m_mpi.waiting_on.call_count)
+            self.assertEqual(4, m_mpi.fetch.call_count)
+            self.assertEqual(5, m_mpi.poll.call_count)
+            # check the series_indexer() was used
             for i in xrange(4):
-                # we must skip every other thing in the call list, but we still need "i" for the
-                # test_parts index
-                this = callz[i * 2][1]
-                self.assertEqual(0, this[0])  # pipe_i
-                self.assertEqual([test_parts[i]], this[1])  # score
-                self.assertEqual(fake_indexer_func, this[2])  # self._indexer_func
+                self.assertEqual(indexer.series_indexer, m_mpi.submit.call_args_list[i][0][0])
 
     def test_indexer_hardcore_5(self):
         # That _do_multiprocessing() calls mp_indexer() with the right arguments, given a single
         # combination of many parts.
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
-            required_score_type = stream.Stream
-
+            required_score_type = pandas.Series
             def run(self):
                 self._do_multiprocessing([[0, 1, 2, 3]])
-
-        test_parts = [stream.Stream() for _ in xrange(4)]
+        # the actual testing
+        test_parts = [pandas.Series() for _ in xrange(4)]
         settings = {}
-        # prepare mocks
-        with mock.patch(u'vis.analyzers.indexer.stream_indexer') as mpi_mock:
+        with mock.patch(u'vis.analyzers.indexer.MPInterface') as the_mock:
+            # setup the mocks
+            m_mpi = mock.MagicMock(spec_set=mpinterface.MPInterface, name=u'MockMPI')
+            m_mpi.waiting_on = mock.MagicMock(return_value=0)
+            poll_returns = [True, False]
+            def poll_ret_func(*args):
+                return poll_returns.pop(0)
+            m_mpi.poll = mock.MagicMock(side_effect=poll_ret_func)
+            m_mpi.fetch = mock.MagicMock(return_value=(0, 1))  # needs at least two things
+            the_mock.return_value = m_mpi
             # run test
-            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind = TestIndexer(test_parts, settings, True)
             t_ind._indexer_func = fake_indexer_func
             t_ind.run()
             # check results
-            mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
+            m_mpi.submit.called_once_with((indexer.series_indexer, (test_parts, fake_indexer_func)))
+            self.assertEqual(1, m_mpi.waiting_on.call_count)
+            self.assertEqual(1, m_mpi.fetch.call_count)
+            self.assertEqual(2, m_mpi.poll.call_count)
 
     # noinspection PyArgumentList
     def test_indexer_hardcore_6(self):
@@ -234,33 +257,40 @@ class TestIndexerHardcore(unittest.TestCase):
         # combinations of many parts.
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
-            required_score_type = stream.Stream
-
+            required_score_type = pandas.Series
             def run(self):
                 self._do_multiprocessing([[0, 1], [1, 3], [0, 1, 2]])
-
-        test_parts = [stream.Stream() for _ in xrange(4)]
+        # the actual testing
+        test_parts = [pandas.Series([i]) for i in xrange(4)]
         settings = {}
-        # prepare mocks
-        with mock.patch(u'vis.analyzers.indexer.stream_indexer') as mpi_mock:
+        with mock.patch(u'vis.analyzers.indexer.MPInterface') as the_mock:
+            # setup the mocks
+            m_mpi = mock.MagicMock(spec_set=mpinterface.MPInterface, name=u'MockMPI')
+            m_mpi.waiting_on = mock.MagicMock(return_value=0)
+            poll_returns = [True, False]
+            def poll_ret_func(*args):
+                return poll_returns.pop(0)
+            m_mpi.poll = mock.MagicMock(side_effect=poll_ret_func)
+            m_mpi.fetch = mock.MagicMock(return_value=(0, 1))  # needs at least two things
+            the_mock.return_value = m_mpi
             # run test
-            t_ind = TestIndexer(test_parts, settings, None)
+            t_ind = TestIndexer(test_parts, settings, True)
             t_ind._indexer_func = fake_indexer_func
             t_ind.run()
             # check results
-            callz = mpi_mock.mock_calls
-            self.assertEqual(6, len(callz))
-            for i in xrange(0, 6, 2):
-                # we must skip every other thing in the call list
-                this = callz[i][1]
-                self.assertEqual(0, this[0])  # pipe_i
-                # won't test the score combinations here
-                self.assertEqual(fake_indexer_func, this[2])  # self._indexer_func
-                self.assertEqual(None, this[3])  # self._types
-                # check each part combination
-            self.assertEqual([test_parts[0], test_parts[1]], callz[0][1][1])
-            self.assertEqual([test_parts[1], test_parts[3]], callz[2][1][1])
-            self.assertEqual([test_parts[0], test_parts[1], test_parts[2]], callz[4][1][1])
+            self.assertEqual(3, m_mpi.submit.call_count)
+            calls = m_mpi.submit.call_args_list
+            for i in xrange(3):
+                self.assertEqual(indexer.series_indexer, calls[i][0][0])
+                self.assertEqual(fake_indexer_func, calls[i][0][1][1])
+            # test the contents of each Series
+            self.assertEqual([0], list(calls[0][0][1][0][0]))  # 0 from [0, 1]
+            self.assertEqual([1], list(calls[0][0][1][0][1]))  # 1 from [0, 1]
+            self.assertEqual([1], list(calls[1][0][1][0][0]))  # 1 from [1, 3]
+            self.assertEqual([3], list(calls[1][0][1][0][1]))  # 3 from [1, 3]
+            self.assertEqual([0], list(calls[2][0][1][0][0]))  # 0 from [0, 1, 2]
+            self.assertEqual([1], list(calls[2][0][1][0][1]))  # 1 from [0, 1, 2]
+            self.assertEqual([2], list(calls[2][0][1][0][2]))  # 2 from [0, 1, 2]
 
 
 def verbatim(iterable):
