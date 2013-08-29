@@ -166,7 +166,7 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
     return pipe_index, pandas.Series(new_series_data, index=offsets_for_series)
 
 
-def series_indexer(pipe_index, parts, indexer_func, types=None):
+def series_indexer(pipe_index, parts, indexer_func):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing with the MPController module.
@@ -187,10 +187,6 @@ def series_indexer(pipe_index, parts, indexer_func, types=None):
 
     :param indexer_func: function
         This function transforms found events into a unicode object (i.e., a unicode string).
-
-    :param types: list of type objects
-        Only objects of a type in this list will be passed to the indexer_func for inclusion in
-        the resulting index.
 
     Returns:
     ========
@@ -213,7 +209,7 @@ def series_indexer(pipe_index, parts, indexer_func, types=None):
     new_series_data = dframe.apply(indexer_func, axis=1)
 
     # make the new index
-    return pipe_index, pandas.Series(new_series_data, index=dframe.index)
+    return pipe_index, new_series_data
 
 
 class Indexer(object):
