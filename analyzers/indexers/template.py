@@ -33,7 +33,22 @@ from vis.analyzers import indexer
 # pylint: disable=W0613
 def indexer_func(obj):
     """
-    docstring
+    The function that indexes.
+
+    Parameters for Indexers Using a Score
+    ======================================
+    :param obj: The simultaneous event(s) to use when creating this index.
+    :type obj: list of the types stored in self._types
+
+    Parameters for Indexers Using a Series
+    ======================================
+    :param obj: The simultaneous event(s) to use when creating this index.
+    :type obj: pandas.Series of unicode
+
+    Returns
+    =======
+    :returns: The value to store for this index at this offset.
+    :rtype: unicode
     """
     return None
 
