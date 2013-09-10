@@ -40,7 +40,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
     possible_settings = []  # none
     default_settings = {}  # none
 
-    def __init__(self, score, settings=None, mpc=None):
+    def __init__(self, score, settings=None):
         """
         Create a new FilterByOffsetIndexer.
 
@@ -73,11 +73,6 @@ class FilterByOffsetIndexer(indexer.Indexer):
                 smallest possible value).
         :type: dict
 
-        :param mpc:
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
-        :type: MPController
-
         Raises
         ======
         RuntimeError :
@@ -86,7 +81,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
             - If a "quarterLength" setting is not found in the "settings" argument.
             - If the "quarterLength" setting has a value less than 0.001.
         """
-        super(FilterByOffsetIndexer, self).__init__(score, None, mpc)
+        super(FilterByOffsetIndexer, self).__init__(score, None)
 
         # check the settings instance has a u'quarterLength' property.
         if settings is None or u'quarterLength' not in settings:

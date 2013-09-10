@@ -75,7 +75,7 @@ class NGramIndexer(indexer.Indexer):
     default_settings = {u'mark singles': True, u'horizontal': [], u'terminator': [],
                         u'continuer': u'_'}
 
-    def __init__(self, score, settings=None, mpc=None):
+    def __init__(self, score, settings=None):
         """
         Create a new NGramIndexer.
 
@@ -100,10 +100,6 @@ class NGramIndexer(indexer.Indexer):
             - continuer: when there is no "horizontal" event that corresponds to a vertical event,
                 this is printed instead, to show that the previous "horizontal" event continues
         :type: dict
-
-        :param mpc: An optional instance of MPController. If this is present, the Indexer will use
-            it to submit jobs for multiprocessing. If not present, jobs will be executed in series.
-        :type: MPController
 
         Raises
         ======
@@ -136,7 +132,7 @@ class NGramIndexer(indexer.Indexer):
         # Change "TemplateIndexer" to the current class name. The superclass will handle the
         # "score" and "mpc" arguments, but you should have processed "settings" above, so it should
         # not be sent to the superclass constructor.
-        super(NGramIndexer, self).__init__(score, None, mpc)
+        super(NGramIndexer, self).__init__(score, None)
 
         # not using it
         self._indexer_func = None

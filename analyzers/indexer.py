@@ -242,7 +242,7 @@ class Indexer(object):
 
     # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
     # pylint: disable=W0613
-    def __init__(self, score, settings=None, mpc=True):
+    def __init__(self, score, settings=None):
         """
         Create a new Indexer.
 
@@ -253,11 +253,8 @@ class Indexer(object):
         :type score: list of pandas.Series or of music21.stream.Part
 
         :param settings: A dict of all the settings required by this Indexer. All required
-            settings should be listed in subclasses. Default is {}.
-        :type settings: dict
-
-        :param mpc: Whether to use an MPInterface instance for multiprocessing. Default is True.
-        :type mpc: boolean
+            settings should be listed in subclasses. Default is None.
+        :type settings: dict or None
 
         Raises
         ======
@@ -275,7 +272,6 @@ class Indexer(object):
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
         self._score = score
-        self._mpc = mpc
         self._indexer_func = None
         self._types = None
         if hasattr(self, u'_settings'):
@@ -283,6 +279,8 @@ class Indexer(object):
                 self._settings = {}
         else:
             self._settings = {}
+        # TODO: self._mpc is just to help move away from using the MPController
+        self._mpc = False
 
     def run(self):
         """

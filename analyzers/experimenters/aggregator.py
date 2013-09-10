@@ -40,7 +40,7 @@ class ColumnAggregator(experimenter.Experimenter):
     possible_settings = []  # list of strings
     default_settings = {}  # keys are strings, values are anything
 
-    def __init__(self, index, settings=None, mpc=None):
+    def __init__(self, index, settings=None):
         """
         Create a new ColumnAggregator.
 
@@ -54,12 +54,8 @@ class ColumnAggregator(experimenter.Experimenter):
         :param settings: dict
             A dict of all the settings required by this Experimenter. All required settings should
             be listed in subclasses. Default is {}.
-
-        :param mpc: MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
         """
-        super(ColumnAggregator, self).__init__(index, None, mpc)
+        super(ColumnAggregator, self).__init__(index, None)
 
     def run(self):
         """

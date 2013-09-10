@@ -47,25 +47,24 @@ class NoteRestIndexer(indexer.Indexer):
     required_score_type = stream.Part
     requires_score = True
 
-    def __init__(self, score, settings=None, mpc=None):
+    def __init__(self, score, settings=None):
         """
         Create a new Indexer.
 
         Parameters
         ==========
-        :param score : [music21.stream.Part]
-            A list of all the Parts to index.
+        :param score: A list of all the Parts to index.
+        :type score: list of music21.stream.Part
 
-        :param mpc : MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
+        :param settings: This indexer requires no settings.
+        :type: dict or None
 
         Raises
         ======
-        RuntimeError :
-            If the "score" argument is the wrong type.
+        RuntimeError:
+            - If the "score" argument is not a list of the right type.
         """
-        super(NoteRestIndexer, self).__init__(score, None, mpc)
+        super(NoteRestIndexer, self).__init__(score, None)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = [note.Note, note.Rest]

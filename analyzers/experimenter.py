@@ -53,7 +53,7 @@ class Experimenter(object):
     # self._index
 
     # pylint: disable=W0613
-    def __init__(self, index, settings=None, mpc=None):
+    def __init__(self, index, settings=None):
         """
         Create a new Experimenter.
 
@@ -67,10 +67,6 @@ class Experimenter(object):
             A dict of all the settings required by this Experimenter. All required settings should
             be listed in subclasses. Default is {}.
 
-        :param mpc: MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
-
         Raises
         ======
         RuntimeError :
@@ -80,12 +76,13 @@ class Experimenter(object):
         # Call our superclass constructor, then set instance variables
         super(Experimenter, self).__init__()
         self._index = index
-        self._mpc = mpc
         if hasattr(self, u'_settings'):
             if self._settings is None:
                 self._settings = {}
         else:
             self._settings = {}
+        # TODO: this is just to help us move away from using an MPController
+        self._mpc = None
 
     def run(self):
         """

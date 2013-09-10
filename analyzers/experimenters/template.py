@@ -48,7 +48,7 @@ class TemplateExperimenter(experimenter.Experimenter):
     possible_settings = []  # list of strings
     default_settings = {}  # keys are strings, values are anything
 
-    def __init__(self, index, settings=None, mpc=None):
+    def __init__(self, index, settings=None):
         """
         Create a new Experimenter.
 
@@ -61,10 +61,6 @@ class TemplateExperimenter(experimenter.Experimenter):
         :param settings: dict
             A dict of all the settings required by this Experimenter. All required settings should
             be listed in subclasses. Default is {}.
-
-        :param mpc: MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
 
         Raises
         ======
@@ -81,7 +77,7 @@ class TemplateExperimenter(experimenter.Experimenter):
         # Change "TemplateExperimenter" to the current class name. The superclass will handle the
         # "index" and "mpc" arguments, but you should have processed "settings" above, so it should
         # not be sent to the superclass constructor.
-        super(TemplateExperimenter, self).__init__(index, None, mpc)
+        super(TemplateExperimenter, self).__init__(index, None)
 
     def run(self):
         """

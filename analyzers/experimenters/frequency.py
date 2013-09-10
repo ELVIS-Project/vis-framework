@@ -61,7 +61,7 @@ class FrequencyExperimenter(experimenter.Experimenter):
     possible_settings = []
     default_settings = {}
 
-    def __init__(self, index, settings=None, mpc=None):
+    def __init__(self, index, settings=None):
         """
         Create a new FrequencyExperimenter.
 
@@ -75,12 +75,8 @@ class FrequencyExperimenter(experimenter.Experimenter):
 
         :param settings: None
             This experiment does not use any settings.
-
-        :param mpc: MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
         """
-        super(FrequencyExperimenter, self).__init__(index, None, mpc)
+        super(FrequencyExperimenter, self).__init__(index, None)
 
     def run(self):
         """

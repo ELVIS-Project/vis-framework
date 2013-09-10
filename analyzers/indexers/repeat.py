@@ -41,7 +41,7 @@ class FilterByRepeatIndexer(indexer.Indexer):
     possible_settings = []  # list of strings
     default_settings = {}  # keys are strings, values are anything
 
-    def __init__(self, score, settings=None, mpc=None):
+    def __init__(self, score, settings=None):
         """
         Create a new FilterByRepeatIndexer.
 
@@ -55,18 +55,13 @@ class FilterByRepeatIndexer(indexer.Indexer):
             should be listed in subclasses. Default is {}.
         :type: None
 
-        :param mpc:
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
-        :type: vis.controllers.mpcontroller.MPController
-
         Raises
         ======
         RuntimeError :
             - If the "score" argument is the wrong type.
             - If the "score" argument is not a list of the same types.
         """
-        super(FilterByRepeatIndexer, self).__init__(score, None, mpc)
+        super(FilterByRepeatIndexer, self).__init__(score, None)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []

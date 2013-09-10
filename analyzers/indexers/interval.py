@@ -122,7 +122,7 @@ class IntervalIndexer(indexer.Indexer):
     possible_settings = [u'simple or compound', u'quality']
     default_settings = {u'simple or compound': u'compound', u'quality': False}
 
-    def __init__(self, score, settings=None, mpc=None):
+    def __init__(self, score, settings=None):
         """
         Create a new IntervalIndexer. For the output format, see the docs for
         IntervalIndexer.indexer_func().
@@ -139,10 +139,6 @@ class IntervalIndexer(indexer.Indexer):
                 'compound'.
             - 'quality' : boolean
                 Whether to consider the quality of intervals. Optional. Defaults to False.
-
-        :param mpc : MPController
-            An optional instance of MPController. If this is present, the Indexer will use it to
-            submit jobs for multiprocessing. If not present, jobs will be executed in series.
 
         Raises
         ======
@@ -164,7 +160,7 @@ class IntervalIndexer(indexer.Indexer):
         else:
             self._settings['quality'] = IntervalIndexer.default_settings['quality']
 
-        super(IntervalIndexer, self).__init__(score, None, mpc)
+        super(IntervalIndexer, self).__init__(score, None)
 
         # Which indexer function to set?
         if self._settings['quality']:
