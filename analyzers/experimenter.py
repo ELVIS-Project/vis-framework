@@ -26,14 +26,6 @@ analytic information to other types.
 """
 
 
-def _mp_wrapper(pipe_i, func, **args):
-    """
-    So subclass authors don't need to worry about the extra first parameter required by the
-    MPController, we wrap their function in this function.
-    """
-    return pipe_i, func(args)
-
-
 # noinspection PyUnusedLocal
 class Experimenter(object):
     """
@@ -81,8 +73,6 @@ class Experimenter(object):
                 self._settings = {}
         else:
             self._settings = {}
-        # TODO: this is just to help us move away from using an MPController
-        self._mpc = None
 
     def run(self):
         """
@@ -97,9 +87,8 @@ class Experimenter(object):
 
     def _do_multiprocessing(self, func, func_args):
         """
-        Dispatch jobs for completion, either through the MPController for multiprocessing (if one
-        is present in this Experimenter) or serially (if no MPController is available). Await and
-        return the results.
+        Submit each of the argument lists in func_args to the function in func. In the future, this
+        method may use multiprocessing.
 
         Parameters
         ==========
@@ -119,23 +108,7 @@ class Experimenter(object):
         ============
         1.) Blocks until all calculations have completed.
         """
-
         post = []
-
-        if self._mpc is None:
-            # use serial processing
-            for arg_list in func_args:
-                post.append(func(*arg_list))  # pylint: disable=W0142
-        else:
-            # use the MPController for multiprocessing
-            pipe_end = self._mpc.get_pipe()
-            jobs_submitted = 0
-            for arg_list in func_args:
-                jobs_submitted += 1
-                these_args = [func]
-                these_args.extend(func_args)
-                pipe_end.send((_mp_wrapper, these_args))
-            for _ in xrange(jobs_submitted):
-                post.append(pipe_end.recv())
-
+        for arg_list in func_args:
+            post.append(func(*arg_list))  # pylint: disable=W0142
         return post

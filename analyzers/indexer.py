@@ -27,7 +27,6 @@ The controllers that deal with indexing data from music21 Score objects.
 import time
 import pandas
 from music21 import stream, converter
-from vis.controllers.mpinterface import MPInterface
 
 
 def mpi_unique_offsets(streams):
@@ -236,7 +235,6 @@ class Indexer(object):
     default_settings = {}
     requires_score = False
     # self._score
-    # self._mpc
     # self._indexer_func
     # self._types
 
@@ -279,8 +277,6 @@ class Indexer(object):
                 self._settings = {}
         else:
             self._settings = {}
-        # TODO: self._mpc is just to help move away from using the MPController
-        self._mpc = False
 
     def run(self):
         """
@@ -297,7 +293,8 @@ class Indexer(object):
 
     def _do_multiprocessing(self, combos):
         """
-        Dispatch jobs to the MPController for multiprocessing, then await the jobs' completion.
+        Index each part combination and await the jobs' completion. In the future, this method
+        may use multiprocessing.
 
         Parameters
         ==========
@@ -322,28 +319,11 @@ class Indexer(object):
         Blocks until all voice combinations have completed.
         """
         post = []
-
-        if self._mpc:
-            # use an MPInterface for multiprocessing
-            mpi = MPInterface()
-            for each_combo in combos:
-                if isinstance(self._score[0], stream.Stream):
-                    voices = [converter.freeze(self._score[x], u'pickle') for x in each_combo]
-                    mpi.submit(stream_indexer, (voices, self._indexer_func, self._types))
-                else:
-                    voices = [self._score[x] for x in each_combo]
-                    mpi.submit(series_indexer, (voices, self._indexer_func))
-            while mpi.waiting_on() > 0:
-                time.sleep(0.5)
-            while mpi.poll() is True:
-                post.append(mpi.fetch()[1])
-        else:
-            # use serial processing
-            for each_combo in combos:
-                voices = [self._score[x] for x in each_combo]
-                if isinstance(self._score[0], stream.Stream):
-                    post.append(stream_indexer(0, voices, self._indexer_func, self._types)[1])
-                else:
-                    post.append(series_indexer(0, voices, self._indexer_func)[1])
-
+        # use serial processing
+        for each_combo in combos:
+            voices = [self._score[x] for x in each_combo]
+            if isinstance(self._score[0], stream.Stream):
+                post.append(stream_indexer(0, voices, self._indexer_func, self._types)[1])
+            else:
+                post.append(series_indexer(0, voices, self._indexer_func)[1])
         return post
