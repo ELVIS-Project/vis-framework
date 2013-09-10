@@ -48,8 +48,8 @@ class MPInterface(dbus.service.Object):  # pylint: disable=R0923
         super(MPInterface, self).__init__()
         # set up DBus
         self._bus = dbus.SessionBus()
-        bus_name = dbus.service.BusName(u'ca.elvisproject.vis_client', bus=self._bus)
-        dbus.service.Object.__init__(self, bus_name, u'/MPInterface')
+        #bus_name = dbus.service.BusName(u'ca.elvisproject.vis_client', bus=self._bus)
+        #dbus.service.Object.__init__(self, bus_name, u'/MPInterface')
         # instance variables
         self._refs = []  # job reference numbers---actually unicode strings
         self._submitted = 0  # number of jobs submitted
@@ -64,15 +64,16 @@ class MPInterface(dbus.service.Object):  # pylint: disable=R0923
 
         Parameters
         ==========
-        :param results: Two-element dictionary, where u'ident' is the "ref" for this MPInterface
+        :param result: Two-element dictionary, where u'ident' is the "ref" for this MPInterface
             instance, and u'result' is the pickled result of the function we submitted.
-        :type results: dict
+        :type result: dict
         """
-        if result[0] not in self._refs:
+        print(u'GOT HERE')  # DEBUG
+        if result[u'ident'] not in self._refs:
             # dunno?
-            pass
+            print(u'PANIC: ' + str(result[u'ident']))  # DEBUG
         else:
-            self._results[result[0]] = result[1]
+            self._results[result[u'ident']] = result[u'result']
             self._received += 1
 
     def _get_ref(self):
@@ -89,12 +90,41 @@ class MPInterface(dbus.service.Object):  # pylint: disable=R0923
         ident = u''.join([random.choice(u'qwertyuiopasdfghjklzxcvbnm') for _ in xrange(n)])
         while ident in self._refs:
             ident = u''.join([random.choice(u'qwertyuiopasdfghjklzxcvbnm') for _ in xrange(n)])
+        self._refs.append(ident)
         self._submitted += 1
         return ident
 
+    def _serial_processor(self, ident, func, args):
+        # TODO: test
+        """
+        When submit() cannot connect to a vis_server instance via DBus, it will call this method.
+
+        Parameters
+        ==========
+        :param ident: The identifier for this job.
+        :type ident: unicode
+
+        :param func: The function to call.
+        :type func: function
+
+        :param args: Arguments to supply to the function.
+        :type args: list of objects
+        """
+        # run the function
+        result = func(0, *args[0])
+        # pickle everything
+        src = cStringIO.StringIO()
+        pick = pickle.Pickler(src)
+        pick.dump(result[1])
+        post = {u'result': src.getvalue(), u'ident': ident}
+        # submit to _ReturnJob()
+        self._ReturnJob(post)
+
     def submit(self, func, *args):
         """
-        Submit work to the multiprocessing infrastructure.
+        Submit work to the multiprocessing infrastructure. If the MPInterface cannot connect to a
+        vis_server instance via DBus, the job will be completed with serial processing. This means,
+        unfortunately, that submit() will block until the job is complete.
 
         Parameters
         ==========
@@ -113,6 +143,22 @@ class MPInterface(dbus.service.Object):  # pylint: disable=R0923
         ======
         PicklingError: If one or more of the args cannot be pickled.
         """
+        # check the server's status
+        try:
+            status = self._bus.call_blocking(bus_name=u'ca.elvisproject.vis_server',
+                                             object_path=u'/Multiprocessor',
+                                             dbus_interface=u'ca.elvisproject.vis_server',
+                                             method=u'Status',
+                                             signature=u'',
+                                             args=(None,))
+        except dbus.DBusException:
+            status = 0  # as long as it's not 42!
+        if 42 != status:
+            print(u'not using vis_server')  # DEBUG
+            ident = self._get_ref()
+            self._serial_processor(ident, func, args)
+            return ident
+        print(u'STATUS: ' + str(status))  # DEBUG
         submit = {}
         # the function
         src = cStringIO.StringIO()
@@ -123,6 +169,7 @@ class MPInterface(dbus.service.Object):  # pylint: disable=R0923
             msg = u'Could not pickle un-import-able function for multiprocessing' + unicode(func)
             raise pickle.PicklingError(msg)
         submit[u'func'] = src.getvalue()
+        print(str(submit[u'func']))  # DEBUG
         # the args
         src = cStringIO.StringIO()
         pick = pickle.Pickler(src)

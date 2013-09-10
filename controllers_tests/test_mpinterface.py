@@ -52,12 +52,14 @@ class TestMPInterface(unittest.TestCase):  # pylint: disable=R0923
     def test_submit_1(self):
         # - that submit() returns a unique unicode ident for each job
         # - that SystemBus.call_async() is called the right number of times with the right args
+        self.mpi._bus.call_blocking = mock.MagicMock(return_value=42)
         idents = []
         for i in xrange(30, 60):
             idents.append(self.mpi.submit(test_func, i))
         self.assertEqual(len(idents), len(set(idents)))  # they're all unique
         self.assertTrue(all([isinstance(x, unicode) for x in idents]))  # they're all unicode
         self.assertEqual(30, self.mpi._bus.call_async.call_count)  # there were 30 call_async()
+        self.assertEqual(30, self.mpi._bus.call_blocking.call_count)  # and 30 call_blocking()
         # ensure call_async() was called with all the right arguments
         for i, ident in enumerate(idents):
             these_args = ({u'ident': ident,
@@ -75,11 +77,14 @@ class TestMPInterface(unittest.TestCase):  # pylint: disable=R0923
     def test_submit_2(self):
         # that submit() complains when an object can't be pickled
         # obviously, we can't pickle this non-module-level function
+        self.mpi._bus.call_blocking = mock.MagicMock(return_value=42)
         self.assertRaises(PicklingError, self.mpi.submit, test_func, self.setUp)
         self.assertRaises(PicklingError, self.mpi.submit, self.setUp, 5)
+        self.assertEqual(2, self.mpi._bus.call_blocking.call_count)
 
     def test_submit_3(self):
         # correct submission with no args
+        self.mpi._bus.call_blocking = mock.MagicMock(return_value=42)
         ident = self.mpi.submit(test_func)
         these_args = ({u'ident': ident,
                 u'func': 'cvis.controllers_tests.test_mpinterface\ntest_func\np0\n.',
@@ -92,6 +97,7 @@ class TestMPInterface(unittest.TestCase):  # pylint: disable=R0923
                                                          args=these_args,
                                                          reply_handler=mock.ANY,
                                                          error_handler=mock.ANY)
+        self.assertEqual(1, self.mpi._bus.call_blocking.call_count)
 
     def test_get_ref(self):
         # call the method many times
@@ -100,9 +106,10 @@ class TestMPInterface(unittest.TestCase):  # pylint: disable=R0923
             idents.append(self.mpi._get_ref())
         self.assertEqual(10000, len(set(idents)))  # there are 10000 and they're unique
         self.assertEqual(10000, self.mpi._submitted)  # proper "jobs submitted" increment
-        for ident in idents:  # they're all unicode and 16 characters
+        for ident in idents:  # they're all unicode, 16 characters, and in the MPI's _refs
             self.assertTrue(isinstance(ident, unicode))
             self.assertEqual(16, len(ident))
+            self.assertTrue(ident in self.mpi._refs)
 
     def test_poll_1(self):
         # poll() without a "ref"
@@ -164,6 +171,12 @@ class TestMPInterface(unittest.TestCase):  # pylint: disable=R0923
         expected = (u'asdf', u'this is a silly string for pickling')
         actual = self.mpi.fetch()
         self.assertSequenceEqual(expected, actual)
+
+    def test_return_job(self):
+        self.mpi._refs = [u'asdf']
+        self.mpi._ReturnJob({u'ident': u'asdf', u'result': u'hello'})
+        self.assertEqual(1, self.mpi._received)
+        self.assertEqual(u'hello', self.mpi._results[u'asdf'])
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
