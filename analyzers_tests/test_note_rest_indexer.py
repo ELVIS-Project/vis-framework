@@ -29,13 +29,9 @@
 
 
 import unittest
-import mock
 import pandas
 from music21 import converter, stream, clef, bar, note
-from vis.analyzers import indexer
 from vis.analyzers.indexers import noterest
-#from vis.controllers import mpcontroller
-
 
 class TestNoteRestIndexer(unittest.TestCase):
     bwv77_soprano = [
@@ -294,31 +290,6 @@ class TestNoteRestIndexer(unittest.TestCase):
             self.assertEqual(expected[0][i][0], ind)
             self.assertEqual(expected[0][i][1], actual[0][ind])
 
-    def test_note_rest_indexer_12_mpc(self):
-        # When there are a bunch of notes
-        # ... but with a real MPController
-        expected = [[(0.0, u'C4'), (1.0, u'C4'), (2.0, u'C4'), (3.0, u'C4'), (4.0, u'C4'),
-                     (5.0, u'C4'), (6.0, u'C4'), (7.0, u'C4'), (8.0, u'C4'), (9.0, u'C4')]]
-        test_part = stream.Part()
-        # add stuff to the test_part
-        for i in xrange(10):
-            add_me = note.Note(u'C4', quarterLength=1.0)
-            add_me.offset = i
-            test_part.append(add_me)
-        test_part = [test_part]
-        # finished adding stuff to the test_part
-        mpc = mpcontroller.MPController()
-        mpc.start()
-        nr_indexer = noterest.NoteRestIndexer(test_part, {}, mpc)
-        actual = nr_indexer.run()
-        del nr_indexer
-        mpc.shutdown()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        for i, ind in enumerate(list(actual[0].index)):
-            self.assertEqual(expected[0][i][0], ind)
-            self.assertEqual(expected[0][i][1], actual[0][ind])
-
     def test_note_rest_indexer_200(self):
         # Soprano part of bwv77.mxl
         expected = [self.bwv77_soprano]
@@ -358,78 +329,6 @@ class TestNoteRestIndexer(unittest.TestCase):
         for i, ind in enumerate(list(actual[1].index)):
             self.assertEqual(expected[1][i][0], ind)
             self.assertEqual(expected[1][i][1], actual[1][ind])
-
-    def test_note_rest_indexer_201_mpc(self):
-        # Bass part of bwv77.mxl
-        # with MPController
-        expected = [self.bwv77_bass]
-        test_part = [converter.parse('test_corpus/bwv77.mxl').parts[3]]
-        mpc = mpcontroller.MPController()
-        mpc.start()
-        nr_indexer = noterest.NoteRestIndexer(test_part, {}, mpc)
-        actual = nr_indexer.run()
-        del nr_indexer
-        mpc.shutdown()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        for i, ind in enumerate(list(actual[0].index)):
-            self.assertEqual(expected[0][i][0], ind)
-            self.assertEqual(expected[0][i][1], actual[0][ind])
-
-    def test_n_r_i_200_mock_mpc(self):
-        # Soprano part of bwv77.mxl
-        # ** with mock MPController
-        bwv77 = converter.parse('test_corpus/bwv77.mxl')
-        test_part = [bwv77.parts[0]]
-        # prepare mocks
-        mpc = mock.MagicMock(spec=mpcontroller.MPController)
-        mock_conn = mock.MagicMock()
-        mpc.get_pipe.return_value = mock_conn
-        mock_conn.recv.return_value = u'returned by mock pipe'
-        # run
-        nr_indexer = noterest.NoteRestIndexer(test_part, {}, mpc)
-        nr_indexer.run()
-        # test mocks were used correctly
-        mpc.get_pipe.assert_called_once_with()
-        ccallz = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send"
-        self.assertEqual(ccallz[0], indexer.stream_indexer)
-        self.assertTrue(isinstance(ccallz[1][0][0], basestring))
-        self.assertEqual(ccallz[1][1], noterest.indexer_func)
-        self.assertEqual(ccallz[1][2], [note.Note, note.Rest])
-        mock_conn.recv.assert_called_once_with()
-
-    def test_n_r_i_202_mock_mpc(self):
-        # Soprano and Bass parts of bwv77.mxl
-        # ** with mock MPController
-        bwv77 = converter.parse('test_corpus/bwv77.mxl')
-        test_part = [bwv77.parts[0], bwv77.parts[3]]
-        # prepare mocks
-        mpc = mock.MagicMock(spec=mpcontroller.MPController)
-        mock_conn = mock.MagicMock()
-        mpc.get_pipe.return_value = mock_conn
-        mock_conn.recv.return_value = u'returned by mock pipe'
-        # run
-        nr_indexer = noterest.NoteRestIndexer(test_part, {}, mpc)
-        nr_indexer.run()
-        # test mocks were used correctly
-        mpc.get_pipe.assert_called_once_with()
-        ccallz = mock_conn.mock_calls
-        self.assertEqual(4, len(ccallz))
-        self.assertEqual(ccallz[0][0], u'send')
-        send_1 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (first call)
-        self.assertEqual(send_1[0], indexer.stream_indexer)
-        self.assertTrue(isinstance(send_1[1][0][0], basestring))
-        self.assertEqual(send_1[1][1], noterest.indexer_func)
-        self.assertEqual(send_1[1][2], [note.Note, note.Rest])
-        self.assertEqual(ccallz[1][0], u'send')
-        send_2 = mock_conn.mock_calls[0][1][0]  # take the arguments given to "send" (second call)
-        self.assertEqual(send_2[0], indexer.stream_indexer)
-        self.assertTrue(isinstance(send_2[1][0][0], basestring))
-        self.assertEqual(send_2[1][1], noterest.indexer_func)
-        self.assertEqual(send_2[1][2], [note.Note, note.Rest])
-        # two recv() calls
-        self.assertEqual(ccallz[2][0], u'recv')
-        self.assertEqual(ccallz[3][0], u'recv')
 
 
 #--------------------------------------------------------------------------------------------------#
