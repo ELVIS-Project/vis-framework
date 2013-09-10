@@ -73,7 +73,7 @@ class TestIndexerHardcore(unittest.TestCase):
         # prepare mocks
         with mock.patch(u'vis.analyzers.indexer.stream_indexer') as mpi_mock:
             # run test
-            t_ind = TestIndexer(test_parts, settings, False)
+            t_ind = TestIndexer(test_parts, settings)
             t_ind._indexer_func = fake_indexer_func
             t_ind.run()
             # check results
