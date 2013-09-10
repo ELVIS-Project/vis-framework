@@ -1,6 +1,5 @@
 # These are the requirements for vis only.
 # Requirements for the django_vis Web app are in that directory.
-dbus-python==1.2.0
 music21==1.6.0
 pandas==0.12.0
 mock==1.0.1
