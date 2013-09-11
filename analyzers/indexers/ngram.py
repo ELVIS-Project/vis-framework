@@ -166,7 +166,7 @@ class NGramIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeError: If the one of the events is a "terminator."
+        RuntimeWarning: If the one of the events is a "terminator."
         """
         terminator = [] if terminator is None else terminator
         post = []
@@ -180,18 +180,16 @@ class NGramIndexer(indexer.Indexer):
                     post.append(u' ')
             post = post[:-1] # remove last space
             post.append(markers[1])
+        elif things[0] in terminator:
+            raise RuntimeWarning(u'hit a terminator')
         elif m_singles:
-            if things[0] in terminator:
-                raise RuntimeWarning(u'hit a terminator')
-            else:
-                post.extend([markers[0], unicode(things[0]), markers[1]])
+            post.extend([markers[0], unicode(things[0]), markers[1]])
         else:
             post.append(things[0])
         return u''.join(post)
 
     @staticmethod
     def _format_vert(verts, m_singles, terminator=None):
-        # NOTE: format_vert() and format_horiz() may be different in subtle ways!
         """
         Format "vertical" unicode objects by concatenating them with a space between and the
         appropriate grouping symbol, if relevant.
@@ -216,7 +214,7 @@ class NGramIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeError: If the one of the events is a "terminator."
+        RuntimeWarning: If the one of the events is a "terminator."
         """
         return NGramIndexer._format_thing(verts, m_singles, (u'[', u']'), terminator)
 
@@ -246,7 +244,7 @@ class NGramIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeError: If the one of the events is a "terminator."
+        RuntimeWarning: If the one of the events is a "terminator."
         """
         return NGramIndexer._format_thing(horizs, m_singles, (u'(', u')'), terminator)
 
