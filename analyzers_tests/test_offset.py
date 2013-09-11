@@ -384,3 +384,7 @@ class TestOffsetIndexerManyParts(unittest.TestCase):
 OFFSET_INDEXER_SINGLE_SUITE = \
     unittest.TestLoader().loadTestsFromTestCase(TestOffsetIndexerSinglePart)
 OFFSET_INDEXER_MULTI_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestOffsetIndexerManyParts)
+
+# TODO: add at least these tests:
+# - the indexer doesn't get a "quarterLength" setting
+# - the "quarterLength" setting is less than 0.001

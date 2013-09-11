@@ -169,5 +169,18 @@ class TestIndexedPiece(TestCase):
         # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
 
 #--------------------------------------------------------------------------------------------------#
+# Definitions                                                                                       #
 #--------------------------------------------------------------------------------------------------#
 INDEXED_PIECE_SUITE = TestLoader().loadTestsFromTestCase(TestIndexedPiece)
+
+# TODO: test at least these things:
+# 331
+# - _find_piece_title() (tests can be ported from vis9c)
+# - _find_part_names() (tests can be ported from vis9c)
+# - __repr__(), __str__(), and __unicode__()
+# - that _import_score() properly calls _find_piece_title()
+# - that all the other metadata properties are properly converted to our Metadata attributes
+# - that get_data() will complain when you call it with a not-Indexer and with a not-Experimenter
+# - that get_data() raises a RuntimeError when an analyzer expects results of another analyzer, but
+#   doesn't get them
+# - that get_data() raises NotImplementedError when it imports a music21.stream.Opus

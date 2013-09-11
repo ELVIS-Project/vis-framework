@@ -421,6 +421,9 @@ class TestNGramIndexer(unittest.TestCase):
     # - set up for multiprocessing(?)
 
 #--------------------------------------------------------------------------------------------------#
-# Definitions                                                                                      #
+# Definitions                                                                                       #
 #--------------------------------------------------------------------------------------------------#
 NGRAM_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNGramIndexer)
+
+# TODO: add at least these tests:
+# - ngram.py:L323 (hit a terminator)

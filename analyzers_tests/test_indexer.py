@@ -79,7 +79,9 @@ class TestIndexerHardcore(unittest.TestCase):
             # check results
             mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
 
-    # TODO: add other tests as required
+    # TODO: add at least these tests:
+    # - indexer.py:L132 ... want to test that objects of all types are returned when "types" is None
+
 
 
 def verbatim(iterable):

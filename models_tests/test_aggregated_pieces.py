@@ -218,5 +218,12 @@ class TestAggregatedPieces(TestCase):
 
 
 #--------------------------------------------------------------------------------------------------#
+# Definitions                                                                                       #
 #--------------------------------------------------------------------------------------------------#
 AGGREGATED_PIECES_SUITE = TestLoader().loadTestsFromTestCase(TestAggregatedPieces)
+
+# TODO: add at least these tests:
+# - if _make_date_range has a range ("----/--/-- to ----/--/--")
+#   - if the year doesn't convert to an int
+#   - if a non-range year doesn't conver to an int
+# - if one of the should-be-Experimenters isn't an Experimenter (line 246--47)

@@ -784,3 +784,9 @@ INTERVAL_INDEXER_SHORT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestI
 INTERVAL_INDEXER_LONG_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerLong)
 INT_IND_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerIndexer)
 HORIZ_INT_IND_LONG_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestHorizIntervalIndexerLong)
+
+# TODO: add (at least) these tests:
+# - use all the wrapper funcs (interval.py:L88, L102, L109)
+# - something where "settings" to the constructor is None (same to Horiz)
+# - if "simple" is in "settings"
+# - if "quality" isn't in "settings" (and "simple" is; and "simple" isn't)
