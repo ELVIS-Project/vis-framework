@@ -210,6 +210,7 @@ class IntervalIndexer(indexer.Indexer):
 
 
 class HorizontalIntervalIndexer(indexer.Indexer):
+    # TODO: consider subclassing IntervalIndexer
     """
     Create an index of music21.interval.Interval objects found between consecutive events in the
     same part, from the results of NoteRestIndexer.

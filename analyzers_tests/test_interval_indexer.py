@@ -438,11 +438,77 @@ class TestIntervalIndexerLong(unittest.TestCase):
         (70.0, "P12"),
         (71.0, "P15")]
 
+    bwv77_S_B_small_compound_noqual = [
+        (0.0, "8"),
+        (0.5, "9"),
+        (1.0, "10"),
+        (2.0, "12"),
+        (3.0, "10"),
+        (4.0, "12"),
+        (4.5, "13"),
+        (5.0, "17"),
+        (5.5, "12"),
+        (6.0, "13"),
+        (6.5, "12"),
+        (7.0, "8")]
+
+    bwv77_S_B_small_simple_qual = [
+        (0.0, "P8"),
+        (0.5, "M2"),
+        (1.0, "m3"),
+        (2.0, "P5"),
+        (3.0, "M3"),
+        (4.0, "P5"),
+        (4.5, "m6"),
+        (5.0, "m3"),
+        (5.5, "P5"),
+        (6.0, "M6"),
+        (6.5, "P5"),
+        (7.0, "P8")]
+
+    bwv77_S_B_small_simple_noqual = [
+        (0.0, "8"),
+        (0.5, "2"),
+        (1.0, "3"),
+        (2.0, "5"),
+        (3.0, "3"),
+        (4.0, "5"),
+        (4.5, "6"),
+        (5.0, "3"),
+        (5.5, "5"),
+        (6.0, "6"),
+        (6.5, "5"),
+        (7.0, "8")]
+
+    bwv77_soprano_small = [
+        (0.0, "E4"),
+        (0.5, "F#4"),
+        (1.0, "G4"),
+        (2.0, "A4"),
+        (3.0, "B4"),
+        (4.0, "A4"),
+        (5.0, "D5"),
+        (6.0, "C#5"),
+        (7.0, "B4")]
+
+    bwv77_bass_small = [
+        (0.0, "E3"),
+        (1.0, "E3"),
+        (2.0, "D3"),
+        (3.0, "G3"),
+        (4.0, "D3"),
+        (4.5, "C#3"),
+        (5.0, "B2"),
+        (5.5, "G3"),
+        (6.0, "E3"),
+        (6.5, "F#3"),
+        (7.0, "B3")]
+
     def setUp(self):
         self.bwv77_soprano = TestIntervalIndexerLong.do_wrapping(TestNoteRestIndexer.bwv77_soprano)
         self.bwv77_bass = TestIntervalIndexerLong.do_wrapping(TestNoteRestIndexer.bwv77_bass)
-        # self.bwv77_S_B = TestIntervalIndexerLong.do_wrapping(TestIntervalIndexerLong
-        #                                                      .bwv77_S_B_basis)
+        self.bwv77_s_small = TestIntervalIndexerLong.do_wrapping(self.bwv77_soprano_small)
+        self.bwv77_b_small = TestIntervalIndexerLong.do_wrapping(self.bwv77_bass_small)
 
     @staticmethod
     def do_wrapping(of_this):
@@ -455,10 +521,47 @@ class TestIntervalIndexerLong(unittest.TestCase):
         return pandas.Series(post_data, index=post_offsets)
 
     def test_interval_indexer_1(self):
-        # BWV7.7: soprano and bass parts
+        # BWV7.7: full soprano and bass parts
         test_parts = [self.bwv77_soprano, self.bwv77_bass]
         expected = TestIntervalIndexerLong.bwv77_S_B_basis
         setts = {u'simple or compound': u'compound', u'quality': True}
+        int_indexer = IntervalIndexer(test_parts, setts)
+        actual = int_indexer.run()[u'[0, 1]']
+        self.assertEqual(len(expected), len(actual))
+        for i, ind in enumerate(list(actual.index)):
+            self.assertEqual(expected[i][0], ind)
+            self.assertEqual(expected[i][1], actual[ind])
+
+    def test_interval_indexer_2(self):
+        # BWV7.7: small soprano and bass parts; "simple" in settings
+        test_parts = [self.bwv77_s_small, self.bwv77_b_small]
+        expected = TestIntervalIndexerLong.bwv77_S_B_small_simple_qual
+        setts = {u'simple or compound': u'simple', u'quality': True}
+        int_indexer = IntervalIndexer(test_parts, setts)
+        actual = int_indexer.run()[u'[0, 1]']
+        self.assertEqual(len(expected), len(actual))
+        for i, ind in enumerate(list(actual.index)):
+            self.assertEqual(expected[i][0], ind)
+            self.assertEqual(expected[i][1], actual[ind])
+
+    def test_interval_indexer_3(self):
+        # BWV7.7: small soprano and bass parts; "simple" and "quality" not in settings, and the
+        # settings are in fact not specified
+        test_parts = [self.bwv77_s_small, self.bwv77_b_small]
+        expected = TestIntervalIndexerLong.bwv77_S_B_small_compound_noqual
+        #setts = {}
+        int_indexer = IntervalIndexer(test_parts)
+        actual = int_indexer.run()[u'[0, 1]']
+        self.assertEqual(len(expected), len(actual))
+        for i, ind in enumerate(list(actual.index)):
+            self.assertEqual(expected[i][0], ind)
+            self.assertEqual(expected[i][1], actual[ind])
+
+    def test_interval_indexer_4(self):
+        # BWV7.7: small soprano and bass parts; "simple" in settings, "quality" not
+        test_parts = [self.bwv77_s_small, self.bwv77_b_small]
+        expected = TestIntervalIndexerLong.bwv77_S_B_small_simple_noqual
+        setts = {u'simple or compound': u'simple'}
         int_indexer = IntervalIndexer(test_parts, setts)
         actual = int_indexer.run()[u'[0, 1]']
         self.assertEqual(len(expected), len(actual))
@@ -628,7 +731,7 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
 
 
 class TestHorizIntervalIndexerLong(unittest.TestCase):
-    bwv77_S_B_basis_short = [(0.5, "M2"),
+    bwv77_S_B_short = [(0.5, "M2"),
                              (1.0, "m2"),
                              (2.0, "M2"),
                              (3.0, "M2"),
@@ -654,6 +757,33 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
                              (22.0, "-m2"),
                              (23.0, "-M2"),
                              (24.0, "-M2")]
+
+    bwv77_S_B_short_noqual = [(0.5, "2"),
+                             (1.0, "2"),
+                             (2.0, "2"),
+                             (3.0, "2"),
+                             (4.0, "-2"),
+                             (5.0, "4"),
+                             (6.0, "-2"),
+                             (7.0, "-2"),
+                             (8.0, "-2"),
+                             (9.0, "4"),
+                             (10.0, "-2"),
+                             (11.0, "-2"),
+                             (12.0, "-2"),
+                             (13.0, "-2"),
+                             (14.0, "-2"),
+                             (15.0, "-2"),
+                             (16.0, "1"),
+                             (16.5, "2"),
+                             (17.0, "2"),
+                             (18.0, "2"),
+                             (19.0, "2"),
+                             (20.0, "-2"),
+                             (21.0, "4"),
+                             (22.0, "-2"),
+                             (23.0, "-2"),
+                             (24.0, "-2")]
 
     bwv77_S_B_basis = [(0.5, "M2"),
                        (1.0, "m2"),
@@ -750,11 +880,50 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
             post_offsets.append(each_obj[0])
         return pandas.Series(post_data, index=post_offsets)
 
-    def test_interval_indexer_1(self):
+    def test_interval_indexer_1a(self):
         # BWV7.7: first 26 things in soprano part
         test_parts = [self.bwv77_soprano]
-        expected = TestHorizIntervalIndexerLong.bwv77_S_B_basis_short
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short
         setts = {u'simple or compound': u'compound', u'quality': True}
+        int_indexer = HorizontalIntervalIndexer(test_parts, setts)
+        res = int_indexer.run()
+        actual = res[u'[1, 0]'][:26]
+        self.assertEqual(len(expected), len(actual))
+        for i, ind in enumerate(list(actual.index)):
+            self.assertEqual(expected[i][0], ind)
+            self.assertEqual(expected[i][1], actual[ind])
+
+    def test_interval_indexer_1b(self):
+        # BWV7.7: first 26 things in soprano part (no settings specified)
+        test_parts = [self.bwv77_soprano]
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual
+        #setts = {u'simple or compound': u'compound', u'quality': True}
+        int_indexer = HorizontalIntervalIndexer(test_parts)
+        res = int_indexer.run()
+        actual = res[u'[1, 0]'][:26]
+        self.assertEqual(len(expected), len(actual))
+        for i, ind in enumerate(list(actual.index)):
+            self.assertEqual(expected[i][0], ind)
+            self.assertEqual(expected[i][1], actual[ind])
+
+    def test_interval_indexer_1c(self):
+        # BWV7.7: first 26 things in soprano part (simple; quality)
+        test_parts = [self.bwv77_soprano]
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short
+        setts = {u'simple or compound': u'simple', u'quality': True}
+        int_indexer = HorizontalIntervalIndexer(test_parts, setts)
+        res = int_indexer.run()
+        actual = res[u'[1, 0]'][:26]
+        self.assertEqual(len(expected), len(actual))
+        for i, ind in enumerate(list(actual.index)):
+            self.assertEqual(expected[i][0], ind)
+            self.assertEqual(expected[i][1], actual[ind])
+
+    def test_interval_indexer_1d(self):
+        # BWV7.7: first 26 things in soprano part (simple; no quality)
+        test_parts = [self.bwv77_soprano]
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual
+        setts = {u'simple or compound': u'simple', u'quality': False}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         res = int_indexer.run()
         actual = res[u'[1, 0]'][:26]
@@ -777,16 +946,10 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
             self.assertEqual(expected[i][1], actual[ind])
 
 
-#--------------------------------------------------------------------------------------------------#
+#-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
-#--------------------------------------------------------------------------------------------------#
+#-------------------------------------------------------------------------------------------------#
 INTERVAL_INDEXER_SHORT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerShort)
 INTERVAL_INDEXER_LONG_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerLong)
 INT_IND_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerIndexer)
 HORIZ_INT_IND_LONG_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestHorizIntervalIndexerLong)
-
-# TODO: add (at least) these tests:
-# - use all the wrapper funcs (interval.py:L88, L102, L109)
-# - something where "settings" to the constructor is None (same to Horiz)
-# - if "simple" is in "settings"
-# - if "quality" isn't in "settings" (and "simple" is; and "simple" isn't)
