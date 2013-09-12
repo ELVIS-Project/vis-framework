@@ -43,7 +43,7 @@ def fake_indexer_func(ecks):
 class TestIndexerHardcore(unittest.TestCase):
     # accessing TestIndexer._indexer_func is part of the test
     # pylint: disable=W0212
-    def test_indexer_hardcore_0(self):
+    def test_indexer_hardcore_1(self):
         # That calling Indexer.__init__() with the wrong type results in the proper error message.
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
@@ -60,7 +60,7 @@ class TestIndexerHardcore(unittest.TestCase):
         except RuntimeError as err:
             self.assertEqual(err.args[0], error_msg)
 
-    def test_indexer_hardcore_1(self):
+    def test_indexer_hardcore_2(self):
         # That _do_multiprocessing() passes the correct arguments to stream_indexer()
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
@@ -79,9 +79,26 @@ class TestIndexerHardcore(unittest.TestCase):
             # check results
             mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
 
-    # TODO: add at least these tests:
-    # - indexer.py:L132 ... want to test that objects of all types are returned when "types" is None
-
+    def test_indexer_hardcore_3(self):
+        # when no "types" is specified, make sure it returns everything in the Stream
+        # TODO: this fails because of a bug in music21 that I reported here...
+        # https://groups.google.com/forum/#!topic/music21list/RGOupcvz5x8
+        # setup the input stream
+        the_stream = stream.Stream()
+        the_stream.append(note.Note(u'D#2', quarterLength=0.5))
+        the_stream.append(note.Rest(quarterLength=0.5))
+        the_stream.append(base.ElementWrapper(5))
+        # setup the expected Series
+        expected = pandas.Series({0.0: note.Note(u'D#2', quarterLength=0.5),
+                                  0.5: note.Rest(quarterLength=0.5),
+                                  1.0: base.ElementWrapper(5)})
+        # run the test; verify results
+        actual = indexer.stream_indexer(12, [the_stream], verbatim_ser)
+        self.assertEqual(2, len(actual))
+        self.assertEqual(12, actual[0])
+        self.assertEqual(len(expected), len(actual[1]))
+        for i in xrange(len(expected)):
+            self.assertEqual(expected[i], actual[1][i])
 
 
 def verbatim(iterable):

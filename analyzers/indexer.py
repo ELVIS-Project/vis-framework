@@ -104,8 +104,8 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
     or even two notes at the same time---the first situation is probably two parts on the same
     staff, and the second situation is more profitably treated as a chord).
 
-    Parameters:
-    ===========
+    Parameters
+    ==========
     :param pipe_index: An identifier value for use by the caller.
     :type pipe_index: any
 
@@ -121,17 +121,15 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
         inclusion in the resulting index.
     :type types: list of types
 
-    Returns:
-    ========
-    pandas.Series:
-        The new index. Each element is a unicode object (i.e., a unicode string), and the "index"
-        of the Series corresponds to the offset at which each event begins.
+    Returns
+    =======
+    :returns: The "pipe_index" argument and the new index. The new index is a pandas.Series where
+        every element is a unicode object. The Series' index corresponds to the quarterLength
+        offset of the event in the input Stream.
+    :rtype: 2-tuple of any and pandas.Series
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
-    if types is None:
-        getter = lambda thing: thing
-    else:
-        getter = lambda thing: thing.getElementsByClass(types)
+    getter = lambda thing: thing if types is None else lambda thing: thing.getElementsByClass(types)
 
     # Convert "frozen" Streams, if needed; flatten the streams and filter classes
     if isinstance(parts[0], basestring):
