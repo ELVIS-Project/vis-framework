@@ -184,13 +184,24 @@ class IndexedPiece(object):
         self._noterest_results = None
 
     def __repr__(self):
-        pass
+        return u''.join([u'vis.models.indexed_piece.IndexedPiece(u\'',
+                         self.metadata(u'pathname'),
+                         u'\')'])
 
     def __str__(self):
-        pass
+        return str(unicode(self))
 
     def __unicode__(self):
-        pass
+        post = [u'<IndexedPiece (']
+        if self._imported:
+            post.append(self.metadata(u'title'))
+            post.append(u' by ')
+            post.append(self.metadata(u'composer'))
+        else:
+            post.append(self.metadata(u'pathname'))
+        post.append(u')>')
+        print(str(post))  # DEBUG
+        return u''.join(post)
 
     def _import_score(self):
         """
