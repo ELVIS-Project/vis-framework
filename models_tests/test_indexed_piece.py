@@ -26,8 +26,10 @@ Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
 
 from unittest import TestCase, TestLoader
 from mock import patch, MagicMock, Mock
+import pandas
 import music21
 from vis.analyzers.indexer import Indexer
+from vis.analyzers.indexers import noterest
 from vis.analyzers.experimenter import Experimenter
 from vis.models.indexed_piece import IndexedPiece
 
@@ -35,7 +37,7 @@ from vis.models.indexed_piece import IndexedPiece
 # pylint: disable=R0904
 @patch('music21.converter.parse', new=lambda path: MagicMock(name=u'ScoreMock: ' + path,
                                                              spec=music21.stream.Score))
-class TestIndexedPiece(TestCase):
+class TestIndexedPieceA(TestCase):
     """
     Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
     """
@@ -168,10 +170,31 @@ class TestIndexedPiece(TestCase):
         mock_experimenter_cls.run.assert_called_once_with()
         # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
 
+    def test_get_data_6(self):
+        # That get_data() complains when an Indexer expects the results of another Indexer but
+        # doesn't get them.
+        mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+        mock_indexer_cls.requires_score = False
+        mock_indexer_cls.required_score_type = pandas.Series
+        self.assertRaises(RuntimeError, self.ind_piece.get_data, [mock_indexer_cls])
+
+    def test_get_data_7(self):
+        # That get_data() complains when you call it with something that isn't either an Indexer
+        # or Experimenter.
+        self.assertRaises(TypeError, self.ind_piece.get_data, [TestIndexedPieceB])
+
+class TestIndexedPieceB(TestCase):
+    def test_import_score_1(self):
+        # That get_data() fails with a file that imports as a music21.stream.Opus. Fixing this
+        # properly is issue #234 on GitHub.
+        test_piece = IndexedPiece(u'test_corpus/Sanctus.krn')
+        self.assertRaises(NotImplementedError, test_piece._import_score)
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                       #
 #--------------------------------------------------------------------------------------------------#
-INDEXED_PIECE_SUITE = TestLoader().loadTestsFromTestCase(TestIndexedPiece)
+INDEXED_PIECE_SUITE_A = TestLoader().loadTestsFromTestCase(TestIndexedPieceA)
+INDEXED_PIECE_SUITE_B = TestLoader().loadTestsFromTestCase(TestIndexedPieceB)
 
 # TODO: test at least these things:
 # 331
@@ -180,7 +203,3 @@ INDEXED_PIECE_SUITE = TestLoader().loadTestsFromTestCase(TestIndexedPiece)
 # - __repr__(), __str__(), and __unicode__()
 # - that _import_score() properly calls _find_piece_title()
 # - that all the other metadata properties are properly converted to our Metadata attributes
-# - that get_data() will complain when you call it with a not-Indexer and with a not-Experimenter
-# - that get_data() raises a RuntimeError when an analyzer expects results of another analyzer, but
-#   doesn't get them
-# - that get_data() raises NotImplementedError when it imports a music21.stream.Opus

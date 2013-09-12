@@ -198,8 +198,16 @@ class IndexedPiece(object):
         =======
         :returns: the score
         :rtype: music21.stream.Score or music21.stream.Opus
+
+        Raises
+        ======
+        NotImplementedError:
+            - If the file imports as a music21.stream.Opus, since we do not yet support them.
         """
         score = converter.parse(self.metadata('pathname'))
+        if isinstance(score, stream.Opus):
+            # TODO: finish this and test it (we'll need to deal with Opus objects somehow)
+            raise NotImplementedError(u'IndexedPiece cannot process music21 Opus objects')
         if not self._imported:
             def convert(name):
                 """
@@ -305,6 +313,7 @@ class IndexedPiece(object):
         NotImplementedError: If the file imports as a music21.stream.Opus object, since we cannot
             yet deal with those properly (since they should be treated as more than one piece).
         """
+        # TODO: the NotImplementedError should be removed once _import_score() supports Opus
         for each_cls in analyzer_cls:
             if not issubclass(each_cls, (Indexer, Experimenter)):
                 raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
@@ -315,11 +324,7 @@ class IndexedPiece(object):
             else:
                 msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])
                 raise RuntimeError(msg)
-            if isinstance(data, stream.Opus):
-                # TODO: finish this and test it (we'll need to deal with Opus objects somehow)
-                raise NotImplementedError(u'IndexedPiece cannot process music21 Opus objects')
-            else:
-                data = [x for x in data.parts]  # Indexers require a list of Parts
+            data = [x for x in data.parts]  # Indexers require a list of Parts
         if len(analyzer_cls) > 1:
             return self.get_data(analyzer_cls[1:], settings, analyzer_cls[0](data, settings).run())
         else:
