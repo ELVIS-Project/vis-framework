@@ -127,8 +127,10 @@ def verbatim_variable(iterable):
     return str(tuple(item.obj for item in iterable))
 
 
-# TODO: pylint says we have 8 instance attributes on this bad boy, which is just too many.
+# Jamie: pylint says we have 8 instance attributes on this bad boy, which is just too many.
+# Christopher: pylint can shove it
 class IndexerTestBase(unittest.TestCase):
+    # pylint: disable=R0902
     def setUp(self):
         # prepare a valid list of ElementWrappers (with proper offset and duration)
         self.in_series = pandas.Series(range(100), index=[0.25 * x for x in xrange(100)])
