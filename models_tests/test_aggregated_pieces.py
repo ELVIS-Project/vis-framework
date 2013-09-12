@@ -74,13 +74,26 @@ class TestAggregatedPieces(TestCase):
         for piece in self.ind_pieces:
             piece.metadata.assert_called_once_with(u'composer')
 
-    def test_fetch_metadata_2(self):
+    def test_fetch_metadata_2a(self):
         # dates field
         # pylint: disable=W0212
         self.ind_pieces[0].metadata = MagicMock(return_value = u'1993')
         self.ind_pieces[1].metadata = MagicMock(return_value = u'1302')
         self.ind_pieces[2].metadata = MagicMock(return_value = u'1987')
         expected = [u'1993', u'1302', u'1987']
+        self.assertSequenceEqual(expected, self.agg_p._fetch_metadata(u'dates'))
+        self.assertSequenceEqual(expected, self.agg_p._metadata.dates)  # pylint: disable=E1101
+        for piece in self.ind_pieces:
+            piece.metadata.assert_called_once_with(u'date')
+
+    def test_fetch_metadata_2b(self):
+        # dates field with ranges
+        # pylint: disable=W0212
+        self.ind_pieces[0].metadata = MagicMock(return_value = u'1993 to 1993/08/08')
+        self.ind_pieces[1].metadata = MagicMock(return_value = u'1302 to 1405')
+        # he predicted his own death date in a unit test
+        self.ind_pieces[2].metadata = MagicMock(return_value = u'1987/09/09 to 2045/05/12')
+        expected = [u'1993 to 1993/08/08', u'1302 to 1405', u'1987/09/09 to 2045/05/12']
         self.assertSequenceEqual(expected, self.agg_p._fetch_metadata(u'dates'))
         self.assertSequenceEqual(expected, self.agg_p._metadata.dates)  # pylint: disable=E1101
         for piece in self.ind_pieces:
@@ -216,14 +229,16 @@ class TestAggregatedPieces(TestCase):
         for piece in self.ind_pieces:
             piece.get_data.assert_called_once_with([an_indexer], {u'awesome': True})
 
+    def test_get_data_8(self):
+        # if a class in "aggregated_experiments" isn't an experimenter
+        for piece in self.ind_pieces:
+            piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
+        an_indexer = type('AMockIndexer', (Indexer,), {})
+        self.assertRaises(TypeError, self.agg_p.get_data, [TestAggregatedPieces], [an_indexer],
+                          {u'awesome': True})
 
-#--------------------------------------------------------------------------------------------------#
-# Definitions                                                                                       #
-#--------------------------------------------------------------------------------------------------#
+
+#-------------------------------------------------------------------------------------------------#
+# Definitions                                                                                      #
+#-------------------------------------------------------------------------------------------------#
 AGGREGATED_PIECES_SUITE = TestLoader().loadTestsFromTestCase(TestAggregatedPieces)
-
-# TODO: add at least these tests:
-# - if _make_date_range has a range ("----/--/-- to ----/--/--")
-#   - if the year doesn't convert to an int
-#   - if a non-range year doesn't conver to an int
-# - if one of the should-be-Experimenters isn't an Experimenter (line 246--47)
