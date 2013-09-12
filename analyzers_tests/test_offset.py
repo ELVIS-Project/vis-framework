@@ -216,6 +216,18 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
             for j in expected[0].index:  # compare each offset
                 self.assertEqual(expected[i][j], actual[i][j])
 
+    def test_offset_itself_1(self):
+        # when there is no quarterLength specified
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.1])]
+        setts = {u'void setting': u'just so void'}
+        self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
+
+    def test_offset_itself_2(self):
+        # when the specified quarterLength is less than 0.001
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.1])]
+        setts = {u'void setting': u'just so void', u'quarterLength': 0.0003}
+        self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
+
 
 class TestOffsetIndexerManyParts(unittest.TestCase):
     def test_offset_xparts_0a(self):
@@ -384,7 +396,3 @@ class TestOffsetIndexerManyParts(unittest.TestCase):
 OFFSET_INDEXER_SINGLE_SUITE = \
     unittest.TestLoader().loadTestsFromTestCase(TestOffsetIndexerSinglePart)
 OFFSET_INDEXER_MULTI_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestOffsetIndexerManyParts)
-
-# TODO: add at least these tests:
-# - the indexer doesn't get a "quarterLength" setting
-# - the "quarterLength" setting is less than 0.001
