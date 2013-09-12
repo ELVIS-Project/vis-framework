@@ -183,6 +183,31 @@ class TestIndexedPieceA(TestCase):
         # or Experimenter.
         self.assertRaises(TypeError, self.ind_piece.get_data, [TestIndexedPieceB])
 
+    def test_get_data_8(self):
+        # That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer.
+        with patch.object(IndexedPiece, u'_get_note_rest_index') as mock_gnri:
+            self.ind_piece.get_data([noterest.NoteRestIndexer])
+            mock_gnri.assert_called_once_with()
+
+    def test_get_nrindex_1(self):
+        # That _get_note_rest_index() returns self._noterest_results if it's not None.
+        self.ind_piece._noterest_results = 42
+        self.assertEqual(42, self.ind_piece._get_note_rest_index())
+
+    def test_get_nrindex_2(self):
+        # That we run the NoteRestIndexer and store results in self._note_rest_results if is None.
+        with patch(u'vis.models.indexed_piece.noterest.NoteRestIndexer') as mock_nri_cls:
+            mock_nri = MagicMock(return_value=[14])
+            mock_nri.run = MagicMock()
+            mock_nri.run.return_value = [14]
+            #mock_nri.requires_score = True
+            mock_nri_cls.return_value = mock_nri
+            expected = [14]
+            actual = self.ind_piece._get_note_rest_index()
+            mock_nri.run.assert_called_once_with()
+            self.assertEqual(expected, actual)
+            self.assertEqual(expected, self.ind_piece._noterest_results)
+
 class TestIndexedPieceB(TestCase):
     def test_import_score_1(self):
         # That get_data() fails with a file that imports as a music21.stream.Opus. Fixing this

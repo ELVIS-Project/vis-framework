@@ -31,6 +31,7 @@ import os
 from music21 import converter, stream
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
+from vis.analyzers.indexers import noterest
 
 
 def _find_piece_title(the_score):
@@ -180,6 +181,7 @@ class IndexedPiece(object):
         super(IndexedPiece, self).__init__()
         self._metadata = self.__class__.Metadata(pathname)
         self._imported = False
+        self._noterest_results = None
 
     def __repr__(self):
         pass
@@ -284,6 +286,23 @@ class IndexedPiece(object):
             # this will raise an AttributeError if you try to set a nonexistent field.
             setattr(self._metadata, field, value)
 
+    def _get_note_rest_index(self):
+        """
+        Return the results of the NoteRestIndexer on this piece.
+
+        This method is used automatically by get_data() to cache results, which avoids having to
+        re-import the music21 file for every Indexer or Experimenter that uses the NoteRestIndexer.
+
+        Returns
+        =======
+        :returns: Results of the NoteRestIndexer.
+        :rtype: list of pandas.Series
+        """
+        if self._noterest_results is None:
+            data = [x for x in self._import_score().parts]
+            self._noterest_results = noterest.NoteRestIndexer(data).run()
+        return self._noterest_results
+
     def get_data(self, analyzer_cls, settings=None, data=None):
         """
         Get the results of an Experimenter or Indexer run on this IndexedPiece.
@@ -319,7 +338,9 @@ class IndexedPiece(object):
                 raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
                                 u'(received {})'.format(analyzer_cls))
         if data is None:
-            if issubclass(analyzer_cls[0], Indexer) and analyzer_cls[0].requires_score:
+            if analyzer_cls[0] is noterest.NoteRestIndexer:
+                return self._get_note_rest_index()
+            if analyzer_cls[0].requires_score:
                 data = self._import_score()
             else:
                 msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])
