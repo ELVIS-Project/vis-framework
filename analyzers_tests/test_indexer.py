@@ -31,7 +31,7 @@ import unittest
 import mock
 import copy
 import pandas
-from music21 import base, stream, duration, note, converter
+from music21 import base, stream, duration, note, converter, clef
 from vis.analyzers import indexer
 from vis.test_corpus import int_indexer_short
 
@@ -87,11 +87,11 @@ class TestIndexerHardcore(unittest.TestCase):
         the_stream = stream.Stream()
         the_stream.append(note.Note(u'D#2', quarterLength=0.5))
         the_stream.append(note.Rest(quarterLength=0.5))
-        the_stream.append(base.ElementWrapper(5))
+        the_stream.append(clef.TrebleClef())
         # setup the expected Series
         expected = pandas.Series({0.0: note.Note(u'D#2', quarterLength=0.5),
                                   0.5: note.Rest(quarterLength=0.5),
-                                  1.0: base.ElementWrapper(5)})
+                                  1.0: clef.TrebleClef()})
         # run the test; verify results
         actual = indexer.stream_indexer(12, [the_stream], verbatim_ser)
         self.assertEqual(2, len(actual))
