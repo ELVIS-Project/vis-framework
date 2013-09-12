@@ -129,7 +129,11 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
     :rtype: 2-tuple of any and pandas.Series
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
-    getter = lambda thing: thing if types is None else lambda thing: thing.getElementsByClass(types)
+    # NB2: This must not be a single-line if/else statement, or the getter() call will fail.
+    if types is None:
+        getter = lambda thing: thing
+    else:
+        getter = lambda thing: thing.getElementsByClass(types)
 
     # Convert "frozen" Streams, if needed; flatten the streams and filter classes
     if isinstance(parts[0], basestring):
