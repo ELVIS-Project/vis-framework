@@ -35,25 +35,15 @@ from vis.models.indexed_piece import IndexedPiece
 
 
 # pylint: disable=R0904
+# pylint: disable=C0111
 @patch('music21.converter.parse', new=lambda path: MagicMock(name=u'ScoreMock: ' + path,
                                                              spec=music21.stream.Score))
 class TestIndexedPieceA(TestCase):
-    """
-    Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
-    """
     def setUp(self):
-        """
-        Initialize a sample :py:class:`IndexedPiece` instance for use in each test.
-        :returns: None
-        """
         self._pathname = u'test_path'
         self.ind_piece = IndexedPiece(self._pathname)
 
     def test_metadata(self):
-        """
-        Tests for the method :py:meth:`~IndexedPiece.metadata`.
-        :returns: None
-        """
         # access fields which are set by default
         pathname = self.ind_piece.metadata('pathname')
         self.assertEquals(self._pathname, pathname, "pathname has changed!")
@@ -72,19 +62,11 @@ class TestIndexedPieceA(TestCase):
         self.assertRaises(TypeError, self.ind_piece.metadata, {})
 
     def test_get_data_0(self):
-        """
-        Test for the method :py:meth:`~IndexedPiece.get_data`.
-        :returns: None
-        """
         # try getting data for a non-Indexer, non-Experimenter class
         non_analyzer = Mock()
         self.assertRaises(TypeError, self.ind_piece.get_data, non_analyzer)
 
     def test_get_data_1(self):
-        """
-        Test for the method :py:meth:`~IndexedPiece.get_data`.
-        :returns: None
-        """
         # get data for an Indexer requiring a Score
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
         mock_indexer_cls.requires_score = True
@@ -94,10 +76,6 @@ class TestIndexedPieceA(TestCase):
         mock_indexer_cls.run.assert_called_once_with()
 
     def test_get_data_2(self):
-        """
-        Test for the method :py:meth:`~IndexedPiece.get_data`.
-        :returns: None
-        """
         # get data for an Indexer requiring other data
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
         mock_indexer_cls.run = MagicMock()
@@ -109,10 +87,6 @@ class TestIndexedPieceA(TestCase):
         # TODO: does it give mock_indexer_cls.__init__() the list?
 
     def test_get_data_3(self):
-        """
-        Test for the method :py:meth:`~IndexedPiece.get_data`.
-        :returns: None
-        """
         # get data from a chained Indexer
         first_indexer_cls = type('MockIndexer', (Indexer,), {})
         first_indexer_cls.run = MagicMock()
@@ -129,10 +103,6 @@ class TestIndexedPieceA(TestCase):
         # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
 
     def test_get_data_4(self):
-        """
-        Tests for the method :py:meth:`~IndexedPiece.get_data`.
-        :returns: None
-        """
         # chained Indexer plus settings
         # TODO: write the settings
         first_indexer_cls = type('MockIndexer', (Indexer,), {})
@@ -152,10 +122,6 @@ class TestIndexedPieceA(TestCase):
         # TODO: are the settings shared between all analyzers?
 
     def test_get_data_5(self):
-        """
-        Test for the method :py:meth:`~IndexedPiece.get_data`.
-        :returns: None
-        """
         # get data from an Experimenter that requires an Indexer
         # (same as test 3, but second_indexer_cls is an Experimenter subclass)
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
@@ -165,7 +131,8 @@ class TestIndexedPieceA(TestCase):
         mock_experimenter_cls = type('MockIndexer', (Experimenter,), {})
         mock_experimenter_cls.run = MagicMock()
         mock_experimenter_cls.run.return_value = u'ahhh!'
-        self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls, mock_experimenter_cls]))
+        self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls,
+                                                            mock_experimenter_cls]))
         mock_indexer_cls.run.assert_called_once_with()
         mock_experimenter_cls.run.assert_called_once_with()
         # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
@@ -189,12 +156,29 @@ class TestIndexedPieceA(TestCase):
             self.ind_piece.get_data([noterest.NoteRestIndexer])
             mock_gnri.assert_called_once_with()
 
+    def test_get_data_9(self):
+        # That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer, and another
+        # test Indexer is also called. This is a regression test to monitor a bug found after
+        # implementing caching of NoteRestIndexer results.
+        with patch.object(IndexedPiece, u'_get_note_rest_index') as mock_gnri:
+            expected = [400]
+            mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+            mock_indexer_cls.run = MagicMock()
+            mock_indexer_cls.run.return_value = [400]
+            mock_indexer_cls.requires_score = False
+            actual = self.ind_piece.get_data([noterest.NoteRestIndexer, mock_indexer_cls])
+            mock_gnri.assert_called_once_with()
+            mock_indexer_cls.run.assert_called_once_with()
+            self.assertEqual(expected, actual)
+
     def test_get_nrindex_1(self):
+        # pylint: disable=W0212
         # That _get_note_rest_index() returns self._noterest_results if it's not None.
         self.ind_piece._noterest_results = 42
         self.assertEqual(42, self.ind_piece._get_note_rest_index())
 
     def test_get_nrindex_2(self):
+        # pylint: disable=W0212
         # That we run the NoteRestIndexer and store results in self._note_rest_results if is None.
         with patch(u'vis.models.indexed_piece.noterest.NoteRestIndexer') as mock_nri_cls:
             mock_nri = MagicMock(return_value=[14])
@@ -210,14 +194,15 @@ class TestIndexedPieceA(TestCase):
 
 class TestIndexedPieceB(TestCase):
     def test_import_score_1(self):
+        # pylint: disable=W0212
         # That get_data() fails with a file that imports as a music21.stream.Opus. Fixing this
         # properly is issue #234 on GitHub.
         test_piece = IndexedPiece(u'test_corpus/Sanctus.krn')
         self.assertRaises(NotImplementedError, test_piece._import_score)
 
-#--------------------------------------------------------------------------------------------------#
-# Definitions                                                                                       #
-#--------------------------------------------------------------------------------------------------#
+#-------------------------------------------------------------------------------------------------#
+# Definitions                                                                                     #
+#-------------------------------------------------------------------------------------------------#
 INDEXED_PIECE_SUITE_A = TestLoader().loadTestsFromTestCase(TestIndexedPieceA)
 INDEXED_PIECE_SUITE_B = TestLoader().loadTestsFromTestCase(TestIndexedPieceB)
 

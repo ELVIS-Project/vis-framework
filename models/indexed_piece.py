@@ -350,13 +350,13 @@ class IndexedPiece(object):
                                 u'(received {})'.format(analyzer_cls))
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
-                return self._get_note_rest_index()
+                data = self._get_note_rest_index()
             if analyzer_cls[0].requires_score:
                 data = self._import_score()
+                data = [x for x in data.parts]  # Indexers require a list of Parts
             else:
                 msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])
                 raise RuntimeError(msg)
-            data = [x for x in data.parts]  # Indexers require a list of Parts
         if len(analyzer_cls) > 1:
             return self.get_data(analyzer_cls[1:], settings, analyzer_cls[0](data, settings).run())
         else:
