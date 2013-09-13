@@ -45,7 +45,7 @@ from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram
 # Indexer and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_1_PART_SUITE)
-# TODO: revive the INDEXER_3_PARTS_SUITE
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_MULTI_EVENT_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.UNIQUE_OFFSETS_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.VERT_ALIGNER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_note_rest_indexer.NOTE_REST_INDEXER_SUITE)

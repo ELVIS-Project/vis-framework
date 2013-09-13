@@ -24,7 +24,6 @@
 The controllers that deal with indexing data from music21 Score objects.
 """
 
-import time
 import pandas
 from music21 import stream, converter
 
@@ -77,32 +76,13 @@ def mpi_vert_aligner(events):
 def stream_indexer(pipe_index, parts, indexer_func, types=None):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
-    to ease implementation of multiprocessing with the MPController module.
+    to ease implementation of multiprocessing.
 
     If your Indexer has settings, use the indexer_func() to adjust for them.
 
-    If an offset has multiple events of the correct type, all will be included in the new index. If
-    this is the case, events are grouped and processed as simultaneities across parts, according to
-    their order of appearance in the "parts" argument. In these examples, each [x] is an event in
-    the part at the offset indicated above, and the integer indicates the order of processing.
-
-    offset:  0.0  |  0.5  |  1.0  |  1.5  |  2.0
-    part 1:  [1]  |  [1]  |  [1]  |  [1]  |  [1]
-    part 2:  [1]  |  [1]  |  [1]  |  [1]  |  [1]
-
-    offset:  0.0  |  0.5     |  1.0     |  1.5     |  2.0
-    part 1:  [1]  |  [1][2]  |  [1]     |  [1][2]  |  [1][2]
-    part 2:  [1]  |  [1][2]  |  [1][2]  |  [1]     |  [1][2]
-
-    offset:  0.0  |  0.5     |  1.0        |  1.5     |  2.0
-    part 1:  [1]  |  [1][2]  |  [1][2][3]  |  [1][2]  |  [1][2][3]
-    part 2:  [1]  |  [1][2]  |  [1][2]     |  [1]     |  [1]
-    part 3:  [1]  |  [1][2]  |  [1][2]     |  [1][2]  |  [1][2]
-
-    This situation is probably rare, since there are not usually simultaneous events that properly
-    belong in the same index (i.e., one part will not have both a note and rest at the same time,
-    or even two notes at the same time---the first situation is probably two parts on the same
-    staff, and the second situation is more profitably treated as a chord).
+    If an offset has multiple events of the correct type, only the "first" discovered results will
+    be included in the output. This may produce misleading results when, for example, a double-stop
+    was imported as two Note objects in the same Part, rather than as a Chord.
 
     Parameters
     ==========
@@ -156,11 +136,7 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
             current_events.append(list(part.getElementsByOffset(off, mustBeginInSpan=False)))
 
         # Arrange groups of things to index
-        if 1 == max(len(event) for event in current_events):
-            # each offset has only one event
-            current_events = [[event[0] for event in current_events]]
-        else:
-            current_events = mpi_vert_aligner(current_events)
+        current_events = [[event[0] for event in current_events]]
 
         # Index previously-arranged groups
         for each_simul in current_events:
@@ -177,10 +153,8 @@ def series_indexer(pipe_index, parts, indexer_func):
 
     If your Indexer has settings, use the indexer_func() to adjust for them.
 
-    Multiple events at an offset causes undefined behaviour.
-
-    Parameters:
-    ===========
+    Parameters
+    ==========
     :param pipe_index: An identifier value for use by the caller.
     :type pipe_index: any
 
@@ -193,12 +167,16 @@ def series_indexer(pipe_index, parts, indexer_func):
     :param indexer_func: This function transforms found events into a unicode object.
     :type indexer_func: function
 
-    Returns:
-    ========
+    Returns
+    =======
     :returns: The new index where each element is a unicode object and the "index" of the pandas
         object corresponds to the offset at which each event begins. Index 0 is the argument
         "pipe_index" unchanged.
     :rtype: 2-tuple with "pipe_index" and pandas.Series or pandas.DataFrame
+
+    Raises
+    ======
+    ValueError: If there are multiple events at an offset in any of the inputted Series.
     """
 
     # find the offsets at which things happen
