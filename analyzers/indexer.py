@@ -202,8 +202,9 @@ def series_indexer(pipe_index, parts, indexer_func):
     """
 
     # find the offsets at which things happen
-    indices = (set(part.index) for part in parts)
-    all_offsets = sorted(set.union(*indices))  # pylint: disable=W0142
+    all_offsets = pandas.Index([])
+    for i in xrange(0, len(parts)):
+        all_offsets = all_offsets.union(parts[i].index)
 
     # Copy each Series with index=offset values that match all_offsets, filling in non-existant
     # offsets with the value that was at the most recent offset with a value. We put these in a
