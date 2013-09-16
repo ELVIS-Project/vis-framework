@@ -87,20 +87,23 @@ def _find_part_names(the_score):
     # First try to find Instrument objects. If that doesn't work, use the "id"
     for each_part in the_score.parts:
         instr = each_part.getInstrument()
-        if instr is not None and instr.partName != u'':
+        if instr is not None and instr.partName != u'' and instr.partName is not None:
             post.append(unicode(instr.partName))
+        elif each_part.id is not None:
+            try:
+                int(each_part.id)  # if it worked, the part name is an integer, so use "Part X"
+                post.append(u'rename')
+            except ValueError:
+                # this is actually where we prefer to end up
+                post.append(unicode(each_part.id))
         else:
-            post.append(unicode(each_part.id))
+            post.append(u'rename')
 
     # Make sure none of the part names are just numbers; if they are, use
     # a part name like "Part 1" instead.
-    for part_index in xrange(len(post)):
-        try:
-            int(post[part_index])
-            # if that worked, the part name is just an integer...
-            post[part_index] = u'Part ' + unicode(part_index + 1)
-        except ValueError:
-            pass
+    for i, part_name in enumerate(post):
+        if u'rename' == part_name:
+            post[i] = u''.join([u'Part ', unicode(i + 1)])
 
     return post
 
@@ -200,7 +203,6 @@ class IndexedPiece(object):
         else:
             post.append(self.metadata(u'pathname'))
         post.append(u')>')
-        print(str(post))  # DEBUG
         return u''.join(post)
 
     def _import_score(self):

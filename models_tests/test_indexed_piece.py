@@ -31,7 +31,7 @@ import music21
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
 from vis.analyzers.experimenter import Experimenter
-from vis.models.indexed_piece import IndexedPiece
+from vis.models.indexed_piece import IndexedPiece, _find_piece_title, _find_part_names
 
 
 # pylint: disable=R0904
@@ -192,7 +192,9 @@ class TestIndexedPieceA(TestCase):
             self.assertEqual(expected, actual)
             self.assertEqual(expected, self.ind_piece._noterest_results)
 
+
 class TestIndexedPieceB(TestCase):
+    # NB: These are longer tests.
     def test_import_score_1(self):
         # pylint: disable=W0212
         # That get_data() fails with a file that imports as a music21.stream.Opus. Fixing this
@@ -200,16 +202,90 @@ class TestIndexedPieceB(TestCase):
         test_piece = IndexedPiece(u'test_corpus/Sanctus.krn')
         self.assertRaises(NotImplementedError, test_piece._import_score)
 
+
+class TestPartsAndTitles(TestCase):
+   # NB: These tests take a while because they involve actual imports, then run the
+   # _find_part_names() and _find_piece_title() methods.
+   # NOTE: not testing "Sanctus.krn" because it's an Opus, and we can't deal with them yet.
+    def test_bwv77(self):
+        path = u'test_corpus/bwv77.mxl'
+        expected_title = u'bwv77'
+        expected_parts = [u'Soprano', u'Alto', u'Tenor', u'Bass']
+        the_score = music21.converter.parse(path)
+        actual_title = _find_piece_title(the_score)
+        actual_parts = _find_part_names(the_score)
+        self.assertEqual(expected_title, actual_title)
+        self.assertSequenceEqual(expected_parts, actual_parts)
+
+    def test_jos2308_krn(self):
+        path = u'test_corpus/Jos2308.krn'
+        expected_title = u'Jos2308'
+        expected_parts = [u'spine_3', u'spine_2', u'spine_1', u'spine_0']
+        the_score = music21.converter.parse(path)
+        actual_title = _find_piece_title(the_score)
+        actual_parts = _find_part_names(the_score)
+        self.assertEqual(expected_title, actual_title)
+        self.assertSequenceEqual(expected_parts, actual_parts)
+
+    def test_kyrie(self):
+        path = u'test_corpus/Kyrie.krn'
+        expected_title = u'Kyrie'
+        expected_parts = [u'spine_4', u'spine_3', u'spine_2', u'spine_1', u'spine_0']
+        the_score = music21.converter.parse(path)
+        actual_title = _find_piece_title(the_score)
+        actual_parts = _find_part_names(the_score)
+        self.assertEqual(expected_title, actual_title)
+        self.assertSequenceEqual(expected_parts, actual_parts)
+
+    def test_madrigal51(self):
+        path = u'test_corpus/madrigal51.mxl'
+        expected_title = u'madrigal51'
+        expected_parts = [u'Canto', u'Alto', u'Tenor', u'Quinto', u'Basso', u'Continuo']
+        the_score = music21.converter.parse(path)
+        actual_title = _find_piece_title(the_score)
+        actual_parts = _find_part_names(the_score)
+        self.assertEqual(expected_title, actual_title)
+        self.assertSequenceEqual(expected_parts, actual_parts)
+
+    def test_sinfony(self):
+        path = u'test_corpus/sinfony.md'
+        expected_title = u'Messiah'
+        expected_parts = [u'Violino I', u'Violino II', u'Viola', u'Bassi']
+        the_score = music21.converter.parse(path)
+        actual_title = _find_piece_title(the_score)
+        actual_parts = _find_part_names(the_score)
+        self.assertEqual(expected_title, actual_title)
+        self.assertSequenceEqual(expected_parts, actual_parts)
+
+    def test_sqOp76(self):
+        path = u'test_corpus/sqOp76-4-i.midi'
+        expected_title = u'sqOp76-4-i'
+        expected_parts = [u'Part 1', u'Part 2', u'Part 3', u'Part 4']
+        the_score = music21.converter.parse(path)
+        actual_title = _find_piece_title(the_score)
+        actual_parts = _find_part_names(the_score)
+        self.assertEqual(expected_title, actual_title)
+        self.assertSequenceEqual(expected_parts, actual_parts)
+
+    def test_bwv2(self):
+        path = u'test_corpus/bwv2.xml'
+        expected_title = u'bwv2'
+        expected_parts = [u'Soprano', u'Alto', u'Tenor', u'Bass']
+        the_score = music21.converter.parse(path)
+        actual_title = _find_piece_title(the_score)
+        actual_parts = _find_part_names(the_score)
+        self.assertEqual(expected_title, actual_title)
+        self.assertSequenceEqual(expected_parts, actual_parts)
+
+
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
 INDEXED_PIECE_SUITE_A = TestLoader().loadTestsFromTestCase(TestIndexedPieceA)
 INDEXED_PIECE_SUITE_B = TestLoader().loadTestsFromTestCase(TestIndexedPieceB)
+INDEXED_PIECE_PARTS_TITLES = TestLoader().loadTestsFromTestCase(TestPartsAndTitles)
 
 # TODO: test at least these things:
-# 331
-# - _find_piece_title() (tests can be ported from vis9c)
-# - _find_part_names() (tests can be ported from vis9c)
 # - __repr__(), __str__(), and __unicode__()
 # - that _import_score() properly calls _find_piece_title()
 # - that all the other metadata properties are properly converted to our Metadata attributes
