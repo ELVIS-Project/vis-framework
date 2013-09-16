@@ -5,7 +5,7 @@
 # Program Description:       Measures sequences of vertical intervals.
 #
 # Filename: test_corpus/__init__.py
-# Purpose: Import the Native music21 Corpus Tests
+# Purpose: Import the native music21 tests.
 #
 # Copyright (C) 2012, 2013 Christopher Antila, Jamie Klassen
 #
@@ -23,9 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Module docstring: Native music21 Corpus Tests
+Import the native music21 tests.
 """
 
-__all__ = ['test_the_sixth', 'test_triplet_bug', 'int_indexer_short']
+__all__ = ['int_indexer_short']
 
-from vis.test_corpus import test_the_sixth, test_triplet_bug, int_indexer_short
+from vis.test_corpus import int_indexer_short
