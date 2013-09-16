@@ -12,7 +12,7 @@ extra_trials/*
 */*.DS_Store
 views/ui/Ui_*.py
 *.nja
-OutputLilyPond/*
+*.komodoproject
 
 *.py[co]
 
