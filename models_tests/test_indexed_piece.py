@@ -25,7 +25,7 @@ Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
 """
 
 from unittest import TestCase, TestLoader
-from mock import patch, MagicMock, Mock
+from mock import call, patch, MagicMock, Mock
 import pandas
 import music21
 from vis.analyzers.indexer import Indexer
@@ -191,6 +191,30 @@ class TestIndexedPieceA(TestCase):
             self.assertEqual(expected, actual)
             self.assertEqual(expected, self.ind_piece._noterest_results)
 
+    def test_unicode_1(self):
+        # __unicode__() without having imported yet
+        self.ind_piece._imported = False
+        with patch(u'vis.models.indexed_piece.IndexedPiece.metadata') as mock_meta:
+            mock_meta.return_value = u'42'
+            expected = u'<IndexedPiece (42)>'
+            actual = self.ind_piece.__unicode__()
+            self.assertEqual(expected, actual)
+            mock_meta.assert_called_once_with(u'pathname')
+
+    def test_unicode_2(self):
+        # __unicode__() with proper title and composer
+        self.ind_piece._imported = True
+        with patch(u'vis.models.indexed_piece.IndexedPiece.metadata') as mock_meta:
+            returns = [u'some ridiculous piece', u'a no-name composer']
+            def side_effect(*args):
+                return returns.pop(0)
+            mock_meta.side_effect = side_effect
+            expected = u'<IndexedPiece (some ridiculous piece by a no-name composer)>'
+            actual = self.ind_piece.__unicode__()
+            self.assertEqual(expected, actual)
+            expected_calls = [call(u'title'), call(u'composer')]
+            self.assertSequenceEqual(expected_calls, mock_meta.call_args_list)
+
 
 class TestIndexedPieceB(TestCase):
     # NB: These are longer tests.
@@ -283,6 +307,3 @@ class TestPartsAndTitles(TestCase):
 INDEXED_PIECE_SUITE_A = TestLoader().loadTestsFromTestCase(TestIndexedPieceA)
 INDEXED_PIECE_SUITE_B = TestLoader().loadTestsFromTestCase(TestIndexedPieceB)
 INDEXED_PIECE_PARTS_TITLES = TestLoader().loadTestsFromTestCase(TestPartsAndTitles)
-
-# TODO: test at least these things:
-# - __repr__(), __str__(), and __unicode__()
