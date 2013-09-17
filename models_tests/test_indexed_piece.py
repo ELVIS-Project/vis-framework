@@ -77,64 +77,87 @@ class TestIndexedPieceA(TestCase):
     def test_get_data_2(self):
         # get data for an Indexer requiring other data
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+        mock_init = MagicMock()
+        mock_init.return_value = None
+        mock_indexer_cls.__init__ = mock_init
         mock_indexer_cls.run = MagicMock()
         mock_indexer_cls.run.return_value = u'ahhh!'
         mock_indexer_cls.requires_score = False
         mock_indexer_cls.required_score_type = int
         self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls], data=[14]))
         mock_indexer_cls.run.assert_called_once_with()
-        # TODO: does it give mock_indexer_cls.__init__() the list?
+        mock_init.assert_called_once_with([14], None)
 
     def test_get_data_3(self):
         # get data from a chained Indexer
         first_indexer_cls = type('MockIndexer', (Indexer,), {})
+        first_init = MagicMock()
+        first_init.return_value = None
+        first_indexer_cls.__init__ = first_init
         first_indexer_cls.run = MagicMock()
         first_indexer_cls.run.return_value = [14]
         first_indexer_cls.requires_score = True
         second_indexer_cls = type('MockIndexer', (Indexer,), {})
+        second_init = MagicMock()
+        second_init.return_value = None
+        second_indexer_cls.__init__ = second_init
         second_indexer_cls.run = MagicMock()
         second_indexer_cls.run.return_value = u'ahhh!'
         second_indexer_cls.requires_score = False
         second_indexer_cls.required_score_type = int
         self.assertEqual(u'ahhh!', self.ind_piece.get_data([first_indexer_cls, second_indexer_cls]))
+        first_init.assert_called_once_with([], None)
+        second_init.assert_called_once_with(first_indexer_cls.run.return_value, None)
         first_indexer_cls.run.assert_called_once_with()
         second_indexer_cls.run.assert_called_once_with()
-        # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
 
     def test_get_data_4(self):
         # chained Indexer plus settings
-        # TODO: write the settings
         first_indexer_cls = type('MockIndexer', (Indexer,), {})
+        first_init = MagicMock()
+        first_init.return_value = None
+        first_indexer_cls.__init__ = first_init
         first_indexer_cls.run = MagicMock()
         first_indexer_cls.run.return_value = [14]
         first_indexer_cls.requires_score = True
         second_indexer_cls = type('MockIndexer', (Indexer,), {})
+        second_init = MagicMock()
+        second_init.return_value = None
+        second_indexer_cls.__init__ = second_init
         second_indexer_cls.run = MagicMock()
         second_indexer_cls.run.return_value = u'ahhh!'
         second_indexer_cls.requires_score = False
         second_indexer_cls.required_score_type = int
+        settings_dict = {u'fake setting': u'so good!'}
         self.assertEqual(u'ahhh!', self.ind_piece.get_data([first_indexer_cls, second_indexer_cls],
-                                                           {u'fake setting': u'so good!'}))
+                                                           settings_dict))
+        first_init.assert_called_once_with([], settings_dict)
+        second_init.assert_called_once_with(first_indexer_cls.run.return_value, settings_dict)
         first_indexer_cls.run.assert_called_once_with()
         second_indexer_cls.run.assert_called_once_with()
-        # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
-        # TODO: are the settings shared between all analyzers?
 
     def test_get_data_5(self):
         # get data from an Experimenter that requires an Indexer
         # (same as test 3, but second_indexer_cls is an Experimenter subclass)
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+        mock_init = MagicMock()
+        mock_init.return_value = None
+        mock_indexer_cls.__init__ = mock_init
         mock_indexer_cls.run = MagicMock()
         mock_indexer_cls.run.return_value = [14]
         mock_indexer_cls.requires_score = True
         mock_experimenter_cls = type('MockIndexer', (Experimenter,), {})
+        exp_init = MagicMock()
+        exp_init.return_value = None
+        mock_experimenter_cls.__init__ = exp_init
         mock_experimenter_cls.run = MagicMock()
         mock_experimenter_cls.run.return_value = u'ahhh!'
         self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls,
                                                             mock_experimenter_cls]))
+        mock_init.assert_called_once_with([], None)
+        exp_init.assert_called_once_with(mock_indexer_cls.run.return_value, None)
         mock_indexer_cls.run.assert_called_once_with()
         mock_experimenter_cls.run.assert_called_once_with()
-        # TODO: does the result of first_indexer_cls get passed to second_indexer_cls.__init__()?
 
     def test_get_data_6(self):
         # That get_data() complains when an Indexer expects the results of another Indexer but
@@ -193,6 +216,8 @@ class TestIndexedPieceA(TestCase):
 
     def test_unicode_1(self):
         # __unicode__() without having imported yet
+        # NB: adjusting _imported is the whole point of the test
+        # pylint: disable=W0212
         self.ind_piece._imported = False
         with patch(u'vis.models.indexed_piece.IndexedPiece.metadata') as mock_meta:
             mock_meta.return_value = u'42'
@@ -203,10 +228,14 @@ class TestIndexedPieceA(TestCase):
 
     def test_unicode_2(self):
         # __unicode__() with proper title and composer
+        # NB: adjusting _imported is the whole point of the test
+        # pylint: disable=W0212
         self.ind_piece._imported = True
         with patch(u'vis.models.indexed_piece.IndexedPiece.metadata') as mock_meta:
             returns = [u'some ridiculous piece', u'a no-name composer']
             def side_effect(*args):
+                # NB: we need to accept "args" as a mock framework formality
+                # pylint: disable=W0613
                 return returns.pop(0)
             mock_meta.side_effect = side_effect
             expected = u'<IndexedPiece (some ridiculous piece by a no-name composer)>'
