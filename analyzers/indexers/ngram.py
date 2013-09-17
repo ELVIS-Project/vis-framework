@@ -29,13 +29,6 @@ import pandas
 from vis.analyzers import indexer
 
 
-#def indexer_func(obj):
-#    """
-#    docstring
-#    """
-#    return None
-
-
 class NGramIndexer(indexer.Indexer):
     """
     Indexer that finds k-part n-grams from other indices.
@@ -91,7 +84,7 @@ class NGramIndexer(indexer.Indexer):
                 "vertical" events are held; they will be included in the output in the order given
             - horizontal: iterable indicating the index values of the "score" iterable where
                 "horizontal" events are held; they will be included in the output in the order
-                give. Optional; default is [].
+                give. Optional; default is to have none. NOTE: do not actually specify None.
             - n: number of "vertical" events to include per n-gram
             - mark singles: whether to include brackets or parentheses for directions of which
                 there is only one index. Optional; default is True
@@ -106,14 +99,14 @@ class NGramIndexer(indexer.Indexer):
         :raises: RuntimeError, if
             - the "score" argument is the wrong type.
             - the "score" argument is not a list of the same types.
-            - required settings are not present in the "settings" argument or u'n' is less than 2
+            - required settings are not present in the "settings" argument or u'n' is less than 1
         """
         # Check all required settings are present in the "settings" argument.
         if settings is None or u'vertical' not in settings or u'n' not in settings:
             msg = u'NGramIndexer requires "vertical" and "n" settings'
             raise RuntimeError(msg)
-        elif settings[u'n'] < 2:
-            msg = u'NGramIndexer requires an "n" value of at least 2'
+        elif settings[u'n'] < 1:
+            msg = u'NGramIndexer requires an "n" value of at least 1'
             raise RuntimeError(msg)
         else:
             self._settings = {}
@@ -256,6 +249,7 @@ class NGramIndexer(indexer.Indexer):
         :returns: A single-item list with the new index.
         :rtype: list of pandas.Series
         """
+        # TODO: pylint says there are too many branches; it's right
 
         post = []
         post_offsets = []

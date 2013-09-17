@@ -193,9 +193,9 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_6(self):
         # test constructor fails when it should
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        setts = {u'n':1, u'vertical': [0]}  # n is too short
+        setts = {u'n':0, u'vertical': [0]}  # n is too short
         self.assertRaises(RuntimeError, ngram.NGramIndexer, [vertical], setts)
-        setts = {u'n':1, u'horizontal': [0]}  # no "vertical" parts
+        setts = {u'n':14, u'horizontal': [0]}  # no "vertical" parts
         self.assertRaises(RuntimeError, ngram.NGramIndexer, [vertical], setts)
 
     def test_ngram_7(self):
@@ -414,8 +414,38 @@ class TestNGramIndexer(unittest.TestCase):
             for j in expected[i].index:
                 self.assertEqual(expected[i][j], actual[i][j])
 
+    def test_ngram_18(self):
+        # n=1
+        vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
+        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
+        vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
+        vertical_d = pandas.Series(['J', 'K', 'L', 'M', 'N'])
+        setts_many = {u'n': 1, u'vertical': [0, 1, 2, 3]}
+        setts_one = {u'n': 1, u'vertical': [0], u'mark singles': False}
+        expected_many = [pandas.Series([u'[A Z Q J]', u'[B X R K]', u'[C Y S L]', u'[D W T M]',
+                                   u'[E V U N]'],
+                                  index=[0, 1, 2, 3, 4])]
+        expected_one = [pandas.Series([u'A', u'B', u'C', u'D', u'E'], index=[0, 1, 2, 3, 4])]
+        ng_many = ngram.NGramIndexer([vertical_a, vertical_b, vertical_c, vertical_d], setts_many)
+        ng_one = ngram.NGramIndexer([vertical_a, vertical_b, vertical_c, vertical_d], setts_one)
+        actual_many = ng_many.run()
+        actual_one = ng_one.run()
+        self.assertEqual(len(expected_many), len(actual_many))
+        for i in xrange(len(expected_many)):
+            self.assertEqual(len(expected_many[i]), len(actual_many[i]))
+        for i in xrange(len(expected_many)):
+            for j in expected_many[i].index:
+                self.assertEqual(expected_many[i][j], actual_many[i][j])
+        self.assertEqual(len(expected_one), len(actual_one))
+        for i in xrange(len(expected_one)):
+            self.assertEqual(len(expected_one[i]), len(actual_one[i]))
+        for i in xrange(len(expected_one)):
+            for j in expected_one[i].index:
+                self.assertEqual(expected_one[i][j], actual_one[i][j])
+
     def test_ngram_format_1(self):
         # one thing, it's a terminator (don't mark singles)
+        # pylint: disable=W0212
         things = [u'A']
         m_singles = False
         self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles, None,
@@ -423,6 +453,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_ngram_format_2(self):
         # one thing, don't mark singles
+        # pylint: disable=W0212
         things = [u'A']
         m_singles = False
         expected = u'A'
@@ -432,6 +463,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_ngram_format_3(self):
         # one thing, mark singles
+        # pylint: disable=W0212
         things = [u'A']
         m_singles = True
         expected = u'[A]'
@@ -441,6 +473,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_ngram_format_4(self):
         # many things, terminator first
+        # pylint: disable=W0212
         things = [u'A', u'B', u'C']
         m_singles = False
         self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
@@ -448,6 +481,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_ngram_format_5(self):
         # many things, terminator middle
+        # pylint: disable=W0212
         things = [u'A', u'B', u'C']
         m_singles = False
         self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
@@ -455,6 +489,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_ngram_format_6(self):
         # many things, terminator last
+        # pylint: disable=W0212
         things = [u'A', u'B', u'C']
         m_singles = False
         self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
@@ -462,6 +497,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_ngram_format_7(self):
         # many things, don't mark singles
+        # pylint: disable=W0212
         things = [u'A', u'B', u'C']
         m_singles = False
         expected = u'[A B C]'
@@ -471,6 +507,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_ngram_format_8(self):
         # many things, mark singles
+        # pylint: disable=W0212
         things = [u'A', u'B', u'C']
         m_singles = True
         expected = u'[A B C]'
@@ -480,6 +517,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_ngram_format_9(self):
         # many things, change the markers
+        # pylint: disable=W0212
         things = [u'A', u'B', u'C']
         m_singles = False
         expected = u'$A B C&'
@@ -487,11 +525,7 @@ class TestNGramIndexer(unittest.TestCase):
         self.assertTrue(isinstance(actual, unicode))
         self.assertEqual(expected, actual)
 
-    # TODO: add these tests:
-    # - add a more difficult corpus-inspired tests
-    #   - we'll use René's ground truth for BWV 2
-
 #--------------------------------------------------------------------------------------------------#
-# Definitions                                                                                       #
+# Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 NGRAM_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNGramIndexer)
