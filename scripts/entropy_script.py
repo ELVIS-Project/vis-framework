@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 # Name:         scripts/entropy_script.py
 # Purpose:      Computes the sample entropy of a user-specified n-gram prefix,
 #               taken from a user-specified csv file.

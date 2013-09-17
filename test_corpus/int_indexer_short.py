@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#-------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 # Name:         int_indexer_short.py
 # Purpose:      Creates a set of Score objects with which to test vis.
 #
