@@ -51,9 +51,8 @@ class ColumnAggregator(experimenter.Experimenter):
             the name u'all', it will *not* be included in the aggregation.
         :type index: pandas.DataFrame or list of pandas.DataFrame or list of pandas.Series
 
-        :param settings: dict
-            A dict of all the settings required by this Experimenter. All required settings should
-            be listed in subclasses. Default is {}.
+        :param settings: There are no required settings, so this is ignored.
+        :type settings: dict or None
         """
         super(ColumnAggregator, self).__init__(index, None)
 

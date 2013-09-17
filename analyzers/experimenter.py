@@ -61,8 +61,7 @@ class Experimenter(object):
 
         Raises
         ======
-        RuntimeError :
-            - If required settings are not present in the "settings" argument.
+        :raises: RuntimeError, if required settings are not present in the "settings" argument.
         """
 
         # Call our superclass constructor, then set instance variables
@@ -80,8 +79,8 @@ class Experimenter(object):
 
         Returns
         =======
-        pandas.Series or pandas.DataFrame :
-            The result of the experiment. Data is stored uniquely depending on the Experiment.
+        :returns: The result of the experiment. Data is stored uniquely depending on the Experiment.
+        :rtype: pandas.Series or pandas.DataFrame
         """
         pass
 
@@ -92,21 +91,21 @@ class Experimenter(object):
 
         Parameters
         ==========
-        :param func: module-level function
-            The function to call. The function should return a pandas.Series or DataFrame
+        :param func: The function to call. The function should return a pandas.Series or DataFrame
+        :type func: module-level function
 
-        :param func_args: [[?]]
-            A nested list of the arguments to be passed to "func". Each outer list element will be
-            a single call to "func".
+        :param func_args: A nested list of the arguments to be passed to "func". Each outer list
+            element will be a single call to "func".
+        :type func_args: iterable of iterables of objects
 
         Returns
         =======
-        [pandas.Series] or [pandas.DataFrame]
-            A list of whatever was returned by the "func" function.
+        :returns: A list of whatever was returned by the "func" function.
+        :rtype: list of pandas.Series or of pandas.DataFrame
 
         Side Effects
         ============
-        1.) Blocks until all calculations have completed.
+        Blocks until all calculations have completed.
         """
         post = []
         for arg_list in func_args:

@@ -61,8 +61,7 @@ class NoteRestIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeError:
-            - If the "score" argument is not a list of the right type.
+        :raises: RuntimeError, if the "score" argument is not a list of the right type.
         """
         super(NoteRestIndexer, self).__init__(score, None)
 
@@ -78,10 +77,10 @@ class NoteRestIndexer(indexer.Indexer):
 
         Returns
         =======
-        [pandas.Series] :
-            A list of the new indices. The index of each Series corresponds to the index of the Part
-            used to generate it, in the order specified to the constructor. Each element in the
-            Series is an instance of music21.base.ElementWrapper.
+        :returns: A list of the new indices. The index of each Series corresponds to the index of
+            the Part used to generate it, in the order specified to the constructor. Each element
+            in the Series is a unicode.
+        :rtype: list of pandas.Series
         """
 
         combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately

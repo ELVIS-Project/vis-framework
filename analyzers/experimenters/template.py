@@ -57,15 +57,15 @@ class TemplateExperimenter(experimenter.Experimenter):
         :param index: lists or nested lists of pandas.Series or pandas.DataFrame objects.
             A list (or list of lists) of Series. The minimum and maximum numbers, and whether to use
             embedded lists, depends on the Experimenter subclass.
+        :type index: list of pandas.Series or pandas.DataFrame
 
-        :param settings: dict
-            A dict of all the settings required by this Experimenter. All required settings should
-            be listed in subclasses. Default is {}.
+        :param settings: A dict of all the settings required by this Experimenter. All required
+            settings should be listed in subclasses. Default is None.
+        :type settings: dict or None
 
         Raises
         ======
-        RuntimeError :
-            - If required settings are not present in the "settings" argument.
+        :raises: RuntimeError, if required settings are not present in the ``settings`` argument.
         """
 
         # Check all required settings are present in the "settings" argument. You must ignore
@@ -85,8 +85,8 @@ class TemplateExperimenter(experimenter.Experimenter):
 
         Returns
         =======
-        pandas.Series or pandas.DataFrame :
-            The result of the experiment. Data is stored uniquely depending on the Experiment.
+        :returns: The result of the experiment. Data is stored uniquely depending on the Experiment.
+        :rtype: pandas.Series or pandas.DataFrame
         """
 
         # NOTE: We recommend experimenting all possible combinations of anything, when feasible.

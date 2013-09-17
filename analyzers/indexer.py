@@ -34,14 +34,14 @@ def mpi_unique_offsets(streams):
 
     Parameters
     ==========
-    streams : [music21.stream.Stream]
-        A list of Streams in which to find the offsets at which events begin.
+    :param streams: A list of Streams in which to find the offsets at which events begin.
+    :type streams: list of music21.stream.Stream
 
     Returns
     =======
-    list :
-        A list of floating-point numbers representing offsets at which a new event begins in any of
-        the streams. Offsets are sorted from lowest to highest (start to end).
+    :returns: A list of floating-point numbers representing offsets at which a new event begins in
+        any of the streams. Offsets are sorted from lowest to highest (start to end).
+    :rtype: list of float
     """
     offsets = ({e.offset for e in part.elements} for part in streams)
     return sorted(set.union(*offsets))  # pylint: disable=W0142
@@ -176,7 +176,7 @@ def series_indexer(pipe_index, parts, indexer_func):
 
     Raises
     ======
-    ValueError: If there are multiple events at an offset in any of the inputted Series.
+    :raises: ValueError, if there are multiple events at an offset in any of the inputted Series.
     """
 
     # find the offsets at which things happen
@@ -237,9 +237,9 @@ class Indexer(object):
 
         Raises
         ======
-        RuntimeError:
-            - If the "score" argument is not a list of the right type.
-            - If required settings are not present in the "settings" argument.
+        :raises: RuntimeError, if
+            - the "score" argument is not a list of the right type.
+            - required settings are not present in the "settings" argument.
         """
         # Check the "score" argument is either uniformly Part or Series objects.
         for elem in score:

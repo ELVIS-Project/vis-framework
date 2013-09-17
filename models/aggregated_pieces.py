@@ -237,7 +237,7 @@ class AggregatedPieces(object):
 
         Raises
         ======
-        TypeError: If the "analyzer_cls" is invalid or cannot be found.
+        :raises: TypeError, if the "analyzer_cls" is invalid or cannot be found.
         """
         if [] == self._pieces:
             return [pandas.DataFrame()] if [] == aggregated_experiments else pandas.DataFrame()

@@ -132,17 +132,13 @@ class IntervalIndexer(indexer.Indexer):
         :param score: The output of NoteRestIndexer for all parts in a piece.
         :type score: list of pandas.Series
 
-        :param settings : dict
-            A dict of relevant settings, both optional. These are:
+        :param settings: A dict of relevant settings, both optional. These are:
             - 'simple or compound' : 'simple' or 'compound'
                 Whether intervals should be represented in their single-octave form. Defaults to
                 'compound'.
             - 'quality' : boolean
                 Whether to consider the quality of intervals. Optional. Defaults to False.
-
-        Raises
-        ======
-        Nothing. There are no required settings.
+        :type settings: dict
         """
 
         if settings is None:
@@ -180,16 +176,13 @@ class IntervalIndexer(indexer.Indexer):
 
         Returns
         =======
-        {pandas.Series} :
-            A dict of the new indices. The index of each Series corresponds to the indices of the
-            Part combinations used to generate it, in the order specified to the constructor. Each
-            element in the Series is an instance of music21.base.ElementWrapper.
-            Example, if you stored output of run() in the "result" variable:
-                result['[0, 1]'] : the highest and second highest parts
+        :returns: A dict of the new indices. The index of each Series corresponds to the indices of
+            the Part combinations used to generate it, in the order specified to the constructor.
+            Each element in the Series is a unicode. Example, if you stored output of run() in the
+            "result" variable: result['[0, 1]'] : the highest and second highest parts.
+        :rtype: dict of pandas.Series
         """
-
         combinations = []
-
         # To calculate all 2-part combinations:
         for left in xrange(len(self._score)):
             # noinspection PyArgumentList
@@ -230,20 +223,17 @@ class HorizontalIntervalIndexer(indexer.Indexer):
 
         Parameters
         ==========
-        :param score: [pandas.Series]
+        :param score:
             The output of NoteRestIndexer for all parts in a piece.
+        :type score: list of pandas.Series
 
-        :param settings : dict
-            A dict of relevant settings, both optional. These are:
+        :param settings: A dict of relevant settings, both optional. These are:
             - 'simple or compound' : 'simple' or 'compound'
                 Whether intervals should be represented in their single-octave form. Defaults to
                 'compound'.
             - 'quality' : boolean
                 Whether to consider the quality of intervals. Optional. Defaults to False.
-
-        Raises
-        ======
-        Nothing. There are no required settings.
+        :type settings: dict
         """
 
         if settings is None:
@@ -281,12 +271,11 @@ class HorizontalIntervalIndexer(indexer.Indexer):
 
         Returns
         =======
-        {pandas.Series} :
-            A dict of the new indices. The index of each Series corresponds to the indices of the
-            Part combinations used to generate it, in the order specified to the constructor. Each
-            element in the Series is an instance of music21.base.ElementWrapper.
-            Example, if you stored output of run() in the "result" variable:
-                result['[0, 1]'] : the highest and second highest parts
+        :returns: A dict of the new indices. The index of each Series corresponds to the indices of
+            the Part combinations used to generate it, in the order specified to the constructor.
+            Each element in the Series is a unicode. Example, if you stored output of run() in the
+            "result" variable: result['[0, 1]'] : the highest and second highest parts.
+        :rtype: dict of pandas.Series
         """
         # This indexer is a little tricky, since we must fake "horizontality" so we can use the
         # same _do_multiprocessing() method as always.

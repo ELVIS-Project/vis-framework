@@ -103,12 +103,11 @@ class NGramIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeError :
-            - If the "score" argument is the wrong type.
-            - If the "score" argument is not a list of the same types.
-            - If required settings are not present in the "settings" argument or u'n' is less than 2
+        :raises: RuntimeError, if
+            - the "score" argument is the wrong type.
+            - the "score" argument is not a list of the same types.
+            - required settings are not present in the "settings" argument or u'n' is less than 2
         """
-
         # Check all required settings are present in the "settings" argument.
         if settings is None or u'vertical' not in settings or u'n' not in settings:
             msg = u'NGramIndexer requires "vertical" and "n" settings'
@@ -166,7 +165,7 @@ class NGramIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeWarning: If the one of the events is a "terminator."
+        :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
         terminator = [] if terminator is None else terminator
         post = []
@@ -214,7 +213,7 @@ class NGramIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeWarning: If the one of the events is a "terminator."
+        :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
         return NGramIndexer._format_thing(verts, m_singles, (u'[', u']'), terminator)
 
@@ -244,7 +243,7 @@ class NGramIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeWarning: If the one of the events is a "terminator."
+        :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
         return NGramIndexer._format_thing(horizs, m_singles, (u'(', u')'), terminator)
 

@@ -171,8 +171,8 @@ class IndexedPiece(object):
 
         Raises
         ======
-        NotImplementedError:
-            - If the file imports as a music21.stream.Opus, since we do not yet support them.
+        :raises: NotImplementedError, if the file imports as a music21.stream.Opus, since we do not
+            yet support them.
         """
         score = converter.parse(self.metadata('pathname'))
         if isinstance(score, stream.Opus):
@@ -225,34 +225,34 @@ class IndexedPiece(object):
 
         Metadata Fields
         ===============
-        alternativeTitle
+        - alternativeTitle
             A possible alternate title for the piece; e.g. Beethoven's Symphony No. 6 in F Major
             is also known as the 'Pastoral' Symphony. Taken from music21.
-        anacrusis
+        - anacrusis
             The length of the pick-up measure, if there is one.
-        composer
+        - composer
             The author of the piece. Taken from music21.
-        composers
+        - composers
             If the piece has multiple authors. Taken from music21.
-        date
+        - date
             The date that the piece was composed or published. Taken from music21.
-        localeOfComposition
+        - localeOfComposition
             Where the piece was composed. Taken from music21.
-        movementName
+        - movementName
             If the piece is part of a larger work, the name of this subsection. Taken from music21.
-        movementNumber
+        - movementNumber
             If the piece is part of a larger work, the number of this subsection. Taken from
             music21.
-        number
+        - number
             Taken from music21.
-        opusNumber
+        - opusNumber
             Number assigned by the composer to the piece or a group containing it, to help with
             identification or cataloguing. Taken from music21.
-        parts
+        - parts
             A list of the parts in a multi-voice work.
-        pathname
+        - pathname
             The filesystem path to the music file encoding the piece.
-        title
+        - title
             The title of the piece. Taken from music21.
         """
         if not isinstance(field, basestring):
@@ -304,11 +304,12 @@ class IndexedPiece(object):
 
         Raises
         ======
-        TypeError: If the "analyzer_cls" is invalid or cannot be found.
-        RuntimeError: If the first analyzer class in "analyzer_cls" does not use Score objects, and
-            the "data" argument is None.
-        NotImplementedError: If the file imports as a music21.stream.Opus object, since we cannot
-            yet deal with those properly (since they should be treated as more than one piece).
+        :raises: TypeError, if the "analyzer_cls" is invalid or cannot be found.
+        :raises: RuntimeError, if the first analyzer class in "analyzer_cls" does not use Score
+            objects, and the "data" argument is None.
+        :raise: NotImplementedError, if the file imports as a music21.stream.Opus object, since we
+            cannot yet deal with those properly (since they should be treated as more than one
+            piece).
         """
         # TODO: the NotImplementedError should be removed once _import_score() supports Opus
         for each_cls in analyzer_cls:

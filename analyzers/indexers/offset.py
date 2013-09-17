@@ -75,11 +75,11 @@ class FilterByOffsetIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeError :
-            - If the "score" argument is the wrong type.
-            - If the "score" argument is not a list of the same types.
-            - If a "quarterLength" setting is not found in the "settings" argument.
-            - If the "quarterLength" setting has a value less than 0.001.
+        :raises: RuntimeError, if
+            - the "score" argument is the wrong type.
+            - the "score" argument is not a list of the same types.
+            - a "quarterLength" setting is not found in the "settings" argument.
+            - the "quarterLength" setting has a value less than 0.001.
         """
         super(FilterByOffsetIndexer, self).__init__(score, None)
 
@@ -105,11 +105,12 @@ class FilterByOffsetIndexer(indexer.Indexer):
 
         Returns
         =======
-        :returns: pandas.DataFrame
-            Including the indices for all the inputted parts, where the "index" value for each part
-            is the same as in the list in which they were submitted to the constructor. The "index"
-            for each member Series is the same, starting at 0.0 then at every "quarterLength" after,
-            until either the last observation in the piece, or the nearest multiple before.
+        :returns: A DataFrame with the indices for all the inputted parts, where the "index" value
+            for each part is the same as in the list in which they were submitted to the
+            constructor. The "index" for each member Series is the same, starting at 0.0 then at
+            every "quarterLength" after, until either the last observation in the piece, or the
+            nearest multiple before.
+        :rtype: pandas.DataFrame
         """
         if 0 == len(self._score):
             return pandas.DataFrame()

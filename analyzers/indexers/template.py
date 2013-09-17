@@ -82,10 +82,10 @@ class TemplateIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeError :
-            - If the "score" argument is the wrong type.
-            - If the "score" argument is not a list of the same types.
-            - If required settings are not present in the "settings" argument.
+        :raises: RuntimeError, if
+            - the "score" argument is the wrong type.
+            - the "score" argument is not a list of the same types.
+            - required settings are not present in the "settings" argument.
         """
 
         # Check all required settings are present in the "settings" argument. You must ignore

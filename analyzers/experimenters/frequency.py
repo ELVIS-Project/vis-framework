@@ -73,8 +73,8 @@ class FrequencyExperimenter(experimenter.Experimenter):
             the parts in this score.
         :type index: list or dict of Series
 
-        :param settings: None
-            This experiment does not use any settings.
+        :param settings: There are no required settings, so this is ignored.
+        :type settings: dict or None
         """
         super(FrequencyExperimenter, self).__init__(index, None)
 
@@ -84,12 +84,12 @@ class FrequencyExperimenter(experimenter.Experimenter):
 
         Returns
         =======
-        :returns: pandas.DataFrame
-            The result of the experiment. Data is stored such that column labels correspond to the
-            part (combinations) totalled in the column, and row labels correspond to a type of the
-            kind of objects found in the given index. Note that all columns are totalled in the
-            "all" column, and that not every part combination will have every interval; in case an
-            interval does not appear in a part combination, the value is NaN.
+        :returns: The result of the experiment. Data is stored such that column labels correspond
+            to the part (combinations) totalled in the column, and row labels correspond to a type
+            of the kind of objects found in the given index. Note that all columns are totalled in
+            the "all" column, and that not every part combination will have every interval; in case
+            an interval does not appear in a part combination, the value is NaN.
+        :rtype: pandas.DataFrame
         """
         # assemble results per-part
         results = None

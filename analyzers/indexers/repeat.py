@@ -57,9 +57,9 @@ class FilterByRepeatIndexer(indexer.Indexer):
 
         Raises
         ======
-        RuntimeError :
-            - If the "score" argument is the wrong type.
-            - If the "score" argument is not a list of the same types.
+        :raises: RuntimeError, if
+            - the "score" argument is the wrong type.
+            - the "score" argument is not a list of the same types.
         """
         super(FilterByRepeatIndexer, self).__init__(score, None)
 
