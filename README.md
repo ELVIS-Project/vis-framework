@@ -12,8 +12,7 @@ Software Dependencies
 =====================
 vis uses many software libraries to help with analysis. The following version numbers are the versions we use for development, but you may be able to use earlier and later versions too.
 
-- Python 2.7.3
-- NumPy 1.6.1
-- matplotlib 1.1.0
-- PyQt4 4.9.1
+- Python 2.7.5
 - music21 1.6.0
+- pandas 0.12.0
+- mock 1.0.1 (for testing)
