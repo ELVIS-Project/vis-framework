@@ -1,0 +1,3 @@
+I, Christopher Antila, give my full consent to relicense vis software, including the vis, django-vis and vis-vm GitHub repositories, under the "GNU Affero General Public License," version 3 or any later.
+
+Christopher Antila
