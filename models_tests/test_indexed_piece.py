@@ -54,8 +54,7 @@ class TestIndexedPieceA(TestCase):
         # assign a value to an invalid field
         self.assertRaises(AttributeError, self.ind_piece.metadata, 'field', 2)
         # access an invalid value
-        value = self.ind_piece.metadata('invalid_field')
-        self.assertEquals(None, value)
+        self.assertRaises(AttributeError, self.ind_piece.metadata, 'invalid_field')
         # try accessing keys with invalid types
         self.assertRaises(TypeError, self.ind_piece.metadata, 2)
         self.assertRaises(TypeError, self.ind_piece.metadata, [])
@@ -257,7 +256,7 @@ class TestPartsAndTitles(TestCase):
         self.assertEqual(expected_title, actual_title)
         self.assertSequenceEqual(expected_parts, actual_parts)
 
-    def test_sqOp76(self):
+    def test_opus76(self):
         path = u'test_corpus/sqOp76-4-i.midi'
         expected_title = u'sqOp76-4-i'
         expected_parts = [u'Part 1', u'Part 2', u'Part 3', u'Part 4']
@@ -287,5 +286,3 @@ INDEXED_PIECE_PARTS_TITLES = TestLoader().loadTestsFromTestCase(TestPartsAndTitl
 
 # TODO: test at least these things:
 # - __repr__(), __str__(), and __unicode__()
-# - that _import_score() properly calls _find_piece_title()
-# - that all the other metadata properties are properly converted to our Metadata attributes
