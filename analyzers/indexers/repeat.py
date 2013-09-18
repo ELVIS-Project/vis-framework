@@ -36,9 +36,7 @@ class FilterByRepeatIndexer(indexer.Indexer):
     Filter consecutive identical events, leaving only the event at the first offset.
     """
 
-    required_indices = []  # empty list accepts results of any Indexer
     required_score_type = pandas.Series
-    requires_score = False  # adjust according to previous
     possible_settings = []  # list of strings
     default_settings = {}  # keys are strings, values are anything
 

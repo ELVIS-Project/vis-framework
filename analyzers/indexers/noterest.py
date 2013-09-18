@@ -44,9 +44,7 @@ class NoteRestIndexer(indexer.Indexer):
     "pitchWithOctave" attribute.
     """
 
-    required_indices = []
     required_score_type = stream.Part
-    requires_score = True
 
     def __init__(self, score, settings=None):
         """

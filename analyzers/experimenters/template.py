@@ -45,8 +45,6 @@ class TemplateExperimenter(experimenter.Experimenter):
     Use this class when you want to write a new Experimenter subclass.
     """
 
-    required_indices = []
-    required_experiments = []
     possible_settings = []  # list of strings
     default_settings = {}  # keys are strings, values are anything
 

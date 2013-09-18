@@ -62,9 +62,7 @@ class NGramIndexer(indexer.Indexer):
     be set separately, to u'P1' or u'0' or similar, if desired.
     """
 
-    required_indices = []  # empty list accepts results of any Indexer
     required_score_type = pandas.Series
-    requires_score = False
     possible_settings = [u'horizontal', u'vertical', u'n', u'mark singles', u'terminator']
     default_settings = {u'mark singles': True, u'horizontal': [], u'terminator': [],
                         u'continuer': u'_'}

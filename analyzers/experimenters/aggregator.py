@@ -37,8 +37,6 @@ class ColumnAggregator(experimenter.Experimenter):
     a column with the name u'all', it will *not* be included in the aggregation.
     """
 
-    required_indices = []
-    required_experiments = []
     possible_settings = []  # list of strings
     default_settings = {}  # keys are strings, values are anything
 

@@ -35,9 +35,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
     Indexer to regularize the observed offsets.
     """
 
-    required_indices = []  # empty list accepts results of any Indexer
     required_score_type = pandas.Series
-    requires_score = False
     possible_settings = []  # none
     default_settings = {}  # none
 

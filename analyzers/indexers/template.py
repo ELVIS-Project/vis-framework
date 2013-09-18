@@ -61,9 +61,7 @@ class TemplateIndexer(indexer.Indexer):
     Use this class when you want to write a new Indexer subclass.
     """
 
-    required_indices = []  # empty list accepts results of any Indexer
     required_score_type = stream.Part  # or pandas.Series
-    requires_score = True  # adjust according to previous
     possible_settings = []  # list of strings
     default_settings = {}  # keys are strings, values are anything
 

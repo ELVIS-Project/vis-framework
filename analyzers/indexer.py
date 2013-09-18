@@ -212,11 +212,9 @@ class Indexer(object):
     """
 
     # just the standard instance variables
-    required_indices = []
     required_score_type = None
     possible_settings = {}
     default_settings = {}
-    requires_score = False
     # self._score
     # self._indexer_func
     # self._types

@@ -40,8 +40,6 @@ class Experimenter(object):
     """
 
     # just the standard instance variables
-    required_indices = []
-    required_experiments = []
     possible_settings = []
     default_settings = None
     # self._index

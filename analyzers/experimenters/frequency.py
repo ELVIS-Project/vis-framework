@@ -58,8 +58,6 @@ class FrequencyExperimenter(experimenter.Experimenter):
     Calculate the number of occurrences of things found in an index.
     """
 
-    required_indices = []
-    required_experiments = []
     possible_settings = []
     default_settings = {}
 

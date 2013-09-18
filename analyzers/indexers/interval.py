@@ -118,7 +118,6 @@ class IntervalIndexer(indexer.Indexer):
     This indexer does not require a score.
     """
 
-    required_indices = [NoteRestIndexer]
     required_score_type = pandas.Series
     possible_settings = [u'simple or compound', u'quality']
     default_settings = {u'simple or compound': u'compound', u'quality': False}
@@ -212,7 +211,6 @@ class HorizontalIntervalIndexer(indexer.Indexer):
     This indexer does not require a score.
     """
 
-    required_indices = [u'NoteRestIndexer']
     required_score_type = pandas.Series
     possible_settings = [u'simple or compound', u'quality']
     default_settings = {u'simple or compound': u'compound', u'quality': False}
