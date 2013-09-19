@@ -23,7 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Index vertical intervals.
+Index intervals. Use the :class:`IntervalIndexer` to find vertical (harmonic) intervals between two
+parts. Use the :class:`HorizontalIntervalIndexer` to find horizontal (melodic) intervals in the
+same part.
 """
 
 import pandas
@@ -40,20 +42,21 @@ def real_indexer(simultaneity, simple, quality):
 
     Parameters
     ==========
-    :param simultaneity: A two-item iterable that with the note names (or u'Rest') for the top then
-        lower voice.
-    :type simultaneity: list of basestring
+    :param simultaneity: A two-item iterable with the note names (or :obj:`u'Rest'`) for the top
+        then lower voice.
+    :type simultaneity: :obj:`list` of :obj:`basestring`
 
     :param simple: Whether intervals should be reduced to their single-octave version.
-    :type simple: boolean
+    :type simple: :obj:`boolean`
 
     :param quality: Whether the interval's quality should be prepended.
-    :type quality: boolean
+    :type quality: :obj:`boolean`
 
     Returns
     =======
-    :returns: u'Rest' if one or more of the parts is u'Rest'; otherwise, the interval between parts.
-    :rtype: unicode
+    :returns: :obj:`u'Rest'` if one or more of the parts is :obj:`u'Rest'`; otherwise, the interval
+        between parts.
+    :rtype: :obj:`unicode`
     """
 
     if 2 != len(simultaneity):
@@ -84,61 +87,71 @@ def real_indexer(simultaneity, simple, quality):
 # and the function still only requires one argument at run-time from the Indexer.mp_indexer().
 def indexer_qual_simple(ecks):
     """
-    Call real_indexer() with settings to print simple intervals with quality.
+    Call :func:`real_indexer` with settings to print simple intervals with quality.
     """
     return real_indexer(ecks, True, True)
 
 
 def indexer_qual_comp(ecks):
     """
-    Call real_indexer() with settings to print compound intervals with quality.
+    Call :func:`real_indexer` with settings to print compound intervals with quality.
     """
     return real_indexer(ecks, False, True)
 
 
 def indexer_nq_simple(ecks):
     """
-    Call real_indexer() with settings to print simple intervals without quality.
+    Call :func:`real_indexer` with settings to print simple intervals without quality.
     """
     return real_indexer(ecks, True, False)
 
 
 def indexer_nq_comp(ecks):
     """
-    Call real_indexer() with settings to print compound intervals without quality.
+    Call :func:`real_indexer` with settings to print compound intervals without quality.
     """
     return real_indexer(ecks, False, False)
 
 
 class IntervalIndexer(indexer.Indexer):
     """
-    Create an index of music21.interval.Interval objects found in two-part combinations of the
-    result from NoteRestIndexer.
+    Use :class:`music21.interval.Interval` to create an index of the vertical (harmonic) intervals
+    between two-part combinations.
 
-    This indexer does not require a score.
+    You should provide the result of :class:`NoteRestIndexer`.
     """
 
     required_score_type = pandas.Series
+    """
+    The :class:`IntervalIndexer` requires a list of :class:`Series` as input. These should be the
+    result of :class:`NoteRestIndexer`.
+    """
+
     possible_settings = [u'simple or compound', u'quality']
+    """
+    A :obj:`list` of possible settings for the :class:`IntervalIndexer`.
+
+    :keyword unicode u'simple_or_compound': NOTE: This setting is :obj:`u'simple or compound'` and
+        you should not include the underscores. Whether intervals should be represented in their
+        single-octave form (either :obj:`u'simple'` or :obj:`u'compound'`).
+    :keyword boolean u'quality': Whether to display an interval's quality.
+    """
+
     default_settings = {u'simple or compound': u'compound', u'quality': False}
+    "A :obj:`dict` of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
         """
-        Create a new IntervalIndexer. For the output format, see the docs for
-        IntervalIndexer.indexer_func().
+        Create a new :class:`IntervalIndexer`. The output format is described in :method:`run`.
 
         Parameters
         ==========
-        :param score: The output of NoteRestIndexer for all parts in a piece.
-        :type score: list of pandas.Series
+        :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
+        :type score: :obj:`list` of :class:`pandas.Series`
 
-        :param settings: A dict of relevant settings, both optional. These are:
-            - 'simple or compound' : 'simple' or 'compound'
-                Whether intervals should be represented in their single-octave form. Defaults to
-                'compound'.
-            - 'quality' : boolean
-                Whether to consider the quality of intervals. Optional. Defaults to False.
-        :type settings: dict
+        :param settings: Required and optional settings. See descriptions in
+            :const:`possible_settings`.
+        :type settings: :obj:`dict`
         """
 
         if settings is None:
@@ -176,11 +189,12 @@ class IntervalIndexer(indexer.Indexer):
 
         Returns
         =======
-        :returns: A dict of the new indices. The index of each Series corresponds to the indices of
+        :returns: The new indices. The dict index of each Series corresponds to the indices of
             the Part combinations used to generate it, in the order specified to the constructor.
-            Each element in the Series is a unicode. Example, if you stored output of run() in the
-            "result" variable: result['[0, 1]'] : the highest and second highest parts.
-        :rtype: dict of pandas.Series
+            Each element in the Series is a :obj:`unicode`. For example, if you stored the output
+            of this method in the "result" variable, then result['[0, 1]'] will give you the Series
+            with intervals from the highest and second-highest parts.
+        :rtype: :obj:`dict` of :class:`pandas.Series`
         """
         combinations = []
         # To calculate all 2-part combinations:
@@ -203,7 +217,8 @@ class IntervalIndexer(indexer.Indexer):
 
 
 class HorizontalIntervalIndexer(indexer.Indexer):
-    # TODO: consider subclassing IntervalIndexer
+    # TODO: subclass IntervalIndexer
+    # TODO: rewrite the docstrings after that
     """
     Create an index of music21.interval.Interval objects found between consecutive events in the
     same part, from the results of NoteRestIndexer.

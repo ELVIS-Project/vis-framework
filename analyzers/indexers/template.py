@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Template indexer.
+Template for writing a new indexer.
 """
 
 from music21 import stream
@@ -44,12 +44,12 @@ def indexer_func(obj):
     Parameters for Indexers Using a Series
     ======================================
     :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: pandas.Series of unicode
+    :type obj: :obj:`pandas.Series` of :obj:`unicode`
 
     Returns
     =======
     :returns: The value to store for this index at this offset.
-    :rtype: unicode
+    :rtype: :obj:`unicode`
     """
     return None
 
@@ -61,9 +61,27 @@ class TemplateIndexer(indexer.Indexer):
     Use this class when you want to write a new Indexer subclass.
     """
 
-    required_score_type = stream.Part  # or pandas.Series
-    possible_settings = []  # list of strings
-    default_settings = {}  # keys are strings, values are anything
+    required_score_type = stream.Part
+    """
+    Depending on how this Indexer works, you'll either need to provie :class:`music21.stream.Part`
+    or :class:`pandas.Series`.
+    """
+
+    possible_settings = [u'fake_setting']
+    """
+    This is a list of basestrings that are the names of the settings used in this indexer. Specify
+    the types and reasons for each setting as though it were an argument list, like this:
+
+    :keyword u'fake_setting': This is a fake setting.
+    :type u'fake_setting': boolean
+    """
+
+    default_settings = {}
+    """
+    The default values for settings named in :const:`possible_settings`. If a setting doesn't have
+    a value in this constant, then it must be specified to the constructor at runtime, or the
+    constructor should raise a :exc:`RuntimeException`.
+    """
 
     def __init__(self, score, settings=None):
         """
@@ -73,18 +91,18 @@ class TemplateIndexer(indexer.Indexer):
         ==========
         :param score: Depending on how this Indexer works, this is a list of either Part or Series
             objects to use in creating a new index.
-        :type: list of pandas.Series or list of music21.stream.Part
+        :type score: :obj:`list` of :class:`pandas.Series` or :obj:`list` of
+            :class:`music21.stream.Part`
 
         :param settings: All the settings required by this Indexer. All required settings should be
-            listed in subclasses. Default is {}.
-        :type: dict or None
+            listed in subclasses. Default is None.
+        :type settings: :obj:`dict` or :dict:`None`
 
         Raises
         ======
-        :raises: RuntimeError, if
-            - the "score" argument is the wrong type.
-            - the "score" argument is not a list of the same types.
-            - required settings are not present in the "settings" argument.
+        :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
+        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
+        :raises: :exc:`RuntimeError` if required settings are not present in :obj:`settings`.
         """
 
         # Check all required settings are present in the "settings" argument. You must ignore
@@ -118,7 +136,7 @@ class TemplateIndexer(indexer.Indexer):
         :returns: A list of the new indices. The index of each Series corresponds to the index of
             the Part used to generate it, in the order specified to the constructor. Each element
             in the Series is a basestring.
-        :rtype: list of pandas.Series
+        :rtype: :obj:`list` of :obj:`pandas.Series`
         """
 
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.

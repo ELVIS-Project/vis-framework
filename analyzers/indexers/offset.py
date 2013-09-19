@@ -23,7 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Template indexer.
+Indexers that modify the "offset" values (floats stored as the "index" of a :class:`pandas.Series`),
+and potentially the number of events, without modifying the events themselves.
 """
 
 import pandas
@@ -32,23 +33,32 @@ from vis.analyzers import indexer
 
 class FilterByOffsetIndexer(indexer.Indexer):
     """
-    Indexer to regularize the observed offsets.
+    Indexer that regularizes the "offset" values of observations from other indexers.
     """
 
     required_score_type = pandas.Series
-    possible_settings = []  # none
-    default_settings = {}  # none
+    "The :class:`FilterByOffsetIndexer` uses :class:`pandas.Series` objects."
+
+    possible_settings = [u'quarterLength']
+    """
+    A :obj:`list` of possible settings for the :class:`FilterByOffsetIndexer`.
+
+    :keyword u'quarterLength': The quarterLength duration between observations desired in the
+        output. This value must not have more than three digits to the right of the decimal
+        (i.e. 0.001 is the smallest possible value).
+    :type u'quarterLength': :obj:`float`
+    """
 
     def __init__(self, score, settings=None):
         """
-        Create a new FilterByOffsetIndexer.
+        Create a new :class:`FilterByOffsetIndexer`.
 
         The Indexer regularizes observations from offsets spaced any, possibly irregular,
-        quarterLength durations apart, to be observed at regularized observations. This has two
-        effects:
-            - events that do not begin at an observed offset will only be included in the output if
-              no other event occurs before the next observed offset
-            - events that last for many observed offsets will be repeated for those offsets
+        quarterLength durations apart, so they are instead observed at regular intervals. This has
+        two effects:
+        * events that do not begin at an observed offset will only be included in the output if no
+          other event occurs before the next observed offset
+        * events that last for many observed offsets will be repeated for those offsets
 
         Since elements' durations are not recorded, the last observation in a Series will always be
         included in the results. If it does not start on an observed offset, it will be included as
@@ -62,23 +72,19 @@ class FilterByOffsetIndexer(indexer.Indexer):
 
         Parameters
         ==========
-        :param score: A list of Series you wish to filter by offset values (the Index).
-        :type: list of pandas.Series
+        :param score: A list of Series you wish to filter by offset values, stored in the Index.
+        :type score: :obj:`list` of :obj:`pandas.Series`
 
-        :param settings: There is one required setting:
-            - u'quarterLength': float
-                The quarterLength duration between observations desired in the output. This value
-                must not have more than three digits to the right of the decimal (i.e. 0.001 is the
-                smallest possible value).
-        :type: dict
+        :param settings: There is one required setting. See :const:`possible_settings`.
+        :type settings: :obj:`dict`
 
         Raises
         ======
-        :raises: RuntimeError, if
-            - the "score" argument is the wrong type.
-            - the "score" argument is not a list of the same types.
-            - a "quarterLength" setting is not found in the "settings" argument.
-            - the "quarterLength" setting has a value less than 0.001.
+        :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
+        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
+        :raises: :exc:`RuntimeError` if the required setting is not present in :obj:`settings`.
+        :raises: :exc:`RuntimeError` if the :obj:`u'quarterLength'` setting has a value less
+            than 0.001.
         """
         super(FilterByOffsetIndexer, self).__init__(score, None)
 
@@ -109,7 +115,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
             constructor. The "index" for each member Series is the same, starting at 0.0 then at
             every "quarterLength" after, until either the last observation in the piece, or the
             nearest multiple before.
-        :rtype: pandas.DataFrame
+        :rtype: :class:`pandas.DataFrame`
         """
         if 0 == len(self._score):
             return pandas.DataFrame()

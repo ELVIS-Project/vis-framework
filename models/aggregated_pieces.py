@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-The model representing data from multiple IndexedPieces.
+The model representing data from multiple :class:`vis.models.indexed_piece.IndexedPiece`s.
 """
 
 import pandas
@@ -32,7 +32,7 @@ from vis.analyzers import experimenter
 
 class AggregatedPieces(object):
     """
-    Holds data from multiple IndexedPieces.
+    Hold data from multiple :class:`vis.models.indexed_piece.IndexedPiece`s.
     """
 
     # pylint: disable=R0903

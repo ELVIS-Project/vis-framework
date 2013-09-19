@@ -5,7 +5,7 @@
 # Program Description:    Helps analyze music with computers.
 #
 # Filename:               controllers/indexers/repeat.py
-# Purpose:                Filter consecutive identical events.
+# Purpose:                Indexers that somehow consider repetition.
 #
 # Copyright (C) 2013 Christopher Antila
 #
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Indexer to filter consecutive identical events, leaving only the event at the first offset.
+Indexers that somehow consider repetition.
 """
 
 import numpy
@@ -37,28 +37,24 @@ class FilterByRepeatIndexer(indexer.Indexer):
     """
 
     required_score_type = pandas.Series
-    possible_settings = []  # list of strings
-    default_settings = {}  # keys are strings, values are anything
+    "The :class:`FilterByRepeatIndexer` requires :class:`pandas.Series` as input."
 
     def __init__(self, score, settings=None):
         """
-        Create a new FilterByRepeatIndexer.
+        Create a new :class:`FilterByRepeatIndexer`.
 
         Parameters
         ==========
-        :param score: Depending on how this Indexer works, this is a list of either Part or Series
-            objects to use in creating a new index.
-        :type: list of pandas.Series
+        :param score: The indices from which to remove consecutive identical events.
+        :type score: :obj:`list` of :obj:`pandas.Series`
 
-        :param settings: A dict of all the settings required by this Indexer. All required settings
-            should be listed in subclasses. Default is {}.
-        :type: None
+        :param settings: This indexer uses no settings, so this is ignored.
+        :type settings: :obj:`dict` or :obj:`None`
 
         Raises
         ======
-        :raises: RuntimeError, if
-            - the "score" argument is the wrong type.
-            - the "score" argument is not a list of the same types.
+        :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
+        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
         """
         super(FilterByRepeatIndexer, self).__init__(score, None)
 
@@ -76,10 +72,10 @@ class FilterByRepeatIndexer(indexer.Indexer):
         =======
         :returns: A list of the new indices. The index of each Series corresponds to the index of
             the Part used to generate it, in the order specified to the constructor. Each element
-            in the Series is a basestring.
-        :rtype: list of pandas.Series
+            in the Series is a :obj:`basestring`.
+        :rtype: :obj:`list` of :obj:`pandas.Series`
         """
-        # NOTE: I'm relying on pandas efficiency. In the future, maybe we should use an MPC?
+        # I'm relying on pandas' efficiency. In the future, maybe we should use multiprocessing?
         post = []
         for part in self._score:
             if len(part.index) < 2:

@@ -24,8 +24,8 @@
 #--------------------------------------------------------------------------------------------------
 """
 The controllers that deal with experimenting on indices or the results of other experiments.
-Whereas an Indexer produces information that can be attached to a particular moment of a score,
-an Experimenter produces information that can't sensibly be described as starting at the beginning
+Whereas an indexer produces information that can be attached to a particular moment of a score,
+an experimenter produces information that can't sensibly be described as starting at the beginning
 and going to the end of a piece.
 """
 

@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-The model representing an indexed and analyzed piece of music.
+This model represents an indexed and analyzed piece of music.
 """
 
 # Imports
@@ -36,17 +36,17 @@ from vis.analyzers.indexers import noterest
 
 def _find_piece_title(the_score):
     """
-    Find the title of a Score. If there is none, return the filename without extension.
+    Find the title of a score. If there is none, return the filename without an extension.
 
     Parameters
     ==========
     :param the_score: The score of which to find the title.
-    :type the_score: music21.stream.Score
+    :type the_score: :class:`music21.stream.Score`
 
     Returns
     =======
     :returns: The title of the score.
-    :rtype: unicode
+    :rtype: :obj:`unicode`
     """
     # First try to get the title from a Metadata object, but if it doesn't
     # exist, use the filename without directory.
@@ -67,19 +67,18 @@ def _find_piece_title(the_score):
 
 def _find_part_names(the_score):
     """
-    Return a list of part names in a score. If the score does not have proper names, return a
+    Return a list of part names in a score. If the score does not have proper part names, return a
     list of enumerated parts.
 
     Parameters
     ==========
-    :param the_score:
-        The score in which to find the part names.
-    :type the_score: music21.stream.Score
+    :param the_score: The score in which to find the part names.
+    :type the_score: :class:`music21.stream.Score`
 
     Returns
     =======
     :returns: The title of the score.
-    :rtype: list of unicode
+    :rtype: :obj:`list` of :obj:`unicode`
     """
     # hold the list of part names
     post = []
@@ -114,17 +113,17 @@ class IndexedPiece(object):
     """
     def __init__(self, pathname):
         """
-        Create a new IndexedPiece
+        Create a new :class:`IndexedPiece`.
 
         Parameters
         ==========
         :param pathname: Pathname to the file music21 will import for this IndexedPiece.
-        :type pathname: basestring
+        :type pathname: :obj:`basestring`
 
         Returns
         =======
         :returns: A new IndexedPiece.
-        :rtype: IndexedPiece
+        :rtype: :class:`IndexedPiece`
         """
         def init_metadata():
             """
@@ -169,12 +168,12 @@ class IndexedPiece(object):
         Returns
         =======
         :returns: the score
-        :rtype: music21.stream.Score or music21.stream.Opus
+        :rtype: :class:`music21.stream.Score`
 
         Raises
         ======
-        :raises: NotImplementedError, if the file imports as a music21.stream.Opus, since we do not
-            yet support them.
+        :raises: :exc:`NotImplementedError` if the file imports as a :class:`music21.stream.Opus`
+            since we do not yet support them.
         """
         score = converter.parse(self.metadata('pathname'))
         if isinstance(score, stream.Opus):
@@ -193,29 +192,64 @@ class IndexedPiece(object):
 
     def metadata(self, field, value=None):
         """
-        Get or set metadata about the piece, like filename, title, and composer.
+        Get or set metadata about the piece.
 
         Parameters
         ==========
-        :param field: The name of the field to be accessed or modified
-        :type field: str or unicode
+        :param field: The name of the field to be accessed or modified.
+        :type field: :obj:`basestring`
 
-        :param value: If not None, the new value to be assigned to ``field``
-        :type value: object or None
+        :param value: If not None, the new value to be assigned to ``field``.
+        :type value: :obj:`object` or :obj:`None`
 
         Returns
         =======
         :returns: The value of the requested field or None, if assigning, or if accessing a
             non-existant field or a field that has not yet been initialized.
-        :rtype: object or None
+        :rtype: :obj:`object` or :obj:`None`
 
         Raises
         ======
-        :raises: TypeError if ``field`` is not a basestring.
-        :raises: AttributeError if accessing an invalid field (see "Metadata Fields" below).
+        :raises: :exc:`TypeError` if ``field`` is not a :obj:`basestring`.
+        :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
 
-        Examples
-        ========
+        +---------------------+--------------------------------------------------------------------+
+        | Metadata Field      | Description                                                        |
+        +=====================+====================================================================+
+        | alternativeTitle    | A possible alternate title for the piece; e.g. Beethoven's         |
+        |                     | Symphony No. 6 in F Major is also known as the 'Pastoral' Symphony.|
+        |                     | Taken from music21.                                                |
+        +---------------------+--------------------------------------------------------------------+
+        | anacrusis           | The length of the pick-up measure, if there is one.                |
+        +---------------------+--------------------------------------------------------------------+
+        | composer            | The author of the piece. Taken from music21.                       |
+        +---------------------+--------------------------------------------------------------------+
+        | composers           | If the piece has multiple authors. Taken from music21.             |
+        +---------------------+--------------------------------------------------------------------+
+        | date                | The date that the piece was composed or published. Taken from      |
+        |                     | music21.                                                           |
+        +---------------------+--------------------------------------------------------------------+
+        | localeOfComposition | Where the piece was composed. Taken from music21.                  |
+        +---------------------+--------------------------------------------------------------------+
+        | movementName        | If the piece is part of a larger work, the name of this            |
+        |                     | subsection. Taken from music21.                                    |
+        +---------------------+--------------------------------------------------------------------+
+        | movementNumber      | If the piece is part of a larger work, the number of this          |
+        |                     | subsection. Taken from music21.                                    |
+        +---------------------+--------------------------------------------------------------------+
+        | number              | Taken from music21.                                                |
+        +---------------------+--------------------------------------------------------------------+
+        | opusNumber          | Number assigned by the composer to the piece or a group            |
+        |                     | containing it, to help with identification or cataloguing. Taken   |
+        |                     | from music21.                                                      |
+        +---------------------+--------------------------------------------------------------------+
+        | parts               | A list of the parts in a multi-voice work.                         |
+        +---------------------+--------------------------------------------------------------------+
+        | pathname            | The filesystem path to the music file encoding the piece.          |
+        +---------------------+--------------------------------------------------------------------+
+        | title               | The title of the piece. Taken from music21.                        |
+        +---------------------+--------------------------------------------------------------------+
+
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
         u'Jean Sibelius'
@@ -224,38 +258,6 @@ class IndexedPiece(object):
         1919
         >>> piece.metadata('parts')
         [u'Flute 1', u'Flute 2', u'Oboe 1', u'Oboe 2', u'Clarinet 1', u'Clarinet 2', ... ]
-
-        Metadata Fields
-        ===============
-        - alternativeTitle
-            A possible alternate title for the piece; e.g. Beethoven's Symphony No. 6 in F Major
-            is also known as the 'Pastoral' Symphony. Taken from music21.
-        - anacrusis
-            The length of the pick-up measure, if there is one.
-        - composer
-            The author of the piece. Taken from music21.
-        - composers
-            If the piece has multiple authors. Taken from music21.
-        - date
-            The date that the piece was composed or published. Taken from music21.
-        - localeOfComposition
-            Where the piece was composed. Taken from music21.
-        - movementName
-            If the piece is part of a larger work, the name of this subsection. Taken from music21.
-        - movementNumber
-            If the piece is part of a larger work, the number of this subsection. Taken from
-            music21.
-        - number
-            Taken from music21.
-        - opusNumber
-            Number assigned by the composer to the piece or a group containing it, to help with
-            identification or cataloguing. Taken from music21.
-        - parts
-            A list of the parts in a multi-voice work.
-        - pathname
-            The filesystem path to the music file encoding the piece.
-        - title
-            The title of the piece. Taken from music21.
         """
         if not isinstance(field, basestring):
             raise TypeError(u"metadata(): parameter 'field' must be of type 'basestring'")
@@ -268,15 +270,16 @@ class IndexedPiece(object):
 
     def _get_note_rest_index(self):
         """
-        Return the results of the NoteRestIndexer on this piece.
+        Return the results of the :class:`NoteRestIndexer` on this piece.
 
-        This method is used automatically by get_data() to cache results, which avoids having to
-        re-import the music21 file for every Indexer or Experimenter that uses the NoteRestIndexer.
+        This method is used automatically by :meth:`get_data` to cache results, which avoids having
+        to re-import the music21 file for every Indexer or Experimenter that uses the
+        :class:`NoteRestIndexer`.
 
         Returns
         =======
-        :returns: Results of the NoteRestIndexer.
-        :rtype: list of pandas.Series
+        :returns: Results of the :class:`NoteRestIndexer`.
+        :rtype: :obj:`list` of :class:`pandas.Series`
         """
         if self._noterest_results is None:
             data = [x for x in self._import_score().parts]
@@ -285,33 +288,33 @@ class IndexedPiece(object):
 
     def get_data(self, analyzer_cls, settings=None, data=None):
         """
-        Get the results of an Experimenter or Indexer run on this IndexedPiece.
+        Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
 
         Parameters
         ==========
         :param analyzer_cls: the analyzers to run, in the order they should be run
-        :type analyzer_cls: list of types
+        :type analyzer_cls: :obj:`list` of :obj:`type`
 
         :param settings: Settings to be used with the analyzers.
-        :type settings: dict
+        :type settings: :obj:`dict`
 
         :param data: Input data for the first analyzer to run. If the first indexer uses a Score,
             you should leave this as None.
-        :type data: list of pandas.Series or pandas.DataFrame
+        :type data: :obj:`list` of :class:`pandas.Series` or :class:`pandas.DataFrame`
 
         Returns
         =======
         :returns: Results of the analyzer.
-        :rtype: pandas.DataFrame or list of pandas.Series
+        :rtype: :class:`pandas.DataFrame` or :obj:`list` of :class:`pandas.Series`
 
         Raises
         ======
-        :raises: TypeError, if the "analyzer_cls" is invalid or cannot be found.
-        :raises: RuntimeError, if the first analyzer class in "analyzer_cls" does not use Score
-            objects, and the "data" argument is None.
-        :raise: NotImplementedError, if the file imports as a music21.stream.Opus object, since we
-            cannot yet deal with those properly (since they should be treated as more than one
-            piece).
+        :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
+        :raises: :exc:`RuntimeError` if the first analyzer class in ``analyzer_cls`` does not use
+            :class:`music21.stream.Score` objects, and ``data`` is :obj:`None`.
+        :raises: :exc:`NotImplementedError` if the file imports as a :class:`music21.stream.Opus`
+            object, since we cannot yet deal with those properly (since they should be treated as
+            more than one piece).
         """
         # TODO: the NotImplementedError should be removed once _import_score() supports Opus
         for each_cls in analyzer_cls:

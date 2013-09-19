@@ -31,36 +31,51 @@ from vis.analyzers import indexer
 
 def indexer_func(obj):
     """
-    Convert the first item of a list to u'Rest' or its "nameWithOctave" attribute.
+    The indexer function for :class:`NoteRestIndexer`. Convert objects from the :mod:`music21.note`
+    module into a :obj:`unicode`.
+
+    Parameters
+    ==========
+    :param obj: A list with the object to convert.
+    :type obj: :obj:`list` of :class:`music21.note.Note` or :class:`music21.note.Rest`
+
+    Returns
+    =======
+    :returns: If the first object in the list is a :class:`music21.note.Rest`, the string
+        :obj:`u'Rest'`; otherwise the :attr:`nameWithOctave` attribute, which is the pitch class
+        and octave of the :class:`music21.note.Note`.
+    :rtype: :obj:`unicode`
     """
     return u'Rest' if isinstance(obj[0], note.Rest) else unicode(obj[0].nameWithOctave)
 
 
 class NoteRestIndexer(indexer.Indexer):
     """
-    Index music21.note.Note and Rest objects found in a music21.stream.Part.
+    Index :class:`music21.note.Note` and :class:`Rest` objects found in a
+    :class:`music21.stream.Part`.
 
-    Rest objects are indexed as u'Rest', and Note objects as the unicode-format version of their
-    "pitchWithOctave" attribute.
+    Rest objects are indexed as :obj:`u'Rest'`, and Note objects as the unicode-format version of
+    their :attr:`pitchWithOctave` attribute.
     """
 
     required_score_type = stream.Part
+    "The :class:`NoteRestIndexer` uses :class:`Part` objects directly."
 
     def __init__(self, score, settings=None):
         """
-        Create a new Indexer.
+        Create a new :class:`NoteRestIndexer`.
 
         Parameters
         ==========
         :param score: A list of all the Parts to index.
-        :type score: list of music21.stream.Part
+        :type score: :obj:`list` of :class:`music21.stream.Part`
 
-        :param settings: This indexer requires no settings.
-        :type: dict or None
+        :param settings: This indexer uses no settings, so this is ignored.
+        :type settings: :obj:`dict` or :obj:`None`
 
         Raises
         ======
-        :raises: RuntimeError, if the "score" argument is not a list of the right type.
+        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the right type.
         """
         super(NoteRestIndexer, self).__init__(score, None)
 
@@ -79,7 +94,7 @@ class NoteRestIndexer(indexer.Indexer):
         :returns: A list of the new indices. The index of each Series corresponds to the index of
             the Part used to generate it, in the order specified to the constructor. Each element
             in the Series is a unicode.
-        :rtype: list of pandas.Series
+        :rtype: :obj:`list` of :obj:`pandas.Series`
         """
 
         combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately

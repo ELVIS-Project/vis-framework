@@ -23,7 +23,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Package docstring for indexers: They index things!
+Indexers produce an "index" of a symbolic musical score. Each index provides one type of data, and
+each event in can be attached to a particular moment in the original score. Some indexers produce
+their index directly from the score, like the :class:`noterest.NoteRestIndexer`, which describes
+pitches. Others create new information by analyzing another index, like the
+:class:`interval.IntervalIndexer`, which describes harmonic intervals between two-part combinations
+in the score, or the :class:`repeat.FilterByRepeatIndexer`, which removes consecutive identical
+events, leaving only the first.
+
+Analysis modules that subclass :class:`vis.analyzers.experimenter.Experimenter`, by contrast, produce results
+that cannot be attached to a moment in a score.
+
+Indexers work only on single :class:`vis.models.indexed_piece.IndexedPiece` instances. To analyze many
+:class:`IndexedPiece` objects together, use an experimenter with an
+:class:`vis.models.aggregated_pieces.AggregatedPieces` object.
 """
 __all__ = ['noterest', 'interval', 'ngram', 'offset', 'repeat']
 

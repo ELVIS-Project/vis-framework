@@ -23,30 +23,34 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Template experimenter.
+Template for writing a new experimenter.
 """
 
 from vis.analyzers import experimenter
 
 
-# pylint: disable=W0613
-def experimenter_func(obj):
-    """
-    docstring
-    """
-    return None
-
-
 class TemplateExperimenter(experimenter.Experimenter):
     """
-    Template for a class to perform an experiment on a music21 stream. Experiments return results
-    that do not make sense to think of as happening at particular times in the piece.
+    Template for a class to make run an experiment on one or more indices.
 
     Use this class when you want to write a new Experimenter subclass.
     """
 
-    possible_settings = []  # list of strings
-    default_settings = {}  # keys are strings, values are anything
+    possible_settings = [u'fake_setting']
+    """
+    This is a list of basestrings that are the names of the settings used in this experimenter.
+    Specify the types and reasons for each setting as though it were an argument list, like this:
+
+    :keyword u'fake_setting': This is a fake setting.
+    :type u'fake_setting': boolean
+    """
+
+    default_settings = {}
+    """
+    The default values for settings named in :const:`possible_settings`. If a setting doesn't have
+    a value in this constant, then it must be specified to the constructor at runtime, or the
+    constructor should raise a :exc:`RuntimeException`.
+    """
 
     def __init__(self, index, settings=None):
         """
@@ -54,10 +58,9 @@ class TemplateExperimenter(experimenter.Experimenter):
 
         Parameters
         ==========
-        :param index: lists or nested lists of pandas.Series or pandas.DataFrame objects.
-            A list (or list of lists) of Series. The minimum and maximum numbers, and whether to use
-            embedded lists, depends on the Experimenter subclass.
-        :type index: list of pandas.Series or pandas.DataFrame
+        :param index: The indices or experimental results to use for this experiment.
+        :type index: list, nested lists, or dict of pandas.Series or pandas.DataFrame, or simply
+            the pandas object itself.
 
         :param settings: A dict of all the settings required by this Experimenter. All required
             settings should be listed in subclasses. Default is None.
@@ -65,7 +68,7 @@ class TemplateExperimenter(experimenter.Experimenter):
 
         Raises
         ======
-        :raises: RuntimeError, if required settings are not present in the ``settings`` argument.
+        :raises: :exc:`RuntimeError` if required settings are not present in the ``settings`` argument.
         """
 
         # Check all required settings are present in the "settings" argument. You must ignore
@@ -85,8 +88,8 @@ class TemplateExperimenter(experimenter.Experimenter):
 
         Returns
         =======
-        :returns: The result of the experiment. Data is stored uniquely depending on the Experiment.
-        :rtype: pandas.Series or pandas.DataFrame
+        :returns: The result of the experiment. Each experiment should describe its data storage.
+        :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame`
         """
 
         # NOTE: We recommend experimenting all possible combinations of anything, when feasible.

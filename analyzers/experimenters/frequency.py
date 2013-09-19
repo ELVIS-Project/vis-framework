@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Frequency experimenter.
+Experimenters that deal with the frequencies (number of occurrences) of events.
 """
 
 import pandas
@@ -37,14 +37,14 @@ def experimenter_func(obj):
     Parameters
     ==========
     :param obj: An identifier plus the results of an indexer.
-    :type obj: (anything, pandas.Series)
+    :type obj: :obj:`tuple` of (anything, :class:`pandas.Series`)
 
     Returns
     =======
     :returns: An identifier plus the result of this indexation. In the series, the index is the
         names of objects found in the inputted series, and the value is the number of occurrences.
         The first element is the first element given here, used for identification purposes.
-    :rtype: (anything, pandas.Series)
+    :rtype: :obj:`tuple` of (anything, :class:`pandas.Series`)
     """
     thing_dict = {}
     for each in obj[1]:
@@ -71,10 +71,10 @@ class FrequencyExperimenter(experimenter.Experimenter):
         ==========
         :param index: A list of Series, where each Series is the result of an indexer for one of
             the parts in this score.
-        :type index: list or dict of Series
+        :type index: :obj:`list` or :obj:`dict` of :class:`pandas.Series`
 
-        :param settings: There are no required settings, so this is ignored.
-        :type settings: dict or None
+        :param settings: This indexer uses no settings, so this is ignored.
+        :type settings: :obj:`dict` or :obj:`None`
         """
         super(FrequencyExperimenter, self).__init__(index, None)
 
@@ -89,7 +89,7 @@ class FrequencyExperimenter(experimenter.Experimenter):
             of the kind of objects found in the given index. Note that all columns are totalled in
             the "all" column, and that not every part combination will have every interval; in case
             an interval does not appear in a part combination, the value is NaN.
-        :rtype: pandas.DataFrame
+        :rtype: :class:`pandas.DataFrame`
         """
         # assemble results per-part
         results = None

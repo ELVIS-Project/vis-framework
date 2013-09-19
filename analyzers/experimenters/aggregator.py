@@ -37,34 +37,32 @@ class ColumnAggregator(experimenter.Experimenter):
     a column with the name u'all', it will *not* be included in the aggregation.
     """
 
-    possible_settings = []  # list of strings
-    default_settings = {}  # keys are strings, values are anything
-
     def __init__(self, index, settings=None):
         """
-        Create a new ColumnAggregator.
+        Create a new :class:`ColumnAggregator`.
 
         Parameters
         ==========
         :param index: The data to aggregate. You should ensure the row index of each pandas object
             can be sensibly combined. The data should be numbers. If a DataFrame has a column with
             the name u'all', it will *not* be included in the aggregation.
-        :type index: pandas.DataFrame or list of pandas.DataFrame or list of pandas.Series
+        :type index: :class:`pandas.DataFrame` or :obj:`list` of :class:`pandas.DataFrame` or of
+            :class:`pandas.Series`
 
-        :param settings: There are no required settings, so this is ignored.
-        :type settings: dict or None
+        :param settings: This indexer uses no settings, so this is ignored.
+        :type settings: :obj:`dict` or :obj:`None`
         """
         super(ColumnAggregator, self).__init__(index, None)
 
     def run(self):
         """
-        Run the ColumnAggregator experiment.
+        Run the :class:`ColumnAggregator` experiment.
 
         Returns
         =======
         :returns: A Series with an index that is the combination of all indices of provided pandas
             objects, and the value is the sum of all the values in the pandas objects.
-        :rtype: pandas.Series
+        :rtype: :class:`pandas.Series`
         """
         # make sure we have a single DataFrame
         if isinstance(self._index, list):
