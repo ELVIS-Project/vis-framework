@@ -70,7 +70,7 @@ class TestIndexedPieceA(TestCase):
     def test_get_data_1(self):
         # get data for an Indexer requiring a Score
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
-        mock_indexer_cls.requires_score = True
+        mock_indexer_cls.required_score_type = music21.stream.Part
         mock_indexer_cls.run = MagicMock()
         mock_indexer_cls.run.return_value = u'ahhh!'
         self.assertEquals(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls]))
@@ -84,7 +84,6 @@ class TestIndexedPieceA(TestCase):
         mock_indexer_cls.__init__ = mock_init
         mock_indexer_cls.run = MagicMock()
         mock_indexer_cls.run.return_value = u'ahhh!'
-        mock_indexer_cls.requires_score = False
         mock_indexer_cls.required_score_type = int
         self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls], data=[14]))
         mock_indexer_cls.run.assert_called_once_with()
@@ -98,14 +97,13 @@ class TestIndexedPieceA(TestCase):
         first_indexer_cls.__init__ = first_init
         first_indexer_cls.run = MagicMock()
         first_indexer_cls.run.return_value = [14]
-        first_indexer_cls.requires_score = True
+        first_indexer_cls.required_score_type = music21.stream.Part
         second_indexer_cls = type('MockIndexer', (Indexer,), {})
         second_init = MagicMock()
         second_init.return_value = None
         second_indexer_cls.__init__ = second_init
         second_indexer_cls.run = MagicMock()
         second_indexer_cls.run.return_value = u'ahhh!'
-        second_indexer_cls.requires_score = False
         second_indexer_cls.required_score_type = int
         self.assertEqual(u'ahhh!', self.ind_piece.get_data([first_indexer_cls, second_indexer_cls]))
         first_init.assert_called_once_with([], None)
@@ -121,14 +119,13 @@ class TestIndexedPieceA(TestCase):
         first_indexer_cls.__init__ = first_init
         first_indexer_cls.run = MagicMock()
         first_indexer_cls.run.return_value = [14]
-        first_indexer_cls.requires_score = True
+        first_indexer_cls.required_score_type = music21.stream.Part
         second_indexer_cls = type('MockIndexer', (Indexer,), {})
         second_init = MagicMock()
         second_init.return_value = None
         second_indexer_cls.__init__ = second_init
         second_indexer_cls.run = MagicMock()
         second_indexer_cls.run.return_value = u'ahhh!'
-        second_indexer_cls.requires_score = False
         second_indexer_cls.required_score_type = int
         settings_dict = {u'fake setting': u'so good!'}
         self.assertEqual(u'ahhh!', self.ind_piece.get_data([first_indexer_cls, second_indexer_cls],
@@ -147,7 +144,7 @@ class TestIndexedPieceA(TestCase):
         mock_indexer_cls.__init__ = mock_init
         mock_indexer_cls.run = MagicMock()
         mock_indexer_cls.run.return_value = [14]
-        mock_indexer_cls.requires_score = True
+        mock_indexer_cls.required_score_type = music21.stream.Part
         mock_experimenter_cls = type('MockIndexer', (Experimenter,), {})
         exp_init = MagicMock()
         exp_init.return_value = None
@@ -165,7 +162,6 @@ class TestIndexedPieceA(TestCase):
         # That get_data() complains when an Indexer expects the results of another Indexer but
         # doesn't get them.
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
-        mock_indexer_cls.requires_score = False
         mock_indexer_cls.required_score_type = pandas.Series
         self.assertRaises(RuntimeError, self.ind_piece.get_data, [mock_indexer_cls])
 
@@ -189,7 +185,6 @@ class TestIndexedPieceA(TestCase):
             mock_indexer_cls = type('MockIndexer', (Indexer,), {})
             mock_indexer_cls.run = MagicMock()
             mock_indexer_cls.run.return_value = [400]
-            mock_indexer_cls.requires_score = False
             actual = self.ind_piece.get_data([noterest.NoteRestIndexer, mock_indexer_cls])
             mock_gnri.assert_called_once_with()
             mock_indexer_cls.run.assert_called_once_with()
@@ -208,7 +203,6 @@ class TestIndexedPieceA(TestCase):
             mock_nri = MagicMock(return_value=[14])
             mock_nri.run = MagicMock()
             mock_nri.run.return_value = [14]
-            #mock_nri.requires_score = True
             mock_nri_cls.return_value = mock_nri
             expected = [14]
             actual = self.ind_piece._get_note_rest_index()
