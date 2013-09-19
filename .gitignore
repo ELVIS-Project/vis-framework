@@ -13,6 +13,7 @@ extra_trials/*
 views/ui/Ui_*.py
 *.nja
 *.komodoproject
+doc/api/_build/*
 
 *.py[co]
 

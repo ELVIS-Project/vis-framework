@@ -1,0 +1,38 @@
+experimenters Package
+=====================
+
+:mod:`experimenters` Package
+----------------------------
+
+.. automodule:: vis.analyzers.experimenters
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`aggregator` Module
+------------------------
+
+.. automodule:: vis.analyzers.experimenters.aggregator
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :special-members:
+
+:mod:`frequency` Module
+-----------------------
+
+.. automodule:: vis.analyzers.experimenters.frequency
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :special-members:
+
+:mod:`template` Module
+----------------------
+
+.. automodule:: vis.analyzers.experimenters.template
+    :members:
+    :undoc-members:
+    :show-inheritance:
+    :special-members:
+
