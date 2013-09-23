@@ -36,18 +36,38 @@ except ImportError:
     sys.path.insert(0, '..')
 
 import sys
-from vis.controllers.vis_controller import VisController
-from multiprocessing import freeze_support
+from PyQt4 import QtCore, QtGui
+from vis.views.main import VisQtMainWindow
+
+
+class GuiController(QtCore.QObject):
+    """
+    Base class for all vis controllers.
+    """
+
+    def __init__(self):
+        """
+        Creates a new instance, and assigns the appropriate widget.
+        """
+        super(GuiController, self).__init__()
+        self.app = QtGui.QApplication(sys.argv)
+        self.window = VisQtMainWindow(self)
+
+    def setup_signals(self):
+        """
+        Set methods of this controller as the slot for relevant signals emitted
+        by the GUI.
+        """
+        pass
 
 
 def main():
     """
     The main execution loop.
     """
-    gui_controller = VisController(sys.argv)
-    sys.exit(gui_controller.exec_())
+    gui_controller = GuiController()
+    sys.exit(gui_controller.app.exec_())
 
 
 if __name__ == '__main__':
-    freeze_support()
     main()

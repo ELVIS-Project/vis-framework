@@ -38,7 +38,6 @@ from music21.note import Note, Rest
 from music21.chord import Chord
 from music21 import freezeThaw
 # vis
-import settings
 
 
 class ListOfPieces(QAbstractTableModel):
@@ -79,7 +78,7 @@ class ListOfPieces(QAbstractTableModel):
     ScoreRole = 'This is an object for the ScoreRole'
 
     # This is the default values for every new row created
-    default_row = ['', None, [], [0.5], '(no selection)', False]
+    default_row = ['', None, [], u'(optional)', '(no selection)', False]
     # NOTE:
     # When you change this default_row, you must also change the value in this test:
     # models.test_analyzing.TestListOfPiecesInsertAndRemoveRows.test_insert_7()
@@ -462,41 +461,3 @@ class AnalysisRecord(object):
             return self._record[-1]
         else:
             return (None, None)
-
-
-class AnalysisSettings(settings.Settings):
-    """
-    Hold settings relevant to conducting analyses.
-
-    All the possible settings:
-    - types : a list of 2-tuples, where element 0 is a type you want to count as an "event,"
-                and element 1 is a function that produces a string version suitable for an
-                AnalysisRecord instance.
-    - offset : the minimum quarterLength offset between consecutive events
-    - salami : if True, all events will be the offset distance from each
-        other, even if this produces a series of identical events
-    """
-
-    def __init__(self):
-        """
-        Create an empty AnalysisSettings instance.
-        """
-        setts = {
-            'types': settings.MultiChoiceSetting(
-            # TODO: include other interesting choices here, possibly
-            # dynamically drawn from music21
-            choices=[(Note, 'Note'),
-                        (Rest, 'Rest'),
-                        (Chord, 'Chord')],
-            display_name="Find these types of object"
-            ),
-            'offset': settings.PositiveNumberSetting(settings.FloatSetting)(
-            0.5,
-            display_name="Offset"
-            ),
-            'salami': settings.BooleanSetting(
-            False,
-            display_name="Include repeated identical events"
-            )
-        }
-        super(AnalysisSettings, self).__init__(setts)

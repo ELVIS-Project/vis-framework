@@ -29,7 +29,9 @@
 This module contains the data model classes for vis.
 """
 
-__all__ = ['aggregated_pieces', 'indexed_piece']
+__all__ = ['aggregated_pieces', 'indexed_piece', 'analyzing', 'importing']
 
 from vis.models import aggregated_pieces
 from vis.models import indexed_piece
+from vis.models import importing
+from vis.models import analyzing

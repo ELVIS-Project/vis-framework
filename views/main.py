@@ -37,8 +37,10 @@ from PyQt4 import QtGui, QtCore
 # music21
 from music21 import metadata, converter, stream
 # vis
-from models.analyzing import ListOfPieces
-from views.VisOffsetSelector import VisOffsetSelector
+from vis.analyzers import indexers
+from vis.models.importing import ListOfFiles
+from vis.models.analyzing import ListOfPieces
+from vis.views.VisOffsetSelector import VisOffsetSelector
 from Ui_main_window import Ui_MainWindow
 from vis.models.indexed_piece import IndexedPiece
 
@@ -82,7 +84,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.btn_about.clicked, self._tool_about),
             (self.ui.btn_analyze.clicked, self._tool_analyze),
             (self.ui.btn_experiment.clicked, self._tool_experiment),
-            (self.ui.btn_dir_add.clicked, self._add_dir),
             (self.ui.btn_file_add.clicked, self._add_files),
             (self.ui.btn_file_remove.clicked, self._remove_files),
             (self.ui.btn_show_results.clicked, self._prepare_experiment_submission),
@@ -97,7 +98,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.line_offset_interval.editingFinished, self._update_offset_interval),
             (self.ui.gui_pieces_list.selection_changed, self._update_pieces_selection),
             (self.ui.btn_choose_note.clicked, self._launch_offset_selection),
-            (self.ui.rdo_consider_chord_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_score.clicked, self._update_experiment_from_object),
@@ -116,6 +116,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.progress_bar.setValue(42)
         # visX setup
         self._list_of_ips = None  # holds the IndexedPiece instances
+        self._list_of_files = ListOfFiles()
+        self.ui.gui_file_list.setModel(self._list_of_files)
+        self._list_of_pieces = ListOfPieces()
+        self.ui.gui_pieces_list.setModel(self._list_of_pieces)
 
     # Methods Doing GUI Stuff ---------------------------------------------------
     # Pressing Buttons in the Toolbar -----------------------
@@ -200,7 +204,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         ask the user to choose some pieces.
         """
         # check there are more than 0 pieces for the Importer
-        if self.vis_controller.importer.has_files():
+        if 0 != self._list_of_files.rowCount():
             # then go!
             self._tool_working()
             # if there are previously-added pieces, warn the user they'll be removed
@@ -212,13 +216,13 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
                 QtGui.QMessageBox.Ok)
             # make the list
             self._list_of_ips = []
-            for each_path in self.vis_controller.importer._list_of_files:
-                self._list_of_ips.append(IndexedPiece(each_path))
+            for each_piece in self._list_of_files:
+                self._list_of_ips.append(each_piece)
             # do the importing and run the NoteRestIndexer
             for each_ip in self._list_of_ips:
-                each_ip.add_index(u'noterest.NoteRestIndexer')
+                each_ip.get_data([indexers.noterest.NoteRestIndexer])
             # put everything in the ListOfPieces, so we can collect settings and whatever
-            post = self.vis_controller.analyzer._list_of_pieces
+            post = self._list_of_pieces
             for i_piece in self._list_of_ips:
                 post.insertRows(post.rowCount(), 1)
                 new_row = post.rowCount() - 1
@@ -230,8 +234,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         else:
             # then ask the user to stop being a jerk
             QtGui.QMessageBox.information(None,
-            u"Please Select Pieces",
-            u"""The list of pieces is empty.
+            u"Please Select Files",
+            u"""The list of files is empty.
 
 You must choose pieces before we can import them.""",
             QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
@@ -250,7 +254,11 @@ You must choose pieces before we can import them.""",
             # that entirely prevent them from selecting files. So here we are.
             # 'music21 Files (*.nwc *.mid *.midi *.mxl *.krn *.xml *.md)')  # filter
         if files:
-            self.vis_controller.import_files_added.emit([unicode(f) for f in files])
+            #self.vis_controller.import_files_added.emit([unicode(f) for f in files])
+            row_count = self._list_of_files.rowCount()
+            self._list_of_files.insertRows(row_count, len(files))
+            for i, file in enumerate(files):
+                self._list_of_files.setData(row_count + i, file, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()
     def _add_dir(self):
@@ -274,10 +282,14 @@ You must choose pieces before we can import them.""",
         containing their names.
         """
         # which indices are currently selected?
-        currently_selected = self.ui.gui_file_list.selectedIndexes()
+        #currently_selected = self.ui.gui_file_list.selectedIndexes()
+        # take the cheap way out
+        QtGui.QMessageBox.information(None,
+            "vis",
+            "I didn't write that yet.",
+            QtGui.QMessageBox.StandardButtons(\
+                QtGui.QMessageBox.RestoreDefaults))
 
-        # send this to the VISController
-        self.vis_controller.import_files_removed.emit(currently_selected)
 
     # Operations on the "Working" Panel ---------------------
     @QtCore.pyqtSlot(str)
@@ -344,7 +356,7 @@ You must choose pieces before we can import them.""",
         "add voice pair" button!
         """
         # check that all the pieces have at least one part combination selected
-        for each_piece in self.vis_controller.analyzer._list_of_pieces:
+        for each_piece in self._list_of_pieces:
             combos = each_piece[ListOfPieces.parts_combinations]
             combos = combos.toPyObject() if isinstance(combos, QtCore.QVariant) else combos
             combos = unicode(combos)
@@ -377,19 +389,23 @@ Do you want to go back and add the part combination?""",
                 if response == QtGui.QMessageBox.Yes:
                     return None
 
-        # final step: see which objects they want us to analyze
-        which_objects = []
-        if self.ui.chk_find_chords.isChecked():
-            which_objects.append(u'chords')
-        if self.ui.chk_find_notes.isChecked():
-            which_objects.append(u'notes')
-        if self.ui.chk_find_rests.isChecked():
-            which_objects.append(u'rests')
-        self.vis_controller.analyzer.which_objects = which_objects
+        setts = {u'quality': self.ui.rdo_heedQuality.isChecked(),
+                 u'simple or compound': u'compound' if self.ui.rdo_compound.isChecked() else \
+                    u'simple'}
 
         # Actually start the experiment
         self._tool_working()
-        self.vis_controller.run_the_analysis.emit()
+        self._vert_ints = []
+        for ip in self._list_of_ips:
+            self._vert_ints.append(ip.get_data([indexers.noterest.NoteRestIndexer,
+                                                indexers.interval.IntervalIndexer],
+                                                setts))
+
+        # DEBUG
+        for asdf in self._vert_ints:
+            print(str(asdf))
+
+        self._tool_experiment()
 
     @QtCore.pyqtSlot()  # self.ui.chk_all_voice_combos.clicked
     def _all_voice_pairs(self):
@@ -415,25 +431,10 @@ Do you want to go back and add the part combination?""",
                 # This is a little tricky, because we'll change the Score object's
                 # Metadata object directly...
                 # Get the Score
-                piece = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
-                # unpickle the score, if relevant
-                was_pickled = False  # so we know whether to re-pickle
-                if not isinstance(piece, stream.Score):
-                    was_pickled = True
-                    piece = converter.thawStr(piece)
-                # Make sure there's a Metadata object
-                if piece.metadata is None:
-                    piece.insert(metadata.Metadata())
+                piece = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
                 # Update the title, saving it for later
                 new_title = unicode(self.ui.line_piece_title.text())
-                piece.metadata.title = new_title
-                # re-pickle the score, if needed
-                if was_pickled:
-                    piece = converter.freezeStr(piece, fmt='pickle')
-                # Tell the Analyzer to change its setting!
-                # NB: the second argument has to be 2-tuple with the Score object
-                # and the string that is the title, as specified in ListOfPieces
-                self.vis_controller.analyzer.change_settings.emit(cell, (piece, new_title))
+                piece.metadata(u'title', new_title)
 
     @QtCore.pyqtSlot()  # self.ui.chk_repeat_identical.stateChanged
     def _update_repeat_identical(self):
@@ -441,11 +442,10 @@ Do you want to go back and add the part combination?""",
         # what was the QCheckBox changed to?
         changed_to = self.ui.chk_repeat_identical.isChecked()
 
-        # Find the piece title and update it
+        # Find the piece and update its settings
         for cell in self.ui.gui_pieces_list.selectedIndexes():
             if ListOfPieces.repeat_identical == cell.column():
-                # Update the piece
-                self.vis_controller.analyzer.change_settings.emit(cell, changed_to)
+                self._list_of_pieces.setData(cell, changed_to, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.btn_add_check_combo.clicked
     def _add_parts_combination(self):
@@ -547,7 +547,7 @@ Do you want to go back and add the part combination?""",
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
             if ListOfPieces.parts_combinations == cell.column():
-                self.vis_controller.analyzer.change_settings.emit(cell, part_spec)
+                self._list_of_pieces.setData(cell, part_spec, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.line_offset_interval.editingFinished
     def _update_offset_interval(self):
@@ -564,7 +564,7 @@ Do you want to go back and add the part combination?""",
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
             if ListOfPieces.offset_intervals == cell.column():
-                self.vis_controller.analyzer.change_settings.emit(cell, new_offset_interval)
+                self._list_of_pieces.setData(cell, new_offset_interval, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.gui_pieces_list.clicked
     def _update_pieces_selection(self):
@@ -606,7 +606,7 @@ Do you want to go back and add the part combination?""",
             lists_of_part_names = []
             for cell in currently_selected:
                 if ListOfPieces.parts_list == cell.column():
-                    lists_of_part_names.append(self.vis_controller.l_o_pieces.data(cell,
+                    lists_of_part_names.append(self._list_of_pieces.data(cell,
                         ListOfPieces.ScoreRole))
             # 2.2: See if each piece has the same number of parts
             number_of_parts = 0
@@ -637,9 +637,9 @@ Do you want to go back and add the part combination?""",
                 if ListOfPieces.offset_intervals == cell.column():
                     if first_offset is None:
                         # TODO: whatever
-                        first_offset = self.vis_controller.l_o_pieces.\
+                        first_offset = self._list_of_pieces.\
                         data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_offset == self.vis_controller.l_o_pieces.\
+                    elif first_offset == self._list_of_pieces.\
                     data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
@@ -651,9 +651,9 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.parts_combinations == cell.column():
                     if first_comp is None:
-                        first_comp = self.vis_controller.l_o_pieces.\
+                        first_comp = self._list_of_pieces.\
                         data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_comp == self.vis_controller.l_o_pieces.\
+                    elif first_comp == self._list_of_pieces.\
                     data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
@@ -685,7 +685,7 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.offset_intervals == cell.column():
                     self.ui.line_offset_interval.setText(unicode(
-                    self.vis_controller.l_o_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
+                    self._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                     break
             # (4) Update "Compare These Parts"
             self._update_comparison_parts(currently_selected)
@@ -693,7 +693,7 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.score == cell.column():
                     self.ui.line_piece_title.setText(
-                    unicode(self.vis_controller.l_o_pieces.data(cell,
+                    unicode(self._list_of_pieces.data(cell,
                         QtCore.Qt.DisplayRole).toPyObject()))
                     break
 
@@ -711,7 +711,7 @@ Do you want to go back and add the part combination?""",
 
         for cell in currently_selected:
             if ListOfPieces.parts_combinations == cell.column():
-                comparison_parts = unicode(self.vis_controller.l_o_pieces.
+                comparison_parts = unicode(self._list_of_pieces.
                     data(cell, QtCore.Qt.DisplayRole).toPyObject())
                 self.ui.line_compare_these_parts.setText(comparison_parts)
                 if u'[all]' == comparison_parts:
@@ -748,13 +748,13 @@ Do you want to go back and add the part combination?""",
                 # We're just going to change the part name in the model, not in the
                 # actual Score object itself (which would require re-loading)
                 # 1.) Get the parts list
-                parts = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
+                parts = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
                 # 2.) Update the part name as requested
                 parts[part_index] = new_name
                 # 3.) Convert the part names to str objects (from QString)
                 parts = [unicode(name) for name in parts]
                 # 4.) Update the data model and QCheckBox objects
-                self.vis_controller.l_o_pieces.setData(cell, parts, QtCore.Qt.EditRole)
+                self._list_of_pieces.setData(cell, parts, QtCore.Qt.EditRole)
                 self._update_pieces_selection()
 
     # Not a pyqtSlot
@@ -799,7 +799,7 @@ Do you want to go back and add the part combination?""",
         list_of_parts = None
         for cell in currently_selected:
             if ListOfPieces.parts_list == cell.column():
-                list_of_parts = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
+                list_of_parts = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
                 break
         # deal with a possible "no_name" argument
         if no_name:
@@ -857,7 +857,7 @@ Do you want to go back and add the part combination?""",
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
             if ListOfPieces.offset_intervals == cell.column():
-                self.vis_controller.l_o_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
+                self._list_of_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
 
         # Just to make sure we get rid of this
         selector = None
