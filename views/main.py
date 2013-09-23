@@ -498,7 +498,7 @@ Do you want to go back and add the part combination?""",
                 # Update the parts selection
                 self._update_parts_selection(new_spec)
             # Does curr_spec include "[all]"?
-            elif u'[all]' == curr_spec or u'[all pairs]':
+            elif u'[all]' == curr_spec or u'[all pairs]' == curr_spec:
                 # we'll just make a new one, and un-check the "all" QCheckBox
                 new_spec = u'[' + vis_format + u']'
                 self.ui.chk_all_voice_combos.setChecked(False)
@@ -519,7 +519,6 @@ Do you want to go back and add the part combination?""",
                 self._update_parts_selection(new_spec)
 
         # Also clear the part-selection checkboxes
-        #self.ui.chk_basso_seguente.setChecked(False)
         for box in self.part_checkboxes:
             box.setChecked(False)
 
