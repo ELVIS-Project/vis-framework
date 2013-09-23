@@ -440,7 +440,7 @@
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>384</width>
+                      <width>376</width>
                       <height>76</height>
                      </rect>
                     </property>
@@ -492,53 +492,62 @@
                 </property>
                </widget>
               </item>
-              <item row="9" column="0">
-               <widget class="QGroupBox" name="grp_quality">
+              <item row="9" column="0" colspan="3">
+               <widget class="QGroupBox" name="groupBox_3">
                 <property name="title">
-                 <string>Interval Quality</string>
+                 <string>Settings for All Pieces</string>
                 </property>
-                <layout class="QVBoxLayout" name="verticalLayout_10">
+                <layout class="QHBoxLayout" name="horizontalLayout_2">
                  <item>
-                  <widget class="QRadioButton" name="rdo_heedQuality">
-                   <property name="text">
-                    <string>Display</string>
+                  <widget class="QGroupBox" name="grp_quality">
+                   <property name="title">
+                    <string>Interval Quality</string>
                    </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_10">
+                    <item>
+                     <widget class="QRadioButton" name="rdo_heedQuality">
+                      <property name="text">
+                       <string>Display</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="rdo_noHeedQuality">
+                      <property name="text">
+                       <string>Ignore</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QRadioButton" name="rdo_noHeedQuality">
-                   <property name="text">
-                    <string>Ignore</string>
+                  <widget class="QGroupBox" name="grp_octaves">
+                   <property name="title">
+                    <string>Octaves</string>
                    </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item row="9" column="1">
-               <widget class="QGroupBox" name="grp_octaves">
-                <property name="title">
-                 <string>Octaves</string>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_13">
-                 <item>
-                  <widget class="QRadioButton" name="rdo_compound">
-                   <property name="text">
-                    <string>Compound Intervals</string>
-                   </property>
-                   <property name="checked">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="rdo_simple">
-                   <property name="text">
-                    <string>Simple Intervals</string>
-                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_13">
+                    <item>
+                     <widget class="QRadioButton" name="rdo_compound">
+                      <property name="text">
+                       <string>Compound Intervals</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="rdo_simple">
+                      <property name="text">
+                       <string>Simple Intervals</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </item>
                 </layout>
