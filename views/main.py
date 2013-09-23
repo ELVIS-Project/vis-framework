@@ -905,14 +905,6 @@ Do you want to go back and add the part combination?""",
                     list_of_settings.append(('experiment', 'LilyPondExperiment'))
                     list_of_settings.append(('lilypond helper', 'IntervalsLists'))
                     list_of_settings.append(('output format', 'LilyPondDisplay'))
-            elif self.ui.rdo_consider_chord_ngrams.isChecked():
-                if self.ui.rdo_spreadsheet.isChecked():
-                    list_of_settings.append(('experiment', 'ChordsList'))
-                    list_of_settings.append(('output format', 'SpreadsheetFile'))
-                elif self.ui.rdo_score.isChecked():
-                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
-                    list_of_settings.append(('lilypond helper', 'ChordsList'))
-                    list_of_settings.append(('output format', 'LilyPondDisplay'))
             elif self.ui.rdo_consider_interval_ngrams.isChecked():
                 if self.ui.rdo_list.isChecked():
                     list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
@@ -989,13 +981,6 @@ Do you want to go back and add the part combination?""",
                 # TODO: this better
                 list_of_settings.append(('annotate these', [a_these]))
 
-        def do_chord_parser():
-            "Use the ChordParser? How long the quarterLength?"
-            try:
-                list_of_settings.append(('chord parse length',
-                    float(self.ui.line_chord_parser.text())))
-            except ValueError:
-                pass
 
         # (1) Figure out the settings
         # TODO: ensure these are chosen dynamically, to correspond to the GUI
@@ -1018,15 +1003,14 @@ Do you want to go back and add the part combination?""",
         do_ignore_inversion()
         # (1h) Annotate These N-Grams
         do_annotate_these()
-        # (1i) Should we run the ChordParser?
-        do_chord_parser()
 
         # (2) Set the settings
         for setting in list_of_settings:
-            self.vis_controller.experiment_setting.emit(setting)
+            print setting
+            #self.vis_controller.experiment_setting.emit(setting)
 
         # (3) Run the experiment
-        self.vis_controller.run_the_experiment.emit()
+        #self.vis_controller.run_the_experiment.emit()
 
     @QtCore.pyqtSlot()  # self.ui.rdo_consider_***.clicked()
     def _update_experiment_from_object(self):
@@ -1044,7 +1028,6 @@ Do you want to go back and add the part combination?""",
                            self.ui.rdo_score,
                            self.ui.grp_annotate_these,
                            self.ui.grp_ignore_inversion,
-                           self.ui.group_chord_parser,
                            self.ui.grp_annotate_these]
 
         def on_offer(enable_these):
@@ -1071,9 +1054,6 @@ Do you want to go back and add the part combination?""",
         elif self.ui.rdo_consider_interval_ngrams.isChecked():
             which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
                                self.ui.grp_quality, self.ui.rdo_chart, self.ui.grp_ignore_inversion]
-        elif self.ui.rdo_consider_chord_ngrams.isChecked():
-            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n, self.ui.rdo_score,
-                               self.ui.group_chord_parser]
         elif self.ui.rdo_consider_score.isChecked():
             which_to_enable = [self.ui.rdo_score]
 
