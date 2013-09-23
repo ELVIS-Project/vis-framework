@@ -110,6 +110,10 @@ class ListOfPieces(QAbstractTableModel):
         Qt.DisplayRole or ListOfPieces.ScoreRole. For a list of the columns that support ScoreRole,
         see the descriptions below.
 
+        Index is a 2-tuple. Element 0 is the row, it's an int corresponding to the IndexedPiece you
+        want. Element 1 is the column, which is the attribute, which is a ListOfPieces class
+        variable (see the list below).
+
         Note about Return Types:
         If the role is Qt.DisplayRole, then this method always wraps its return value in a QVariant
         object; otherwise, the original object type is returned.
@@ -119,7 +123,7 @@ class ListOfPieces(QAbstractTableModel):
         - ListOfPieces.filename : string
         - ListOfPieces.score : either...
             - vis.models.inexed_piece.IndexedPiece (for ListOfPieces.ScoreRole)
-            - string (for Qt.DisplayRole)
+            - the piece title, a string (for Qt.DisplayRole)
         - ListOfPieces.parts_list : either...
             - list of string objects that are the part names (for ListOfPiece.ScoreRole)
             - string (for Qt.DisplayRole)
