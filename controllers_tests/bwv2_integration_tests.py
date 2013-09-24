@@ -125,10 +125,10 @@ class AllVoiceIntervalNGrams(TestCase):
         vert_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                          interval.IntervalIndexer],
                                         setts)
-        parts = [vert_ints[u'[0, 3]'],
-                 vert_ints[u'[1, 3]'],
-                 vert_ints[u'[2, 3]'],
-                 horiz_ints[u'[7, 3]']]
+        parts = [vert_ints[u'0,3'],
+                 vert_ints[u'1,3'],
+                 vert_ints[u'2,3'],
+                 horiz_ints[3]]
         setts[u'vertical'] = [0, 1, 2]
         setts[u'horizontal'] = [3]
         setts[u'mark singles'] = False
@@ -157,30 +157,30 @@ class AllVoiceIntervalNGrams(TestCase):
         #print(str(actual))  # DEBUG
         ## TODO: add a frequency part
 
-    def test_ngrams_3(self):
-        # test frequency of all-voice interval 1-grams
-        ind_piece = IndexedPiece(u'test_corpus/bwv2.xml')
-        setts = {u'quality': False, u'simple': False}
-        horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
-                                         interval.HorizontalIntervalIndexer],
-                                        setts)
-        vert_ints = ind_piece.get_data([noterest.NoteRestIndexer,
-                                         interval.IntervalIndexer],
-                                        setts)
-        parts = [vert_ints[u'[0, 3]'],
-                 vert_ints[u'[1, 3]'],
-                 vert_ints[u'[2, 3]'],
-                 horiz_ints[u'[7, 3]']]
-        setts[u'vertical'] = [0, 1, 2]
-        setts[u'horizontal'] = [3]
-        setts[u'mark singles'] = False
-        setts[u'continuer'] = u'P1'
-        setts[u'n'] = 1
-        actual = ind_piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter], setts, parts)
-        #self.assertEqual(1, len(actual))
-        #actual = actual[0]
-        print(str(actual))  # DEBUG
-        # TODO: add a frequency part
+    #def test_ngrams_3(self):
+        ## test frequency of all-voice interval 1-grams
+        #ind_piece = IndexedPiece(u'test_corpus/bwv2.xml')
+        #setts = {u'quality': False, u'simple': False}
+        #horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
+                                         #interval.HorizontalIntervalIndexer],
+                                        #setts)
+        #vert_ints = ind_piece.get_data([noterest.NoteRestIndexer,
+                                         #interval.IntervalIndexer],
+                                        #setts)
+        #parts = [vert_ints[u'0,3'],
+                 #vert_ints[u'1,3'],
+                 #vert_ints[u'2,3'],
+                 #horiz_ints[3]]
+        #setts[u'vertical'] = [0, 1, 2]
+        #setts[u'horizontal'] = [3]
+        #setts[u'mark singles'] = False
+        #setts[u'continuer'] = u'P1'
+        #setts[u'n'] = 1
+        #actual = ind_piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter], setts, parts)
+        ##self.assertEqual(1, len(actual))
+        ##actual = actual[0]
+        #print(str(actual))  # DEBUG
+        ## TODO: add a frequency part
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
