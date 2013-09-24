@@ -888,7 +888,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         res = int_indexer.run()
-        actual = res[u'[1, 0]'][:26]
+        actual = res[0][:26]
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -901,7 +901,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         #setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts)
         res = int_indexer.run()
-        actual = res[u'[1, 0]'][:26]
+        actual = res[0][:26]
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -914,7 +914,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         setts = {u'simple or compound': u'simple', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         res = int_indexer.run()
-        actual = res[u'[1, 0]'][:26]
+        actual = res[0][:26]
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -927,7 +927,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         setts = {u'simple or compound': u'simple', u'quality': False}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         res = int_indexer.run()
-        actual = res[u'[1, 0]'][:26]
+        actual = res[0][:26]
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -940,7 +940,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         res = int_indexer.run()
-        actual = res[u'[1, 0]']
+        actual = res[0]
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)

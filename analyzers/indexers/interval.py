@@ -142,7 +142,7 @@ class IntervalIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Create a new :class:`IntervalIndexer`. The output format is described in :method:`run`.
+        Create a new :class:`IntervalIndexer`. The output format is described in :meth:`run`.
 
         Parameters
         ==========
@@ -216,68 +216,29 @@ class IntervalIndexer(indexer.Indexer):
         return post
 
 
-class HorizontalIntervalIndexer(indexer.Indexer):
-    # TODO: subclass IntervalIndexer
-    # TODO: rewrite the docstrings after that
+class HorizontalIntervalIndexer(IntervalIndexer):
     """
-    Create an index of music21.interval.Interval objects found between consecutive events in the
-    same part, from the results of NoteRestIndexer.
+    Use :class:`music21.interval.Interval` to create an index of the horizontal (melodic) intervals
+    in a single part.
 
-    This indexer does not require a score.
+    You should provide the result of :class:`NoteRestIndexer`.
     """
-
-    required_score_type = pandas.Series
-    possible_settings = [u'simple or compound', u'quality']
-    default_settings = {u'simple or compound': u'compound', u'quality': False}
 
     def __init__(self, score, settings=None):
         """
-        Create a new HorizontalIntervalIndexer. For the output format, see the docs for
-        IntervalIndexer.indexer_func().
+        Create a new :class:`HorizontalIntervalIndexer`. The output format is described in
+        :meth:`run`.
 
         Parameters
         ==========
-        :param score:
-            The output of NoteRestIndexer for all parts in a piece.
-        :type score: list of pandas.Series
+        :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
+        :type score: :obj:`list` of :class:`pandas.Series`
 
-        :param settings: A dict of relevant settings, both optional. These are:
-            - 'simple or compound' : 'simple' or 'compound'
-                Whether intervals should be represented in their single-octave form. Defaults to
-                'compound'.
-            - 'quality' : boolean
-                Whether to consider the quality of intervals. Optional. Defaults to False.
-        :type settings: dict
+        :param settings: Required and optional settings. See descriptions in
+            :const:`IntervalIndexer.possible_settings`.
+        :type settings: :obj:`dict`
         """
-
-        if settings is None:
-            settings = {}
-
-        # Check all required settings are present in the "settings" argument
-        self._settings = {}
-        if 'simple or compound' in settings:
-            self._settings['simple or compound'] = settings['simple or compound']
-        else:
-            self._settings['simple or compound'] = IntervalIndexer.default_settings[
-                'simple or compound']  # pylint: disable=C0301
-        if 'quality' in settings:
-            self._settings['quality'] = settings['quality']
-        else:
-            self._settings['quality'] = IntervalIndexer.default_settings['quality']
-
-        super(HorizontalIntervalIndexer, self).__init__(score, None)
-
-        # Which indexer function to set?
-        if self._settings['quality']:
-            if 'simple' == self._settings['simple or compound']:
-                self._indexer_func = indexer_qual_simple
-            else:
-                self._indexer_func = indexer_qual_comp
-        else:
-            if 'simple' == self._settings['simple or compound']:
-                self._indexer_func = indexer_nq_simple
-            else:
-                self._indexer_func = indexer_nq_comp
+        super(HorizontalIntervalIndexer, self).__init__(score, settings)
 
     def run(self):
         """
@@ -285,14 +246,12 @@ class HorizontalIntervalIndexer(indexer.Indexer):
 
         Returns
         =======
-        :returns: A dict of the new indices. The index of each Series corresponds to the indices of
-            the Part combinations used to generate it, in the order specified to the constructor.
-            Each element in the Series is a unicode. Example, if you stored output of run() in the
-            "result" variable: result['[0, 1]'] : the highest and second highest parts.
-        :rtype: dict of pandas.Series
+        :returns: A list of the new indices. The index of each Series corresponds to the index it
+            has in the list of :class:`Series` given to the constructor.
+        :rtype: :obj:`list` of :class:`pandas.Series`
         """
         # This indexer is a little tricky, since we must fake "horizontality" so we can use the
-        # same _do_multiprocessing() method as always.
+        # same _do_multiprocessing() method as in the IntervalIndexer.
 
         # First we'll make two copies of each part's NoteRest index. One copy will be missing the
         # first element, and the other will be missing the last element. We'll also use the index
@@ -310,13 +269,4 @@ class HorizontalIntervalIndexer(indexer.Indexer):
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
-        results = self._do_multiprocessing(combinations)
-
-        # Do applicable post-processing, like adding a label for voice combinations.
-        post = {}
-        for i, combo in enumerate(combinations):
-            post[str(combo)] = results[i]
-
-        # Return the results.
-        return post
-
+        return self._do_multiprocessing(combinations)
