@@ -32,7 +32,8 @@
 import unittest
 import pandas
 from music21 import interval, note
-from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, real_indexer
+from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, \
+    real_indexer, key_to_tuple
 from vis.analyzers_tests.test_note_rest_indexer import TestNoteRestIndexer
 
 
@@ -71,7 +72,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -85,7 +86,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -98,7 +99,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -111,7 +112,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -125,7 +126,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -138,7 +139,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -155,7 +156,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -170,7 +171,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -186,7 +187,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -199,7 +200,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -212,7 +213,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -227,7 +228,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -245,7 +246,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -271,7 +272,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -290,7 +291,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -309,7 +310,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -330,11 +331,23 @@ class TestIntervalIndexerShort(unittest.TestCase):
         test_in = TestIntervalIndexerShort.pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
                                       {u'quality': True, u'simple or compound': u'compound'})
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
             self.assertEqual(expected[i][1], actual[ind])
+
+    def test_key_to_tuple_1(self):
+        in_val = u'5,6'
+        expected = (5, 6)
+        actual = key_to_tuple(in_val)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_key_to_tuple_2(self):
+        in_val = u'234522,98100'
+        expected = (234522, 98100)
+        actual = key_to_tuple(in_val)
+        self.assertSequenceEqual(expected, actual)
 
 
 class TestIntervalIndexerLong(unittest.TestCase):
@@ -527,7 +540,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         expected = TestIntervalIndexerLong.bwv77_S_B_basis
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = IntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -539,7 +552,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         expected = TestIntervalIndexerLong.bwv77_S_B_small_simple_qual
         setts = {u'simple or compound': u'simple', u'quality': True}
         int_indexer = IntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -552,7 +565,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         expected = TestIntervalIndexerLong.bwv77_S_B_small_compound_noqual
         #setts = {}
         int_indexer = IntervalIndexer(test_parts)
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)
@@ -564,7 +577,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         expected = TestIntervalIndexerLong.bwv77_S_B_small_simple_noqual
         setts = {u'simple or compound': u'simple'}
         int_indexer = IntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()[u'[0, 1]']
+        actual = int_indexer.run()[u'0,1']
         self.assertEqual(len(expected), len(actual))
         for i, ind in enumerate(list(actual.index)):
             self.assertEqual(expected[i][0], ind)

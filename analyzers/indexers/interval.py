@@ -34,6 +34,28 @@ from vis.analyzers import indexer
 from vis.analyzers.indexers.noterest import NoteRestIndexer
 
 
+def key_to_tuple(key):
+    """
+    Transforms a key in the results of :meth:`IntervalIndexer.run` into a 2-tuple with the indices
+    of the parts held therein.
+
+    :param key: The key from :class:`IntervalIndexer`.
+    :type key: :obj:`unicode1
+    :returns: The indices of parts referred to by the key.
+    :rtype: :obj:`tuple` of :obj:`integer`
+
+    >>> key_to_tuple(u'5,6')
+    (5, 6)
+    >>> key_to_tuple(u'234522,98100')
+    (234522, 98100)
+    >>> var = key_to_tuple(u'1,2')
+    >>> key_to_tuple(str(var[0]) + u',' + str(var[1]))
+    (1, 2)
+    """
+    post = key.split(u',')
+    return int(post[0]), int(post[1])
+
+
 def real_indexer(simultaneity, simple, quality):
     """
     Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
@@ -210,7 +232,7 @@ class IntervalIndexer(indexer.Indexer):
         # Do applicable post-processing, like adding a label for voice combinations.
         post = {}
         for i, combo in enumerate(combinations):
-            post[str(combo)] = results[i]
+            post[unicode(combo[0]) + u',' + unicode(combo[1])] = results[i]
 
         # Return the results.
         return post
