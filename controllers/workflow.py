@@ -28,7 +28,8 @@ Workflow controller, to automate commonly-performed tasks.
 
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
-from vis.analyzers.indexers import noterest
+from vis.analyzers.indexers import noterest, interval, ngram
+from vis.analyzers.experimenters import frequency, aggregator
 
 
 class WorkflowController(object):
@@ -100,7 +101,7 @@ class WorkflowController(object):
         for piece in self._data:
             piece.get_data([noterest.NoteRestIndexer])
 
-    def run(self, instruction):
+    def run(self, instruction, settings=None):
         """
         Run a commonly-requested experiment workflow.
 
@@ -108,11 +109,19 @@ class WorkflowController(object):
         ==========
         :parameter instruction: The experiment workflow to run.
         :type instruction: :obj:`basestring`
+        :parameter settings: Settings to be shared across all experiments that will be run. Refer
+            to the relevant indexers' :obj:`possible_settings` property to know the relevant
+            settings. Default is None.
+        :type settings: :obj:`dict`
 
         Returns
         =======
         :returns: The result of the experiment workflow.
         :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame`
+
+        Raises
+        ======
+        :raises: :exc:`RuntimeError` if the :obj:`instruction` does not make sense.
 
         Instructions:
         - "all-combinations intervals": finds the frequency of vertical intervals in all
@@ -131,6 +140,118 @@ class WorkflowController(object):
         - " for SuperCollider": append this ot "all-combinations intervals" to prepare a DataFrame
             with the information required for Mike Winters' sonification program. You should then
             call :meth:`export` with the u'CSV' instruction.
+        """
+        # NOTE: do not re-order the instructions or this method will break
+        possible_instructions = [u'all-combinations intervals',
+                                 u'all 2-part interval n-grams',
+                                 u'all-voice interval n-grams']
+        error_msg = u'WorkflowController.run() could not parse the instruction'
+        post = None
+        # run the experiment
+        if len(instruction) < min([len(x) for x in possible_instructions]):
+            raise RuntimeError(error_msg)
+        if instruction.startswith(possible_instructions[0]):
+            post = self._intervs(settings)
+        elif instruction.startswith(possible_instructions[1]):
+            post = self._two_part_modules(settings)
+        elif instruction.startswith(possible_instructions[2]):
+            post = self._all_part_modules(settings)
+        else:
+            raise RuntimeError(error_msg)
+        # format for R or SuperCollider, if required
+        if -1 != instruction.rfind(u' for R'):
+            post = self._for_r(post)
+        elif -1 != instruction.rfind(u' for SuperCollider'):
+            post = self._for_sc(post)
+        return post
+
+    def _two_part_modules(self, settings):
+        """
+        Prepare a list of frequencies of two-voice interval n-grams in all pieces. These indexers
+        and experimenters will run:
+        * :class:`IntervalIndexer`
+        * :class:`HorizontalIntervalIndexer`
+        * :class:`NGramIndexer`
+        * :class:`FrequencyExperimenter`
+        * :class:`ColumnAggregator`
+
+        :parameter settings: Settings to be shared across all experiments that will be run. Refer
+            to the relevant indexers' :obj:`possible_settings` property to know the relevant
+            settings.
+        :type settings: :obj:`dict`
+        :returns: The result of :class:`ColumnAggregator`
+        :rtype: :class:`pandas.Series`
+        """
+        pass
+
+    def _all_part_modules(self, settings):
+        """
+        Prepare a list of frequencies of all-voice interval n-grams in all pieces. These indexers
+        and experimenters will run:
+        * :class:`IntervalIndexer`
+        * :class:`HorizontalIntervalIndexer`
+        * :class:`NGramIndexer`
+        * :class:`FrequencyExperimenter`
+        * :class:`ColumnAggregator`
+
+        :parameter settings: Settings to be shared across all experiments that will be run. Refer
+            to the relevant indexers' :obj:`possible_settings` property to know the relevant
+            settings.
+        :type settings: :obj:`dict`
+        :returns: The result of :class:`ColumnAggregator`
+        :rtype: :class:`pandas.Series`
+        """
+        pass
+
+    def _intervs(self, settings):
+        """
+        Prepare a list of frequencies of intervals between all voice pairs of all pieces. These
+        indexers and experimenters will run:
+        * :class:`IntervalIndexer`
+        * :class:`FrequencyExperimenter`
+        * :class:`ColumnAggregator`
+
+        :parameter settings: Settings to be shared across all experiments that will be run. Refer
+            to the relevant indexers' :obj:`possible_settings` property to know the relevant
+            settings.
+        :type settings: :obj:`dict`
+        :returns: The result of :class:`ColumnAggregator`
+        :rtype: :class:`pandas.Series`
+        """
+        int_freqs = []
+        for piece in self._data:
+            vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
+                                       settings)
+            # aggregate results from all voice pairs and save for later
+            int_freqs.append(piece.get_data([frequency.FrequencyExperimenter,
+                                             aggregator.ColumnAggregator],
+                                            {},
+                                            list(vert_ints.itervalues())))
+        agg_p = AggregatedPieces(self._data)
+        post = agg_p.get_data([aggregator.ColumnAggregator], None, {}, int_freqs)
+        return post.sort(ascending=False)
+
+    def _for_r(self, to_format):
+        """
+        Format a record for output to R. This simply converts a Series (the result of
+        FrequencyExperimenter) from a token and its number of occurrences to a Series where the
+        token appear as many times as its number of occurrences.
+
+        :parameter to_format: The data to format---the result of :class:`FrequencyExperimenter`.
+        :type to_format: :class:`pandas.Series`
+        :returns: The formatted results.
+        :rtype: :class:`pandas.Series`
+        """
+        pass
+
+    def _for_sc(self, to_format):
+        """
+        Format a record for output to the vis SuperCollider application.
+
+        :parameter to_format: The experimental results to be formatted.
+        :type to_format: ???
+        :returns: The results, formatted for SuperCollider.
+        :rtype: ???
         """
         pass
 
@@ -157,14 +278,14 @@ class WorkflowController(object):
         """
         pass
 
-    def export(self, format, pathname=None):
+    def export(self, form, pathname=None):
         """
         Save the most recent return value of :meth:`run` to a file on disk.
 
         Parameters
         ==========
-        :parameter format: The output format you want.
-        :type format: :obj:`basestring`
+        :parameter form: The output format you want.
+        :type form: :obj:`basestring`
         :parameter pathname: The pathname for the output. If not specified, we will choose.
         :type pathname: :obj:`basestring`
 
