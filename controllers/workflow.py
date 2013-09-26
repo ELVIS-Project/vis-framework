@@ -26,6 +26,7 @@
 Workflow controller, to automate commonly-performed tasks.
 """
 
+import pandas
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval, ngram
@@ -160,9 +161,9 @@ class WorkflowController(object):
             raise RuntimeError(error_msg)
         # format for R or SuperCollider, if required
         if -1 != instruction.rfind(u' for R'):
-            post = self._for_r(post)
+            post = WorkflowController._for_r(post)
         elif -1 != instruction.rfind(u' for SuperCollider'):
-            post = self._for_sc(post)
+            post = WorkflowController._for_sc(post)
         return post
 
     def _two_part_modules(self, settings):
@@ -229,9 +230,11 @@ class WorkflowController(object):
                                             list(vert_ints.itervalues())))
         agg_p = AggregatedPieces(self._data)
         post = agg_p.get_data([aggregator.ColumnAggregator], None, {}, int_freqs)
-        return post.sort(ascending=False)
+        post.sort(ascending=False)
+        return post
 
-    def _for_r(self, to_format):
+    @staticmethod
+    def _for_r(to_format):
         """
         Format a record for output to R. This simply converts a Series (the result of
         FrequencyExperimenter) from a token and its number of occurrences to a Series where the
@@ -242,9 +245,14 @@ class WorkflowController(object):
         :returns: The formatted results.
         :rtype: :class:`pandas.Series`
         """
-        pass
+        post = []
+        for item in to_format.iteritems():
+            for _ in xrange(int(item[1])):
+                post.append(item[0])
+        return pandas.Series(post)
 
-    def _for_sc(self, to_format):
+    @staticmethod
+    def _for_sc(to_format):
         """
         Format a record for output to the vis SuperCollider application.
 

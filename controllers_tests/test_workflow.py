@@ -29,7 +29,7 @@ Tests for the WorkflowController
 from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
-#import pandas
+import pandas
 from vis.controllers.workflow import WorkflowController
 from vis.models.indexed_piece import IndexedPiece
 from vis.models.aggregated_pieces import AggregatedPieces
@@ -171,6 +171,24 @@ class WorkflowTests(TestCase):
             piece.get_data.assert_any_call([mock_freq, mock_agg], {}, [4])
         mock_ap.assert_called_once_with(test_pieces)
         ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
+
+    def test_to_r_1(self):
+        in_val = pandas.Series([3, 4, 2], index=[u'a', u'b', u'c'])
+        expected = [u'a', u'a', u'a', u'b', u'b', u'b', u'b', u'c', u'c']
+        actual = list(WorkflowController._for_r(in_val))
+        self.assertSequenceEqual(expected, actual)
+
+    def test_to_r_2(self):
+        in_val = pandas.Series()
+        expected = []
+        actual = list(WorkflowController._for_r(in_val))
+        self.assertSequenceEqual(expected, actual)
+
+    def test_to_r_3(self):
+        in_val = pandas.Series([3.0, 4.0, 2.0], index=[u'a', u'b', u'c'])
+        expected = [u'a', u'a', u'a', u'b', u'b', u'b', u'b', u'c', u'c']
+        actual = list(WorkflowController._for_r(in_val))
+        self.assertSequenceEqual(expected, actual)
 
 
 #-------------------------------------------------------------------------------------------------#
