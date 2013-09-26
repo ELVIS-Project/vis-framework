@@ -29,9 +29,12 @@ Hold the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt
 
 # Imports from...
 # Python
+from subprocess import Popen
 from itertools import chain
 from os import walk
 from os.path import splitext, join
+# pandizz
+import pandas
 # PyQt4
 from PyQt4 import QtGui, QtCore
 # music21
@@ -43,6 +46,7 @@ from vis.models.analyzing import ListOfPieces
 from vis.views.VisOffsetSelector import VisOffsetSelector
 from Ui_main_window import Ui_MainWindow
 from vis.models.indexed_piece import IndexedPiece
+from vis.controllers.workflow import WorkflowController
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
@@ -400,10 +404,6 @@ Do you want to go back and add the part combination?""",
             self._vert_ints.append(ip.get_data([indexers.noterest.NoteRestIndexer,
                                                 indexers.interval.IntervalIndexer],
                                                 setts))
-
-        # DEBUG
-        for asdf in self._vert_ints:
-            print(str(asdf))
 
         self._tool_experiment()
 
@@ -885,66 +885,59 @@ Do you want to go back and add the part combination?""",
         self.update_progress.emit(u'Initializing experiment.')
 
         # hold a list of tuples to be signalled as settings
-        list_of_settings = []
+        list_of_settings = {}
 
         def do_experiment():
             "Which experiment does the user want to run?"
             # NOTE: as we add different Experiment and Display combinations, we have to update this
 
             if self.ui.rdo_consider_intervals.isChecked():
+                list_of_settings['experiment'] = u'all-combinations intervals'
                 if self.ui.rdo_spreadsheet.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalsLists'))
-                    list_of_settings.append(('output format', 'SpreadsheetFile'))
+                    list_of_settings['output format'] = 'spreadsheet'
                 elif self.ui.rdo_list.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalsStatistics'))
-                    list_of_settings.append(('output format', 'StatisticsListDisplay'))
+                    list_of_settings['output format'] = 'list'
                 elif self.ui.rdo_chart.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalsStatistics'))
-                    list_of_settings.append(('output format', 'GraphDisplay'))
+                    list_of_settings['output format'] = 'chart'
                 elif self.ui.rdo_score.isChecked():
-                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
-                    list_of_settings.append(('lilypond helper', 'IntervalsLists'))
-                    list_of_settings.append(('output format', 'LilyPondDisplay'))
+                    list_of_settings['output format'] = 'lilypond'
             elif self.ui.rdo_consider_interval_ngrams.isChecked():
+                list_of_settings['experiment'] = u'all 2-part interval n-grams'
                 if self.ui.rdo_list.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
-                    list_of_settings.append(('output format', 'StatisticsListDisplay'))
+                    list_of_settings['output format'] = 'list'
                 elif self.ui.rdo_chart.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
-                    list_of_settings.append(('output format', 'GraphDisplay'))
+                    list_of_settings['output format'] = 'chart'
                 elif self.ui.rdo_score.isChecked():
-                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
-                    list_of_settings.append(('lilypond helper', 'IntervalNGramStatistics'))
-                    list_of_settings.append(('output format', 'LilyPondDisplay'))
+                    list_of_settings['output format'] = 'lilypond'
             elif self.ui.rdo_consider_score.isChecked():
-                list_of_settings.append(('experiment', 'LilyPondExperiment'))
-                list_of_settings.append(('output format', 'LilyPondDisplay'))
+                list_of_settings['experiment'] = 'LilyPondExperiment'
+                list_of_settings['output format'] = 'LilyPondDisplay'
 
         def do_threshold():
             "Is there a threshold value?"
             threshold = unicode(self.ui.line_threshold.text())
             if u'' != threshold:
-                list_of_settings.append(('threshold', threshold))
+                list_of_settings['threshold'] = threshold
 
         def do_top_x():
             "Is there a 'top x' value?"
             top_x = unicode(self.ui.line_top_x.text())
             if u'' != top_x:
-                list_of_settings.append(('topX', top_x))
+                list_of_settings['topX'] = top_x
 
         def do_print_quality():
             "Print quality?"
             if self.ui.rdo_heedQuality.isChecked():
-                list_of_settings.append(('quality', True))
+                list_of_settings['quality'] = True
             else:
-                list_of_settings.append(('quality', False))
+                list_of_settings['quality'] = False
 
         def do_simple_or_compound():
             "Simple or compound?"
             if self.ui.rdo_simple.isChecked():
-                list_of_settings.append(('simple or compound', 'simple'))
+                list_of_settings['simple or compound'] = 'simple'
             else:
-                list_of_settings.append(('simple or compound', 'compound'))
+                list_of_settings['simple or compound'] = 'compound'
 
         def do_values_of_n():
             "Are there values of 'n' specified?"
@@ -964,22 +957,22 @@ Do you want to go back and add the part combination?""",
                 self.report_error.emit(msg)
                 return None
             # 4.) Everything's good and valid, so let's put it on the list of settings
-            list_of_settings.append(('values of n', enn))
+            list_of_settings['values of n'] = enn
             return 0
 
         def do_ignore_inversion():
             "Ignore inversion?"
             if self.ui.chk_ignore_inversion.isChecked():
-                list_of_settings.append(('ignore direction', True))
+                list_of_settings['ignore direction'] = True
             else:
-                list_of_settings.append(('ignore direction', False))
+                list_of_settings['ignore direction'] = False
 
         def do_annotate_these():
             "Is there an 'annotate these' value?"
             a_these = unicode(self.ui.line_annotate_these.text())
             if '' != a_these:
                 # TODO: this better
-                list_of_settings.append(('annotate these', [a_these]))
+                list_of_settings['annotate these'] = [a_these]
 
 
         # (1) Figure out the settings
@@ -991,7 +984,7 @@ Do you want to go back and add the part combination?""",
         # (1c) Simple or compound?
         do_simple_or_compound()
         # (1d) Is there a "values_of_n" value?
-        if [val for name, val in list_of_settings if name == 'experiment' if 'NGram' in val]:
+        if u'values_of_n' in list_of_settings:
             if do_values_of_n() is None:
                 self._tool_experiment()
                 return None
@@ -1006,11 +999,25 @@ Do you want to go back and add the part combination?""",
 
         # (2) Set the settings
         for setting in list_of_settings:
-            print setting
+            print list_of_settings[setting]  # DEBUG
             #self.vis_controller.experiment_setting.emit(setting)
 
         # (3) Run the experiment
-        #self.vis_controller.run_the_experiment.emit()
+        self._run_the_experiment(list_of_settings)
+
+    def _run_the_experiment(self, settings):
+        if settings[u'experiment'] == u'all-combinations intervals':
+            stata_path = u'test_output/stata_data.dta'
+            wc = WorkflowController(self._list_of_ips)
+            post = wc.run(u'all-combinations intervals',
+                          {u'quality': settings[u'quality'],
+                           u'simple or compound': settings[u'simple or compound']})
+            v_int_freqs = pandas.DataFrame({u'freq': post})
+            v_int_freqs.to_stata(stata_path)
+            Popen([u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', stata_path, u'test_output/LOOKATME.png'],
+                  stdout=None,
+                  stderr=None)
+        self._tool_experiment()
 
     @QtCore.pyqtSlot()  # self.ui.rdo_consider_***.clicked()
     def _update_experiment_from_object(self):
