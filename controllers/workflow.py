@@ -133,11 +133,6 @@ class WorkflowController(object):
             You should substitute "n" with a number.
 
         Modifiers:
-        - " for R": append this to any instruction to produce output in a format more suitable for
-            R, which likes to count things by itself. Rather than a simple DataFrame with an object
-            and its number of occurrences, this would simply produce a Series where each object
-            appears the appropriate number of times. You should then call :meth:`export` with the
-            u'Stata' instruction or :meth:`output` with the u'R histogram' instruction.
         - " for SuperCollider": append this ot "all-combinations intervals" to prepare a DataFrame
             with the information required for Mike Winters' sonification program. You should then
             call :meth:`export` with the u'CSV' instruction.
@@ -159,10 +154,8 @@ class WorkflowController(object):
             post = self._all_part_modules(settings)
         else:
             raise RuntimeError(error_msg)
-        # format for R or SuperCollider, if required
-        if -1 != instruction.rfind(u' for R'):
-            post = WorkflowController._for_r(post)
-        elif -1 != instruction.rfind(u' for SuperCollider'):
+        # format for SuperCollider, if required
+        if -1 != instruction.rfind(u' for SuperCollider'):
             post = WorkflowController._for_sc(post)
         return post
 
@@ -234,24 +227,6 @@ class WorkflowController(object):
         return post
 
     @staticmethod
-    def _for_r(to_format):
-        """
-        Format a record for output to R. This simply converts a Series (the result of
-        FrequencyExperimenter) from a token and its number of occurrences to a Series where the
-        token appear as many times as its number of occurrences.
-
-        :parameter to_format: The data to format---the result of :class:`FrequencyExperimenter`.
-        :type to_format: :class:`pandas.Series`
-        :returns: The formatted results.
-        :rtype: :class:`pandas.Series`
-        """
-        post = []
-        for item in to_format.iteritems():
-            for _ in xrange(int(item[1])):
-                post.append(item[0])
-        return pandas.Series(post)
-
-    @staticmethod
     def _for_sc(to_format):
         """
         Format a record for output to the vis SuperCollider application.
@@ -281,8 +256,7 @@ class WorkflowController(object):
 
         Instructions:
         - u'LilyPond': not yet sure what this will be like...
-        - u'R histogram': a histogram with ggplot2 in R. You should have just run :meth:`run` with
-            the " for R" modifier.
+        - u'R histogram': a histogram with ggplot2 in R.
         """
         pass
 

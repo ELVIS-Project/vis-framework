@@ -109,17 +109,6 @@ class WorkflowTests(TestCase):
 
     def test_run_4(self):
         mock_path_a = u'vis.controllers.workflow.WorkflowController._two_part_modules'
-        mock_path_b = u'vis.controllers.workflow.WorkflowController._for_r'
-        with mock.patch(mock_path_a) as mock_meth_a:
-            with mock.patch(mock_path_b) as mock_meth_b:
-                mock_meth_a.return_value = 1200
-                a = WorkflowController([])
-                a.run(u'all 2-part interval n-grams for R', 42)
-                mock_meth_a.assert_called_once_with(42)
-                mock_meth_b.assert_called_once_with(mock_meth_a.return_value)
-
-    def test_run_5(self):
-        mock_path_a = u'vis.controllers.workflow.WorkflowController._two_part_modules'
         mock_path_b = u'vis.controllers.workflow.WorkflowController._for_sc'
         with mock.patch(mock_path_a) as mock_meth_a:
             with mock.patch(mock_path_b) as mock_meth_b:
@@ -171,24 +160,6 @@ class WorkflowTests(TestCase):
             piece.get_data.assert_any_call([mock_freq, mock_agg], {}, [4])
         mock_ap.assert_called_once_with(test_pieces)
         ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
-
-    def test_to_r_1(self):
-        in_val = pandas.Series([3, 4, 2], index=[u'a', u'b', u'c'])
-        expected = [u'a', u'a', u'a', u'b', u'b', u'b', u'b', u'c', u'c']
-        actual = list(WorkflowController._for_r(in_val))
-        self.assertSequenceEqual(expected, actual)
-
-    def test_to_r_2(self):
-        in_val = pandas.Series()
-        expected = []
-        actual = list(WorkflowController._for_r(in_val))
-        self.assertSequenceEqual(expected, actual)
-
-    def test_to_r_3(self):
-        in_val = pandas.Series([3.0, 4.0, 2.0], index=[u'a', u'b', u'c'])
-        expected = [u'a', u'a', u'a', u'b', u'b', u'b', u'b', u'c', u'c']
-        actual = list(WorkflowController._for_r(in_val))
-        self.assertSequenceEqual(expected, actual)
 
 
 #-------------------------------------------------------------------------------------------------#
