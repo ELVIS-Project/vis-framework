@@ -26,7 +26,6 @@
 Workflow controller, to automate commonly-performed tasks.
 """
 
-import pandas
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval, ngram
@@ -99,8 +98,9 @@ class WorkflowController(object):
         #       that will somehow unpickle it and replace the *data in* the IndexedPieces here, but
         #       not actually replace the IndexedPieces, since that would inadvertently cancel the
         #       client's pointer to the IndexedPieces, if they have one
-        for piece in self._data:
-            piece.get_data([noterest.NoteRestIndexer])
+        if u'pieces' == instruction:
+            for piece in self._data:
+                piece.get_data([noterest.NoteRestIndexer])
 
     def run(self, instruction, settings=None):
         """
@@ -195,7 +195,37 @@ class WorkflowController(object):
         :returns: The result of :class:`ColumnAggregator`
         :rtype: :class:`pandas.Series`
         """
-        pass
+        ngram_freqs = []
+        for piece in self._data:
+            vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
+                                       settings)
+            horiz_ints = piece.get_data([noterest.NoteRestIndexer,
+                                         interval.HorizontalIntervalIndexer],
+                                        settings)
+            # figure out the weird string-index things for the vertical part combos
+            lowest_part = len(piece.metadata(u'parts')) - 1
+            vert_combos = [str(x) + u',' + str(lowest_part) for x in xrange(lowest_part)]
+            # make the list of parts
+            parts = [vert_ints[x] for x in vert_combos]
+            parts.append(horiz_ints[-1])  # always the lowest voice
+
+            # make the list-of-index-s for the settings
+            # assemble settings
+            setts = {u'vertical': range(len(parts) - 1), u'horizontal': [len(parts) - 1]}
+            if u'mark singles' in settings:
+                setts[u'mark singles'] = settings[u'mark singles']
+            if u'continuer' in settings:
+                setts[u'continuer'] = settings[u'continuer']
+            setts[u'n'] = settings[u'n']
+            # run NGramIndexer and FrequencyExperimenter, then append the result to the
+            # corresponding index of the dict
+            ngram_freqs.append(piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter],
+                                              setts,
+                                              parts))
+        agg_p = AggregatedPieces(self._data)
+        post = agg_p.get_data([aggregator.ColumnAggregator], None, {}, ngram_freqs)
+        post.sort(ascending=False)
+        return post
 
     def _intervs(self, settings):
         """
