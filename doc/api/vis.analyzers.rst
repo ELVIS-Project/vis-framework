@@ -16,7 +16,6 @@ analyzers Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`indexer` Module
 ---------------------
@@ -25,7 +24,6 @@ analyzers Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 Subpackages
 -----------

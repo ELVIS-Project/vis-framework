@@ -32,21 +32,17 @@ from vis.analyzers import experimenter
 
 class ColumnAggregator(experimenter.Experimenter):
     """
-    Experiment that aggregates data from all columns of a DataFrame, a list of DataFrames, or a
-    list of Series, into a single Series. Aggregation is done through addition. If a DataFrame has
-    a column with the name u'all', it will *not* be included in the aggregation.
+    Experiment that aggregates data from all columns of a :class:`DataFrame`, a list of \
+    :class:`DataFrame` objects, or a list of :class:`Series`, into a single :class:`Series`. \
+    Aggregation is done through addition. If a :class:`DataFrame` has a column with the name \
+    :obj:`u'all'`, it will *not* be included in the aggregation.
     """
 
     def __init__(self, index, settings=None):
         """
-        Create a new :class:`ColumnAggregator`.
-
-        Parameters
-        ==========
-        :param index: The data to aggregate. You should ensure the row index of each pandas object
-            can be sensibly combined. The data should be numbers. If a DataFrame has a column with
-            the name u'all', it will *not* be included in the aggregation.
-        :type index: :class:`pandas.DataFrame` or :obj:`list` of :class:`pandas.DataFrame` or of
+        :param index: The data to aggregate. You should ensure the row index of each pandas object \
+            can be sensibly combined. The data should be numbers.
+        :type index: :class:`pandas.DataFrame` or :obj:`list` of :class:`pandas.DataFrame` or of \
             :class:`pandas.Series`
 
         :param settings: This indexer uses no settings, so this is ignored.
@@ -60,8 +56,8 @@ class ColumnAggregator(experimenter.Experimenter):
 
         Returns
         =======
-        :returns: A Series with an index that is the combination of all indices of provided pandas
-            objects, and the value is the sum of all the values in the pandas objects.
+        :returns: A :class:`Series` with an index that is the combination of all indices of the \
+            provided pandas objects, and the value is the sum of all values in the pandas objects.
         :rtype: :class:`pandas.Series`
         """
         # make sure we have a single DataFrame

@@ -24,7 +24,8 @@
 #--------------------------------------------------------------------------------------------------
 """
 Indexers that modify the "offset" values (floats stored as the "index" of a :class:`pandas.Series`),
-and potentially the number of events, without modifying the events themselves.
+potentially adding repetitions of or removing pre-existing events, without modifying the events
+themselves.
 """
 
 import pandas
@@ -34,6 +35,116 @@ from vis.analyzers import indexer
 class FilterByOffsetIndexer(indexer.Indexer):
     """
     Indexer that regularizes the "offset" values of observations from other indexers.
+
+    The Indexer regularizes observations from offsets spaced any, possibly irregular,
+    quarterLength durations apart, so they are instead observed at regular intervals. This has
+    two effects:
+
+    * events that do not begin at an observed offset will only be included in the output if no
+      other event occurs before the next observed offset
+    * events that last for many observed offsets will be repeated for those offsets
+
+    Since elements' durations are not recorded, the last observation in a Series will always be
+    included in the results. If it does not start on an observed offset, it will be included as
+    the next observed offset---again, whether or not this is true in the actual music. However,
+    the last observation will only ever be counted once, even if a part ends before others in
+    a piece with many parts. See the doctests for examples.
+
+    **Examples**. For all, the ``quarterLength`` is ``1.0``.
+
+    When events in the input already appear at intervals of ``quarterLength``, input and output \
+    are identical.
+
+    +--------+-------+-------+-------+
+    | offset | 0.0   | 1.0   | 2.0   |
+    +========+=======+=======+=======+
+    | input  | ``a`` | ``b`` | ``c`` |
+    +--------+-------+-------+-------+
+    | output | ``a`` | ``b`` | ``c`` |
+    +--------+-------+-------+-------+
+
+    When events in the input appear at intervals of ``quarterLength``, but there are additional
+    elements between the observed offsets, those additional elements are removed.
+
+    +--------+-------+-------+-------+-------+
+    | offset | 0.0   | 0.5   | 1.0   | 2.0   |
+    +========+=======+=======+=======+=======+
+    | input  | ``a`` | ``A`` | ``b`` | ``c`` |
+    +--------+-------+-------+-------+-------+
+    | output | ``a``         | ``b`` | ``c`` |
+    +--------+---------------+-------+-------+
+
+    +--------+-------+-------+-------+-------+-------+
+    | offset | 0.0   | 0.25  | 0.5   | 1.0   | 2.0   |
+    +========+=======+=======+=======+=======+=======+
+    | input  | ``a`` | ``z`` | ``A`` | ``b`` | ``c`` |
+    +--------+-------+-------+-------+-------+-------+
+    | output | ``a``                 | ``b`` | ``c`` |
+    +--------+-----------------------+-------+-------+
+
+    When events in the input appear at intervals of ``quarterLength``, but not at every observed \
+    offset, the event from the previous offset is repeated.
+
+    +--------+-------+-------+-------+
+    | offset | 0.0   | 1.0   | 2.0   |
+    +========+=======+=======+=======+
+    | input  | ``a``         | ``c`` |
+    +--------+-------+-------+-------+
+    | output | ``a`` | ``a`` | ``c`` |
+    +--------+-------+-------+-------+
+
+    When events in the input appear at offsets other than those observed by the specified \
+    ``quarterLength``, the "most recent" event will appear.
+
+    +--------+-------+-------+-------+-------+-------+
+    | offset | 0.0   | 0.25  | 0.5   | 1.0   | 2.0   |
+    +========+=======+=======+=======+=======+=======+
+    | input  | ``a`` | ``z`` | ``A``         | ``c`` |
+    +--------+-------+-------+-------+-------+-------+
+    | output | ``a``                 | ``A`` | ``c`` |
+    +--------+-----------------------+-------+-------+
+
+    When the final event does not appear at an observed offset, it will be included in the output \
+    at the next offset that would be observed, even if this offset does not appear in the \
+    score file to which the results correspond.
+
+    +--------+-------+-------+-------+-------+
+    | offset | 0.0   | 1.0   | 1.5   | 2.0   |
+    +========+=======+=======+=======+=======+
+    | input  | ``a`` | ``b`` | ``d``         |
+    +--------+-------+-------+-------+-------+
+    | output | ``a`` | ``b``         | ``d`` |
+    +--------+-------+---------------+-------+
+
+    The behaviour in this last example can create a potentially misleading result for some \
+    analytic situations that consider metre. It avoids another potentially misleading situation  \
+    where the final chord of a piece would appear to be dissonant because of a suspension. We chose
+    to lose metric and rythmic precision, which would be more profitably analyzed with indexers \
+    built for that purpose. Consider this illustration, where the numbers correspond to scale \
+    degrees.
+
+    +--------+-------+-------+-------+-------+
+    | offset | 410.0 | 411.0 | 411.5 | 412.0 |
+    +========+=======+=======+=======+=======+
+    | in-S   | 2     | 1                     |
+    +--------+-------+-------+---------------+
+    | in-A   | 7---  | 6     | 1             |
+    +--------+-------+-------+---------------+
+    | in-T   | 4     | 3                     |
+    +--------+-------+-----------------------+
+    | in-B   | 5     | 1                     |
+    +--------+-------+---------------+-------+
+    | out-S  | 2     | 1             | 1     |
+    +--------+-------+---------------+-------+
+    | out-A  | 7---  | 7             | 1     |
+    +--------+-------+---------------+-------+
+    | out-T  | 4     | 3             | 3     |
+    +--------+-------+---------------+-------+
+    | out-B  | 5     | 1             | 1     |
+    +--------+-------+---------------+-------+
+
+    If we left out the note event appear in the ``in-A`` part at offset ``411.5``, the piece would
+    appear to end with a dissonant sonority!
     """
 
     required_score_type = pandas.Series
@@ -51,40 +162,16 @@ class FilterByOffsetIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Create a new :class:`FilterByOffsetIndexer`.
-
-        The Indexer regularizes observations from offsets spaced any, possibly irregular,
-        quarterLength durations apart, so they are instead observed at regular intervals. This has
-        two effects:
-        * events that do not begin at an observed offset will only be included in the output if no
-          other event occurs before the next observed offset
-        * events that last for many observed offsets will be repeated for those offsets
-
-        Since elements' durations are not recorded, the last observation in a Series will always be
-        included in the results. If it does not start on an observed offset, it will be included as
-        the next observed offset---again, whether or not this is true in the actual music. However,
-        the last observation will only ever be counted once, even if a part ends before others in
-        a piece with many parts. See the doctests for examples.
-
-        Examples
-        ========
-        TODO: totally gotta write these!
-
-        Parameters
-        ==========
         :param score: A list of Series you wish to filter by offset values, stored in the Index.
         :type score: :obj:`list` of :obj:`pandas.Series`
-
         :param settings: There is one required setting. See :const:`possible_settings`.
         :type settings: :obj:`dict`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
         :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
         :raises: :exc:`RuntimeError` if the required setting is not present in :obj:`settings`.
         :raises: :exc:`RuntimeError` if the :obj:`u'quarterLength'` setting has a value less
-            than 0.001.
+            than ``0.001``.
         """
         super(FilterByOffsetIndexer, self).__init__(score, None)
 

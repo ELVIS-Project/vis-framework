@@ -16,7 +16,6 @@ experimenters Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`frequency` Module
 -----------------------
@@ -25,7 +24,6 @@ experimenters Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`template` Module
 ----------------------
@@ -34,5 +32,3 @@ experimenters Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
-

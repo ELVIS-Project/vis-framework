@@ -23,7 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Template for writing a new indexer.
+Template for writing a new indexer. Use this class to help write a new :class`Indexer` subclass. \
+The :class:`TemplateIndexer` does nothing, and should only be used by programmers.
 """
 
 from music21 import stream
@@ -56,9 +57,7 @@ def indexer_func(obj):
 
 class TemplateIndexer(indexer.Indexer):
     """
-    Template for a class to make an index of a music21 stream.
-
-    Use this class when you want to write a new Indexer subclass.
+    Template for an :class:`Indexer` subclass.
     """
 
     required_score_type = stream.Part
@@ -85,8 +84,6 @@ class TemplateIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Create a new Indexer.
-
         Parameters
         ==========
         :param score: Depending on how this Indexer works, this is a list of either Part or Series

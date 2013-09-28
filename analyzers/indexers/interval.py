@@ -40,9 +40,9 @@ def key_to_tuple(key):
     of the parts held therein.
 
     :param key: The key from :class:`IntervalIndexer`.
-    :type key: :obj:`unicode1
+    :type key: :obj:`unicode`
     :returns: The indices of parts referred to by the key.
-    :rtype: :obj:`tuple` of :obj:`integer`
+    :rtype: :obj:`tuple` of :obj:`int`
 
     >>> key_to_tuple(u'5,6')
     (5, 6)
@@ -58,6 +58,8 @@ def key_to_tuple(key):
 
 def real_indexer(simultaneity, simple, quality):
     """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+
     Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
     because of the u'Rest' strings, you can compare the duration of the piece in which the two
     parts do or do not have notes sounding together.
@@ -109,6 +111,8 @@ def real_indexer(simultaneity, simple, quality):
 # and the function still only requires one argument at run-time from the Indexer.mp_indexer().
 def indexer_qual_simple(ecks):
     """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+
     Call :func:`real_indexer` with settings to print simple intervals with quality.
     """
     return real_indexer(ecks, True, True)
@@ -116,6 +120,8 @@ def indexer_qual_simple(ecks):
 
 def indexer_qual_comp(ecks):
     """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+
     Call :func:`real_indexer` with settings to print compound intervals with quality.
     """
     return real_indexer(ecks, False, True)
@@ -123,6 +129,8 @@ def indexer_qual_comp(ecks):
 
 def indexer_nq_simple(ecks):
     """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+
     Call :func:`real_indexer` with settings to print simple intervals without quality.
     """
     return real_indexer(ecks, True, False)
@@ -130,6 +138,8 @@ def indexer_nq_simple(ecks):
 
 def indexer_nq_comp(ecks):
     """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+
     Call :func:`real_indexer` with settings to print compound intervals without quality.
     """
     return real_indexer(ecks, False, False)
@@ -153,10 +163,12 @@ class IntervalIndexer(indexer.Indexer):
     """
     A :obj:`list` of possible settings for the :class:`IntervalIndexer`.
 
-    :keyword unicode u'simple_or_compound': NOTE: This setting is :obj:`u'simple or compound'` and
-        you should not include the underscores. Whether intervals should be represented in their
+    :keyword unicode u'simple_or_compound': Whether intervals should be represented in their \
         single-octave form (either :obj:`u'simple'` or :obj:`u'compound'`).
     :keyword boolean u'quality': Whether to display an interval's quality.
+
+    .. note:: The :obj:`u'simple or compound'` setting should have no _ characters, which appear \
+        in our documentation only because of a technical limitation in the documentation tool.
     """
 
     default_settings = {u'simple or compound': u'compound', u'quality': False}
@@ -164,14 +176,11 @@ class IntervalIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Create a new :class:`IntervalIndexer`. The output format is described in :meth:`run`.
+        The output format is described in :meth:`run`.
 
-        Parameters
-        ==========
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
         :type score: :obj:`list` of :class:`pandas.Series`
-
-        :param settings: Required and optional settings. See descriptions in
+        :param settings: Required and optional settings. See descriptions in \
             :const:`possible_settings`.
         :type settings: :obj:`dict`
         """
@@ -248,15 +257,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
     def __init__(self, score, settings=None):
         """
-        Create a new :class:`HorizontalIntervalIndexer`. The output format is described in
-        :meth:`run`.
+        The output format is described in :meth:`run`.
 
-        Parameters
-        ==========
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
         :type score: :obj:`list` of :class:`pandas.Series`
-
-        :param settings: Required and optional settings. See descriptions in
+        :param settings: Required and optional settings. See descriptions in \
             :const:`IntervalIndexer.possible_settings`.
         :type settings: :obj:`dict`
         """
@@ -268,7 +273,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
         Returns
         =======
-        :returns: A list of the new indices. The index of each Series corresponds to the index it
+        :returns: A list of the new indices. The index of each Series corresponds to the index it \
             has in the list of :class:`Series` given to the constructor.
         :rtype: :obj:`list` of :class:`pandas.Series`
         """

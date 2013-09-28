@@ -34,14 +34,14 @@ from vis.analyzers.experimenters import frequency, aggregator
 
 class WorkflowController(object):
     """
-    The WorkflowController automates several commonly-performed music analysis patterns.
+    The :class:`WorkflowController` automates several commonly-performed music analysis patterns.
 
-    There are four basic tasks the WorkflowController performs, each with its own method:
-    * :meth:`load`, which imports analysis data from extrnal formats, like symbolic musical scores,
-        HDF5, Stata, or pickled data.
-    * :meth:`run`, which blahd blah.
-    * :meth:`output`, which blajal jkllkjasd, and
-    * :meth:`export`, for asdf.
+    There are four basic tasks the :class:`WorkflowController` performs, each with its own method:
+
+    * :meth:`load`, to import data from external formats (MusicXML, Stata, pickled, etc.).
+    * :meth:`run`, which performs one of a small set of pre-defined analysis activities.
+    * :meth:`output`, which outputs visualization data to disk.
+    * :meth:`export`, which exports data to external formats (Stata, CSV, pickled, etc.)
     """
 
     # Instance Variables
@@ -50,17 +50,15 @@ class WorkflowController(object):
 
     def __init__(self, vals):
         """
-        This is how to instantiate a WorkflowController.
-
-        If you simply want to use the WorkfloController, you should provide a list of pathnames
-        corresponding to the files you want to analyze. If you want to access the
-        :class:`vis.models.indexed_piece.IndexedPiece` objects directly, you should provide a list
-        of those to the WorkflowController.
+        If you simply want to use the :class:`WorkflowController`, you should provide a list of \
+        pathnames corresponding to the files you want to analyze. If you want to access the \
+        :class:`vis.models.indexed_piece.IndexedPiece` objects directly, you should provide a \
+        list of those to the :class:`WorkflowController`.
 
         Parameters
         ==========
-        :parameter vals: A list of pathnames or IndexedPieces. If an item in the list is not either
-            an IndexedPiece or basestring, it is silently ignored.
+        :parameter vals: A list of pathnames or IndexedPieces. If an item in the list is not \
+            either an IndexedPiece or basestring, it is silently ignored.
         :type vals: :obj:`list` of :obj:`basestring` or of :obj:`IndexedPiece`
         """
         post = []
@@ -73,24 +71,31 @@ class WorkflowController(object):
 
     def load(self, instruction, pathname=None):
         """
-        Import analysis data from long-term storage on a filesystem. This should primarily be used
-        for the u'pieces' instruction, to control when the initial music21 import will happen.
+        Import analysis data from long-term storage on a filesystem. This should primarily be \
+        used for the :obj:`u'pieces'` instruction, to control when the initial music21 import \
+        happens.
 
         Parameters
         ==========
-        :parameter instruction: Either u'pieces', to import all pieces, collect metadata, and run
-            the NoteRestIndexer (using multiprocessing); or u'hdf5', u'stata', or u'pickle' to load
-            data from a previous attempt. NOTE: only u'pieces' works at this time.
+        :parameter instruction: The type of data to load.
         :type instruction: :obj:`basestring`
-
-        :parameter pathname: The pathname of the data to import; not required for the u'pieces'
+        :parameter pathname: The pathname of the data to import; not required for the u'pieces' \
             instruction.
         :type pathname: :obj:`basestring`
 
         Returns
         =======
         :returns: The loaded data.
-        :rtype: :obj:`list` :class:`pandas.Series`
+        :rtype: :obj:`list` of :class:`pandas.Series`
+
+        Instructions:
+
+        .. note:: only :obj:`u'pieces'` is implemented at this time.
+
+        * :obj:`u'pieces'`, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
+        * :obj:`u'hdf5'` to load data from a previous :meth:`export`.
+        * :obj:`u'stata'` to load data from a previous :meth:`export`.
+        * :obj:`u'pickle'` to load data from a previous :meth:`export`.
         """
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
@@ -101,6 +106,8 @@ class WorkflowController(object):
         if u'pieces' == instruction:
             for piece in self._data:
                 piece.get_data([noterest.NoteRestIndexer])
+        elif u'hdf5' == instruction or u'stata' == instruction or u'pickle' == instruction:
+            raise NotImplementedError(u'The ' + instruction + u' instruction does\'t work yet!')
 
     def run(self, instruction, settings=None):
         """
@@ -110,9 +117,9 @@ class WorkflowController(object):
         ==========
         :parameter instruction: The experiment workflow to run.
         :type instruction: :obj:`basestring`
-        :parameter settings: Settings to be shared across all experiments that will be run. Refer
-            to the relevant indexers' :obj:`possible_settings` property to know the relevant
-            settings. Default is None.
+        :parameter settings: Settings to be shared across all experiments that will be run. Refer \
+            to the relevant indexers' :obj:`possible_settings` property to know the relevant \
+            settings. Default is :obj:`None`.
         :type settings: :obj:`dict`
 
         Returns
@@ -125,17 +132,20 @@ class WorkflowController(object):
         :raises: :exc:`RuntimeError` if the :obj:`instruction` does not make sense.
 
         Instructions:
-        - "all-combinations intervals": finds the frequency of vertical intervals in all
+
+        * :obj:`'all-combinations intervals'`: finds the frequency of vertical intervals in all \
             2-part voice combinations.
-        - "all 2-part interval n-grams": finds the frequency of 2-part vertical interval n-grams
-            in all voice pair combinations. You should substitute "n" with a number.
-        - "all-voice interval n-grams": finds the frequency of all-part vertical interval n-grams.
-            You should substitute "n" with a number.
+        * :obj:`'all 2-part interval n-grams'`: finds the frequency of 2-part vertical interval \
+            n-grams in all voice pair combinations. Remember to specify the :obj:`u'n'` setting.
+        * :obj:`'all-voice interval n-grams'`: finds the frequency of all-part vertical interval \
+            n-grams. Remember to specify the :obj:`u'n'` setting.
 
         Modifiers:
-        - " for SuperCollider": append this ot "all-combinations intervals" to prepare a DataFrame
-            with the information required for Mike Winters' sonification program. You should then
-            call :meth:`export` with the u'CSV' instruction.
+
+        * :obj:`u' for SuperCollider'`: append this to :obj:`u'all-combinations intervals'` to \
+            prepare a :class:`DataFrame` with the information required for Mike Winters' \
+            sonification program. You should then call :meth:`export` with the :obj:`u'CSV'` \
+            instruction.
         """
         # NOTE: do not re-order the instructions or this method will break
         possible_instructions = [u'all-combinations intervals',
@@ -161,7 +171,7 @@ class WorkflowController(object):
 
     def _two_part_modules(self, settings):
         """
-        Prepare a list of frequencies of two-voice interval n-grams in all pieces. These indexers
+        Prepare a list of frequencies of two-voice interval n-grams in all pieces. These indexers \
         and experimenters will run:
         * :class:`IntervalIndexer`
         * :class:`HorizontalIntervalIndexer`
@@ -169,8 +179,8 @@ class WorkflowController(object):
         * :class:`FrequencyExperimenter`
         * :class:`ColumnAggregator`
 
-        :parameter settings: Settings to be shared across all experiments that will be run. Refer
-            to the relevant indexers' :obj:`possible_settings` property to know the relevant
+        :parameter settings: Settings to be shared across all experiments that will be run. Refer \
+            to the relevant indexers' :obj:`possible_settings` property to know the relevant \
             settings.
         :type settings: :obj:`dict`
         :returns: The result of :class:`ColumnAggregator`
@@ -180,7 +190,7 @@ class WorkflowController(object):
 
     def _all_part_modules(self, settings):
         """
-        Prepare a list of frequencies of all-voice interval n-grams in all pieces. These indexers
+        Prepare a list of frequencies of all-voice interval n-grams in all pieces. These indexers \
         and experimenters will run:
         * :class:`IntervalIndexer`
         * :class:`HorizontalIntervalIndexer`
@@ -188,8 +198,8 @@ class WorkflowController(object):
         * :class:`FrequencyExperimenter`
         * :class:`ColumnAggregator`
 
-        :parameter settings: Settings to be shared across all experiments that will be run. Refer
-            to the relevant indexers' :obj:`possible_settings` property to know the relevant
+        :parameter settings: Settings to be shared across all experiments that will be run. Refer \
+            to the relevant indexers' :obj:`possible_settings` property to know the relevant \
             settings.
         :type settings: :obj:`dict`
         :returns: The result of :class:`ColumnAggregator`
@@ -229,14 +239,14 @@ class WorkflowController(object):
 
     def _intervs(self, settings):
         """
-        Prepare a list of frequencies of intervals between all voice pairs of all pieces. These
+        Prepare a list of frequencies of intervals between all voice pairs of all pieces. These \
         indexers and experimenters will run:
         * :class:`IntervalIndexer`
         * :class:`FrequencyExperimenter`
         * :class:`ColumnAggregator`
 
-        :parameter settings: Settings to be shared across all experiments that will be run. Refer
-            to the relevant indexers' :obj:`possible_settings` property to know the relevant
+        :parameter settings: Settings to be shared across all experiments that will be run. Refer \
+            to the relevant indexers' :obj:`possible_settings` property to know the relevant \
             settings.
         :type settings: :obj:`dict`
         :returns: The result of :class:`ColumnAggregator`
@@ -268,7 +278,7 @@ class WorkflowController(object):
         """
         pass
 
-    def output(self, instruction, pathnme=None):
+    def output(self, instruction, pathname=None):
         """
         Write visualization output to a file.
 
@@ -285,8 +295,9 @@ class WorkflowController(object):
         :rtype: :obj:`unicode`
 
         Instructions:
-        - u'LilyPond': not yet sure what this will be like...
-        - u'R histogram': a histogram with ggplot2 in R.
+
+        * :obj:`u'LilyPond'`: not yet sure what this will be like...
+        * :obj:`u'R histogram'`: a histogram with ggplot2 in R.
         """
         pass
 
@@ -307,11 +318,12 @@ class WorkflowController(object):
         :rtype: :obj:`unicode`
 
         Formats:
-        - u'CSV': output a Series or DataFrame to a CSV file.
-        - u'HDF5': output a Series or DataFrame to an HDF5 file.
-        - u'pickle': save everything to a pickle file so we can re-load the current state later
-            (NOTE: this does not work yet)
-        - u'Stata': output a Stata file for importing to R.
-        - u'Excel': output an Excel file for Peter Schubert.
+
+        * :obj:`u'CSV'`: output a Series or DataFrame to a CSV file.
+        * :obj:`u'HDF5'`: output a Series or DataFrame to an HDF5 file.
+        * :obj:`u'pickle'`: save everything to a pickle file so we can re-load the current state \
+            later (NOTE: this does not work yet)
+        * :obj:`u'Stata'`: output a Stata file for importing to R.
+        * :obj:`u'Excel'`: output an Excel file for Peter Schubert.
         """
         pass

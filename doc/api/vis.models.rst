@@ -16,7 +16,6 @@ models Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`indexed_piece` Module
 ---------------------------
@@ -25,5 +24,4 @@ models Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 

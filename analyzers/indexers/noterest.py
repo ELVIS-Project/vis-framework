@@ -31,7 +31,7 @@ from vis.analyzers import indexer
 
 def indexer_func(obj):
     """
-    The indexer function for :class:`NoteRestIndexer`. Convert objects from the :mod:`music21.note`
+    Used internally by :class:`NoteRestIndexer`. Convert objects from the :mod:`music21.note` \
     module into a :obj:`unicode`.
 
     Parameters
@@ -63,18 +63,11 @@ class NoteRestIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Create a new :class:`NoteRestIndexer`.
-
-        Parameters
-        ==========
         :param score: A list of all the Parts to index.
         :type score: :obj:`list` of :class:`music21.stream.Part`
-
         :param settings: This indexer uses no settings, so this is ignored.
         :type settings: :obj:`dict` or :obj:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the right type.
         """
         super(NoteRestIndexer, self).__init__(score, None)

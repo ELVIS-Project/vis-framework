@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Indexers that somehow consider repetition.
+Indexers that consider repetition in any way.
 """
 
 import numpy
@@ -33,7 +33,8 @@ from vis.analyzers import indexer
 
 class FilterByRepeatIndexer(indexer.Indexer):
     """
-    Filter consecutive identical events, leaving only the event at the first offset.
+    If the same event occurs many times in a row, remove all occurrences but the one with the \
+    lowest ``offset`` value (i.e., the "first" event).
     """
 
     required_score_type = pandas.Series
@@ -41,18 +42,11 @@ class FilterByRepeatIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Create a new :class:`FilterByRepeatIndexer`.
-
-        Parameters
-        ==========
         :param score: The indices from which to remove consecutive identical events.
         :type score: :obj:`list` of :obj:`pandas.Series`
-
         :param settings: This indexer uses no settings, so this is ignored.
         :type settings: :obj:`dict` or :obj:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
         :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
         """

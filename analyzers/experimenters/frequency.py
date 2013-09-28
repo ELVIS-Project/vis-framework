@@ -32,7 +32,7 @@ from vis.analyzers import experimenter
 
 def experimenter_func(obj):
     """
-    Calculate the frequencies of things in an index.
+    Used by the :class:`FrequencyExperimenter` to calculate the frequencies of things in an index.
 
     Parameters
     ==========
@@ -41,8 +41,8 @@ def experimenter_func(obj):
 
     Returns
     =======
-    :returns: An identifier plus the result of this indexation. In the series, the index is the
-        names of objects found in the inputted series, and the value is the number of occurrences.
+    :returns: An identifier plus the result of this indexation. In the series, the index is the \
+        names of objects found in the inputted series, and the value is the number of occurrences. \
         The first element is the first element given here, used for identification purposes.
     :rtype: :obj:`tuple` of (anything, :class:`pandas.Series`)
     """
@@ -63,16 +63,11 @@ class FrequencyExperimenter(experimenter.Experimenter):
 
     def __init__(self, index, settings=None):
         """
-        Create a new FrequencyExperimenter.
+        .. note:: It is the caller's responsibility to provide indices with the proper settings.
 
-        NOTE: It is the caller's responsibility to provide the index with the proper settings.
-
-        Parameters
-        ==========
-        :param index: A list of Series, where each Series is the result of an indexer for one of
-            the parts in this score.
+        :param index: A list of :class:`Series`, where each one is the result of an indexer for \
+            one of the parts in this score.
         :type index: :obj:`list` or :obj:`dict` of :class:`pandas.Series`
-
         :param settings: This indexer uses no settings, so this is ignored.
         :type settings: :obj:`dict` or :obj:`None`
         """
@@ -80,15 +75,13 @@ class FrequencyExperimenter(experimenter.Experimenter):
 
     def run(self):
         """
-        Run the FrequencyExperimenter.
+        Run the :class:`FrequencyExperimenter`.
 
-        Returns
-        =======
-        :returns: The result of the experiment. Data is stored such that column labels correspond
-            to the part (combinations) totalled in the column, and row labels correspond to a type
-            of the kind of objects found in the given index. Note that all columns are totalled in
-            the "all" column, and that not every part combination will have every interval; in case
-            an interval does not appear in a part combination, the value is NaN.
+        :returns: The result of the experiment. Data is stored such that column labels correspond \
+            to the part (combinations) totalled in the column, and row labels correspond to a type \
+            of the kind of objects found in the given index. Note that all columns are totalled in \
+            the "all" column, and that not every part combination will have every interval; in \
+            case an interval does not appear in a part combination, the value is :obj:`numpy.NaN`.
         :rtype: :class:`pandas.DataFrame`
         """
         # assemble results per-part

@@ -23,7 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Template for writing a new experimenter.
+Template for writing a new experimenter. Use this class to help write a new :class`Experimenter` \
+subclass. The :class:`TemplateExperimenter` does nothing, and should only be used by programmers.
 """
 
 from vis.analyzers import experimenter
@@ -31,9 +32,7 @@ from vis.analyzers import experimenter
 
 class TemplateExperimenter(experimenter.Experimenter):
     """
-    Template for a class to make run an experiment on one or more indices.
-
-    Use this class when you want to write a new Experimenter subclass.
+    Template for an :class:`Experimenter` subclass.
     """
 
     possible_settings = [u'fake_setting']
@@ -54,8 +53,6 @@ class TemplateExperimenter(experimenter.Experimenter):
 
     def __init__(self, index, settings=None):
         """
-        Create a new Experimenter.
-
         Parameters
         ==========
         :param index: The indices or experimental results to use for this experiment.
@@ -64,11 +61,12 @@ class TemplateExperimenter(experimenter.Experimenter):
 
         :param settings: A dict of all the settings required by this Experimenter. All required
             settings should be listed in subclasses. Default is None.
-        :type settings: dict or None
+        :type settings: :obj:`dict` or :obj:`None`
 
         Raises
         ======
-        :raises: :exc:`RuntimeError` if required settings are not present in the ``settings`` argument.
+        :raises: :exc:`RuntimeError` if required settings are not present in the ``settings`` \
+            argument.
         """
 
         # Check all required settings are present in the "settings" argument. You must ignore

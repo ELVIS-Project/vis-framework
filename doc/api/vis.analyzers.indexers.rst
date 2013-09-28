@@ -16,7 +16,6 @@ indexers Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`ngram` Module
 -------------------
@@ -25,7 +24,6 @@ indexers Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`noterest` Module
 ----------------------
@@ -34,7 +32,6 @@ indexers Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`offset` Module
 --------------------
@@ -43,7 +40,6 @@ indexers Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`repeat` Module
 --------------------
@@ -52,7 +48,6 @@ indexers Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
 
 :mod:`template` Module
 ----------------------
@@ -61,5 +56,3 @@ indexers Package
     :members:
     :undoc-members:
     :show-inheritance:
-    :special-members:
-

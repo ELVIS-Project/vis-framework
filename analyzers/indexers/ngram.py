@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-k-part anything n-gram Indexer.
+Indexer to find k-part any-object n-grams.
 """
 
 import pandas
@@ -92,6 +92,9 @@ class NGramIndexer(indexer.Indexer):
     :keyword u'continuer': When there is no "horizontal" event that corresponds to a vertical
         event, this is printed instead, to show that the previous "horizontal" event continues.
     :type u'continuer': :obj:`basestring`
+
+    .. note:: The :obj:`u'mark singles'` setting should have no _ characters, which appear in our \
+        documentation only because of a technical limitation in the documentation tool.
     """
 
     default_settings = {u'mark singles': True, u'horizontal': [], u'terminator': [],
@@ -100,21 +103,14 @@ class NGramIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Create a new NGramIndexer.
-
-        Parameters
-        ==========
-        :param score: A list of the "horizontal" and "vertical" indices to use for n-grams. You can
-            put the "horizontal" and "vertical" indices anywhere in the list, so long as you use
-            settings to specify the order.
+        :param score: A list of the "horizontal" and "vertical" indices to use for n-grams. You \
+            can put the "horizontal" and "vertical" indices anywhere in the list, so long as you \
+            use settings to specify the order.
         :type score: :obj:`list` of :class:`pandas.Series`
-
-        :param settings: Required and optional settings. See descriptions in
+        :param settings: Required and optional settings. See descriptions in \
             :const:`possible_settings`.
         :type settings: :obj:`dict`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
         :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
         :raises: :exc:`RuntimeError` if required settings are not present in :obj:`settings`.

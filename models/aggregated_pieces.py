@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-The model representing data from multiple :class:`vis.models.indexed_piece.IndexedPiece`s.
+The model representing data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
 """
 
 import pandas
@@ -32,12 +32,14 @@ from vis.analyzers import experimenter
 
 class AggregatedPieces(object):
     """
-    Hold data from multiple :class:`vis.models.indexed_piece.IndexedPiece`s.
+    Hold data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
     """
 
     # pylint: disable=R0903
     class Metadata(object):
         """
+        Used internally by :class:`AggregatedPieces` ... at least for now.
+
         Hold aggregated metadata about the IndexedPieces in an AggregatedPiece. Every list has no
         duplicate entries.
 
@@ -52,12 +54,8 @@ class AggregatedPieces(object):
 
     def __init__(self, pieces=None):
         """
-        Instantiate an AggregatedPieces.
-
-        Parameters
-        ==========
         :param pieces: The IndexedPieces to collect.
-        :type pieces: list of IndexedPiece
+        :type pieces: list of :class:`~vis.models.indexed_piece.IndexedPiece`
         """
         super(AggregatedPieces, self).__init__()
         self._pieces = pieces if pieces is not None else []
@@ -156,25 +154,27 @@ class AggregatedPieces(object):
 
     def metadata(self, field):
         """
-        Get a metadata about the IndexedPieces stored in this AggregatedPieces.
+        Get a metadatum about the IndexedPieces stored in this AggregatedPieces.
 
         If only some of the stored IndexedPieces have had their metadata initialized, this method
-        returns incompelete metadata. Missing data will be represented as None in the list, but it
-        will not appear in date_range unless there are no dates. If you need full metadata, we
-        recommend running an Indexer on all the IndexedPiece objects.
+        returns incompelete metadata. Missing data will be represented as :obj:`None` in the list,
+        but it will not appear in ``date_range`` unless there are no dates. If you need full
+        metadata, we recommend running an Indexer that requires a :class:`Score` object on all the
+        IndexedPieces (like :class:`vis.analyzers.indexers.noterest.NoteRestIndexer`).
 
         Valid fields are:
-        - composers: list of all the composers in the IndexedPieces
-        - dates: list of all the dates in the IndexedPieces
-        - date_range: 2-tuple with the earliest and latest dates in the IndexedPieces
-        - titles: list of all the titles in the IndexedPieces
-        - locales: list of all the locales in the IndexedPieces
-        - pathnames: list of all the pathnames in the IndexedPieces
+
+        * ``u'composers``: list of all the composers in the IndexedPieces
+        * ``u'dates``: list of all the dates in the IndexedPieces
+        * ``u'date_range``: 2-tuple with the earliest and latest dates in the IndexedPieces
+        * ``u'titles``: list of all the titles in the IndexedPieces
+        * ``u'locales``: list of all the locales in the IndexedPieces
+        * ``u'pathnames``: list of all the pathnames in the IndexedPieces
 
         Parameters
         ==========
-        :param field: The name of the field to be accessed or modified
-        :type field: str or unicode
+        :param field: The name of the field to be accessed or modified.
+        :type field: :obj:`basestring`
 
         Returns
         =======
@@ -184,7 +184,7 @@ class AggregatedPieces(object):
 
         Raises
         ======
-        :raises: TypeError if ``field`` is not a basestring.
+        :raises: :exc:`TypeError` if ``field`` is not a basestring.
         """
         if not isinstance(field, basestring):
             raise TypeError(u"parameter 'field' must be of type 'basestring'")
@@ -203,17 +203,20 @@ class AggregatedPieces(object):
         The same settings dict will be given to all experiments and indexers.
 
         If you want the results from all IndexedPieces separately, provide an empty list as the
-        "aggregated_experiments" argument.
+        ``aggregated_experiments`` argument.
 
-        The first analyzer in "independent_analyzers" should use a Score.
+        The first analyzer in ``independent_analyzers`` should use a :class:`music21.stream.Score`.
 
-        Examples
-        ========
-        pieces.get_data([A, B], [C, D]) will run analyzer C then D on each piece individually, then
-        provide a list of those results to Experimenter A, and pass its output to Experimenter B.
+        **Examples:**
 
-        pieces.get_data([A, B], [C, D]) will run analyzer C then D on each piece individually, then
-        return a list of those results.
+        Run analyzer C then D on each piece individually, then provide a list of those results to
+        Experimenter A, and pass its output to Experimenter B.
+
+        >>> pieces.get_data([A, B], [C, D])
+
+        Run analyzer C then D on each piece individually, then return a list of those results.
+
+        >>> pieces.get_data([A, B], [C, D])
 
         Parameters
         ==========
@@ -229,17 +232,18 @@ class AggregatedPieces(object):
         :type settings: dict
 
         :param data: Input data for the first analyzer to run. This is for internal use only.
-        :type data: list of pandas.Series or pandas.DataFrame
+        :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
 
         Returns
         =======
         :return: Either one DataFrame with all experimental results or a list of DataFrames, each
             with the experimental results for one piece.
-        :rtype: pandas.DataFrame or list of pandas.DataFrame or pandas.Series
+        :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series` or \
+            :class:`pandas.DataFrame`
 
         Raises
         ======
-        :raises: TypeError, if the "analyzer_cls" is invalid or cannot be found.
+        :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
         """
         if [] == self._pieces:
             return [pandas.DataFrame()] if [] == aggregated_experiments else pandas.DataFrame()

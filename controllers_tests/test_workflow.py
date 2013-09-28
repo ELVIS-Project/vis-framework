@@ -84,6 +84,13 @@ class WorkflowTests(TestCase):
         for mock_piece in test_wc._data:
             mock_piece.get_data.assert_called_once_with([noterest.NoteRestIndexer])
 
+    def test_load_2(self):
+        # that the not-yet-implemented instructions raise NotImplementedError
+        test_wc = WorkflowController([])
+        self.assertRaises(NotImplementedError, test_wc.load, u'hdf5')
+        self.assertRaises(NotImplementedError, test_wc.load, u'stata')
+        self.assertRaises(NotImplementedError, test_wc.load, u'pickle')
+
     def test_run_1(self):
         mock_path = u'vis.controllers.workflow.WorkflowController._intervs'
         with mock.patch(mock_path) as mock_meth:
