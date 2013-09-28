@@ -14,6 +14,8 @@ views/ui/Ui_*.py
 *.nja
 *.komodoproject
 doc/api/_build/*
+.Rhistory
+Rplots.pdf
 
 *.py[co]
 
