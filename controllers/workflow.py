@@ -68,6 +68,7 @@ class WorkflowController(object):
             elif isinstance(each_val, indexed_piece.IndexedPiece):
                 post.append(each_val)
         self._data = post
+        self._result = None
 
     def load(self, instruction, pathname=None):
         """
@@ -167,12 +168,14 @@ class WorkflowController(object):
         # format for SuperCollider, if required
         if -1 != instruction.rfind(u' for SuperCollider'):
             post = WorkflowController._for_sc(post)
+        self._result = post
         return post
 
     def _two_part_modules(self, settings):
         """
         Prepare a list of frequencies of two-voice interval n-grams in all pieces. These indexers \
         and experimenters will run:
+
         * :class:`IntervalIndexer`
         * :class:`HorizontalIntervalIndexer`
         * :class:`NGramIndexer`
@@ -185,13 +188,45 @@ class WorkflowController(object):
         :type settings: :obj:`dict`
         :returns: The result of :class:`ColumnAggregator`
         :rtype: :class:`pandas.Series`
+
+        To compute more than one value of 'n', simply call :meth:`_two_part_modules` many times.
         """
-        pass
+        ngram_freqs = []
+        for piece in self._data:
+            vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
+                                       settings)
+            horiz_ints = piece.get_data([noterest.NoteRestIndexer,
+                                         interval.HorizontalIntervalIndexer],
+                                        settings)
+            # each key in vert_ints corresponds to a two-voice combination we should use
+            for combo in vert_ints.iterkeys():
+                # which "horiz" part to use?
+                horiz_i = interval.key_to_tuple(combo)[1]
+                # make the list of parts
+                parts = [vert_ints[combo], horiz_ints[horiz_i]]
+                # assemble settings
+                setts = {u'vertical': [0], u'horizontal': [1]}
+                if u'mark singles' in settings:
+                    setts[u'mark singles'] = settings[u'mark singles']
+                if u'continuer' in settings:
+                    setts[u'continuer'] = settings[u'continuer']
+                setts[u'n'] = settings[u'n']
+                # run NGramIndexer and FrequencyExperimenter, then append the result to the
+                # corresponding index of the dict
+                ngram_freqs.append(piece.get_data([ngram.NGramIndexer,
+                                                   frequency.FrequencyExperimenter],
+                                        setts,
+                                        parts))
+        agg_p = AggregatedPieces(self._data)
+        post = agg_p.get_data([aggregator.ColumnAggregator], None, {}, ngram_freqs)
+        post.sort(ascending=False)
+        return post
 
     def _all_part_modules(self, settings):
         """
         Prepare a list of frequencies of all-voice interval n-grams in all pieces. These indexers \
         and experimenters will run:
+
         * :class:`IntervalIndexer`
         * :class:`HorizontalIntervalIndexer`
         * :class:`NGramIndexer`
@@ -204,6 +239,8 @@ class WorkflowController(object):
         :type settings: :obj:`dict`
         :returns: The result of :class:`ColumnAggregator`
         :rtype: :class:`pandas.Series`
+
+        To compute more than one value of 'n', simply call :meth:`_all_part_modules` many times.
         """
         ngram_freqs = []
         for piece in self._data:
@@ -218,8 +255,6 @@ class WorkflowController(object):
             # make the list of parts
             parts = [vert_ints[x] for x in vert_combos]
             parts.append(horiz_ints[-1])  # always the lowest voice
-
-            # make the list-of-index-s for the settings
             # assemble settings
             setts = {u'vertical': range(len(parts) - 1), u'horizontal': [len(parts) - 1]}
             if u'mark singles' in settings:
@@ -241,6 +276,7 @@ class WorkflowController(object):
         """
         Prepare a list of frequencies of intervals between all voice pairs of all pieces. These \
         indexers and experimenters will run:
+
         * :class:`IntervalIndexer`
         * :class:`FrequencyExperimenter`
         * :class:`ColumnAggregator`
