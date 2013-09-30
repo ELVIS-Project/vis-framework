@@ -41,7 +41,7 @@ class WorkflowController(object):
     * :meth:`load`, to import data from external formats (MusicXML, Stata, pickled, etc.).
     * :meth:`run`, which performs one of a small set of pre-defined analysis activities.
     * :meth:`output`, which outputs visualization data to disk.
-    * :meth:`export`, which exports data to external formats (Stata, CSV, pickled, etc.)
+    * :meth:`export`, which outputs "non-visual" data to disk (Stata, CSV, pickled, etc.)
     """
 
     # Instance Variables
@@ -50,16 +50,25 @@ class WorkflowController(object):
 
     def __init__(self, vals):
         """
-        If you simply want to use the :class:`WorkflowController`, you should provide a list of \
-        pathnames corresponding to the files you want to analyze. If you want to access the \
-        :class:`vis.models.indexed_piece.IndexedPiece` objects directly, you should provide a \
-        list of those to the :class:`WorkflowController`.
+        It's often easier to use the :class:`WorkflowController`, by providing a list of pathnames \
+        corresponding to the files you want to analyze. However, if you will later need access to \
+        the :class:`~vis.models.indexed_piece.IndexedPiece` objects directly themselves, you \
+        should provide them to the :class:`WorkflowController` as in the second example below.
 
         Parameters
         ==========
         :parameter vals: A list of pathnames or IndexedPieces. If an item in the list is not \
             either an IndexedPiece or basestring, it is silently ignored.
-        :type vals: :obj:`list` of :obj:`basestring` or of :obj:`IndexedPiece`
+        :type vals: :obj:`list` of :obj:`basestring` or of \
+            :obj:`~vis.models.indexed_piece.IndexedPiece`
+
+        We manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects:
+        >>> paths = [u'test_corpus/bwv77.mxl', u'test_corpus/Kyrie.krn']
+        >>> path_work = WorkflowController(paths)
+
+        You manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects:
+        >>> ips = [IndexedPiece(x) for x in paths]
+        >>> ip_work = WorkflowController(ips)
         """
         post = []
         for each_val in vals:
@@ -316,7 +325,7 @@ class WorkflowController(object):
 
     def output(self, instruction, pathname=None):
         """
-        Write visualization output to a file.
+        Create a visualization from the most recent result of :meth:`run` and save it to a file.
 
         Parameters
         ==========
@@ -339,13 +348,13 @@ class WorkflowController(object):
 
     def export(self, form, pathname=None):
         """
-        Save the most recent return value of :meth:`run` to a file on disk.
+        Save data from the most recent result of :meth:`run` to a file.
 
         Parameters
         ==========
         :parameter form: The output format you want.
         :type form: :obj:`basestring`
-        :parameter pathname: The pathname for the output. If not specified, we will choose.
+        :parameter pathname: The pathname for output. If not specified, we will choose.
         :type pathname: :obj:`basestring`
 
         Returns
