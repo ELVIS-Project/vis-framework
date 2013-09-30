@@ -46,7 +46,7 @@ from vis.models.analyzing import ListOfPieces
 from vis.views.VisOffsetSelector import VisOffsetSelector
 from Ui_main_window import Ui_MainWindow
 from vis.models.indexed_piece import IndexedPiece
-from vis.controllers.workflow import WorkflowController
+from vis.workflow import WorkflowController
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
@@ -1007,16 +1007,10 @@ Do you want to go back and add the part combination?""",
 
     def _run_the_experiment(self, settings):
         if settings[u'experiment'] == u'all-combinations intervals':
-            stata_path = u'test_output/stata_data.dta'
             wc = WorkflowController(self._list_of_ips)
-            post = wc.run(u'all-combinations intervals',
-                          {u'quality': settings[u'quality'],
-                           u'simple or compound': settings[u'simple or compound']})
-            v_int_freqs = pandas.DataFrame({u'freq': post})
-            v_int_freqs.to_stata(stata_path)
-            Popen([u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', stata_path, u'test_output/LOOKATME.png'],
-                  stdout=None,
-                  stderr=None)
+            wc.run(u'all-combinations intervals', {u'quality': settings[u'quality'],
+                   u'simple or compound': settings[u'simple or compound']})
+            wc.output(u'R histogram')
         self._tool_experiment()
 
     @QtCore.pyqtSlot()  # self.ui.rdo_consider_***.clicked()
