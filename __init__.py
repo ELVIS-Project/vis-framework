@@ -38,6 +38,6 @@ except ImportError:
     import sys
     sys.path.insert(0, u'..')
 
-__all__ = ['analyzers', 'controllers', 'models', 'views']
+__all__ = ['analyzers', 'models', 'views', 'workflow']
 
-from vis import analyzers, controllers, models, views
+from vis import analyzers, models, views, workflow

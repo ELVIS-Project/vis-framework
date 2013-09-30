@@ -4,10 +4,10 @@
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
-# Filename: models_tests/__init__.py
-# Purpose: Tests for the "models" module in vis.
+# Filename: other_tests/__init__.py
+# Purpose: Tests for other components of vis.
 #
-# Copyright (C) 2012, 2013 Christopher Antila, Jamie Klassen
+# Copyright (C) 2012, 2013 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,9 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Tests for the "models" module in vis.
+Tests for other components of vis.
 """
 
-__all__ = ['test_indexed_piece']
+__all__ = ['test_workflow', 'bwv2_integration_tests']
 
-from vis.models_tests import test_indexed_piece
+from vis.other_tests import test_indexed_piece, bwv2_integration_tests
