@@ -5,7 +5,7 @@
 # Program Description:    Helps analyze music with computers.
 #
 # Filename:               controllers_tests/test_workflow.py
-# Purpose:                Tests for the WorkflowController
+# Purpose:                Tests for the WorkflowManager
 #
 # Copyright (C) 2013 Christopher Antila
 #
@@ -23,14 +23,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-Tests for the WorkflowController
+Tests for the WorkflowManager
 """
 
 from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
 import pandas
-from vis.controllers.workflow import WorkflowController
+from vis.controllers.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval
@@ -43,7 +43,7 @@ class WorkflowTests(TestCase):
         # with a list of basestrings
         with mock.patch(u'vis.models.indexed_piece.IndexedPiece') as mock_ip:
             in_val = [u'help.txt', 'path.xml', u'why_you_do_this.rtf']
-            test_wc = WorkflowController(in_val)
+            test_wc = WorkflowManager(in_val)
             self.assertEqual(3, mock_ip.call_count)
             for val in in_val:
                 mock_ip.assert_any_call(val)
@@ -55,7 +55,7 @@ class WorkflowTests(TestCase):
         # with a list of IndexedPieces
         in_val = [IndexedPiece(u'help.txt'), IndexedPiece('path.xml'),
                   IndexedPiece(u'why_you_do_this.rtf')]
-        test_wc = WorkflowController(in_val)
+        test_wc = WorkflowManager(in_val)
         self.assertEqual(3, len(test_wc._data))
         for each in test_wc._data:
             self.assertTrue(each in in_val)
@@ -63,7 +63,7 @@ class WorkflowTests(TestCase):
     def test_init_3(self):
         # with a mixed list of valid things
         in_val = [IndexedPiece(u'help.txt'), 'path.xml', u'why_you_do_this.rtf']
-        test_wc = WorkflowController(in_val)
+        test_wc = WorkflowManager(in_val)
         self.assertEqual(3, len(test_wc._data))
         self.assertEqual(in_val[0], test_wc._data[0])
         for each in test_wc._data[1:]:
@@ -72,14 +72,14 @@ class WorkflowTests(TestCase):
     def test_init_4(self):
         # with mostly basestrings but a few ints
         in_val = [u'help.txt', 'path.xml', 4, u'why_you_do_this.rtf']
-        test_wc = WorkflowController(in_val)
+        test_wc = WorkflowManager(in_val)
         self.assertEqual(3, len(test_wc._data))
         for each in test_wc._data:
             self.assertTrue(isinstance(each, IndexedPiece))
 
     def test_load_1(self):
         # that "get_data" is called correctly on each thing
-        test_wc = WorkflowController([])
+        test_wc = WorkflowManager([])
         test_wc._data = [mock.MagicMock(spec=IndexedPiece) for _ in xrange(5)]
         test_wc.load(u'pieces')
         for mock_piece in test_wc._data:
@@ -87,53 +87,53 @@ class WorkflowTests(TestCase):
 
     def test_load_2(self):
         # that the not-yet-implemented instructions raise NotImplementedError
-        test_wc = WorkflowController([])
+        test_wc = WorkflowManager([])
         self.assertRaises(NotImplementedError, test_wc.load, u'hdf5')
         self.assertRaises(NotImplementedError, test_wc.load, u'stata')
         self.assertRaises(NotImplementedError, test_wc.load, u'pickle')
 
     def test_run_1(self):
-        mock_path = u'vis.controllers.workflow.WorkflowController._intervs'
+        mock_path = u'vis.controllers.workflow.WorkflowManager._intervs'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
-            test_wc = WorkflowController([])
+            test_wc = WorkflowManager([])
             test_wc.run(u'all-combinations intervals', 42)
             mock_meth.assert_called_once_with(42)
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
     def test_run_2(self):
-        mock_path = u'vis.controllers.workflow.WorkflowController._two_part_modules'
+        mock_path = u'vis.controllers.workflow.WorkflowManager._two_part_modules'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
-            test_wc = WorkflowController([])
+            test_wc = WorkflowManager([])
             test_wc.run(u'all 2-part interval n-grams', 42)
             mock_meth.assert_called_once_with(42)
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
     def test_run_3(self):
-        mock_path = u'vis.controllers.workflow.WorkflowController._all_part_modules'
+        mock_path = u'vis.controllers.workflow.WorkflowManager._all_part_modules'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
-            test_wc = WorkflowController([])
+            test_wc = WorkflowManager([])
             test_wc.run(u'all-voice interval n-grams', 42)
             mock_meth.assert_called_once_with(42)
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
     def test_run_4(self):
-        mock_path_a = u'vis.controllers.workflow.WorkflowController._two_part_modules'
-        mock_path_b = u'vis.controllers.workflow.WorkflowController._for_sc'
+        mock_path_a = u'vis.controllers.workflow.WorkflowManager._two_part_modules'
+        mock_path_b = u'vis.controllers.workflow.WorkflowManager._for_sc'
         with mock.patch(mock_path_a) as mock_meth_a:
             with mock.patch(mock_path_b) as mock_meth_b:
                 mock_meth_a.return_value = 1200
                 mock_meth_b.return_value = u'the final countdown'
-                test_wc = WorkflowController([])
+                test_wc = WorkflowManager([])
                 test_wc.run(u'all 2-part interval n-grams for SuperCollider', 42)
                 mock_meth_a.assert_called_once_with(42)
                 mock_meth_b.assert_called_once_with(mock_meth_a.return_value)
                 self.assertEqual(mock_meth_b.return_value, test_wc._result)
 
     def test_run_6(self):
-        test_wc = WorkflowController([])
+        test_wc = WorkflowManager([])
         self.assertRaises(RuntimeError, test_wc.run, u'too short')
         self.assertRaises(RuntimeError, test_wc.run, u'this just is not an instruction you know')
 
@@ -166,7 +166,7 @@ class WorkflowTests(TestCase):
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
         # 2.) run the test
-        test_wc = WorkflowController(test_pieces)
+        test_wc = WorkflowManager(test_pieces)
         actual = test_wc._intervs(test_settings)
         # 3.) confirm everything was called in the right order
         for piece in test_pieces:
@@ -218,7 +218,7 @@ class WorkflowTests(TestCase):
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
         # 2.) run the test
-        test_wc = WorkflowController(test_pieces)
+        test_wc = WorkflowManager(test_pieces)
         actual = test_wc._all_part_modules(test_settings)
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes
@@ -284,7 +284,7 @@ class WorkflowTests(TestCase):
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
         # 2.) run the test
-        test_wc = WorkflowController(test_pieces)
+        test_wc = WorkflowManager(test_pieces)
         actual = test_wc._all_part_modules(test_settings)
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes
@@ -360,7 +360,7 @@ class WorkflowTests(TestCase):
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
         # 2.) run the test
-        test_wc = WorkflowController(test_pieces)
+        test_wc = WorkflowManager(test_pieces)
         actual = test_wc._two_part_modules(test_settings)
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes
@@ -434,7 +434,7 @@ class WorkflowTests(TestCase):
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
         # 2.) run the test
-        test_wc = WorkflowController(test_pieces)
+        test_wc = WorkflowManager(test_pieces)
         actual = test_wc._two_part_modules(test_settings)
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes
@@ -461,23 +461,23 @@ class WorkflowTests(TestCase):
         ap_getdata_ret.sort.assert_called_once_with(ascending=False)
 
     def test_output_1(self):
-        test_wc = WorkflowController([])
+        test_wc = WorkflowManager([])
         self.assertRaises(NotImplementedError, test_wc.output, u'LilyPond')
 
     def test_output_2(self):
-        test_wc = WorkflowController([])
+        test_wc = WorkflowManager([])
         self.assertRaises(RuntimeError, test_wc.output, u'LJKDSFLAESFLKJ')
 
     def test_output_3(self):
         # with self._result as None
-        test_wc = WorkflowController([])
+        test_wc = WorkflowManager([])
         self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
 
     @mock.patch(u'pandas.DataFrame')
     @mock.patch(u'subprocess.call')
     def test_output_4(self, mock_call, mock_df):
         # with specified pathname
-        test_wc = WorkflowController([])
+        test_wc = WorkflowManager([])
         test_wc._result = pandas.Series([x for x in xrange(10)])
         path = u'pathname!'
         test_wc.output(u'R histogram', path)
@@ -490,7 +490,7 @@ class WorkflowTests(TestCase):
     @mock.patch(u'subprocess.call')
     def test_output_5(self, mock_call, mock_df):
         # with unspecified pathname
-        test_wc = WorkflowController([])
+        test_wc = WorkflowManager([])
         test_wc._result = pandas.Series([x for x in xrange(10)])
         path = u'test_output/output_result'
         test_wc.output(u'R histogram')

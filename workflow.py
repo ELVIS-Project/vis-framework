@@ -34,11 +34,11 @@ from vis.analyzers.indexers import noterest, interval, ngram
 from vis.analyzers.experimenters import frequency, aggregator
 
 
-class WorkflowController(object):
+class WorkflowManager(object):
     """
-    The :class:`WorkflowController` automates several commonly-performed music analysis patterns.
+    The :class:`WorkflowManager` automates several commonly-performed music analysis patterns.
 
-    There are four basic tasks the :class:`WorkflowController` performs, each with its own method:
+    There are four basic tasks the :class:`WorkflowManager` performs, each with its own method:
 
     * :meth:`load`, to import data from external formats (MusicXML, Stata, pickled, etc.).
     * :meth:`run`, which performs one of a small set of pre-defined analysis activities.
@@ -57,10 +57,10 @@ class WorkflowController(object):
 
     def __init__(self, vals):
         """
-        It's often easier to use the :class:`WorkflowController`, by providing a list of pathnames \
+        It's often easier to use the :class:`WorkflowManager`, by providing a list of pathnames \
         corresponding to the files you want to analyze. However, if you will later need access to \
         the :class:`~vis.models.indexed_piece.IndexedPiece` objects directly themselves, you \
-        should provide them to the :class:`WorkflowController` as in the second example below.
+        should provide them to the :class:`WorkflowManager` as in the second example below.
 
         Parameters
         ==========
@@ -71,11 +71,11 @@ class WorkflowController(object):
 
         We manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects:
         >>> paths = [u'test_corpus/bwv77.mxl', u'test_corpus/Kyrie.krn']
-        >>> path_work = WorkflowController(paths)
+        >>> path_work = WorkflowManager(paths)
 
         You manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects:
         >>> ips = [IndexedPiece(x) for x in paths]
-        >>> ip_work = WorkflowController(ips)
+        >>> ip_work = WorkflowManager(ips)
         """
         post = []
         for each_val in vals:
@@ -165,7 +165,7 @@ class WorkflowController(object):
         possible_instructions = [u'all-combinations intervals',
                                  u'all 2-part interval n-grams',
                                  u'all-voice interval n-grams']
-        error_msg = u'WorkflowController.run() could not parse the instruction'
+        error_msg = u'WorkflowManager.run() could not parse the instruction'
         post = None
         # run the experiment
         if len(instruction) < min([len(x) for x in possible_instructions]):
@@ -180,7 +180,7 @@ class WorkflowController(object):
             raise RuntimeError(error_msg)
         # format for SuperCollider, if required
         if -1 != instruction.rfind(u' for SuperCollider'):
-            post = WorkflowController._for_sc(post)
+            post = WorkflowManager._for_sc(post)
         self._result = post
         return post
 
