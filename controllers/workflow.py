@@ -26,6 +26,8 @@
 Workflow controller, to automate commonly-performed tasks.
 """
 
+import subprocess
+import pandas
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval, ngram
@@ -43,6 +45,11 @@ class WorkflowController(object):
     * :meth:`output`, which outputs visualization data to disk.
     * :meth:`export`, which outputs "non-visual" data to disk (Stata, CSV, pickled, etc.)
     """
+    # TODO: rename to WorkflowManager
+    # TODO: never touch IPs when using the WM
+    #       - WM.metadata() takes a metadata field and index; index corresponds to index of the
+    #         IP in self._data; optional value for setting
+    #       - how to deal with groups of pieces with different settings?
 
     # Instance Variables
     # - self._data = list of IndexedPieces
@@ -85,20 +92,7 @@ class WorkflowController(object):
         used for the :obj:`u'pieces'` instruction, to control when the initial music21 import \
         happens.
 
-        Parameters
-        ==========
-        :parameter instruction: The type of data to load.
-        :type instruction: :obj:`basestring`
-        :parameter pathname: The pathname of the data to import; not required for the u'pieces' \
-            instruction.
-        :type pathname: :obj:`basestring`
-
-        Returns
-        =======
-        :returns: The loaded data.
-        :rtype: :obj:`list` of :class:`pandas.Series`
-
-        Instructions:
+        **Instructions:**
 
         .. note:: only :obj:`u'pieces'` is implemented at this time.
 
@@ -106,6 +100,14 @@ class WorkflowController(object):
         * :obj:`u'hdf5'` to load data from a previous :meth:`export`.
         * :obj:`u'stata'` to load data from a previous :meth:`export`.
         * :obj:`u'pickle'` to load data from a previous :meth:`export`.
+
+        Parameters
+        ==========
+        :parameter instruction: The type of data to load.
+        :type instruction: :obj:`basestring`
+        :parameter pathname: The pathname of the data to import; not required for the u'pieces' \
+            instruction.
+        :type pathname: :obj:`basestring`
         """
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
@@ -157,6 +159,8 @@ class WorkflowController(object):
             sonification program. You should then call :meth:`export` with the :obj:`u'CSV'` \
             instruction.
         """
+        # TODO: handle RepeatFilter
+        # TODO: handle OffsetIndexer
         # NOTE: do not re-order the instructions or this method will break
         possible_instructions = [u'all-combinations intervals',
                                  u'all 2-part interval n-grams',
@@ -323,7 +327,7 @@ class WorkflowController(object):
         """
         pass
 
-    def output(self, instruction, pathname=None):
+    def output(self, instruction, pathname=u'test_output/output_result'):
         """
         Create a visualization from the most recent result of :meth:`run` and save it to a file.
 
@@ -331,7 +335,8 @@ class WorkflowController(object):
         ==========
         :parameter instruction: The type of visualization to output.
         :type instruction: :obj:`basestring`
-        :parameter pathname: The pathname for the output. If not specified, we will choose.
+        :parameter pathname: The pathname for the output. If not specified, we will choose. Do not
+            provide a filename extension---this is automatic.
         :type pathname: :obj:`basestring`
 
         Returns
@@ -339,12 +344,34 @@ class WorkflowController(object):
         :returns: The pathname of the outputted visualization.
         :rtype: :obj:`unicode`
 
-        Instructions:
+        Raises
+        ======
+        :raises: :exc:`NotImplementedError` if you use the ``u'LilyPond'`` instruction.
+        :raises: :exc:`RuntimeError` for unrecognized instructions.
+        :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
+
+        **Instructions:**
+
+        .. note:: Only the ``u'R histogram'`` instruction works at the moment.
 
         * :obj:`u'LilyPond'`: not yet sure what this will be like...
         * :obj:`u'R histogram'`: a histogram with ggplot2 in R.
         """
-        pass
+        if instruction == u'LilyPond':
+            raise NotImplementedError(u'I didn\'t write that part yet!')
+        elif instruction == u'R histogram':
+            if self._result is None:
+                raise RuntimeError(u'Call run() before calling output()')
+            else:
+                stata_path = pathname + u'.dta'
+                png_path = pathname + u'.png'
+                out_me = pandas.DataFrame({u'freq': self._result})
+                out_me.to_stata(stata_path)
+                call_to_r = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', stata_path,
+                             png_path]
+                subprocess.call(call_to_r)
+        else:
+            raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
 
     def export(self, form, pathname=None):
         """

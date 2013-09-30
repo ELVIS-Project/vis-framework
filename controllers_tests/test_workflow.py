@@ -29,6 +29,7 @@ Tests for the WorkflowController
 from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
+import pandas
 from vis.controllers.workflow import WorkflowController
 from vis.models.indexed_piece import IndexedPiece
 from vis.models.aggregated_pieces import AggregatedPieces
@@ -458,6 +459,45 @@ class WorkflowTests(TestCase):
         ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
         self.assertEqual(ap_getdata_ret, actual)
         ap_getdata_ret.sort.assert_called_once_with(ascending=False)
+
+    def test_output_1(self):
+        test_wc = WorkflowController([])
+        self.assertRaises(NotImplementedError, test_wc.output, u'LilyPond')
+
+    def test_output_2(self):
+        test_wc = WorkflowController([])
+        self.assertRaises(RuntimeError, test_wc.output, u'LJKDSFLAESFLKJ')
+
+    def test_output_3(self):
+        # with self._result as None
+        test_wc = WorkflowController([])
+        self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
+
+    @mock.patch(u'pandas.DataFrame')
+    @mock.patch(u'subprocess.call')
+    def test_output_4(self, mock_call, mock_df):
+        # with specified pathname
+        test_wc = WorkflowController([])
+        test_wc._result = pandas.Series([x for x in xrange(10)])
+        path = u'pathname!'
+        test_wc.output(u'R histogram', path)
+        mock_df.assert_called_once_with({u'freq': test_wc._result})
+        expected_args = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', path + u'.dta',
+                         path + u'.png']
+        mock_call.assert_called_once_with(expected_args)
+
+    @mock.patch(u'pandas.DataFrame')
+    @mock.patch(u'subprocess.call')
+    def test_output_5(self, mock_call, mock_df):
+        # with unspecified pathname
+        test_wc = WorkflowController([])
+        test_wc._result = pandas.Series([x for x in xrange(10)])
+        path = u'test_output/output_result'
+        test_wc.output(u'R histogram')
+        mock_df.assert_called_once_with({u'freq': test_wc._result})
+        expected_args = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', path + u'.dta',
+                         path + u'.png']
+        mock_call.assert_called_once_with(expected_args)
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
