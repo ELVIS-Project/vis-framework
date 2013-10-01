@@ -44,12 +44,18 @@ class WorkflowManager(object):
     * :meth:`run`, which performs one of a small set of pre-defined analysis activities.
     * :meth:`output`, which outputs visualization data to disk.
     * :meth:`export`, which outputs "non-visual" data to disk (Stata, CSV, pickled, etc.)
+
+    We also provide the following methods for setting and getting properties of the individual
+    :class:`~vis.models.indexed_piece.IndexedPiece` objects:
+
+    * :meth:`metadata`, to adjust or view the metadata of a piece.
+    * :meth:`settings`, to adjust or view the settings of a piece.
     """
-    # TODO: rename to WorkflowManager
     # TODO: never touch IPs when using the WM
     #       - WM.metadata() takes a metadata field and index; index corresponds to index of the
     #         IP in self._data; optional value for setting
-    #       - how to deal with groups of pieces with different settings?
+    #       - how to deal with groups of pieces with different settings? (a settings() method)
+    # TODO: pay attention to voice-combination settings for finding interval n-grams
 
     # Instance Variables
     # - self._data = list of IndexedPieces
@@ -85,6 +91,19 @@ class WorkflowManager(object):
                 post.append(each_val)
         self._data = post
         self._result = None
+        self._settings = [{} for _ in xrange(len(self._data))]
+        for piece_sett in self._settings:
+            for sett in [u'offset interval', u'voice combinations']:
+                piece_sett[sett] = None
+            for sett in [u'filter repeats', u'interval quality', u'simple intervals']:
+                piece_sett[sett] = False
+        # TODO: test the settings are initialized correctly
+
+    def __len__(self):
+        """
+        Return the number of pieces stored in this WorkflowManager.
+        """
+        return len(self._data)
 
     def load(self, instruction, pathname=None):
         """
@@ -398,5 +417,74 @@ class WorkflowManager(object):
             later (NOTE: this does not work yet)
         * :obj:`u'Stata'`: output a Stata file for importing to R.
         * :obj:`u'Excel'`: output an Excel file for Peter Schubert.
+        """
+        pass
+
+    def metadata(self, index, field, value=None):
+        """
+        Use this method to get or set a particular metadatum. The valid field names are listed in
+        IndexedPiece.:meth:`~vis.models.indexed_piece.IndexedPiece.metadata`.
+
+        A metadatum is a salient musical characteristic of a particular piece, and does not change
+        across analyses.
+
+        :param index: The index of the piece to access. The range of valid indices is ``0`` through
+            one fewer than the return value of calling :func:`len` on this WorkflowManager.
+        :type index: :obj:`int`
+        :param field: The name of the field to be accessed or modified.
+        :type field: :obj:`basestring`
+        :param value: If not ``None``, the new value to be assigned to ``field``.
+        :type value: :obj:`object` or :obj:`None`
+
+        :returns: The value of the requested field or ``None``, if assigning, or if accessing a
+            non-existant field or a field that has not yet been initialized.
+        :rtype: :obj:`object` or :obj:`None`
+
+        :raises: :exc:`TypeError` if ``field`` is not a ``basestring``.
+        :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
+        :raises: :exc:`RuntimeError` if ``index`` is invalid for this ``WorkflowManager``.
+        """
+        return self._data[index].metadata(field, value)
+
+    def settings(self, index, field, value=None):
+        """
+        Use this method to get or set a particular setting. The valid values are listed below.
+
+        A setting is related to this particular analysis, and is not a salient musical feature of
+        the work itself.
+
+        :param index: The index of the piece to access. The range of valid indices is ``0`` through
+            one fewer than the return value of calling :func:`len` on this WorkflowManager. If
+            ``value`` is not ``None`` and ``index`` is ``None``, you can set a field for all pieces.
+        :type index: :obj:`int`
+        :param field: The name of the field to be accessed or modified.
+        :type field: :obj:`basestring`
+        :param value: If not ``None``, the new value to be assigned to ``field``.
+        :type value: :obj:`object` or :obj:`None`
+
+        :returns: The value of the requested field or ``None``, if assigning, or if accessing a
+            non-existant field or a field that has not yet been initialized.
+        :rtype: :obj:`object` or :obj:`None`
+
+        :raises: :exc:`TypeError` if ``field`` is not a ``basestring``.
+        :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
+        :raises: :exc:`RuntimeError` if ``index`` is invalid for this ``WorkflowManager``.
+
+        **Setting Fields:**
+
+        * ``offset interval``: If you want to run the \
+            :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`, specify a value for this
+            setting that will become the quarterLength duration between observed offsets.
+        * ``filter repeats``: If you want to run the \
+            :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`, set this setting to \
+            ``True``.
+        * ``voice combinations``: If you want to consider certain specific voice combinations, \
+            set this setting to a list of a list of iterables. The following value would analyze \
+            the highest three voices with each other: ``[[0,1,2]]`` while this would analyze the \
+            every part with the lowest for a four-part piece: ``[[0, 3], [1, 3], [2, 3]]``.
+        * ``interval quality``: If you want to display interval quality, set this setting to \
+            ``True``.
+        * ``simple intervals``: If you want to display all intervals as their single-octave \
+            equivalents, set this setting to ``True``.
         """
         pass
