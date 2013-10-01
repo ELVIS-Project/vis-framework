@@ -51,10 +51,6 @@ class WorkflowManager(object):
     * :meth:`metadata`, to adjust or view the metadata of a piece.
     * :meth:`settings`, to adjust or view the settings of a piece.
     """
-    # TODO: never touch IPs when using the WM
-    #       - WM.metadata() takes a metadata field and index; index corresponds to index of the
-    #         IP in self._data; optional value for setting
-    #       - how to deal with groups of pieces with different settings? (a settings() method)
     # TODO: pay attention to voice-combination settings for finding interval n-grams
 
     # Instance Variables
@@ -97,7 +93,6 @@ class WorkflowManager(object):
                 piece_sett[sett] = None
             for sett in [u'filter repeats', u'interval quality', u'simple intervals']:
                 piece_sett[sett] = False
-        # TODO: test the settings are initialized correctly
 
     def __len__(self):
         """
@@ -442,7 +437,7 @@ class WorkflowManager(object):
 
         :raises: :exc:`TypeError` if ``field`` is not a ``basestring``.
         :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
-        :raises: :exc:`RuntimeError` if ``index`` is invalid for this ``WorkflowManager``.
+        :raises: :exc:`IndexError` if ``index`` is invalid for this ``WorkflowManager``.
         """
         return self._data[index].metadata(field, value)
 
@@ -466,9 +461,9 @@ class WorkflowManager(object):
             non-existant field or a field that has not yet been initialized.
         :rtype: :obj:`object` or :obj:`None`
 
-        :raises: :exc:`TypeError` if ``field`` is not a ``basestring``.
         :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
-        :raises: :exc:`RuntimeError` if ``index`` is invalid for this ``WorkflowManager``.
+        :raises: :exc:`IndexError` if ``index`` is invalid for this ``WorkflowManager``.
+        :raises: :exc:`ValueError` if ``index`` and ``value`` are both ``None``.
 
         **Setting Fields:**
 
@@ -487,4 +482,17 @@ class WorkflowManager(object):
         * ``simple intervals``: If you want to display all intervals as their single-octave \
             equivalents, set this setting to ``True``.
         """
-        pass
+        if index is None:
+            if value is None:
+                raise ValueError(u'If "index" is None, "value" must not be None.')
+            else:
+                for i in xrange(len(self._settings)):
+                    self.settings(i, field, value)
+        elif not 0 <= index < len(self._settings):
+            raise IndexError(u'Invalid inex for this WorkflowManager (' + unicode(index) + u')')
+        elif field not in self._settings[index]:
+            raise AttributeError(u'Invalid setting: ' + unicode(field))
+        elif value is None:
+            return self._settings[index][field]
+        else:
+            self._settings[index][field] = value

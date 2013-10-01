@@ -50,6 +50,13 @@ class WorkflowTests(TestCase):
             self.assertEqual(3, len(test_wc._data))
             for each in test_wc._data:
                 self.assertTrue(isinstance(each, mock.MagicMock))
+            self.assertEqual(3, len(test_wc._settings))
+            for piece_sett in test_wc._settings:
+                self.assertEqual(5, len(piece_sett))
+                for sett in [u'offset interval', u'voice combinations']:
+                    self.assertEqual(None, piece_sett[sett])
+                for sett in [u'filter repeats', u'interval quality', u'simple intervals']:
+                    self.assertEqual(False, piece_sett[sett])
 
     def test_init_2(self):
         # with a list of IndexedPieces
@@ -59,6 +66,12 @@ class WorkflowTests(TestCase):
         self.assertEqual(3, len(test_wc._data))
         for each in test_wc._data:
             self.assertTrue(each in in_val)
+        for piece_sett in test_wc._settings:
+            self.assertEqual(5, len(piece_sett))
+            for sett in [u'offset interval', u'voice combinations']:
+                self.assertEqual(None, piece_sett[sett])
+            for sett in [u'filter repeats', u'interval quality', u'simple intervals']:
+                self.assertEqual(False, piece_sett[sett])
 
     def test_init_3(self):
         # with a mixed list of valid things
@@ -68,6 +81,12 @@ class WorkflowTests(TestCase):
         self.assertEqual(in_val[0], test_wc._data[0])
         for each in test_wc._data[1:]:
             self.assertTrue(isinstance(each, IndexedPiece))
+        for piece_sett in test_wc._settings:
+            self.assertEqual(5, len(piece_sett))
+            for sett in [u'offset interval', u'voice combinations']:
+                self.assertEqual(None, piece_sett[sett])
+            for sett in [u'filter repeats', u'interval quality', u'simple intervals']:
+                self.assertEqual(False, piece_sett[sett])
 
     def test_init_4(self):
         # with mostly basestrings but a few ints
@@ -76,6 +95,12 @@ class WorkflowTests(TestCase):
         self.assertEqual(3, len(test_wc._data))
         for each in test_wc._data:
             self.assertTrue(isinstance(each, IndexedPiece))
+        for piece_sett in test_wc._settings:
+            self.assertEqual(5, len(piece_sett))
+            for sett in [u'offset interval', u'voice combinations']:
+                self.assertEqual(None, piece_sett[sett])
+            for sett in [u'filter repeats', u'interval quality', u'simple intervals']:
+                self.assertEqual(False, piece_sett[sett])
 
     def test_load_1(self):
         # that "get_data" is called correctly on each thing
@@ -500,6 +525,55 @@ class WorkflowTests(TestCase):
                          path + u'.png']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_1(self, mock_ip):
+        # - if index is None and value are None, raise ValueError
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        self.assertRaises(ValueError, test_wm.settings, None, u'interval quality', None)
+        self.assertRaises(ValueError, test_wm.settings, None, u'interval quality')
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_2(self, mock_ip):
+        # - if index is None, field and value are valid, it'll set for all IPs
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm.settings(None, u'interval quality', True)
+        for i in xrange(3):
+            self.assertEqual(True, test_wm._settings[i][u'interval quality'])
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_3(self, mock_ip):
+        # - if index is less than 0 or greater-than-valid, raise IndexError
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        self.assertRaises(IndexError, test_wm.settings, -1, u'interval quality')
+        self.assertRaises(IndexError, test_wm.settings, 20, u'interval quality')
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_4(self, mock_ip):
+        # - if index is 0, return proper setting
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm._settings[0][u'interval quality'] = u'cheese'
+        self.assertEqual(u'cheese', test_wm.settings(0, u'interval quality'))
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_5(self, mock_ip):
+        # - if index is greater than 0 but valid, set proper setting
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm.settings(1, u'interval quality', u'leeks')
+        self.assertEqual(u'leeks', test_wm._settings[1][u'interval quality'])
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_6(self, mock_ip):
+        # - if index is valid but the setting isn't, raise AttributeError (with or without a value)
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        self.assertRaises(AttributeError, test_wm.settings, 1, u'drink wine')
+        self.assertRaises(AttributeError, test_wm.settings, 1, u'drink wine', True)
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
