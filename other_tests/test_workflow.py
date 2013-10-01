@@ -30,7 +30,7 @@ from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
 import pandas
-from vis.controllers.workflow import WorkflowManager
+from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval
@@ -93,7 +93,7 @@ class WorkflowTests(TestCase):
         self.assertRaises(NotImplementedError, test_wc.load, u'pickle')
 
     def test_run_1(self):
-        mock_path = u'vis.controllers.workflow.WorkflowManager._intervs'
+        mock_path = u'vis.workflow.WorkflowManager._intervs'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
@@ -102,7 +102,7 @@ class WorkflowTests(TestCase):
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
     def test_run_2(self):
-        mock_path = u'vis.controllers.workflow.WorkflowManager._two_part_modules'
+        mock_path = u'vis.workflow.WorkflowManager._two_part_modules'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
@@ -111,7 +111,7 @@ class WorkflowTests(TestCase):
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
     def test_run_3(self):
-        mock_path = u'vis.controllers.workflow.WorkflowManager._all_part_modules'
+        mock_path = u'vis.workflow.WorkflowManager._all_part_modules'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
@@ -120,8 +120,8 @@ class WorkflowTests(TestCase):
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
     def test_run_4(self):
-        mock_path_a = u'vis.controllers.workflow.WorkflowManager._two_part_modules'
-        mock_path_b = u'vis.controllers.workflow.WorkflowManager._for_sc'
+        mock_path_a = u'vis.workflow.WorkflowManager._two_part_modules'
+        mock_path_b = u'vis.workflow.WorkflowManager._for_sc'
         with mock.patch(mock_path_a) as mock_meth_a:
             with mock.patch(mock_path_b) as mock_meth_b:
                 mock_meth_a.return_value = 1200
@@ -137,11 +137,11 @@ class WorkflowTests(TestCase):
         self.assertRaises(RuntimeError, test_wc.run, u'too short')
         self.assertRaises(RuntimeError, test_wc.run, u'this just is not an instruction you know')
 
-    @mock.patch(u'vis.controllers.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.controllers.workflow.interval.IntervalIndexer')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
     @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.controllers.workflow.AggregatedPieces')
+    @mock.patch(u'vis.workflow.AggregatedPieces')
     def test_intervs_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri):
         # mock NoteRestIndexer, IntervalIndexer, FrequencyExperimenter, ColumnAggregator,
         #      IndexedPiece, AggregatedPieces
@@ -179,13 +179,13 @@ class WorkflowTests(TestCase):
         self.assertEqual(ap_getdata_ret, actual)
         ap_getdata_ret.sort.assert_called_once_with(ascending=False)
 
-    @mock.patch(u'vis.controllers.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.controllers.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.controllers.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.controllers.workflow.interval.IntervalIndexer')
+    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
     @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.controllers.workflow.AggregatedPieces')
+    @mock.patch(u'vis.workflow.AggregatedPieces')
     def test_all_part_modules_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
                                 mock_horiz):
         # test without the "mark singles" and "continuer" settings
@@ -244,13 +244,13 @@ class WorkflowTests(TestCase):
         self.assertEqual(ap_getdata_ret, actual)
         ap_getdata_ret.sort.assert_called_once_with(ascending=False)
 
-    @mock.patch(u'vis.controllers.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.controllers.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.controllers.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.controllers.workflow.interval.IntervalIndexer')
+    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
     @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.controllers.workflow.AggregatedPieces')
+    @mock.patch(u'vis.workflow.AggregatedPieces')
     def test_all_part_modules_2(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
                                 mock_horiz):
         # test with the "mark singles" and "continuer" settings
@@ -311,13 +311,13 @@ class WorkflowTests(TestCase):
         self.assertEqual(ap_getdata_ret, actual)
         ap_getdata_ret.sort.assert_called_once_with(ascending=False)
 
-    @mock.patch(u'vis.controllers.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.controllers.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.controllers.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.controllers.workflow.interval.IntervalIndexer')
+    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
     @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.controllers.workflow.AggregatedPieces')
+    @mock.patch(u'vis.workflow.AggregatedPieces')
     def test_two_part_modules_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
                                 mock_horiz):
         # test without the "mark singles" and "continuer" settings
@@ -384,13 +384,13 @@ class WorkflowTests(TestCase):
         self.assertEqual(ap_getdata_ret, actual)
         ap_getdata_ret.sort.assert_called_once_with(ascending=False)
 
-    @mock.patch(u'vis.controllers.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.controllers.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.controllers.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.controllers.workflow.interval.IntervalIndexer')
+    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
     @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.controllers.workflow.AggregatedPieces')
+    @mock.patch(u'vis.workflow.AggregatedPieces')
     def test_two_part_modules_2(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
                                 mock_horiz):
         # test with the "mark singles" and "continuer" settings
