@@ -370,6 +370,7 @@ class WorkflowManager(object):
                 call_to_r = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', stata_path,
                              png_path]
                 subprocess.call(call_to_r)
+                return png_path
         else:
             raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
 

@@ -480,11 +480,12 @@ class WorkflowTests(TestCase):
         test_wc = WorkflowManager([])
         test_wc._result = pandas.Series([x for x in xrange(10)])
         path = u'pathname!'
-        test_wc.output(u'R histogram', path)
+        actual = test_wc.output(u'R histogram', path)
         mock_df.assert_called_once_with({u'freq': test_wc._result})
         expected_args = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', path + u'.dta',
                          path + u'.png']
         mock_call.assert_called_once_with(expected_args)
+        self.assertEqual(path + u'.png', actual)
 
     @mock.patch(u'pandas.DataFrame')
     @mock.patch(u'subprocess.call')
@@ -493,11 +494,12 @@ class WorkflowTests(TestCase):
         test_wc = WorkflowManager([])
         test_wc._result = pandas.Series([x for x in xrange(10)])
         path = u'test_output/output_result'
-        test_wc.output(u'R histogram')
+        actual = test_wc.output(u'R histogram')
         mock_df.assert_called_once_with({u'freq': test_wc._result})
         expected_args = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', path + u'.dta',
                          path + u'.png']
         mock_call.assert_called_once_with(expected_args)
+        self.assertEqual(path + u'.png', actual)
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
