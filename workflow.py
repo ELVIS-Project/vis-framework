@@ -465,7 +465,14 @@ class WorkflowManager(object):
         :returns: The pathname of the outputted file.
         :rtype: :obj:`unicode`
 
+        Raises
+        ======
+        :raises: :exc:`RuntimeError` for unrecognized instructions.
+        :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
+
         Formats:
+
+        .. note:: Only ``CSV``,``Excel``, and ``Stata`` work at the moment.
 
         * :obj:`u'CSV'`: output a Series or DataFrame to a CSV file.
         * :obj:`u'HDF5'`: output a Series or DataFrame to an HDF5 file.
@@ -474,7 +481,36 @@ class WorkflowManager(object):
         * :obj:`u'Stata'`: output a Stata file for importing to R.
         * :obj:`u'Excel'`: output an Excel file for Peter Schubert.
         """
-        pass
+        export_me = None
+        if self._result is None:
+            raise RuntimeError(u'Call run() before calling export()')
+        if pathname is None:
+            pathname = u'test_output/no_path'
+        else:
+            pathname = unicode(pathname)
+        if u'CSV' == form:
+            if u'.csv' != pathname[-4:]:
+                pathname += u'.csv'
+            if not isinstance(self._result, pandas.DataFrame):
+                export_me = pandas.DataFrame({u'data': self._result})
+            export_me.to_csv(pathname)
+            return pathname
+        elif u'Stata' == form:
+            if u'.dta' != pathname[-4:]:
+                pathname += u'.dta'
+            if not isinstance(self._result, pandas.DataFrame):
+                export_me = pandas.DataFrame({u'data': self._result})
+            export_me.to_stata(pathname)
+            return pathname
+        elif u'Excel' == form:
+            if u'.xlsx' != pathname[-5:]:
+                pathname += u'.xlsx'
+            if not isinstance(self._result, pandas.DataFrame):
+                export_me = pandas.DataFrame({u'data': self._result})
+            export_me.to_excel(pathname)
+            return pathname
+        else:
+            raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
 
     def metadata(self, index, field, value=None):
         """
