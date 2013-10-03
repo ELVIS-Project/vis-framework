@@ -27,7 +27,7 @@ class Ui_vis_graph_view(object):
         vis_graph_view.setObjectName(_fromUtf8("vis_graph_view"))
         vis_graph_view.resize(816, 604)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/icons/vis-1-128.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/icons/vis-1-32.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         vis_graph_view.setWindowIcon(icon)
         self.verticalLayout = QtGui.QVBoxLayout(vis_graph_view)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))

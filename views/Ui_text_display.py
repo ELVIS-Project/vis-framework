@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_Text_Display(object):
     def setupUi(self, Text_Display):
         Text_Display.setObjectName(_fromUtf8("Text_Display"))
-        Text_Display.resize(696, 489)
+        Text_Display.resize(816, 604)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -35,17 +35,19 @@ class Ui_Text_Display(object):
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/icons/vis-1-32.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Text_Display.setWindowIcon(icon)
         Text_Display.setModal(False)
-        self.gridLayout_2 = QtGui.QGridLayout(Text_Display)
-        self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
+        self.verticalLayout = QtGui.QVBoxLayout(Text_Display)
+        self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.text_browser = QtGui.QTextBrowser(Text_Display)
         self.text_browser.setObjectName(_fromUtf8("text_browser"))
-        self.gridLayout_2.addWidget(self.text_browser, 0, 0, 1, 1)
+        self.verticalLayout.addWidget(self.text_browser)
         self.buttonBox = QtGui.QDialogButtonBox(Text_Display)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close|QtGui.QDialogButtonBox.Save)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
-        self.gridLayout_2.addWidget(self.buttonBox, 1, 0, 1, 1)
+        self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi(Text_Display)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Text_Display.accept)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), Text_Display.reject)
         QtCore.QMetaObject.connectSlotsByName(Text_Display)
 
     def retranslateUi(self, Text_Display):
