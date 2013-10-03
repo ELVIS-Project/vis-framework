@@ -45,6 +45,7 @@ from vis.models.importing import ListOfFiles
 from vis.models.analyzing import ListOfPieces
 #from vis.views.VisOffsetSelector import VisOffsetSelector
 from vis.views.chart_view import VisChartView
+from vis.views.text_view import VisTextView
 from Ui_main_window import Ui_MainWindow
 from vis.models.indexed_piece import IndexedPiece
 from vis.workflow import WorkflowManager
@@ -893,7 +894,7 @@ Do you want to go back and add the part combination?""",
             # NOTE: as we add different Experiment and Display combinations, we have to update this
 
             if self.ui.rdo_consider_intervals.isChecked():
-                list_of_settings['experiment'] = u'all-combinations intervals'
+                list_of_settings['experiment'] = u'intervals'
                 if self.ui.rdo_spreadsheet.isChecked():
                     list_of_settings['output format'] = 'spreadsheet'
                 elif self.ui.rdo_list.isChecked():
@@ -1007,14 +1008,33 @@ Do you want to go back and add the part combination?""",
         self._run_the_experiment(list_of_settings)
 
     def _run_the_experiment(self, settings):
-        "Run the experiment as instructed by the 'settings' argument."
-        if settings[u'experiment'] == u'all-combinations intervals':
-            workm = WorkflowManager(self._list_of_ips)
-            workm.run(u'all-combinations intervals', {u'quality': settings[u'quality'],
-                      u'simple or compound': settings[u'simple or compound']})
+        """
+        Run the experiment as instructed by the 'settings' argument.
+        """
+        # TODO: determine whether the experiment is the same as last time, and don't re-run it
+        simple = True if 'simple' == settings['simple or compound'] else False
+        workm = self._list_of_pieces.get_workflow_manager(settings['quality'], simple)
+        # run the appropriate experiment
+        if settings[u'experiment'] == u'intervals':
+            workm.run(u'intervals')
+        # prepare the appropriate output
+        if u'chart' == settings[u'output format']:
             path = workm.output(u'R histogram')
             zed = VisChartView()
             zed.trigger(path)
+        elif u'list' == settings[u'output format']:
+            path = workm.export(u'CSV')
+            zed = VisTextView()
+            zed.trigger(path)
+        elif u'spreadsheet' == settings[u'output format']:
+            path = QtGui.QFileDialog.getSaveFileName(\
+                None,
+                u'Where to Save the Spreadsheet?',
+                u'',
+                u'',
+                None)
+            workm.export(u'Excel', path)
+
         self._tool_experiment()
 
     @QtCore.pyqtSlot()  # self.ui.rdo_consider_***.clicked()
