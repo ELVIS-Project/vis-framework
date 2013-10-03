@@ -1,53 +1,51 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #-------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
 # Filename: analyzing.py
-# Purpose: The model classes for the Analyzer controller.
+# Purpose: The model class used on the "analyze" panel of the PyQt4 GUI.
 #
 # Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 """
-The model classes for the Analyzer controller.
+The model class used on the "analyze" panel of the PyQt4 GUI.
 """
 
-# Imports from...
-# python
 import copy
-# PyQt4
 from PyQt4.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
-# music21
 from music21.metadata import Metadata
 from music21.note import Note, Rest
 from music21.chord import Chord
 from music21 import freezeThaw
-# vis
+from vis.workflow import WorkflowManager
 
 
 class ListOfPieces(QAbstractTableModel):
     """
-    This model holds a filename, a music21 Score object, and various pieces of
-    information about the Score, to ease preparation for processing by the
-    Analyzer and Experiment controllers.
+    This class manages various metadata and settings of IndexedPiece objects that will be used in
+    an analysis, including:
 
-    You cannot currently change the number of columns, or their name as returned
-    by headerData(), at run-time.
+    * path
+    * title
+    * list of part names
+    * offset interval (optional)
+    * part combinations
+    * repeat identical
     """
 
     # Here's the data model:
@@ -78,7 +76,7 @@ class ListOfPieces(QAbstractTableModel):
     ScoreRole = 'This is an object for the ScoreRole'
 
     # This is the default values for every new row created
-    default_row = ['', None, [], u'(optional)', '(no selection)', False]
+    default_row = ['', None, [], u'(optional)', u'(no selection)', False]
     # NOTE:
     # When you change this default_row, you must also change the value in this test:
     # models.test_analyzing.TestListOfPiecesInsertAndRemoveRows.test_insert_7()
@@ -122,7 +120,7 @@ class ListOfPieces(QAbstractTableModel):
         was followed when calling setData(). If the index is...
         - ListOfPieces.filename : string
         - ListOfPieces.score : either...
-            - vis.models.inexed_piece.IndexedPiece (for ListOfPieces.ScoreRole)
+            - vis.models.indexed_piece.IndexedPiece (for ListOfPieces.ScoreRole)
             - the piece title, a string (for Qt.DisplayRole)
         - ListOfPieces.parts_list : either...
             - list of string objects that are the part names (for ListOfPiece.ScoreRole)
@@ -289,179 +287,42 @@ class ListOfPieces(QAbstractTableModel):
         for piece_data in self._pieces:
             yield piece_data
 
-
-class AnalysisRecord(object):
-    """
-    Stores an intermediate record of an analysis. This class does not hold
-    statistics or other results, but rather represents a mid-point, where the
-    information being analyzed is stored separately from the piece.
-
-    Each AnalysisRecord contains the following information:
-    - a (JSON-serialized) music21 Metadata object, with information about the
-        work and movement
-    - the names of the parts being analyzed
-    - the minimum quarterLength offset value between subsequent elements
-    - the events in the parts being analyzed, and the offset at which they happen
-    - whether the score was "salami sliced" (maintaining the same offset
-        between events) or not (which does not include an event if it is equal to
-        the previous offset)
-
-    This class is iterable. Each iteration returns a 2-tuple, where index 0 is
-    the offset at which the event occurs in the Score, and index 1 is the event
-    itself.
-    """
-
-    # Instance Data:
-    # ==============
-    # metadata : a music21 Metadata object
-    # _pathname : a string; the path to the music21 Score object
-    # _part_names : list of string objects that are the part names
-    # _offset : the (minimum) offset value between events
-    # _is_salami : whether the score was "salami sliced"
-    # _record : a list representing a record of an analysis, such that:
-    #    _record[x][0] : holds the offset at which the event happened
-    #    _record[x][1] : holds the event itself
-
-    def __init__(self, pathname=None, metadata=None, part_names=None, offset=None, salami=None):
-        """
-        Create a new AnalysisRecord. You should set the following keyword
-        arguments when you make the AnalysisRecord:
-        - metadata (with a music21 Metadata object)
-        - _pathname
-        - _part_names (with a list of strings containing part names)
-        - _offset (with a floating point number)
-        - _salami (boolean)
-
-        If you do not provide this information, sensible defaults will be used:
-        - _pathname : ''
-        - empty Metadata
-        - _part_names : ['']
-        - _offset : 0.0
-        - _salami : False
-        """
-        self._record = []
-        self._pathname = u'' if pathname is None else pathname
-        self._part_names = [u''] if part_names is None else part_names
-        self._offset = 0.0 if offset is None else offset
-        self._salami = False if salami is None else salami
-        if metadata is None:
-            m = Metadata()
-            jf = freezeThaw.JSONFreezer(m)
-            self._metadata = jf.json
-        else:
-            jf = freezeThaw.JSONFreezer(metadata)
-            self._metadata = jf.json
-
-    def __iter__(self):
-        """
-        Iterate through the events in this AnalysisRecord.
-        """
-        for event in self._record:
-            yield event
-
-    def __getitem__(self, key):
-        """
-        Access the event at a particular index in the AnalysisRecord.
-        """
-        return self._record[key]
-
     def __len__(self):
-        """
-        Returns the number of events in the AnalysisRecord.
-        """
-        return len(self._record)
+        "Alias for rowCount()."
+        return self.rowCount()
 
-    def part_names(self):
+    def get_workflow_manager(self, quality, simple):
         """
-        Return a list of strings that represent the part names involved in this
-        AnalysisRecord.
+        Get a WorkflowManager instance with all the IndexedPiece objects and relevant settings
+        as currently held in this ListOfPieces.
 
-        >>> a = AnalysisRecord(part_names=['Clarinet', 'Tuba'])
-        >>> a.part_names()
-        ['Clarinet', 'Tuba']
-        >>> a = AnalysisRecord(part_names=['Piano'])
-        >>> a.part_names()
-        ['Piano']
-        >>> a = AnalysisRecord()
-        >>> a.part_names()
-        ['']
+        :param quality: Whether to display interval quality.
+        :type quality: boolean
+        :param simple: Whether to show all intervals as simple intervals.
+        :type simple: boolean
         """
-        return self._part_names
-
-    def offset(self):
-        """
-        Return the minimum offset between events in this AnalysisRecord. If
-        salami_sliced() reutrns True, then all events are this offset from each
-        other.
-
-        >>> a = AnalysisRecord(offset=1)
-        >>> a.offset()
-        1
-        >>> a = AnalysisRecord(offset=0.5)
-        >>> a.offset()
-        0.5
-        >>> a = AnalysisRecord()
-        >>> a.offset()
-        0.0
-        """
-        return self._offset
-
-    def salami_sliced(self):
-        """
-        Return whether or not the score was "salami sliced" to produce this
-        AnalysisRecord.
-
-        >>> a = AnalysisRecord(salami=True)
-        >>> a.salami_sliced()
-        True
-        >>> a = AnalysisRecord(salami=False)
-        >>> a.salami_sliced()
-        False
-        >>> a = AnalysisRecord()
-        >>> a.salami_sliced()
-        False
-        """
-        return self._salami
-
-    def metadata(self):
-        """
-        Return the music21 Metadata object stored in this AnalysisRecord.
-        """
-        jt = freezeThaw.JSONThawer()
-        jt.json = self._metadata
-        return jt.storedObject
-
-    def append(self, offset, event):
-        """
-        Add an event to the end of this AnalysisRecord.
-
-        There are two arguments, both mandatory:
-        - offset : (an int or float) the offset in the Score at which event happens
-        - event : the object being analyzed
-
-        This method simply calls append_event(), and I don't know why we still have both.
-        """
-        self.append_event(offset, event)
-
-    def append_event(self, offset, event):
-        """
-        Add an event to the end of this AnalysisRecord.
-
-        There are two arguments, both mandatory:
-        - offset : (an int or float) the offset in the Score at which event happens
-        - event : the object being analyzed
-        """
-        self._record.append((offset, event))
-
-    def most_recent_event(self):
-        """
-        Returns the 2-tuple representing the most recently-recorded event's
-        offset and the event itself.
-
-        Returns (None, None) if no events have been recorded.
-        """
-        # TODO: test this
-        if 0 < len(self._record):
-            return self._record[-1]
-        else:
-            return (None, None)
+        # create the WorkflowManager with the currently-held IndexedPieces
+        l_o_ip = [self.data((i, ListOfPieces.score), ListOfPieces.ScoreRole) for i in xrange(len(self))]
+        workm = WorkflowManager(l_o_ip)
+        # set the metadata for each piece
+        for i in xrange(len(self._pieces)):
+            # set ListOfPieces.parts_list (maybe later?)
+            # set ListOfPieces.score (for title) (maybe later?)
+            # set ListOfPieces.offset_intervals
+            val = self._pieces[i][ListOfPieces.offset_intervals]
+            if u'(optional)' != val:
+                workm.settings(i, u'offset interval', val)
+            # set ListOfPieces.parts_combinations
+            val = self._pieces[i][ListOfPieces.parts_combinations]
+            if u'(no selection)' != val:
+                workm.settings(i, u'voice combinations', val)
+                # set ListOfPieces.repeat_identical
+                # NOTE: we only want to do this if we're also using the offset filter
+                val = self._pieces[i][ListOfPieces.repeat_identical]
+                if val is False:
+                    workm.settings(i, u'filter repeats', True)
+            # quality
+            workm.settings(i, u'interval quality', quality)
+            # simple
+            workm.settings(i, u'simple intervals', simple)
+        return workm
