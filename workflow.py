@@ -30,7 +30,7 @@ import subprocess
 import pandas
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
-from vis.analyzers.indexers import noterest, interval, ngram
+from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat
 from vis.analyzers.experimenters import frequency, aggregator
 
 
@@ -100,6 +100,12 @@ class WorkflowManager(object):
         """
         return len(self._data)
 
+    def __getitem__(self, index):
+        """
+        Return the IndexedPiece at a particular index.
+        """
+        return self._data[index]
+
     def load(self, instruction, pathname=None):
         """
         Import analysis data from long-term storage on a filesystem. This should primarily be \
@@ -159,12 +165,12 @@ class WorkflowManager(object):
 
         Instructions:
 
-        * :obj:`'all-combinations intervals'`: finds the frequency of vertical intervals in all \
+        * ``u'intervals'``: finds the frequency of vertical intervals in all \
             2-part voice combinations.
-        * :obj:`'all 2-part interval n-grams'`: finds the frequency of 2-part vertical interval \
-            n-grams in all voice pair combinations. Remember to specify the :obj:`u'n'` setting.
-        * :obj:`'all-voice interval n-grams'`: finds the frequency of all-part vertical interval \
-            n-grams. Remember to specify the :obj:`u'n'` setting.
+        * ``u'all 2-part interval n-grams'``: finds the frequency of 2-part vertical interval \
+            n-grams in all voice pair combinations. Remember to specify the ``u'n'`` setting.
+        * ``u'all-voice interval n-grams'``: finds the frequency of all-part vertical interval \
+            n-grams. Remember to specify the ``u'n'`` setting.
 
         Modifiers:
 
@@ -176,7 +182,7 @@ class WorkflowManager(object):
         # TODO: handle RepeatFilter
         # TODO: handle OffsetIndexer
         # NOTE: do not re-order the instructions or this method will break
-        possible_instructions = [u'all-combinations intervals',
+        possible_instructions = [u'intervals',
                                  u'all 2-part interval n-grams',
                                  u'all-voice interval n-grams']
         error_msg = u'WorkflowManager.run() could not parse the instruction'
@@ -185,7 +191,7 @@ class WorkflowManager(object):
         if len(instruction) < min([len(x) for x in possible_instructions]):
             raise RuntimeError(error_msg)
         if instruction.startswith(possible_instructions[0]):
-            post = self._intervs(settings)
+            post = self._intervs()
         elif instruction.startswith(possible_instructions[1]):
             post = self._two_part_modules(settings)
         elif instruction.startswith(possible_instructions[2]):
@@ -299,35 +305,90 @@ class WorkflowManager(object):
         post.sort(ascending=False)
         return post
 
-    def _intervs(self, settings):
+    def _intervs(self):
         """
         Prepare a list of frequencies of intervals between all voice pairs of all pieces. These \
         indexers and experimenters will run:
 
-        * :class:`IntervalIndexer`
-        * :class:`FrequencyExperimenter`
-        * :class:`ColumnAggregator`
+        * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
+        * :class:`~vis.analyzers.experimenters.frequencyFrequencyExperimenter`
+        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
 
-        :parameter settings: Settings to be shared across all experiments that will be run. Refer \
-            to the relevant indexers' :obj:`possible_settings` property to know the relevant \
-            settings.
-        :type settings: :obj:`dict`
-        :returns: The result of :class:`ColumnAggregator`
+        Settings are parsed automatically by piece. For part combinations, ``[all]``,
+        ``[all pairs]``, and ``None`` are treated as equivalent. If the ``offset interval`` setting
+        has a value, :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` is run with that
+        value. If the ``filter repeats`` setting is ``True``, the
+        :class:`~vis.analyzers.repeat.FilterByRepeatIndexer` is run (after the offset indexer, if
+        relevant).
+
+        .. note:: The voice combinations must be pairs. Voice combinations with fewer or greater
+        than two parts are ignored, which may result in one or more pieces being omitted from the
+        results if you aren't careful with settings.
+
+        :returns: the result of :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
         :rtype: :class:`pandas.Series`
         """
         int_freqs = []
-        for piece in self._data:
-            vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                                       settings)
-            # aggregate results from all voice pairs and save for later
+        for i, piece in enumerate(self._data):
+            # prepare settings for, then run IntervalIndexer
+            setts = {u'quality': self._settings[i][u'interval quality']}
+            setts[u'simple or compound'] = u'simple' if self._settings[i][u'simple intervals'] == \
+                                           True else u'compound'
+            vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
+            # see which voice pairs we need; if relevant, remove unneeded voice pairs
+            combos = self._settings[i][u'voice combinations']
+            if combos != u'[all]' and combos != u'[all pairs]' and combos is not None:
+                vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
+            # we no longer need to know the combinations' names, so we can make a list
+            vert_ints = list(vert_ints.itervalues())
+            # run the offset and repeat indexers, if required
+            if self._settings[i][u'offset interval'] is not None:
+                off_sets = {u'quarterLength': self._settings[i][u'offset interval']}
+                vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
+            if self._settings[i][u'filter repeats'] is True:
+                vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
+            # aggregate results and save for later
             int_freqs.append(piece.get_data([frequency.FrequencyExperimenter,
                                              aggregator.ColumnAggregator],
                                             {},
-                                            list(vert_ints.itervalues())))
+                                            vert_ints))
+        # TODO: find out what happens when there are no results in int_freqs?
         agg_p = AggregatedPieces(self._data)
         post = agg_p.get_data([aggregator.ColumnAggregator], None, {}, int_freqs)
         post.sort(ascending=False)
         return post
+
+    @staticmethod
+    def _remove_extra_pairs(vert_ints, combos):
+        """
+        From the result of IntervalIndexer, remove those voice pairs that aren't required. This is
+        a separate function to improve test-ability.
+
+        **Parameters:**
+        :param vert_ints: The results of IntervalIndexer.
+        :type vert_ints: dict of any
+        :param combos: The voice pairs to keep. Note that any element in this list longer than 2
+            will be silently ignored.
+        :type combos: list of list of int
+
+        **Returns:**
+        :returns: Only the voice pairs you want.
+        :rtype: dict of any
+        """
+        these_pairs = []
+        for pair in combos:
+            if 2 == len(pair):
+                these_pairs.append(unicode(pair[0]) + u',' + unicode(pair[1]))
+        if 0 == len(these_pairs):
+            return {}
+        else:
+            delete_these = []
+            for key in vert_ints.iterkeys():
+                if key not in these_pairs:
+                    delete_these.append(key)
+            for key in delete_these:
+                del vert_ints[key]
+            return vert_ints
 
     @staticmethod
     def _for_sc(to_format):
@@ -339,7 +400,7 @@ class WorkflowManager(object):
         :returns: The results, formatted for SuperCollider.
         :rtype: ???
         """
-        pass
+        return to_format
 
     def output(self, instruction, pathname=u'test_output/output_result'):
         """
