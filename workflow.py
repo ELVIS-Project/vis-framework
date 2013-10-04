@@ -145,18 +145,14 @@ class WorkflowManager(object):
         elif u'hdf5' == instruction or u'stata' == instruction or u'pickle' == instruction:
             raise NotImplementedError(u'The ' + instruction + u' instruction does\'t work yet!')
 
-    def run(self, instruction, settings=None):
+    def run(self, instruction):
         """
         Run a commonly-requested experiment workflow.
 
         Parameters
         ==========
         :parameter instruction: The experiment workflow to run.
-        :type instruction: :obj:`basestring`
-        :parameter settings: Settings to be shared across all experiments that will be run. Refer \
-            to the relevant indexers' :obj:`possible_settings` property to know the relevant \
-            settings. Default is :obj:`None`.
-        :type settings: :obj:`dict`
+        :type instruction: ``basestring``
 
         Returns
         =======
@@ -516,6 +512,7 @@ class WorkflowManager(object):
         * :obj:`u'Stata'`: output a Stata file for importing to R.
         * :obj:`u'Excel'`: output an Excel file for Peter Schubert.
         """
+        # TODO: too many branches
         export_me = None
         if self._result is None:
             raise RuntimeError(u'Call run() before calling export()')
@@ -545,7 +542,7 @@ class WorkflowManager(object):
             export_me.to_excel(pathname)
             return pathname
         else:
-            raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
+            raise RuntimeError(u'Unrecognized output format: ' + unicode(form))
 
     def metadata(self, index, field, value=None):
         """

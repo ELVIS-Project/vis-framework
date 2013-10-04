@@ -122,7 +122,7 @@ class WorkflowTests(TestCase):
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
-            test_wc.run(u'intervals', 42)
+            test_wc.run(u'intervals')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
@@ -131,7 +131,7 @@ class WorkflowTests(TestCase):
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
-            test_wc.run(u'interval n-grams', 42)
+            test_wc.run(u'interval n-grams')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
@@ -143,7 +143,7 @@ class WorkflowTests(TestCase):
                 mock_meth_a.return_value = 1200
                 mock_meth_b.return_value = u'the final countdown'
                 test_wc = WorkflowManager([])
-                test_wc.run(u'interval n-grams for SuperCollider', 42)
+                test_wc.run(u'interval n-grams for SuperCollider')
                 mock_meth_a.assert_called_once_with()
                 mock_meth_b.assert_called_once_with(mock_meth_a.return_value)
                 self.assertEqual(mock_meth_b.return_value, test_wc._result)
