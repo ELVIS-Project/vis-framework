@@ -79,20 +79,24 @@ class WorkflowManager(object):
         >>> ips = [IndexedPiece(x) for x in paths]
         >>> ip_work = WorkflowManager(ips)
         """
-        post = []
+        # hold the list of IndexedPiece
+        self._data = []
         for each_val in vals:
             if isinstance(each_val, basestring):
-                post.append(indexed_piece.IndexedPiece(each_val))
+                self._data.append(indexed_piece.IndexedPiece(each_val))
             elif isinstance(each_val, indexed_piece.IndexedPiece):
-                post.append(each_val)
-        self._data = post
+                self._data.append(each_val)
+        # hold the result of the most recent call to run()
         self._result = None
+        # hold the IndexedPiece-specific settings
         self._settings = [{} for _ in xrange(len(self._data))]
         for piece_sett in self._settings:
             for sett in [u'offset interval', u'voice combinations']:
                 piece_sett[sett] = None
             for sett in [u'filter repeats', u'interval quality', u'simple intervals']:
                 piece_sett[sett] = False
+        # hold settings common to all IndexedPieces
+        self._shared_settings = {u'n': 2, u'continuer': u'_', u'mark singles': False}
 
     def __len__(self):
         """
@@ -602,8 +606,20 @@ class WorkflowManager(object):
             ``True``.
         * ``simple intervals``: If you want to display all intervals as their single-octave \
             equivalents, set this setting to ``True``.
+
+        **Shared Settings:**
+        These settings are shared across all pieces. When you set or fetch a shared setting, the
+        value of ``index`` is ignored, and can be anything.
+
+        * ``n``: As specified in :class:`vis.analyzers.indexers.ngram.NGramIndexerpossible_settings`
+        * ``continuer``: The
         """
-        if index is None:
+        if field in self._shared_settings:
+            if value is None:
+                return self._shared_settings[field]
+            else:
+                self._shared_settings[field] = value
+        elif index is None:
             if value is None:
                 raise ValueError(u'If "index" is None, "value" must not be None.')
             else:

@@ -668,6 +668,22 @@ class WorkflowTests(TestCase):
         self.assertRaises(AttributeError, test_wm.settings, 1, u'drink wine')
         self.assertRaises(AttributeError, test_wm.settings, 1, u'drink wine', True)
 
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_7(self, mock_ip):
+        # - we can properly fetch a "shared setting"
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm._shared_settings[u'n'] = 4000
+        self.assertEqual(4000, test_wm.settings(None, u'n'))
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_8(self, mock_ip):
+        # - we can properly set a "shared setting"
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm.settings(None, u'n', 4000)
+        self.assertEqual(4000, test_wm._shared_settings[u'n'])
+
     def test_extra_pairs_1(self):
         # testing WorkflowManager._remove_extra_pairs()
         # --> when only desired pairs are present
