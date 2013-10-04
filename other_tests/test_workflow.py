@@ -127,33 +127,24 @@ class WorkflowTests(TestCase):
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
     def test_run_2(self):
-        mock_path = u'vis.workflow.WorkflowManager._two_part_modules'
+        mock_path = u'vis.workflow.WorkflowManager._interval_ngrams'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
-            test_wc.run(u'all 2-part interval n-grams', 42)
-            mock_meth.assert_called_once_with(42)
-            self.assertEqual(mock_meth.return_value, test_wc._result)
-
-    def test_run_3(self):
-        mock_path = u'vis.workflow.WorkflowManager._all_part_modules'
-        with mock.patch(mock_path) as mock_meth:
-            mock_meth.return_value = u'the final countdown'
-            test_wc = WorkflowManager([])
-            test_wc.run(u'all-voice interval n-grams', 42)
-            mock_meth.assert_called_once_with(42)
+            test_wc.run(u'interval n-grams', 42)
+            mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
 
     def test_run_4(self):
-        mock_path_a = u'vis.workflow.WorkflowManager._two_part_modules'
+        mock_path_a = u'vis.workflow.WorkflowManager._interval_ngrams'
         mock_path_b = u'vis.workflow.WorkflowManager._for_sc'
         with mock.patch(mock_path_a) as mock_meth_a:
             with mock.patch(mock_path_b) as mock_meth_b:
                 mock_meth_a.return_value = 1200
                 mock_meth_b.return_value = u'the final countdown'
                 test_wc = WorkflowManager([])
-                test_wc.run(u'all 2-part interval n-grams for SuperCollider', 42)
-                mock_meth_a.assert_called_once_with(42)
+                test_wc.run(u'interval n-grams for SuperCollider', 42)
+                mock_meth_a.assert_called_once_with()
                 mock_meth_b.assert_called_once_with(mock_meth_a.return_value)
                 self.assertEqual(mock_meth_b.return_value, test_wc._result)
 
@@ -306,286 +297,286 @@ class WorkflowTests(TestCase):
         for i in xrange(3):
             mock_rep.assert_any_call(the_dicts[i], expected_pairs)
 
-    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_all_part_modules_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
-                                mock_horiz):
-        # test without the "mark singles" and "continuer" settings
-        # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
-        test_settings = {u'a setting': u'its value', u'n': 2}
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
-        # set up fake return values for IntervalIndexer
-        intind_ret = [{x: MagicMock(name=u'piece1 part ' + x) for x in [u'0,3', u'1,3', u'2,3']},
-                      {x: MagicMock(name=u'piece2 part ' + x) for x in [u'0,3', u'1,3', u'2,3']},
-                      {x: MagicMock(name=u'piece3 part ' + x) for x in [u'0,3', u'1,3', u'2,3']}]
-        horiz_ret = [[None, None, None, MagicMock(name=u'piece1 horiz')],
-                     [None, None, None, MagicMock(name=u'piece2 horiz')],
-                     [None, None, None, MagicMock(name=u'piece3 horiz')]]
-        # set up return values for IndexedPiece.get_data()
-        returns = [intind_ret[0], horiz_ret[0], u'piece1 3rd get_data()',
-                   intind_ret[1], horiz_ret[1], u'piece2 3rd get_data()',
-                   intind_ret[2], horiz_ret[2], u'piece3 3rd get_data()']
-        ap_ret = [returns[2], returns[5], returns[8]]
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        # 2.) run the test
-        test_wc = WorkflowManager(test_pieces)
-        actual = test_wc._all_part_modules(test_settings)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_ngram_settings = {u'horizontal': [3], u'vertical': [0, 1, 2], u'n': 2}
-        for i, piece in enumerate(test_pieces):
-            self.assertEqual(3, piece.get_data.call_count)
-            expected = [mock.call([mock_nri, mock_int], test_settings),
-                        mock.call([mock_nri, mock_horiz], test_settings),
-                        mock.call([mock_ng, mock_freq], mock.ANY, mock.ANY)]
-            self.assertEqual(piece.get_data.mock_calls, expected)
-            # - that each IndP.get_data() has the right settings for its call with NGramIndexer
-            expected_call = mock.call([mock_ng, mock_freq],
-                                      expected_ngram_settings,
-                                      [intind_ret[i][u'0,3'],
-                                       intind_ret[i][u'1,3'],
-                                       intind_ret[i][u'2,3'],
-                                       horiz_ret[i][3]])
-            self.assertEqual(expected_call, piece.get_data.mock_calls[2])
-        # - an AggP is created with the right IndPs, then called with ColumnAggregator, then sorted
-        mock_ap.assert_called_once_with(test_pieces)
-        ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
-        self.assertEqual(ap_getdata_ret, actual)
-        ap_getdata_ret.sort.assert_called_once_with(ascending=False)
-
-    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_all_part_modules_2(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
-                                mock_horiz):
-        # test with the "mark singles" and "continuer" settings
-        # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
-        test_settings = {u'a setting': u'its value', u'n': 2, u'mark singles': False,
-                         u'continuer': u':('}
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
-        # set up fake return values for IntervalIndexer
-        intind_ret = [{x: MagicMock(name=u'piece1 part ' + x) for x in [u'0,3', u'1,3', u'2,3']},
-                      {x: MagicMock(name=u'piece2 part ' + x) for x in [u'0,3', u'1,3', u'2,3']},
-                      {x: MagicMock(name=u'piece3 part ' + x) for x in [u'0,3', u'1,3', u'2,3']}]
-        horiz_ret = [[None, None, None, MagicMock(name=u'piece1 horiz')],
-                     [None, None, None, MagicMock(name=u'piece2 horiz')],
-                     [None, None, None, MagicMock(name=u'piece3 horiz')]]
-        # set up return values for IndexedPiece.get_data()
-        returns = [intind_ret[0], horiz_ret[0], u'piece1 3rd get_data()',
-                   intind_ret[1], horiz_ret[1], u'piece2 3rd get_data()',
-                   intind_ret[2], horiz_ret[2], u'piece3 3rd get_data()']
-        ap_ret = [returns[2], returns[5], returns[8]]
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        # 2.) run the test
-        test_wc = WorkflowManager(test_pieces)
-        actual = test_wc._all_part_modules(test_settings)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_ngram_settings = {u'horizontal': [3], u'vertical': [0, 1, 2], u'n': 2,
-                                   u'mark singles': False, u'continuer': u':('}
-        for i, piece in enumerate(test_pieces):
-            self.assertEqual(3, piece.get_data.call_count)
-            expected = [mock.call([mock_nri, mock_int], test_settings),
-                        mock.call([mock_nri, mock_horiz], test_settings),
-                        mock.call([mock_ng, mock_freq], mock.ANY, mock.ANY)]
-            self.assertEqual(piece.get_data.mock_calls, expected)
-            # - that each IndP.get_data() has the right settings for its call with NGramIndexer
-            expected_call = mock.call([mock_ng, mock_freq],
-                                      expected_ngram_settings,
-                                      [intind_ret[i][u'0,3'],
-                                       intind_ret[i][u'1,3'],
-                                       intind_ret[i][u'2,3'],
-                                       horiz_ret[i][3]])
-            self.assertEqual(expected_call, piece.get_data.mock_calls[2])
-        # - an AggP is created with the right IndPs, then called with ColumnAggregator, then sorted
-        mock_ap.assert_called_once_with(test_pieces)
-        ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
-        self.assertEqual(ap_getdata_ret, actual)
-        ap_getdata_ret.sort.assert_called_once_with(ascending=False)
-
-    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_two_part_modules_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
-                                mock_horiz):
-        # test without the "mark singles" and "continuer" settings
-        # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
-        test_settings = {u'a setting': u'its value', u'n': 2}
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
-        # set up fake return values for IntervalIndexer
-        part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
-        intind_ret = [{x: MagicMock(name=u'piece1 part ' + x) for x in part_combos},
-                      {x: MagicMock(name=u'piece2 part ' + x) for x in part_combos},
-                      {x: MagicMock(name=u'piece3 part ' + x) for x in part_combos}]
-        horiz_ret = [[MagicMock(name=u'piece1 horiz ' + str(x)) for x in xrange(4)],
-                     [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)],
-                     [MagicMock(name=u'piece3 horiz ' + str(x)) for x in xrange(4)]]
-        # set up return values for IndexedPiece.get_data()
-        returns = [intind_ret[0], horiz_ret[0], u'piece1 3rd get_data()', u'piece1 4th get_data()',
-                   u'piece1 5th get_data()', u'piece1 6th get_data()', u'piece1 7th get_data()',
-                   u'piece1 8thd get_data()',
-                   intind_ret[1], horiz_ret[1], u'piece2 3rd get_data()', u'piece2 4th get_data()',
-                   u'piece2 5th get_data()', u'piece2 6th get_data()', u'piece2 7th get_data()',
-                   u'piece2 8thd get_data()',
-                   intind_ret[2], horiz_ret[2], u'piece3 3rd get_data()', u'piece3 4th get_data()',
-                   u'piece3 5th get_data()', u'piece3 6th get_data()', u'piece3 7th get_data()',
-                   u'piece3 8thd get_data()']
-        ap_ret = []
-        for i in xrange(len(returns)):
-            if isinstance(returns[i], unicode):
-                ap_ret.append(returns[i])
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        # 2.) run the test
-        test_wc = WorkflowManager(test_pieces)
-        actual = test_wc._two_part_modules(test_settings)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2}
-        for i, piece in enumerate(test_pieces):
-            self.assertEqual(8, piece.get_data.call_count)
-            expected = [mock.call([mock_nri, mock_int], test_settings),
-                        mock.call([mock_nri, mock_horiz], test_settings)]
-            self.assertEqual(piece.get_data.mock_calls[0], expected[0])
-            self.assertEqual(piece.get_data.mock_calls[1], expected[1])
-            # - that each IndP.get_data() called NGramIndexer with the right settings at some point
-            for combo in intind_ret[i].iterkeys():
-                piece.get_data.assert_any_call([mock_ng, mock_freq],
-                                               expected_ngram_settings,
-                                               [intind_ret[i][combo],
-                                               horiz_ret[i][interval.key_to_tuple(combo)[1]]])
-        # - an AggP is created with the right IndPs, then called with ColumnAggregator, then sorted
-        mock_ap.assert_called_once_with(test_pieces)
-        ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
-        self.assertEqual(ap_getdata_ret, actual)
-        ap_getdata_ret.sort.assert_called_once_with(ascending=False)
-
-    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_two_part_modules_2(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
-                                mock_horiz):
-        # test with the "mark singles" and "continuer" settings
-        # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
-        test_settings = {u'a setting': u'its value', u'n': 2, u'mark singles': False,
-                         u'continuer': u':('}
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
-        # set up fake return values for IntervalIndexer
-        part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
-        intind_ret = [{x: MagicMock(name=u'piece1 part ' + x) for x in part_combos},
-                      {x: MagicMock(name=u'piece2 part ' + x) for x in part_combos},
-                      {x: MagicMock(name=u'piece3 part ' + x) for x in part_combos}]
-        horiz_ret = [[MagicMock(name=u'piece1 horiz ' + str(x)) for x in xrange(4)],
-                     [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)],
-                     [MagicMock(name=u'piece3 horiz ' + str(x)) for x in xrange(4)]]
-        # set up return values for IndexedPiece.get_data()
-        returns = [intind_ret[0], horiz_ret[0], u'piece1 3rd get_data()', u'piece1 4th get_data()',
-                   u'piece1 5th get_data()', u'piece1 6th get_data()', u'piece1 7th get_data()',
-                   u'piece1 8thd get_data()',
-                   intind_ret[1], horiz_ret[1], u'piece2 3rd get_data()', u'piece2 4th get_data()',
-                   u'piece2 5th get_data()', u'piece2 6th get_data()', u'piece2 7th get_data()',
-                   u'piece2 8thd get_data()',
-                   intind_ret[2], horiz_ret[2], u'piece3 3rd get_data()', u'piece3 4th get_data()',
-                   u'piece3 5th get_data()', u'piece3 6th get_data()', u'piece3 7th get_data()',
-                   u'piece3 8thd get_data()']
-        ap_ret = []
-        for i in xrange(len(returns)):
-            if isinstance(returns[i], unicode):
-                ap_ret.append(returns[i])
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        # 2.) run the test
-        test_wc = WorkflowManager(test_pieces)
-        actual = test_wc._two_part_modules(test_settings)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2}
-        expected_ngram_settings[u'continuer'] = test_settings[u'continuer']
-        expected_ngram_settings[u'mark singles'] = test_settings[u'mark singles']
-        for i, piece in enumerate(test_pieces):
-            self.assertEqual(8, piece.get_data.call_count)
-            expected = [mock.call([mock_nri, mock_int], test_settings),
-                        mock.call([mock_nri, mock_horiz], test_settings)]
-            self.assertEqual(piece.get_data.mock_calls[0], expected[0])
-            self.assertEqual(piece.get_data.mock_calls[1], expected[1])
-            # - that each IndP.get_data() called NGramIndexer with the right settings at some point
-            for combo in intind_ret[i].iterkeys():
-                piece.get_data.assert_any_call([mock_ng, mock_freq],
-                                               expected_ngram_settings,
-                                               [intind_ret[i][combo],
-                                               horiz_ret[i][interval.key_to_tuple(combo)[1]]])
-        # - an AggP is created with the right IndPs, then called with ColumnAggregator, then sorted
-        mock_ap.assert_called_once_with(test_pieces)
-        ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
-        self.assertEqual(ap_getdata_ret, actual)
-        ap_getdata_ret.sort.assert_called_once_with(ascending=False)
+    #@mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    #@mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    #@mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    #@mock.patch(u'vis.workflow.interval.IntervalIndexer')
+    #@mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
+    #@mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
+    #@mock.patch(u'vis.workflow.AggregatedPieces')
+    #def test_all_part_modules_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
+                                #mock_horiz):
+        ## test without the "mark singles" and "continuer" settings
+        ## 1.) prepare the test and mocks
+        #ap_inst = MagicMock(AggregatedPieces)
+        #mock_ap.return_value = ap_inst
+        #ap_getdata_ret = MagicMock()
+        #ap_inst.get_data.return_value = ap_getdata_ret
+        #test_settings = {u'a setting': u'its value', u'n': 2}
+        #test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
+        ## set up fake part names
+        #for piece in test_pieces:
+            #piece.metadata.return_value = [u'S', u'A', u'T', u'B']
+        ## set up fake return values for IntervalIndexer
+        #intind_ret = [{x: MagicMock(name=u'piece1 part ' + x) for x in [u'0,3', u'1,3', u'2,3']},
+                      #{x: MagicMock(name=u'piece2 part ' + x) for x in [u'0,3', u'1,3', u'2,3']},
+                      #{x: MagicMock(name=u'piece3 part ' + x) for x in [u'0,3', u'1,3', u'2,3']}]
+        #horiz_ret = [[None, None, None, MagicMock(name=u'piece1 horiz')],
+                     #[None, None, None, MagicMock(name=u'piece2 horiz')],
+                     #[None, None, None, MagicMock(name=u'piece3 horiz')]]
+        ## set up return values for IndexedPiece.get_data()
+        #returns = [intind_ret[0], horiz_ret[0], u'piece1 3rd get_data()',
+                   #intind_ret[1], horiz_ret[1], u'piece2 3rd get_data()',
+                   #intind_ret[2], horiz_ret[2], u'piece3 3rd get_data()']
+        #ap_ret = [returns[2], returns[5], returns[8]]
+        #def side_effect(*args):
+            ## NB: we need to accept "args" as a mock framework formality
+            ## pylint: disable=W0613
+            #return returns.pop(0)
+        #for piece in test_pieces:
+            #piece.get_data.side_effect = side_effect
+        ## 2.) run the test
+        #test_wc = WorkflowManager(test_pieces)
+        #actual = test_wc._all_part_modules(test_settings)
+        ## 3.) confirm everything was called in the right order
+        ## - that every IP is asked for its vertical and horizontal interval indexes
+        ##   (that "mark singles" and "continuer" weren't put in the settings)
+        #expected_ngram_settings = {u'horizontal': [3], u'vertical': [0, 1, 2], u'n': 2}
+        #for i, piece in enumerate(test_pieces):
+            #self.assertEqual(3, piece.get_data.call_count)
+            #expected = [mock.call([mock_nri, mock_int], test_settings),
+                        #mock.call([mock_nri, mock_horiz], test_settings),
+                        #mock.call([mock_ng, mock_freq], mock.ANY, mock.ANY)]
+            #self.assertEqual(piece.get_data.mock_calls, expected)
+            ## - that each IndP.get_data() has the right settings for its call with NGramIndexer
+            #expected_call = mock.call([mock_ng, mock_freq],
+                                      #expected_ngram_settings,
+                                      #[intind_ret[i][u'0,3'],
+                                       #intind_ret[i][u'1,3'],
+                                       #intind_ret[i][u'2,3'],
+                                       #horiz_ret[i][3]])
+            #self.assertEqual(expected_call, piece.get_data.mock_calls[2])
+        ## - an AggP is created with the right IndPs, then called with ColumnAggregator, then sorted
+        #mock_ap.assert_called_once_with(test_pieces)
+        #ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
+        #self.assertEqual(ap_getdata_ret, actual)
+        #ap_getdata_ret.sort.assert_called_once_with(ascending=False)
+#
+    #@mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    #@mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    #@mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    #@mock.patch(u'vis.workflow.interval.IntervalIndexer')
+    #@mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
+    #@mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
+    #@mock.patch(u'vis.workflow.AggregatedPieces')
+    #def test_all_part_modules_2(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
+                                #mock_horiz):
+        ## test with the "mark singles" and "continuer" settings
+        ## 1.) prepare the test and mocks
+        #ap_inst = MagicMock(AggregatedPieces)
+        #mock_ap.return_value = ap_inst
+        #ap_getdata_ret = MagicMock()
+        #ap_inst.get_data.return_value = ap_getdata_ret
+        #test_settings = {u'a setting': u'its value', u'n': 2, u'mark singles': False,
+                         #u'continuer': u':('}
+        #test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
+        ## set up fake part names
+        #for piece in test_pieces:
+            #piece.metadata.return_value = [u'S', u'A', u'T', u'B']
+        ## set up fake return values for IntervalIndexer
+        #intind_ret = [{x: MagicMock(name=u'piece1 part ' + x) for x in [u'0,3', u'1,3', u'2,3']},
+                      #{x: MagicMock(name=u'piece2 part ' + x) for x in [u'0,3', u'1,3', u'2,3']},
+                      #{x: MagicMock(name=u'piece3 part ' + x) for x in [u'0,3', u'1,3', u'2,3']}]
+        #horiz_ret = [[None, None, None, MagicMock(name=u'piece1 horiz')],
+                     #[None, None, None, MagicMock(name=u'piece2 horiz')],
+                     #[None, None, None, MagicMock(name=u'piece3 horiz')]]
+        ## set up return values for IndexedPiece.get_data()
+        #returns = [intind_ret[0], horiz_ret[0], u'piece1 3rd get_data()',
+                   #intind_ret[1], horiz_ret[1], u'piece2 3rd get_data()',
+                   #intind_ret[2], horiz_ret[2], u'piece3 3rd get_data()']
+        #ap_ret = [returns[2], returns[5], returns[8]]
+        #def side_effect(*args):
+            ## NB: we need to accept "args" as a mock framework formality
+            ## pylint: disable=W0613
+            #return returns.pop(0)
+        #for piece in test_pieces:
+            #piece.get_data.side_effect = side_effect
+        ## 2.) run the test
+        #test_wc = WorkflowManager(test_pieces)
+        #actual = test_wc._all_part_modules(test_settings)
+        ## 3.) confirm everything was called in the right order
+        ## - that every IP is asked for its vertical and horizontal interval indexes
+        ##   (that "mark singles" and "continuer" weren't put in the settings)
+        #expected_ngram_settings = {u'horizontal': [3], u'vertical': [0, 1, 2], u'n': 2,
+                                   #u'mark singles': False, u'continuer': u':('}
+        #for i, piece in enumerate(test_pieces):
+            #self.assertEqual(3, piece.get_data.call_count)
+            #expected = [mock.call([mock_nri, mock_int], test_settings),
+                        #mock.call([mock_nri, mock_horiz], test_settings),
+                        #mock.call([mock_ng, mock_freq], mock.ANY, mock.ANY)]
+            #self.assertEqual(piece.get_data.mock_calls, expected)
+            ## - that each IndP.get_data() has the right settings for its call with NGramIndexer
+            #expected_call = mock.call([mock_ng, mock_freq],
+                                      #expected_ngram_settings,
+                                      #[intind_ret[i][u'0,3'],
+                                       #intind_ret[i][u'1,3'],
+                                       #intind_ret[i][u'2,3'],
+                                       #horiz_ret[i][3]])
+            #self.assertEqual(expected_call, piece.get_data.mock_calls[2])
+        ## - an AggP is created with the right IndPs, then called with ColumnAggregator, then sorted
+        #mock_ap.assert_called_once_with(test_pieces)
+        #ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
+        #self.assertEqual(ap_getdata_ret, actual)
+        #ap_getdata_ret.sort.assert_called_once_with(ascending=False)
+#
+    #@mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    #@mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    #@mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    #@mock.patch(u'vis.workflow.interval.IntervalIndexer')
+    #@mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
+    #@mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
+    #@mock.patch(u'vis.workflow.AggregatedPieces')
+    #def test_two_part_modules_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
+                                #mock_horiz):
+        ## test without the "mark singles" and "continuer" settings
+        ## 1.) prepare the test and mocks
+        #ap_inst = MagicMock(AggregatedPieces)
+        #mock_ap.return_value = ap_inst
+        #ap_getdata_ret = MagicMock()
+        #ap_inst.get_data.return_value = ap_getdata_ret
+        #test_settings = {u'a setting': u'its value', u'n': 2}
+        #test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
+        ## set up fake part names
+        #for piece in test_pieces:
+            #piece.metadata.return_value = [u'S', u'A', u'T', u'B']
+        ## set up fake return values for IntervalIndexer
+        #part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
+        #intind_ret = [{x: MagicMock(name=u'piece1 part ' + x) for x in part_combos},
+                      #{x: MagicMock(name=u'piece2 part ' + x) for x in part_combos},
+                      #{x: MagicMock(name=u'piece3 part ' + x) for x in part_combos}]
+        #horiz_ret = [[MagicMock(name=u'piece1 horiz ' + str(x)) for x in xrange(4)],
+                     #[MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)],
+                     #[MagicMock(name=u'piece3 horiz ' + str(x)) for x in xrange(4)]]
+        ## set up return values for IndexedPiece.get_data()
+        #returns = [intind_ret[0], horiz_ret[0], u'piece1 3rd get_data()', u'piece1 4th get_data()',
+                   #u'piece1 5th get_data()', u'piece1 6th get_data()', u'piece1 7th get_data()',
+                   #u'piece1 8thd get_data()',
+                   #intind_ret[1], horiz_ret[1], u'piece2 3rd get_data()', u'piece2 4th get_data()',
+                   #u'piece2 5th get_data()', u'piece2 6th get_data()', u'piece2 7th get_data()',
+                   #u'piece2 8thd get_data()',
+                   #intind_ret[2], horiz_ret[2], u'piece3 3rd get_data()', u'piece3 4th get_data()',
+                   #u'piece3 5th get_data()', u'piece3 6th get_data()', u'piece3 7th get_data()',
+                   #u'piece3 8thd get_data()']
+        #ap_ret = []
+        #for i in xrange(len(returns)):
+            #if isinstance(returns[i], unicode):
+                #ap_ret.append(returns[i])
+        #def side_effect(*args):
+            ## NB: we need to accept "args" as a mock framework formality
+            ## pylint: disable=W0613
+            #return returns.pop(0)
+        #for piece in test_pieces:
+            #piece.get_data.side_effect = side_effect
+        ## 2.) run the test
+        #test_wc = WorkflowManager(test_pieces)
+        #actual = test_wc._two_part_modules(test_settings)
+        ## 3.) confirm everything was called in the right order
+        ## - that every IP is asked for its vertical and horizontal interval indexes
+        ##   (that "mark singles" and "continuer" weren't put in the settings)
+        #expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2}
+        #for i, piece in enumerate(test_pieces):
+            #self.assertEqual(8, piece.get_data.call_count)
+            #expected = [mock.call([mock_nri, mock_int], test_settings),
+                        #mock.call([mock_nri, mock_horiz], test_settings)]
+            #self.assertEqual(piece.get_data.mock_calls[0], expected[0])
+            #self.assertEqual(piece.get_data.mock_calls[1], expected[1])
+            ## - that each IndP.get_data() called NGramIndexer with the right settings at some point
+            #for combo in intind_ret[i].iterkeys():
+                #piece.get_data.assert_any_call([mock_ng, mock_freq],
+                                               #expected_ngram_settings,
+                                               #[intind_ret[i][combo],
+                                               #horiz_ret[i][interval.key_to_tuple(combo)[1]]])
+        ## - an AggP is created with the right IndPs, then called with ColumnAggregator, then sorted
+        #mock_ap.assert_called_once_with(test_pieces)
+        #ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
+        #self.assertEqual(ap_getdata_ret, actual)
+        #ap_getdata_ret.sort.assert_called_once_with(ascending=False)
+#
+    #@mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    #@mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    #@mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    #@mock.patch(u'vis.workflow.interval.IntervalIndexer')
+    #@mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
+    #@mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
+    #@mock.patch(u'vis.workflow.AggregatedPieces')
+    #def test_two_part_modules_2(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
+                                #mock_horiz):
+        ## test with the "mark singles" and "continuer" settings
+        ## 1.) prepare the test and mocks
+        #ap_inst = MagicMock(AggregatedPieces)
+        #mock_ap.return_value = ap_inst
+        #ap_getdata_ret = MagicMock()
+        #ap_inst.get_data.return_value = ap_getdata_ret
+        #test_settings = {u'a setting': u'its value', u'n': 2, u'mark singles': False,
+                         #u'continuer': u':('}
+        #test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
+        ## set up fake part names
+        #for piece in test_pieces:
+            #piece.metadata.return_value = [u'S', u'A', u'T', u'B']
+        ## set up fake return values for IntervalIndexer
+        #part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
+        #intind_ret = [{x: MagicMock(name=u'piece1 part ' + x) for x in part_combos},
+                      #{x: MagicMock(name=u'piece2 part ' + x) for x in part_combos},
+                      #{x: MagicMock(name=u'piece3 part ' + x) for x in part_combos}]
+        #horiz_ret = [[MagicMock(name=u'piece1 horiz ' + str(x)) for x in xrange(4)],
+                     #[MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)],
+                     #[MagicMock(name=u'piece3 horiz ' + str(x)) for x in xrange(4)]]
+        ## set up return values for IndexedPiece.get_data()
+        #returns = [intind_ret[0], horiz_ret[0], u'piece1 3rd get_data()', u'piece1 4th get_data()',
+                   #u'piece1 5th get_data()', u'piece1 6th get_data()', u'piece1 7th get_data()',
+                   #u'piece1 8thd get_data()',
+                   #intind_ret[1], horiz_ret[1], u'piece2 3rd get_data()', u'piece2 4th get_data()',
+                   #u'piece2 5th get_data()', u'piece2 6th get_data()', u'piece2 7th get_data()',
+                   #u'piece2 8thd get_data()',
+                   #intind_ret[2], horiz_ret[2], u'piece3 3rd get_data()', u'piece3 4th get_data()',
+                   #u'piece3 5th get_data()', u'piece3 6th get_data()', u'piece3 7th get_data()',
+                   #u'piece3 8thd get_data()']
+        #ap_ret = []
+        #for i in xrange(len(returns)):
+            #if isinstance(returns[i], unicode):
+                #ap_ret.append(returns[i])
+        #def side_effect(*args):
+            ## NB: we need to accept "args" as a mock framework formality
+            ## pylint: disable=W0613
+            #return returns.pop(0)
+        #for piece in test_pieces:
+            #piece.get_data.side_effect = side_effect
+        ## 2.) run the test
+        #test_wc = WorkflowManager(test_pieces)
+        #actual = test_wc._two_part_modules(test_settings)
+        ## 3.) confirm everything was called in the right order
+        ## - that every IP is asked for its vertical and horizontal interval indexes
+        ##   (that "mark singles" and "continuer" weren't put in the settings)
+        #expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2}
+        #expected_ngram_settings[u'continuer'] = test_settings[u'continuer']
+        #expected_ngram_settings[u'mark singles'] = test_settings[u'mark singles']
+        #for i, piece in enumerate(test_pieces):
+            #self.assertEqual(8, piece.get_data.call_count)
+            #expected = [mock.call([mock_nri, mock_int], test_settings),
+                        #mock.call([mock_nri, mock_horiz], test_settings)]
+            #self.assertEqual(piece.get_data.mock_calls[0], expected[0])
+            #self.assertEqual(piece.get_data.mock_calls[1], expected[1])
+            ## - that each IndP.get_data() called NGramIndexer with the right settings at some point
+            #for combo in intind_ret[i].iterkeys():
+                #piece.get_data.assert_any_call([mock_ng, mock_freq],
+                                               #expected_ngram_settings,
+                                               #[intind_ret[i][combo],
+                                               #horiz_ret[i][interval.key_to_tuple(combo)[1]]])
+        ## - an AggP is created with the right IndPs, then called with ColumnAggregator, then sorted
+        #mock_ap.assert_called_once_with(test_pieces)
+        #ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
+        #self.assertEqual(ap_getdata_ret, actual)
+        #ap_getdata_ret.sort.assert_called_once_with(ascending=False)
 
     def test_output_1(self):
         test_wc = WorkflowManager([])

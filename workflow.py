@@ -167,10 +167,8 @@ class WorkflowManager(object):
 
         * ``u'intervals'``: finds the frequency of vertical intervals in all \
             2-part voice combinations.
-        * ``u'all 2-part interval n-grams'``: finds the frequency of 2-part vertical interval \
-            n-grams in all voice pair combinations. Remember to specify the ``u'n'`` setting.
-        * ``u'all-voice interval n-grams'``: finds the frequency of all-part vertical interval \
-            n-grams. Remember to specify the ``u'n'`` setting.
+        * ``u'interval n-grams'``: finds the frequency of any-part vertical interval n-grams in \
+            voice pairs specified in the settings. Remember to provide the ``u'n'`` setting.
 
         Modifiers:
 
@@ -183,8 +181,7 @@ class WorkflowManager(object):
         # TODO: handle OffsetIndexer
         # NOTE: do not re-order the instructions or this method will break
         possible_instructions = [u'intervals',
-                                 u'all 2-part interval n-grams',
-                                 u'all-voice interval n-grams']
+                                 u'interval n-grams']
         error_msg = u'WorkflowManager.run() could not parse the instruction'
         post = None
         # run the experiment
@@ -193,9 +190,7 @@ class WorkflowManager(object):
         if instruction.startswith(possible_instructions[0]):
             post = self._intervs()
         elif instruction.startswith(possible_instructions[1]):
-            post = self._two_part_modules(settings)
-        elif instruction.startswith(possible_instructions[2]):
-            post = self._all_part_modules(settings)
+            post = self._interval_ngrams()
         else:
             raise RuntimeError(error_msg)
         # format for SuperCollider, if required
@@ -204,26 +199,54 @@ class WorkflowManager(object):
         self._result = post
         return post
 
-    def _two_part_modules(self, settings):
+    def _interval_ngrams(self):
         """
-        Prepare a list of frequencies of two-voice interval n-grams in all pieces. These indexers \
-        and experimenters will run:
+        Prepare a list of frequencies of interval n-grams in all pieces.
 
-        * :class:`IntervalIndexer`
-        * :class:`HorizontalIntervalIndexer`
-        * :class:`NGramIndexer`
-        * :class:`FrequencyExperimenter`
-        * :class:`ColumnAggregator`
+        This method automatically uses :met:`_two_part_modules` and :meth:`_all_part_modules`
+        when relevant.
 
-        :parameter settings: Settings to be shared across all experiments that will be run. Refer \
-            to the relevant indexers' :obj:`possible_settings` property to know the relevant \
-            settings.
-        :type settings: :obj:`dict`
+        These indexers and experimenters will be run:
+
+        * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
+        * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
+        * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
+        * :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`
+        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+
+        Settings are parsed automatically by piece. If the ``offset interval`` setting has a value,
+        :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` is run with that value. If
+        the ``filter repeats`` setting is ``True``, the
+        :class:`~vis.analyzers.repeat.FilterByRepeatIndexer` is run (after the offset indexer, if
+        relevant).
+
+        :returns: The result of the :class:`ColumnAggregator`.
+
+        .. note:: To compute more than one value of ``n``, call :meth:`_interval_ngrams` many times.
+        """
+        pass
+
+    def _two_part_modules(self, index):
+        """
+        Prepare a list of frequencies of two-voice interval n-grams in a piece. This method is
+        called by :meth:`_interval_ngrams` when required.
+
+        These indexers and experimenters will run:
+
+        * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
+        * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
+        * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
+        * :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`
+        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+
+        :param index: The index of the IndexedPiece on which to the experiment, as stored in
+            ``self._data``.
+        :type index: integer
+
         :returns: The result of :class:`ColumnAggregator`
         :rtype: :class:`pandas.Series`
-
-        To compute more than one value of 'n', simply call :meth:`_two_part_modules` many times.
         """
+        # TODO: update the code/tests to reflects the docstring
         ngram_freqs = []
         for piece in self._data:
             vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
@@ -255,26 +278,27 @@ class WorkflowManager(object):
         post.sort(ascending=False)
         return post
 
-    def _all_part_modules(self, settings):
+    def _all_part_modules(self, index):
         """
-        Prepare a list of frequencies of all-voice interval n-grams in all pieces. These indexers \
-        and experimenters will run:
+        Prepare a list of frequencies of all-voice interval n-grams in a piece. This method is
+        called by :meth:`_interval_ngrams` when required.
 
-        * :class:`IntervalIndexer`
-        * :class:`HorizontalIntervalIndexer`
-        * :class:`NGramIndexer`
-        * :class:`FrequencyExperimenter`
-        * :class:`ColumnAggregator`
+        These indexers and experimenters will run:
 
-        :parameter settings: Settings to be shared across all experiments that will be run. Refer \
-            to the relevant indexers' :obj:`possible_settings` property to know the relevant \
-            settings.
-        :type settings: :obj:`dict`
+        * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
+        * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
+        * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
+        * :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`
+        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+
+        :param index: The index of the IndexedPiece on which to the experiment, as stored in
+            ``self._data``.
+        :type index: integer
+
         :returns: The result of :class:`ColumnAggregator`
         :rtype: :class:`pandas.Series`
-
-        To compute more than one value of 'n', simply call :meth:`_all_part_modules` many times.
         """
+        # TODO: update the code/tests to reflects the docstring
         ngram_freqs = []
         for piece in self._data:
             vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
