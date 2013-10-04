@@ -224,11 +224,47 @@ class WorkflowManager(object):
 
         .. note:: To compute more than one value of ``n``, call :meth:`_interval_ngrams` many times.
         """
+        all_results = []
+        # user helpers to fetch results for each piece
+        for i in xrange(len(self._data)):
+            if u'[all]' == self.settings(i, u'voice combinations'):
+                all_results.append(self._all_part_modules(i))
+            elif u'[all pairs]' == self.settings(i, u'voice combinations'):
+                all_results.append(self._two_part_modules(i))
+            else:
+                all_results.append(self._variable_part_modules(i))
+        # aggregate results across all pieces
+        agg_p = AggregatedPieces(self._data)
+        self._result = agg_p.get_data([aggregator.ColumnAggregator], None, {}, all_results)
+        self._result.sort(ascending=False)
+        return self._result
+
+    def _variable_part_modules(self, index):
+        """
+        Prepare a list of frequencies of variable-part interval n-grams in a piece. This method is
+        called by :meth:`_interval_ngrams` when required (i.e., when we are not analyzing all parts
+        at once or all two-part combinations).
+
+        These indexers and experimenters will run:
+
+        * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
+        * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
+        * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
+        * :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`
+        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+
+        :param index: The index of the IndexedPiece on which to the experiment, as stored in
+            ``self._data``.
+        :type index: integer
+
+        :returns: The result of :class:`ColumnAggregator` for a single piece.
+        :rtype: :class:`pandas.Series`
+        """
         pass
 
     def _two_part_modules(self, index):
         """
-        Prepare a list of frequencies of two-voice interval n-grams in a piece. This method is
+        Prepare a list of frequencies of two-part interval n-grams in a piece. This method is
         called by :meth:`_interval_ngrams` when required.
 
         These indexers and experimenters will run:
@@ -282,7 +318,7 @@ class WorkflowManager(object):
 
     def _all_part_modules(self, index):
         """
-        Prepare a list of frequencies of all-voice interval n-grams in a piece. This method is
+        Prepare a list of frequencies of all-part interval n-grams in a piece. This method is
         called by :meth:`_interval_ngrams` when required.
 
         These indexers and experimenters will run:

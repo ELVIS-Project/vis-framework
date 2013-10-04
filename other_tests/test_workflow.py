@@ -749,6 +749,30 @@ class WorkflowTests(TestCase):
         #       vis.workflow.pandas.DataFrame
         pass
 
+    @mock.patch(u'vis.workflow.AggregatedPieces')
+    @mock.patch(u'vis.workflow.WorkflowManager._variable_part_modules')
+    @mock.patch(u'vis.workflow.WorkflowManager._all_part_modules')
+    @mock.patch(u'vis.workflow.WorkflowManager._two_part_modules')
+    def test_interval_ngrams_1(self, mock_two, mock_all, mock_var, mock_ap):
+        # --> test with three pieces, each of which requires a different helper
+        # 1.) prepare mocks
+        ap_inst = MagicMock(AggregatedPieces)
+        mock_ap.return_value = ap_inst
+        ap_getdata_ret = MagicMock(spec=pandas.DataFrame)
+        ap_inst.get_data.return_value = ap_getdata_ret
+        ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
+        test_wm = WorkflowManager(ind_pieces)
+        test_wm.settings(0, u'voice combinations', u'[all]')
+        test_wm.settings(1, u'voice combinations', u'[all pairs]')
+        test_wm.settings(2, u'voice combinations', u'other')
+        actual = test_wm._interval_ngrams()
+        # 3.) verify the mocks
+        mock_two.assert_called_once_with(1)
+        mock_all.assert_called_once_with(0)
+        mock_var.assert_called_once_with(2)
+        self.assertEqual(ap_getdata_ret, actual)
+        self.assertEqual(ap_getdata_ret, test_wm._result)
+
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
