@@ -512,37 +512,29 @@ class WorkflowManager(object):
         * :obj:`u'Stata'`: output a Stata file for importing to R.
         * :obj:`u'Excel'`: output an Excel file for Peter Schubert.
         """
-        # TODO: too many branches
-        export_me = None
+        # ensure we have some results
         if self._result is None:
             raise RuntimeError(u'Call run() before calling export()')
-        if pathname is None:
-            pathname = u'test_output/no_path'
+        # ensure we have a DataFrame
+        if not isinstance(self._result, pandas.DataFrame):
+            export_me = pandas.DataFrame({u'data': self._result})
         else:
-            pathname = unicode(pathname)
-        if u'CSV' == form:
-            if u'.csv' != pathname[-4:]:
-                pathname += u'.csv'
-            if not isinstance(self._result, pandas.DataFrame):
-                export_me = pandas.DataFrame({u'data': self._result})
-            export_me.to_csv(pathname)
-            return pathname
-        elif u'Stata' == form:
-            if u'.dta' != pathname[-4:]:
-                pathname += u'.dta'
-            if not isinstance(self._result, pandas.DataFrame):
-                export_me = pandas.DataFrame({u'data': self._result})
-            export_me.to_stata(pathname)
-            return pathname
-        elif u'Excel' == form:
-            if u'.xlsx' != pathname[-5:]:
-                pathname += u'.xlsx'
-            if not isinstance(self._result, pandas.DataFrame):
-                export_me = pandas.DataFrame({u'data': self._result})
-            export_me.to_excel(pathname)
-            return pathname
-        else:
+            export_me = self._result
+        # key is the instruction; value is (extension, export_method)
+        directory = {u'CSV': (u'.csv', export_me.to_csv),
+                     u'Stata': (u'.dta', export_me.to_stata),
+                     u'Excel': (u'.xlsx', export_me.to_excel)}
+        # ensure we have a valid output format
+        if form not in directory:
             raise RuntimeError(u'Unrecognized output format: ' + unicode(form))
+        # ensure we have an output path
+        pathname = u'test_output/no_path' if pathname is None else unicode(pathname)
+        # ensure there's a file extension
+        if directory[form][0] != pathname[len(directory[form][0]):]:
+            pathname += directory[form][0]
+        # call the to_whatever() method
+        directory[form][1](pathname)
+        return pathname
 
     def metadata(self, index, field, value=None):
         """

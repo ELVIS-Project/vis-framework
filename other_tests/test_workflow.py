@@ -719,6 +719,36 @@ class WorkflowTests(TestCase):
         actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
         self.assertSequenceEqual(expected, actual)
 
+    def test_export_1(self):
+        # --> raise RuntimeError with unrecognized output format
+        test_wm = WorkflowManager([])
+        test_wm._result = pandas.Series(xrange(100))
+        self.assertRaises(RuntimeError, test_wm.export, u'PowerPoint')
+
+    def test_export_2(self):
+        # --> raise RuntimeError if run() hasn't been called (i.e., self._result is None)
+        test_wm = WorkflowManager([])
+        self.assertRaises(RuntimeError, test_wm.export, u'Excel', u'C:\autoexec.bat')
+
+    def test_export_3(self):
+        # --> the method works as expected for CSV, Excel, and Stata when _result is a DataFrame
+        test_wm = WorkflowManager([])
+        test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
+        test_wm.export(u'CSV', u'test_path')
+        test_wm.export(u'Excel', u'test_path')
+        test_wm.export(u'Stata', u'test_path')
+        test_wm._result.to_csv.assert_called_once_with(u'test_path.csv')
+        test_wm._result.to_stata.assert_called_once_with(u'test_path.dta')
+        test_wm._result.to_excel.assert_called_once_with(u'test_path.xlsx')
+
+    def test_export_4(self):
+        # --> the method always outputs a DataFrame, even if self._result isn't a DF yet
+        # TODO: I don't know how to test this. I want to mock DataFrame, but it also needs to pass
+        #       the isinstance() test, so it can't be a MagicMock unless it's a MagicMock instance
+        #       of DataFrame, which is impossible(?) because I have to patch it at
+        #       vis.workflow.pandas.DataFrame
+        pass
+
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
