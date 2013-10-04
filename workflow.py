@@ -247,40 +247,42 @@ class WorkflowManager(object):
             ``self._data``.
         :type index: integer
 
-        :returns: The result of :class:`ColumnAggregator`
+        :returns: The result of :class:`ColumnAggregator` for a single piece.
         :rtype: :class:`pandas.Series`
         """
-        # TODO: update the code/tests to reflects the docstring
-        ngram_freqs = []
-        for piece in self._data:
-            vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                                       settings)
-            horiz_ints = piece.get_data([noterest.NoteRestIndexer,
-                                         interval.HorizontalIntervalIndexer],
-                                        settings)
-            # each key in vert_ints corresponds to a two-voice combination we should use
-            for combo in vert_ints.iterkeys():
-                # which "horiz" part to use?
-                horiz_i = interval.key_to_tuple(combo)[1]
-                # make the list of parts
-                parts = [vert_ints[combo], horiz_ints[horiz_i]]
-                # assemble settings
-                setts = {u'vertical': [0], u'horizontal': [1]}
-                if u'mark singles' in settings:
-                    setts[u'mark singles'] = settings[u'mark singles']
-                if u'continuer' in settings:
-                    setts[u'continuer'] = settings[u'continuer']
-                setts[u'n'] = settings[u'n']
-                # run NGramIndexer and FrequencyExperimenter, then append the result to the
-                # corresponding index of the dict
-                ngram_freqs.append(piece.get_data([ngram.NGramIndexer,
-                                                   frequency.FrequencyExperimenter],
-                                        setts,
-                                        parts))
-        agg_p = AggregatedPieces(self._data)
-        post = agg_p.get_data([aggregator.ColumnAggregator], None, {}, ngram_freqs)
-        post.sort(ascending=False)
-        return post
+        piece = self._data[index]
+        # make settings for interval indexers
+        settings = {u'quality': self.settings(index, u'interval quality')}
+        settings[u'simple or compound'] = u'simple' if self.settings(index, u'interval quality') \
+                                          else u'compound'
+        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
+        horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
+                                    settings)
+        # run the offset and repeat indexers, if required
+        if self.settings(index, u'offset interval') is not None:
+            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
+            vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
+            horiz_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, horiz_ints)
+        if self.settings(index, u'filter repeats') is True:
+            vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
+            horiz_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, horiz_ints)
+        # each key in vert_ints corresponds to a two-voice combination we should use
+        for combo in vert_ints.iterkeys():
+            # which "horiz" part to use?
+            horiz_i = interval.key_to_tuple(combo)[1]
+            # make the list of parts
+            parts = [vert_ints[combo], horiz_ints[horiz_i]]
+            # assemble settings
+            setts = {u'vertical': [0], u'horizontal': [1]}
+            setts[u'mark singles'] = self.settings(None, u'mark singles')
+            setts[u'continuer'] = self.settings(None, u'continuer')
+            setts[u'n'] = self.settings(None, u'n')
+            # run NGramIndexer and FrequencyExperimenter, then append the result to the
+            # corresponding index of the dict
+            result = piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter],
+                                    setts,
+                                    parts)
+        return result
 
     def _all_part_modules(self, index):
         """
@@ -299,7 +301,7 @@ class WorkflowManager(object):
             ``self._data``.
         :type index: integer
 
-        :returns: The result of :class:`ColumnAggregator`
+        :returns: The result of :class:`ColumnAggregator` for a single piece.
         :rtype: :class:`pandas.Series`
         """
         # TODO: update the code/tests to reflects the docstring
@@ -576,11 +578,11 @@ class WorkflowManager(object):
         :param index: The index of the piece to access. The range of valid indices is ``0`` through
             one fewer than the return value of calling :func:`len` on this WorkflowManager. If
             ``value`` is not ``None`` and ``index`` is ``None``, you can set a field for all pieces.
-        :type index: :obj:`int`
+        :type index: :``int`` or ``None``
         :param field: The name of the field to be accessed or modified.
-        :type field: :obj:`basestring`
+        :type field: ``basestring``
         :param value: If not ``None``, the new value to be assigned to ``field``.
-        :type value: :obj:`object` or :obj:`None`
+        :type value: ``object`` or ``None``
 
         :returns: The value of the requested field or ``None``, if assigning, or if accessing a
             non-existant field or a field that has not yet been initialized.
@@ -590,7 +592,8 @@ class WorkflowManager(object):
         :raises: :exc:`IndexError` if ``index`` is invalid for this ``WorkflowManager``.
         :raises: :exc:`ValueError` if ``index`` and ``value`` are both ``None``.
 
-        **Setting Fields:**
+        **Piece-Specific Setting Fields:**
+        These settings can be set independently for each piece.
 
         * ``offset interval``: If you want to run the \
             :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`, specify a value for this
