@@ -304,36 +304,41 @@ class WorkflowManager(object):
         :returns: The result of :class:`ColumnAggregator` for a single piece.
         :rtype: :class:`pandas.Series`
         """
-        # TODO: update the code/tests to reflects the docstring
-        ngram_freqs = []
-        for piece in self._data:
-            vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                                       settings)
-            horiz_ints = piece.get_data([noterest.NoteRestIndexer,
-                                         interval.HorizontalIntervalIndexer],
-                                        settings)
-            # figure out the weird string-index things for the vertical part combos
-            lowest_part = len(piece.metadata(u'parts')) - 1
-            vert_combos = [str(x) + u',' + str(lowest_part) for x in xrange(lowest_part)]
-            # make the list of parts
-            parts = [vert_ints[x] for x in vert_combos]
-            parts.append(horiz_ints[-1])  # always the lowest voice
-            # assemble settings
-            setts = {u'vertical': range(len(parts) - 1), u'horizontal': [len(parts) - 1]}
-            if u'mark singles' in settings:
-                setts[u'mark singles'] = settings[u'mark singles']
-            if u'continuer' in settings:
-                setts[u'continuer'] = settings[u'continuer']
-            setts[u'n'] = settings[u'n']
-            # run NGramIndexer and FrequencyExperimenter, then append the result to the
-            # corresponding index of the dict
-            ngram_freqs.append(piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter],
-                                              setts,
-                                              parts))
-        agg_p = AggregatedPieces(self._data)
-        post = agg_p.get_data([aggregator.ColumnAggregator], None, {}, ngram_freqs)
-        post.sort(ascending=False)
-        return post
+        piece = self._data[index]
+        # make settings for interval indexers
+        settings = {u'quality': self.settings(index, u'interval quality')}
+        settings[u'simple or compound'] = u'simple' if self.settings(index, u'interval quality') \
+                                          else u'compound'
+        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
+                                   settings)
+        horiz_ints = piece.get_data([noterest.NoteRestIndexer,
+                                     interval.HorizontalIntervalIndexer],
+                                    settings)
+        # run the offset and repeat indexers, if required
+        if self.settings(index, u'offset interval') is not None:
+            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
+            vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
+            horiz_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, horiz_ints)
+        if self.settings(index, u'filter repeats') is True:
+            vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
+            horiz_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, horiz_ints)
+        # figure out the weird string-index things for the vertical part combos
+        lowest_part = len(piece.metadata(u'parts')) - 1
+        vert_combos = [str(x) + u',' + str(lowest_part) for x in xrange(lowest_part)]
+        # make the list of parts
+        parts = [vert_ints[x] for x in vert_combos]
+        parts.append(horiz_ints[-1])  # always the lowest voice
+        # assemble settings
+        settings = {u'vertical': range(len(parts) - 1), u'horizontal': [len(parts) - 1]}
+        settings[u'mark singles'] = self.settings(None, u'mark singles')
+        settings[u'continuer'] = self.settings(None, u'continuer')
+        settings[u'n'] = self.settings(None, u'n')
+        # run NGramIndexer and FrequencyExperimenter, then append the result to the
+        # corresponding index of the dict
+        result = piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter],
+                                settings,
+                                parts)
+        return result
 
     def _intervs(self):
         """
