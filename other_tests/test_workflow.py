@@ -159,8 +159,6 @@ class WorkflowTests(TestCase):
     @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
     @mock.patch(u'vis.workflow.AggregatedPieces')
     def test_intervs_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri):
-        # mock NoteRestIndexer, IntervalIndexer, FrequencyExperimenter, ColumnAggregator,
-        #      IndexedPiece, AggregatedPieces
         # --> test whether _intervs() calls all those things in the right order, with the right
         #     args, using all the default settings
         # 1.) prepare the test and mocks
@@ -204,8 +202,6 @@ class WorkflowTests(TestCase):
     @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
     @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
     def test_intervs_2(self, mock_rep, mock_off, mock_ap, mock_agg, mock_freq, mock_int, mock_nri):
-        # mock NoteRestIndexer, IntervalIndexer, FrequencyExperimenter, ColumnAggregator,
-        #      IndexedPiece, AggregatedPieces
         # --> test whether _intervs() calls all those things in the right order, with running the
         #     offset and repeat indexers
         # 1.) prepare the test and mocks
@@ -258,15 +254,11 @@ class WorkflowTests(TestCase):
     @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
     @mock.patch(u'vis.workflow.AggregatedPieces')
     def test_intervs_3(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_rep):
-        # mock NoteRestIndexer, IntervalIndexer, FrequencyExperimenter, ColumnAggregator,
-        #      IndexedPiece, AggregatedPieces
+        # NB: most of the things up there are only mocked to prevent the real versions
+        #     from being called
         # --> test whether _intervs() calls all those things in the right order, with specifying
         #     certain voice-pairs
         # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
         test_settings = {u'simple or compound': u'compound', u'quality': False}
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         the_dicts = [MagicMock(dict, name=u'piece1 1st get_data()'),
@@ -275,7 +267,6 @@ class WorkflowTests(TestCase):
         returns = [the_dicts[0], u'piece1 2nd get_data()',
                    the_dicts[1], u'piece2 2nd get_data()',
                    the_dicts[2], u'piece3 2nd get_data()']
-        ap_ret = [u'piece1 2nd get_data()', u'piece2 2nd get_data()', u'piece3 2nd get_data()']
         for i in [0, 2, 4]:
             returns[i].itervalues.return_value = [4]
         def side_effect(*args):
@@ -290,7 +281,7 @@ class WorkflowTests(TestCase):
         expected_pairs = [[0, 1], [0, 2]]
         for i in xrange(3):
             test_wc._settings[i][u'voice combinations'] = expected_pairs
-        actual = test_wc._intervs()
+        test_wc._intervs()
         # 3.) for this test, we'll actually only confirm that mock_rep (_remove_extra_pairs) was
         #     called with the right arguments.
         self.assertEqual(3, mock_rep.call_count)
@@ -302,31 +293,19 @@ class WorkflowTests(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_all_part_modules_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
-                                mock_horiz):
+    def test_all_part_modules_1(self, mock_freq, mock_int, mock_nri, mock_ng, mock_horiz):
         # - test without the "filter repeats" or "offset interval" settings
         # - we'll only use self._data[1]
         # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         # set up fake part names
         for piece in test_pieces:
             piece.metadata.return_value = [u'S', u'A', u'T', u'B']
         # set up fake return values for IntervalIndexer
-        part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
         intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in [u'0,3', u'1,3', u'2,3']}
         horiz_ret = [None, None, None, MagicMock(name=u'piece1 horiz')]
         # set up return values for IndexedPiece.get_data()
         returns = [intind_ret, horiz_ret, 3]
-        ap_ret = []
-        for i in xrange(len(returns)):
-            if isinstance(returns[i], unicode):
-                ap_ret.append(returns[i])
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
@@ -368,31 +347,20 @@ class WorkflowTests(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_all_part_modules_2(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
-                                mock_horiz, mock_off, mock_rep):
+    def test_all_part_modules_2(self, mock_freq, mock_int, mock_nri, mock_ng, mock_horiz, \
+                                mock_off, mock_rep):
         # - test with the "filter repeats" or "offset interval" settings
         # - we'll only use self._data[1]
         # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         # set up fake part names
         for piece in test_pieces:
             piece.metadata.return_value = [u'S', u'A', u'T', u'B']
         # set up fake return values for IntervalIndexer
-        part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
         intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in [u'0,3', u'1,3', u'2,3']}
         horiz_ret = [None, None, None, MagicMock(name=u'piece1 horiz')]
         # set up return values for IndexedPiece.get_data()
         returns = [1, 2, 3, 4, intind_ret, horiz_ret, 7]
-        ap_ret = []
-        for i in xrange(len(returns)):
-            if isinstance(returns[i], unicode):
-                ap_ret.append(returns[i])
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
@@ -438,17 +406,11 @@ class WorkflowTests(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_two_part_modules_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
+    def test_two_part_modules_1(self, mock_freq, mock_int, mock_nri, mock_ng, \
                                 mock_horiz):
         # - test without the "filter repeats" or "offset interval" settings
         # - we'll only use self._data[1]
         # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         # set up fake part names
         for piece in test_pieces:
@@ -505,17 +467,11 @@ class WorkflowTests(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_two_part_modules_2(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_ng, \
+    def test_two_part_modules_2(self, mock_freq, mock_int, mock_nri, mock_ng, \
                                 mock_horiz, mock_off, mock_rep):
         # - test with the "filter repeats" or "offset interval" settings
         # - we'll only use self._data[1]
         # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         # set up fake part names
         for piece in test_pieces:
