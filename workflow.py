@@ -26,6 +26,7 @@
 Workflow controller, to automate commonly-performed tasks.
 """
 
+import ast
 import subprocess
 import pandas
 from vis.models import indexed_piece
@@ -258,9 +259,46 @@ class WorkflowManager(object):
         :type index: integer
 
         :returns: The result of :class:`ColumnAggregator` for a single piece.
-        :rtype: :class:`pandas.Series`
+        :rtype: :class:`pandas.Series` or ``None``
+
+        .. note:: If the piece has an invalid part-combination list, the method returns ``None``.
         """
-        pass
+        piece = self._data[index]
+        # make settings for interval indexers
+        settings = {u'quality': self.settings(index, u'interval quality')}
+        settings[u'simple or compound'] = u'simple' if self.settings(index, u'interval quality') \
+                                          else u'compound'
+        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
+        horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
+                                    settings)
+        # run the offset and repeat indexers, if required
+        if self.settings(index, u'offset interval') is not None:
+            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
+            vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
+            horiz_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, horiz_ints)
+        if self.settings(index, u'filter repeats') is True:
+            vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
+            horiz_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, horiz_ints)
+        # figure out which combinations we need... this might raise a ValueError, but there's not
+        # much we can do to save the situation, so we might as well let it go up
+        needed_combos = None
+        needed_combos = [ast.literal_eval(x) for x in self.settings(index, u'voice combinations')]
+        # each key in vert_ints corresponds to a two-voice combination we should use
+        for combo in needed_combos:
+            # make the list of parts
+            parts = [vert_ints[str(i) + u',' + str(combo[-1])] for i in combo[:-1]]
+            parts.append(horiz_ints[combo[-1]])
+            # assemble settings
+            setts = {u'vertical': range(len(combo[:-1])), u'horizontal': [len(combo[:-1])]}
+            setts[u'mark singles'] = self.settings(None, u'mark singles')
+            setts[u'continuer'] = self.settings(None, u'continuer')
+            setts[u'n'] = self.settings(None, u'n')
+            # run NGramIndexer and FrequencyExperimenter, then append the result to the
+            # corresponding index of the dict
+            result = piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter],
+                                    setts,
+                                    parts)
+        return result
 
     def _two_part_modules(self, index):
         """
@@ -633,8 +671,10 @@ class WorkflowManager(object):
             ``True``.
         * ``voice combinations``: If you want to consider certain specific voice combinations, \
             set this setting to a list of a list of iterables. The following value would analyze \
-            the highest three voices with each other: ``[[0,1,2]]`` while this would analyze the \
-            every part with the lowest for a four-part piece: ``[[0, 3], [1, 3], [2, 3]]``.
+            the highest three voices with each other: ``'[[0,1,2]]'`` while this would analyze the \
+            every part with the lowest for a four-part piece: ``'[[0, 3], [1, 3], [2, 3]]'``. This \
+            should always be a ``basestring`` that nominally represents a list (like the values \
+            shown above or ``'[all]'`` or ``'[all pairs]'``).
         * ``interval quality``: If you want to display interval quality, set this setting to \
             ``True``.
         * ``simple intervals``: If you want to display all intervals as their single-octave \
