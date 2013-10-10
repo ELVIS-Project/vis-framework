@@ -251,7 +251,7 @@ class AggregatedPieces(object):
             if not issubclass(each_cls, experimenter.Experimenter):
                 msg = u'AggregatedPieces requires Experimenters (received {})'.format(each_cls)
                 raise TypeError(msg)
-        if independent_analyzers is not None:
+        if independent_analyzers is not None and len(independent_analyzers) > 0:
             return self.get_data(aggregated_experiments,
                                  None,
                                  settings,
