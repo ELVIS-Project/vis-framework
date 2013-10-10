@@ -18,10 +18,13 @@ About This Documentation
 * What This Documentation Covers
 * How to Use This Documentation. This will include instructions on how to know which parts of the indexers/experimenters documentation is important to read when all you want to do is find the output formats.
 
-About the ``vis`` Framework
----------------------------
-* Design Principles
-* How to Design a Workflow
+Use the ``vis`` Framework
+-------------------------
+.. toctree::
+    :maxdepth: 2
+
+    about
+
 
 API Specification
 -----------------
