@@ -72,11 +72,13 @@ class WorkflowManager(object):
         :type vals: :obj:`list` of :obj:`basestring` or of \
             :obj:`~vis.models.indexed_piece.IndexedPiece`
 
-        We manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects:
+        We manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects::
+
         >>> paths = [u'test_corpus/bwv77.mxl', u'test_corpus/Kyrie.krn']
         >>> path_work = WorkflowManager(paths)
 
-        You manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects:
+        You manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects::
+
         >>> ips = [IndexedPiece(x) for x in paths]
         >>> ip_work = WorkflowManager(ips)
         """
@@ -178,8 +180,6 @@ class WorkflowManager(object):
             sonification program. You should then call :meth:`export` with the :obj:`u'CSV'` \
             instruction.
         """
-        # TODO: handle RepeatFilter
-        # TODO: handle OffsetIndexer
         # NOTE: do not re-order the instructions or this method will break
         possible_instructions = [u'intervals',
                                  u'interval n-grams']
