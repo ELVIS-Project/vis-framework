@@ -1,0 +1,7 @@
+# These packages are optional for vis.
+# Improved performance for pandas
+numexpr>=2.2.2
+Bottleneck>=0.7.0
+# Additional output formats for pandas (HDF5 and Excel)
+tables>=3.0.0
+openpyxl>=1.6.2
