@@ -3,8 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Documentation for the ``vis`` Music Analysis Framework
-======================================================
+.. image:: ELVIS_logo-framework.png
+    :alt: Logo for the VIS Music Analysis Framework
+    :width: 100 %
+
 This is the documentation for the ``vis`` music analysis framework.
 
 If you are a programmer who wishes to use the ``vis`` Python objects directly, to use the framework as part of another project, or to add functionality to your own instance of the ``vis`` Web app or VisTrails modules, this is the documentation you should read.
