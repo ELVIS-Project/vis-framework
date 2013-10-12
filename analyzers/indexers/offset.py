@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
+.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+
 Indexers that modify the "offset" values (floats stored as the "index" of a :class:`pandas.Series`),
 potentially adding repetitions of or removing pre-existing events, without modifying the events
 themselves.

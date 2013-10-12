@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
+.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+
 Experimenters that deal with the frequencies (number of occurrences) of events.
 """
 

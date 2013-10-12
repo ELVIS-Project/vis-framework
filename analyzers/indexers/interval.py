@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
+.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+
 Index intervals. Use the :class:`IntervalIndexer` to find vertical (harmonic) intervals between two
 parts. Use the :class:`HorizontalIntervalIndexer` to find horizontal (melodic) intervals in the
 same part.

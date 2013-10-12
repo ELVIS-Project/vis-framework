@@ -23,6 +23,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
+.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+
 Workflow controller, to automate commonly-performed tasks.
 """
 

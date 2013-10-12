@@ -23,6 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
+.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Jamie Klassen <michigan.j.frog@gmail.com>
+
 The controllers that deal with indexing data from music21 Score objects.
 """
 

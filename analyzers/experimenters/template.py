@@ -23,9 +23,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
+.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+
 Template for writing a new experimenter. Use this class to help write a new :class`Experimenter` \
 subclass. The :class:`TemplateExperimenter` does nothing, and should only be used by programmers.
 """
+# NOTE: you should replace my name with yours, in the "codeauthor" directive above
 
 from vis.analyzers import experimenter
 

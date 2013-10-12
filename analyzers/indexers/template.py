@@ -23,9 +23,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
+.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+
 Template for writing a new indexer. Use this class to help write a new :class`Indexer` subclass. \
 The :class:`TemplateIndexer` does nothing, and should only be used by programmers.
 """
+# NOTE: you should replace my name with yours, in the "codeauthor" directive above
 
 from music21 import stream
 from vis.analyzers import indexer
