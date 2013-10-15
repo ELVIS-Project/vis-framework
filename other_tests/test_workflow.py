@@ -736,7 +736,7 @@ class WorkflowTests(TestCase):
             piece.metadata.return_value = [u'S', u'A', u'T', u'B']
         # set up fake return values for IntervalIndexer
         all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
-        selected_part_combos = [u'0,3', u'2,3']
+        selected_part_combos = [[0, 3], [2, 3]]
         intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
         horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
         # set up return values for IndexedPiece.get_data()
@@ -753,7 +753,7 @@ class WorkflowTests(TestCase):
         test_wc.settings(1, u'simple intervals', True)
         test_wc.settings(1, u'filter repeats', False)
         test_wc.settings(1, u'offset interval', None)
-        test_wc.settings(1, u'voice combinations', selected_part_combos)
+        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
         actual = test_wc._variable_part_modules(1)
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes
@@ -769,10 +769,11 @@ class WorkflowTests(TestCase):
             self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
         # - that each IndP.get_data() called NGramIndexer with the right settings at some point
         for combo in selected_part_combos:
+            zombo = str(combo[0]) + u',' + str(combo[1])
             test_pieces[1].get_data.assert_any_call([mock_ng, mock_freq],
                                                     expected_ngram_settings,
-                                                    [intind_ret[combo],
-                                                    horiz_ret[interval.key_to_tuple(combo)[1]]])
+                                                    [intind_ret[zombo],
+                                                    horiz_ret[combo[1]]])
         self.assertEqual(u'piece2 4th get_data()', actual)
 
     @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
@@ -793,7 +794,7 @@ class WorkflowTests(TestCase):
             piece.metadata.return_value = [u'S', u'A', u'T', u'B']
         # set up fake return values for IntervalIndexer
         all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
-        selected_part_combos = [u'0,3', u'2,3']
+        selected_part_combos = [[0, 3], [2, 3]]
         intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
         horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
         # set up return values for IndexedPiece.get_data()
@@ -810,7 +811,7 @@ class WorkflowTests(TestCase):
         test_wc.settings(1, u'simple intervals', False)
         test_wc.settings(1, u'filter repeats', True)
         test_wc.settings(1, u'offset interval', 0.5)
-        test_wc.settings(1, u'voice combinations', selected_part_combos)
+        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
         actual = test_wc._variable_part_modules(1)
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes
@@ -832,10 +833,11 @@ class WorkflowTests(TestCase):
             self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
         # - that each IndP.get_data() called NGramIndexer with the right settings at some point
         for combo in selected_part_combos:
+            zombo = str(combo[0]) + u',' + str(combo[1])
             test_pieces[1].get_data.assert_any_call([mock_ng, mock_freq],
                                                     expected_ngram_settings,
-                                                    [intind_ret[combo],
-                                                    horiz_ret[interval.key_to_tuple(combo)[1]]])
+                                                    [intind_ret[zombo],
+                                                    horiz_ret[combo[1]]])
         self.assertEqual(8, actual)
 
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
@@ -853,7 +855,7 @@ class WorkflowTests(TestCase):
             piece.metadata.return_value = [u'S', u'A', u'T', u'B']
         # set up fake return values for IntervalIndexer
         all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
-        selected_part_combos = [u'[0, 1, 2]', u'[1, 2, 3]']
+        selected_part_combos = [[0, 1, 2], [1, 2, 3]]
         intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
         horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
         # set up return values for IndexedPiece.get_data()
@@ -870,7 +872,7 @@ class WorkflowTests(TestCase):
         test_wc.settings(1, u'simple intervals', True)
         test_wc.settings(1, u'filter repeats', False)
         test_wc.settings(1, u'offset interval', None)
-        test_wc.settings(1, u'voice combinations', selected_part_combos)
+        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
         actual = test_wc._variable_part_modules(1)
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes

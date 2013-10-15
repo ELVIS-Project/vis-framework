@@ -283,8 +283,7 @@ class WorkflowManager(object):
             horiz_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, horiz_ints)
         # figure out which combinations we need... this might raise a ValueError, but there's not
         # much we can do to save the situation, so we might as well let it go up
-        needed_combos = None
-        needed_combos = [ast.literal_eval(x) for x in self.settings(index, u'voice combinations')]
+        needed_combos = ast.literal_eval(unicode(self.settings(index, u'voice combinations')))
         # each key in vert_ints corresponds to a two-voice combination we should use
         for combo in needed_combos:
             # make the list of parts
