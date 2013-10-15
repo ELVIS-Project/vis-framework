@@ -50,12 +50,10 @@ class ListOfPieces(QAbstractTableModel):
 
     # Here's the data model:
     # self._pieces : a list of lists. For each sub-list...
-    #    sublist[0] : filename
-    #    sublist[1] : an IndexedPiece object (index 0) and piece title (index 1)
-    #    sublist[2] : list of names of parts in the score
-    #    sublist[3] : offset intervals to analyze
-    #    sublist[4] : list of pairs of indices for part combinations to prepare
-    #    sublist[5] : whether to repeat consecutive identcal events
+    #    sublist[0] : an IndexedPiece object
+    #    sublist[1] : offset intervals to analyze
+    #    sublist[2] : list of pairs of indices for part combinations to prepare
+    #    sublist[3] : whether to repeat consecutive identcal events
 
     # Public class variables to track which column has which data
     # NOTE: Update _number_of_columns whenever you change the number of columns,
@@ -76,7 +74,7 @@ class ListOfPieces(QAbstractTableModel):
     ScoreRole = 'This is an object for the ScoreRole'
 
     # This is the default values for every new row created
-    default_row = ['', None, [], u'(optional)', u'(no selection)', False]
+    default_row = [None, u'(optional)', u'(no selection)', False]
     # NOTE:
     # When you change this default_row, you must also change the value in this test:
     # models.test_analyzing.TestListOfPiecesInsertAndRemoveRows.test_insert_7()
@@ -155,23 +153,28 @@ class ListOfPieces(QAbstractTableModel):
             # most things will have the Qt.DisplayRole
             if Qt.DisplayRole == role:
                 if ListOfPieces.filename is column:
-                    post = self._pieces[row][1][0].metadata(u'pathname')
+                    post = self._pieces[row][0].metadata(u'pathname')
                 elif ListOfPieces.score is column:
-                    post = self._pieces[row][1][0].metadata(u'title')
+                    post = self._pieces[row][0].metadata(u'title')
                 elif ListOfPieces.parts_list is column:
-                    post = self._pieces[row][1][0].metadata(u'parts')
+                    post = self._pieces[row][0].metadata(u'parts')
                     post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
                     post = post[1:-1]  # trim the [] around the list
-                else:  # the others can just do this
-                    post = self._pieces[row][column]
+                else:
+                    # The others will be in the list, "raw," but we have to compensate for the
+                    # "phantom columns" that we're pretending are in the table but are actually
+                    # obtained from IndexedPiece.metadata(). It's for offset interval, parts combo,
+                    # repeat_identical
+                    post = self._pieces[row][column - 2]
                 if ListOfPieces.offset_intervals == column:
-                    post = str(post.toPyObject()) if isinstance(post, QVariant) else str(post)
+                    post = post.toPyObject() if isinstance(post, QVariant) else post
+                    post = unicode(post)
             # some things will have the ListOfPieces.ScoreRole
             elif role is ListOfPieces.ScoreRole:
                 if column is ListOfPieces.score:
-                    post = self._pieces[row][1][0]
+                    post = self._pieces[row][0]
                 elif column is ListOfPieces.parts_list:
-                    post = self._pieces[row][1][0].metadata(u'parts')
+                    post = self._pieces[row][0].metadata(u'parts')
             # everything else must return nothing
             else:
                 post = None
@@ -247,7 +250,18 @@ class ListOfPieces(QAbstractTableModel):
 
         # Set the data
         if Qt.EditRole == role:
-            self._pieces[row][column] = value
+            if ListOfPieces.filename is column:
+                self._pieces[row][0].metadata(u'pathname', value)
+            elif ListOfPieces.score is column:  # they're putting in the IndexedPiece
+                self._pieces[row][0] = value
+            elif ListOfPieces.parts_list is column:
+                self._pieces[row][0].metadata(u'parts', value)
+            else:
+                # The others will be in the list, "raw," but we have to compensate for the
+                # "phantom columns" that we're pretending are in the table but are actually
+                # obtained from IndexedPiece.metadata(). It's for offset interval, parts combo,
+                # repeat_identical
+                self._pieces[row][column - 2] = value
             self.dataChanged.emit(index, index)
             return True
         else:
@@ -302,23 +316,22 @@ class ListOfPieces(QAbstractTableModel):
         :type simple: boolean
         """
         # create the WorkflowManager with the currently-held IndexedPieces
-        l_o_ip = [self.data((i, ListOfPieces.score), ListOfPieces.ScoreRole) for i in xrange(len(self))]
+        l_o_ip = [self.data((i, ListOfPieces.score), ListOfPieces.ScoreRole) \
+                  for i in xrange(len(self))]
         workm = WorkflowManager(l_o_ip)
         # set the metadata for each piece
         for i in xrange(len(self._pieces)):
-            # set ListOfPieces.parts_list (maybe later?)
-            # set ListOfPieces.score (for title) (maybe later?)
             # set ListOfPieces.offset_intervals
-            val = self._pieces[i][ListOfPieces.offset_intervals]
+            val = self.data((i, ListOfPieces.offset_intervals), Qt.DisplayRole)
             if u'(optional)' != val:
                 workm.settings(i, u'offset interval', val)
             # set ListOfPieces.parts_combinations
-            val = self._pieces[i][ListOfPieces.parts_combinations]
+            val = self.data((i, ListOfPieces.parts_combinations), Qt.DisplayRole)
             if u'(no selection)' != val:
                 workm.settings(i, u'voice combinations', val)
                 # set ListOfPieces.repeat_identical
                 # NOTE: we only want to do this if we're also using the offset filter
-                val = self._pieces[i][ListOfPieces.repeat_identical]
+                val = self.data((i, ListOfPieces.repeat_identical), Qt.DisplayRole)
                 if val is False:
                     workm.settings(i, u'filter repeats', True)
             # quality
