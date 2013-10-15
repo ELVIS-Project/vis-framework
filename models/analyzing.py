@@ -326,7 +326,7 @@ class ListOfPieces(QAbstractTableModel):
             if u'(optional)' != val:
                 workm.settings(i, u'offset interval', val)
             # set ListOfPieces.parts_combinations
-            val = self.data((i, ListOfPieces.parts_combinations), Qt.DisplayRole)
+            val = self.data((i, ListOfPieces.parts_combinations), Qt.DisplayRole).toPyObject()
             if u'(no selection)' != val:
                 workm.settings(i, u'voice combinations', val)
             # set ListOfPieces.repeat_identical
