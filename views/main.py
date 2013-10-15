@@ -37,6 +37,7 @@ from os.path import splitext, join
 import pandas
 # PyQt4
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import Qt
 # music21
 from music21 import metadata, converter, stream
 # vis
@@ -233,7 +234,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
                 post.insertRows(post.rowCount(), 1)
                 new_row = post.rowCount() - 1
                 post.setData((new_row, ListOfPieces.score),
-                            (i_piece,),  # it's a tuple for historical reasons
+                            i_piece,
                             QtCore.Qt.EditRole)
             # done!
             self._tool_analyze()
@@ -362,8 +363,8 @@ You must choose pieces before we can import them.""",
         "add voice pair" button!
         """
         # check that all the pieces have at least one part combination selected
-        for each_piece in self._list_of_pieces:
-            combos = each_piece[ListOfPieces.parts_combinations]
+        for i in xrange(len(self._list_of_pieces)):
+            combos = self._list_of_pieces.data((i, ListOfPieces.parts_combinations), Qt.DisplayRole)
             combos = combos.toPyObject() if isinstance(combos, QtCore.QVariant) else combos
             combos = unicode(combos)
             if u'(no selection)' == combos:
@@ -402,10 +403,10 @@ Do you want to go back and add the part combination?""",
         # Actually start the experiment
         self._tool_working()
         self._vert_ints = []
-        for ip in self._list_of_ips:
-            self._vert_ints.append(ip.get_data([indexers.noterest.NoteRestIndexer,
-                                                indexers.interval.IntervalIndexer],
-                                                setts))
+        #for ip in self._list_of_ips:
+            #self._vert_ints.append(ip.get_data([indexers.noterest.NoteRestIndexer,
+                                                #indexers.interval.IntervalIndexer],
+                                                #setts))
 
         self._tool_experiment()
 
@@ -874,169 +875,6 @@ Do you want to go back and add the part combination?""",
         self.ui.grp_settings_for_piece.setEnabled(set_to)
         self.ui.widget_select_piece.setVisible(not set_to)
 
-    @QtCore.pyqtSlot()  # self.ui.btn_show_results.clicked
-    def _prepare_experiment_submission(self):
-        """
-        Make sure the Experimenter has a properly-configured Settings instance, then ask it to run
-        the experiment.
-        """
-
-        # move to the "working" panel and update it
-        self.show_working.emit()
-        self.update_progress.emit(u'0')
-        self.update_progress.emit(u'Initializing experiment.')
-
-        # hold a list of tuples to be signalled as settings
-        list_of_settings = {}
-
-        def do_experiment():
-            "Which experiment does the user want to run?"
-            # NOTE: as we add different Experiment and Display combinations, we have to update this
-
-            if self.ui.rdo_consider_intervals.isChecked():
-                list_of_settings['experiment'] = u'intervals'
-                if self.ui.rdo_spreadsheet.isChecked():
-                    list_of_settings['output format'] = 'spreadsheet'
-                elif self.ui.rdo_list.isChecked():
-                    list_of_settings['output format'] = 'list'
-                elif self.ui.rdo_chart.isChecked():
-                    list_of_settings['output format'] = 'chart'
-                elif self.ui.rdo_score.isChecked():
-                    list_of_settings['output format'] = 'lilypond'
-            elif self.ui.rdo_consider_interval_ngrams.isChecked():
-                list_of_settings['experiment'] = u'all 2-part interval n-grams'
-                if self.ui.rdo_list.isChecked():
-                    list_of_settings['output format'] = 'list'
-                elif self.ui.rdo_chart.isChecked():
-                    list_of_settings['output format'] = 'chart'
-                elif self.ui.rdo_score.isChecked():
-                    list_of_settings['output format'] = 'lilypond'
-            elif self.ui.rdo_consider_score.isChecked():
-                list_of_settings['experiment'] = 'LilyPondExperiment'
-                list_of_settings['output format'] = 'LilyPondDisplay'
-
-        def do_threshold():
-            "Is there a threshold value?"
-            threshold = unicode(self.ui.line_threshold.text())
-            if u'' != threshold:
-                list_of_settings['threshold'] = threshold
-
-        def do_top_x():
-            "Is there a 'top x' value?"
-            top_x = unicode(self.ui.line_top_x.text())
-            if u'' != top_x:
-                list_of_settings['topX'] = top_x
-
-        def do_print_quality():
-            "Print quality?"
-            if self.ui.rdo_heedQuality.isChecked():
-                list_of_settings['quality'] = True
-            else:
-                list_of_settings['quality'] = False
-
-        def do_simple_or_compound():
-            "Simple or compound?"
-            if self.ui.rdo_simple.isChecked():
-                list_of_settings['simple or compound'] = 'simple'
-            else:
-                list_of_settings['simple or compound'] = 'compound'
-
-        def do_values_of_n():
-            "Are there values of 'n' specified?"
-            # 1.) get the value of the textbox
-            enn = unicode(self.ui.line_values_of_n.text())
-            # 2.) Check for [ or ], as in the old style: [3] ... and remove them
-            if len(enn) > 0:
-                if enn[0] == '[':
-                    enn = enn[1:]
-                if enn[-1] == ']':
-                    enn = enn[:-1]
-            # 3.) Try to convert to a single-int list
-            try:
-                enn = [int(enn)]
-            except ValueError:  # if it fails
-                msg = u'Could not parse "value of n!"'
-                self.report_error.emit(msg)
-                return None
-            # 4.) Everything's good and valid, so let's put it on the list of settings
-            list_of_settings['values of n'] = enn
-            return 0
-
-        def do_ignore_inversion():
-            "Ignore inversion?"
-            if self.ui.chk_ignore_inversion.isChecked():
-                list_of_settings['ignore direction'] = True
-            else:
-                list_of_settings['ignore direction'] = False
-
-        def do_annotate_these():
-            "Is there an 'annotate these' value?"
-            a_these = unicode(self.ui.line_annotate_these.text())
-            if '' != a_these:
-                # TODO: this better
-                list_of_settings['annotate these'] = [a_these]
-
-
-        # (1) Figure out the settings
-        # TODO: ensure these are chosen dynamically, to correspond to the GUI
-        # (1a) Which experiment?
-        do_experiment()
-        # (1b) Print quality?
-        do_print_quality()
-        # (1c) Simple or compound?
-        do_simple_or_compound()
-        # (1d) Is there a "values_of_n" value?
-        if u'values_of_n' in list_of_settings:
-            if do_values_of_n() is None:
-                self._tool_experiment()
-                return None
-        # (1e) Threshold
-        do_threshold()
-        # (1f) Top X
-        do_top_x()
-        # (1g) Ignore Voice Crossing
-        do_ignore_inversion()
-        # (1h) Annotate These N-Grams
-        do_annotate_these()
-
-        # (2) Set the settings
-        for setting in list_of_settings:
-            print list_of_settings[setting]  # DEBUG
-            #self.vis_controller.experiment_setting.emit(setting)
-
-        # (3) Run the experiment
-        self._run_the_experiment(list_of_settings)
-
-    def _run_the_experiment(self, settings):
-        """
-        Run the experiment as instructed by the 'settings' argument.
-        """
-        # TODO: determine whether the experiment is the same as last time, and don't re-run it
-        simple = True if 'simple' == settings['simple or compound'] else False
-        workm = self._list_of_pieces.get_workflow_manager(settings['quality'], simple)
-        # run the appropriate experiment
-        if settings[u'experiment'] == u'intervals':
-            workm.run(u'intervals')
-        # prepare the appropriate output
-        if u'chart' == settings[u'output format']:
-            path = workm.output(u'R histogram')
-            zed = VisChartView()
-            zed.trigger(path)
-        elif u'list' == settings[u'output format']:
-            path = workm.export(u'CSV')
-            zed = VisTextView()
-            zed.trigger(path)
-        elif u'spreadsheet' == settings[u'output format']:
-            path = QtGui.QFileDialog.getSaveFileName(\
-                None,
-                u'Where to Save the Spreadsheet?',
-                u'',
-                u'',
-                None)
-            workm.export(u'Excel', path)
-
-        self._tool_experiment()
-
     @QtCore.pyqtSlot()  # self.ui.rdo_consider_***.clicked()
     def _update_experiment_from_object(self):
         """
@@ -1115,3 +953,166 @@ Do you want to go back and add the part combination?""",
         else:
             part_spec = u'(no selection)'
         self._update_parts_selection(part_spec)
+
+    ################################################################################################
+    ################################################################################################
+    ################################################################################################
+    ################################################################################################
+    @QtCore.pyqtSlot()  # self.ui.btn_show_results.clicked
+    def _prepare_experiment_submission(self):
+        """
+        Make sure the Experimenter has a properly-configured Settings instance, then ask it to run
+        the experiment.
+        """
+
+        # move to the "working" panel and update it
+        self.show_working.emit()
+        self.update_progress.emit(u'0')
+        self.update_progress.emit(u'Initializing experiment.')
+
+        # hold a list of tuples to be signalled as settings
+        list_of_settings = {}
+
+        def do_experiment():
+            "Which experiment does the user want to run?"
+            # NOTE: as we add different Experiment and Display combinations, we have to update this
+
+            if self.ui.rdo_consider_intervals.isChecked():
+                list_of_settings['experiment'] = u'intervals'
+                if self.ui.rdo_spreadsheet.isChecked():
+                    list_of_settings['output format'] = 'spreadsheet'
+                elif self.ui.rdo_list.isChecked():
+                    list_of_settings['output format'] = 'list'
+                elif self.ui.rdo_chart.isChecked():
+                    list_of_settings['output format'] = 'chart'
+                elif self.ui.rdo_score.isChecked():
+                    list_of_settings['output format'] = 'lilypond'
+            elif self.ui.rdo_consider_interval_ngrams.isChecked():
+                list_of_settings['experiment'] = u'interval n-grams'
+                if self.ui.rdo_list.isChecked():
+                    list_of_settings['output format'] = 'list'
+                elif self.ui.rdo_chart.isChecked():
+                    list_of_settings['output format'] = 'chart'
+                elif self.ui.rdo_score.isChecked():
+                    list_of_settings['output format'] = 'lilypond'
+            elif self.ui.rdo_consider_score.isChecked():
+                list_of_settings['experiment'] = 'LilyPondExperiment'
+                list_of_settings['output format'] = 'LilyPondDisplay'
+
+        def do_threshold():
+            "Is there a threshold value?"
+            threshold = unicode(self.ui.line_threshold.text())
+            if u'' != threshold:
+                list_of_settings['threshold'] = threshold
+
+        def do_top_x():
+            "Is there a 'top x' value?"
+            top_x = unicode(self.ui.line_top_x.text())
+            if u'' != top_x:
+                list_of_settings['topX'] = top_x
+
+        def do_print_quality():
+            "Print quality?"
+            if self.ui.rdo_heedQuality.isChecked():
+                list_of_settings['quality'] = True
+            else:
+                list_of_settings['quality'] = False
+
+        def do_simple_or_compound():
+            "Simple or compound?"
+            if self.ui.rdo_simple.isChecked():
+                list_of_settings['simple or compound'] = 'simple'
+            else:
+                list_of_settings['simple or compound'] = 'compound'
+
+        def do_values_of_n():
+            "Are there values of 'n' specified?"
+            # 1.) get the value of the textbox
+            enn = unicode(self.ui.line_values_of_n.text())
+            # 2.) Check for [ or ], as in the old style: [3] ... and remove them
+            if len(enn) > 0:
+                if enn[0] == '[':
+                    enn = enn[1:]
+                if enn[-1] == ']':
+                    enn = enn[:-1]
+            # 3.) Try to convert to a single-int list
+            try:
+                enn = int(enn)
+            except ValueError:  # if it fails
+                enn = 2
+                msg = u'Could not parse "value of n!" Using 2.'
+                self.report_error.emit(msg)
+            # 4.) Everything's good and valid, so let's put it on the list of settings
+            list_of_settings['n'] = enn
+            return 0
+
+        def do_ignore_inversion():
+            "Ignore inversion?"
+            if self.ui.chk_ignore_inversion.isChecked():
+                list_of_settings['ignore direction'] = True
+            else:
+                list_of_settings['ignore direction'] = False
+
+        def do_annotate_these():
+            "Is there an 'annotate these' value?"
+            a_these = unicode(self.ui.line_annotate_these.text())
+            if '' != a_these:
+                # TODO: this better
+                list_of_settings['annotate these'] = [a_these]
+
+
+        # (1) Figure out the settings
+        # TODO: ensure these are chosen dynamically, to correspond to the GUI
+        # (1a) Which experiment?
+        do_experiment()
+        # (1b) Print quality?
+        do_print_quality()
+        # (1c) Simple or compound?
+        do_simple_or_compound()
+        # (1d) Is there a "values_of_n" value?
+        if u'interval n-grams' == list_of_settings[u'experiment']:
+            do_values_of_n()
+        # (1e) Threshold
+        do_threshold()
+        # (1f) Top X
+        do_top_x()
+        # (1g) Ignore Voice Crossing
+        do_ignore_inversion()
+        # (1h) Annotate These N-Grams
+        do_annotate_these()
+
+        # (2) Run the experiment
+        self._run_the_experiment(list_of_settings)
+
+    def _run_the_experiment(self, settings):
+        """
+        Run the experiment as instructed by the 'settings' argument.
+        """
+        print(str(settings))  # DEBUG
+        # TODO: determine whether the experiment is the same as last time, and don't re-run it
+        simple = True if 'simple' == settings['simple or compound'] else False
+        workm = self._list_of_pieces.get_workflow_manager(settings['quality'], simple)
+        # if relevant, set 'n'
+        if u'n' in settings:
+            workm.settings(None, u'n', settings[u'n'])
+        # run the experiment
+        workm.run(settings[u'experiment'])
+        # prepare the appropriate output
+        if u'chart' == settings[u'output format']:
+            path = workm.output(u'R histogram')
+            zed = VisChartView()
+            zed.trigger(path)
+        elif u'list' == settings[u'output format']:
+            path = workm.export(u'CSV')
+            zed = VisTextView()
+            zed.trigger(path)
+        elif u'spreadsheet' == settings[u'output format']:
+            path = QtGui.QFileDialog.getSaveFileName(\
+                None,
+                u'Where to Save the Spreadsheet?',
+                u'',
+                u'',
+                None)
+            workm.export(u'Excel', path)
+
+        self._tool_experiment()
