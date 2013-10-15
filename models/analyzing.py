@@ -329,11 +329,10 @@ class ListOfPieces(QAbstractTableModel):
             val = self.data((i, ListOfPieces.parts_combinations), Qt.DisplayRole)
             if u'(no selection)' != val:
                 workm.settings(i, u'voice combinations', val)
-                # set ListOfPieces.repeat_identical
-                # NOTE: we only want to do this if we're also using the offset filter
-                val = self.data((i, ListOfPieces.repeat_identical), Qt.DisplayRole)
-                if val is False:
-                    workm.settings(i, u'filter repeats', True)
+            # set ListOfPieces.repeat_identical
+            val = self.data((i, ListOfPieces.repeat_identical), Qt.DisplayRole)
+            if val is False:
+                workm.settings(i, u'filter repeats', True)
             # quality
             workm.settings(i, u'interval quality', quality)
             # simple
