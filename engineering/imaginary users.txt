@@ -1,0 +1,15 @@
+imaginary users.txt :
+    Descriptions of three imaginary users whom we believe are likely to want to use vis.
+
+
+User 1: "MP" (Musician|Programmer)
+==================================
+The MP knows about both music research and computer science. They will use vis from their own computer, so they rely on the VisTrails interface. They will want to add new modules to VisTrails, so they must understand how to use the vis modules we provide, and how to use them to write a new VisTrails module.
+
+User 2: "TM" (Tenured Musicologist)
+===================================
+TM is a music researcher who is willing and able to invest the time in learning fundamental programming concepts. After starting with the Web interface, they will want the enhanced flexibility of the VisTrails interface. Because VisTrails is complicated software that requires rudimentary computer science knowledge, they will want example workflows to help learn how to assemble queries. Knowing their limits, they will not want to write new modules, though they may want to add modules written by third parties.
+
+User 3: "PTM" (Pre-Tenure Musicologist)
+=======================================
+PTM is a music researcher who believes in the promise of computer-based research, but does not have time to learn technical jargon, obscure work-arounds, or even how and why the VisTrails workflows exist as they are. When something unexpected happens, they are likely to stop using the program and seek help from colleagues or the developers, unless possible solutions are presented prominently.

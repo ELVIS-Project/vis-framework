@@ -28,8 +28,8 @@ The model classes for the Importer controller.
 """
 
 # Imports from...
-# PyQt4
-from PyQt4.QtCore import QAbstractListModel, QModelIndex, Qt
+from PyQt4.QtCore import QAbstractListModel, QModelIndex, Qt, QVariant
+from vis.models.indexed_piece import IndexedPiece
 
 
 class ListOfFiles(QAbstractListModel):
@@ -44,7 +44,7 @@ class ListOfFiles(QAbstractListModel):
         Create a new ListOfFiles instance. Best to use no arguments.
         """
         super(ListOfFiles, self).__init__()  # required for QModelIndex
-        self._files = []
+        self._files = []  # store a list of IndexedPiece
 
     def rowCount(self, parent=QModelIndex()):
         """
@@ -80,7 +80,7 @@ class ListOfFiles(QAbstractListModel):
 
         # Return the requested data
         if Qt.DisplayRole == role and 0 <= row < len(self._files):
-            return self._files[row]
+            return QVariant(self._files[row].metadata(u'pathname'))
         else:
             return None
 
@@ -89,11 +89,13 @@ class ListOfFiles(QAbstractListModel):
         Returns the table header data for this ListOfFiles. This is always
         "filename".
         """
-        return 'filename'
+        return u'filename'
 
     def setData(self, index, value, role):
         """
         Set the data for the given row to the given filename.
+
+        NOTE: "value" is the pathname
 
         The first argument is the index to set. The second argument is the value
         to set it to. The third argument should be QtCore.Qt.EditRole.
@@ -111,13 +113,13 @@ class ListOfFiles(QAbstractListModel):
         if isinstance(index, QModelIndex):
             row = index.row()
         else:
-            row = index[0]
+            row = index
             # we still need a QModelIndex for the dataChanged signal
             index = self.createIndex(row, 0)
 
         # Set the data
         if Qt.EditRole == role and 0 <= row < len(self._files):
-            self._files[row] = value
+            self._files[row] = IndexedPiece(unicode(value))
             self.dataChanged.emit(index, index)
             return True
         else:
@@ -180,16 +182,15 @@ class ListOfFiles(QAbstractListModel):
                 return candidate
             else:
                 return False
-        elif candidate in self._files:
-            for index in xrange(len(self._files)):
-                if candidate == self._files[index]:
-                    return self.createIndex(index, 0)
         else:
+            for ip in self._files:
+                if candidate == ip.metadata(u'pathname'):
+                    return True
             return False
 
     def __iter__(self):
         """
-        Create an iterator that returns each of the filenames in this ListOfFiles.
+        Create an iterator that returns each of the IndexedPieces in this ListOfFiles.
         """
         for filename in self._files:
             yield filename

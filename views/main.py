@@ -11,17 +11,17 @@
 # Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 """
 Hold the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt4 interface.
@@ -29,17 +29,27 @@ Hold the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt
 
 # Imports from...
 # Python
+from subprocess import Popen
 from itertools import chain
 from os import walk
 from os.path import splitext, join
+# pandizz
+import pandas
 # PyQt4
 from PyQt4 import QtGui, QtCore
+from PyQt4.QtCore import Qt
 # music21
 from music21 import metadata, converter, stream
 # vis
-from models.analyzing import ListOfPieces
-from views.VisOffsetSelector import VisOffsetSelector
+from vis.analyzers import indexers
+from vis.models.importing import ListOfFiles
+from vis.models.analyzing import ListOfPieces
+#from vis.views.VisOffsetSelector import VisOffsetSelector
+from vis.views.chart_view import VisChartView
+from vis.views.text_view import VisTextView
 from Ui_main_window import Ui_MainWindow
+from vis.models.indexed_piece import IndexedPiece
+from vis.workflow import WorkflowManager
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
@@ -81,7 +91,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.btn_about.clicked, self._tool_about),
             (self.ui.btn_analyze.clicked, self._tool_analyze),
             (self.ui.btn_experiment.clicked, self._tool_experiment),
-            (self.ui.btn_dir_add.clicked, self._add_dir),
             (self.ui.btn_file_add.clicked, self._add_files),
             (self.ui.btn_file_remove.clicked, self._remove_files),
             (self.ui.btn_show_results.clicked, self._prepare_experiment_submission),
@@ -96,7 +105,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.line_offset_interval.editingFinished, self._update_offset_interval),
             (self.ui.gui_pieces_list.selection_changed, self._update_pieces_selection),
             (self.ui.btn_choose_note.clicked, self._launch_offset_selection),
-            (self.ui.rdo_consider_chord_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_score.clicked, self._update_experiment_from_object),
@@ -113,6 +121,12 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.progress_bar.setMinimum(0)
         self.ui.progress_bar.setMaximum(100)
         self.ui.progress_bar.setValue(42)
+        # visX setup
+        self._list_of_ips = None  # holds the IndexedPiece instances
+        self._list_of_files = ListOfFiles()
+        self.ui.gui_file_list.setModel(self._list_of_files)
+        self._list_of_pieces = ListOfPieces()
+        self.ui.gui_pieces_list.setModel(self._list_of_pieces)
 
     # Methods Doing GUI Stuff ---------------------------------------------------
     # Pressing Buttons in the Toolbar -----------------------
@@ -197,15 +211,38 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         ask the user to choose some pieces.
         """
         # check there are more than 0 pieces for the Importer
-        if self.vis_controller.importer.has_files():
+        if 0 != self._list_of_files.rowCount():
             # then go!
             self._tool_working()
-            self.vis_controller.run_the_import.emit()
+            # if there are previously-added pieces, warn the user they'll be removed
+            if self._list_of_ips is not None:
+                QtGui.QMessageBox.information(None,
+                u"Information Loss Imminent",
+                u"We're gonna, like, just delete all those pieces you already had.",
+                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
+                QtGui.QMessageBox.Ok)
+            # make the list
+            self._list_of_ips = []
+            for each_piece in self._list_of_files:
+                self._list_of_ips.append(each_piece)
+            # do the importing and run the NoteRestIndexer
+            for each_ip in self._list_of_ips:
+                each_ip.get_data([indexers.noterest.NoteRestIndexer])
+            # put everything in the ListOfPieces, so we can collect settings and whatever
+            post = self._list_of_pieces
+            for i_piece in self._list_of_ips:
+                post.insertRows(post.rowCount(), 1)
+                new_row = post.rowCount() - 1
+                post.setData((new_row, ListOfPieces.score),
+                            i_piece,
+                            QtCore.Qt.EditRole)
+            # done!
+            self._tool_analyze()
         else:
             # then ask the user to stop being a jerk
             QtGui.QMessageBox.information(None,
-            u"Please Select Pieces",
-            u"""The list of pieces is empty.
+            u"Please Select Files",
+            u"""The list of files is empty.
 
 You must choose pieces before we can import them.""",
             QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
@@ -224,7 +261,11 @@ You must choose pieces before we can import them.""",
             # that entirely prevent them from selecting files. So here we are.
             # 'music21 Files (*.nwc *.mid *.midi *.mxl *.krn *.xml *.md)')  # filter
         if files:
-            self.vis_controller.import_files_added.emit([unicode(f) for f in files])
+            #self.vis_controller.import_files_added.emit([unicode(f) for f in files])
+            row_count = self._list_of_files.rowCount()
+            self._list_of_files.insertRows(row_count, len(files))
+            for i, file in enumerate(files):
+                self._list_of_files.setData(row_count + i, file, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()
     def _add_dir(self):
@@ -248,10 +289,14 @@ You must choose pieces before we can import them.""",
         containing their names.
         """
         # which indices are currently selected?
-        currently_selected = self.ui.gui_file_list.selectedIndexes()
+        #currently_selected = self.ui.gui_file_list.selectedIndexes()
+        # take the cheap way out
+        QtGui.QMessageBox.information(None,
+            "vis",
+            "I didn't write that yet.",
+            QtGui.QMessageBox.StandardButtons(\
+                QtGui.QMessageBox.RestoreDefaults))
 
-        # send this to the VISController
-        self.vis_controller.import_files_removed.emit(currently_selected)
 
     # Operations on the "Working" Panel ---------------------
     @QtCore.pyqtSlot(str)
@@ -264,7 +309,7 @@ You must choose pieces before we can import them.""",
         - If the argument is another string, the text below the progress bar is
         set to that string.
         """
-        if not isinstance(progress, (str, QtCore.QString)):
+        if not isinstance(progress, (basestring, QtCore.QString)):
             return None
         else:
             if u'100' == progress:
@@ -318,8 +363,8 @@ You must choose pieces before we can import them.""",
         "add voice pair" button!
         """
         # check that all the pieces have at least one part combination selected
-        for each_piece in self.vis_controller.analyzer._list_of_pieces:
-            combos = each_piece[ListOfPieces.parts_combinations]
+        for i in xrange(len(self._list_of_pieces)):
+            combos = self._list_of_pieces.data((i, ListOfPieces.parts_combinations), Qt.DisplayRole)
             combos = combos.toPyObject() if isinstance(combos, QtCore.QVariant) else combos
             combos = unicode(combos)
             if u'(no selection)' == combos:
@@ -351,19 +396,19 @@ Do you want to go back and add the part combination?""",
                 if response == QtGui.QMessageBox.Yes:
                     return None
 
-        # final step: see which objects they want us to analyze
-        which_objects = []
-        if self.ui.chk_find_chords.isChecked():
-            which_objects.append(u'chords')
-        if self.ui.chk_find_notes.isChecked():
-            which_objects.append(u'notes')
-        if self.ui.chk_find_rests.isChecked():
-            which_objects.append(u'rests')
-        self.vis_controller.analyzer.which_objects = which_objects
+        setts = {u'quality': self.ui.rdo_heedQuality.isChecked(),
+                 u'simple or compound': u'compound' if self.ui.rdo_compound.isChecked() else \
+                    u'simple'}
 
         # Actually start the experiment
         self._tool_working()
-        self.vis_controller.run_the_analysis.emit()
+        self._vert_ints = []
+        #for ip in self._list_of_ips:
+            #self._vert_ints.append(ip.get_data([indexers.noterest.NoteRestIndexer,
+                                                #indexers.interval.IntervalIndexer],
+                                                #setts))
+
+        self._tool_experiment()
 
     @QtCore.pyqtSlot()  # self.ui.chk_all_voice_combos.clicked
     def _all_voice_pairs(self):
@@ -389,25 +434,10 @@ Do you want to go back and add the part combination?""",
                 # This is a little tricky, because we'll change the Score object's
                 # Metadata object directly...
                 # Get the Score
-                piece = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
-                # unpickle the score, if relevant
-                was_pickled = False  # so we know whether to re-pickle
-                if not isinstance(piece, stream.Score):
-                    was_pickled = True
-                    piece = converter.thawStr(piece)
-                # Make sure there's a Metadata object
-                if piece.metadata is None:
-                    piece.insert(metadata.Metadata())
+                piece = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
                 # Update the title, saving it for later
                 new_title = unicode(self.ui.line_piece_title.text())
-                piece.metadata.title = new_title
-                # re-pickle the score, if needed
-                if was_pickled:
-                    piece = converter.freezeStr(piece, fmt='pickle')
-                # Tell the Analyzer to change its setting!
-                # NB: the second argument has to be 2-tuple with the Score object
-                # and the string that is the title, as specified in ListOfPieces
-                self.vis_controller.analyzer.change_settings.emit(cell, (piece, new_title))
+                piece.metadata(u'title', new_title)
 
     @QtCore.pyqtSlot()  # self.ui.chk_repeat_identical.stateChanged
     def _update_repeat_identical(self):
@@ -415,11 +445,10 @@ Do you want to go back and add the part combination?""",
         # what was the QCheckBox changed to?
         changed_to = self.ui.chk_repeat_identical.isChecked()
 
-        # Find the piece title and update it
+        # Find the piece and update its settings
         for cell in self.ui.gui_pieces_list.selectedIndexes():
             if ListOfPieces.repeat_identical == cell.column():
-                # Update the piece
-                self.vis_controller.analyzer.change_settings.emit(cell, changed_to)
+                self._list_of_pieces.setData(cell, changed_to, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.btn_add_check_combo.clicked
     def _add_parts_combination(self):
@@ -472,7 +501,7 @@ Do you want to go back and add the part combination?""",
                 # Update the parts selection
                 self._update_parts_selection(new_spec)
             # Does curr_spec include "[all]"?
-            elif u'[all]' == curr_spec or u'[all pairs]':
+            elif u'[all]' == curr_spec or u'[all pairs]' == curr_spec:
                 # we'll just make a new one, and un-check the "all" QCheckBox
                 new_spec = u'[' + vis_format + u']'
                 self.ui.chk_all_voice_combos.setChecked(False)
@@ -493,7 +522,6 @@ Do you want to go back and add the part combination?""",
                 self._update_parts_selection(new_spec)
 
         # Also clear the part-selection checkboxes
-        #self.ui.chk_basso_seguente.setChecked(False)
         for box in self.part_checkboxes:
             box.setChecked(False)
 
@@ -521,7 +549,7 @@ Do you want to go back and add the part combination?""",
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
             if ListOfPieces.parts_combinations == cell.column():
-                self.vis_controller.analyzer.change_settings.emit(cell, part_spec)
+                self._list_of_pieces.setData(cell, part_spec, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.line_offset_interval.editingFinished
     def _update_offset_interval(self):
@@ -538,7 +566,7 @@ Do you want to go back and add the part combination?""",
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
             if ListOfPieces.offset_intervals == cell.column():
-                self.vis_controller.analyzer.change_settings.emit(cell, new_offset_interval)
+                self._list_of_pieces.setData(cell, new_offset_interval, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.gui_pieces_list.clicked
     def _update_pieces_selection(self):
@@ -580,7 +608,7 @@ Do you want to go back and add the part combination?""",
             lists_of_part_names = []
             for cell in currently_selected:
                 if ListOfPieces.parts_list == cell.column():
-                    lists_of_part_names.append(self.vis_controller.l_o_pieces.data(cell,
+                    lists_of_part_names.append(self._list_of_pieces.data(cell,
                         ListOfPieces.ScoreRole))
             # 2.2: See if each piece has the same number of parts
             number_of_parts = 0
@@ -611,9 +639,9 @@ Do you want to go back and add the part combination?""",
                 if ListOfPieces.offset_intervals == cell.column():
                     if first_offset is None:
                         # TODO: whatever
-                        first_offset = self.vis_controller.l_o_pieces.\
+                        first_offset = self._list_of_pieces.\
                         data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_offset == self.vis_controller.l_o_pieces.\
+                    elif first_offset == self._list_of_pieces.\
                     data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
@@ -625,9 +653,9 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.parts_combinations == cell.column():
                     if first_comp is None:
-                        first_comp = self.vis_controller.l_o_pieces.\
+                        first_comp = self._list_of_pieces.\
                         data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_comp == self.vis_controller.l_o_pieces.\
+                    elif first_comp == self._list_of_pieces.\
                     data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
@@ -659,7 +687,7 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.offset_intervals == cell.column():
                     self.ui.line_offset_interval.setText(unicode(
-                    self.vis_controller.l_o_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
+                    self._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                     break
             # (4) Update "Compare These Parts"
             self._update_comparison_parts(currently_selected)
@@ -667,7 +695,7 @@ Do you want to go back and add the part combination?""",
             for cell in currently_selected:
                 if ListOfPieces.score == cell.column():
                     self.ui.line_piece_title.setText(
-                    unicode(self.vis_controller.l_o_pieces.data(cell,
+                    unicode(self._list_of_pieces.data(cell,
                         QtCore.Qt.DisplayRole).toPyObject()))
                     break
 
@@ -685,7 +713,7 @@ Do you want to go back and add the part combination?""",
 
         for cell in currently_selected:
             if ListOfPieces.parts_combinations == cell.column():
-                comparison_parts = unicode(self.vis_controller.l_o_pieces.
+                comparison_parts = unicode(self._list_of_pieces.
                     data(cell, QtCore.Qt.DisplayRole).toPyObject())
                 self.ui.line_compare_these_parts.setText(comparison_parts)
                 if u'[all]' == comparison_parts:
@@ -722,13 +750,13 @@ Do you want to go back and add the part combination?""",
                 # We're just going to change the part name in the model, not in the
                 # actual Score object itself (which would require re-loading)
                 # 1.) Get the parts list
-                parts = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
+                parts = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
                 # 2.) Update the part name as requested
                 parts[part_index] = new_name
                 # 3.) Convert the part names to str objects (from QString)
                 parts = [unicode(name) for name in parts]
                 # 4.) Update the data model and QCheckBox objects
-                self.vis_controller.l_o_pieces.setData(cell, parts, QtCore.Qt.EditRole)
+                self._list_of_pieces.setData(cell, parts, QtCore.Qt.EditRole)
                 self._update_pieces_selection()
 
     # Not a pyqtSlot
@@ -773,7 +801,7 @@ Do you want to go back and add the part combination?""",
         list_of_parts = None
         for cell in currently_selected:
             if ListOfPieces.parts_list == cell.column():
-                list_of_parts = self.vis_controller.l_o_pieces.data(cell, ListOfPieces.ScoreRole)
+                list_of_parts = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
                 break
         # deal with a possible "no_name" argument
         if no_name:
@@ -831,7 +859,7 @@ Do you want to go back and add the part combination?""",
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
             if ListOfPieces.offset_intervals == cell.column():
-                self.vis_controller.l_o_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
+                self._list_of_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
 
         # Just to make sure we get rid of this
         selector = None
@@ -846,162 +874,6 @@ Do you want to go back and add the part combination?""",
         self.ui.grp_settings_for_piece.setVisible(set_to)
         self.ui.grp_settings_for_piece.setEnabled(set_to)
         self.ui.widget_select_piece.setVisible(not set_to)
-
-    @QtCore.pyqtSlot()  # self.ui.btn_show_results.clicked
-    def _prepare_experiment_submission(self):
-        """
-        Make sure the Experimenter has a properly-configured Settings instance, then ask it to run
-        the experiment.
-        """
-
-        # move to the "working" panel and update it
-        self.show_working.emit()
-        self.update_progress.emit(u'0')
-        self.update_progress.emit(u'Initializing experiment.')
-
-        # hold a list of tuples to be signalled as settings
-        list_of_settings = []
-
-        def do_experiment():
-            "Which experiment does the user want to run?"
-            # NOTE: as we add different Experiment and Display combinations, we have to update this
-
-            if self.ui.rdo_consider_intervals.isChecked():
-                if self.ui.rdo_spreadsheet.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalsLists'))
-                    list_of_settings.append(('output format', 'SpreadsheetFile'))
-                elif self.ui.rdo_list.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalsStatistics'))
-                    list_of_settings.append(('output format', 'StatisticsListDisplay'))
-                elif self.ui.rdo_chart.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalsStatistics'))
-                    list_of_settings.append(('output format', 'GraphDisplay'))
-                elif self.ui.rdo_score.isChecked():
-                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
-                    list_of_settings.append(('lilypond helper', 'IntervalsLists'))
-                    list_of_settings.append(('output format', 'LilyPondDisplay'))
-            elif self.ui.rdo_consider_chord_ngrams.isChecked():
-                if self.ui.rdo_spreadsheet.isChecked():
-                    list_of_settings.append(('experiment', 'ChordsList'))
-                    list_of_settings.append(('output format', 'SpreadsheetFile'))
-                elif self.ui.rdo_score.isChecked():
-                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
-                    list_of_settings.append(('lilypond helper', 'ChordsList'))
-                    list_of_settings.append(('output format', 'LilyPondDisplay'))
-            elif self.ui.rdo_consider_interval_ngrams.isChecked():
-                if self.ui.rdo_list.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
-                    list_of_settings.append(('output format', 'StatisticsListDisplay'))
-                elif self.ui.rdo_chart.isChecked():
-                    list_of_settings.append(('experiment', 'IntervalNGramStatistics'))
-                    list_of_settings.append(('output format', 'GraphDisplay'))
-                elif self.ui.rdo_score.isChecked():
-                    list_of_settings.append(('experiment', 'LilyPondExperiment'))
-                    list_of_settings.append(('lilypond helper', 'IntervalNGramStatistics'))
-                    list_of_settings.append(('output format', 'LilyPondDisplay'))
-            elif self.ui.rdo_consider_score.isChecked():
-                list_of_settings.append(('experiment', 'LilyPondExperiment'))
-                list_of_settings.append(('output format', 'LilyPondDisplay'))
-
-        def do_threshold():
-            "Is there a threshold value?"
-            threshold = unicode(self.ui.line_threshold.text())
-            if u'' != threshold:
-                list_of_settings.append(('threshold', threshold))
-
-        def do_top_x():
-            "Is there a 'top x' value?"
-            top_x = unicode(self.ui.line_top_x.text())
-            if u'' != top_x:
-                list_of_settings.append(('topX', top_x))
-
-        def do_print_quality():
-            "Print quality?"
-            if self.ui.rdo_heedQuality.isChecked():
-                list_of_settings.append(('quality', True))
-            else:
-                list_of_settings.append(('quality', False))
-
-        def do_simple_or_compound():
-            "Simple or compound?"
-            if self.ui.rdo_simple.isChecked():
-                list_of_settings.append(('simple or compound', 'simple'))
-            else:
-                list_of_settings.append(('simple or compound', 'compound'))
-
-        def do_values_of_n():
-            "Are there values of 'n' specified?"
-            # 1.) get the value of the textbox
-            enn = unicode(self.ui.line_values_of_n.text())
-            # 2.) Check for [ or ], as in the old style: [3] ... and remove them
-            if len(enn) > 0:
-                if enn[0] == '[':
-                    enn = enn[1:]
-                if enn[-1] == ']':
-                    enn = enn[:-1]
-            # 3.) Try to convert to a single-int list
-            try:
-                enn = [int(enn)]
-            except ValueError:  # if it fails
-                msg = u'Could not parse "value of n!"'
-                self.report_error.emit(msg)
-                return None
-            # 4.) Everything's good and valid, so let's put it on the list of settings
-            list_of_settings.append(('values of n', enn))
-            return 0
-
-        def do_ignore_inversion():
-            "Ignore inversion?"
-            if self.ui.chk_ignore_inversion.isChecked():
-                list_of_settings.append(('ignore direction', True))
-            else:
-                list_of_settings.append(('ignore direction', False))
-
-        def do_annotate_these():
-            "Is there an 'annotate these' value?"
-            a_these = unicode(self.ui.line_annotate_these.text())
-            if '' != a_these:
-                # TODO: this better
-                list_of_settings.append(('annotate these', [a_these]))
-
-        def do_chord_parser():
-            "Use the ChordParser? How long the quarterLength?"
-            try:
-                list_of_settings.append(('chord parse length',
-                    float(self.ui.line_chord_parser.text())))
-            except ValueError:
-                pass
-
-        # (1) Figure out the settings
-        # TODO: ensure these are chosen dynamically, to correspond to the GUI
-        # (1a) Which experiment?
-        do_experiment()
-        # (1b) Print quality?
-        do_print_quality()
-        # (1c) Simple or compound?
-        do_simple_or_compound()
-        # (1d) Is there a "values_of_n" value?
-        if [val for name, val in list_of_settings if name == 'experiment' if 'NGram' in val]:
-            if do_values_of_n() is None:
-                self._tool_experiment()
-                return None
-        # (1e) Threshold
-        do_threshold()
-        # (1f) Top X
-        do_top_x()
-        # (1g) Ignore Voice Crossing
-        do_ignore_inversion()
-        # (1h) Annotate These N-Grams
-        do_annotate_these()
-        # (1i) Should we run the ChordParser?
-        do_chord_parser()
-
-        # (2) Set the settings
-        for setting in list_of_settings:
-            self.vis_controller.experiment_setting.emit(setting)
-
-        # (3) Run the experiment
-        self.vis_controller.run_the_experiment.emit()
 
     @QtCore.pyqtSlot()  # self.ui.rdo_consider_***.clicked()
     def _update_experiment_from_object(self):
@@ -1019,7 +891,6 @@ Do you want to go back and add the part combination?""",
                            self.ui.rdo_score,
                            self.ui.grp_annotate_these,
                            self.ui.grp_ignore_inversion,
-                           self.ui.group_chord_parser,
                            self.ui.grp_annotate_these]
 
         def on_offer(enable_these):
@@ -1046,9 +917,6 @@ Do you want to go back and add the part combination?""",
         elif self.ui.rdo_consider_interval_ngrams.isChecked():
             which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
                                self.ui.grp_quality, self.ui.rdo_chart, self.ui.grp_ignore_inversion]
-        elif self.ui.rdo_consider_chord_ngrams.isChecked():
-            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_values_of_n, self.ui.rdo_score,
-                               self.ui.group_chord_parser]
         elif self.ui.rdo_consider_score.isChecked():
             which_to_enable = [self.ui.rdo_score]
 
@@ -1085,3 +953,166 @@ Do you want to go back and add the part combination?""",
         else:
             part_spec = u'(no selection)'
         self._update_parts_selection(part_spec)
+
+    ################################################################################################
+    ################################################################################################
+    ################################################################################################
+    ################################################################################################
+    @QtCore.pyqtSlot()  # self.ui.btn_show_results.clicked
+    def _prepare_experiment_submission(self):
+        """
+        Make sure the Experimenter has a properly-configured Settings instance, then ask it to run
+        the experiment.
+        """
+
+        # move to the "working" panel and update it
+        self.show_working.emit()
+        self.update_progress.emit(u'0')
+        self.update_progress.emit(u'Initializing experiment.')
+
+        # hold a list of tuples to be signalled as settings
+        list_of_settings = {}
+
+        def do_experiment():
+            "Which experiment does the user want to run?"
+            # NOTE: as we add different Experiment and Display combinations, we have to update this
+
+            if self.ui.rdo_consider_intervals.isChecked():
+                list_of_settings['experiment'] = u'intervals'
+                if self.ui.rdo_spreadsheet.isChecked():
+                    list_of_settings['output format'] = 'spreadsheet'
+                elif self.ui.rdo_list.isChecked():
+                    list_of_settings['output format'] = 'list'
+                elif self.ui.rdo_chart.isChecked():
+                    list_of_settings['output format'] = 'chart'
+                elif self.ui.rdo_score.isChecked():
+                    list_of_settings['output format'] = 'lilypond'
+            elif self.ui.rdo_consider_interval_ngrams.isChecked():
+                list_of_settings['experiment'] = u'interval n-grams'
+                if self.ui.rdo_list.isChecked():
+                    list_of_settings['output format'] = 'list'
+                elif self.ui.rdo_chart.isChecked():
+                    list_of_settings['output format'] = 'chart'
+                elif self.ui.rdo_score.isChecked():
+                    list_of_settings['output format'] = 'lilypond'
+            elif self.ui.rdo_consider_score.isChecked():
+                list_of_settings['experiment'] = 'LilyPondExperiment'
+                list_of_settings['output format'] = 'LilyPondDisplay'
+
+        def do_threshold():
+            "Is there a threshold value?"
+            threshold = unicode(self.ui.line_threshold.text())
+            if u'' != threshold:
+                list_of_settings['threshold'] = threshold
+
+        def do_top_x():
+            "Is there a 'top x' value?"
+            top_x = unicode(self.ui.line_top_x.text())
+            if u'' != top_x:
+                list_of_settings['topX'] = top_x
+
+        def do_print_quality():
+            "Print quality?"
+            if self.ui.rdo_heedQuality.isChecked():
+                list_of_settings['quality'] = True
+            else:
+                list_of_settings['quality'] = False
+
+        def do_simple_or_compound():
+            "Simple or compound?"
+            if self.ui.rdo_simple.isChecked():
+                list_of_settings['simple or compound'] = 'simple'
+            else:
+                list_of_settings['simple or compound'] = 'compound'
+
+        def do_values_of_n():
+            "Are there values of 'n' specified?"
+            # 1.) get the value of the textbox
+            enn = unicode(self.ui.line_values_of_n.text())
+            # 2.) Check for [ or ], as in the old style: [3] ... and remove them
+            if len(enn) > 0:
+                if enn[0] == '[':
+                    enn = enn[1:]
+                if enn[-1] == ']':
+                    enn = enn[:-1]
+            # 3.) Try to convert to a single-int list
+            try:
+                enn = int(enn)
+            except ValueError:  # if it fails
+                enn = 2
+                msg = u'Could not parse "value of n!" Using 2.'
+                self.report_error.emit(msg)
+            # 4.) Everything's good and valid, so let's put it on the list of settings
+            list_of_settings['n'] = enn
+            return 0
+
+        def do_ignore_inversion():
+            "Ignore inversion?"
+            if self.ui.chk_ignore_inversion.isChecked():
+                list_of_settings['ignore direction'] = True
+            else:
+                list_of_settings['ignore direction'] = False
+
+        def do_annotate_these():
+            "Is there an 'annotate these' value?"
+            a_these = unicode(self.ui.line_annotate_these.text())
+            if '' != a_these:
+                # TODO: this better
+                list_of_settings['annotate these'] = [a_these]
+
+
+        # (1) Figure out the settings
+        # TODO: ensure these are chosen dynamically, to correspond to the GUI
+        # (1a) Which experiment?
+        do_experiment()
+        # (1b) Print quality?
+        do_print_quality()
+        # (1c) Simple or compound?
+        do_simple_or_compound()
+        # (1d) Is there a "values_of_n" value?
+        if u'interval n-grams' == list_of_settings[u'experiment']:
+            do_values_of_n()
+        # (1e) Threshold
+        do_threshold()
+        # (1f) Top X
+        do_top_x()
+        # (1g) Ignore Voice Crossing
+        do_ignore_inversion()
+        # (1h) Annotate These N-Grams
+        do_annotate_these()
+
+        # (2) Run the experiment
+        self._run_the_experiment(list_of_settings)
+
+    def _run_the_experiment(self, settings):
+        """
+        Run the experiment as instructed by the 'settings' argument.
+        """
+        print(str(settings))  # DEBUG
+        # TODO: determine whether the experiment is the same as last time, and don't re-run it
+        simple = True if 'simple' == settings['simple or compound'] else False
+        workm = self._list_of_pieces.get_workflow_manager(settings['quality'], simple)
+        # if relevant, set 'n'
+        if u'n' in settings:
+            workm.settings(None, u'n', settings[u'n'])
+        # run the experiment
+        workm.run(settings[u'experiment'])
+        # prepare the appropriate output
+        if u'chart' == settings[u'output format']:
+            path = workm.output(u'R histogram')
+            zed = VisChartView()
+            zed.trigger(path)
+        elif u'list' == settings[u'output format']:
+            path = workm.export(u'CSV')
+            zed = VisTextView()
+            zed.trigger(path)
+        elif u'spreadsheet' == settings[u'output format']:
+            path = QtGui.QFileDialog.getSaveFileName(\
+                None,
+                u'Where to Save the Spreadsheet?',
+                u'',
+                u'',
+                None)
+            workm.export(u'Excel', path)
+
+        self._tool_experiment()

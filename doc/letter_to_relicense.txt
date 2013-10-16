@@ -1,0 +1,24 @@
+Dear Jamie and Alex:
+
+I would like to relicense the software we are developing for the ELVIS Project. As you are both copyright holders, I am asking your consent. The current licence for the software in question is the "GNU General Public License," version 3 or any later. I would like to change the licence to "GNU Affero General Public License," version 3 or any later.
+
+I believe the AGPL will protect our users' rights to a greater extent than the GPL because our software is designed to be run on a server. You may read a longer explanation of my motivations here: https://www.gnu.org/licenses/why-affero-gpl.html
+
+You may read the licences themselves here:
+https://www.gnu.org/licenses/gpl.html
+https://www.gnu.org/licenses/agpl.html
+
+If you wish to discuss the relicensing effort, I would be happy to consider other options.
+
+The affected software is that currently contained in the "vis-vm," "django-vis" and "vis" repositories on our project's GitHub page:
+https://github.com/ELVIS-Project/vis-vm
+https://github.com/ELVIS-Project/vis
+https://github.com/ELVIS-Project/django-vis
+
+To complete the relicensing effort, if you consent, please respond to this email in a way that unambiguously notes your consent to relicense the software. Ideally, your response will be signed with a GPG key for which the public key is publicly accessible. If not, I will sign your response. I will include the responses in the "doc" directory in each affected repository.
+
+You can verify the validity of this message with the "letter_to_relicense.txt" and "letter_to_relicense.txt.asc" files in the "doc" subdirectory of the "vis" repository. The files are currently only present in the "visX-devel" branch, but will be merged to master in the future.
+
+
+Thank you for your attention,
+Christopher Antila

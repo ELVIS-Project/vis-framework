@@ -1,0 +1,239 @@
+Return-Path: <christopher.antila@mail.mcgill.ca>
+Received: from engels.adjectivenoun.ca ([unix socket])
+     by engels.adjectivenoun.ca (Cyrus v2.4.16-Kolab-2.4.16-1.el6.kolab_2.4) with LMTPA;
+     Mon, 16 Sep 2013 19:05:12 -0400
+X-Sieve: CMU Sieve 2.4
+Received: from localhost (localhost [127.0.0.1])
+    by engels.adjectivenoun.ca (Postfix) with ESMTP id D32E22513D
+    for <christopher.antila@adjectivenoun.ca>; Mon, 16 Sep 2013 19:05:12 -0400 (EDT)
+X-Virus-Scanned: amavisd-new at adjectivenoun.ca
+X-Spam-Flag: NO
+X-Spam-Score: 2.656
+X-Spam-Level: **
+X-Spam-Status: No, score=2.656 tagged_above=-10 required=6.2
+    tests=[DKIM_ADSP_CUSTOM_MED=0.001, DKIM_SIGNED=0.1,
+    HTML_MESSAGE=0.001, MIME_HEADER_CTYPE_ONLY=1.996,
+    NML_ADSP_CUSTOM_MED=1.2, RP_MATCHES_RCVD=-0.652, T_DKIM_INVALID=0.01]
+    autolearn=no
+Authentication-Results: engels.adjectivenoun.ca (amavisd-new);
+    dkim=fail (2048-bit key) reason="fail (message has been altered)"
+    header.d=gmail.com
+Received: from engels.adjectivenoun.ca ([127.0.0.1])
+    by localhost (engels.adjectivenoun.ca [127.0.0.1]) (amavisd-new, port 10024)
+    with ESMTP id oal7eY32C-T1 for <christopher.antila@adjectivenoun.ca>;
+    Mon, 16 Sep 2013 19:05:11 -0400 (EDT)
+Received: from edgesmtp2.ncs.mcgill.ca (edgesmtp2.NCS.McGill.CA [132.206.27.53])
+    by engels.adjectivenoun.ca (Postfix) with ESMTP id 3D48C25137
+    for <christopher.antila@adjectivenoun.ca>; Mon, 16 Sep 2013 19:05:10 -0400 (EDT)
+Received: from edgemx5.ncs.mcgill.ca (edgemxdb5.ncs.McGill.CA [132.206.27.71])
+    by edgesmtp2.ncs.mcgill.ca (Postfix) with ESMTP id A8BB7300049
+    for <christopher.antila@adjectivenoun.ca>; Mon, 16 Sep 2013 19:05:10 -0400 (EDT)
+Received: from edgemx5.ncs.mcgill.ca (localhost.localdomain [127.0.0.1])
+    by localhost (Postfix) with SMTP id 93E3F3410046
+    for <christopher.antila@adjectivenoun.ca>; Mon, 16 Sep 2013 19:05:10 -0400 (EDT)
+Received: from EXHUB2010-1.campus.MCGILL.CA (exhub2010-1.campus.mcgill.ca [132.206.85.155])
+    by edgemx5.ncs.mcgill.ca (Postfix) with ESMTP id 768EB3410031
+    for <christopher.antila@adjectivenoun.ca>; Mon, 16 Sep 2013 19:05:10 -0400 (EDT)
+Received: from EXHUB2010-1.campus.MCGILL.CA ([132.206.85.155]) by
+ EXHUB2010-1.campus.MCGILL.CA ([132.206.85.155]) with Microsoft SMTP Server id
+ 14.02.0318.001; Mon, 16 Sep 2013 19:05:10 -0400
+From: Jamie Klassen <michigan.j.frog@gmail.com>
+To: Christopher Antila <christopher.antila@mail.mcgill.ca>
+Subject: Re: ELVIS: Relicensing Our Software
+Thread-Topic: ELVIS: Relicensing Our Software
+Date: Mon, 16 Sep 2013 23:05:08 +0000
+Message-ID: <3549_1379372710_52378EA6_3549_18_1_e57d485f224c488385b17d7c78a76b5a@EXHUB2010-1.campus.MCGILL.CA>
+References: <52378881.5060104@mail.mcgill.ca>
+In-Reply-To: <52378881.5060104@mail.mcgill.ca>
+X-MS-Has-Attach:
+X-MS-Exchange-Inbox-Rules-Loop: christopher.antila@mail.mcgill.ca
+X-MS-TNEF-Correlator:
+dkim-signature: v=1; a=rsa-sha256; c=relaxed/relaxed;        d=gmail.com;
+ s=20120113;
+        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
+         :content-type;
+        bh=mJF7PJJykmBLNodrI9IUI+0yiMGfd/TJvDnLr/Ae5R0=;
+        b=By9ahD6kZvUqQVW/mf25pJ/RjoXrAHQvNfWEZaPcJdkQmLC+S2aPtGgERVOW8ibGqK
+         S6wSbjnvHVLlI0T+uGhiI4kTp30zUWlsPeJds6Mpjdof61LbTVZUJxk1n4hGpHfbkrvC
+         AH0ORHWKsZShztXpOWhvOffok1z2qp0Q0XwG45QqB3hFdrgRzB30lEYkBJNiy842Zbm2
+         s9DXcqnktXOg7Zm2TtqlbzQgG4GSzuD4eOEUwFKjlqpL69IcofyS7OsuRxXMavKrLaSm
+         Zn2m+VdFBDGNuk1EvwpbOx02Q2hGTrd9ppUYEoa+Motp8A1jnFgcPAfAaJqXexFdYmAg
+         MTEw==
+x-received: by 10.180.11.37 with SMTP id n5mr15214386wib.25.1379372708704;
+ Mon, 16 Sep 2013 16:05:08 -0700 (PDT)
+x-pmx-version: 5.6.1.2065439, Antispam-Engine: 2.7.2.376379, Antispam-Data: 2013.9.10.174214
+x-mcgill-wherefrom: Internal
+x-perlmx-spam: Probability=8%, RuleHits= HTML_NO_HTTP 0.1,
+ BODYTEXTH_SIZE_10000_LESS 0, BODYTEXTP_SIZE_3000_LESS 0, BODY_SIZE_6000_6999
+ 0, BODY_SIZE_7000_LESS 0, CTYPE_MULTIPART_NO_QUOTE 0, DATE_TZ_NA 0,
+ DKIM_SIGNATURE 0, SPF_PASS 0, URI_ENDS_IN_HTML 0, WEBMAIL_SOURCE 0,
+ __ANY_URI 0, __BOUNCE_CHALLENGE_SUBJ 0, __BOUNCE_NDR_SUBJ_EXEMPT 0, __CT 0,
+ __CTYPE_HAS_BOUNDARY 0, __CTYPE_MULTIPART 0, __CTYPE_MULTIPART_ALT 0,
+ __FORWARDED_MSG 0, __FRAUD_WEBMAIL 0, __FRAUD_WEBMAIL_FROM 0, __FROM_GMAIL
+ 0, __HAS_FROM 0, __HAS_HTML 0, __HAS_MSGID 0, __HELO_GMAIL 0, __IN_REP_TO 0,
+ __MIME_HTML 0, __MIME_VERSION 0, __PHISH_PHRASE5 0,
+ __PHISH_SPEAR_HTTP_RECEIVED 0, __PHISH_SPEAR_STRUCTURE_1 0,
+ __RATWARE_SIGNATURE_3_N1 0, __RDNS_GMAIL 0, __SANE_MSGID 0, __SUBJ_ALPHA_END
+ 0, __SUBJ_ALPHA_NEGATE 0, __TO_MALFORMED_2 0, __URI_NO_PATH 0, __URI_NS ,
+ __YOUTUBE_RCVD 0
+Resent-From: <christopher.antila@mail.mcgill.ca>
+Content-Type: multipart/alternative;
+    boundary="_000_e57d485f224c488385b17d7c78a76b5aEXHUB20101campusMCGILLC_"
+Resent-Message-Id: <20130916230510.768EB3410031@edgemx5.ncs.mcgill.ca>
+Resent-Date: Mon, 16 Sep 2013 19:05:10 -0400 (EDT)
+
+--_000_e57d485f224c488385b17d7c78a76b5aEXHUB20101campusMCGILLC_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+I, Jamie Klassen, give my full consent to relicense vis software, including=
+ the vis, django-vis and vis-vm GitHub repositories, under the "GNU Affero =
+General Public License," version 3 or any later.
+
+Jamie Klassen
+
+
+On Mon, Sep 16, 2013 at 6:38 PM, Christopher Antila <christopher.antila@mai=
+l.mcgill.ca<mailto:christopher.antila@mail.mcgill.ca>> wrote:
+Dear Jamie and Alex:
+
+I would like to relicense the software we are developing for the ELVIS
+Project. As you are both copyright holders, I am asking your consent.
+The current licence for the software in question is the "GNU General
+Public License," version 3 or any later. I would like to change the
+licence to "GNU Affero General Public License," version 3 or any later.
+
+I believe the AGPL will protect our users' rights to a greater extent
+than the GPL because our software is designed to be run on a server. You
+may read a longer explanation of my motivations here:
+https://www.gnu.org/licenses/why-affero-gpl.html
+
+You may read the licences themselves here:
+https://www.gnu.org/licenses/gpl.html
+https://www.gnu.org/licenses/agpl.html
+
+If you wish to discuss the relicensing effort, I would be happy to
+consider other options.
+
+The affected software is that currently contained in the "vis-vm,"
+"django-vis" and "vis" repositories on our project's GitHub page:
+https://github.com/ELVIS-Project/vis-vm
+https://github.com/ELVIS-Project/vis
+https://github.com/ELVIS-Project/django-vis
+
+To complete the relicensing effort, if you consent, please respond to
+this email in a way that unambiguously notes your consent to relicense
+the software. Ideally, your response will be signed with a GPG key for
+which the public key is publicly accessible. If not, I will sign your
+response. I will include the responses in the "doc" directory in each
+affected repository.
+
+You can verify the validity of this message with the
+"letter_to_relicense.txt" and "letter_to_relicense.txt.asc" files in the
+"doc" subdirectory of the "vis" repository. The files are currently only
+present in the "visX-devel" branch, but will be merged to master in the
+future.
+
+
+Thank you for your attention,
+Christopher Antila
+
+
+
+--_000_e57d485f224c488385b17d7c78a76b5aEXHUB20101campusMCGILLC_
+Content-Type: text/html; charset="iso-8859-1"
+Content-ID: <97A7225906BD684CA0B134BAE786FBB7@campus.mcgill.ca>
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3Diso-8859-=
+1">
+</head>
+<body>
+<div dir=3D"ltr">I, Jamie Klassen, give my full consent to relicense vis so=
+ftware, including the vis, django-vis and vis-vm GitHub repositories, under=
+ the&nbsp;<span style=3D"font-family:arial,sans-serif;font-size:12.72727203=
+3691406px">&quot;GNU Affero General Public License,&quot;
+ version 3 or any later.</span>
+<div><span style=3D"font-family:arial,sans-serif;font-size:12.7272720336914=
+06px"><br>
+</span></div>
+<div><span style=3D"font-family:arial,sans-serif;font-size:12.7272720336914=
+06px">Jamie Klassen</span></div>
+</div>
+<div class=3D"gmail_extra"><br>
+<br>
+<div class=3D"gmail_quote">On Mon, Sep 16, 2013 at 6:38 PM, Christopher Ant=
+ila <span dir=3D"ltr">
+&lt;<a href=3D"mailto:christopher.antila@mail.mcgill.ca" target=3D"_blank">=
+christopher.antila@mail.mcgill.ca</a>&gt;</span> wrote:<br>
+<blockquote class=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1p=
+x #ccc solid;padding-left:1ex">
+Dear Jamie and Alex:<br>
+<br>
+I would like to relicense the software we are developing for the ELVIS<br>
+Project. As you are both copyright holders, I am asking your consent.<br>
+The current licence for the software in question is the &quot;GNU General<b=
+r>
+Public License,&quot; version 3 or any later. I would like to change the<br=
+>
+licence to &quot;GNU Affero General Public License,&quot; version 3 or any =
+later.<br>
+<br>
+I believe the AGPL will protect our users' rights to a greater extent<br>
+than the GPL because our software is designed to be run on a server. You<br=
+>
+may read a longer explanation of my motivations here:<br>
+<a href=3D"https://www.gnu.org/licenses/why-affero-gpl.html" target=3D"_bla=
+nk">https://www.gnu.org/licenses/why-affero-gpl.html</a><br>
+<br>
+You may read the licences themselves here:<br>
+<a href=3D"https://www.gnu.org/licenses/gpl.html" target=3D"_blank">https:/=
+/www.gnu.org/licenses/gpl.html</a><br>
+<a href=3D"https://www.gnu.org/licenses/agpl.html" target=3D"_blank">https:=
+//www.gnu.org/licenses/agpl.html</a><br>
+<br>
+If you wish to discuss the relicensing effort, I would be happy to<br>
+consider other options.<br>
+<br>
+The affected software is that currently contained in the &quot;vis-vm,&quot=
+;<br>
+&quot;django-vis&quot; and &quot;vis&quot; repositories on our project's Gi=
+tHub page:<br>
+<a href=3D"https://github.com/ELVIS-Project/vis-vm" target=3D"_blank">https=
+://github.com/ELVIS-Project/vis-vm</a><br>
+<a href=3D"https://github.com/ELVIS-Project/vis" target=3D"_blank">https://=
+github.com/ELVIS-Project/vis</a><br>
+<a href=3D"https://github.com/ELVIS-Project/django-vis" target=3D"_blank">h=
+ttps://github.com/ELVIS-Project/django-vis</a><br>
+<br>
+To complete the relicensing effort, if you consent, please respond to<br>
+this email in a way that unambiguously notes your consent to relicense<br>
+the software. Ideally, your response will be signed with a GPG key for<br>
+which the public key is publicly accessible. If not, I will sign your<br>
+response. I will include the responses in the &quot;doc&quot; directory in =
+each<br>
+affected repository.<br>
+<br>
+You can verify the validity of this message with the<br>
+&quot;letter_to_relicense.txt&quot; and &quot;letter_to_relicense.txt.asc&q=
+uot; files in the<br>
+&quot;doc&quot; subdirectory of the &quot;vis&quot; repository. The files a=
+re currently only<br>
+present in the &quot;visX-devel&quot; branch, but will be merged to master =
+in the<br>
+future.<br>
+<br>
+<br>
+Thank you for your attention,<br>
+Christopher Antila<br>
+<br>
+</blockquote>
+</div>
+<br>
+</div>
+</body>
+</html>
+
+--_000_e57d485f224c488385b17d7c78a76b5aEXHUB20101campusMCGILLC_--

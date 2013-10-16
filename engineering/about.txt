@@ -1,0 +1,28 @@
+The files in this directory are related to the engineering aspects of the final version of our "vis" software.
+
+objectives.txt :
+    High level definitions of what the software will do.
+
+specifications.txt :
+    Technical specifications for how we will meet our high-level objectives.
+
+imaginary users.txt :
+    Descriptions of three imaginary users whom we believe are likely to want to use vis.
+
+schedule.txt :
+    Defines actions we must complete, required pre-requisite actions, and projected dates for completion.
+
+organization.txt :
+    Defines weekly responsibilities for task division; i.e., how we will accomplish goals in the schedule.
+
+trial queries.txt :
+    Ten potential queries a user might want to run. All queries must be possible in both interfaces and the back-end, to ensure we maintain adequate flexibility in our implemented feature set.
+
+Trial Query X.svg :
+    Flowcharts of how data and processes will proceed through the evaluation of a query.
+
+old GUI.txt :
+    Explanation of the previous (PyQt4) GUI.
+
+old GUI-x.png :
+    To help explaining the previous GUI.

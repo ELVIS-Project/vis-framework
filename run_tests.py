@@ -1,7 +1,6 @@
-#! /usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-#-------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 # Program Name:              vis
 # Program Description:       Measures sequences of vertical intervals.
 #
@@ -11,74 +10,65 @@
 # Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# it under the terms of the GNU Affero General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
+# You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#-------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------
 """
 Run the tests for the models
 """
 
-# Verbosity
-verb = 1
+# Ensure we can import "vis"
+import imp
+try:
+    imp.find_module(u'vis')
+except ImportError:
+    import sys
+    sys.path.insert(0, u'..')
+
+VERBOSITY = 1
 
 # Imports
 import unittest
-from controllers_tests.test_importer import *
-from controllers_tests.test_analyzer import *
-from controllers_tests.test_experimenter import *
-from models_tests.test_importing import *
-from models_tests.test_analyzing import *
-from models_tests.test_ngram import *
+from vis.models_tests import test_indexed_piece, test_aggregated_pieces
+from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
+    test_aggregator, test_interval_indexer, test_frequency_experimenter, test_offset
+from vis.other_tests import bwv2_integration_tests as bwv2
+from vis.other_tests import test_workflow
 
-# Controllers ------------------------------------------------------------------
-# Importer
-#unittest.TextTestRunner(verbosity=verb).run(importer_piece_getter_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importer_part_and_titles_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importer_add_pieces_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importer_remove_pieces_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importer_import_pieces_suite)
-
-# Analyzer
-#unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_short_suite)
-#unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_monteverdi)
-#unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_josquin)
-#unittest.TextTestRunner(verbosity=verb).run(analyzer_event_finder_long_bach)
-
-# Experimenter
-unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_stats_suite)
-#unittest.TextTestRunner(verbosity=verb).run(experimenter_interv_lists_suite)
-
-# Models -----------------------------------------------------------------------
-# Importing -- all tests pass
-#unittest.TextTestRunner(verbosity=verb).run(importing_basics_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importing_data_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importing_set_data_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importing_insert_rows_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importing_is_present_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importing_iterator_suite)
-#unittest.TextTestRunner(verbosity=verb).run(importing_remove_rows_suite)
-
-# Analyzing: ListOfPieces
-#unittest.TextTestRunner(verbosity=verb).run(lop_basics_suite)
-#unittest.TextTestRunner(verbosity=verb).run(lop_insert_and_remove_suite)
-#unittest.TextTestRunner(verbosity=verb).run(lop_iterate_rows_suite)
-#unittest.TextTestRunner(verbosity=verb).run(lop_set_data_suite)
-#unittest.TextTestRunner(verbosity=verb).run(lop_header_data_suite)
-#unittest.TextTestRunner(verbosity=verb).run(lop_data_suite)
-## Analyzing.AnalysisRecord
-#unittest.TextTestRunner(verbosity=verb).run(ar_init_suite)
-#unittest.TextTestRunner(verbosity=verb).run(ar_iter_suite)
-#unittest.TextTestRunner(verbosity=verb).run(ar_getters_suite)
-#unittest.TextTestRunner(verbosity=verb).run(ar_append_event_suite)
-## Analyzing.NGram
-#unittest.TextTestRunner(verbosity=verb).run(test_interval_ngram_suite)
-#unittest.TextTestRunner(verbosity=verb).run(test_chord_ngram_suite)
+# Indexer and Subclasses
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_1_PART_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_MULTI_EVENT_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.UNIQUE_OFFSETS_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.VERT_ALIGNER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_note_rest_indexer.NOTE_REST_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.INT_IND_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.HORIZ_INT_IND_LONG_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_repeat.REPEAT_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_ngram.NGRAM_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_SINGLE_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_MULTI_SUITE)
+# Experimenter and Subclasses
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_FUNC_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_RUN_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregator.COLUMN_AGGREGATOR_SUITE)
+# IndexedPiece and AggregatedPieces
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_SUITE_A)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_SUITE_B)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_PARTS_TITLES)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregated_pieces.AGGREGATED_PIECES_SUITE)
+# WorkflowManager
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
+# Integration Tests
+unittest.TextTestRunner(verbosity=VERBOSITY).run(bwv2.ALL_VOICE_INTERVAL_NGRAMS)

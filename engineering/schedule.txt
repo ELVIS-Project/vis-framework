@@ -1,0 +1,63 @@
+schedule.txt :
+    Defines actions we must complete, required pre-requisite actions, and projected dates for completion.
+
+
+date:
+    --> action
+        description
+
+Jul-23:
+    --> Class and Function Signatures and Documentation for Data Models, Analyzer Base Classes, and MPController
+        This amounts to a non-working prototype for these components. The WController shall be left out for now.
+    --> Proof-of-Concept for These Components
+        To demonstrate our architecture can work as intended.
+
+Jul-29:
+    --> Full Implementation and Minimal Tests for These Components
+        To demonstrate that all functionality works sometimes.
+    --> Research visual design of Web interface
+
+Aug-6:
+    --> fall behind schedule
+
+Aug-13:
+    --> fall further behind schedule
+
+Aug-21:
+    --> even more schedule-busting
+
+Aug-28:
+    --> Indexer, Experimenter, IndexedPiece: fully implemented and tested (bare minimum number of indexers and experimenters)
+    --> Aggregated Piece: base implementation; minimal tests
+    --> base implementation of the Web interface (doesn't work, but it exists)
+    --> base implementation of the new MPInterface-and-Multiprocessor implementation
+    --> Alex has figured out how to use R, ggplot2, and Deducer
+
+Sep-4:
+    --> Web app development phase complete
+    --> Begin documentation and integration testing (i.e., run real queries to see how to mess it up)
+    --> Bridge to R
+
+Sep-10: ??
+    --> Prototype "Think Computationally with vis"
+    --> Prototype "Use the vis Web App"
+    --> Prototype "vis on VisTrails"
+    --> Prototype "Extend vis on VisTrails"
+    --> Write "Think Computationally with vis"
+    --> Write "Use the vis Web App"
+    --> Write "vis on VisTrails"
+    --> Write "Extend vis on VisTrails"
+    --> Write vis API
+    --> Write vis Extensibility API
+    --> Write VisTrails modules?
+        --> Build sample workflows
+
+Sep-17: ??
+
+Sep-24: ??
+
+Oct-1: ??
+
+Oct-8: ??
+
+Oct-12: D-Day

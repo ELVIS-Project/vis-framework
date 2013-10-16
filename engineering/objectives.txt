@@ -1,0 +1,30 @@
+objectives.txt :
+    High level definitions of what the software will do.
+
+
+Need:
+- KWIC system to analyze large quantities of symbolic music
+
+Goals:
+- robust, abstract back-end platform allowing future expansion
+    - documentation for developers
+    - unit/integration testing and ground truth
+- VisTrails GUI
+    - documentation with references to other docs
+    - tested mostly by other moduless
+- Web GUI
+    - extensive documentation
+    - extensive testing
+
+Desired Features:
+- ability to dynamically choose what a "word" is
+- connection to a flexible visualization platform
+
+Constraints:
+- time
+- lack of knowledge of Web and "visualization platform" programming
+- present software back-end architecture
+- present PyQt4 GUI
+
+Priorities:
+- robust, abstract back-end platform allowing future expansion

@@ -1,0 +1,5 @@
+# These packages are required for vis.
+# Certain functionality will be missing; see optional_requirements.txt.
+music21>=1.6.0
+pandas>=0.12.0
+mock>=1.0.1
