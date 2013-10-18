@@ -94,6 +94,16 @@ class VisTextView(object):
         table_file.close()
         # replace the "replace me" comment
         self._display = template_str.replace(replace_this, table_str)
+        # replace the old table header with a better one (i.e., put in column names)
+        old_header = """<thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>data</th>"""
+        new_header = """<thead>
+    <tr style="text-align: right;">
+      <th>Object</th>
+      <th>Frequency</th>"""
+        self._display = self._display.replace(old_header, new_header)
 
     def save_button(self):
         """
