@@ -685,9 +685,11 @@ class WorkflowTests(TestCase):
         test_wm.export(u'CSV', u'test_path')
         test_wm.export(u'Excel', u'test_path')
         test_wm.export(u'Stata', u'test_path')
+        test_wm.export(u'HTML', u'test_path')
         test_wm._result.to_csv.assert_called_once_with(u'test_path.csv')
         test_wm._result.to_stata.assert_called_once_with(u'test_path.dta')
         test_wm._result.to_excel.assert_called_once_with(u'test_path.xlsx')
+        test_wm._result.to_html.assert_called_once_with(u'test_path.html')
 
     def test_export_4(self):
         # --> the method always outputs a DataFrame, even if self._result isn't a DF yet

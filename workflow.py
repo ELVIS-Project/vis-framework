@@ -578,14 +578,10 @@ class WorkflowManager(object):
 
         Formats:
 
-        .. note:: Only ``CSV``,``Excel``, and ``Stata`` work at the moment.
-
-        * :obj:`u'CSV'`: output a Series or DataFrame to a CSV file.
-        * :obj:`u'HDF5'`: output a Series or DataFrame to an HDF5 file.
-        * :obj:`u'pickle'`: save everything to a pickle file so we can re-load the current state \
-            later (NOTE: this does not work yet)
-        * :obj:`u'Stata'`: output a Stata file for importing to R.
-        * :obj:`u'Excel'`: output an Excel file for Peter Schubert.
+        * ``u'CSV'``: output a Series or DataFrame to a CSV file.
+        * ``u'Stata'``: output a Stata file for importing to R.
+        * ``u'Excel'``: output an Excel file for Peter Schubert.
+        * ``u'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
         """
         # ensure we have some results
         if self._result is None:
@@ -598,7 +594,8 @@ class WorkflowManager(object):
         # key is the instruction; value is (extension, export_method)
         directory = {u'CSV': (u'.csv', export_me.to_csv),
                      u'Stata': (u'.dta', export_me.to_stata),
-                     u'Excel': (u'.xlsx', export_me.to_excel)}
+                     u'Excel': (u'.xlsx', export_me.to_excel),
+                     u'HTML': (u'.html', export_me.to_html)}
         # ensure we have a valid output format
         if form not in directory:
             raise RuntimeError(u'Unrecognized output format: ' + unicode(form))
