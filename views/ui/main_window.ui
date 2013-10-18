@@ -228,7 +228,7 @@
     <item>
      <widget class="QStackedWidget" name="main_screen">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_choose">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -575,7 +575,7 @@
               <item>
                <widget class="QLabel" name="lbl_select_piece">
                 <property name="text">
-                 <string>Select piece(s) to see possible settings.</string>
+                 <string>Select piece(s) to see other settings.</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -666,12 +666,12 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_9">
               <item>
-               <widget class="QRadioButton" name="rdo_list">
+               <widget class="QRadioButton" name="rdo_table">
                 <property name="enabled">
                  <bool>true</bool>
                 </property>
                 <property name="text">
-                 <string>List</string>
+                 <string>Table</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -685,16 +685,6 @@
                 </property>
                 <property name="text">
                  <string>Bar Chart</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="rdo_spreadsheet">
-                <property name="text">
-                 <string>Spreadsheet</string>
-                </property>
-                <property name="checked">
-                 <bool>false</bool>
                 </property>
                </widget>
               </item>
