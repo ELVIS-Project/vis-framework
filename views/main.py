@@ -113,8 +113,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_score.clicked, self._update_experiment_from_object),
             # clicked an output format radio button (on the GUI: "How to Show Results")
-            (self.ui.rdo_spreadsheet.clicked, self._output_format_changed),
-            (self.ui.rdo_list.clicked, self._output_format_changed),
+            (self.ui.rdo_table.clicked, self._output_format_changed),
             (self.ui.rdo_chart.clicked, self._output_format_changed),
             (self.ui.rdo_score.clicked, self._output_format_changed),
         ]
@@ -885,8 +884,7 @@ Do you want to go back and add the part combination?""",
         rest of the GUI to reflect the options relevant to that output method.
         """
 
-        all_the_widgets = [self.ui.rdo_spreadsheet,
-                           self.ui.rdo_list,
+        all_the_widgets = [self.ui.rdo_table,
                            self.ui.rdo_chart,
                            self.ui.grp_octaves,
                            self.ui.grp_quality,
@@ -914,11 +912,11 @@ Do you want to go back and add the part combination?""",
         which_to_enable = []
 
         if self.ui.rdo_consider_intervals.isChecked():
-            which_to_enable = [self.ui.rdo_spreadsheet, self.ui.grp_octaves, self.ui.grp_quality,
-                               self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_score,
+            which_to_enable = [self.ui.grp_octaves, self.ui.grp_quality,
+                               self.ui.rdo_table, self.ui.rdo_chart, self.ui.rdo_score,
                                self.ui.grp_ignore_inversion, self.ui.grp_annotate_these]
         elif self.ui.rdo_consider_interval_ngrams.isChecked():
-            which_to_enable = [self.ui.rdo_list, self.ui.grp_values_of_n, self.ui.grp_octaves,
+            which_to_enable = [self.ui.rdo_table, self.ui.grp_values_of_n, self.ui.grp_octaves,
                                self.ui.grp_quality, self.ui.rdo_chart, self.ui.grp_ignore_inversion]
         elif self.ui.rdo_consider_score.isChecked():
             which_to_enable = [self.ui.rdo_score]
@@ -927,7 +925,7 @@ Do you want to go back and add the part combination?""",
         on_offer(which_to_enable)
 
         # Choose the first enabled output format in "How to Show Results"; update filters
-        outs = [self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_spreadsheet, self.ui.rdo_score]
+        outs = [self.ui.rdo_table, self.ui.rdo_chart, self.ui.rdo_score]
         for each_box in outs:
             if each_box.isVisible():
                 each_box.setChecked(True)
@@ -940,7 +938,7 @@ Do you want to go back and add the part combination?""",
         When a user chooses a different output format (in "How to Show Results" on the "show"
         panel), we may have to enable/disable the Top X and Threshold filter.
         """
-        if self.ui.rdo_list.isChecked() or self.ui.rdo_chart.isChecked():
+        if self.ui.rdo_table.isChecked() or self.ui.rdo_chart.isChecked():
             self.ui.group_top_x.setVisible(True)
             self.ui.group_threshold.setVisible(True)
         else:
@@ -959,10 +957,6 @@ Do you want to go back and add the part combination?""",
             part_spec = u'(no selection)'
         self._update_parts_selection(part_spec)
 
-    ################################################################################################
-    ################################################################################################
-    ################################################################################################
-    ################################################################################################
     @QtCore.pyqtSlot()  # self.ui.btn_show_results.clicked
     def _prepare_experiment_submission(self):
         """
@@ -982,27 +976,22 @@ Do you want to go back and add the part combination?""",
             "Which experiment does the user want to run?"
             # NOTE: as we add different Experiment and Display combinations, we have to update this
 
+            # experiment
             if self.ui.rdo_consider_intervals.isChecked():
                 list_of_settings['experiment'] = u'intervals'
-                if self.ui.rdo_spreadsheet.isChecked():
-                    list_of_settings['output format'] = 'spreadsheet'
-                elif self.ui.rdo_list.isChecked():
-                    list_of_settings['output format'] = 'list'
-                elif self.ui.rdo_chart.isChecked():
-                    list_of_settings['output format'] = 'chart'
-                elif self.ui.rdo_score.isChecked():
-                    list_of_settings['output format'] = 'lilypond'
             elif self.ui.rdo_consider_interval_ngrams.isChecked():
                 list_of_settings['experiment'] = u'interval n-grams'
-                if self.ui.rdo_list.isChecked():
-                    list_of_settings['output format'] = 'list'
-                elif self.ui.rdo_chart.isChecked():
-                    list_of_settings['output format'] = 'chart'
-                elif self.ui.rdo_score.isChecked():
-                    list_of_settings['output format'] = 'lilypond'
             elif self.ui.rdo_consider_score.isChecked():
                 list_of_settings['experiment'] = 'LilyPondExperiment'
                 list_of_settings['output format'] = 'LilyPondDisplay'
+
+            # output format
+            if self.ui.rdo_table.isChecked():
+                list_of_settings['output format'] = 'table'
+            elif self.ui.rdo_chart.isChecked():
+                list_of_settings['output format'] = 'chart'
+            elif self.ui.rdo_score.isChecked():
+                list_of_settings['output format'] = 'lilypond'
 
         def do_threshold():
             "Is there a threshold value?"
@@ -1091,8 +1080,8 @@ Do you want to go back and add the part combination?""",
             path = workm.output(u'R histogram')
             zed = VisChartView()
             zed.trigger(path)
-        elif u'list' == settings[u'output format']:
-            path = workm.export(u'CSV')
+        elif u'table' == settings[u'output format']:
+            path = workm.export(u'HTML')
             zed = VisTextView()
             zed.trigger(path)
         elif u'spreadsheet' == settings[u'output format']:
@@ -1103,5 +1092,8 @@ Do you want to go back and add the part combination?""",
                 u'',
                 None)
             workm.export(u'Excel', path)
+        else:
+            self.report_error.emit(u'Unrecognized output format: "' + \
+                                   unicode(settings[u'output format']) + u'"')
 
         self._tool_experiment()
