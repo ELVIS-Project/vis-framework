@@ -25,7 +25,7 @@ except AttributeError:
 class Ui_Text_Display(object):
     def setupUi(self, Text_Display):
         Text_Display.setObjectName(_fromUtf8("Text_Display"))
-        Text_Display.resize(816, 604)
+        Text_Display.resize(814, 602)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -37,9 +37,10 @@ class Ui_Text_Display(object):
         Text_Display.setModal(False)
         self.verticalLayout = QtGui.QVBoxLayout(Text_Display)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.text_browser = QtGui.QTextBrowser(Text_Display)
-        self.text_browser.setObjectName(_fromUtf8("text_browser"))
-        self.verticalLayout.addWidget(self.text_browser)
+        self.webview = QtWebKit.QWebView(Text_Display)
+        self.webview.setUrl(QtCore.QUrl(_fromUtf8("about:blank")))
+        self.webview.setObjectName(_fromUtf8("webview"))
+        self.verticalLayout.addWidget(self.webview)
         self.buttonBox = QtGui.QDialogButtonBox(Text_Display)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close|QtGui.QDialogButtonBox.Save)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
@@ -53,4 +54,5 @@ class Ui_Text_Display(object):
     def retranslateUi(self, Text_Display):
         Text_Display.setWindowTitle(_translate("Text_Display", "Text Display", None))
 
+from PyQt4 import QtWebKit
 import icons_rc

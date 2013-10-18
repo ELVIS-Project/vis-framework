@@ -1083,15 +1083,10 @@ Do you want to go back and add the part combination?""",
         elif u'table' == settings[u'output format']:
             path = workm.export(u'HTML')
             zed = VisTextView()
-            zed.trigger(path)
-        elif u'spreadsheet' == settings[u'output format']:
-            path = QtGui.QFileDialog.getSaveFileName(\
-                None,
-                u'Where to Save the Spreadsheet?',
-                u'',
-                u'',
-                None)
-            workm.export(u'Excel', path)
+            trig_ret = zed.trigger(path)
+            # we may have to save the output!
+            if trig_ret is not None:
+                workm.export(trig_ret[0], trig_ret[1])
         else:
             self.report_error.emit(u'Unrecognized output format: "' + \
                                    unicode(settings[u'output format']) + u'"')
