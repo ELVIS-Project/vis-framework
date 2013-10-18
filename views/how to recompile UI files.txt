@@ -1,9 +1,10 @@
-After you recompile the UI files, you need to edit "Ui_main_window.py"
+1.) Run the "compile.sh" script from this directory.
+2.) If you're paranoid, check that the following change was made in "Ui_main_window.py".
 
-Change this line:
+This line:
         self.gui_pieces_list = QtGui.QTableView(self.groupBox)
 
-To these lines:
+Becomes these lines:
         class GuiPiecesList(QtGui.QTableView):
             selection_changed = QtCore.pyqtSignal()
             def selectionChanged(self, selected, deselected):
