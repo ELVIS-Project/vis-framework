@@ -97,7 +97,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             # NB: these are connected to sub-controllers by VisController
             (self.ui.btn_step1.clicked, self._check_for_pieces),
             (self.ui.btn_step2.clicked, self._start_the_analysis),
-            # Things that operate the GUI
+            # Things that operate the GUI ----------------------------------------------------------
             (self.ui.chk_all_voice_combos.clicked, self._all_voice_pairs),
             (self.ui.line_piece_title.editingFinished, self._update_piece_title),
             (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
@@ -105,15 +105,18 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.line_offset_interval.editingFinished, self._update_offset_interval),
             (self.ui.gui_pieces_list.selection_changed, self._update_pieces_selection),
             (self.ui.btn_choose_note.clicked, self._launch_offset_selection),
+            (self.ui.chk_repeat_identical.stateChanged, self._update_repeat_identical),
+            (self.ui.btn_cancel_operation.clicked, self._cancel_operation),
+            (self.ui.chk_all_voices.stateChanged, self._all_voices),
+            # clicked an object-to-consider radio button (on the GUI: "Object to Consider")
             (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_score.clicked, self._update_experiment_from_object),
-            (self.ui.chk_repeat_identical.stateChanged, self._update_repeat_identical),
-            (self.ui.btn_cancel_operation.clicked, self._cancel_operation),
+            # clicked an output format radio button (on the GUI: "How to Show Results")
             (self.ui.rdo_spreadsheet.clicked, self._output_format_changed),
             (self.ui.rdo_list.clicked, self._output_format_changed),
             (self.ui.rdo_chart.clicked, self._output_format_changed),
-            (self.ui.chk_all_voices.stateChanged, self._all_voices),
+            (self.ui.rdo_score.clicked, self._output_format_changed),
         ]
         for signal, slot in mapper:
             signal.connect(slot)
@@ -923,24 +926,26 @@ Do you want to go back and add the part combination?""",
         # Run the on_offer()
         on_offer(which_to_enable)
 
-        # Choose the first enabled thing in "How to Show Results"
-        outs = [self.ui.rdo_spreadsheet, self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_score]
+        # Choose the first enabled output format in "How to Show Results"; update filters
+        outs = [self.ui.rdo_list, self.ui.rdo_chart, self.ui.rdo_spreadsheet, self.ui.rdo_score]
         for each_box in outs:
             if each_box.isVisible():
                 each_box.setChecked(True)
                 break
+        which_to_enable = [self.ui.rdo_score]
+        self._output_format_changed()
 
     def _output_format_changed(self):
         """
         When a user chooses a different output format (in "How to Show Results" on the "show"
         panel), we may have to enable/disable the Top X and Threshold filter.
         """
-        if self.ui.rdo_spreadsheet.isChecked():
-            self.ui.group_top_x.setVisible(False)
-            self.ui.group_threshold.setVisible(False)
-        elif self.ui.rdo_list.isChecked() or self.ui.rdo_chart.isChecked():
+        if self.ui.rdo_list.isChecked() or self.ui.rdo_chart.isChecked():
             self.ui.group_top_x.setVisible(True)
             self.ui.group_threshold.setVisible(True)
+        else:
+            self.ui.group_top_x.setVisible(False)
+            self.ui.group_threshold.setVisible(False)
 
     @QtCore.pyqtSlot()  # self.ui.chk_all_voices.stateChanged
     def _all_voices(self):
@@ -1001,14 +1006,14 @@ Do you want to go back and add the part combination?""",
 
         def do_threshold():
             "Is there a threshold value?"
-            threshold = unicode(self.ui.line_threshold.text())
-            if u'' != threshold:
+            threshold = self.ui.spin_threshold.value()
+            if 0 != threshold:
                 list_of_settings['threshold'] = threshold
 
         def do_top_x():
             "Is there a 'top x' value?"
-            top_x = unicode(self.ui.line_top_x.text())
-            if u'' != top_x:
+            top_x = self.ui.spin_top_x.value()
+            if 0 != top_x:
                 list_of_settings['topX'] = top_x
 
         def do_print_quality():
@@ -1027,24 +1032,8 @@ Do you want to go back and add the part combination?""",
 
         def do_values_of_n():
             "Are there values of 'n' specified?"
-            # 1.) get the value of the textbox
-            enn = unicode(self.ui.line_values_of_n.text())
-            # 2.) Check for [ or ], as in the old style: [3] ... and remove them
-            if len(enn) > 0:
-                if enn[0] == '[':
-                    enn = enn[1:]
-                if enn[-1] == ']':
-                    enn = enn[:-1]
-            # 3.) Try to convert to a single-int list
-            try:
-                enn = int(enn)
-            except ValueError:  # if it fails
-                enn = 2
-                msg = u'Could not parse "value of n!" Using 2.'
-                self.report_error.emit(msg)
-            # 4.) Everything's good and valid, so let's put it on the list of settings
+            enn = self.ui.spin_n.value()
             list_of_settings['n'] = enn
-            return 0
 
         def do_ignore_inversion():
             "Ignore inversion?"
@@ -1079,7 +1068,7 @@ Do you want to go back and add the part combination?""",
         # (1g) Ignore Voice Crossing
         do_ignore_inversion()
         # (1h) Annotate These N-Grams
-        do_annotate_these()
+        # do_annotate_these()
 
         # (2) Run the experiment
         self._run_the_experiment(list_of_settings)
