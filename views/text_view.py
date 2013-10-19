@@ -45,15 +45,19 @@ class VisTextView(object):
         self._custom_html = u'views/custom_table.html'  # add this to the pandas-given table
         self._display = None  # the resulting QString that actually gets displayed
         self._trigger_return = []
+        self._token_name = None
 
-    def trigger(self, pathname):
+    def trigger(self, pathname, token_name=u'Object'):
         """
         Set up the window and display the HTML-format table loaded from the indicated path. The
         return value tells you whether the user requested CSV- or Excel-format output, and the
         pathname for which they requested it. HTML-format is handled internally.
 
         :param pathname: The pathname of the table to display.
-        :type pathname: basestring
+        :type pathname: ```basestring```
+        :param token_name: The name of objects being displayed, as it should appear in the table.
+            The default is "Object."
+        :type token_name: ```basestring```
         :returns: A list of 2-tuples telling which type of output to save and where to save it.
         :rtype: list of (```basestring```, ```basestring```)
 
@@ -64,8 +68,9 @@ class VisTextView(object):
          ('CSV', '/home/christopher/to_send/results.csv'), \
          ('Excel', '/home/christopher/results.xlsx')]
         """
-        # save the pathname
+        # save the pathname and token name
         self._pathname = unicode(pathname)
+        self._token_name = token_name
 
         # add our custom formatting to the file
         self._custom_formatting()
@@ -112,7 +117,7 @@ class VisTextView(object):
       <th>data</th>"""
         new_header = """<thead>
     <tr style="text-align: right;">
-      <th>Object</th>
+      <th>""" + self._token_name + """</th>
       <th>Frequency</th>"""
         self._display = self._display.replace(old_header, new_header)
 

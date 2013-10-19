@@ -1081,9 +1081,11 @@ Do you want to go back and add the part combination?""",
             zed = VisChartView()
             zed.trigger(path)
         elif u'table' == settings[u'output format']:
+            token_name = u'Interval' if u'intervals' == settings[u'experiment'] else \
+                unicode(settings['n']) + u'-Gram'
             path = workm.export(u'HTML')
             zed = VisTextView()
-            trig_ret = zed.trigger(path)
+            trig_ret = zed.trigger(path, token_name)
             # we may have to save the output!
             if trig_ret is not None:
                 for format, pathname in trig_ret:
