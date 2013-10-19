@@ -44,14 +44,25 @@ class VisTextView(object):
         self._pathname = None  # the unicode pathname of the pandas-given table
         self._custom_html = u'views/custom_table.html'  # add this to the pandas-given table
         self._display = None  # the resulting QString that actually gets displayed
-        self._trigger_return = None
+        self._trigger_return = []
 
     def trigger(self, pathname):
         """
-        Set up the window and display the HTML-format table loaded from the indicated path.
+        Set up the window and display the HTML-format table loaded from the indicated path. The
+        return value tells you whether the user requested CSV- or Excel-format output, and the
+        pathname for which they requested it. HTML-format is handled internally.
 
         :param pathname: The pathname of the table to display.
         :type pathname: basestring
+        :returns: A list of 2-tuples telling which type of output to save and where to save it.
+        :rtype: list of (```basestring```, ```basestring```)
+
+        Example return:
+
+        >>> textview.trigger()
+        [('CSV', '/home/christopher/results.csv'), \
+         ('CSV', '/home/christopher/to_send/results.csv'), \
+         ('Excel', '/home/christopher/results.xlsx')]
         """
         # save the pathname
         self._pathname = unicode(pathname)
@@ -66,16 +77,16 @@ class VisTextView(object):
         self.dialog.show()
         self._gui.webview.show()
 
-        # Setup signals
-        for btn in self._gui.buttonBox.buttons():
-            if btn.text() == 'Save':
-                btn.clicked.connect(self.save_button)
+        # Setup signals (dialog close is done automatically)
+        self._gui.btn_csv.clicked.connect(self._save_csv)
+        self._gui.btn_html.clicked.connect(self._save_html)
+        self._gui.btn_excel.clicked.connect(self._save_excel)
 
         # Show the form
         self.dialog.exec_()
 
         # if applicable, return the instructions for what to save and where
-        if self._trigger_return is not None:
+        if len(self._trigger_return) > 0:
             return self._trigger_return
 
     def _custom_formatting(self):
@@ -105,47 +116,50 @@ class VisTextView(object):
       <th>Frequency</th>"""
         self._display = self._display.replace(old_header, new_header)
 
-    def save_button(self):
+    def _save_csv(self):
+        self._save_button('csv')
+
+    def _save_html(self):
+        self._save_button('html')
+
+    def _save_excel(self):
+        self._save_button('excel')
+
+    def _save_button(self, format):
         """
         Copy the file from its current path to a new one, effectively "saving" it for the user.
+
+        :param format: The format to save (csv, html, excel).
+        :type format: ```basestring```
         """
         poss_formats = ['csv', 'html', 'excel']
-        out_form = QInputDialog.getText(\
+        if format not in poss_formats:
+            format = poss_formats[0]  # default to CSV
+        # deal with the pathname
+        new_path = unicode(QFileDialog.getSaveFileName(\
             None,
-            u'Choose Output Format',
-            u'Choose your output format: csv, html, excel',
-            QLineEdit.Normal,
-            u'csv')
-        # if they didn't choose "cancel," deal with the output format
-        if out_form[1] is True:
-            out_form = unicode(out_form[0]).lower()
-            if out_form not in poss_formats:
-                out_formt = poss_formats[0]  # default to CSV
-            # deal with the pathname
-            new_path = unicode(QFileDialog.getSaveFileName(\
-                None,
-                u'Choose a File Name',
-                u'',
-                u'',
-                None))
-            if new_path != u'':
-                if 'html' == out_form:
-                    # we have the HTML, so we can save it
-                    if u'.html' != new_path[-5:] and u'.htm' != new_path[-4:]:
-                        new_path += u'.html'
-                    try:
-                        html_file = open(new_path, 'w')
-                        html_file.write(self._display)
-                        html_file.close()
-                    except IOError as ioe:
-                        QMessageBox.warning(None,
-                            u'Error While Saving Text',
-                            u'Received an error saving text:\n\n' + unicode(ioe),
-                            QMessageBox.StandardButtons(\
-                                QMessageBox.Ok),
-                            QMessageBox.Ok)
-                # we don't have the CSV or Excel, so we have to ask the caller to do it for us
-                elif 'csv' == out_form:
-                    self._trigger_return = (u'CSV', new_path)
-                elif 'excel' == out_form:
-                    self._trigger_return = (u'Excel', new_path)
+            u'Choose a File Name',
+            u'',
+            u'',
+            None))
+        if new_path != u'':
+            if 'html' == format:
+                # we have the HTML, so we can save it
+                if u'.html' != new_path[-5:] and u'.htm' != new_path[-4:]:
+                    new_path += u'.html'
+                try:
+                    html_file = open(new_path, 'w')
+                    html_file.write(self._display)
+                    html_file.close()
+                except IOError as ioe:
+                    QMessageBox.warning(None,
+                        u'Error While Saving Text',
+                        u'Received an error saving text:\n\n' + unicode(ioe),
+                        QMessageBox.StandardButtons(\
+                            QMessageBox.Ok),
+                        QMessageBox.Ok)
+            # we don't have the CSV or Excel, so we have to ask the caller to do it for us
+            elif 'csv' == format:
+                self._trigger_return.append((u'CSV', new_path))
+            elif 'excel' == format:
+                self._trigger_return.append((u'Excel', new_path))

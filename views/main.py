@@ -1086,7 +1086,8 @@ Do you want to go back and add the part combination?""",
             trig_ret = zed.trigger(path)
             # we may have to save the output!
             if trig_ret is not None:
-                workm.export(trig_ret[0], trig_ret[1])
+                for format, pathname in trig_ret:
+                    workm.export(format, pathname)
         else:
             self.report_error.emit(u'Unrecognized output format: "' + \
                                    unicode(settings[u'output format']) + u'"')

@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file>icons/dialog-close.png</file>
     <file>icons/vis-1-32.png</file>
     <file>icons/vis-1-64.png</file>
     <file>icons/add_directories.png</file>
