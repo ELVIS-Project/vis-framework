@@ -123,6 +123,11 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.progress_bar.setMinimum(0)
         self.ui.progress_bar.setMaximum(100)
         self.ui.progress_bar.setValue(42)
+        # set "Ctrl + q" to close the window
+        QtGui.QShortcut(QtGui.QKeySequence(Qt.CTRL + Qt.Key_Q),
+                        self,
+                        self.close,
+                        context=Qt.WindowShortcut)
         # visX setup
         self._list_of_ips = None  # holds the IndexedPiece instances
         self._list_of_files = ListOfFiles()
