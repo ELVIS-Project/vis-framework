@@ -44,7 +44,7 @@ from music21 import metadata, converter, stream
 from vis.analyzers import indexers
 from vis.models.importing import ListOfFiles
 from vis.models.analyzing import ListOfPieces
-#from vis.views.VisOffsetSelector import VisOffsetSelector
+from vis.views.VisOffsetSelector import VisOffsetSelector
 from vis.views.chart_view import VisChartView
 from vis.views.text_view import VisTextView
 from Ui_main_window import Ui_MainWindow
@@ -808,7 +808,7 @@ Do you want to go back and add the part combination?""",
         for part in self.part_layouts:
             self.ui.verticalLayout_part_boxes.addLayout(part)
 
-    # Slot for self.ui.btn_choose_note.clicked
+    @QtCore.pyqtSlot() # for self.ui.btn_choose_note.clicked
     def _launch_offset_selection(self):
         "Launch the dialogue box to help users visually select offset values."
         # Launch the offset-selection QDialog
