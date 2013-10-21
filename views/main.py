@@ -54,20 +54,10 @@ from vis.workflow import WorkflowManager
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
     "This class makes the GUI-controlling objects for vis' PyQt4 interface."
-    # Signals for connecting to the vis_controller
-    show_import = QtCore.pyqtSignal()
-    show_analyze = QtCore.pyqtSignal()
-    show_working = QtCore.pyqtSignal()
-    show_about = QtCore.pyqtSignal()
-    show_experiment = QtCore.pyqtSignal()
-    update_progress = QtCore.pyqtSignal(str)
-    report_error = QtCore.pyqtSignal(str)
 
     def __init__(self, vis_controller):
         "Parameter is an instance of VisController to use for sending signals."
         super(VisQtMainWindow, self).__init__()  # required for signals
-        self.vis_controller = vis_controller
-        # self.ui = uic.loadUi(os.path.dirname(os.path.realpath(__file__)) + '/ui/main_window.ui')
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self._tool_import()
@@ -79,14 +69,10 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.part_layouts = None
         # Setup GUI-only Signals
         mapper = [
-            # Signals interacting with VISController
-            (self.show_import, self._tool_import),
-            (self.show_analyze, self._tool_analyze),
-            (self.show_working, self._tool_working),
-            (self.show_about, self._tool_about),
-            (self.show_experiment, self._tool_experiment),
-            (self.update_progress, self._update_progress_bar),
-            (self.report_error, self._error_reporter),
+            # Workflow management
+            (self.ui.btn_step1.clicked, self._check_for_pieces),
+            (self.ui.btn_step2.clicked, self._start_the_analysis),
+            # To operate the GUI
             (self.ui.btn_choose_files.clicked, self._tool_import),
             (self.ui.btn_about.clicked, self._tool_about),
             (self.ui.btn_analyze.clicked, self._tool_analyze),
@@ -94,25 +80,22 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.btn_file_add.clicked, self._add_files),
             (self.ui.btn_file_remove.clicked, self._remove_files),
             (self.ui.btn_show_results.clicked, self._prepare_experiment_submission),
-            # NB: these are connected to sub-controllers by VisController
-            (self.ui.btn_step1.clicked, self._check_for_pieces),
-            (self.ui.btn_step2.clicked, self._start_the_analysis),
-            # Things that operate the GUI ----------------------------------------------------------
-            (self.ui.chk_all_voice_combos.clicked, self._all_voice_pairs),
             (self.ui.line_piece_title.editingFinished, self._update_piece_title),
-            (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
-            (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
             (self.ui.line_offset_interval.editingFinished, self._update_offset_interval),
-            (self.ui.gui_pieces_list.selection_changed, self._update_pieces_selection),
             (self.ui.btn_choose_note.clicked, self._launch_offset_selection),
             (self.ui.chk_repeat_identical.stateChanged, self._update_repeat_identical),
             (self.ui.btn_cancel_operation.clicked, self._cancel_operation),
-            (self.ui.chk_all_voices.stateChanged, self._all_voices),
-            # clicked an object-to-consider radio button (on the GUI: "Object to Consider")
+            # About part combinations
+            (self.ui.line_compare_these_parts.editingFinished, self._add_parts_combo_by_line_edit),
+            (self.ui.btn_add_check_combo.clicked, self._add_parts_combination),
+            (self.ui.gui_pieces_list.selection_changed, self._update_pieces_selection),
+            (self.ui.chk_all_voices.clicked, self._all_voices),
+            (self.ui.chk_all_voice_combos.clicked, self._all_voice_pairs),
+            # Things causing GUI adjustment
             (self.ui.rdo_consider_interval_ngrams.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_intervals.clicked, self._update_experiment_from_object),
             (self.ui.rdo_consider_score.clicked, self._update_experiment_from_object),
-            # clicked an output format radio button (on the GUI: "How to Show Results")
+            # Clicked an output format radio button (on the GUI: "How to Show Results")
             (self.ui.rdo_table.clicked, self._output_format_changed),
             (self.ui.rdo_chart.clicked, self._output_format_changed),
             (self.ui.rdo_score.clicked, self._output_format_changed),
@@ -268,26 +251,10 @@ You must choose pieces before we can import them.""",
             # that entirely prevent them from selecting files. So here we are.
             # 'music21 Files (*.nwc *.mid *.midi *.mxl *.krn *.xml *.md)')  # filter
         if files:
-            #self.vis_controller.import_files_added.emit([unicode(f) for f in files])
             row_count = self._list_of_files.rowCount()
             self._list_of_files.insertRows(row_count, len(files))
             for i, file in enumerate(files):
                 self._list_of_files.setData(row_count + i, file, QtCore.Qt.EditRole)
-
-    @QtCore.pyqtSlot()
-    def _add_dir(self):
-        "Add a directory to the 'importer' panel."
-        d = QtGui.QFileDialog.getExistingDirectory(
-            None,  # parent
-            u"Choose Directory to Analyze",  # title
-            u'',  # default directory
-            QtGui.QFileDialog.ShowDirsOnly)  # options
-        d = unicode(d)
-        extensions = [u'.nwc.', u'.mid', u'.midi', u'.mxl', u'.krn', u'.xml', u'.md']
-        possible_files = chain(*[[join(path, fp) for fp in files if
-                        splitext(fp)[1] in extensions]
-                        for path, ___, files in walk(d)])
-        self.vis_controller.import_files_added.emit(list(possible_files))
 
     @QtCore.pyqtSlot()
     def _remove_files(self):
@@ -337,24 +304,13 @@ You must choose pieces before we can import them.""",
         feedback = QtGui.QMessageBox.question(
             None,
             u"Confirm",
-            u"Are you sure you want to cancel the running operation?",
+            u"This doesn't work yet!\n\nAre you sure you want to cancel the running operation?",
             QtGui.QMessageBox.StandardButtons(
                 QtGui.QMessageBox.No |
                 QtGui.QMessageBox.Yes))
-
-        if QtGui.QMessageBox.Yes != feedback:
-            return None
-        # else... we'll figure out which operation is running, and cancel it
-        if self.vis_controller.importer.import_is_running:
-            self.vis_controller.importer.cancel_import.emit()
-        elif self.vis_controller.analyzer.analysis_is_running:
-            self.vis_controller.analyzer.cancel_analysis.emit()
-            self.vis_controller.analyzer.analysis_is_running = False
-            self.vis_controller.analyzer._list_of_analyses = []
-            self.show_analyze.emit()
+        return None
 
     # Other Things ------------------------------------------
-    @QtCore.pyqtSlot(str)  # for self.report_error
     def _error_reporter(self, description):
         "Notify the user that an error has happened. Parameter is a description of the error."
         QtGui.QMessageBox.warning(None,
@@ -970,9 +926,9 @@ Do you want to go back and add the part combination?""",
         """
 
         # move to the "working" panel and update it
-        self.show_working.emit()
-        self.update_progress.emit(u'0')
-        self.update_progress.emit(u'Initializing experiment.')
+        self._tool_working()
+        self._update_progress_bar(u'0')
+        self._update_progress_bar(u'Initializing experiment.')
 
         # hold a list of tuples to be signalled as settings
         list_of_settings = {}
@@ -1096,7 +1052,7 @@ Do you want to go back and add the part combination?""",
                 for format, pathname in trig_ret:
                     workm.export(format, pathname)
         else:
-            self.report_error.emit(u'Unrecognized output format: "' + \
+            self._error_reporter(u'Unrecognized output format: "' + \
                                    unicode(settings[u'output format']) + u'"')
 
         self._tool_experiment()
