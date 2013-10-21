@@ -28,10 +28,9 @@
 
 
 
-__all__ = ['main', 'VisOffsetSelector', 'icons_rc', 'chart_view', 'text_view']
+__all__ = ['main', 'VisOffsetSelector', 'icons_rc', 'web_view']
 
 import main
 import VisOffsetSelector
 import icons_rc
-import chart_view
-import text_view
+import web_view
