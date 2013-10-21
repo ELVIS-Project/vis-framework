@@ -1,30 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-# Program Name:              vis
-# Program Description:       Measures sequences of vertical intervals.
-#
-# Filename: vis/views/ui/select_offset.ui
-# Purpose: UI file for the "select offset" component.
-#
-# Attribution:  Based on the 'harrisonHarmony.py' module available at...
-#               https://github.com/crantila/harrisonHarmony/
-#
-# Copyright (C) 2012, 2013 Christopher Antila, Jamie Klassen
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
-
 <ui version="4.0">
  <class>Select_Offset</class>
  <widget class="QDialog" name="Select_Offset">
@@ -32,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>246</width>
-    <height>330</height>
+    <width>252</width>
+    <height>349</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -44,6 +18,10 @@
   </property>
   <property name="windowTitle">
    <string>Choose an Offset Duration</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="icons.qrc">
+    <normaloff>:/icons/icons/vis-1-32.png</normaloff>:/icons/icons/vis-1-32.png</iconset>
   </property>
   <property name="modal">
    <bool>false</bool>
@@ -60,15 +38,18 @@
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="line_music21_duration">
-        <property name="inputMask">
-         <string notr="true"/>
+       <widget class="QLCDNumber" name="music21_durat">
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
         </property>
-        <property name="text">
-         <string>0.5</string>
+        <property name="frameShadow">
+         <enum>QFrame::Sunken</enum>
         </property>
-        <property name="maxLength">
-         <number>12</number>
+        <property name="segmentStyle">
+         <enum>QLCDNumber::Flat</enum>
+        </property>
+        <property name="value" stdset="0">
+         <double>0.500000000000000</double>
         </property>
        </widget>
       </item>
@@ -90,6 +71,12 @@
           <height>64</height>
          </size>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="0" column="2">
@@ -103,6 +90,12 @@
           <width>32</width>
           <height>64</height>
          </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -118,6 +111,12 @@
           <height>64</height>
          </size>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="0" column="1">
@@ -131,6 +130,12 @@
           <width>32</width>
           <height>64</height>
          </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -146,6 +151,12 @@
           <height>64</height>
          </size>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="1" column="1">
@@ -159,6 +170,15 @@
           <width>32</width>
           <height>64</height>
          </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -177,6 +197,12 @@
           <height>64</height>
          </size>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="2" column="1">
@@ -191,15 +217,27 @@
           <height>64</height>
          </size>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="2" column="2">
-       <widget class="QToolButton" name="btn_all">
+       <widget class="QToolButton" name="btn_none">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="text">
          <string>all</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -237,6 +275,9 @@
           <height>32</height>
          </size>
         </property>
+        <property name="shortcut">
+         <string>Return</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -247,5 +288,22 @@
  <resources>
   <include location="icons.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>btn_submit</sender>
+   <signal>clicked()</signal>
+   <receiver>Select_Offset</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>213</x>
+     <y>316</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>125</x>
+     <y>174</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
