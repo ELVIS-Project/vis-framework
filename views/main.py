@@ -814,18 +814,17 @@ Do you want to go back and add the part combination?""",
         # Launch the offset-selection QDialog
         selector = VisOffsetSelector()
         chosen_offset = selector.trigger()
-
         # Update the QLineEdit
-        self.ui.line_offset_interval.setText(unicode(chosen_offset))
-
+        if u'ALL' == chosen_offset:
+            chosen_offset = u'(optional)'
+        self.ui.line_offset_interval.setText(chosen_offset)
         # Set values in the model
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
             if ListOfPieces.offset_intervals == cell.column():
                 self._list_of_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
-
         # Just to make sure we get rid of this
-        selector = None
+        del selector
 
     # Not a pyqtSlot
     def _piece_settings_visibility(self, set_to):
