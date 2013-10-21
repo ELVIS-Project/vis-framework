@@ -1,0 +1,1 @@
+This directory holds files created at runtime. They're used to help display images and tables.
