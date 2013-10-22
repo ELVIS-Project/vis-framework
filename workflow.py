@@ -104,6 +104,8 @@ class WorkflowManager(object):
                 piece_sett[sett] = False
         # hold settings common to all IndexedPieces
         self._shared_settings = {u'n': 2, u'continuer': u'_', u'mark singles': False}
+        # which was the most recent experiment run? Either 'intervals' or 'n-grams'
+        self._previous_exp = None
 
     def __len__(self):
         """
@@ -193,8 +195,10 @@ class WorkflowManager(object):
         if len(instruction) < min([len(x) for x in possible_instructions]):
             raise RuntimeError(error_msg)
         if instruction.startswith(possible_instructions[0]):
+            self._previous_exp = u'intervals'
             post = self._intervs()
         elif instruction.startswith(possible_instructions[1]):
+            self._previous_exp = u'n-grams'
             post = self._interval_ngrams()
         else:
             raise RuntimeError(error_msg)
@@ -550,8 +554,15 @@ class WorkflowManager(object):
                 png_path = pathname + u'.png'
                 out_me = pandas.DataFrame({u'freq': self._result})
                 out_me.to_stata(stata_path)
+                token = None
+                if u'intervals' == self._previous_exp:
+                    token = u'int'
+                elif u'n-grams' == self._previous_exp:
+                    token = unicode(self.settings(None, u'n'))
+                else:
+                    token = u'things'
                 call_to_r = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path,
-                             u'--args', stata_path, png_path]
+                             u'--args', stata_path, png_path, token, str(len(self._data))]
                 subprocess.call(call_to_r)
                 return png_path
         else:
