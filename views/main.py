@@ -45,8 +45,7 @@ from vis.analyzers import indexers
 from vis.models.importing import ListOfFiles
 from vis.models.analyzing import ListOfPieces
 from vis.views.VisOffsetSelector import VisOffsetSelector
-from vis.views.chart_view import VisChartView
-from vis.views.text_view import VisTextView
+from vis.views.web_view import VisWebView
 from Ui_main_window import Ui_MainWindow
 from vis.models.indexed_piece import IndexedPiece
 from vis.workflow import WorkflowManager
@@ -1036,22 +1035,28 @@ Do you want to go back and add the part combination?""",
         # run the experiment
         workm.run(settings[u'experiment'])
         # prepare the appropriate output
+        path = None
+        result_type = None
         if u'chart' == settings[u'output format']:
-            path = workm.output(u'R histogram')
-            zed = VisChartView()
-            zed.trigger(path)
+            result_type = u'image'
+            path = u'../' + workm.output(u'R histogram', u'outputs/R_chart.png')
         elif u'table' == settings[u'output format']:
+            result_type = u'table'
+            path = workm.export(u'HTML', u'outputs/pandas_table.html')
+        else:
+            self._error_reporter(u'Unrecognized output format: "' + \
+                                 unicode(settings[u'output format']) + u'"')
+
+        if path is not None:
             token_name = u'Interval' if u'intervals' == settings[u'experiment'] else \
-                unicode(settings['n']) + u'-Gram'
-            path = workm.export(u'HTML')
-            zed = VisTextView()
-            trig_ret = zed.trigger(path, token_name)
+                    unicode(settings['n']) + u'-Gram'
+            webview = VisWebView()
+            print('trigger(' + str(path) + ', ' + str(result_type) + ', ' + str(token_name))  # DEBUG
+            trig_ret = webview.trigger(path, result_type, token_name)
             # we may have to save the output!
             if trig_ret is not None:
                 for format, pathname in trig_ret:
                     workm.export(format, pathname)
-        else:
-            self._error_reporter(u'Unrecognized output format: "' + \
-                                   unicode(settings[u'output format']) + u'"')
+            del webview  # make sure we free dat memory!
 
         self._tool_experiment()
