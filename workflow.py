@@ -604,7 +604,7 @@ class WorkflowManager(object):
         # ensure we have an output path
         pathname = u'test_output/no_path' if pathname is None else unicode(pathname)
         # ensure there's a file extension
-        if directory[form][0] != pathname[len(directory[form][0]):]:
+        if directory[form][0] != pathname[-1 * len(directory[form][0]):]:
             pathname += directory[form][0]
         # call the to_whatever() method
         directory[form][1](pathname)
