@@ -116,6 +116,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.gui_file_list.setModel(self._list_of_files)
         self._list_of_pieces = ListOfPieces()
         self.ui.gui_pieces_list.setModel(self._list_of_pieces)
+        self._workm = None  # hold the WorkflowManager, once created
+        self._prev_setts = None  # hold settings of previous experiment
 
     # Methods Doing GUI Stuff ---------------------------------------------------
     # Pressing Buttons in the Toolbar -----------------------
@@ -1025,24 +1027,42 @@ Do you want to go back and add the part combination?""",
         """
         Run the experiment as instructed by the 'settings' argument.
         """
-        print(str(settings))  # DEBUG
-        # TODO: determine whether the experiment is the same as last time, and don't re-run it
-        simple = True if 'simple' == settings['simple or compound'] else False
-        workm = self._list_of_pieces.get_workflow_manager(settings['quality'], simple)
-        # if relevant, set 'n'
-        if u'n' in settings:
-            workm.settings(None, u'n', settings[u'n'])
-        # run the experiment
-        workm.run(settings[u'experiment'])
-        # prepare the appropriate output
+        # 1.) Do we need to run the experiment at all?
+        run_exp = None
+        # 1.a) If we need a new WorkflowManager, there was no previous experiment, so yes.
+        if self._workm is None or \
+        self._prev_setts['simple or compound'] != settings['simple or compound'] or \
+        self._prev_setts['quality'] != settings['quality']:
+            simple = True if 'simple' == settings['simple or compound'] else False
+            self._workm = self._list_of_pieces.get_workflow_manager(settings['quality'], simple)
+            run_exp = True
+        # 1.b) If the previous experiment is different, then yes.
+        elif self._prev_setts['experiment'] != settings['experiment']:
+            run_exp = True
+        # 1.c) If the experiments are the same, but they have 'n' and they're different, then yes.
+        elif 'n' in self._prev_setts and self._prev_setts['n'] != settings['n']:
+            run_exp = True
+        # 1.d) Save the settings for next time.
+        self._prev_setts = settings
+
+        # 2.) Run the experiment, if required.
+        if run_exp is True:
+            if u'n' in settings:
+                self._workm.settings(None, u'n', settings[u'n'])
+            self._workm.run(settings[u'experiment'])
+
+        # 3.) Run the output-getting stuff.
         path = None
         result_type = None
         if u'chart' == settings[u'output format']:
             result_type = u'image'
-            path = u'../' + workm.output(u'R histogram', u'outputs/R_chart.png')
+            # We add "../" because we expect the image to be in the "outputs" directory, but so is
+            # the HTML file. We could just set "path" to "R_chart.png" but output() doesn't
+            # guarantee that it'll actually output to the pathname requested, so we need it.
+            path = u'../' + self._workm.output(u'R histogram', u'outputs/R_chart.png')
         elif u'table' == settings[u'output format']:
             result_type = u'table'
-            path = workm.export(u'HTML', u'outputs/pandas_table.html')
+            path = self._workm.export(u'HTML', u'outputs/pandas_table.html')
         else:
             self._error_reporter(u'Unrecognized output format: "' + \
                                  unicode(settings[u'output format']) + u'"')
@@ -1051,12 +1071,11 @@ Do you want to go back and add the part combination?""",
             token_name = u'Interval' if u'intervals' == settings[u'experiment'] else \
                     unicode(settings['n']) + u'-Gram'
             webview = VisWebView()
-            print('trigger(' + str(path) + ', ' + str(result_type) + ', ' + str(token_name))  # DEBUG
             trig_ret = webview.trigger(path, result_type, token_name)
             # we may have to save the output!
             if trig_ret is not None:
                 for format, pathname in trig_ret:
-                    workm.export(format, pathname)
+                    self._workm.export(format, pathname)
             del webview  # make sure we free dat memory!
 
         self._tool_experiment()
