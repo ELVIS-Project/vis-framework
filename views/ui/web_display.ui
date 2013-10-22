@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Text_Display</class>
- <widget class="QDialog" name="Text_Display">
+ <class>Web_Display</class>
+ <widget class="QDialog" name="Web_Display">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>Text Display</string>
+   <string>vis Results Display</string>
   </property>
   <property name="windowIcon">
    <iconset resource="icons.qrc">
@@ -29,6 +29,18 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QWebView" name="webview">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="mouseTracking">
+      <bool>false</bool>
+     </property>
+     <property name="acceptDrops">
+      <bool>false</bool>
+     </property>
      <property name="url">
       <url>
        <string>about:blank</string>
@@ -63,23 +75,30 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="btn_png">
+        <property name="text">
+         <string>&amp;PNG Image</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="btn_csv">
         <property name="text">
-         <string>CSV</string>
+         <string>CS&amp;V</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="btn_html">
         <property name="text">
-         <string>Web Page</string>
+         <string>&amp;Web Page</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="btn_excel">
         <property name="text">
-         <string>Excel</string>
+         <string>E&amp;xcel</string>
         </property>
        </widget>
       </item>
@@ -93,7 +112,7 @@
       <item>
        <widget class="QPushButton" name="btn_close">
         <property name="text">
-         <string>Close</string>
+         <string>&amp;Close</string>
         </property>
         <property name="icon">
          <iconset resource="icons.qrc">
@@ -126,7 +145,7 @@
   <connection>
    <sender>btn_close</sender>
    <signal>clicked()</signal>
-   <receiver>Text_Display</receiver>
+   <receiver>Web_Display</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

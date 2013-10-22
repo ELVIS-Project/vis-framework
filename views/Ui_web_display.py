@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/text_display.ui'
+# Form implementation generated from reading ui file 'ui/web_display.ui'
 #
 # Created by: PyQt4 UI code generator 4.9.6
 #
@@ -22,27 +22,34 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
-class Ui_Text_Display(object):
-    def setupUi(self, Text_Display):
-        Text_Display.setObjectName(_fromUtf8("Text_Display"))
-        Text_Display.resize(814, 602)
+class Ui_Web_Display(object):
+    def setupUi(self, Web_Display):
+        Web_Display.setObjectName(_fromUtf8("Web_Display"))
+        Web_Display.resize(814, 602)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(Text_Display.sizePolicy().hasHeightForWidth())
-        Text_Display.setSizePolicy(sizePolicy)
+        sizePolicy.setHeightForWidth(Web_Display.sizePolicy().hasHeightForWidth())
+        Web_Display.setSizePolicy(sizePolicy)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(_fromUtf8(":/icons/icons/vis-1-32.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        Text_Display.setWindowIcon(icon)
-        Text_Display.setModal(False)
-        self.verticalLayout = QtGui.QVBoxLayout(Text_Display)
+        Web_Display.setWindowIcon(icon)
+        Web_Display.setModal(False)
+        self.verticalLayout = QtGui.QVBoxLayout(Web_Display)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
-        self.webview = QtWebKit.QWebView(Text_Display)
+        self.webview = QtWebKit.QWebView(Web_Display)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.webview.sizePolicy().hasHeightForWidth())
+        self.webview.setSizePolicy(sizePolicy)
+        self.webview.setMouseTracking(False)
+        self.webview.setAcceptDrops(False)
         self.webview.setUrl(QtCore.QUrl(_fromUtf8("about:blank")))
         self.webview.setRenderHints(QtGui.QPainter.Antialiasing|QtGui.QPainter.HighQualityAntialiasing|QtGui.QPainter.SmoothPixmapTransform|QtGui.QPainter.TextAntialiasing)
         self.webview.setObjectName(_fromUtf8("webview"))
         self.verticalLayout.addWidget(self.webview)
-        self.widget = QtGui.QWidget(Text_Display)
+        self.widget = QtGui.QWidget(Web_Display)
         self.widget.setObjectName(_fromUtf8("widget"))
         self.horizontalLayout = QtGui.QHBoxLayout(self.widget)
         self.horizontalLayout.setMargin(0)
@@ -52,6 +59,9 @@ class Ui_Text_Display(object):
         self.label = QtGui.QLabel(self.widget)
         self.label.setObjectName(_fromUtf8("label"))
         self.horizontalLayout.addWidget(self.label)
+        self.btn_png = QtGui.QPushButton(self.widget)
+        self.btn_png.setObjectName(_fromUtf8("btn_png"))
+        self.horizontalLayout.addWidget(self.btn_png)
         self.btn_csv = QtGui.QPushButton(self.widget)
         self.btn_csv.setObjectName(_fromUtf8("btn_csv"))
         self.horizontalLayout.addWidget(self.btn_csv)
@@ -76,17 +86,18 @@ class Ui_Text_Display(object):
         self.horizontalLayout.addWidget(self.btn_close)
         self.verticalLayout.addWidget(self.widget)
 
-        self.retranslateUi(Text_Display)
-        QtCore.QObject.connect(self.btn_close, QtCore.SIGNAL(_fromUtf8("clicked()")), Text_Display.close)
-        QtCore.QMetaObject.connectSlotsByName(Text_Display)
+        self.retranslateUi(Web_Display)
+        QtCore.QObject.connect(self.btn_close, QtCore.SIGNAL(_fromUtf8("clicked()")), Web_Display.close)
+        QtCore.QMetaObject.connectSlotsByName(Web_Display)
 
-    def retranslateUi(self, Text_Display):
-        Text_Display.setWindowTitle(_translate("Text_Display", "Text Display", None))
-        self.label.setText(_translate("Text_Display", "Save as...", None))
-        self.btn_csv.setText(_translate("Text_Display", "CSV", None))
-        self.btn_html.setText(_translate("Text_Display", "Web Page", None))
-        self.btn_excel.setText(_translate("Text_Display", "Excel", None))
-        self.btn_close.setText(_translate("Text_Display", "Close", None))
+    def retranslateUi(self, Web_Display):
+        Web_Display.setWindowTitle(_translate("Web_Display", "vis Results Display", None))
+        self.label.setText(_translate("Web_Display", "Save as...", None))
+        self.btn_png.setText(_translate("Web_Display", "&PNG Image", None))
+        self.btn_csv.setText(_translate("Web_Display", "CS&V", None))
+        self.btn_html.setText(_translate("Web_Display", "&Web Page", None))
+        self.btn_excel.setText(_translate("Web_Display", "E&xcel", None))
+        self.btn_close.setText(_translate("Web_Display", "&Close", None))
 
 from PyQt4 import QtWebKit
 import icons_rc
