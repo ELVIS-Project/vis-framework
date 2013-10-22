@@ -27,34 +27,20 @@
 Hold the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt4 interface.
 """
 
-# Imports from...
-# Python
-from subprocess import Popen
-from itertools import chain
-from os import walk
-from os.path import splitext, join
-# pandizz
-import pandas
-# PyQt4
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
-# music21
-from music21 import metadata, converter, stream
-# vis
 from vis.analyzers import indexers
 from vis.models.importing import ListOfFiles
 from vis.models.analyzing import ListOfPieces
 from vis.views.VisOffsetSelector import VisOffsetSelector
 from vis.views.web_view import VisWebView
 from Ui_main_window import Ui_MainWindow
-from vis.models.indexed_piece import IndexedPiece
-from vis.workflow import WorkflowManager
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
     "This class makes the GUI-controlling objects for vis' PyQt4 interface."
 
-    def __init__(self, vis_controller):
+    def __init__(self):
         "Parameter is an instance of VisController to use for sending signals."
         super(VisQtMainWindow, self).__init__()  # required for signals
         self.ui = Ui_MainWindow()
@@ -254,9 +240,10 @@ You must choose pieces before we can import them.""",
         if files:
             row_count = self._list_of_files.rowCount()
             self._list_of_files.insertRows(row_count, len(files))
-            for i, file in enumerate(files):
-                self._list_of_files.setData(row_count + i, file, QtCore.Qt.EditRole)
+            for i, each_file in enumerate(files):
+                self._list_of_files.setData(row_count + i, each_file, QtCore.Qt.EditRole)
 
+    # TODO: re-enable removing files
     @QtCore.pyqtSlot()
     def _remove_files(self):
         """
@@ -298,6 +285,7 @@ You must choose pieces before we can import them.""",
             else:
                 self.ui.lbl_currently_processing.setText(progress)
 
+    # TODO: re-enable operation cancellation
     @QtCore.pyqtSlot()
     def _cancel_operation(self):
         "If possible, cancel a running operation (import, analysis, experiment)."
@@ -312,7 +300,7 @@ You must choose pieces before we can import them.""",
         return None
 
     # Other Things ------------------------------------------
-    def _error_reporter(self, description):
+    def _error_reporter(description):
         "Notify the user that an error has happened. Parameter is a description of the error."
         QtGui.QMessageBox.warning(None,
                                   u'Error in an Internal Component',
@@ -352,26 +340,16 @@ You must choose pieces before we can import them.""",
             if part_cbs_are_checked:
                 response = QtGui.QMessageBox.question(None,
                     u'vis',
-                    u"""At least one part checkbox is selected, but you did not add the part combination to the list of parts to analyze.
-
-Do you want to go back and add the part combination?""",
+                    u'At least one part checkbox is selected, but you did not add the part ' + \
+                        u'combination to the list of parts to analyze.\n\nDo you want to go ' + \
+                        u'back and add the part combination?',
                     QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.No | QtGui.QMessageBox.Yes),
                     QtGui.QMessageBox.Yes)
                 if response == QtGui.QMessageBox.Yes:
                     return None
 
-        setts = {u'quality': self.ui.rdo_heedQuality.isChecked(),
-                 u'simple or compound': u'compound' if self.ui.rdo_compound.isChecked() else \
-                    u'simple'}
-
-        # Actually start the experiment
-        self._tool_working()
-        self._vert_ints = []
-        #for ip in self._list_of_ips:
-            #self._vert_ints.append(ip.get_data([indexers.noterest.NoteRestIndexer,
-                                                #indexers.interval.IntervalIndexer],
-                                                #setts))
-
+        # Since we don't do any computation during this stage, we'll just go straight to the
+        # experiment-selection panel.
         self._tool_experiment()
 
     @QtCore.pyqtSlot()  # self.ui.chk_all_voice_combos.clicked
@@ -935,8 +913,6 @@ Do you want to go back and add the part combination?""",
 
         def do_experiment():
             "Which experiment does the user want to run?"
-            # NOTE: as we add different Experiment and Display combinations, we have to update this
-
             # experiment
             if self.ui.rdo_consider_intervals.isChecked():
                 list_of_settings['experiment'] = u'intervals'
@@ -945,7 +921,6 @@ Do you want to go back and add the part combination?""",
             elif self.ui.rdo_consider_score.isChecked():
                 list_of_settings['experiment'] = 'LilyPondExperiment'
                 list_of_settings['output format'] = 'LilyPondDisplay'
-
             # output format
             if self.ui.rdo_table.isChecked():
                 list_of_settings['output format'] = 'table'
@@ -992,16 +967,7 @@ Do you want to go back and add the part combination?""",
             else:
                 list_of_settings['ignore direction'] = False
 
-        def do_annotate_these():
-            "Is there an 'annotate these' value?"
-            a_these = unicode(self.ui.line_annotate_these.text())
-            if '' != a_these:
-                # TODO: this better
-                list_of_settings['annotate these'] = [a_these]
-
-
         # (1) Figure out the settings
-        # TODO: ensure these are chosen dynamically, to correspond to the GUI
         # (1a) Which experiment?
         do_experiment()
         # (1b) Print quality?
@@ -1017,8 +983,6 @@ Do you want to go back and add the part combination?""",
         do_top_x()
         # (1g) Ignore Voice Crossing
         do_ignore_inversion()
-        # (1h) Annotate These N-Grams
-        # do_annotate_these()
 
         # (2) Run the experiment
         self._run_the_experiment(list_of_settings)
@@ -1064,8 +1028,8 @@ Do you want to go back and add the part combination?""",
             result_type = u'table'
             path = self._workm.export(u'HTML', u'outputs/pandas_table.html')
         else:
-            self._error_reporter(u'Unrecognized output format: "' + \
-                                 unicode(settings[u'output format']) + u'"')
+            VisQtMainWindow._error_reporter(u'Unrecognized output format: "' + \
+                                            unicode(settings[u'output format']) + u'"')
 
         if path is not None:
             token_name = u'Interval' if u'intervals' == settings[u'experiment'] else \
@@ -1074,8 +1038,8 @@ Do you want to go back and add the part combination?""",
             trig_ret = webview.trigger(path, result_type, token_name)
             # we may have to save the output!
             if trig_ret is not None:
-                for format, pathname in trig_ret:
-                    self._workm.export(format, pathname)
+                for form, pathname in trig_ret:
+                    self._workm.export(form, pathname)
             del webview  # make sure we free dat memory!
 
         self._tool_experiment()

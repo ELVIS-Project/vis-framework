@@ -53,7 +53,7 @@ class GuiController(QtCore.QObject):
         """
         super(GuiController, self).__init__()
         self.app = QtGui.QApplication(sys.argv)
-        self.window = VisQtMainWindow(self)
+        self.window = VisQtMainWindow()
 
     def setup_signals(self):
         """
