@@ -1,12 +1,11 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
 #-------------------------------------------------------------------------------
 # Program Name:             vis
 # Program Description:      Measures sequences of vertical intervals.
 #
-# Filename: main.py
-# Purpose: The main view class.
+# Filename: views/main.py
+# Purpose: Hold VisQtMainWindow class, which controls the GUI for vis' PyQt4 interface.
 #
 # Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
 #
@@ -24,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 """
-Hold the VisQtMainWindow class, which is the GUI-controlling thing for vis' PyQt4 interface.
+Hold VisQtMainWindow class, which controls the GUI for vis' PyQt4 interface.
 """
 
 from PyQt4 import QtGui, QtCore
