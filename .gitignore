@@ -16,6 +16,8 @@ views/ui/Ui_*.py
 doc/api/_build/*
 .Rhistory
 Rplots.pdf
+outputs/*
+!outputs/about_this_directory.txt
 
 *.py[co]
 
