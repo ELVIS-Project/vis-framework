@@ -112,7 +112,6 @@ class VisWebView(object):
         # UI setup stuff
         self._gui.webview.load(QUrl.fromLocalFile(getcwd() + u'/' + VisWebView._html_path))
         self.dialog.show()
-        self._gui.webview.show()
         # Setup signals (dialog close is done automatically) and disable unusable buttons
         if u'table' == self._result_type:
             self._gui.btn_csv.clicked.connect(self._save_csv)
@@ -156,17 +155,21 @@ class VisWebView(object):
             replace_with = replace_with.replace(VisWebView._old_header, self._make_table_header())
         elif u'image' == self._result_type:
             replace_with = self._make_img_tag()
-
         # replace the "replace me" comment
         self._display = template_str.replace(replace_this, replace_with)
-
         # save the HTML file (image-loading won't work unless we do this)
         try:
             html_file = open(VisWebView._html_path, 'w')
             html_file.write(self._display)
             html_file.close()
         except IOError as ioe:
-            print(str(ioe))  # DEBUG
+            QtGui.QMessageBox.warning(None,
+                u'Unable to Display Results',
+                u'We could not display results because we could not write the HTML file.\n\n' + \
+                    u'The error says:\n\n' + unicode(ioe),
+                QtGui.QMessageBox.StandardButtons(\
+                    QtGui.QMessageBox.Ok),
+                QtGui.QMessageBox.Ok)
 
     def _save_png(self):
         self._save_button('png')
