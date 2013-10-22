@@ -54,11 +54,13 @@ class WorkflowManager(object):
     * :meth:`metadata`, to adjust or view the metadata of a piece.
     * :meth:`settings`, to adjust or view the settings of a piece.
     """
-    # TODO: pay attention to voice-combination settings for finding interval n-grams
 
     # Instance Variables
     # - self._data = list of IndexedPieces
     # - self._result = result of the most recent call to run()
+
+    # path to the R-language script that makes bar charts
+    _R_bar_chart_path = u'scripts/R_bar_chart.r'
 
     def __init__(self, vals):
         """
@@ -548,8 +550,8 @@ class WorkflowManager(object):
                 png_path = pathname + u'.png'
                 out_me = pandas.DataFrame({u'freq': self._result})
                 out_me.to_stata(stata_path)
-                call_to_r = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', stata_path,
-                             png_path]
+                call_to_r = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path,
+                             u'--args', stata_path, png_path]
                 subprocess.call(call_to_r)
                 return png_path
         else:

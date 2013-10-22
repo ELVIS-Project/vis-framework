@@ -539,8 +539,8 @@ class WorkflowTests(TestCase):
         path = u'pathname!'
         actual = test_wc.output(u'R histogram', path)
         mock_df.assert_called_once_with({u'freq': test_wc._result})
-        expected_args = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', path + u'.dta',
-                         path + u'.png']
+        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+                         path + u'.dta', path + u'.png']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
 
@@ -553,8 +553,8 @@ class WorkflowTests(TestCase):
         path = u'test_output/output_result'
         actual = test_wc.output(u'R histogram')
         mock_df.assert_called_once_with({u'freq': test_wc._result})
-        expected_args = [u'R', u'--vanilla', u'-f', u'R_script.r', u'--args', path + u'.dta',
-                         path + u'.png']
+        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+                         path + u'.dta', path + u'.png']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
 
