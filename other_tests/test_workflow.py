@@ -125,6 +125,7 @@ class WorkflowTests(TestCase):
             test_wc.run(u'intervals')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
+            self.assertEqual(u'intervals', test_wc._previous_exp)
 
     def test_run_2(self):
         mock_path = u'vis.workflow.WorkflowManager._interval_ngrams'
@@ -134,6 +135,7 @@ class WorkflowTests(TestCase):
             test_wc.run(u'interval n-grams')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
+            self.assertEqual(u'n-grams', test_wc._previous_exp)
 
     def test_run_4(self):
         mock_path_a = u'vis.workflow.WorkflowManager._interval_ngrams'
@@ -147,8 +149,9 @@ class WorkflowTests(TestCase):
                 mock_meth_a.assert_called_once_with()
                 mock_meth_b.assert_called_once_with(mock_meth_a.return_value)
                 self.assertEqual(mock_meth_b.return_value, test_wc._result)
+                self.assertEqual(u'n-grams', test_wc._previous_exp)
 
-    def test_run_6(self):
+    def test_run_5(self):
         test_wc = WorkflowManager([])
         self.assertRaises(RuntimeError, test_wc.run, u'too short')
         self.assertRaises(RuntimeError, test_wc.run, u'this just is not an instruction you know')
@@ -533,28 +536,33 @@ class WorkflowTests(TestCase):
     @mock.patch(u'pandas.DataFrame')
     @mock.patch(u'subprocess.call')
     def test_output_4(self, mock_call, mock_df):
-        # with specified pathname
+        # with specified pathname; last experiment was intervals with 20 pieces
         test_wc = WorkflowManager([])
+        test_wc._previous_exp = u'intervals'
+        test_wc._data = [1 for _ in xrange(20)]
         test_wc._result = pandas.Series([x for x in xrange(10)])
         path = u'pathname!'
         actual = test_wc.output(u'R histogram', path)
         mock_df.assert_called_once_with({u'freq': test_wc._result})
         expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
-                         path + u'.dta', path + u'.png']
+                         path + u'.dta', path + u'.png', u'int', u'20']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
 
     @mock.patch(u'pandas.DataFrame')
     @mock.patch(u'subprocess.call')
     def test_output_5(self, mock_call, mock_df):
-        # with unspecified pathname
+        # with unspecified pathname; last experiment was 14-grams with 1 piece
         test_wc = WorkflowManager([])
+        test_wc._previous_exp = u'n-grams'
+        test_wc._data = [1]
+        test_wc._shared_settings[u'n'] = 14
         test_wc._result = pandas.Series([x for x in xrange(10)])
         path = u'test_output/output_result'
         actual = test_wc.output(u'R histogram')
         mock_df.assert_called_once_with({u'freq': test_wc._result})
         expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
-                         path + u'.dta', path + u'.png']
+                         path + u'.dta', path + u'.png', u'14', u'1']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
 
