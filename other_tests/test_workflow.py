@@ -533,34 +533,51 @@ class WorkflowTests(TestCase):
         test_wc = WorkflowManager([])
         self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
 
-    @mock.patch(u'pandas.DataFrame')
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
     @mock.patch(u'subprocess.call')
-    def test_output_4(self, mock_call, mock_df):
-        # with specified pathname; last experiment was intervals with 20 pieces
+    def test_output_4(self, mock_call, mock_gdf):
+        # with specified pathname; last experiment was intervals with 20 pieces; self._result is DF
         test_wc = WorkflowManager([])
         test_wc._previous_exp = u'intervals'
         test_wc._data = [1 for _ in xrange(20)]
-        test_wc._result = pandas.Series([x for x in xrange(10)])
+        test_wc._result = MagicMock(spec=pandas.DataFrame)
         path = u'pathname!'
         actual = test_wc.output(u'R histogram', path)
-        mock_df.assert_called_once_with({u'freq': test_wc._result})
+        self.assertEqual(0, mock_gdf.call_count)
         expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
                          path + u'.dta', path + u'.png', u'int', u'20']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
 
-    @mock.patch(u'pandas.DataFrame')
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
     @mock.patch(u'subprocess.call')
-    def test_output_5(self, mock_call, mock_df):
-        # with unspecified pathname; last experiment was 14-grams with 1 piece
+    def test_output_5(self, mock_call, mock_gdf):
+        # with unspecified pathname; last experiment was 14-grams with 1 piece; self._result is S
         test_wc = WorkflowManager([])
         test_wc._previous_exp = u'n-grams'
         test_wc._data = [1]
         test_wc._shared_settings[u'n'] = 14
-        test_wc._result = pandas.Series([x for x in xrange(10)])
+        test_wc._result = MagicMock(spec=pandas.Series)
         path = u'test_output/output_result'
         actual = test_wc.output(u'R histogram')
-        mock_df.assert_called_once_with({u'freq': test_wc._result})
+        mock_gdf.assert_called_once_with(u'freq', None, None)
+        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+                         path + u'.dta', path + u'.png', u'14', u'1']
+        mock_call.assert_called_once_with(expected_args)
+        self.assertEqual(path + u'.png', actual)
+
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    @mock.patch(u'subprocess.call')
+    def test_output_6(self, mock_call, mock_gdf):
+        # test_ouput_6, plus top_x and threshold
+        test_wc = WorkflowManager([])
+        test_wc._previous_exp = u'n-grams'
+        test_wc._data = [1]
+        test_wc._shared_settings[u'n'] = 14
+        test_wc._result = MagicMock(spec=pandas.Series)
+        path = u'test_output/output_result'
+        actual = test_wc.output(u'R histogram', top_x=420, threshold=1987)
+        mock_gdf.assert_called_once_with(u'freq', 420, 1987)
         expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
                          path + u'.dta', path + u'.png', u'14', u'1']
         mock_call.assert_called_once_with(expected_args)
@@ -686,7 +703,8 @@ class WorkflowTests(TestCase):
         test_wm = WorkflowManager([])
         self.assertRaises(RuntimeError, test_wm.export, u'Excel', u'C:\autoexec.bat')
 
-    def test_export_3(self):
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    def test_export_3(self, mock_gdf):
         # --> the method works as expected for CSV, Excel, and Stata when _result is a DataFrame
         test_wm = WorkflowManager([])
         test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
@@ -698,8 +716,10 @@ class WorkflowTests(TestCase):
         test_wm._result.to_stata.assert_called_once_with(u'test_path.dta')
         test_wm._result.to_excel.assert_called_once_with(u'test_path.xlsx')
         test_wm._result.to_html.assert_called_once_with(u'test_path.html')
+        self.assertEqual(0, mock_gdf.call_count)
 
-    def test_export_4(self):
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    def test_export_4(self, mock_gdf):
         # --> test_export_3() with a valid extension already on
         test_wm = WorkflowManager([])
         test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
@@ -711,8 +731,35 @@ class WorkflowTests(TestCase):
         test_wm._result.to_stata.assert_called_once_with(u'test_path.dta')
         test_wm._result.to_excel.assert_called_once_with(u'test_path.xlsx')
         test_wm._result.to_html.assert_called_once_with(u'test_path.html')
+        self.assertEqual(0, mock_gdf.call_count)
 
-    def test_export_5(self):
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    def test_export_5(self, mock_gdf):
+        # --> test_export_3() with a Series that requires calling _get_dataframe()
+        test_wm = WorkflowManager([])
+        test_wm._result = mock.MagicMock(spec=pandas.Series)
+        # CSV
+        mock_gdf.return_value = MagicMock(spec=pandas.DataFrame)
+        test_wm.export(u'CSV', u'test_path')
+        mock_gdf.assert_called_once_with(u'data', None, None)
+        mock_gdf.return_value.to_csv.assert_called_once_with(u'test_path.csv')
+        mock_gdf.reset_mock()
+        # Excel
+        test_wm.export(u'Excel', u'test_path', 5)
+        mock_gdf.assert_called_once_with(u'data', 5, None)
+        mock_gdf.return_value.to_excel.assert_called_once_with(u'test_path.xlsx')
+        mock_gdf.reset_mock()
+        # Stata
+        test_wm.export(u'Stata', u'test_path', 5, 10)
+        mock_gdf.assert_called_once_with(u'data', 5, 10)
+        mock_gdf.return_value.to_stata.assert_called_once_with(u'test_path.dta')
+        mock_gdf.reset_mock()
+        # HTML
+        test_wm.export(u'HTML', u'test_path', threshold=10)
+        mock_gdf.assert_called_once_with(u'data', None, 10)
+        mock_gdf.return_value.to_html.assert_called_once_with(u'test_path.html')
+
+    def test_export_6(self):
         # --> the method always outputs a DataFrame, even if self._result isn't a DF yet
         # TODO: I don't know how to test this. I want to mock DataFrame, but it also needs to pass
         #       the isinstance() test, so it can't be a MagicMock unless it's a MagicMock instance
@@ -918,6 +965,46 @@ class WorkflowTests(TestCase):
                                                     expected_ngram_settings,
                                                     parts)
         self.assertEqual(u'piece2 4th get_data()', actual)
+
+    def test_get_dataframe_1(self):
+        # test with name=auto, top_x=auto, threshold=auto
+        test_wc = WorkflowManager([])
+        test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
+        expected = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
+        actual = test_wc._get_dataframe()
+        self.assertEqual(expected, actual)
+        for i in xrange(len(expected['data'])):
+            self.assertEqual(expected['data'][i], actual['data'][i])
+
+    def test_get_dataframe_2(self):
+        # test with name='asdf', top_x=3, threshold=auto
+        test_wc = WorkflowManager([])
+        test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
+        expected = pandas.DataFrame({'asdf': pandas.Series([10, 9, 8])})
+        actual = test_wc._get_dataframe('asdf', 3)
+        self.assertEqual(expected, actual)
+        for i in xrange(len(expected['asdf'])):
+            self.assertEqual(expected['asdf'][i], actual['asdf'][i])
+
+    def test_get_dataframe_3(self):
+        # test with name=auto, top_x=3, threshold=5 (so the top_x still removes after threshold)
+        test_wc = WorkflowManager([])
+        test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
+        expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
+        actual = test_wc._get_dataframe(top_x=3, threshold=5)
+        self.assertEqual(expected, actual)
+        for i in xrange(len(expected['data'])):
+            self.assertEqual(expected['data'][i], actual['data'][i])
+
+    def test_get_dataframe_4(self):
+        # test with name=auto, top_x=5, threshold=7 (so threshold leaves fewer than 3 results)
+        test_wc = WorkflowManager([])
+        test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
+        expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
+        actual = test_wc._get_dataframe(top_x=5, threshold=7)
+        self.assertEqual(expected, actual)
+        for i in xrange(len(expected['data'])):
+            self.assertEqual(expected['data'][i], actual['data'][i])
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
