@@ -514,17 +514,48 @@ class WorkflowManager(object):
         """
         return to_format
 
-    def output(self, instruction, pathname=u'test_output/output_result'):
+    def _get_dataframe(self, name=u'data', top_x=None, threshold=None):
+        """
+        "Convert" ``self._result`` into a :class:`DataFrame`, including only the top ``X`` results
+        that are greater than ``threshold``. Note that the threshold filter is applied first.
+
+        :param name: String to use for the column name of the Series currently held in self._result.
+            The default is u'data'.
+        :type name: ``basestring``
+        :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
+        :type top_x: ``int``
+        :param threshold: If a result is strictly less than this number, it won't be included. The
+            default is ``None``.
+        :type threshold: number
+
+        :returns: A DataFrame with self._result as the only column.
+        :rtype: :class:`DataFrame`
+        """
+        post = None
+        if threshold is not None:
+            post = self._result[self._result > threshold]
+        else:
+            post = self._result
+        if top_x is not None:
+            post = post[:top_x]
+        return pandas.DataFrame({name: post})
+
+    def output(self, instruction, pathname=None, top_x=None, threshold=None):
         """
         Create a visualization from the most recent result of :meth:`run` and save it to a file.
 
         Parameters
         ==========
         :parameter instruction: The type of visualization to output.
-        :type instruction: :obj:`basestring`
-        :parameter pathname: The pathname for the output. If not specified, we will choose. Do not
-            provide a filename extension---this is automatic.
-        :type pathname: :obj:`basestring`
+        :type instruction: ``basestring``
+        :parameter pathname: The pathname for the output. The default is "test_output/output_result"
+            and file extensions are applied automatically.
+        :type pathname: ``basestring``
+        :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
+        :type top_x: ``int``
+        :param threshold: If a result is strictly less than this number, it won't be included. The
+            default is ``None``.
+        :type threshold: number
 
         Returns
         =======
@@ -547,12 +578,19 @@ class WorkflowManager(object):
         if instruction == u'LilyPond':
             raise NotImplementedError(u'I didn\'t write that part yet!')
         elif instruction == u'R histogram':
+            # ensure we have some results
             if self._result is None:
-                raise RuntimeError(u'Call run() before calling output()')
+                raise RuntimeError(u'Call run() before calling export()')
             else:
+                # properly set output paths
+                pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
                 stata_path = pathname + u'.dta'
                 png_path = pathname + u'.png'
-                out_me = pandas.DataFrame({u'freq': self._result})
+                # ensure we have a DataFrame
+                if not isinstance(self._result, pandas.DataFrame):
+                    out_me = self._get_dataframe(u'freq', top_x, threshold)
+                else:
+                    out_me = self._result
                 out_me.to_stata(stata_path)
                 token = None
                 if u'intervals' == self._previous_exp:
@@ -568,16 +606,22 @@ class WorkflowManager(object):
         else:
             raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
 
-    def export(self, form, pathname=None):
+    def export(self, form, pathname=None, top_x=None, threshold=None):
         """
         Save data from the most recent result of :meth:`run` to a file.
 
         Parameters
         ==========
         :parameter form: The output format you want.
-        :type form: :obj:`basestring`
-        :parameter pathname: The pathname for output. If not specified, we will choose.
-        :type pathname: :obj:`basestring`
+        :type form: ``basestring``
+        :parameter pathname: The pathname for the output. The default is "test_output/output_result"
+            and file extensions are applied automatically.
+        :type pathname: ``basestring``
+        :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
+        :type top_x: ``int``
+        :param threshold: If a result is strictly less than this number, it won't be included. The
+            default is ``None``.
+        :type threshold: number
 
         Returns
         =======
@@ -601,7 +645,7 @@ class WorkflowManager(object):
             raise RuntimeError(u'Call run() before calling export()')
         # ensure we have a DataFrame
         if not isinstance(self._result, pandas.DataFrame):
-            export_me = pandas.DataFrame({u'data': self._result})
+            export_me = self._get_dataframe(u'data', top_x, threshold)
         else:
             export_me = self._result
         # key is the instruction; value is (extension, export_method)
