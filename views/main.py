@@ -1017,15 +1017,18 @@ You must choose pieces before we can import them.""",
         # 3.) Run the output-getting stuff.
         path = None
         result_type = None
+        top_x = settings['topX'] if 'topX' in settings else None
+        threshold = settings['threshold'] if 'threshold' in settings else None
         if u'chart' == settings[u'output format']:
             result_type = u'image'
+            path = self._workm.output(u'R histogram', u'outputs/R_chart.png', top_x, threshold)
             # We add "../" because we expect the image to be in the "outputs" directory, but so is
             # the HTML file. We could just set "path" to "R_chart.png" but output() doesn't
             # guarantee that it'll actually output to the pathname requested, so we need it.
-            path = u'../' + self._workm.output(u'R histogram', u'outputs/R_chart.png')
+            path = u'../' + path
         elif u'table' == settings[u'output format']:
             result_type = u'table'
-            path = self._workm.export(u'HTML', u'outputs/pandas_table.html')
+            path = self._workm.export(u'HTML', u'outputs/pandas_table.html', top_x, threshold)
         else:
             VisQtMainWindow._error_reporter(u'Unrecognized output format: "' + \
                                             unicode(settings[u'output format']) + u'"')
