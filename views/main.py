@@ -33,7 +33,7 @@ from vis.models.importing import ListOfFiles
 from vis.models.analyzing import ListOfPieces
 from vis.views.VisOffsetSelector import VisOffsetSelector
 from vis.views.web_view import VisWebView
-from Ui_main_window import Ui_MainWindow
+from vis.views.Ui_main_window import Ui_MainWindow
 
 
 class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
@@ -179,7 +179,6 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         # call the thing to to what it says it does
         self._output_format_changed()
 
-    # Operations on the Importer panel ----------------------
     @QtCore.pyqtSlot()
     def _check_for_pieces(self):
         """
@@ -258,8 +257,6 @@ You must choose pieces before we can import them.""",
             QtGui.QMessageBox.StandardButtons(\
                 QtGui.QMessageBox.RestoreDefaults))
 
-
-    # Operations on the "Working" Panel ---------------------
     @QtCore.pyqtSlot(str)
     def _update_progress_bar(self, progress):
         """
@@ -298,7 +295,6 @@ You must choose pieces before we can import them.""",
                 QtGui.QMessageBox.Yes))
         return None
 
-    # Other Things ------------------------------------------
     def _error_reporter(description):
         "Notify the user that an error has happened. Parameter is a description of the error."
         QtGui.QMessageBox.warning(None,
@@ -307,7 +303,7 @@ You must choose pieces before we can import them.""",
                                   QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
                                   QtGui.QMessageBox.Ok)
 
-    # Not a PyQt slot
+    @QtCore.pyqtSlot()  # self.ui.btn_step1.clicked
     def _start_the_analysis(self):
         """
         Start the analysis, but first... check to make sure a user didn't forget to choose the
@@ -786,7 +782,7 @@ You must choose pieces before we can import them.""",
         for part in self.part_layouts:
             self.ui.verticalLayout_part_boxes.addLayout(part)
 
-    @QtCore.pyqtSlot() # for self.ui.btn_choose_note.clicked
+    @QtCore.pyqtSlot() # self.ui.btn_choose_note.clicked
     def _launch_offset_selection(self):
         "Launch the dialogue box to help users visually select offset values."
         # Launch the offset-selection QDialog
