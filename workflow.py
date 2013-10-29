@@ -25,7 +25,9 @@
 """
 .. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
 
-Workflow controller, to automate commonly-performed tasks.
+The ``workflow`` module holds the :class:`WorkflowManager`, which automates several common music
+analysis patterns for counterpoint. The :class:`TemplateWorkflow` class is a template for writing
+new ``WorkflowManager`` classes.
 """
 
 import ast
@@ -39,20 +41,32 @@ from vis.analyzers.experimenters import frequency, aggregator
 
 class WorkflowManager(object):
     """
-    The :class:`WorkflowManager` automates several commonly-performed music analysis patterns.
+    :parameter pathnames: A list of pathnames.
+    :type pathnames: ``list`` of ``basestring``
 
-    There are four basic tasks the :class:`WorkflowManager` performs, each with its own method:
+    The :class:`WorkflowManager` automates several common music analysis patterns for counterpoint.
+    Use the ``WorkflowManager`` with these four tasks:
 
-    * :meth:`load`, to import data from external formats (MusicXML, Stata, pickled, etc.).
-    * :meth:`run`, which performs one of a small set of pre-defined analysis activities.
-    * :meth:`output`, which outputs visualization data to disk.
-    * :meth:`export`, which outputs "non-visual" data to disk (Stata, CSV, pickled, etc.)
+    * :meth:`load`, to import pieces from symbolic data formats.
+    * :meth:`run`, to perform a pre-defined analysis.
+    * :meth:`output`, to output a visualization of the analysis results.
+    * :meth:`export`, to output a text-based version of the analysis results.
 
-    We also provide the following methods for setting and getting properties of the individual
-    :class:`~vis.models.indexed_piece.IndexedPiece` objects:
+    Before you analyze, you may wish to use these methods:
 
-    * :meth:`metadata`, to adjust or view the metadata of a piece.
-    * :meth:`settings`, to adjust or view the settings of a piece.
+    * :meth:`metadata`, to get or set the metadata of a specific :class:`IndexedPiece` managed by
+        this ``WorkflowManager``.
+    * :meth:`settings`, to get or set a setting related to analysis (for example, whether to
+        display the quality of intervals).
+
+    You may also treat a ``WorkflowManager`` as a container:
+
+    >>> wm = WorkflowManager('piece1.mxl', 'piece2.krn')
+    >>> len(wm)
+    2
+    >>> ip = wm[1]
+    >>> type(ip)
+    <class 'vis.models.indexed_piece.IndexedPiece'>
     """
 
     # Instance Variables
@@ -62,31 +76,8 @@ class WorkflowManager(object):
     # path to the R-language script that makes bar charts
     _R_bar_chart_path = u'scripts/R_bar_chart.r'
 
-    def __init__(self, vals):
-        """
-        It's often easier to use the :class:`WorkflowManager`, by providing a list of pathnames \
-        corresponding to the files you want to analyze. However, if you will later need access to \
-        the :class:`~vis.models.indexed_piece.IndexedPiece` objects directly themselves, you \
-        should provide them to the :class:`WorkflowManager` as in the second example below.
-
-        Parameters
-        ==========
-        :parameter vals: A list of pathnames or IndexedPieces. If an item in the list is not \
-            either an IndexedPiece or basestring, it is silently ignored.
-        :type vals: :obj:`list` of :obj:`basestring` or of \
-            :obj:`~vis.models.indexed_piece.IndexedPiece`
-
-        We manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects::
-
-        >>> paths = [u'test_corpus/bwv77.mxl', u'test_corpus/Kyrie.krn']
-        >>> path_work = WorkflowManager(paths)
-
-        You manage the :class:`~vis.models.indexed_piece.IndexedPiece` objects::
-
-        >>> ips = [IndexedPiece(x) for x in paths]
-        >>> ip_work = WorkflowManager(ips)
-        """
-        # hold the list of IndexedPiece
+    def __init__(self, pathnames):
+        # create the list of IndexedPiece objects
         self._data = []
         for each_val in vals:
             if isinstance(each_val, basestring):
@@ -122,12 +113,12 @@ class WorkflowManager(object):
     def load(self, instruction, pathname=None):
         """
         Import analysis data from long-term storage on a filesystem. This should primarily be \
-        used for the :obj:`u'pieces'` instruction, to control when the initial music21 import \
+        used for the ``u'pieces'`` instruction, to control when the initial music21 import \
         happens.
 
         **Instructions:**
 
-        .. note:: only :obj:`u'pieces'` is implemented at this time.
+        .. note:: only ``u'pieces'`` is implemented at this time.
 
         * :obj:`u'pieces'`, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
         * :obj:`u'hdf5'` to load data from a previous :meth:`export`.
@@ -138,8 +129,8 @@ class WorkflowManager(object):
         ==========
         :parameter instruction: The type of data to load.
         :type instruction: :obj:`basestring`
-        :parameter pathname: The pathname of the data to import; not required for the u'pieces' \
-            instruction.
+        :parameter pathname: The pathname of the data to import; not required for the \
+            ``u'pieces'`` instruction.
         :type pathname: :obj:`basestring`
         """
         # TODO: rewrite this with multiprocessing
@@ -613,15 +604,15 @@ class WorkflowManager(object):
         Parameters
         ==========
         :parameter form: The output format you want.
-        :type form: ``basestring``
-        :parameter pathname: The pathname for the output. The default is "test_output/output_result"
-            and file extensions are applied automatically.
-        :type pathname: ``basestring``
+        :type form: :obj:`basestring`
+        :parameter pathname: The pathname for the output. The default is
+            ``test_output/output_result``. File extensions are applied automatically.
+        :type pathname: :obj:`basestring`
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
-        :type top_x: ``int``
+        :type top_x: :obj:`int`
         :param threshold: If a result is strictly less than this number, it won't be included. The
-            default is ``None``.
-        :type threshold: number
+            default is :obj:`None`.
+        :type threshold: :obj:`int` or :obj:`float`
 
         Returns
         =======
@@ -668,13 +659,13 @@ class WorkflowManager(object):
     def metadata(self, index, field, value=None):
         """
         Use this method to get or set a particular metadatum. The valid field names are listed in
-        IndexedPiece.:meth:`~vis.models.indexed_piece.IndexedPiece.metadata`.
+        :meth:`~vis.models.indexed_piece.IndexedPiece.metadata` for :class:`IndexedPiece`.
 
         A metadatum is a salient musical characteristic of a particular piece, and does not change
         across analyses.
 
         :param index: The index of the piece to access. The range of valid indices is ``0`` through
-            one fewer than the return value of calling :func:`len` on this WorkflowManager.
+            one fewer than the return value of calling :func:`len` on this :class:`WorkflowManager`.
         :type index: :obj:`int`
         :param field: The name of the field to be accessed or modified.
         :type field: :obj:`basestring`
