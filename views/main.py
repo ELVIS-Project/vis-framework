@@ -1041,7 +1041,7 @@ You must choose pieces before we can import them.""",
             # we may have to save the output!
             if trig_ret is not None:
                 for form, pathname in trig_ret:
-                    self._workm.export(form, pathname)
+                    self._workm.export(form, pathname, top_x, threshold)
             del webview  # make sure we free dat memory!
 
         self._tool_experiment()
