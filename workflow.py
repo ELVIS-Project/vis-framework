@@ -79,7 +79,7 @@ class WorkflowManager(object):
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
         self._data = []
-        for each_val in vals:
+        for each_val in pathnames:
             if isinstance(each_val, basestring):
                 self._data.append(indexed_piece.IndexedPiece(each_val))
             elif isinstance(each_val, indexed_piece.IndexedPiece):
@@ -116,14 +116,8 @@ class WorkflowManager(object):
         used for the ``u'pieces'`` instruction, to control when the initial music21 import \
         happens.
 
-        **Instructions:**
-
-        .. note:: only ``u'pieces'`` is implemented at this time.
-
-        * :obj:`u'pieces'`, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
-        * :obj:`u'hdf5'` to load data from a previous :meth:`export`.
-        * :obj:`u'stata'` to load data from a previous :meth:`export`.
-        * :obj:`u'pickle'` to load data from a previous :meth:`export`.
+        Use :meth:`load` with an instruction other than ``u'pieces'`` to load results from a
+        previous analysis run by :meth:`run`.
 
         Parameters
         ==========
@@ -132,6 +126,15 @@ class WorkflowManager(object):
         :parameter pathname: The pathname of the data to import; not required for the \
             ``u'pieces'`` instruction.
         :type pathname: :obj:`basestring`
+
+        **Instructions:**
+
+        .. note:: only ``u'pieces'`` is implemented at this time.
+
+        * :obj:`u'pieces'`, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
+        * :obj:`u'hdf5'` to load data from a previous :meth:`export`.
+        * :obj:`u'stata'` to load data from a previous :meth:`export`.
+        * :obj:`u'pickle'` to load data from a previous :meth:`export`.
         """
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
@@ -147,35 +150,29 @@ class WorkflowManager(object):
 
     def run(self, instruction):
         """
-        Run a commonly-requested experiment workflow.
+        Run the workflow of an experiment.
 
         Parameters
         ==========
-        :parameter instruction: The experiment workflow to run.
+        :parameter instruction: The experiment to run.
         :type instruction: ``basestring``
 
         Returns
         =======
-        :returns: The result of the experiment workflow.
+        :returns: The result of the experiment.
         :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame`
 
         Raises
         ======
-        :raises: :exc:`RuntimeError` if the :obj:`instruction` does not make sense.
+        :raises: :exc:`RuntimeError` if the ``instruction`` is not valid for this
+            ``WorkflowManager``.
 
-        Instructions:
+        **Instructions:**
 
         * ``u'intervals'``: finds the frequency of vertical intervals in all \
             2-part voice combinations.
         * ``u'interval n-grams'``: finds the frequency of any-part vertical interval n-grams in \
             voice pairs specified in the settings. Remember to provide the ``u'n'`` setting.
-
-        Modifiers:
-
-        * :obj:`u' for SuperCollider'`: append this to :obj:`u'all-combinations intervals'` to \
-            prepare a :class:`DataFrame` with the information required for Mike Winters' \
-            sonification program. You should then call :meth:`export` with the :obj:`u'CSV'` \
-            instruction.
         """
         # NOTE: do not re-order the instructions or this method will break
         possible_instructions = [u'intervals',
@@ -193,9 +190,6 @@ class WorkflowManager(object):
             post = self._interval_ngrams()
         else:
             raise RuntimeError(error_msg)
-        # format for SuperCollider, if required
-        if -1 != instruction.rfind(u' for SuperCollider'):
-            post = WorkflowManager._for_sc(post)
         self._result = post
         return post
 
@@ -493,18 +487,6 @@ class WorkflowManager(object):
                 del vert_ints[key]
             return vert_ints
 
-    @staticmethod
-    def _for_sc(to_format):
-        """
-        Format a record for output to the vis SuperCollider application.
-
-        :parameter to_format: The experimental results to be formatted.
-        :type to_format: ???
-        :returns: The results, formatted for SuperCollider.
-        :rtype: ???
-        """
-        return to_format
-
     def _get_dataframe(self, name=u'data', top_x=None, threshold=None):
         """
         "Convert" ``self._result`` into a :class:`DataFrame`, including only the top ``X`` results
@@ -539,12 +521,12 @@ class WorkflowManager(object):
         ==========
         :parameter instruction: The type of visualization to output.
         :type instruction: ``basestring``
-        :parameter pathname: The pathname for the output. The default is "test_output/output_result"
-            and file extensions are applied automatically.
+        :parameter pathname: The pathname for the output. The default is
+            ``'test_output/output_result``. A file extension is applied automatically.
         :type pathname: ``basestring``
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
         :type top_x: ``int``
-        :param threshold: If a result is strictly less than this number, it won't be included. The
+        :param threshold: If a result is strictly less than this number, it will be left out. The
             default is ``None``.
         :type threshold: number
 
@@ -658,8 +640,8 @@ class WorkflowManager(object):
 
     def metadata(self, index, field, value=None):
         """
-        Use this method to get or set a particular metadatum. The valid field names are listed in
-        :meth:`~vis.models.indexed_piece.IndexedPiece.metadata` for :class:`IndexedPiece`.
+        Get or set a metadata field. The valid field names are determined by :class:`IndexedPiece`
+        (refer to the documentation for :meth:`~vis.models.indexed_piece.IndexedPiece.metadata`).
 
         A metadatum is a salient musical characteristic of a particular piece, and does not change
         across analyses.
@@ -677,14 +659,14 @@ class WorkflowManager(object):
         :rtype: :obj:`object` or :obj:`None`
 
         :raises: :exc:`TypeError` if ``field`` is not a ``basestring``.
-        :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
+        :raises: :exc:`AttributeError` if accessing an invalid ``field``.
         :raises: :exc:`IndexError` if ``index`` is invalid for this ``WorkflowManager``.
         """
         return self._data[index].metadata(field, value)
 
     def settings(self, index, field, value=None):
         """
-        Use this method to get or set a particular setting. The valid values are listed below.
+        Get or set a value related to analysis. The valid values are listed below.
 
         A setting is related to this particular analysis, and is not a salient musical feature of
         the work itself.
@@ -706,12 +688,12 @@ class WorkflowManager(object):
         :raises: :exc:`IndexError` if ``index`` is invalid for this ``WorkflowManager``.
         :raises: :exc:`ValueError` if ``index`` and ``value`` are both ``None``.
 
-        **Piece-Specific Setting Fields:**
-        These settings can be set independently for each piece.
+        **Piece-Specific Settings:**
+        Pieces do not share these settings.
 
         * ``offset interval``: If you want to run the \
             :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`, specify a value for this
-            setting that will become the quarterLength duration between observed offsets.
+            setting that will become the ``quarterLength`` duration between observed offsets.
         * ``filter repeats``: If you want to run the \
             :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`, set this setting to \
             ``True``.
@@ -727,11 +709,12 @@ class WorkflowManager(object):
             equivalents, set this setting to ``True``.
 
         **Shared Settings:**
-        These settings are shared across all pieces. When you set or fetch a shared setting, the
-        value of ``index`` is ignored, and can be anything.
+        All pieces share these settings. The value of ``index`` is ignored for shared settings, so
+        it can be anything.
 
-        * ``n``: As specified in :class:`vis.analyzers.indexers.ngram.NGramIndexerpossible_settings`
-        * ``continuer``: The
+        * ``n``: As specified in :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`
+        * ``continuer``: As specified in \
+            :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`
         """
         if field in self._shared_settings:
             if value is None:
