@@ -137,20 +137,6 @@ class WorkflowTests(TestCase):
             self.assertEqual(mock_meth.return_value, test_wc._result)
             self.assertEqual(u'n-grams', test_wc._previous_exp)
 
-    def test_run_4(self):
-        mock_path_a = u'vis.workflow.WorkflowManager._interval_ngrams'
-        mock_path_b = u'vis.workflow.WorkflowManager._for_sc'
-        with mock.patch(mock_path_a) as mock_meth_a:
-            with mock.patch(mock_path_b) as mock_meth_b:
-                mock_meth_a.return_value = 1200
-                mock_meth_b.return_value = u'the final countdown'
-                test_wc = WorkflowManager([])
-                test_wc.run(u'interval n-grams for SuperCollider')
-                mock_meth_a.assert_called_once_with()
-                mock_meth_b.assert_called_once_with(mock_meth_a.return_value)
-                self.assertEqual(mock_meth_b.return_value, test_wc._result)
-                self.assertEqual(u'n-grams', test_wc._previous_exp)
-
     def test_run_5(self):
         test_wc = WorkflowManager([])
         self.assertRaises(RuntimeError, test_wc.run, u'too short')
