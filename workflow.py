@@ -91,10 +91,11 @@ class WorkflowManager(object):
         for piece_sett in self._settings:
             for sett in [u'offset interval', u'voice combinations']:
                 piece_sett[sett] = None
-            for sett in [u'filter repeats', u'interval quality', u'simple intervals']:
+            for sett in [u'filter repeats']:
                 piece_sett[sett] = False
         # hold settings common to all IndexedPieces
-        self._shared_settings = {u'n': 2, u'continuer': u'_', u'mark singles': False}
+        self._shared_settings = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+                                 u'interval quality': False, u'simple intervals': False}
         # which was the most recent experiment run? Either 'intervals' or 'n-grams'
         self._previous_exp = None
 
@@ -426,23 +427,23 @@ class WorkflowManager(object):
         :rtype: :class:`pandas.Series`
         """
         int_freqs = []
+        # shared settings for the IntervalIndexer
+        setts = {u'quality': self.settings(None, u'interval quality')}
+        setts[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') == \
+                                       True else u'compound'
         for i, piece in enumerate(self._data):
-            # prepare settings for, then run IntervalIndexer
-            setts = {u'quality': self._settings[i][u'interval quality']}
-            setts[u'simple or compound'] = u'simple' if self._settings[i][u'simple intervals'] == \
-                                           True else u'compound'
             vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
             # see which voice pairs we need; if relevant, remove unneeded voice pairs
-            combos = self._settings[i][u'voice combinations']
+            combos = self.settings(i, u'voice combinations')
             if combos != u'[all]' and combos != u'[all pairs]' and combos is not None:
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
             # we no longer need to know the combinations' names, so we can make a list
             vert_ints = list(vert_ints.itervalues())
             # run the offset and repeat indexers, if required
-            if self._settings[i][u'offset interval'] is not None:
-                off_sets = {u'quarterLength': self._settings[i][u'offset interval']}
+            if self.settings(i, u'offset interval') is not None:
+                off_sets = {u'quarterLength': self.settings(i, u'offset interval')}
                 vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
-            if self._settings[i][u'filter repeats'] is True:
+            if self.settings(i, u'filter repeats') is True:
                 vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
             # aggregate results and save for later
             int_freqs.append(piece.get_data([frequency.FrequencyExperimenter,
@@ -703,10 +704,6 @@ class WorkflowManager(object):
             every part with the lowest for a four-part piece: ``'[[0, 3], [1, 3], [2, 3]]'``. This \
             should always be a ``basestring`` that nominally represents a list (like the values \
             shown above or ``'[all]'`` or ``'[all pairs]'``).
-        * ``interval quality``: If you want to display interval quality, set this setting to \
-            ``True``.
-        * ``simple intervals``: If you want to display all intervals as their single-octave \
-            equivalents, set this setting to ``True``.
 
         **Shared Settings:**
         All pieces share these settings. The value of ``index`` is ignored for shared settings, so
@@ -715,6 +712,10 @@ class WorkflowManager(object):
         * ``n``: As specified in :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`
         * ``continuer``: As specified in \
             :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`
+        * ``interval quality``: If you want to display interval quality, set this setting to \
+            ``True``.
+        * ``simple intervals``: If you want to display all intervals as their single-octave \
+            equivalents, set this setting to ``True``.
         """
         if field in self._shared_settings:
             if value is None:
