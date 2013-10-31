@@ -28,9 +28,7 @@ Hold VisQtMainWindow class, which controls the GUI for vis' PyQt4 interface.
 
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import Qt
-from vis.analyzers import indexers
-from vis.models.importing import ListOfFiles
-from vis.models.analyzing import ListOfPieces
+from vis.models.pyqt import ListOfFiles, WorkflowWrapper
 from vis.views.VisOffsetSelector import VisOffsetSelector
 from vis.views.web_view import VisWebView
 from vis.views.Ui_main_window import Ui_MainWindow
@@ -83,6 +81,11 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
             (self.ui.rdo_table.clicked, self._output_format_changed),
             (self.ui.rdo_chart.clicked, self._output_format_changed),
             (self.ui.rdo_score.clicked, self._output_format_changed),
+            # "Shared Settings" from the "Analyzer" panel
+            (self.ui.rdo_heedQuality.clicked, self._update_quality),
+            (self.ui.rdo_noHeedQuality.clicked, self._update_quality),
+            (self.ui.rdo_simple.clicked, self._update_octaves),
+            (self.ui.rdo_compound.clicked, self._update_octaves),
         ]
         for signal, slot in mapper:
             signal.connect(slot)
@@ -99,9 +102,8 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self._list_of_ips = None  # holds the IndexedPiece instances
         self._list_of_files = ListOfFiles()
         self.ui.gui_file_list.setModel(self._list_of_files)
-        self._list_of_pieces = ListOfPieces()
-        self.ui.gui_pieces_list.setModel(self._list_of_pieces)
-        self._workm = None  # hold the WorkflowManager, once created
+        self._work_wrap = WorkflowWrapper()
+        self.ui.gui_pieces_list.setModel(self._work_wrap)
         self._prev_setts = None  # hold settings of previous experiment
 
     # Methods Doing GUI Stuff ---------------------------------------------------
@@ -131,6 +133,7 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         self.ui.btn_step2.setEnabled(True)
         self.ui.btn_cancel_operation.setVisible(True)
         self._update_pieces_selection()
+        self._update_global_settings()
 
     @QtCore.pyqtSlot()
     def _tool_working(self):
@@ -185,33 +188,14 @@ class VisQtMainWindow(QtGui.QMainWindow, QtCore.QObject):
         Check there is at least one piece set to be imported. If there is, start importing. If not,
         ask the user to choose some pieces.
         """
-        # check there are more than 0 pieces for the Importer
         if 0 != self._list_of_files.rowCount():
-            # then go!
             self._tool_working()
-            # if there are previously-added pieces, warn the user they'll be removed
-            if self._list_of_ips is not None:
-                QtGui.QMessageBox.information(None,
-                u"Information Loss Imminent",
-                u"We're gonna, like, just delete all those pieces you already had.",
-                QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok),
-                QtGui.QMessageBox.Ok)
-            # make the list
-            self._list_of_ips = []
-            for each_piece in self._list_of_files:
-                self._list_of_ips.append(each_piece)
-            # do the importing and run the NoteRestIndexer
-            for each_ip in self._list_of_ips:
-                each_ip.get_data([indexers.noterest.NoteRestIndexer])
-            # put everything in the ListOfPieces, so we can collect settings and whatever
-            post = self._list_of_pieces
-            for i_piece in self._list_of_ips:
-                post.insertRows(post.rowCount(), 1)
-                new_row = post.rowCount() - 1
-                post.setData((new_row, ListOfPieces.score),
-                            i_piece,
-                            QtCore.Qt.EditRole)
-            # done!
+            # put everything in the WorkflowWrapper, so we can collect settings and whatever
+            self._work_wrap.insertRows(None, self._list_of_files.rowCount())
+            for new_row, pathname in enumerate(self._list_of_files):
+                self._work_wrap.setData((new_row, WorkflowWrapper.filename),
+                                        pathname,
+                                        QtCore.Qt.EditRole)
             self._tool_analyze()
         else:
             # then ask the user to stop being a jerk
@@ -286,7 +270,7 @@ You must choose pieces before we can import them.""",
     def _cancel_operation(self):
         "If possible, cancel a running operation (import, analysis, experiment)."
         # confirm with the user that they want to cancel whatever's happening
-        feedback = QtGui.QMessageBox.question(
+        QtGui.QMessageBox.question(
             None,
             u"Confirm",
             u"This doesn't work yet!\n\nAre you sure you want to cancel the running operation?",
@@ -295,6 +279,7 @@ You must choose pieces before we can import them.""",
                 QtGui.QMessageBox.Yes))
         return None
 
+    @staticmethod
     def _error_reporter(description):
         "Notify the user that an error has happened. Parameter is a description of the error."
         QtGui.QMessageBox.warning(None,
@@ -310,11 +295,12 @@ You must choose pieces before we can import them.""",
         "add voice pair" button!
         """
         # check that all the pieces have at least one part combination selected
-        for i in xrange(len(self._list_of_pieces)):
-            combos = self._list_of_pieces.data((i, ListOfPieces.parts_combinations), Qt.DisplayRole)
+        for i in xrange(len(self._work_wrap)):
+            combos = unicode(self._work_wrap.data((i, WorkflowWrapper.parts_combinations),
+                                                  Qt.DisplayRole).toPyObject())
             combos = combos.toPyObject() if isinstance(combos, QtCore.QVariant) else combos
             combos = unicode(combos)
-            if u'(no selection)' == combos:
+            if WorkflowWrapper.default_value == combos:
                 # we can't analyze, but we *should* tell our user
                 QtGui.QMessageBox.information(None,
                     u'vis',
@@ -356,7 +342,7 @@ You must choose pieces before we can import them.""",
                 self.ui.chk_all_voices.setChecked(False)
             part_spec = u'[all pairs]'
         else:
-            part_spec = u'(no selection)'
+            part_spec = WorkflowWrapper.default_value
         self._update_parts_selection(part_spec)
 
     @QtCore.pyqtSlot()  # self.ui.line_piece_title.editingFinished
@@ -367,14 +353,9 @@ You must choose pieces before we can import them.""",
 
         # Find the piece title and update it
         for cell in currently_selected:
-            if ListOfPieces.score == cell.column():
-                # This is a little tricky, because we'll change the Score object's
-                # Metadata object directly...
-                # Get the Score
-                piece = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
-                # Update the title, saving it for later
+            if WorkflowWrapper.title == cell.column():
                 new_title = unicode(self.ui.line_piece_title.text())
-                piece.metadata(u'title', new_title)
+                self._work_wrap.setData(cell, new_title, Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.chk_repeat_identical.stateChanged
     def _update_repeat_identical(self):
@@ -384,8 +365,8 @@ You must choose pieces before we can import them.""",
 
         # Find the piece and update its settings
         for cell in self.ui.gui_pieces_list.selectedIndexes():
-            if ListOfPieces.repeat_identical == cell.column():
-                self._list_of_pieces.setData(cell, changed_to, QtCore.Qt.EditRole)
+            if WorkflowWrapper.repeat_identical == cell.column():
+                self._work_wrap.setData(cell, changed_to, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.btn_add_check_combo.clicked
     def _add_parts_combination(self):
@@ -393,8 +374,6 @@ You must choose pieces before we can import them.""",
         When users choose the "Add Combination" button to add the currently selected part
         combination to the list of parts to analyze.
         """
-        # TODO: rewrite this to deal with a wide range of part selections
-
         # If there are no named parts, we can't do this
         if self.part_checkboxes is None:
             return None
@@ -424,17 +403,12 @@ You must choose pieces before we can import them.""",
         if vis_format is not None:
             # Hold the new part-combinations specification
             new_spec = ''
-
             # What's the current specification?
             curr_spec = unicode(self.ui.line_compare_these_parts.text())
-
             # Is curr_spec the default filler?
-            if u'e.g., [[0,3]] or [[0,3],[1,3]]' == curr_spec or \
-            u'(no selection)' == curr_spec or \
-            u'' == curr_spec:
+            if WorkflowWrapper.default_value == curr_spec:
                 # Then just make a new one
                 new_spec = u'[' + vis_format + u']'
-
                 # Update the parts selection
                 self._update_parts_selection(new_spec)
             # Does curr_spec include "[all]"?
@@ -485,8 +459,8 @@ You must choose pieces before we can import them.""",
         # column(), set it to the thing specified
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
-            if ListOfPieces.parts_combinations == cell.column():
-                self._list_of_pieces.setData(cell, part_spec, QtCore.Qt.EditRole)
+            if WorkflowWrapper.parts_combinations == cell.column():
+                self._work_wrap.setData(cell, part_spec, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.line_offset_interval.editingFinished
     def _update_offset_interval(self):
@@ -502,8 +476,8 @@ You must choose pieces before we can import them.""",
         # column(), set it to the thing specified
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
-            if ListOfPieces.offset_intervals == cell.column():
-                self._list_of_pieces.setData(cell, new_offset_interval, QtCore.Qt.EditRole)
+            if WorkflowWrapper.offset_interval == cell.column():
+                self._work_wrap.setData(cell, new_offset_interval, QtCore.Qt.EditRole)
 
     @QtCore.pyqtSlot()  # self.ui.gui_pieces_list.clicked
     def _update_pieces_selection(self):
@@ -544,9 +518,9 @@ You must choose pieces before we can import them.""",
             # 2.1: get a list of all the lists-of-part-names
             lists_of_part_names = []
             for cell in currently_selected:
-                if ListOfPieces.parts_list == cell.column():
-                    lists_of_part_names.append(self._list_of_pieces.data(cell,
-                        ListOfPieces.ScoreRole))
+                if WorkflowWrapper.parts_list == cell.column():
+                    lists_of_part_names.append(\
+                        self._work_wrap.data(cell, WorkflowWrapper.ListRole).toPyObject())
             # 2.2: See if each piece has the same number of parts
             number_of_parts = 0
             for parts_list in lists_of_part_names:
@@ -573,12 +547,11 @@ You must choose pieces before we can import them.""",
             # (3) if the pieces have the same offset interval, display it
             first_offset = None
             for cell in currently_selected:
-                if ListOfPieces.offset_intervals == cell.column():
+                if WorkflowWrapper.offset_interval == cell.column():
                     if first_offset is None:
-                        # TODO: whatever
-                        first_offset = self._list_of_pieces.\
+                        first_offset = self._work_wrap.\
                         data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_offset == self._list_of_pieces.\
+                    elif first_offset == self._work_wrap.\
                     data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
@@ -588,11 +561,11 @@ You must choose pieces before we can import them.""",
             # (4) Update "Compare These Parts"
             first_comp = None
             for cell in currently_selected:
-                if ListOfPieces.parts_combinations == cell.column():
+                if WorkflowWrapper.parts_combinations == cell.column():
                     if first_comp is None:
-                        first_comp = self._list_of_pieces.\
+                        first_comp = self._work_wrap.\
                         data(cell, QtCore.Qt.DisplayRole).toPyObject()
-                    elif first_comp == self._list_of_pieces.\
+                    elif first_comp == self._work_wrap.\
                     data(cell, QtCore.Qt.DisplayRole).toPyObject():
                         continue
                     else:
@@ -622,17 +595,17 @@ You must choose pieces before we can import them.""",
             self._update_part_checkboxes(currently_selected)
             # (3) Update "offset interval"
             for cell in currently_selected:
-                if ListOfPieces.offset_intervals == cell.column():
+                if WorkflowWrapper.offset_interval == cell.column():
                     self.ui.line_offset_interval.setText(unicode(
-                    self._list_of_pieces.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
+                    self._work_wrap.data(cell, QtCore.Qt.DisplayRole).toPyObject()))
                     break
             # (4) Update "Compare These Parts"
             self._update_comparison_parts(currently_selected)
             # (5) Update "Pice Title"
             for cell in currently_selected:
-                if ListOfPieces.score == cell.column():
+                if WorkflowWrapper.title == cell.column():
                     self.ui.line_piece_title.setText(
-                    unicode(self._list_of_pieces.data(cell,
+                    unicode(self._work_wrap.data(cell,
                         QtCore.Qt.DisplayRole).toPyObject()))
                     break
 
@@ -649,8 +622,8 @@ You must choose pieces before we can import them.""",
         """
 
         for cell in currently_selected:
-            if ListOfPieces.parts_combinations == cell.column():
-                comparison_parts = unicode(self._list_of_pieces.
+            if WorkflowWrapper.parts_combinations == cell.column():
+                comparison_parts = unicode(self._work_wrap.
                     data(cell, QtCore.Qt.DisplayRole).toPyObject())
                 self.ui.line_compare_these_parts.setText(comparison_parts)
                 if u'[all]' == comparison_parts:
@@ -683,17 +656,17 @@ You must choose pieces before we can import them.""",
 
         # Find the parts lists and update them
         for cell in self.ui.gui_pieces_list.selectedIndexes():
-            if ListOfPieces.parts_list == cell.column():
+            if WorkflowWrapper.parts_list == cell.column():
                 # We're just going to change the part name in the model, not in the
                 # actual Score object itself (which would require re-loading)
                 # 1.) Get the parts list
-                parts = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
+                parts = self._work_wrap.data(cell, WorkflowWrapper.ListRole).toPyObject()
                 # 2.) Update the part name as requested
                 parts[part_index] = new_name
                 # 3.) Convert the part names to str objects (from QString)
                 parts = [unicode(name) for name in parts]
                 # 4.) Update the data model and QCheckBox objects
-                self._list_of_pieces.setData(cell, parts, QtCore.Qt.EditRole)
+                self._work_wrap.setData(cell, parts, QtCore.Qt.EditRole)
                 self._update_pieces_selection()
 
     # Not a pyqtSlot
@@ -737,8 +710,8 @@ You must choose pieces before we can import them.""",
         # (2) Get the list of parts
         list_of_parts = None
         for cell in currently_selected:
-            if ListOfPieces.parts_list == cell.column():
-                list_of_parts = self._list_of_pieces.data(cell, ListOfPieces.ScoreRole)
+            if WorkflowWrapper.parts_list == cell.column():
+                list_of_parts = self._work_wrap.data(cell, WorkflowWrapper.ListRole).toPyObject()
                 break
         # deal with a possible "no_name" argument
         if no_name:
@@ -795,8 +768,8 @@ You must choose pieces before we can import them.""",
         # Set values in the model
         selected_cells = self.ui.gui_pieces_list.selectedIndexes()
         for cell in selected_cells:
-            if ListOfPieces.offset_intervals == cell.column():
-                self._list_of_pieces.setData(cell, chosen_offset, QtCore.Qt.EditRole)
+            if WorkflowWrapper.offset_interval == cell.column():
+                self._work_wrap.setData(cell, chosen_offset, QtCore.Qt.EditRole)
         # Just to make sure we get rid of this
         del selector
 
@@ -820,8 +793,6 @@ You must choose pieces before we can import them.""",
 
         all_the_widgets = [self.ui.rdo_table,
                            self.ui.rdo_chart,
-                           self.ui.grp_octaves,
-                           self.ui.grp_quality,
                            self.ui.grp_values_of_n,
                            self.ui.rdo_score,
                            self.ui.grp_annotate_these,
@@ -846,12 +817,11 @@ You must choose pieces before we can import them.""",
         which_to_enable = []
 
         if self.ui.rdo_consider_intervals.isChecked():
-            which_to_enable = [self.ui.grp_octaves, self.ui.grp_quality,
-                               self.ui.rdo_table, self.ui.rdo_chart, self.ui.rdo_score,
+            which_to_enable = [self.ui.rdo_table, self.ui.rdo_chart, self.ui.rdo_score,
                                self.ui.grp_ignore_inversion, self.ui.grp_annotate_these]
         elif self.ui.rdo_consider_interval_ngrams.isChecked():
-            which_to_enable = [self.ui.rdo_table, self.ui.grp_values_of_n, self.ui.grp_octaves,
-                               self.ui.grp_quality, self.ui.rdo_chart, self.ui.grp_ignore_inversion]
+            which_to_enable = [self.ui.rdo_table, self.ui.grp_values_of_n, self.ui.rdo_chart,
+                               self.ui.grp_ignore_inversion]
         elif self.ui.rdo_consider_score.isChecked():
             which_to_enable = [self.ui.rdo_score]
 
@@ -888,8 +858,33 @@ You must choose pieces before we can import them.""",
                 self.ui.chk_all_voice_combos.setChecked(False)
             part_spec = u'[all]'
         else:
-            part_spec = u'(no selection)'
+            part_spec = WorkflowWrapper.default_value
         self._update_parts_selection(part_spec)
+
+    @QtCore.pyqtSlot()  # self.ui.rdo_heedQuality and rdo_noHeedQuality
+    def _update_quality(self):
+        "When a user changes the 'display quality' radio buttons."
+        set_to_what = True if self.ui.rdo_heedQuality.isChecked() else False
+        self._work_wrap.setData((0, WorkflowWrapper.quality), set_to_what, Qt.EditRole)
+
+    @QtCore.pyqtSlot()  # self.ui.rdo_compound and rdo_simple
+    def _update_octaves(self):
+        "When a user changes the 'simple/compound' radio buttons."
+        set_to_what = True if self.ui.rdo_simple.isChecked() else False
+        self._work_wrap.setData((0, WorkflowWrapper.simple_ints), set_to_what, Qt.EditRole)
+
+    def _update_global_settings(self):
+        """
+        Update the radio buttons associated with global settings (at the moment, quality and simple)
+        """
+        if self._work_wrap.data((0, WorkflowWrapper.quality), Qt.DisplayRole).toPyObject():
+            self.ui.rdo_heedQuality.setChecked(True)
+        else:
+            self.ui.rdo_noHeedQuality.setChecked(True)
+        if self._work_wrap.data((0, WorkflowWrapper.simple_ints), Qt.DisplayRole).toPyObject():
+            self.ui.rdo_simple.setChecked(True)
+        else:
+            self.ui.rdo_compound.setChecked(True)
 
     @QtCore.pyqtSlot()  # self.ui.btn_show_results.clicked
     def _prepare_experiment_submission(self):
@@ -936,20 +931,6 @@ You must choose pieces before we can import them.""",
             if 0 != top_x:
                 list_of_settings['topX'] = top_x
 
-        def do_print_quality():
-            "Print quality?"
-            if self.ui.rdo_heedQuality.isChecked():
-                list_of_settings['quality'] = True
-            else:
-                list_of_settings['quality'] = False
-
-        def do_simple_or_compound():
-            "Simple or compound?"
-            if self.ui.rdo_simple.isChecked():
-                list_of_settings['simple or compound'] = 'simple'
-            else:
-                list_of_settings['simple or compound'] = 'compound'
-
         def do_values_of_n():
             "Are there values of 'n' specified?"
             enn = self.ui.spin_n.value()
@@ -965,10 +946,6 @@ You must choose pieces before we can import them.""",
         # (1) Figure out the settings
         # (1a) Which experiment?
         do_experiment()
-        # (1b) Print quality?
-        do_print_quality()
-        # (1c) Simple or compound?
-        do_simple_or_compound()
         # (1d) Is there a "values_of_n" value?
         if u'interval n-grams' == list_of_settings[u'experiment']:
             do_values_of_n()
@@ -987,28 +964,28 @@ You must choose pieces before we can import them.""",
         Run the experiment as instructed by the 'settings' argument.
         """
         # 1.) Do we need to run the experiment at all?
+        workm = self._work_wrap.get_workflow_manager()
         run_exp = None
-        # 1.a) If we need a new WorkflowManager, there was no previous experiment, so yes.
-        if self._workm is None or \
-        self._prev_setts['simple or compound'] != settings['simple or compound'] or \
-        self._prev_setts['quality'] != settings['quality']:
-            simple = True if 'simple' == settings['simple or compound'] else False
-            self._workm = self._list_of_pieces.get_workflow_manager(settings['quality'], simple)
+        # 1.a) If the model thinks settings were changed (i.e., user went back to "analyze" page).
+        if self._work_wrap.settings_changed():
             run_exp = True
-        # 1.b) If the previous experiment is different, then yes.
+        # 1.b) If there was no previous experiment, then yes.
+        elif self._prev_setts is None:
+            run_exp = True
+        # 1.c) If the previous experiment is different, then yes.
         elif self._prev_setts['experiment'] != settings['experiment']:
             run_exp = True
-        # 1.c) If the experiments are the same, but they have 'n' and they're different, then yes.
+        # 1.d) If the experiments are the same, but they have 'n' and they're different, then yes.
         elif 'n' in self._prev_setts and self._prev_setts['n'] != settings['n']:
             run_exp = True
-        # 1.d) Save the settings for next time.
+        # 1.e) Save the settings for next time.
         self._prev_setts = settings
 
         # 2.) Run the experiment, if required.
         if run_exp is True:
             if u'n' in settings:
-                self._workm.settings(None, u'n', settings[u'n'])
-            self._workm.run(settings[u'experiment'])
+                workm.settings(None, u'n', settings[u'n'])
+            workm.run(settings[u'experiment'])
 
         # 3.) Run the output-getting stuff.
         path = None
@@ -1017,14 +994,14 @@ You must choose pieces before we can import them.""",
         threshold = settings['threshold'] if 'threshold' in settings else None
         if u'chart' == settings[u'output format']:
             result_type = u'image'
-            path = self._workm.output(u'R histogram', u'outputs/R_chart.png', top_x, threshold)
+            path = workm.output(u'R histogram', u'outputs/R_chart.png', top_x, threshold)
             # We add "../" because we expect the image to be in the "outputs" directory, but so is
             # the HTML file. We could just set "path" to "R_chart.png" but output() doesn't
             # guarantee that it'll actually output to the pathname requested, so we need it.
             path = u'../' + path
         elif u'table' == settings[u'output format']:
             result_type = u'table'
-            path = self._workm.export(u'HTML', u'outputs/pandas_table.html', top_x, threshold)
+            path = workm.export(u'HTML', u'outputs/pandas_table.html', top_x, threshold)
         else:
             VisQtMainWindow._error_reporter(u'Unrecognized output format: "' + \
                                             unicode(settings[u'output format']) + u'"')
@@ -1037,7 +1014,7 @@ You must choose pieces before we can import them.""",
             # we may have to save the output!
             if trig_ret is not None:
                 for form, pathname in trig_ret:
-                    self._workm.export(form, pathname, top_x, threshold)
+                    workm.export(form, pathname, top_x, threshold)
             del webview  # make sure we free dat memory!
 
         self._tool_experiment()
