@@ -32,7 +32,7 @@ After you clone the vis repository, you should install its dependencies (current
 
 To ease development tasks, we modified the relevant ``__init__.py`` files to add "one directory up" (i.e., ``..``) to the ``$PYTHONPATH`` so it is possible to import ``vis`` and its submodules from within the "vis" directory.
 
-After you install the ``vis`` framework, we recommend you run our automated tests. From the main vis directory, run ``python run_tests.py``. We currently expect at least one test to fail; refer to :ref:`known_issues_and_limitations` for more information.
+After you install the ``vis`` framework, we recommend you run our automated tests. From the main vis directory, run ``python run_tests.py``. Python prints ``.`` for every test that passes, and a large error or warning for every test that fails. Certain versions of music21 may cause tests to fail; refer to :ref:`known_issues_and_limitations` for more information.
 
 The :class:`~vis.workflow.WorkflowManager` is not required for the framework's operation. We recommend you use the :class:`WorkflowManager` directly or as an example to write new applications. The vis framework gives you tools to answer a wide variety of musical questions. The :class:`WorkflowManager` uses the framework to answer specific questions. Please refer to :ref:`use_the_workflowmanager` for more information. If you will not use the :class:`WorkflowManager`, we recommend you delete it: remove the ``workflow.py`` and ``other_tests/test_workflow.py`` files.
 
@@ -40,7 +40,7 @@ The :class:`~vis.workflow.WorkflowManager` is not required for the framework's o
 
 Known Issues and Limitations
 ============================
-* Issue: If you installed the version of music21 specified in our ``requirements.txt`` file, you should expect several failures. If you installed the previous version of music21 (1.5.0), you should expect one failure.
+* Issue: music21 releases earlier than specified in our ``requirements.txt`` file may contain bugs that cause some of our automated tests to fail. We recommend you use music21 version 1.7.1 or newer. In particular, we do not recommend versions 1.5.0 or 1.6.0.
 
 * Limitation: Some symbolic music files import to a music21 object called :class:`~music21.stream.Opus`. During testing, this primarily happens with ``**kern`` files that contain multiple movements of a mass. Even though development on the vis framework is what prompted this music21 feature, and even though vis (before it was a framework) incorporated support for this feature, the framework's current design cannot deal with Opus objects. The reason for this limitation is rather straight-forward: an :class:`~vis.models.indexed_piece.IndexedPiece` object assumes it holds a pathname that refers to a single musical entity (either a movement or, for single-movement works, a piece). :class:`IndexedPiece` will only know its file imports to an :class:`Opus` object *after* importing the file, which happens during the first call to :meth:`~vis.models.indexed_piece.IndexedPiece.get_data`. There are many possible solutions, most of which are not technically challenging, but we have so far focussed on solving larger problems.
 

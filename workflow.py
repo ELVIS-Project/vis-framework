@@ -54,9 +54,9 @@ class WorkflowManager(object):
 
     Before you analyze, you may wish to use these methods:
 
-    * :meth:`metadata`, to get or set the metadata of a specific :class:`IndexedPiece` managed by
+    * :meth:`metadata`, to get or set the metadata of a specific :class:`IndexedPiece` managed by \
         this ``WorkflowManager``.
-    * :meth:`settings`, to get or set a setting related to analysis (for example, whether to
+    * :meth:`settings`, to get or set a setting related to analysis (for example, whether to \
         display the quality of intervals).
 
     You may also treat a ``WorkflowManager`` as a container:
