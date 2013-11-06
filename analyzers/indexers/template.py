@@ -48,12 +48,12 @@ def indexer_func(obj):
     Parameters for Indexers Using a Series
     ======================================
     :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: :obj:`pandas.Series` of :obj:`unicode`
+    :type obj: :class:`pandas.Series` of ``unicode``
 
     Returns
     =======
     :returns: The value to store for this index at this offset.
-    :rtype: :obj:`unicode`
+    :rtype: ``unicode``
     """
     return None
 
@@ -95,7 +95,7 @@ class TemplateIndexer(indexer.Indexer):
 
         :param settings: All the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is None.
-        :type settings: ``dict`` or ``None``
+        :type settings: ``dict`` or :const:`None`
 
         Raises
         ======
@@ -132,10 +132,10 @@ class TemplateIndexer(indexer.Indexer):
 
         Returns
         =======
-        :returns: A list of the new indices. The index of each Series corresponds to the index of
-            the Part used to generate it, in the order specified to the constructor. Each element
-            in the Series is a basestring.
-        :rtype: :obj:`list` of :obj:`pandas.Series`
+        :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
+            index of the :class:`Part` used to generate it, in the order specified to the
+            constructor. Each element in the :class:`Series` is a ``basestring``.
+        :rtype: ``list`` of :class:`pandas.Series`
         """
 
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
