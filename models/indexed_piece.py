@@ -197,23 +197,28 @@ class IndexedPiece(object):
         """
         Get or set metadata about the piece.
 
+        .. note:: Some metadata fields may not be available for all pieces. The available metadata
+            fields depend on the specific file imported. Not-available fields return the value
+            :const:`None`. We guarantee non-:const:`None` values for ``pathname``, ``title``, and
+            ``parts``.
+
         Parameters
         ==========
         :param field: The name of the field to be accessed or modified.
-        :type field: :obj:`basestring`
+        :type field: :class:`basestring`
 
-        :param value: If not None, the new value to be assigned to ``field``.
-        :type value: :obj:`object` or :obj:`None`
+        :param value: If not :const:`None`, the value to be assigned to ``field``.
+        :type value: :class:`object` or :const:`None`
 
         Returns
         =======
-        :returns: The value of the requested field or None, if assigning, or if accessing a
-            non-existant field or a field that has not yet been initialized.
-        :rtype: :obj:`object` or :obj:`None`
+        :returns: The value of the requested field or :const:`None`, if assigning, or if accessing
+            a non-existant field or a field that has not yet been initialized.
+        :rtype: :class:`object` or :const:`None`
 
         Raises
         ======
-        :raises: :exc:`TypeError` if ``field`` is not a :obj:`basestring`.
+        :raises: :exc:`TypeError` if ``field`` is not a :class:`basestring`.
         :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
 
         +---------------------+--------------------------------------------------------------------+
