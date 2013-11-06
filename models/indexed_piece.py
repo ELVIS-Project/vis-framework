@@ -330,6 +330,8 @@ class IndexedPiece(object):
             if analyzer_cls[0].required_score_type == stream.Part:
                 data = self._import_score()
                 data = [x for x in data.parts]  # Indexers require a list of Parts
+            elif analyzer_cls[0].required_score_type == stream.Score:  # TODO: test this
+                data = [self._import_score()]  # TODO: test this
             else:
                 msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])
                 raise RuntimeError(msg)
