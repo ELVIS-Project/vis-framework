@@ -80,6 +80,10 @@ class WorkflowManager(object):
     # path to the R-language script that makes bar charts
     _R_bar_chart_path = u'scripts/R_bar_chart.r'
 
+    # names of the experiments available through run()
+    # NOTE: do not re-order these, or run() will break
+    _experiments_list = [u'intervals', u'interval n-grams']
+
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
         self._data = []
@@ -201,13 +205,15 @@ class WorkflowManager(object):
         error_msg = u'WorkflowManager.run() could not parse the instruction'
         post = None
         # run the experiment
-        if len(instruction) < min([len(x) for x in possible_instructions]):
+        if len(instruction) < min([len(x) for x in WorkflowManager._experiments_list]):
             raise RuntimeError(error_msg)
-        if instruction.startswith(possible_instructions[0]):
-            self._previous_exp = u'intervals'
+        if instruction.startswith(WorkflowManager._experiments_list[0]):
+            # intervals
+            self._previous_exp = WorkflowManager._experiments_list[0]
             post = self._intervs()
-        elif instruction.startswith(possible_instructions[1]):
-            self._previous_exp = u'n-grams'
+        elif instruction.startswith(WorkflowManager._experiments_list[1]):
+            # interval n-grams
+            self._previous_exp = WorkflowManager._experiments_list[1]
             post = self._interval_ngrams()
         else:
             raise RuntimeError(error_msg)

@@ -185,7 +185,7 @@ class WorkflowTests(TestCase):
             test_wc.run(u'interval n-grams')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
-            self.assertEqual(u'n-grams', test_wc._previous_exp)
+            self.assertEqual(u'interval n-grams', test_wc._previous_exp)
 
     def test_run_3(self):
         # raise RuntimeError with invalid instructions
