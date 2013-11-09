@@ -38,10 +38,11 @@ Indexers work only on single :class:`~vis.models.indexed_piece.IndexedPiece` ins
 many :class:`~vis.models.indexed_piece.IndexedPiece` objects together, use an experimenter with an
 :class:`~vis.models.aggregated_pieces.AggregatedPieces` object.
 """
-__all__ = ['noterest', 'interval', 'ngram', 'offset', 'repeat']
+__all__ = ['noterest', 'interval', 'ngram', 'offset', 'repeat', 'lilypond']
 
 from vis.analyzers.indexers import interval
 from vis.analyzers.indexers import noterest
 from vis.analyzers.indexers import ngram
 from vis.analyzers.indexers import offset
 from vis.analyzers.indexers import repeat
+from vis.analyzers.indexers import lilypond
