@@ -28,6 +28,7 @@
 Indexers for key-finding.
 """
 
+import pandas
 from music21 import stream, analysis
 from vis.analyzers import indexer
 
@@ -35,7 +36,7 @@ from vis.analyzers import indexer
 class KeyIndexer(indexer.Indexer):
     """
     Find the key of a piece.
-    
+
     .. note:: This indexer currently finds only one key for the entire piece, but in the future
         it may be revised to find the key in "windows," or other indexers may be written for that.
     """
@@ -47,7 +48,7 @@ class KeyIndexer(indexer.Indexer):
     """
 
     default_settings = {}
-    
+
     def __init__(self, score, settings=None):
         """
         Parameters
@@ -63,7 +64,6 @@ class KeyIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
-
         super(KeyIndexer, self).__init__(score, None)
 
     def run(self):
@@ -82,5 +82,5 @@ class KeyIndexer(indexer.Indexer):
         """
 
         simple_w = analysis.discrete.SimpleWeights()
-        the_key = simple_w.getSolution(self._score)  # returns music21.key.Key
-        return pandas.Series([the_key.getTonic().name, the_key.mode], index=[0.0])
+        the_key = simple_w.getSolution(self._score[0])  # returns music21.key.Key
+        return pandas.Series([(the_key.getTonic().name, the_key.mode)], index=[0.0])

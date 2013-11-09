@@ -309,7 +309,6 @@ def reconciliation_func(obj):
      ('D', FUNC_TON, ROLE_AG, '3'),
      ('D', FUNC_TON, ROLE_BA, '1')]
     """
-    #print(str(obj))  # DEBUG
     post = [None for _ in xrange(len(obj))]
     # index of the bass voice
     bass_i = len(obj) - 1
@@ -375,9 +374,6 @@ def reconciliation_func(obj):
             # last resort (i.e., I know in advance when it won't work).
             for i in xrange(len(post)):
                 if post[i] is None:
-                    #print('i: ' + str(i))  # DEBUG
-                    #print('post: ' + str(post))  # DEBUG
-                    #print('obj[i]: ' + str(obj[i]))  # DEBUG
                     # NB: this gives the key and scale degree of the first possibility; even though
                     # we can't confirm the key or anything, at least this way we don't lose what
                     # information we have
@@ -409,14 +405,14 @@ def chord_label_func(obj):
                   ('D', FUNC_TON, ROLE_BA, '1')]
     >>> chord_label_func(in_val)
     u'T(1)'
-    
+
     >>> in_val = [('D', FUNC_TON, ROLE_BA, '1'),
                   ('D', FUNC_TON, ROLE_AG, '3'),
                   ('D', FUNC_SUB, ROLE_AG, '6'),
                   ('D', FUNC_TON, ROLE_BA, '1')]
     >>> chord_label_func(in_val)
     u'T^S(1)'
-    
+
     >>> in_val = [('D', FUNC_UNK, ROLE_UN, '2'),
                   ('D', FUNC_TON, ROLE_AG, '3'),
                   ('D', FUNC_SUB, ROLE_AG, '6'),
@@ -624,8 +620,11 @@ class ChooseFuncIndexer(indexer.Indexer):
         :rtype: :obj:`list` of :obj:`pandas.Series`
         """
         # all parts at once
-        combinations = [x for x in xrange(len(self._score))]
-        return self._do_multiprocessing(combinations)
+        combinations = [[x for x in xrange(len(self._score))],]
+        post = self._do_multiprocessing(combinations)
+        # convert the DataFrames into Series
+        post = [part for _, part in post[0].iteritems()]
+        return post
 
 
 class ChordLabelIndexer(indexer.Indexer):
@@ -667,5 +666,5 @@ class ChordLabelIndexer(indexer.Indexer):
         :rtype: :obj:`list` of :obj:`pandas.Series`
         """
         # all parts at once
-        combinations = [x for x in xrange(len(self._score))]
+        combinations = [[x for x in xrange(len(self._score))],]
         return self._do_multiprocessing(combinations)
