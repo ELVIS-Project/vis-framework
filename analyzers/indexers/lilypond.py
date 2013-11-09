@@ -30,35 +30,17 @@ that should produce a score of the input.
 """
 
 from music21 import stream
+from OutputLilyPond import OutputLilyPond
+from OutputLilyPond.LilyPondSettings import LilyPondSettings
 from vis.analyzers import indexer
-
-
-def indexer_func(obj):
-    """
-    The function that indexes.
-
-    Parameters for Indexers Using a Score
-    ======================================
-    :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: list of the types stored in self._types
-
-    Parameters for Indexers Using a Series
-    ======================================
-    :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: :obj:`pandas.Series` of :obj:`unicode`
-
-    Returns
-    =======
-    :returns: The value to store for this index at this offset.
-    :rtype: :obj:`unicode`
-    """
-    return None
 
 
 class LilyPondIndexer(indexer.Indexer):
     """
     Use the :mod:`OutputLilyPond` module to produce the LilyPond file that should produce a score
     of the input.
+
+    .. note:: The class currently only works for the first :class:`IndexedPiece` given.
     """
 
     required_score_type = stream.Score
@@ -107,8 +89,7 @@ class LilyPondIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``u'run_lilypond'`` is ``True`` but ``u'output_pathname'`` \
             is unspecified.
         """
-
-        # Either we shouldn't be running LilyPond or we need a pathname.
+        settings = {} if settings is None else settings
         self._settings = {}
         if u'run_lilypond' in settings and settings[u'run_lilypond'] is True:
             if u'output_pathname' in settings:
@@ -122,39 +103,28 @@ class LilyPondIndexer(indexer.Indexer):
         else:
             self._settings[u'run_lilypond'] = LilyPondIndexer.default_settings[u'run_lilypond']
             self._settings[u'output_pathname'] = LilyPondIndexer.default_settings[u'output_pathname']
-
         super(LilyPondIndexer, self).__init__(score, None)
-
         # We won't use an indexer function; run() is just going to pass the Score to OutputLilyPond
         self._indexer_func = None
 
     def run(self):
         """
-        Make a new index of the piece.
+        Make a string with the LilyPond representation of each score. Run LilyPond, if we're
+        supposed to.
 
         Returns
         =======
-        :returns: A list of the new indices. The index of each Series corresponds to the index of
-            the Part used to generate it, in the order specified to the constructor. Each element
-            in the Series is a basestring.
-        :rtype: :obj:`list` of :obj:`pandas.Series`
+        :returns: A list of strings, where each string is the LilyPond-format representation of the
+            score that was in that index.
+        :rtype: ``list`` of ``unicode``
         """
-
-        # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
-
-        # To calculate each part separately:
-        combinations = [[x] for x in xrange(len(self._score))]
-
-        # To calculate all 2-part combinations:
-        #for left in xrange(len(self._score)):
-        #    for right in xrange(left + 1, len(self._score)):
-        #        combinations.append([left, right])
-
-        # This method returns once all computation is complete. The results are returned as a list
-        # of Series objects in the same order as the "combinations" argument.
-        results = self._do_multiprocessing(combinations)
-
-        # Do applicable post-processing, like adding a label for voice combinations.
-
-        # Return the results.
-        return results
+        # TODO: make this work with more than one file
+        lily_setts = LilyPondSettings()
+        # because OutputLilyPond uses multiprocessing by itself, we'll just call it in series
+        the_score = OutputLilyPond.process_score(self._score[0], lily_setts)
+        # call LilyPond on each file, if required
+        if self._settings[u'run_lilypond'] is True:
+            with open(self._settings[u'output_pathname'], 'w') as handle:
+                handle.write(the_score)
+            OutputLilyPond._run_lilypond(self._settings[u'output_pathname'], lily_setts)
+        return the_score
