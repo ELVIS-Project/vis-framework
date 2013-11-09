@@ -35,7 +35,7 @@ import subprocess
 import pandas
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
-from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat
+from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat, harmony, key
 from vis.analyzers.experimenters import frequency, aggregator
 
 
@@ -80,7 +80,7 @@ class WorkflowManager(object):
 
     # names of the experiments available through run()
     # NOTE: do not re-order these, or run() will break
-    _experiments_list = [u'intervals', u'interval n-grams']
+    _experiments_list = [u'intervals', u'interval n-grams', u'harmonic function']
 
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
@@ -195,6 +195,10 @@ class WorkflowManager(object):
             # interval n-grams
             self._previous_exp = WorkflowManager._experiments_list[1]
             post = self._interval_ngrams()
+        elif instruction.startswith(WorkflowManager._experiments_list[2]):
+            # harmonic function
+            self._previous_exp = WorkflowManager._experiments_list[2]
+            post = self._harmonic_function()
         else:
             raise RuntimeError(error_msg)
         self._result = post
@@ -238,6 +242,36 @@ class WorkflowManager(object):
         agg_p = AggregatedPieces(self._data)
         self._result = agg_p.get_data([aggregator.ColumnAggregator], None, {}, all_results)
         self._result.sort(ascending=False)
+        return self._result
+
+    def _harmonic_function(self):
+        """
+        Prepare a list of harmonic functions of every simultaneity in the pieces.
+
+        These indexers and experimenters will be run:
+
+        * :class:`vis.analyzers.indexers.key.KeyIndexer`
+        * :class:`vis.analyzers.indexers.harmony.ScaleDegreeIndexer`
+        * :class:`~vis.analyzers.indexers.harmony.PossFuncIndexer`
+        * :class:`~vis.analyzers.indexers.harmony.ChooseFuncIndexer`
+        * :class:`~vis.analyzers.indexers.harmony.ChordLabelIndexer`
+
+        There are no settings.
+
+        :returns: The result of the :class:`ChordLabel` indexer.
+        """
+        self._result = []
+        for piece in self._data:
+            key_ind = piece.get_data([key.KeyIndexer])
+            pass_in = piece.get_data([noterest.NoteRestIndexer])
+            pass_in.append(key_ind)
+            pass_in = piece.get_data([harmony.ScaleDegreeIndexer], None, pass_in)
+            pass_in.append(key_ind)
+            self._result.append(piece.get_data([harmony.PossFuncIndexer,
+                                                harmony.ChooseFuncIndexer,
+                                                harmony.ChordLabelIndexer],
+                                               None,
+                                               pass_in))
         return self._result
 
     def _variable_part_modules(self, index):
@@ -487,11 +521,11 @@ class WorkflowManager(object):
             return {}
         else:
             delete_these = []
-            for key in vert_ints.iterkeys():
-                if key not in these_pairs:
-                    delete_these.append(key)
-            for key in delete_these:
-                del vert_ints[key]
+            for each_key in vert_ints.itereach_keys():
+                if each_key not in these_pairs:
+                    delete_these.append(each_key)
+            for each_key in delete_these:
+                del vert_ints[each_key]
             return vert_ints
 
     def _get_dataframe(self, name=u'data', top_x=None, threshold=None):
