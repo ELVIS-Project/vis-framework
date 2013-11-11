@@ -264,7 +264,7 @@ class TestScaleDegreeIndexer(unittest.TestCase):
                                         '--1', '##7', '##6', '##5', '##4', '##3', '##2', '##1'])
         test_i = ScaleDegreeIndexer([noterest_index, key_index])
         actual = test_i.run()
-        self.assertEqual(1, len(actual))
+        self.assertEqual(2, len(actual))  # NB: len is 2 because we get the results for KeyIndexer
         actual = actual[0]
         self.assertSequenceEqual(list(expected_index), list(actual))
 
