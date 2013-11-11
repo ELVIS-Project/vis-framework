@@ -520,7 +520,7 @@ class WorkflowManager(object):
             return {}
         else:
             delete_these = []
-            for each_key in vert_ints.itereach_keys():
+            for each_key in vert_ints.iterkeys():
                 if each_key not in these_pairs:
                     delete_these.append(each_key)
             for each_key in delete_these:
