@@ -456,6 +456,9 @@ class ScaleDegreeIndexer(indexer.Indexer):
     Given the results of :class:`~vis.analyzers.indexers.noterest.NoteRestIndexer` and
     :class:`~vis.analyzers.indexers.key.KeyIndexer`, turn the notes into scale degrees (Rest tokens
     are ignored).
+
+    .. note:: This Indexer's output contains the result of :class:`KeyIndexer`. Refer to
+    :meth:`run` for more information.
     """
 
     required_score_type = pandas.Series
@@ -466,10 +469,10 @@ class ScaleDegreeIndexer(indexer.Indexer):
         """
         Parameters
         ==========
-        :param score: A list of the :class:`KeyIndexer` and :class:`NoteRestIndexer` results. The
-            result of :class:`KeyIndexer` should always be the *last* element, so that the index
-            of each scale-degree index corresponds to that of the note-and-rest index from which
-            it was produced.
+        :param score: A list of the :class:`~vis.analyzers.indexers.keyKeyIndexer` and
+            :class:`NoteRestIndexer` results. The result of :class:`KeyIndexer` should always be
+            the *last* element, so that the index of each scale-degree index corresponds to that of
+            the note-and-rest index from which it was produced.
         :type score: ``list`` of :class:`pandas.Series`
 
         :param settings: There are no required settings, so you may omit this.
@@ -492,8 +495,9 @@ class ScaleDegreeIndexer(indexer.Indexer):
 
         Returns
         =======
-        :returns: A list of the new indices. The index of each :class:`Series` corresponds to the index of
-            the :class:`Series` used to generate it.
+        :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
+            index of the :class:`Series` used to generate it. The output of :class:`KeyIndexer` is
+            appended to the list, since scale degrees without keys are meaningless.
         :rtype: ``list`` of :class:`pandas.Series`
         """
         # We'll need to send the indexer function pairs of Series: each Series and the last one.
@@ -501,7 +505,9 @@ class ScaleDegreeIndexer(indexer.Indexer):
         # [a, b, c, d, e] ==> [[a, e], [b, e], [c, e], [d, e]]
         len_score = len(self._score) - 1  # it's really the index of the last element
         combinations = [(x, len_score) for x in xrange(len_score)]
-        return self._do_multiprocessing(combinations)
+        post = self._do_multiprocessing(combinations)
+        post.append(self._score[-1])
+        return post
 
 
 class PossFuncIndexer(indexer.Indexer):

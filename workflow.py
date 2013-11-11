@@ -265,9 +265,8 @@ class WorkflowManager(object):
             key_ind = piece.get_data([key.KeyIndexer])
             pass_in = piece.get_data([noterest.NoteRestIndexer])
             pass_in.append(key_ind)
-            pass_in = piece.get_data([harmony.ScaleDegreeIndexer], None, pass_in)
-            pass_in.append(key_ind)
-            self._result.append(piece.get_data([harmony.PossFuncIndexer,
+            self._result.append(piece.get_data([harmony.ScaleDegreeIndexer,
+                                                harmony.PossFuncIndexer,
                                                 harmony.ChooseFuncIndexer,
                                                 harmony.ChordLabelIndexer],
                                                None,
