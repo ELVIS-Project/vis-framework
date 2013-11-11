@@ -35,7 +35,7 @@ import subprocess
 import pandas
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
-from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat
+from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat, lilypond
 from vis.analyzers.experimenters import frequency, aggregator
 
 
@@ -598,7 +598,7 @@ class WorkflowManager(object):
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
         :type top_x: int
         :param threshold: If a result is strictly less than this number, it will be left out. The
-            default is ``None``.
+            default is ``None``. This is ignored for the ``u'LilyPond'`` instruction.
         :type threshold: number
 
         :returns: The pathname of the outputted visualization.
@@ -611,40 +611,64 @@ class WorkflowManager(object):
 
         **Instructions:**
 
+        * ``u'LilyPond'``: an annotated score of the most recent results, outputted with the
+            :mod:`OutputLilyPond` module. You must have just run an experiment that produces
+            results attached to particular moments in a piece (currently, the ``'harmonic
+            function'`` experiment is the only one).
         * ``u'R histogram'``: a histogram with ggplot2 in R.
+
+        .. note:: LilyPond output is calculated in two steps. This means that, if the
+            :mod:`OutputLilyPond` module fails, you may still have access to the :class:`Note`
+            objects with annotations, in the :attr:`self._data` property (which you shouldn't
+            otherwise use...).
         """
+        # ensure we have some results
+        if self._result is None:
+            raise RuntimeError(u'Please call run() before you call export().')
+        else:
+            # properly set output paths
+            pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
         if instruction == u'LilyPond':
-            raise NotImplementedError(u'I didn\'t write that part yet!')
+            # NB: we do this in two steps because the second is more likely to fail; if it does,
+            #     at least users will have the first steps available.
+            # assume we have the result of a suitable Indexer
+            annotation_parts = []
+            # run additional indexers for annotation
+            for i, each_result in enumerate(self._result):
+                annotation_parts.append(self._data[i].get_data([lilypond.AnnotationIndexer,
+                                                                lilypond.AnnotateTheNoteIndexer,
+                                                                lilypond.PartNotesIndexer],
+                                                               None,
+                                                               each_result))
+            self._result = annotation_parts
+            # run OutputLilyPond and LilyPond
+            pathnames = []
+            for i, each_result in enumerate(self._result):
+                setts = {u'run_lilypond': True, u'output_pathname': pathname,
+                         u'annotation_part': each_result}
+                self._data[i].get_data([lilypond.LilyPondIndexer], setts)
+                pathnames.append(pathname)  # TODO: make the pathnames work with multiple files
         elif instruction == u'R histogram':
-            # ensure we have some results
-            if self._result is None:
-                raise RuntimeError(u'Call run() before calling export()')
+            # set output paths
+            stata_path = pathname + u'.dta'
+            png_path = pathname + u'.png'
+            # ensure we have a DataFrame
+            if not isinstance(self._result, pandas.DataFrame):
+                out_me = self._get_dataframe(u'freq', top_x, threshold)
             else:
-                # properly set output paths
-                pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
-                stata_path = pathname + u'.dta'
-                png_path = pathname + u'.png'
-                # ensure we have a DataFrame
-                if not isinstance(self._result, pandas.DataFrame):
-                    out_me = self._get_dataframe(u'freq', top_x, threshold)
-                else:
-                    out_me = self._result
-                out_me.to_stata(stata_path)
-                token = None
-                if u'intervals' == self._previous_exp:
-                    token = u'int'
-                elif u'n-grams' == self._previous_exp:
-                    token = unicode(self.settings(None, u'n'))
-                else:
-                    token = u'things'
-                call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
-                             stata_path, png_path, token, str(len(self._data))]
-                try:
-                    subprocess.check_output(call_to_r)
-                except subprocess.CalledProcessError as cpe:
-                    raise RuntimeError(u'Error during call to R: ' + unicode(cpe.output) + \
-                                       u' (return code: ' + unicode(cpe.returncode) + u')')
-                return png_path
+                out_me = self._result
+            out_me.to_stata(stata_path)
+            token = None
+            if u'intervals' == self._previous_exp:
+                token = u'int'
+            elif u'n-grams' == self._previous_exp:
+                token = unicode(self.settings(None, u'n'))
+            else:
+                token = u'things'
+            call_to_r = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path,
+                            u'--args', stata_path, png_path, token, str(len(self._data))]
+            subprocess.call(call_to_r)
+            return png_path
         else:
             raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
 
