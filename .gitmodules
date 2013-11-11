@@ -1,0 +1,3 @@
+[submodule "OutputLilyPond"]
+	path = OutputLilyPond
+	url = git@github.com:crantila/OutputLilyPond.git
