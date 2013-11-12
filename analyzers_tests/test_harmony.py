@@ -424,6 +424,9 @@ class TestPossFuncIndexer(unittest.TestCase):
 class TestChooseFuncIndexer(unittest.TestCase):
     def setUp(self):
         # Scale Degrees
+        # NB: I've left these as dynamically-generated things because the output from
+        #     poss_func_func() may change in the future, and I don't want to... well this is pretty
+        #     stupid... clearly I should write a TODO that says to fix this.
         self.lf1 = harmony.poss_func_func(pandas.Series(['-1', 'C', harmony.POS_LOW]))
         self.l1 = harmony.poss_func_func(pandas.Series(['1', 'C', harmony.POS_LOW]))
         self.lf2 = harmony.poss_func_func(pandas.Series(['-2', 'C', harmony.POS_LOW]))
@@ -538,29 +541,53 @@ class TestChooseFuncIndexer(unittest.TestCase):
                          [('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'),
                           ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5')])
 
-    #def test_tonic_with_extra(self):
-        ## Tonic primary triad, with extra pitches
-        ## Extra ^1
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l1, self.m3, self.m1, self.h5]), \
-                        #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),\
-                        #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AS, '5')])))
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l1, self.m3, self.m5, self.h1]), \
-                        #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),\
-                        #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])))
-        ## Extra ^1 and ^3
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l1, self.m3, self.m1, self.m5, self.h3]), \
-                        #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),\
-                        #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3')])))
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l1, self.m3, self.m5, self.m3, self.h1]), \
-                        #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),\
-                        #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])))
-        ## Extra ^1 and ^3 and ^5
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l1, self.m3, self.m1, self.m5, self.m3, self.h5]), \
-                        #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),\
-                        #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AS, '5')])))
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l1, self.m3, self.m5, self.m3, self.m5, self.h1]), \
-                        #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),\
-                        #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])))
+    def test_tonic_with_extra(self):
+        # Tonic primary triad, with extra pitches
+        # Extra ^1
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h5, self.m3, self.m1,
+                                                                    self.l1])),
+                        [('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h1, self.m3, self.m5,
+                                                                    self.l1])),
+                        [('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
+        # Extra ^1 and ^3
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h3, self.m3, self.m1,
+                                                                    self.m5, self.l1])),
+                        [('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h1, self.m3, self.m5,
+                                                                    self.m3, self.l1])),
+                        [('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
+        # Extra ^1 and ^3 and ^5
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h5, self.m3, self.m1,
+                                                                    self.m5, self.m3, self.l1])),
+                        [('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h1, self.m3, self.m5,
+                                                                    self.m3, self.m5, self.l1])),
+                        [('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                         ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
 
     def test_secondary_diatonic(self):
         # secondary diatonic triads in root position and first inversion
@@ -633,53 +660,82 @@ class TestChooseFuncIndexer(unittest.TestCase):
                           ('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7'),
                           ('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2')]) # flat-VII6
 
-    #def test_diatonic_second_inversion(self):
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l5, self.m3, self.h1]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')]))) # I
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l5, self.mf3, self.h1]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')]))) # i
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l6, self.m4, self.h2]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),HarmonicFunctionalNote('C', harmony.FUNC_UNK, harmony.ROLE_UN,'2')]))) # ii
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.lf6, self.m4, self.h2]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),HarmonicFunctionalNote('C', harmony.FUNC_UNK, harmony.ROLE_UN,'2')]))) # ii-dim
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l7, self.m5, self.h3]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3')]))) # iii
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.lf7, self.m5, self.hf3]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3')]))) # flat-III
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l1, self.m6, self.h4]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'),HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')]))) # IV
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l1, self.mf6, self.h4]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6'),HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')]))) # iv
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l2, self.m7, self.h5]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'),HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5')]))) # V
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l2, self.mf7, self.h5]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7'),HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5')]))) # v
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l3, self.m1, self.h6]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6')]))) # vi
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.lf3, self.m1, self.hf6]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6')]))) # flat-VI
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l4, self.m2, self.h7]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'),HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7')]))) # vii-dim
-        #self.assertTrue(self.equalsMaker(harmony.reconciliation_func(pandas.Series([self.l4, self.m2, self.hf7]), \
-                #HarmonicFunctionalChord(HarmonicFunctionalNote('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'), \
-                #[HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'),HarmonicFunctionalNote('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7')]))) # flat-VII
+    def test_diatonic_second_inversion(self):
+        # all the commonest diatonic chords... IN SECOND INVERSION
+        # I
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h1, self.m3, self.l5])),
+                         [('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5')])
+        # i
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h1, self.mf3, self.l5])),
+                         [('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5')])
+        # ii
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h2, self.m4, self.l6])),
+                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6')])
+        # ii-dim
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.l2, self.m4, self.lf6])),
+                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6')])
+        ## iii  # TODO: it chooses tonic associate
+        #self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h3, self.m5, self.l7])),
+                         #[('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                          #('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
+                          #('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7')])
+        ## flat-III  # TODO: it chooses tonic associate
+        #self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf3, self.m5, self.lf7])),
+                         #[('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3'),
+                          #('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
+                          #('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7')])
+        # IV
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h4, self.m6, self.l1])),
+                         [('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
+        # iv
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h4, self.mf6, self.l1])),
+                         [('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
+        # V
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h5, self.m7, self.l2])),
+                         [('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2')])
+        # v
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h5, self.mf7, self.l2])),
+                         [('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2')])
+        ## vi  # TODO: it chooses subdominant associate
+        #self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h6, self.m1, self.l3])),
+                         #[('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'),
+                          #('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                          #('C', harmony.FUNC_TON, harmony.ROLE_AG, '3')])
+        ## flat-VI  # TODO: it chooses subdominant associate
+        #self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf6, self.m1, self.lf3])),
+                         #[('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6'),
+                          #('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                          #('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3')])
+        # vii-dim
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h7, self.m2, self.l4])),
+                         [('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')])
+        # flat-VII
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf7, self.m2, self.l4])),
+                         [('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')])
 
     def test_seventh_chords(self):
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h4, self.m7, self.m2, self.l5])),
-                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN,'4'),
+                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN, '4'),
                           ('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'),
                           ('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'),
                           ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5')]) # V7
@@ -702,31 +758,31 @@ class TestChooseFuncIndexer(unittest.TestCase):
     def test_past_failures(self):
         # things that used to fail
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h4, self.m2, self.m3, self.l1])),
-                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN,'4'),
-                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN,'2'),
+                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN, '4'),
+                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
                           ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
                           ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1')])
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h4, self.m1, self.m3, self.l2])),
-                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN,'4'),
+                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN, '4'),
                           ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
                           ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
-                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN,'2')])
+                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2')])
         # ^4 | ^2 ^3 ^1 ==> S^T(4)
         # Note the ^1 could be correctly analyzed as T-bas or S-ass
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h1, self.m2, self.m3, self.l4])),
                          #[('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
-                          #('C', harmony.FUNC_UNK, harmony.ROLE_UN,'2'),
+                          #('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
                           #('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
                           #('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')])
                         [('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
-                         ('C', harmony.FUNC_UNK, harmony.ROLE_UN,'2'),
+                         ('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
                          ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
                          ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')])
         # all associates non-functional
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h5, self.m1, self.l2])),
-                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN,'5'),
-                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN,'1'),
-                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN,'2')])
+                         [('C', harmony.FUNC_UNK, harmony.ROLE_UN, '5'),
+                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN, '1'),
+                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2')])
 
 
 class TestChordLabelIndexer(unittest.TestCase):
