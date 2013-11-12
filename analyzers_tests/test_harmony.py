@@ -782,14 +782,15 @@ class TestChooseFuncIndexer(unittest.TestCase):
         # ^4 | ^2 ^3 ^1 ==> S^T(4)
         # Note the ^1 could be correctly analyzed as T-bas or S-ass
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h1, self.m2, self.m3, self.l4])),
-                         #[('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
-                          #('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
-                          #('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
-                          #('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')])
-                        [('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
-                         ('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
-                         ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
-                         ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')])
+                         # prefer ^1 as base
+                         [('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                          ('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                          ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')])
+                        #[('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                         #('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
+                         #('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                         #('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')])
         # all associates non-functional
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h5, self.m1, self.l2])),
                          [('C', harmony.FUNC_UNK, harmony.ROLE_UN, '5'),
