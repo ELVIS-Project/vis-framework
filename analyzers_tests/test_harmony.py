@@ -611,11 +611,15 @@ class TestChooseFuncIndexer(unittest.TestCase):
         # III
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h7, self.m5, self.l3])),
                          [('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'),
-                          ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                          # ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                          # NB: prefer base to associate
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
                           ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3')]) # iii
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf7, self.m5, self.lf3])),
                          [('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7'),
-                          ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                          # ('C', harmony.FUNC_TON, harmony.ROLE_AS, '5'),
+                          # NB: prefer base to associate
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
                           ('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3')]) # flat-III
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h7, self.m3, self.l5])),
                          [('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'),
@@ -628,11 +632,15 @@ class TestChooseFuncIndexer(unittest.TestCase):
         # VI
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h3, self.m1, self.l6])),
                          [('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
-                          ('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                          # ('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                          # NB: prefer base to associate
+                          ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
                           ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6')]) # vi
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf3, self.m1, self.lf6])),
                          [('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3'),
-                          ('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                          # ('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                          # NB: prefer base to associate
+                          ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
                           ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6')]) # flat-VI
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h3, self.m6, self.l1])),
                          [('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
@@ -682,16 +690,16 @@ class TestChooseFuncIndexer(unittest.TestCase):
                          [('C', harmony.FUNC_UNK, harmony.ROLE_UN, '2'),
                           ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),
                           ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6')])
-        ## iii  # TODO: it chooses tonic associate
-        #self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h3, self.m5, self.l7])),
-                         #[('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
-                          #('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
-                          #('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7')])
-        ## flat-III  # TODO: it chooses tonic associate
-        #self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf3, self.m5, self.lf7])),
-                         #[('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3'),
-                          #('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
-                          #('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7')])
+        # iii  # TODO: it chooses tonic associate
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h3, self.m5, self.l7])),
+                         [('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7')])
+        # flat-III  # TODO: it chooses tonic associate
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf3, self.m5, self.lf7])),
+                         [('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
+                          ('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7')])
         # IV
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h4, self.m6, self.l1])),
                          [('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),
@@ -712,16 +720,16 @@ class TestChooseFuncIndexer(unittest.TestCase):
                          [('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'),
                           ('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7'),
                           ('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2')])
-        ## vi  # TODO: it chooses subdominant associate
-        #self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h6, self.m1, self.l3])),
-                         #[('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'),
-                          #('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
-                          #('C', harmony.FUNC_TON, harmony.ROLE_AG, '3')])
-        ## flat-VI  # TODO: it chooses subdominant associate
-        #self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf6, self.m1, self.lf3])),
-                         #[('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6'),
-                          #('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
-                          #('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3')])
+        # vi  # TODO: it chooses subdominant associate
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h6, self.m1, self.l3])),
+                         [('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3')])
+        # flat-VI  # TODO: it chooses subdominant associate
+        self.assertEqual(harmony.reconciliation_func(pandas.Series([self.hf6, self.m1, self.lf3])),
+                         [('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
+                          ('C', harmony.FUNC_TON, harmony.ROLE_AG, '-3')])
         # vii-dim
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h7, self.m2, self.l4])),
                          [('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'),
@@ -747,12 +755,16 @@ class TestChooseFuncIndexer(unittest.TestCase):
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h3, self.m6, self.m1, self.l4])),
                          [('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'),
                           ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'),
-                          ('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                          # ('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                          # NB: prefer a base to an associate
+                          ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
                           ('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4')]) # IV7
         self.assertEqual(harmony.reconciliation_func(pandas.Series([self.h4, self.mf6, self.m1, self.l3])),
                          [('C', harmony.FUNC_SUB, harmony.ROLE_BA, '4'),
                           ('C', harmony.FUNC_SUB, harmony.ROLE_AG, '-6'),
-                          ('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                          # ('C', harmony.FUNC_SUB, harmony.ROLE_AS, '1'),
+                          # NB: prefer a base to an associate
+                          ('C', harmony.FUNC_TON, harmony.ROLE_BA, '1'),
                           ('C', harmony.FUNC_TON, harmony.ROLE_AG, '3')]) # iv4/2
 
     def test_past_failures(self):

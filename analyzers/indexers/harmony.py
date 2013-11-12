@@ -340,6 +340,11 @@ def reconciliation_func(obj):
         # Go through upper voices.
         # We have to remember i numbers, so the voices are put in "post" in the right order.
         for i, func in obj[:-1].iteritems():
+            # Find out which choices are valid, in terms of their conditions being met. We choose
+            # which one to use based on a preference for bases over associates.
+            # TODO: add a preference for "same-key" relationships (i.e., same key as notes already
+            #       confirmed in this simultaneity, if there are any)
+            valid_choices = []
             # Do we still need to solve this i?
             # Look for functions that depend on the bass note.
             if post[i] is None:
@@ -350,7 +355,7 @@ def reconciliation_func(obj):
                         # If a condition depends on the bass voice, and the bass voice is that
                         # function, assign it!
                         if COND_LOW == possibility[1] and post[bass_i] == possibility[2]:
-                            post[i] = possibility[0]
+                            valid_choices.append(possibility[0])
             # Do we still need to solve this i?
             # Look for functions that depend on a non-bass note.
             if post[i] is None: # same algorithm as for bass notes
@@ -358,15 +363,42 @@ def reconciliation_func(obj):
                     if COND_PRES == possibility[1]:
                         for confirmed in post:
                             if confirmed == possibility[2]:
-                                post[i] = possibility[0]
+                                valid_choices.append(possibility[0])
             # NB: The IsGuaranteed must go last, because of complicated reasons where it may not be
             # guaranteed. Do we still need to solve this i?
             # Look for a guaranteed function,
             if post[i] is None:
                 for possibility in func:
                     if COND_GUAR == possibility[1]:
-                        post[i] = possibility[0]
-                        break
+                        # TODO: make it so this obliterates the pre-existing list, but only if that
+                        # list has no "is guaranteed" things; we *could* just choose the first "is
+                        # guaranteed" thing we find, but what if there is more than one? We want to
+                        # use the conflict-resolver below.
+                        valid_choices.append(possibility[0])
+            # The Conflict Resolver!
+            if 0 == len(valid_choices):
+                pass  # probably nothing we can do?
+            elif 1 == len(valid_choices):
+                post[i] = valid_choices[0]
+            else:
+                # TODO: add a preference for "same-key" relationships
+                base_at = []
+                agent_at = []
+                associate_at = []
+                for j, choice in enumerate(valid_choices):
+                    if ROLE_BA == choice[2]:
+                        base_at.append(j)
+                    elif ROLE_AG == choice[2]:
+                        agent_at.append(j)
+                    elif ROLE_AS == choice[2]:
+                        associate_at.append(j)
+                if len(agent_at) >= 1:
+                    # TODO: should there be different behaviours for 1 and more than 1 choice?
+                    post[i] = valid_choices[agent_at[0]]
+                elif len(base_at) >= 1:
+                    post[i] = valid_choices[base_at[0]]
+                elif len(associate_at) >= 1:
+                    post[i] = valid_choices[associate_at[0]]
         # loop-finish check: do all the elements of "post" have something useful?
         if safe_guard > safe_guard_limit or 0 == post.count(None):
             # TODO: Make this more elegant...
