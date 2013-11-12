@@ -29,6 +29,7 @@
 # pylint: disable=R0904
 
 import unittest
+import mock
 import pandas
 from vis.analyzers.indexers import harmony
 from vis.analyzers.indexers.harmony import scale_degree_func, poss_func_func, ScaleDegreeIndexer
@@ -269,7 +270,7 @@ class TestScaleDegreeIndexer(unittest.TestCase):
         self.assertSequenceEqual(list(expected_index), list(actual))
 
 
-class TestPossFuncsIndexer(unittest.TestCase):
+class TestPossFuncIndexer(unittest.TestCase):
     def test_applied_things(self):
         self.assertSequenceEqual(poss_func_func(('#4', 'G', harmony.POS_MID)),
                                  [(('D', harmony.FUNC_DOM, harmony.ROLE_AG, '7'), harmony.COND_FOLL, ('D', harmony.FUNC_TON, harmony.ROLE_BA, '1'))])
@@ -383,7 +384,41 @@ class TestPossFuncsIndexer(unittest.TestCase):
                                   (('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'), harmony.COND_PRES, ('C', harmony.FUNC_DOM, harmony.ROLE_AG, '-7')),
                                   (('C', harmony.FUNC_DOM, harmony.ROLE_AS, '2'), harmony.COND_LOW, ('C', harmony.FUNC_DOM, harmony.ROLE_BA, '5'))])
 
-    # TODO: test things get passed to the indxer_func properly
+    @mock.patch(u'vis.analyzers.indexers.harmony.PossFuncIndexer._do_multiprocessing')
+    def test_run_1(self, mock_multipro):
+        # make sure run() uses the proper combinations and relative-position indicators
+        # nr.1: four parts
+        fake_score = [pandas.Series([u'Part ' + str(i)]) for i in xrange(4)]
+        fake_score.append(pandas.Series([u'KeyIndexer result']))
+        expected_combos = [(0, 4, 7), (1, 4, 6), (2, 4, 6), (3, 4, 5)]
+        test_ind = harmony.PossFuncIndexer(fake_score)
+        ret_val = test_ind.run()
+        self.assertEqual(1, mock_multipro.call_count)
+        self.assertEqual(expected_combos, mock_multipro.call_args[0][0])
+
+    @mock.patch(u'vis.analyzers.indexers.harmony.PossFuncIndexer._do_multiprocessing')
+    def test_run_2(self, mock_multipro):
+        # make sure run() uses the proper combinations and relative-position indicators
+        # nr.2: two parts
+        fake_score = [pandas.Series([u'Part ' + str(i)]) for i in xrange(2)]
+        fake_score.append(pandas.Series([u'KeyIndexer result']))
+        expected_combos = [(0, 2, 5), (1, 2, 3)]
+        test_ind = harmony.PossFuncIndexer(fake_score)
+        ret_val = test_ind.run()
+        self.assertEqual(1, mock_multipro.call_count)
+        self.assertEqual(expected_combos, mock_multipro.call_args[0][0])
+
+    @mock.patch(u'vis.analyzers.indexers.harmony.PossFuncIndexer._do_multiprocessing')
+    def test_run_3(self, mock_multipro):
+        # make sure run() uses the proper combinations and relative-position indicators
+        # nr.3: one part
+        fake_score = [pandas.Series([u'Part 1'])]
+        fake_score.append(pandas.Series([u'KeyIndexer result']))
+        expected_combos = [(0, 1, 5)]
+        test_ind = harmony.PossFuncIndexer(fake_score)
+        ret_val = test_ind.run()
+        self.assertEqual(1, mock_multipro.call_count)
+        self.assertEqual(expected_combos, mock_multipro.call_args[0][0])
 
 
 class TestChooseFuncIndexer(unittest.TestCase):
@@ -723,6 +758,6 @@ class TestChordLabelIndexer(unittest.TestCase):
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 SCALE_DEGREE_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestScaleDegreeIndexer)
-POSS_FUNCS_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestPossFuncsIndexer)
+POSS_FUNC_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestPossFuncIndexer)
 CHOOSE_FUNC_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestChooseFuncIndexer)
 CHORD_LABEL_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestChordLabelIndexer)

@@ -561,17 +561,18 @@ class PossFuncIndexer(indexer.Indexer):
         # [a, b, c, d, e, f, g, h, i] ==> [[a, e, h], [b, e, g], [c, e, g], [d, e, f]]
 
         # helper index values
-        ind_key = len(self._score) - 1
+        ind_key = len(self._score) - 1  # index of KeyIndexer result
         ind_low = ind_key + 1
-        ind_mid = ind_key + 1
-        ind_high = ind_key + 1
-        ind_solo = ind_key + 1
+        ind_mid = ind_low + 1
+        ind_high = ind_mid + 1
+        ind_solo = ind_high + 1
 
         # add the voice-position indices
         v_pos_inds = [pandas.Series([pos]) for pos in [POS_LOW, POS_MID, POS_HIH, POS_SOL]]
         self._score.extend(v_pos_inds)
 
         # make the list of indices
+        combinations = None
         # TODO: test this with a mock
         if 1 == ind_key:
             combinations = [(0, ind_key, ind_solo)]

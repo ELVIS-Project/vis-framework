@@ -61,7 +61,7 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_ngram.NGRAM_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_SINGLE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_MULTI_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_harmony.SCALE_DEGREE_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_harmony.POSS_FUNCS_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_harmony.POSS_FUNC_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_harmony.CHOOSE_FUNC_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_harmony.CHORD_LABEL_SUITE)
 # Experimenter and Subclasses
