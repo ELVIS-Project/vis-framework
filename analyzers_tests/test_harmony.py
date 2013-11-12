@@ -276,6 +276,27 @@ class TestPossFuncsIndexer(unittest.TestCase):
         self.assertSequenceEqual(poss_func_func(('-2', 'D-', harmony.POS_LOW)),
                                  [(('G', harmony.FUNC_SUB, harmony.ROLE_AG, '-6'), harmony.COND_FOLL, ('G', harmony.FUNC_DOM, harmony.ROLE_BA, '5'))])
 
+    def test_agent_major(self):
+        # the regular 3, 6, 7 degrees, which are just agents
+        self.assertSequenceEqual(poss_func_func(('3', 'C', harmony.POS_LOW)),
+                                 [(('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'), harmony.COND_GUAR, '')])
+        self.assertSequenceEqual(poss_func_func(('6', 'C', harmony.POS_LOW)),
+                                 [(('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'), harmony.COND_GUAR, '')])
+        self.assertSequenceEqual(poss_func_func(('7', 'C', harmony.POS_LOW)),
+                                 [(('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'), harmony.COND_GUAR, '')])
+        self.assertSequenceEqual(poss_func_func(('3', 'C', harmony.POS_MID)),
+                                 [(('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'), harmony.COND_GUAR, '')])
+        self.assertSequenceEqual(poss_func_func(('6', 'C', harmony.POS_MID)),
+                                 [(('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'), harmony.COND_GUAR, '')])
+        self.assertSequenceEqual(poss_func_func(('7', 'C', harmony.POS_MID)),
+                                 [(('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'), harmony.COND_GUAR, '')])
+        self.assertSequenceEqual(poss_func_func(('3', 'C', harmony.POS_HIH)),
+                                 [(('C', harmony.FUNC_TON, harmony.ROLE_AG, '3'), harmony.COND_GUAR, '')])
+        self.assertSequenceEqual(poss_func_func(('6', 'C', harmony.POS_HIH)),
+                                 [(('C', harmony.FUNC_SUB, harmony.ROLE_AG, '6'), harmony.COND_GUAR, '')])
+        self.assertSequenceEqual(poss_func_func(('7', 'C', harmony.POS_HIH)),
+                                 [(('C', harmony.FUNC_DOM, harmony.ROLE_AG, '7'), harmony.COND_GUAR, '')])
+
     def test_agent_minor(self):
         # the flatted 3, 6, 7 degrees might also serve as applied Subdominant agent.
         self.assertSequenceEqual(poss_func_func(('-3', 'C', harmony.POS_LOW)),
