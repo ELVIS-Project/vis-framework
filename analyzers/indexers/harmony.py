@@ -65,6 +65,7 @@ COND_FOLL = u'if followed by'  # (if ___ is followed by ___, this is the functio
 
 
 def scale_degree_func(obj):
+    # TODO: refactor this to be simpler
     """
     Given a note and its key, find the scale degree.
 
@@ -179,6 +180,7 @@ def _tonic_of_7(tonic, sc_deg):
 
 
 def poss_func_func(obj):
+    # TODO: refactor this to be simpler
     """
     Given a scale degree, its key, and the relative position of the note, find the possible
     harmonic functions and their contingencies.
@@ -226,13 +228,13 @@ def poss_func_func(obj):
             # NB: it's "minus 5" below because we subtract one to make (e.g.) "scale degree 5"
             #     mean "index 4", and subtract four more to transpose down a diatonic fifth
             applied_d = _tonic_of_7(tonic, sc_deg)
-            post.append(((applied_d, FUNC_DOM, ROLE_AG, '7'), COND_FOLL, (applied_d, FUNC_TON, ROLE_BA, '1')))
+            post.append(((applied_d, FUNC_DOM, ROLE_AG, '7'), COND_FOLL, (applied_d, FUNC_TON, ROLE_BA, '1')))  # pylint: disable=C0301
         elif '-' == sc_deg[0]:
             # this might be an applied Subdominant agent; ask ourselves what that means
             # NB: it's "minus 6" below because we subtract one to make (e.g.) "scale degree 6"
             #     mean "index 5", and subtract five more to transpose down a diatonic sixth
             applied_sd = _tonic_of_f6(tonic, sc_deg)
-            post.append(((applied_sd, FUNC_SUB, ROLE_AG, '-6'), COND_FOLL, (applied_sd, FUNC_DOM, ROLE_BA, '5')))
+            post.append(((applied_sd, FUNC_SUB, ROLE_AG, '-6'), COND_FOLL, (applied_sd, FUNC_DOM, ROLE_BA, '5')))  # pylint: disable=C0301
 
     # Part 2: for possibilities in this key
 
@@ -257,26 +259,26 @@ def poss_func_func(obj):
         else:
             put = None
             if '1' == sc_deg:
-                put = [((tonic, FUNC_TON, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_TON, ROLE_AG, "3")),
-                       ((tonic, FUNC_TON, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_TON, ROLE_AG, "-3")),
-                       ((tonic, FUNC_SUB, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_SUB, ROLE_AG, "6")),
-                       ((tonic, FUNC_SUB, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_SUB, ROLE_AG, "-6")),
-                       ((tonic, FUNC_SUB, ROLE_AS, sc_deg), COND_LOW, (tonic, FUNC_SUB, ROLE_BA, '4'))]
+                put = [((tonic, FUNC_TON, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_TON, ROLE_AG, "3")),  # pylint: disable=C0301
+                       ((tonic, FUNC_TON, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_TON, ROLE_AG, "-3")),  # pylint: disable=C0301
+                       ((tonic, FUNC_SUB, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_SUB, ROLE_AG, "6")),  # pylint: disable=C0301
+                       ((tonic, FUNC_SUB, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_SUB, ROLE_AG, "-6")),  # pylint: disable=C0301
+                       ((tonic, FUNC_SUB, ROLE_AS, sc_deg), COND_LOW, (tonic, FUNC_SUB, ROLE_BA, '4'))]  # pylint: disable=C0301
             elif '4' == sc_deg:
-                put = [((tonic, FUNC_SUB, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_SUB, ROLE_AG, "6")),
-                       ((tonic, FUNC_SUB, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_SUB, ROLE_AG, "-6"))]
+                put = [((tonic, FUNC_SUB, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_SUB, ROLE_AG, "6")),  # pylint: disable=C0301
+                       ((tonic, FUNC_SUB, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_SUB, ROLE_AG, "-6"))]  # pylint: disable=C0301
             elif '5' == sc_deg:
-                put = [((tonic, FUNC_DOM, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_DOM, ROLE_AG, "7")),
-                       ((tonic, FUNC_DOM, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_DOM, ROLE_AG, "-7")),
-                       ((tonic, FUNC_TON, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_TON, ROLE_AG, "3")),
-                       ((tonic, FUNC_TON, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_TON, ROLE_AG, "-3")),
-                       ((tonic, FUNC_TON, ROLE_AS, sc_deg), COND_LOW, (tonic, FUNC_TON, ROLE_BA, '1'))]
+                put = [((tonic, FUNC_DOM, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_DOM, ROLE_AG, "7")),  # pylint: disable=C0301
+                       ((tonic, FUNC_DOM, ROLE_BA, sc_deg), COND_PRES, (tonic, FUNC_DOM, ROLE_AG, "-7")),  # pylint: disable=C0301
+                       ((tonic, FUNC_TON, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_TON, ROLE_AG, "3")),  # pylint: disable=C0301
+                       ((tonic, FUNC_TON, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_TON, ROLE_AG, "-3")),  # pylint: disable=C0301
+                       ((tonic, FUNC_TON, ROLE_AS, sc_deg), COND_LOW, (tonic, FUNC_TON, ROLE_BA, '1'))]  # pylint: disable=C0301
             post.extend(put)
     elif '2' == sc_deg:
-        post.append(((tonic, FUNC_DOM, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_DOM, ROLE_AG, "7")))
-        post.append(((tonic, FUNC_DOM, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_DOM, ROLE_AG, "-7")))
+        post.append(((tonic, FUNC_DOM, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_DOM, ROLE_AG, "7")))  # pylint: disable=C0301
+        post.append(((tonic, FUNC_DOM, ROLE_AS, sc_deg), COND_PRES, (tonic, FUNC_DOM, ROLE_AG, "-7")))  # pylint: disable=C0301
         if POS_LOW != vox_pos:
-            post.append(((tonic, FUNC_DOM, ROLE_AS, sc_deg), COND_LOW, (tonic, FUNC_DOM, ROLE_BA, '5')))
+            post.append(((tonic, FUNC_DOM, ROLE_AS, sc_deg), COND_LOW, (tonic, FUNC_DOM, ROLE_BA, '5')))  # pylint: disable=C0301
     return post
 
 
@@ -614,7 +616,6 @@ class PossFuncIndexer(indexer.Indexer):
 
         # make the list of indices
         combinations = None
-        # TODO: test this with a mock
         if 1 == ind_key:
             combinations = [(0, ind_key, ind_solo)]
         elif 2 == ind_key:
