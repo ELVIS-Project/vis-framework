@@ -154,25 +154,25 @@ class FilterByOffsetIndexer(indexer.Indexer):
 
     possible_settings = [u'quarterLength']
     """
-    A :obj:`list` of possible settings for the :class:`FilterByOffsetIndexer`.
+    A ``list`` of possible settings for the :class:`FilterByOffsetIndexer`.
 
     :keyword u'quarterLength': The quarterLength duration between observations desired in the
         output. This value must not have more than three digits to the right of the decimal
         (i.e. 0.001 is the smallest possible value).
-    :type u'quarterLength': :obj:`float`
+    :type u'quarterLength': ``float``
     """
 
     def __init__(self, score, settings=None):
         """
         :param score: A list of Series you wish to filter by offset values, stored in the Index.
-        :type score: :obj:`list` of :obj:`pandas.Series`
+        :type score: ``list`` of :class:`pandas.Series`
         :param settings: There is one required setting. See :const:`possible_settings`.
-        :type settings: :obj:`dict`
+        :type settings: ``dict`
 
-        :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
-        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
-        :raises: :exc:`RuntimeError` if the required setting is not present in :obj:`settings`.
-        :raises: :exc:`RuntimeError` if the :obj:`u'quarterLength'` setting has a value less
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        :raises: :exc:`RuntimeError` if the required setting is not present in ``settings``.
+        :raises: :exc:`RuntimeError` if the ``u'quarterLength'`` setting has a value less
             than ``0.001``.
         """
         super(FilterByOffsetIndexer, self).__init__(score, None)
@@ -207,7 +207,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
         :rtype: :class:`pandas.DataFrame`
         """
         if 0 == len(self._score):
-            return pandas.DataFrame()
+            return []
         start_offset = None
         try:
             start_offset = int(min([part.index[0] for part in self._score]) * 1000)
@@ -219,15 +219,15 @@ class FilterByOffsetIndexer(indexer.Indexer):
                     start_offset.append(part.index[0])
             if start_offset == []:
                 # all the parts have no length, so return a DataFrame with as many empty parts
-                return pandas.DataFrame({i: pandas.Series() for i in xrange(len(self._score))})
+                return [pandas.Series() for _ in xrange(len(self._score))]
             start_offset = int(min(start_offset))
         step = int(self._settings[u'quarterLength'] * 1000)
-        post = {}
-        for i in xrange(len(self._score)):
-            if len(self._score[i].index) < 1:
-                post[i] = self._score[i]
-                continue
-            end_offset = int(self._score[i].index[-1] * 1000)
-            off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))
-            post[i] = self._score[i].reindex(index=off_list, method='ffill')
-        return pandas.DataFrame(post)
+        post = []
+        for part in self._score:
+            if len(part.index) < 1:
+                post.append(part)
+            else:
+                end_offset = int(part.index[-1] * 1000)
+                off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
+                post.append(part.reindex(index=off_list, method='ffill'))
+        return post
