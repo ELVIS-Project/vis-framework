@@ -42,9 +42,9 @@ def key_to_tuple(key):
     of the parts held therein.
 
     :param key: The key from :class:`IntervalIndexer`.
-    :type key: :obj:`unicode`
+    :type key: unicode string
     :returns: The indices of parts referred to by the key.
-    :rtype: :obj:`tuple` of :obj:`int`
+    :rtype: tuple of int
 
     >>> key_to_tuple(u'5,6')
     (5, 6)
@@ -63,26 +63,26 @@ def real_indexer(simultaneity, simple, quality):
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
 
     Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
-    because of the u'Rest' strings, you can compare the duration of the piece in which the two
+    because of the ``u'Rest'` strings, you can compare the duration of the piece in which the two
     parts do or do not have notes sounding together.
 
     Parameters
     ==========
-    :param simultaneity: A two-item iterable with the note names (or :obj:`u'Rest'`) for the top
+    :param simultaneity: A two-item iterable with the note names (or :class:`u'Rest'`) for the top
         then lower voice.
-    :type simultaneity: :obj:`list` of :obj:`basestring`
+    :type simultaneity: list of basestring
 
     :param simple: Whether intervals should be reduced to their single-octave version.
-    :type simple: :obj:`boolean`
+    :type simple: boolean
 
     :param quality: Whether the interval's quality should be prepended.
-    :type quality: :obj:`boolean`
+    :type quality: boolean
 
     Returns
     =======
-    :returns: :obj:`u'Rest'` if one or more of the parts is :obj:`u'Rest'`; otherwise, the interval
+    :returns: :class:`u'Rest'` if one or more of the parts is :obj:`u'Rest'`; otherwise, the interval
         between parts.
-    :rtype: :obj:`unicode`
+    :rtype: unicode string
     """
 
     if 2 != len(simultaneity):
@@ -152,7 +152,7 @@ class IntervalIndexer(indexer.Indexer):
     Use :class:`music21.interval.Interval` to create an index of the vertical (harmonic) intervals
     between two-part combinations.
 
-    You should provide the result of :class:`NoteRestIndexer`.
+    You should provide the result of :class:`~vis.analyzers.indexers.noterest.NoteRestIndexer`.
     """
 
     required_score_type = pandas.Series
@@ -163,28 +163,25 @@ class IntervalIndexer(indexer.Indexer):
 
     possible_settings = [u'simple or compound', u'quality']
     """
-    A :obj:`list` of possible settings for the :class:`IntervalIndexer`.
+    A list of possible settings for the :class:`IntervalIndexer`.
 
-    :keyword unicode u'simple_or_compound': Whether intervals should be represented in their \
-        single-octave form (either :obj:`u'simple'` or :obj:`u'compound'`).
+    :keyword unicode u'simple or compound': Whether intervals should be represented in their \
+        single-octave form (either ``u'simple'`` or ``u'compound'``).
     :keyword boolean u'quality': Whether to display an interval's quality.
-
-    .. note:: The :obj:`u'simple or compound'` setting should have no _ characters, which appear \
-        in our documentation only because of a technical limitation in the documentation tool.
     """
 
     default_settings = {u'simple or compound': u'compound', u'quality': False}
-    "A :obj:`dict` of default settings for the :class:`IntervalIndexer`."
+    "A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
         """
         The output format is described in :meth:`run`.
 
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
-        :type score: :obj:`list` of :class:`pandas.Series`
+        :type score: list of :class:`pandas.Series`
         :param settings: Required and optional settings. See descriptions in \
             :const:`possible_settings`.
-        :type settings: :obj:`dict`
+        :type settings: dict
         """
 
         if settings is None:
@@ -222,12 +219,18 @@ class IntervalIndexer(indexer.Indexer):
 
         Returns
         =======
-        :returns: The new indices. The dict index of each Series corresponds to the indices of
-            the Part combinations used to generate it, in the order specified to the constructor.
-            Each element in the Series is a :obj:`unicode`. For example, if you stored the output
-            of this method in the "result" variable, then result['[0, 1]'] will give you the Series
-            with intervals from the highest and second-highest parts.
-        :rtype: :obj:`dict` of :class:`pandas.Series`
+        :returns: A dictionary of the new interval indices. Find part combinations by using the
+            index of the parts as provided to the :meth:`__init__` method, set as a string with
+            a comma. Refer to the "Example" below.
+        :rtype: dict of :class:`pandas.Series`
+
+        ** Example **
+
+        To access the intervals between the two highest parts in a score:
+
+        >>> result = an_interval_indexer.run()
+        >>> result['0,1']
+        Series([], type: object)  # whatever intervals
         """
         combinations = []
         # To calculate all 2-part combinations:
@@ -262,10 +265,10 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         The output format is described in :meth:`run`.
 
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
-        :type score: :obj:`list` of :class:`pandas.Series`
+        :type score: list of :class:`pandas.Series`
         :param settings: Required and optional settings. See descriptions in \
             :const:`IntervalIndexer.possible_settings`.
-        :type settings: :obj:`dict`
+        :type settings: dict
         """
         super(HorizontalIntervalIndexer, self).__init__(score, settings)
 
