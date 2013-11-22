@@ -4,8 +4,8 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexer.py
-# Purpose:                Help with indexing data from musical scores.
+# Filename:               analyzers_tests/test_note_rest_indexer.py
+# Purpose:                Tests for the NoteRestIndexer
 #
 # Copyright (C) 2013 Christopher Antila
 #
