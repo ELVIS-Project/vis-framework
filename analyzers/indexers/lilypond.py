@@ -25,14 +25,13 @@
 """
 .. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
 
-The :class:`LilyPondIndexer` uses the :mod:`OutputLilyPond` module to produces the LilyPond file
+The :class:`LilyPondIndexer` uses the :mod:`outputlilypond` module to produces the LilyPond file
 that should produce a score of the input.
 """
 
 import pandas
 from music21 import stream, note, duration
-from OutputLilyPond import OutputLilyPond
-from OutputLilyPond.LilyPondSettings import LilyPondSettings
+from outputlilypond import functions, settings
 from vis.analyzers import indexer
 
 
@@ -78,7 +77,7 @@ def annotate_the_note(obj):
 
 class LilyPondIndexer(indexer.Indexer):
     """
-    Use the :mod:`OutputLilyPond` module to produce the LilyPond file that should produce a score
+    Use the :mod:`outputlilypond` module to produce the LilyPond file that should produce a score
     of the input.
 
     .. note:: The class currently only works for the first :class:`IndexedPiece` given.
@@ -104,7 +103,7 @@ class LilyPondIndexer(indexer.Indexer):
     :type u'output_pathname': ``basestring``
 
     :keyword u'annotation_part': A :class:`Part` with annotation instructions for
-        :mod:`OutputLilyPond`. This :class:`Part` will be appended as last in the :class:`Score`.
+        :mod:`outputlilypond`. This :class:`Part` will be appended as last in the :class:`Score`.
     :type u'annotation_part': :class:`music21.stream.Part`
     """
 
@@ -151,7 +150,7 @@ class LilyPondIndexer(indexer.Indexer):
         self._settings[u'annotation_part'] = settings[u'annotation_part'] if u'annotation_part' in \
             settings else LilyPondIndexer.default_settings[u'annotation_part']
         super(LilyPondIndexer, self).__init__(score, None)
-        # We won't use an indexer function; run() is just going to pass the Score to OutputLilyPond
+        # We won't use an indexer function; run() is just going to pass the Score to outputlilypond
         self._indexer_func = None
 
     def run(self):
@@ -166,17 +165,17 @@ class LilyPondIndexer(indexer.Indexer):
         :rtype: ``list`` of ``unicode``
         """
         # TODO: make this work with more than one file
-        lily_setts = LilyPondSettings()
+        lily_setts = settings.LilyPondSettings()
         # append analysis part, if present
         if self._settings[u'annotation_part'] is not None:
             self._score[0].insert(0, self._settings[u'annotation_part'][0])  # TODO: when it works for more than one file, we shouldn't need these [0] things either
-        # because OutputLilyPond uses multiprocessing by itself, we'll just call it in series
-        the_score = OutputLilyPond.process_score(self._score[0], lily_setts)
+        # because outputlilypond uses multiprocessing by itself, we'll just call it in series
+        the_score = functions.process_score(self._score[0], lily_setts)
         # call LilyPond on each file, if required
         if self._settings[u'run_lilypond'] is True:
             with open(self._settings[u'output_pathname'], 'w') as handle:
                 handle.write(the_score)
-            OutputLilyPond._run_lilypond(self._settings[u'output_pathname'], lily_setts)
+            functions.run_lilypond(self._settings[u'output_pathname'], lily_setts)
         return the_score
 
 
