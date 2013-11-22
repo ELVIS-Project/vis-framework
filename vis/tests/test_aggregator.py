@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers_tests/aggregator.py
+# Filename:               analyzers_tests/test_aggregator.py
 # Purpose:                Test the aggregating experimenters.
 #
 # Copyright (C) 2013 Christopher Antila
