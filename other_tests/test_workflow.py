@@ -281,12 +281,12 @@ class WorkflowTests(TestCase):
         # (have to set the voice-pair settings)
         expected_pairs = [[0, 1], [0, 2]]
         for i in xrange(3):
-            test_wc._settings[i][u'voice combinations'] = expected_pairs
+            test_wc._settings[i][u'voice combinations'] = unicode(expected_pairs)
         test_wc._intervs()
         # 3.) for this test, we'll actually only confirm that mock_rep (_remove_extra_pairs) was
         #     called with the right arguments.
         self.assertEqual(3, mock_rep.call_count)
-        for i in xrange(3):
+        for i in xrange(len(the_dicts)):
             mock_rep.assert_any_call(the_dicts[i], expected_pairs)
 
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')

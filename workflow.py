@@ -433,8 +433,9 @@ class WorkflowManager(object):
                                        True else u'compound'
         for i, piece in enumerate(self._data):
             vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
-            # see which voice pairs we need; if relevant, remove unneeded voice pairs
-            combos = self.settings(i, u'voice combinations')
+            # figure out which combinations we need... this might raise a ValueError, but there's
+            # not much we can do to save the situation, so we might as well let it go up
+            combos = ast.literal_eval(unicode(self.settings(i, u'voice combinations')))
             if combos != u'[all]' and combos != u'[all pairs]' and combos is not None:
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
             # we no longer need to know the combinations' names, so we can make a list
