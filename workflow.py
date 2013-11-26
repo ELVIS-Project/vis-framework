@@ -731,7 +731,7 @@ class WorkflowManager(object):
                 for i in xrange(len(self._settings)):
                     self.settings(i, field, value)
         elif not 0 <= index < len(self._settings):
-            raise IndexError(u'Invalid inex for this WorkflowManager (' + unicode(index) + u')')
+            raise IndexError(u'Invalid piece index :' + unicode(index))
         elif field not in self._settings[index]:
             raise AttributeError(u'Invalid setting: ' + unicode(field))
         elif value is None:
