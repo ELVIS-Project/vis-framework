@@ -3,6 +3,7 @@
 */.directory
 .directory
 test_output/*
+!test_output/explanation.txt
 extra_trials/*
 *.kate-swp
 .eric4project/*

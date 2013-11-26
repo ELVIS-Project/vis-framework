@@ -1,0 +1,3 @@
+"test_output" is the default output directory for the WorkflowManager.
+
+We expect application developers will call WorkflowManager.output() with a different directory.
