@@ -72,7 +72,9 @@ geom_bar(aes(x=reorder(index, freq, function(x) x * -1), y=freq),
 scale_x_discrete(x_label) +
 scale_y_continuous("Frequency") +
 labs(title = chart_title) +
+theme(axis.text.x = element_text(angle=90, vjust=0.5)) +
 ggsave(args[2])
+
 
 # remove the automatically-generated PDF file, which we don't need
 unlink('Rplots.pdf')
