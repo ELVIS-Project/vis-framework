@@ -151,29 +151,26 @@ class WorkflowManager(object):
 
     def run(self, instruction):
         """
-        Run the workflow of an experiment.
+        Run an experiment's workflow.
 
-        Parameters
-        ==========
-        :parameter instruction: The experiment to run.
-        :type instruction: ``basestring``
+        :parameter instruction: The experiment to run (refer to "List of Experiments" below).
+        :type instruction: basestring
 
-        Returns
-        =======
         :returns: The result of the experiment.
         :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if the ``instruction`` is not valid for this
-            ``WorkflowManager``.
+            :class:`WorkflowManager`.
 
-        **Instructions:**
+        **List of Experiments**
 
-        * ``u'intervals'``: finds the frequency of vertical intervals in all \
-            2-part voice combinations.
-        * ``u'interval n-grams'``: finds the frequency of any-part vertical interval n-grams in \
-            voice pairs specified in the settings. Remember to provide the ``u'n'`` setting.
+        * ``u'intervals'``: find the frequency of vertical intervals in 2-part combinations. All \
+            settings will affect analysis *except* ``'n'``. No settings are required; if you do \
+            not set ``'voice combionations'``, all two-part combinations are included.
+        * ``u'interval n-grams'``: find the frequency of n-grams of vertical intervals connected \
+            by the horizontal interval of the lowest voice. All settings will affect analysis. \
+            You must set the ``'voice combinations'`` setting. The default value for ``'n'`` is \
+            ``2``.
         """
         # NOTE: do not re-order the instructions or this method will break
         possible_instructions = [u'intervals',
@@ -672,6 +669,8 @@ class WorkflowManager(object):
 
         A setting is related to this particular analysis, and is not a salient musical feature of
         the work itself.
+
+        Refer to :meth:`run` for a list of settings required or used by each experiment.
 
         :param index: The index of the piece to access. The range of valid indices is ``0`` through
             one fewer than the return value of calling :func:`len` on this WorkflowManager. If
