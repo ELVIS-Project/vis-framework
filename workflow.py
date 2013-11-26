@@ -695,6 +695,7 @@ class WorkflowManager(object):
 
         * ``offset interval``: If you want to run the \
             :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`, specify a value for this
+            setting. To avoid running the :class:`FilterByOffsetIndexer`, set this to ``0``.
             setting that will become the ``quarterLength`` duration between observed offsets.
         * ``filter repeats``: If you want to run the \
             :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`, set this setting to \
@@ -735,5 +736,7 @@ class WorkflowManager(object):
             raise AttributeError(u'Invalid setting: ' + unicode(field))
         elif value is None:
             return self._settings[index][field]
+        elif field == u'offset interval' and value == 0:  # can't set directly to None :(
+            self._settings[index][field] = None
         else:
             self._settings[index][field] = value
