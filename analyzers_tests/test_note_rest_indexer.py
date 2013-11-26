@@ -216,22 +216,22 @@ class TestNoteRestIndexer(unittest.TestCase):
     def test_note_rest_indexer_1(self):
         # The construcor must receive a Score
         test_part = [pandas.Series(['a', 'b', 'c']), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, noterest.NoteRestIndexer, test_part)
+        self.assertRaises(TypeError, noterest.NoteRestIndexer, test_part)
 
     def test_note_rest_indexer_2(self):
         # The construcor must receive a Score
         test_part = [pandas.Series(['a', 'b', 'c']), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, noterest.NoteRestIndexer, test_part)
+        self.assertRaises(TypeError, noterest.NoteRestIndexer, test_part)
 
     def test_note_rest_indexer_3(self):
         # Must be only one type in the list
         test_part = [stream.Part(), pandas.Series([1, 2, 3])]
-        self.assertRaises(RuntimeError, noterest.NoteRestIndexer, test_part)
+        self.assertRaises(TypeError, noterest.NoteRestIndexer, test_part)
 
     def test_note_rest_indexer_4(self):
         # Must be only one type in the list
         test_part = [stream.Part(), pandas.Series([1, 2, 3]), stream.Part()]
-        self.assertRaises(RuntimeError, noterest.NoteRestIndexer, test_part)
+        self.assertRaises(TypeError, noterest.NoteRestIndexer, test_part)
 
     def test_note_rest_indexer_5(self):
         # Should be fine

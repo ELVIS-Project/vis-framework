@@ -53,13 +53,13 @@ class TestIndexerHardcore(unittest.TestCase):
 
         test_parts = [pandas.Series()]
         settings = {}
-        self.assertRaises(RuntimeError, TestIndexer, test_parts, settings)
+        self.assertRaises(TypeError, TestIndexer, test_parts, settings)
         error_msg = unicode("<class 'vis.analyzers_tests.test_indexer.TestIndexer'> requires "
                             "<class 'music21.stream.Stream'> objects, not <class 'pandas.core"
                             ".series.Series'>")
         try:
             TestIndexer(test_parts, settings)
-        except RuntimeError as err:
+        except TypeError as err:
             self.assertEqual(err.args[0], error_msg)
 
     def test_indexer_hardcore_2(self):

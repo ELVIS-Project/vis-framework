@@ -206,12 +206,12 @@ class Indexer(object):
     """
     Create an index of a music21 stream.
 
-    Use the "requires_score" attribute to know whether the __init__() method should be given a
-    list of music21.stream.Part objects. If False, use the "required_indices" attribute to get a
-    list of the names of Indexers that should be provided instead.
+    Use the :attr:`requires_score` attribute to know whether :meth:`__init__` requires a list of
+    :class:`~music21.stream.Part` objects. If ``False``, read the documentation to know which
+    indexers' results it requires.
 
-    The name of the indexer, as stored in an IndexedPiece, is the unicode-format version of the
-    class name.
+    The name of the indexer, as stored in an :class:`IndexedPiece`, is the unicode-format version
+    of the class name.
     """
 
     # just the standard instance variables
@@ -228,21 +228,16 @@ class Indexer(object):
         """
         Create a new Indexer.
 
-        Parameters
-        ==========
-        :param score: Depending on how this Indexer works, this is a list of either Part or Series
-            obejcts to use in creating a new index.
-        :type score: list of pandas.Series or of music21.stream.Part
-
-        :param settings: A dict of all the settings required by this Indexer. All required
-            settings should be listed in subclasses. Default is None.
+        :param score: Depending on how this Indexer works, this is a list of either :class:`Part`
+            or :class:`Series` objects to use in creating a new index.
+        :type score: list of :class:`pandas.Series` or :class:`music21.stream.Part`
+        :param settings: A dict of all the settings required by this :class:`Indexer`. All required
+            settings should be listed in subclasses. Default is ``None``.
         :type settings: dict or None
 
-        Raises
-        ======
-        :raises: RuntimeError, if
-            - the "score" argument is not a list of the right type.
-            - required settings are not present in the "settings" argument.
+        :raises: :exc:`TypeError` if the ``score`` argument is not a list of the right types.
+        :raises: :exc:`RuntimeError` if the required settings are not present in the ``settings``
+            argument.
         """
         # Check the "score" argument is either uniformly Part or Series objects.
         for elem in score:
@@ -250,7 +245,7 @@ class Indexer(object):
                 msg = u'{} requires {} objects, not {}'.format(self.__class__,
                                                                self.required_score_type,
                                                                type(elem))
-                raise RuntimeError(msg)
+                raise TypeError(msg)
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
         self._score = score
@@ -266,12 +261,11 @@ class Indexer(object):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
-        :returns: A list of the new indices. The index of each Series corresponds to the index of
-            the Part used to generate it, in the order specified to the constructor. Each element in
-            the Series is an instance of music21.base.ElementWrapper.
-        :rtype: list of pandas.Series
+        :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
+            index of the :class:`Part` or :class:`Series` used to generate it, as given to the
+            constructor. Each element in each :class:`Series` is a basestring (unless specified
+            otherwise in a subclass).
+        :rtype: list of :class:`pandas.Series`
         """
         pass
 
@@ -280,26 +274,22 @@ class Indexer(object):
         Index each part combination and await the jobs' completion. In the future, this method
         may use multiprocessing.
 
-        Parameters
-        ==========
         :param combos: A list of all voice combinations to be analyzed. For example:
-            - [[0], [1], [2], [3]]
+            - ``[[0], [1], [2], [3]]``
                 Analyze each of four parts independently.
-            - [[0, 1], [0, 2], [0, 3]]
+            - ``[[0, 1], [0, 2], [0, 3]]``
                 Analyze the highest part compared with all others.
-            - [[0, 1, 2, 3]]
+            - ``[[0, 1, 2, 3]]``
                 Analyze all parts at once.
-            The function stored in "self._indexer_func" must know how to deal with the number of
-            simultaneous events it will receive.
+            The function stored in :func:`self._indexer_func` must know how to deal with the number
+            of simultaneous events it will receive.
         :type combos: list of list of integers
 
-        Returns
-        =======
         :returns: Analysis results.
-        :rtype: list of pandas.Series
+        :rtype: list of :class:`pandas.Series`
 
-        Side Effects
-        ============
+        ** Side Effects **
+
         Blocks until all voice combinations have completed.
         """
         post = []
