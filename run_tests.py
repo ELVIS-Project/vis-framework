@@ -73,3 +73,4 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
 # Integration Tests
 unittest.TextTestRunner(verbosity=VERBOSITY).run(bwv2.ALL_VOICE_INTERVAL_NGRAMS)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_integration.INTERVALS_TESTS)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_integration.NGRAMS_TESTS)
