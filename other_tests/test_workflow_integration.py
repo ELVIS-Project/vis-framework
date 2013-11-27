@@ -36,7 +36,10 @@ from vis.workflow import WorkflowManager
 class IntervalsTests(TestCase):
     # EXPECTED_A is the result of the "intervals" experiment with "[[0, 1]]" as the voice pairs;
     # note that I didn't verify by counting... this just ensures a valid value comes out
-    EXPECTED_A = pandas.Series({u'3': 32, u'4': 22, u'5': 18, u'6': 16, u'7': 4, u'2': 3, u'8': 2})
+    EXPECTED_1 = pandas.Series({u'3': 32, u'4': 22, u'5': 18, u'6': 16, u'7': 4, u'2': 3, u'8': 2})
+    EXPECTED_2 = pandas.Series({u'3': 91, u'6': 90, u'5': 86, u'10': 81, u'4': 62, u'8': 53,
+                                u'12': 37, u'7': 26, u'11': 17, u'13': 16, u'15': 12, u'9': 8,
+                                u'1': 8, u'2': 8, u'14': 7, u'17': 5, u'-2': 3, u'-3': 2, u'16': 1})
 
     def test_intervals_1(self):
         # test the two highest voices of bwv77
@@ -44,12 +47,25 @@ class IntervalsTests(TestCase):
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0, 1]]')
         actual = test_wm.run('intervals')
-        exp_ind = list(IntervalsTests.EXPECTED_A.index)
+        exp_ind = list(IntervalsTests.EXPECTED_1.index)
         act_ind = list(actual.index)
         for ind_item in exp_ind:
             self.assertTrue(ind_item in act_ind)
         for ind_item in exp_ind:
-            self.assertEqual(IntervalsTests.EXPECTED_A[ind_item], actual[ind_item])
+            self.assertEqual(IntervalsTests.EXPECTED_1[ind_item], actual[ind_item])
+
+    def test_intervals_2(self):
+        # test all combinations of bwv77
+        test_wm = WorkflowManager(['test_corpus/bwv77.mxl'])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', 'all pairs')
+        actual = test_wm.run('intervals')
+        exp_ind = list(IntervalsTests.EXPECTED_2.index)
+        act_ind = list(actual.index)
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+        for ind_item in exp_ind:
+            self.assertEqual(IntervalsTests.EXPECTED_2[ind_item], actual[ind_item])
 
 
 #-------------------------------------------------------------------------------------------------#

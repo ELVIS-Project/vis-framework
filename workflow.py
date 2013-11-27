@@ -432,8 +432,9 @@ class WorkflowManager(object):
             vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
             # figure out which combinations we need... this might raise a ValueError, but there's
             # not much we can do to save the situation, so we might as well let it go up
-            combos = ast.literal_eval(unicode(self.settings(i, u'voice combinations')))
-            if combos != u'[all]' and combos != u'[all pairs]' and combos is not None:
+            combos = unicode(self.settings(i, u'voice combinations'))
+            if combos != u'all' and combos != u'all pairs' and combos != u'None':
+                combos = ast.literal_eval(combos)
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
             # we no longer need to know the combinations' names, so we can make a list
             vert_ints = list(vert_ints.itervalues())
@@ -703,8 +704,8 @@ class WorkflowManager(object):
             set this setting to a list of a list of iterables. The following value would analyze \
             the highest three voices with each other: ``'[[0,1,2]]'`` while this would analyze the \
             every part with the lowest for a four-part piece: ``'[[0, 3], [1, 3], [2, 3]]'``. This \
-            should always be a ``basestring`` that nominally represents a list (like the values \
-            shown above or ``'[all]'`` or ``'[all pairs]'``).
+            should always be a ``basestring`` that nominally represents a list (except the special \
+            values for ``'all'`` parts at once or ``'all pairs'``).
 
         **Shared Settings:**
         All pieces share these settings. The value of ``index`` is ignored for shared settings, so
