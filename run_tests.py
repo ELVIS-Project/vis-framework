@@ -70,6 +70,14 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIEC
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregated_pieces.AGGREGATED_PIECES_SUITE)
 # WorkflowManager
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.GET_DATA_FRAME)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.INTERVAL_NGRAMS)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXPORT)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXTRA_PAIRS)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.SETTINGS)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.OUTPUT)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.INTERVALS)
 # Integration Tests
 unittest.TextTestRunner(verbosity=VERBOSITY).run(bwv2.ALL_VOICE_INTERVAL_NGRAMS)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_integration.INTERVALS_TESTS)

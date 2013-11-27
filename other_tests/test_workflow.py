@@ -39,6 +39,7 @@ from vis.analyzers.indexers import noterest, interval
 # pylint: disable=R0904
 # pylint: disable=C0111
 class WorkflowTests(TestCase):
+    # NB: this class is just for __init__(), load(), and run() (without the run() helper methods)
     def test_init_1(self):
         # with a list of basestrings
         with mock.patch(u'vis.models.indexed_piece.IndexedPiece') as mock_ip:
@@ -154,6 +155,8 @@ class WorkflowTests(TestCase):
         self.assertRaises(RuntimeError, test_wc.run, u'too short')
         self.assertRaises(RuntimeError, test_wc.run, u'this just is not an instruction you know')
 
+
+class Intervals(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
@@ -288,6 +291,474 @@ class WorkflowTests(TestCase):
         self.assertEqual(3, mock_rep.call_count)
         for i in xrange(len(the_dicts)):
             mock_rep.assert_any_call(the_dicts[i], expected_pairs)
+
+
+class Output(TestCase):
+    def test_output_1(self):
+        test_wc = WorkflowManager([])
+        self.assertRaises(NotImplementedError, test_wc.output, u'LilyPond')
+
+    def test_output_2(self):
+        test_wc = WorkflowManager([])
+        self.assertRaises(RuntimeError, test_wc.output, u'LJKDSFLAESFLKJ')
+
+    def test_output_3(self):
+        # with self._result as None
+        test_wc = WorkflowManager([])
+        self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
+
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    @mock.patch(u'subprocess.call')
+    def test_output_4(self, mock_call, mock_gdf):
+        # with specified pathname; last experiment was intervals with 20 pieces; self._result is DF
+        test_wc = WorkflowManager([])
+        test_wc._previous_exp = u'intervals'
+        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._result = MagicMock(spec=pandas.DataFrame)
+        path = u'pathname!'
+        actual = test_wc.output(u'R histogram', path)
+        self.assertEqual(0, mock_gdf.call_count)
+        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+                         path + u'.dta', path + u'.png', u'int', u'20']
+        mock_call.assert_called_once_with(expected_args)
+        self.assertEqual(path + u'.png', actual)
+
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    @mock.patch(u'subprocess.call')
+    def test_output_5(self, mock_call, mock_gdf):
+        # with unspecified pathname; last experiment was 14-grams with 1 piece; self._result is S
+        test_wc = WorkflowManager([])
+        test_wc._previous_exp = u'n-grams'
+        test_wc._data = [1]
+        test_wc._shared_settings[u'n'] = 14
+        test_wc._result = MagicMock(spec=pandas.Series)
+        path = u'test_output/output_result'
+        actual = test_wc.output(u'R histogram')
+        mock_gdf.assert_called_once_with(u'freq', None, None)
+        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+                         path + u'.dta', path + u'.png', u'14', u'1']
+        mock_call.assert_called_once_with(expected_args)
+        self.assertEqual(path + u'.png', actual)
+
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    @mock.patch(u'subprocess.call')
+    def test_output_6(self, mock_call, mock_gdf):
+        # test_ouput_6, plus top_x and threshold
+        test_wc = WorkflowManager([])
+        test_wc._previous_exp = u'n-grams'
+        test_wc._data = [1]
+        test_wc._shared_settings[u'n'] = 14
+        test_wc._result = MagicMock(spec=pandas.Series)
+        path = u'test_output/output_result'
+        actual = test_wc.output(u'R histogram', top_x=420, threshold=1987)
+        mock_gdf.assert_called_once_with(u'freq', 420, 1987)
+        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+                         path + u'.dta', path + u'.png', u'14', u'1']
+        mock_call.assert_called_once_with(expected_args)
+        self.assertEqual(path + u'.png', actual)
+
+
+class Settings(TestCase):
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_1(self, mock_ip):
+        # - if index is None and value are None, raise ValueError
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        self.assertRaises(ValueError, test_wm.settings, None, u'filter repeats', None)
+        self.assertRaises(ValueError, test_wm.settings, None, u'filter repeats')
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_2(self, mock_ip):
+        # - if index is None, field and value are valid, it'll set for all IPs
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm.settings(None, u'filter repeats', True)
+        for i in xrange(3):
+            self.assertEqual(True, test_wm._settings[i][u'filter repeats'])
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_3(self, mock_ip):
+        # - if index is less than 0 or greater-than-valid, raise IndexError
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        self.assertRaises(IndexError, test_wm.settings, -1, u'filter repeats')
+        self.assertRaises(IndexError, test_wm.settings, 20, u'filter repeats')
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_4(self, mock_ip):
+        # - if index is 0, return proper setting
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm._settings[0][u'filter repeats'] = u'cheese'
+        self.assertEqual(u'cheese', test_wm.settings(0, u'filter repeats'))
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_5(self, mock_ip):
+        # - if index is greater than 0 but valid, set proper setting
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm.settings(1, u'filter repeats', u'leeks')
+        self.assertEqual(u'leeks', test_wm._settings[1][u'filter repeats'])
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_6(self, mock_ip):
+        # - if index is valid but the setting isn't, raise AttributeError (with or without a value)
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        self.assertRaises(AttributeError, test_wm.settings, 1, u'drink wine')
+        self.assertRaises(AttributeError, test_wm.settings, 1, u'drink wine', True)
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_7(self, mock_ip):
+        # - we can properly fetch a "shared setting"
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm._shared_settings[u'n'] = 4000
+        self.assertEqual(4000, test_wm.settings(None, u'n'))
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_8(self, mock_ip):
+        # - we can properly set a "shared setting"
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        test_wm.settings(None, u'n', 4000)
+        self.assertEqual(4000, test_wm._shared_settings[u'n'])
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_0(self, mock_ip):
+        # - if trying to set 'offset interval' to 0, it should actually be set to None
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        # "None" is default value, so first set to non-zero
+        test_wm.settings(1, u'offset interval', 4.0)
+        self.assertEqual(4.0, test_wm._settings[1][u'offset interval'])
+        # now run our test
+        test_wm.settings(1, u'offset interval', 0)
+        self.assertEqual(None, test_wm._settings[1][u'offset interval'])
+
+
+class ExtraPairs(TestCase):
+    def test_extra_pairs_1(self):
+        # testing WorkflowManager._remove_extra_pairs()
+        # --> when only desired pairs are present
+        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
+        combos = [[0, 1], [0, 2], [1, 2]]
+        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_extra_pairs_2(self):
+        # testing WorkflowManager._remove_extra_pairs()
+        # --> when no pairs are desired
+        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
+        combos = []
+        expected = {}
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_extra_pairs_3(self):
+        # testing WorkflowManager._remove_extra_pairs()
+        # --> when there are desired pairs, but they are not present
+        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
+        combos = [[4, 20], [11, 12]]
+        expected = {}
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_extra_pairs_4(self):
+        # testing WorkflowManager._remove_extra_pairs()
+        # --> when there are lots of pairs, only some of which are desired
+        vert_ints = {'4,20': 0, '0,1': 1, '11,12': 4, '0,2': 2, '1,2': 3, '256,128': 12}
+        combos = [[0, 1], [0, 2], [1, 2]]
+        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_extra_pairs_5(self):
+        # --> when there are lots of pairs, only some of which are desired, and there are invalid
+        vert_ints = {'4,20': 0, '0,1': 1, '11,12': 4, '0,2': 2, '1,2': 3, '256,128': 12}
+        combos = [[0, 1], [1, 2, 3, 4, 5], [0, 2], [1, 2], [9, 11, 43], [4]]
+        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
+        self.assertSequenceEqual(expected, actual)
+
+
+class Export(TestCase):
+    def test_export_1(self):
+        # --> raise RuntimeError with unrecognized output format
+        test_wm = WorkflowManager([])
+        test_wm._result = pandas.Series(xrange(100))
+        self.assertRaises(RuntimeError, test_wm.export, u'PowerPoint')
+
+    def test_export_2(self):
+        # --> raise RuntimeError if run() hasn't been called (i.e., self._result is None)
+        test_wm = WorkflowManager([])
+        self.assertRaises(RuntimeError, test_wm.export, u'Excel', u'C:\autoexec.bat')
+
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    def test_export_3(self, mock_gdf):
+        # --> the method works as expected for CSV, Excel, and Stata when _result is a DataFrame
+        test_wm = WorkflowManager([])
+        test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
+        test_wm.export(u'CSV', u'test_path')
+        test_wm.export(u'Excel', u'test_path')
+        test_wm.export(u'Stata', u'test_path')
+        test_wm.export(u'HTML', u'test_path')
+        test_wm._result.to_csv.assert_called_once_with(u'test_path.csv')
+        test_wm._result.to_stata.assert_called_once_with(u'test_path.dta')
+        test_wm._result.to_excel.assert_called_once_with(u'test_path.xlsx')
+        test_wm._result.to_html.assert_called_once_with(u'test_path.html')
+        self.assertEqual(0, mock_gdf.call_count)
+
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    def test_export_4(self, mock_gdf):
+        # --> test_export_3() with a valid extension already on
+        test_wm = WorkflowManager([])
+        test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
+        test_wm.export(u'CSV', u'test_path.csv')
+        test_wm.export(u'Excel', u'test_path.xlsx')
+        test_wm.export(u'Stata', u'test_path.dta')
+        test_wm.export(u'HTML', u'test_path.html')
+        test_wm._result.to_csv.assert_called_once_with(u'test_path.csv')
+        test_wm._result.to_stata.assert_called_once_with(u'test_path.dta')
+        test_wm._result.to_excel.assert_called_once_with(u'test_path.xlsx')
+        test_wm._result.to_html.assert_called_once_with(u'test_path.html')
+        self.assertEqual(0, mock_gdf.call_count)
+
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    def test_export_5(self, mock_gdf):
+        # --> test_export_3() with a Series that requires calling _get_dataframe()
+        test_wm = WorkflowManager([])
+        test_wm._result = mock.MagicMock(spec=pandas.Series)
+        # CSV
+        mock_gdf.return_value = MagicMock(spec=pandas.DataFrame)
+        test_wm.export(u'CSV', u'test_path')
+        mock_gdf.assert_called_once_with(u'data', None, None)
+        mock_gdf.return_value.to_csv.assert_called_once_with(u'test_path.csv')
+        mock_gdf.reset_mock()
+        # Excel
+        test_wm.export(u'Excel', u'test_path', 5)
+        mock_gdf.assert_called_once_with(u'data', 5, None)
+        mock_gdf.return_value.to_excel.assert_called_once_with(u'test_path.xlsx')
+        mock_gdf.reset_mock()
+        # Stata
+        test_wm.export(u'Stata', u'test_path', 5, 10)
+        mock_gdf.assert_called_once_with(u'data', 5, 10)
+        mock_gdf.return_value.to_stata.assert_called_once_with(u'test_path.dta')
+        mock_gdf.reset_mock()
+        # HTML
+        test_wm.export(u'HTML', u'test_path', threshold=10)
+        mock_gdf.assert_called_once_with(u'data', None, 10)
+        mock_gdf.return_value.to_html.assert_called_once_with(u'test_path.html')
+
+    def test_export_6(self):
+        # --> the method always outputs a DataFrame, even if self._result isn't a DF yet
+        # TODO: I don't know how to test this. I want to mock DataFrame, but it also needs to pass
+        #       the isinstance() test, so it can't be a MagicMock unless it's a MagicMock instance
+        #       of DataFrame, which is impossible(?) because I have to patch it at
+        #       vis.workflow.pandas.DataFrame
+        pass
+
+
+class IntervalNGrams(TestCase):
+    @mock.patch(u'vis.workflow.AggregatedPieces')
+    @mock.patch(u'vis.workflow.WorkflowManager._variable_part_modules')
+    @mock.patch(u'vis.workflow.WorkflowManager._all_part_modules')
+    @mock.patch(u'vis.workflow.WorkflowManager._two_part_modules')
+    def test_interval_ngrams_1(self, mock_two, mock_all, mock_var, mock_ap):
+        # --> test with three pieces, each of which requires a different helper
+        # 1.) prepare mocks
+        ap_inst = MagicMock(AggregatedPieces)
+        mock_ap.return_value = ap_inst
+        ap_getdata_ret = MagicMock(spec=pandas.DataFrame)
+        ap_inst.get_data.return_value = ap_getdata_ret
+        ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
+        test_wm = WorkflowManager(ind_pieces)
+        test_wm.settings(0, u'voice combinations', u'all')
+        test_wm.settings(1, u'voice combinations', u'all pairs')
+        test_wm.settings(2, u'voice combinations', u'[[0, 1]]')
+        actual = test_wm._interval_ngrams()
+        # 3.) verify the mocks
+        mock_two.assert_called_once_with(1)
+        mock_all.assert_called_once_with(0)
+        mock_var.assert_called_once_with(2)
+        self.assertEqual(ap_getdata_ret, actual)
+        self.assertEqual(ap_getdata_ret, test_wm._result)
+
+    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
+    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
+    def test_var_part_modules_1(self, mock_freq, mock_int, mock_nri, mock_ng, mock_horiz):
+        # - test without the "filter repeats" or "offset interval" settings
+        # - we'll only use self._data[1]
+        # 1.) prepare the test and mocks
+        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
+        # set up fake part names
+        for piece in test_pieces:
+            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
+        # set up fake return values for IntervalIndexer
+        all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
+        selected_part_combos = [[0, 3], [2, 3]]
+        intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
+        horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
+        # set up return values for IndexedPiece.get_data()
+        returns = [intind_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()']
+        def side_effect(*args):
+            # NB: we need to accept "args" as a mock framework formality
+            # pylint: disable=W0613
+            return returns.pop(0)
+        for piece in test_pieces:
+            piece.get_data.side_effect = side_effect
+        # 2.) prepare WorkflowManager and run the test
+        test_wc = WorkflowManager(test_pieces)
+        test_wc.settings(1, u'interval quality', True)
+        test_wc.settings(1, u'simple intervals', True)
+        test_wc.settings(1, u'filter repeats', False)
+        test_wc.settings(1, u'offset interval', None)
+        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
+        actual = test_wc._variable_part_modules(1)
+        # 3.) confirm everything was called in the right order
+        # - that every IP is asked for its vertical and horizontal interval indexes
+        #   (that "mark singles" and "continuer" weren't put in the settings)
+        expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
+        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2, \
+                                   u'continuer': u'_', u'mark singles': False}
+        # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
+        self.assertEqual(4, test_pieces[1].get_data.call_count)
+        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
+                    mock.call([mock_nri, mock_horiz], expected_interv_setts)]
+        for i in xrange(len(expected)):
+            self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
+        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
+        for combo in selected_part_combos:
+            zombo = str(combo[0]) + u',' + str(combo[1])
+            test_pieces[1].get_data.assert_any_call([mock_ng, mock_freq],
+                                                    expected_ngram_settings,
+                                                    [intind_ret[zombo],
+                                                    horiz_ret[combo[1]]])
+        self.assertEqual(u'piece2 4th get_data()', actual)
+
+    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
+    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
+    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
+    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
+    def test_var_part_modules_2(self, mock_freq, mock_int, mock_nri, mock_ng, mock_horiz, \
+                                mock_off, mock_rep):
+        # - test with the "filter repeats" or "offset interval" settings
+        # - we'll only use self._data[1]
+        # 1.) prepare the test and mocks
+        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
+        # set up fake part names
+        for piece in test_pieces:
+            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
+        # set up fake return values for IntervalIndexer
+        all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
+        selected_part_combos = [[0, 3], [2, 3]]
+        intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
+        horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
+        # set up return values for IndexedPiece.get_data()
+        returns = [1, 2, 3, 4, intind_ret, horiz_ret, 7, 8]
+        def side_effect(*args):
+            # NB: we need to accept "args" as a mock framework formality
+            # pylint: disable=W0613
+            return returns.pop(0)
+        for piece in test_pieces:
+            piece.get_data.side_effect = side_effect
+        # 2.) prepare WorkflowManager and run the test
+        test_wc = WorkflowManager(test_pieces)
+        test_wc.settings(1, u'interval quality', False)
+        test_wc.settings(1, u'simple intervals', False)
+        test_wc.settings(1, u'filter repeats', True)
+        test_wc.settings(1, u'offset interval', 0.5)
+        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
+        actual = test_wc._variable_part_modules(1)
+        # 3.) confirm everything was called in the right order
+        # - that every IP is asked for its vertical and horizontal interval indexes
+        #   (that "mark singles" and "continuer" weren't put in the settings)
+        expected_interv_setts = {u'quality': False, u'simple or compound': u'compound'}
+        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2, \
+                                   u'continuer': u'_', u'mark singles': False}
+        expected_off_setts = {u'quarterLength': 0.5}
+        # 2 combinations for NGramIndexer, plus 2 calls to interval indexers, plus 2 calls each to
+        # the repeat and offset indexers
+        self.assertEqual(8, test_pieces[1].get_data.call_count)
+        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
+                    mock.call([mock_nri, mock_horiz], expected_interv_setts),
+                    mock.call([mock_off], expected_off_setts, 1),
+                    mock.call([mock_off], expected_off_setts, 2),
+                    mock.call([mock_rep], {}, 3),
+                    mock.call([mock_rep], {}, 4)]
+        for i in xrange(len(expected)):
+            self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
+        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
+        for combo in selected_part_combos:
+            zombo = str(combo[0]) + u',' + str(combo[1])
+            test_pieces[1].get_data.assert_any_call([mock_ng, mock_freq],
+                                                    expected_ngram_settings,
+                                                    [intind_ret[zombo],
+                                                    horiz_ret[combo[1]]])
+        self.assertEqual(8, actual)
+
+    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
+    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
+    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
+    def test_var_part_modules_3(self, mock_freq, mock_int, mock_nri, mock_ng, mock_horiz):
+        # - test without the "filter repeats" or "offset interval" settings
+        # - we'll only use self._data[1]
+        # 1.) prepare the test and mocks
+        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
+        # set up fake part names
+        for piece in test_pieces:
+            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
+        # set up fake return values for IntervalIndexer
+        all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
+        selected_part_combos = [[0, 1, 2], [1, 2, 3]]
+        intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
+        horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
+        # set up return values for IndexedPiece.get_data()
+        returns = [intind_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()']
+        def side_effect(*args):
+            # NB: we need to accept "args" as a mock framework formality
+            # pylint: disable=W0613
+            return returns.pop(0)
+        for piece in test_pieces:
+            piece.get_data.side_effect = side_effect
+        # 2.) prepare WorkflowManager and run the test
+        test_wc = WorkflowManager(test_pieces)
+        test_wc.settings(1, u'interval quality', True)
+        test_wc.settings(1, u'simple intervals', True)
+        test_wc.settings(1, u'filter repeats', False)
+        test_wc.settings(1, u'offset interval', None)
+        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
+        actual = test_wc._variable_part_modules(1)
+        # 3.) confirm everything was called in the right order
+        # - that every IP is asked for its vertical and horizontal interval indexes
+        #   (that "mark singles" and "continuer" weren't put in the settings)
+        expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
+        expected_ngram_settings = {u'horizontal': [2], u'vertical': [0, 1], u'n': 2, \
+                                   u'continuer': u'_', u'mark singles': False}
+        # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
+        self.assertEqual(4, test_pieces[1].get_data.call_count)
+        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
+                    mock.call([mock_nri, mock_horiz], expected_interv_setts)]
+        for i in xrange(len(expected)):
+            self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
+        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
+        selected_part_combos = [[0, 1, 2], [1, 2, 3]]
+        for combo in selected_part_combos:
+            parts = [intind_ret[str(i) + u',' + str(combo[-1])] for i in combo[:-1]]
+            parts.append(horiz_ret[combo[-1]])
+            test_pieces[1].get_data.assert_any_call([mock_ng, mock_freq],
+                                                    expected_ngram_settings,
+                                                    parts)
+        self.assertEqual(u'piece2 4th get_data()', actual)
 
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
     @mock.patch(u'vis.workflow.ngram.NGramIndexer')
@@ -518,464 +989,8 @@ class WorkflowTests(TestCase):
                                                     horiz_ret[interval.key_to_tuple(combo)[1]]])
         self.assertEqual(12, actual)
 
-    def test_output_1(self):
-        test_wc = WorkflowManager([])
-        self.assertRaises(NotImplementedError, test_wc.output, u'LilyPond')
 
-    def test_output_2(self):
-        test_wc = WorkflowManager([])
-        self.assertRaises(RuntimeError, test_wc.output, u'LJKDSFLAESFLKJ')
-
-    def test_output_3(self):
-        # with self._result as None
-        test_wc = WorkflowManager([])
-        self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
-
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.call')
-    def test_output_4(self, mock_call, mock_gdf):
-        # with specified pathname; last experiment was intervals with 20 pieces; self._result is DF
-        test_wc = WorkflowManager([])
-        test_wc._previous_exp = u'intervals'
-        test_wc._data = [1 for _ in xrange(20)]
-        test_wc._result = MagicMock(spec=pandas.DataFrame)
-        path = u'pathname!'
-        actual = test_wc.output(u'R histogram', path)
-        self.assertEqual(0, mock_gdf.call_count)
-        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
-                         path + u'.dta', path + u'.png', u'int', u'20']
-        mock_call.assert_called_once_with(expected_args)
-        self.assertEqual(path + u'.png', actual)
-
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.call')
-    def test_output_5(self, mock_call, mock_gdf):
-        # with unspecified pathname; last experiment was 14-grams with 1 piece; self._result is S
-        test_wc = WorkflowManager([])
-        test_wc._previous_exp = u'n-grams'
-        test_wc._data = [1]
-        test_wc._shared_settings[u'n'] = 14
-        test_wc._result = MagicMock(spec=pandas.Series)
-        path = u'test_output/output_result'
-        actual = test_wc.output(u'R histogram')
-        mock_gdf.assert_called_once_with(u'freq', None, None)
-        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
-                         path + u'.dta', path + u'.png', u'14', u'1']
-        mock_call.assert_called_once_with(expected_args)
-        self.assertEqual(path + u'.png', actual)
-
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.call')
-    def test_output_6(self, mock_call, mock_gdf):
-        # test_ouput_6, plus top_x and threshold
-        test_wc = WorkflowManager([])
-        test_wc._previous_exp = u'n-grams'
-        test_wc._data = [1]
-        test_wc._shared_settings[u'n'] = 14
-        test_wc._result = MagicMock(spec=pandas.Series)
-        path = u'test_output/output_result'
-        actual = test_wc.output(u'R histogram', top_x=420, threshold=1987)
-        mock_gdf.assert_called_once_with(u'freq', 420, 1987)
-        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
-                         path + u'.dta', path + u'.png', u'14', u'1']
-        mock_call.assert_called_once_with(expected_args)
-        self.assertEqual(path + u'.png', actual)
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_1(self, mock_ip):
-        # - if index is None and value are None, raise ValueError
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        self.assertRaises(ValueError, test_wm.settings, None, u'filter repeats', None)
-        self.assertRaises(ValueError, test_wm.settings, None, u'filter repeats')
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_2(self, mock_ip):
-        # - if index is None, field and value are valid, it'll set for all IPs
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        test_wm.settings(None, u'filter repeats', True)
-        for i in xrange(3):
-            self.assertEqual(True, test_wm._settings[i][u'filter repeats'])
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_3(self, mock_ip):
-        # - if index is less than 0 or greater-than-valid, raise IndexError
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        self.assertRaises(IndexError, test_wm.settings, -1, u'filter repeats')
-        self.assertRaises(IndexError, test_wm.settings, 20, u'filter repeats')
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_4(self, mock_ip):
-        # - if index is 0, return proper setting
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        test_wm._settings[0][u'filter repeats'] = u'cheese'
-        self.assertEqual(u'cheese', test_wm.settings(0, u'filter repeats'))
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_5(self, mock_ip):
-        # - if index is greater than 0 but valid, set proper setting
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        test_wm.settings(1, u'filter repeats', u'leeks')
-        self.assertEqual(u'leeks', test_wm._settings[1][u'filter repeats'])
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_6(self, mock_ip):
-        # - if index is valid but the setting isn't, raise AttributeError (with or without a value)
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        self.assertRaises(AttributeError, test_wm.settings, 1, u'drink wine')
-        self.assertRaises(AttributeError, test_wm.settings, 1, u'drink wine', True)
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_7(self, mock_ip):
-        # - we can properly fetch a "shared setting"
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        test_wm._shared_settings[u'n'] = 4000
-        self.assertEqual(4000, test_wm.settings(None, u'n'))
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_8(self, mock_ip):
-        # - we can properly set a "shared setting"
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        test_wm.settings(None, u'n', 4000)
-        self.assertEqual(4000, test_wm._shared_settings[u'n'])
-
-    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_0(self, mock_ip):
-        # - if trying to set 'offset interval' to 0, it should actually be set to None
-        test_wm = WorkflowManager([u'a', u'b', u'c'])
-        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
-        # "None" is default value, so first set to non-zero
-        test_wm.settings(1, u'offset interval', 4.0)
-        self.assertEqual(4.0, test_wm._settings[1][u'offset interval'])
-        # now run our test
-        test_wm.settings(1, u'offset interval', 0)
-        self.assertEqual(None, test_wm._settings[1][u'offset interval'])
-
-    def test_extra_pairs_1(self):
-        # testing WorkflowManager._remove_extra_pairs()
-        # --> when only desired pairs are present
-        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
-        combos = [[0, 1], [0, 2], [1, 2]]
-        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_extra_pairs_2(self):
-        # testing WorkflowManager._remove_extra_pairs()
-        # --> when no pairs are desired
-        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
-        combos = []
-        expected = {}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_extra_pairs_3(self):
-        # testing WorkflowManager._remove_extra_pairs()
-        # --> when there are desired pairs, but they are not present
-        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
-        combos = [[4, 20], [11, 12]]
-        expected = {}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_extra_pairs_4(self):
-        # testing WorkflowManager._remove_extra_pairs()
-        # --> when there are lots of pairs, only some of which are desired
-        vert_ints = {'4,20': 0, '0,1': 1, '11,12': 4, '0,2': 2, '1,2': 3, '256,128': 12}
-        combos = [[0, 1], [0, 2], [1, 2]]
-        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_extra_pairs_5(self):
-        # --> when there are lots of pairs, only some of which are desired, and there are invalid
-        vert_ints = {'4,20': 0, '0,1': 1, '11,12': 4, '0,2': 2, '1,2': 3, '256,128': 12}
-        combos = [[0, 1], [1, 2, 3, 4, 5], [0, 2], [1, 2], [9, 11, 43], [4]]
-        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_export_1(self):
-        # --> raise RuntimeError with unrecognized output format
-        test_wm = WorkflowManager([])
-        test_wm._result = pandas.Series(xrange(100))
-        self.assertRaises(RuntimeError, test_wm.export, u'PowerPoint')
-
-    def test_export_2(self):
-        # --> raise RuntimeError if run() hasn't been called (i.e., self._result is None)
-        test_wm = WorkflowManager([])
-        self.assertRaises(RuntimeError, test_wm.export, u'Excel', u'C:\autoexec.bat')
-
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    def test_export_3(self, mock_gdf):
-        # --> the method works as expected for CSV, Excel, and Stata when _result is a DataFrame
-        test_wm = WorkflowManager([])
-        test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
-        test_wm.export(u'CSV', u'test_path')
-        test_wm.export(u'Excel', u'test_path')
-        test_wm.export(u'Stata', u'test_path')
-        test_wm.export(u'HTML', u'test_path')
-        test_wm._result.to_csv.assert_called_once_with(u'test_path.csv')
-        test_wm._result.to_stata.assert_called_once_with(u'test_path.dta')
-        test_wm._result.to_excel.assert_called_once_with(u'test_path.xlsx')
-        test_wm._result.to_html.assert_called_once_with(u'test_path.html')
-        self.assertEqual(0, mock_gdf.call_count)
-
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    def test_export_4(self, mock_gdf):
-        # --> test_export_3() with a valid extension already on
-        test_wm = WorkflowManager([])
-        test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
-        test_wm.export(u'CSV', u'test_path.csv')
-        test_wm.export(u'Excel', u'test_path.xlsx')
-        test_wm.export(u'Stata', u'test_path.dta')
-        test_wm.export(u'HTML', u'test_path.html')
-        test_wm._result.to_csv.assert_called_once_with(u'test_path.csv')
-        test_wm._result.to_stata.assert_called_once_with(u'test_path.dta')
-        test_wm._result.to_excel.assert_called_once_with(u'test_path.xlsx')
-        test_wm._result.to_html.assert_called_once_with(u'test_path.html')
-        self.assertEqual(0, mock_gdf.call_count)
-
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    def test_export_5(self, mock_gdf):
-        # --> test_export_3() with a Series that requires calling _get_dataframe()
-        test_wm = WorkflowManager([])
-        test_wm._result = mock.MagicMock(spec=pandas.Series)
-        # CSV
-        mock_gdf.return_value = MagicMock(spec=pandas.DataFrame)
-        test_wm.export(u'CSV', u'test_path')
-        mock_gdf.assert_called_once_with(u'data', None, None)
-        mock_gdf.return_value.to_csv.assert_called_once_with(u'test_path.csv')
-        mock_gdf.reset_mock()
-        # Excel
-        test_wm.export(u'Excel', u'test_path', 5)
-        mock_gdf.assert_called_once_with(u'data', 5, None)
-        mock_gdf.return_value.to_excel.assert_called_once_with(u'test_path.xlsx')
-        mock_gdf.reset_mock()
-        # Stata
-        test_wm.export(u'Stata', u'test_path', 5, 10)
-        mock_gdf.assert_called_once_with(u'data', 5, 10)
-        mock_gdf.return_value.to_stata.assert_called_once_with(u'test_path.dta')
-        mock_gdf.reset_mock()
-        # HTML
-        test_wm.export(u'HTML', u'test_path', threshold=10)
-        mock_gdf.assert_called_once_with(u'data', None, 10)
-        mock_gdf.return_value.to_html.assert_called_once_with(u'test_path.html')
-
-    def test_export_6(self):
-        # --> the method always outputs a DataFrame, even if self._result isn't a DF yet
-        # TODO: I don't know how to test this. I want to mock DataFrame, but it also needs to pass
-        #       the isinstance() test, so it can't be a MagicMock unless it's a MagicMock instance
-        #       of DataFrame, which is impossible(?) because I have to patch it at
-        #       vis.workflow.pandas.DataFrame
-        pass
-
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    @mock.patch(u'vis.workflow.WorkflowManager._variable_part_modules')
-    @mock.patch(u'vis.workflow.WorkflowManager._all_part_modules')
-    @mock.patch(u'vis.workflow.WorkflowManager._two_part_modules')
-    def test_interval_ngrams_1(self, mock_two, mock_all, mock_var, mock_ap):
-        # --> test with three pieces, each of which requires a different helper
-        # 1.) prepare mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock(spec=pandas.DataFrame)
-        ap_inst.get_data.return_value = ap_getdata_ret
-        ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
-        test_wm = WorkflowManager(ind_pieces)
-        test_wm.settings(0, u'voice combinations', u'all')
-        test_wm.settings(1, u'voice combinations', u'all pairs')
-        test_wm.settings(2, u'voice combinations', u'[[0, 1]]')
-        actual = test_wm._interval_ngrams()
-        # 3.) verify the mocks
-        mock_two.assert_called_once_with(1)
-        mock_all.assert_called_once_with(0)
-        mock_var.assert_called_once_with(2)
-        self.assertEqual(ap_getdata_ret, actual)
-        self.assertEqual(ap_getdata_ret, test_wm._result)
-
-    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    def test_var_part_modules_1(self, mock_freq, mock_int, mock_nri, mock_ng, mock_horiz):
-        # - test without the "filter repeats" or "offset interval" settings
-        # - we'll only use self._data[1]
-        # 1.) prepare the test and mocks
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
-        # set up fake return values for IntervalIndexer
-        all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
-        selected_part_combos = [[0, 3], [2, 3]]
-        intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
-        horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
-        # set up return values for IndexedPiece.get_data()
-        returns = [intind_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()']
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        # 2.) prepare WorkflowManager and run the test
-        test_wc = WorkflowManager(test_pieces)
-        test_wc.settings(1, u'interval quality', True)
-        test_wc.settings(1, u'simple intervals', True)
-        test_wc.settings(1, u'filter repeats', False)
-        test_wc.settings(1, u'offset interval', None)
-        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
-        actual = test_wc._variable_part_modules(1)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
-        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2, \
-                                   u'continuer': u'_', u'mark singles': False}
-        # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
-        self.assertEqual(4, test_pieces[1].get_data.call_count)
-        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
-                    mock.call([mock_nri, mock_horiz], expected_interv_setts)]
-        for i in xrange(len(expected)):
-            self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
-        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
-        for combo in selected_part_combos:
-            zombo = str(combo[0]) + u',' + str(combo[1])
-            test_pieces[1].get_data.assert_any_call([mock_ng, mock_freq],
-                                                    expected_ngram_settings,
-                                                    [intind_ret[zombo],
-                                                    horiz_ret[combo[1]]])
-        self.assertEqual(u'piece2 4th get_data()', actual)
-
-    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
-    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
-    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    def test_var_part_modules_2(self, mock_freq, mock_int, mock_nri, mock_ng, mock_horiz, \
-                                mock_off, mock_rep):
-        # - test with the "filter repeats" or "offset interval" settings
-        # - we'll only use self._data[1]
-        # 1.) prepare the test and mocks
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
-        # set up fake return values for IntervalIndexer
-        all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
-        selected_part_combos = [[0, 3], [2, 3]]
-        intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
-        horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
-        # set up return values for IndexedPiece.get_data()
-        returns = [1, 2, 3, 4, intind_ret, horiz_ret, 7, 8]
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        # 2.) prepare WorkflowManager and run the test
-        test_wc = WorkflowManager(test_pieces)
-        test_wc.settings(1, u'interval quality', False)
-        test_wc.settings(1, u'simple intervals', False)
-        test_wc.settings(1, u'filter repeats', True)
-        test_wc.settings(1, u'offset interval', 0.5)
-        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
-        actual = test_wc._variable_part_modules(1)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_interv_setts = {u'quality': False, u'simple or compound': u'compound'}
-        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2, \
-                                   u'continuer': u'_', u'mark singles': False}
-        expected_off_setts = {u'quarterLength': 0.5}
-        # 2 combinations for NGramIndexer, plus 2 calls to interval indexers, plus 2 calls each to
-        # the repeat and offset indexers
-        self.assertEqual(8, test_pieces[1].get_data.call_count)
-        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
-                    mock.call([mock_nri, mock_horiz], expected_interv_setts),
-                    mock.call([mock_off], expected_off_setts, 1),
-                    mock.call([mock_off], expected_off_setts, 2),
-                    mock.call([mock_rep], {}, 3),
-                    mock.call([mock_rep], {}, 4)]
-        for i in xrange(len(expected)):
-            self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
-        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
-        for combo in selected_part_combos:
-            zombo = str(combo[0]) + u',' + str(combo[1])
-            test_pieces[1].get_data.assert_any_call([mock_ng, mock_freq],
-                                                    expected_ngram_settings,
-                                                    [intind_ret[zombo],
-                                                    horiz_ret[combo[1]]])
-        self.assertEqual(8, actual)
-
-    @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch(u'vis.workflow.ngram.NGramIndexer')
-    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    def test_var_part_modules_3(self, mock_freq, mock_int, mock_nri, mock_ng, mock_horiz):
-        # - test without the "filter repeats" or "offset interval" settings
-        # - we'll only use self._data[1]
-        # 1.) prepare the test and mocks
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = [u'S', u'A', u'T', u'B']
-        # set up fake return values for IntervalIndexer
-        all_part_combos = [u'0,3', u'1,3', u'2,3', u'0,1', u'0,2', u'1,2']
-        selected_part_combos = [[0, 1, 2], [1, 2, 3]]
-        intind_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
-        horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
-        # set up return values for IndexedPiece.get_data()
-        returns = [intind_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()']
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        # 2.) prepare WorkflowManager and run the test
-        test_wc = WorkflowManager(test_pieces)
-        test_wc.settings(1, u'interval quality', True)
-        test_wc.settings(1, u'simple intervals', True)
-        test_wc.settings(1, u'filter repeats', False)
-        test_wc.settings(1, u'offset interval', None)
-        test_wc.settings(1, u'voice combinations', unicode(selected_part_combos))
-        actual = test_wc._variable_part_modules(1)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
-        expected_ngram_settings = {u'horizontal': [2], u'vertical': [0, 1], u'n': 2, \
-                                   u'continuer': u'_', u'mark singles': False}
-        # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
-        self.assertEqual(4, test_pieces[1].get_data.call_count)
-        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
-                    mock.call([mock_nri, mock_horiz], expected_interv_setts)]
-        for i in xrange(len(expected)):
-            self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
-        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
-        selected_part_combos = [[0, 1, 2], [1, 2, 3]]
-        for combo in selected_part_combos:
-            parts = [intind_ret[str(i) + u',' + str(combo[-1])] for i in combo[:-1]]
-            parts.append(horiz_ret[combo[-1]])
-            test_pieces[1].get_data.assert_any_call([mock_ng, mock_freq],
-                                                    expected_ngram_settings,
-                                                    parts)
-        self.assertEqual(u'piece2 4th get_data()', actual)
-
+class GetDataFrame(TestCase):
     def test_get_dataframe_1(self):
         # test with name=auto, top_x=auto, threshold=auto
         test_wc = WorkflowManager([])
@@ -1020,3 +1035,10 @@ class WorkflowTests(TestCase):
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
 WORKFLOW_TESTS = TestLoader().loadTestsFromTestCase(WorkflowTests)
+GET_DATA_FRAME = TestLoader().loadTestsFromTestCase(GetDataFrame)
+INTERVAL_NGRAMS = TestLoader().loadTestsFromTestCase(IntervalNGrams)
+EXPORT = TestLoader().loadTestsFromTestCase(Export)
+EXTRA_PAIRS = TestLoader().loadTestsFromTestCase(ExtraPairs)
+SETTINGS = TestLoader().loadTestsFromTestCase(Settings)
+OUTPUT = TestLoader().loadTestsFromTestCase(Output)
+INTERVALS = TestLoader().loadTestsFromTestCase(Intervals)
