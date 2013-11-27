@@ -26,6 +26,8 @@
 Tests for other components of vis.
 """
 
-__all__ = ['test_workflow', 'bwv2_integration_tests', 'test_workflow_integration']
+__all__ = ['test_workflow', 'bwv2_integration_tests', 'test_workflow_integration',
+           'test_workflow_experiments']
 
-from vis.other_tests import test_workflow, bwv2_integration_tests, test_workflow_integration
+from vis.other_tests import test_workflow, bwv2_integration_tests, test_workflow_integration, \
+    test_workflow_experiments
