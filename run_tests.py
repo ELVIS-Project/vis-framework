@@ -42,7 +42,7 @@ from vis.models_tests import test_indexed_piece, test_aggregated_pieces
 from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
     test_aggregator, test_interval_indexer, test_frequency_experimenter, test_offset
 from vis.other_tests import bwv2_integration_tests as bwv2
-from vis.other_tests import test_workflow
+from vis.other_tests import test_workflow, test_workflow_integration
 
 # Indexer and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
@@ -72,3 +72,4 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregated_pieces.AGGREGAT
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
 # Integration Tests
 unittest.TextTestRunner(verbosity=VERBOSITY).run(bwv2.ALL_VOICE_INTERVAL_NGRAMS)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_integration.INTERVALS_TESTS)
