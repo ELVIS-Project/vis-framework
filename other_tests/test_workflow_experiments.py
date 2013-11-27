@@ -33,7 +33,7 @@ import pandas
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
 from vis.models.aggregated_pieces import AggregatedPieces
-from vis.analyzers.indexers import noterest, interval
+from vis.analyzers.indexers import interval
 
 
 # pylint: disable=R0904
@@ -145,7 +145,6 @@ class Intervals(TestCase):
         # --> test whether _intervs() calls all those things in the right order, with specifying
         #     certain voice-pairs
         # 1.) prepare the test and mocks
-        test_settings = {u'simple or compound': u'compound', u'quality': False}
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         the_dicts = [MagicMock(dict, name=u'piece1 1st get_data()'),
                      MagicMock(dict, name=u'piece2 1st get_data()'),

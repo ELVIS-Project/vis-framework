@@ -32,8 +32,7 @@ from mock import MagicMock
 import pandas
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
-from vis.models.aggregated_pieces import AggregatedPieces
-from vis.analyzers.indexers import noterest, interval
+from vis.analyzers.indexers import noterest
 
 
 # pylint: disable=R0904
