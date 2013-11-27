@@ -36,6 +36,42 @@ After you install the ``vis`` framework, we recommend you run our automated test
 
 The :class:`~vis.workflow.WorkflowManager` is not required for the framework's operation. We recommend you use the :class:`WorkflowManager` directly or as an example to write new applications. The vis framework gives you tools to answer a wide variety of musical questions. The :class:`WorkflowManager` uses the framework to answer specific questions. Please refer to :ref:`use_the_workflowmanager` for more information. If you will not use the :class:`WorkflowManager`, we recommend you delete it: remove the ``workflow.py`` and ``other_tests/test_workflow.py`` files.
 
+Install R and ggplot2 for Graphs
+--------------------------------
+
+If you wish to produce graphs with the VIS Framework, you must install an R interpreter and the "ggplot2" library. We use the version 3.0.x series of R.
+
+If you use a "Windows" or "OS X" computer, download a pre-compiled binary from http://cran.r-project.org. If you use a "Linux" computer (or "BSD," etc.), check your package manager for R 3.0.x. You may have a problem if you search for "R," since it is a common letter, so we recommend you assume the package is called "R" and try to search only if that does not work. If your distribution does not provide an R binary, or provides an older version than 3.0.0, install R from source code: http://cran.r-project.org/doc/manuals/r-release/R-admin.html.
+
+In all cases, if you encounter a problem, the R manuals are extensive, but require careful attention.
+
+Your distribution may provide a package for "ggplot" or "ggplot2." The following instructions work for all operating systems:
+
+#. Start R (with superuser privileges, if not on Windows).
+#. Run the following command to install ggplot::
+
+    install.packages("ggplot2")
+
+#. Run the following commands to test R and ggplot::
+
+    huron <- data.frame(year=1875:1972, level=as.vector(LakeHuron))
+    library(plyr)
+    huron$decade <- round_any(huron$year, 10, floor)
+    library(ggplot)
+    h <- ggplot(huron, aes(x=year))
+    h + geom_ribbon(aes(ymin=level-1, ymax=level+1))
+
+Expect to see a chart like this:
+
+.. figure:: geom_ribbon-6.png
+    :alt: Ribbon chart produced by the ggplot package in the R language.
+
+    Image credit: taken from the `"ggplot2" documentation <http://docs.ggplot2.org/current/geom_ribbon.html>`_ on 26 November 2013; reused here under the GNU General Public License, version 2.
+
+Quit R. You do not need to save your workspace::
+
+    q()
+
 .. _known_issues_and_limitations:
 
 Known Issues and Limitations
