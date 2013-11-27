@@ -219,9 +219,15 @@ class WorkflowManager(object):
         all_results = []
         # user helpers to fetch results for each piece
         for i in xrange(len(self._data)):
-            if u'[all]' == self.settings(i, u'voice combinations'):
+            # figure out which combinations we need... this might raise a ValueError, but there's
+            # not much we can do to save the situation, so we might as well let it go up
+            combos = unicode(self.settings(i, u'voice combinations'))
+            if combos != u'all' and combos != u'all pairs':
+                combos = ast.literal_eval(combos)
+
+            if u'all' == self.settings(i, u'voice combinations'):
                 all_results.append(self._all_part_modules(i))
-            elif u'[all pairs]' == self.settings(i, u'voice combinations'):
+            elif u'all pairs' == self.settings(i, u'voice combinations'):
                 all_results.append(self._two_part_modules(i))
             else:
                 all_results.append(self._variable_part_modules(i))

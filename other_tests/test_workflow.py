@@ -790,9 +790,9 @@ class WorkflowTests(TestCase):
         ap_inst.get_data.return_value = ap_getdata_ret
         ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
         test_wm = WorkflowManager(ind_pieces)
-        test_wm.settings(0, u'voice combinations', u'[all]')
-        test_wm.settings(1, u'voice combinations', u'[all pairs]')
-        test_wm.settings(2, u'voice combinations', u'other')
+        test_wm.settings(0, u'voice combinations', u'all')
+        test_wm.settings(1, u'voice combinations', u'all pairs')
+        test_wm.settings(2, u'voice combinations', u'[[0, 1]]')
         actual = test_wm._interval_ngrams()
         # 3.) verify the mocks
         mock_two.assert_called_once_with(1)
