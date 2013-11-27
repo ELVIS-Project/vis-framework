@@ -72,7 +72,7 @@ class TestAggregatedPieces(TestCase):
         self.ind_pieces[2].metadata = MagicMock(return_value = u'The Boys')
         expected = [u'Bok', u'Baytowvinn', u'The Boys']
         self.assertEqual(expected, self.agg_p._fetch_metadata(u'composers'))
-        self.assertEqual(expected, self.agg_p._metadata.composers)  # pylint: disable=E1101
+        self.assertEqual(expected, self.agg_p._metadata['composers'])  # pylint: disable=E1101
         for piece in self.ind_pieces:
             piece.metadata.assert_called_once_with(u'composer')
 
@@ -84,7 +84,7 @@ class TestAggregatedPieces(TestCase):
         self.ind_pieces[2].metadata = MagicMock(return_value = u'1987')
         expected = [u'1993', u'1302', u'1987']
         self.assertSequenceEqual(expected, self.agg_p._fetch_metadata(u'dates'))
-        self.assertSequenceEqual(expected, self.agg_p._metadata.dates)  # pylint: disable=E1101
+        self.assertSequenceEqual(expected, self.agg_p._metadata[u'dates'])  # pylint: disable=E1101
         for piece in self.ind_pieces:
             piece.metadata.assert_called_once_with(u'date')
 
@@ -97,7 +97,7 @@ class TestAggregatedPieces(TestCase):
         self.ind_pieces[2].metadata = MagicMock(return_value = u'1987/09/09 to 2045/05/12')
         expected = [u'1993 to 1993/08/08', u'1302 to 1405', u'1987/09/09 to 2045/05/12']
         self.assertSequenceEqual(expected, self.agg_p._fetch_metadata(u'dates'))
-        self.assertSequenceEqual(expected, self.agg_p._metadata.dates)  # pylint: disable=E1101
+        self.assertSequenceEqual(expected, self.agg_p._metadata[u'dates'])  # pylint: disable=E1101
         for piece in self.ind_pieces:
             piece.metadata.assert_called_once_with(u'date')
 
@@ -109,7 +109,7 @@ class TestAggregatedPieces(TestCase):
         self.ind_pieces[2].metadata = MagicMock(return_value = u'1987')
         expected = (u'1302', u'1993')
         self.assertSequenceEqual(expected, self.agg_p._fetch_metadata(u'date_range'))
-        self.assertSequenceEqual(expected, self.agg_p._metadata.date_range)  # pylint: disable=E1101
+        self.assertSequenceEqual(expected, self.agg_p._metadata[u'date_range'])  # pylint: disable=E1101
         for piece in self.ind_pieces:
             piece.metadata.assert_called_once_with(u'date')
 
@@ -121,7 +121,7 @@ class TestAggregatedPieces(TestCase):
         self.ind_pieces[2].metadata = MagicMock(return_value = u'Lights and Music')
         expected = [u'Boris Godunov', u'Peter Grimes', u'Lights and Music']
         self.assertEqual(expected, self.agg_p._fetch_metadata(u'titles'))
-        self.assertEqual(expected, self.agg_p._metadata.titles)  # pylint: disable=E1101
+        self.assertEqual(expected, self.agg_p._metadata[u'titles'])  # pylint: disable=E1101
         for piece in self.ind_pieces:
             piece.metadata.assert_called_once_with(u'title')
 
@@ -133,7 +133,7 @@ class TestAggregatedPieces(TestCase):
         self.ind_pieces[2].metadata = MagicMock(return_value = u'Cowgree')
         expected = [u'Cheronnow', u'Munchreeawl', u'Cowgree']
         self.assertEqual(expected, self.agg_p._fetch_metadata(u'locales'))
-        self.assertEqual(expected, self.agg_p._metadata.locales)  # pylint: disable=E1101
+        self.assertEqual(expected, self.agg_p._metadata[u'locales'])  # pylint: disable=E1101
         for piece in self.ind_pieces:
             piece.metadata.assert_called_once_with(u'locale_of_composition')
 

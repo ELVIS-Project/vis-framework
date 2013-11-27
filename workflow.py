@@ -157,29 +157,26 @@ class WorkflowManager(object):
 
     def run(self, instruction):
         """
-        Run the workflow of an experiment.
+        Run an experiment's workflow.
 
-        Parameters
-        ==========
-        :parameter instruction: The experiment to run.
-        :type instruction: ``basestring``
+        :parameter instruction: The experiment to run (refer to "List of Experiments" below).
+        :type instruction: basestring
 
-        Returns
-        =======
         :returns: The result of the experiment.
         :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if the ``instruction`` is not valid for this
-            ``WorkflowManager``.
+            :class:`WorkflowManager`.
 
-        **Instructions:**
+        **List of Experiments**
 
-        * ``u'intervals'``: finds the frequency of vertical intervals in all \
-            2-part voice combinations.
-        * ``u'interval n-grams'``: finds the frequency of any-part vertical interval n-grams in \
-            voice pairs specified in the settings. Remember to provide the ``u'n'`` setting.
+        * ``u'intervals'``: find the frequency of vertical intervals in 2-part combinations. All \
+            settings will affect analysis *except* ``'n'``. No settings are required; if you do \
+            not set ``'voice combionations'``, all two-part combinations are included.
+        * ``u'interval n-grams'``: find the frequency of n-grams of vertical intervals connected \
+            by the horizontal interval of the lowest voice. All settings will affect analysis. \
+            You must set the ``'voice combinations'`` setting. The default value for ``'n'`` is \
+            ``2``.
         """
         # NOTE: this method relies on the order of instructions in _experiments_list
         error_msg = u'WorkflowManager.run() could not parse the instruction'
@@ -439,8 +436,9 @@ class WorkflowManager(object):
                                        True else u'compound'
         for i, piece in enumerate(self._data):
             vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
-            # see which voice pairs we need; if relevant, remove unneeded voice pairs
-            combos = self.settings(i, u'voice combinations')
+            # figure out which combinations we need... this might raise a ValueError, but there's
+            # not much we can do to save the situation, so we might as well let it go up
+            combos = ast.literal_eval(unicode(self.settings(i, u'voice combinations')))
             if combos != u'[all]' and combos != u'[all pairs]' and combos is not None:
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
             # we no longer need to know the combinations' names, so we can make a list
@@ -705,6 +703,8 @@ class WorkflowManager(object):
         A setting is related to this particular analysis, and is not a salient musical feature of
         the work itself.
 
+        Refer to :meth:`run` for a list of settings required or used by each experiment.
+
         :param index: The index of the piece to access. The range of valid indices is ``0`` through
             one fewer than the return value of calling :func:`len` on this WorkflowManager. If
             ``value`` is not ``None`` and ``index`` is ``None``, you can set a field for all pieces.
@@ -727,6 +727,7 @@ class WorkflowManager(object):
 
         * ``offset interval``: If you want to run the \
             :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`, specify a value for this
+            setting. To avoid running the :class:`FilterByOffsetIndexer`, set this to ``0``.
             setting that will become the ``quarterLength`` duration between observed offsets.
         * ``filter repeats``: If you want to run the \
             :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`, set this setting to \
@@ -762,10 +763,12 @@ class WorkflowManager(object):
                 for i in xrange(len(self._settings)):
                     self.settings(i, field, value)
         elif not 0 <= index < len(self._settings):
-            raise IndexError(u'Invalid inex for this WorkflowManager (' + unicode(index) + u')')
+            raise IndexError(u'Invalid piece index :' + unicode(index))
         elif field not in self._settings[index]:
             raise AttributeError(u'Invalid setting: ' + unicode(field))
         elif value is None:
             return self._settings[index][field]
+        elif field == u'offset interval' and value == 0:  # can't set directly to None :(
+            self._settings[index][field] = None
         else:
             self._settings[index][field] = value

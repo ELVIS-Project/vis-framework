@@ -281,12 +281,12 @@ class WorkflowTests(TestCase):
         # (have to set the voice-pair settings)
         expected_pairs = [[0, 1], [0, 2]]
         for i in xrange(3):
-            test_wc._settings[i][u'voice combinations'] = expected_pairs
+            test_wc._settings[i][u'voice combinations'] = unicode(expected_pairs)
         test_wc._intervs()
         # 3.) for this test, we'll actually only confirm that mock_rep (_remove_extra_pairs) was
         #     called with the right arguments.
         self.assertEqual(3, mock_rep.call_count)
-        for i in xrange(3):
+        for i in xrange(len(the_dicts)):
             mock_rep.assert_any_call(the_dicts[i], expected_pairs)
 
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
@@ -645,6 +645,18 @@ class WorkflowTests(TestCase):
         self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
         test_wm.settings(None, u'n', 4000)
         self.assertEqual(4000, test_wm._shared_settings[u'n'])
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
+    def test_settings_0(self, mock_ip):
+        # - if trying to set 'offset interval' to 0, it should actually be set to None
+        test_wm = WorkflowManager([u'a', u'b', u'c'])
+        self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
+        # "None" is default value, so first set to non-zero
+        test_wm.settings(1, u'offset interval', 4.0)
+        self.assertEqual(4.0, test_wm._settings[1][u'offset interval'])
+        # now run our test
+        test_wm.settings(1, u'offset interval', 0)
+        self.assertEqual(None, test_wm._settings[1][u'offset interval'])
 
     def test_extra_pairs_1(self):
         # testing WorkflowManager._remove_extra_pairs()

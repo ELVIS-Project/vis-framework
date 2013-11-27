@@ -59,11 +59,21 @@ class AggregatedPieces(object):
         :param pieces: The IndexedPieces to collect.
         :type pieces: list of :class:`~vis.models.indexed_piece.IndexedPiece`
         """
+        def init_metadata():
+            """
+            Initialize valid metadata fields with a zero-length unicode.
+            """
+            field_list = [u'composers', u'dates', u'date_range', u'titles', u'locales',
+                          u'pathnames']
+            for field in field_list:
+                self._metadata[field] = None
+
         super(AggregatedPieces, self).__init__()
         self._pieces = pieces if pieces is not None else []
-        self._metadata = AggregatedPieces.Metadata()  # about the IndexedPieces
+        self._metadata = {}
+        init_metadata()
         # set our "pathnames" metadata
-        self._metadata.pathnames = [p.metadata(u'pathname') for p in self._pieces]
+        self._metadata[u'pathnames'] = [p.metadata(u'pathname') for p in self._pieces]
 
     def __repr__(self):
         pass
@@ -151,7 +161,7 @@ class AggregatedPieces(object):
             post = [p.metadata(u'locale_of_composition') for p in self._pieces]
 
         if post is not None:
-            setattr(self._metadata, field, post)
+            self._metadata[field] = post
         return post
 
     def metadata(self, field):
@@ -190,10 +200,11 @@ class AggregatedPieces(object):
         """
         if not isinstance(field, basestring):
             raise TypeError(u"parameter 'field' must be of type 'basestring'")
-        elif hasattr(self._metadata, field):
-            return getattr(self._metadata, field)
-        elif field in self._metadata.__slots__:
-            return self._fetch_metadata(field)
+        elif field in self._metadata:
+            if self._metadata[field] is None:
+                return self._fetch_metadata(field)
+            else:
+                return self._metadata[field]
         else:
             return None
 
