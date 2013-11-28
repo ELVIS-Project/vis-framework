@@ -294,6 +294,28 @@ class IndexedPiece(object):
             self._noterest_results = noterest.NoteRestIndexer(data).run()
         return self._noterest_results
 
+    @staticmethod
+    def _type_verifier(cls_list):
+        # TODO: test this method
+        """
+        Verify that all classes in the list are a subclass of :class:`vis.analyzers.indexer.Indexer`
+        or :class:`~vis.analyzers.experimenter.Experimenter`.
+
+        :param cls_list: A list of the classes to check.
+        :type cls_list: list of class
+        :returns: ``None``.
+        :rtype: None
+        :raises: :exc:`TypeError` if a class is not a subclass of :class:`Indexer` or
+            :class:`Experimenter`.
+
+        ..note:: This is a separate function so it can be replaced with a :class:`MagicMock` in
+            testing.
+        """
+        for each_cls in cls_list:
+            if not issubclass(each_cls, (Indexer, Experimenter)):
+                raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
+                                u'(received {})'.format(cls_list))
+
     def get_data(self, analyzer_cls, settings=None, data=None):
         """
         Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
@@ -325,20 +347,22 @@ class IndexedPiece(object):
             more than one piece).
         """
         # TODO: the NotImplementedError should be removed once _import_score() supports Opus
-        for each_cls in analyzer_cls:
-            if not issubclass(each_cls, (Indexer, Experimenter)):
-                raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
-                                u'(received {})'.format(analyzer_cls))
+        IndexedPiece._type_verifier(analyzer_cls)
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
                 data = self._get_note_rest_index()
-            if analyzer_cls[0].required_score_type == stream.Part:
+            elif analyzer_cls[0].required_score_type == stream.Part:
                 data = self._import_score()
                 data = [x for x in data.parts]  # Indexers require a list of Parts
             else:
                 msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])
                 raise RuntimeError(msg)
         if len(analyzer_cls) > 1:
+            if analyzer_cls[0] is noterest.NoteRestIndexer:
+                return self.get_data(analyzer_cls[1:], settings, data)
             return self.get_data(analyzer_cls[1:], settings, analyzer_cls[0](data, settings).run())
         else:
-            return analyzer_cls[0](data, settings).run()
+            if analyzer_cls[0] is noterest.NoteRestIndexer:
+                return data
+            else:
+                return analyzer_cls[0](data, settings).run()

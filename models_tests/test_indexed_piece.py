@@ -179,16 +179,74 @@ class TestIndexedPieceA(TestCase):
     def test_get_data_9(self):
         # That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer, and another
         # test Indexer is also called. This is a regression test to monitor a bug found after
-        # implementing caching of NoteRestIndexer results.
+        # implementing caching of NoteRestIndexer results. Also ensure that NoteRestIndexer is only
+        # instantiated once
         with patch.object(IndexedPiece, u'_get_note_rest_index') as mock_gnri:
-            expected = [400]
-            mock_indexer_cls = type('MockIndexer', (Indexer,), {})
-            mock_indexer_cls.run = MagicMock()
-            mock_indexer_cls.run.return_value = [400]
-            actual = self.ind_piece.get_data([noterest.NoteRestIndexer, mock_indexer_cls])
-            mock_gnri.assert_called_once_with()
-            mock_indexer_cls.run.assert_called_once_with()
-            self.assertEqual(expected, actual)
+            mock_gnri.return_value = 42
+            with patch.object(IndexedPiece, u'_type_verifier') as mock_tv:
+                # we'll mock _type_verifier() to avoid getting a TypeError when mock_nri_cls isn't
+                # a proper subclass of Indexer
+                expected = [400]
+                mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+                mock_indexer_cls.__init__ = MagicMock()
+                mock_indexer_cls.__init__.return_value = None
+                mock_indexer_cls.run = MagicMock()
+                mock_indexer_cls.run.return_value = expected
+                actual = self.ind_piece.get_data([noterest.NoteRestIndexer, mock_indexer_cls])
+                self.assertEqual(2, mock_tv.call_count)
+                mock_tv.assert_has_calls([call([noterest.NoteRestIndexer, mock_indexer_cls]),
+                                            call([mock_indexer_cls])])
+                mock_gnri.assert_called_once_with()
+                mock_indexer_cls.__init__.assert_called_once_with(mock_gnri.return_value, None)
+                mock_indexer_cls.run.assert_called_once_with()
+                self.assertEqual(expected, actual)
+
+    def test_get_data_10(self):
+        # That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer. This is a
+        # regression test to monitor a bug found after implementing caching of NoteRestIndexer
+        # results. Also ensure that NoteRestIndexer is only instantiated once
+        with patch.object(IndexedPiece, u'_get_note_rest_index') as mock_gnri:
+            mock_gnri.return_value = 42
+            with patch.object(IndexedPiece, u'_type_verifier') as mock_tv:
+                # we'll mock _type_verifier() to avoid getting a TypeError when mock_nri_cls isn't
+                # a proper subclass of Indexer
+                actual = self.ind_piece.get_data([noterest.NoteRestIndexer])
+                mock_tv.assert_called_once_with([noterest.NoteRestIndexer])
+                mock_gnri.assert_called_once_with()
+                self.assertEqual(mock_gnri.return_value, actual)
+
+    def test_type_verifier_1(self):
+        # with an Indexer
+        # pylint: disable=W0212
+        self.assertEqual(None, IndexedPiece._type_verifier([noterest.NoteRestIndexer]))
+
+    def test_type_verifier_2(self):
+        # with an Experimenter
+        # pylint: disable=W0212
+        cls = type('TestExperimenter', (Experimenter,), {})
+        self.assertEqual(None, IndexedPiece._type_verifier([cls]))
+
+    def test_type_verifier_3(self):
+        # with another class
+        # pylint: disable=W0212
+        cls = type('TestGarbage', (object,), {})
+        self.assertRaises(TypeError, IndexedPiece._type_verifier, [cls])
+
+    def test_type_verifier_4(self):
+        # with a bunch of valid classes
+        # pylint: disable=W0212
+        cls_1 = type('TestExperimenter1', (Experimenter,), {})
+        cls_2 = type('TestExperimenter2', (Experimenter,), {})
+        cls_3 = type('TestIndexer', (Indexer,), {})
+        self.assertEqual(None, IndexedPiece._type_verifier([cls_1, cls_2, cls_3]))
+
+    def test_type_verifier_5(self):
+        # with a bunch of valid, but one invalid, class
+        # pylint: disable=W0212
+        cls_1 = type('TestExperimenter1', (Experimenter,), {})
+        cls_2 = type('TestIndexer', (Indexer,), {})
+        cls_3 = type('TestGarbage', (object,), {})
+        self.assertRaises(TypeError, IndexedPiece._type_verifier, [cls_1, cls_2, cls_3])
 
     def test_get_nrindex_1(self):
         # pylint: disable=W0212
