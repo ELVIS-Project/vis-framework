@@ -121,6 +121,7 @@ class WorkflowTests(TestCase):
         test_wc.load(u'pieces')
         for mock_piece in test_wc._data:
             mock_piece.get_data.assert_called_once_with([noterest.NoteRestIndexer])
+        self.assertTrue(test_wc._loaded)
 
     def test_load_2(self):
         # that the not-yet-implemented instructions raise NotImplementedError

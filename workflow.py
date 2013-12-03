@@ -70,8 +70,12 @@ class WorkflowManager(object):
     """
 
     # Instance Variables
-    # - self._data = list of IndexedPieces
-    # - self._result = result of the most recent call to run()
+    # - self._data: list of IndexedPieces
+    # - self._result: result of the most recent call to run()
+    # - self._settings: settings unique per piece
+    # - self._shared_settings: settings shared among all piecesd
+    # - self._previous_exp: name of the experiments whose results are stored in self._result
+    # - self._loaded: whether the load() method has been called
 
     # path to the R-language script that makes bar charts
     _R_bar_chart_path = u'scripts/R_bar_chart.r'
@@ -98,6 +102,8 @@ class WorkflowManager(object):
                                  u'interval quality': False, u'simple intervals': False}
         # which was the most recent experiment run? Either 'intervals' or 'n-grams'
         self._previous_exp = None
+        # whether the load() method has been called
+        self._loaded = False
 
     def __len__(self):
         """
@@ -123,19 +129,19 @@ class WorkflowManager(object):
         Parameters
         ==========
         :parameter instruction: The type of data to load.
-        :type instruction: :obj:`basestring`
+        :type instruction: basestring
         :parameter pathname: The pathname of the data to import; not required for the \
             ``u'pieces'`` instruction.
-        :type pathname: :obj:`basestring`
+        :type pathname: basestring
 
         **Instructions:**
 
         .. note:: only ``u'pieces'`` is implemented at this time.
 
-        * :obj:`u'pieces'`, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
-        * :obj:`u'hdf5'` to load data from a previous :meth:`export`.
-        * :obj:`u'stata'` to load data from a previous :meth:`export`.
-        * :obj:`u'pickle'` to load data from a previous :meth:`export`.
+        * ``u'pieces'``, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
+        * ``u'hdf5'`` to load data from a previous :meth:`export`.
+        * ``u'stata'`` to load data from a previous :meth:`export`.
+        * ``u'pickle'`` to load data from a previous :meth:`export`.
         """
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
@@ -148,6 +154,7 @@ class WorkflowManager(object):
                 piece.get_data([noterest.NoteRestIndexer])
         elif u'hdf5' == instruction or u'stata' == instruction or u'pickle' == instruction:
             raise NotImplementedError(u'The ' + instruction + u' instruction does\'t work yet!')
+        self._loaded = True
 
     def run(self, instruction):
         """

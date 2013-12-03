@@ -70,7 +70,6 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIEC
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregated_pieces.AGGREGATED_PIECES_SUITE)
 # WorkflowManager
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.GET_DATA_FRAME)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXPORT)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXTRA_PAIRS)
