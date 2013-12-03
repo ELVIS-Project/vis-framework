@@ -33,7 +33,7 @@ import music21
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
 from vis.analyzers.experimenter import Experimenter
-from vis.models.indexed_piece import IndexedPiece, _find_piece_title, _find_part_names
+from vis.models.indexed_piece import IndexedPiece, _find_piece_title, _find_part_names, OpusWarning
 
 
 # pylint: disable=R0904
@@ -321,13 +321,50 @@ class TestIndexedPieceA(TestCase):
 
 
 class TestIndexedPieceB(TestCase):
-    # NB: These are longer tests.
+    def setUp(self):
+        self._pathname = u'test_path'
+        self.ind_piece = IndexedPiece(self._pathname)
+
     def test_import_score_1(self):
-        # pylint: disable=W0212
-        # That get_data() fails with a file that imports as a music21.stream.Opus. Fixing this
-        # properly is issue #234 on GitHub.
-        test_piece = IndexedPiece(u'test_corpus/Sanctus.krn')
-        self.assertRaises(NotImplementedError, test_piece._import_score)
+        # That _import_score() raises an OpusWarning when it imports an Opus but "expect_opus" is
+        # False
+        with patch(u'vis.models.indexed_piece.converter.parse') as mock_parse:
+            mock_parse.return_value = music21.stream.Opus()
+            self.assertRaises(OpusWarning, self.ind_piece._import_score, known_opus=False)
+
+    def test_import_score_2(self):
+        # That _import_score() returns multiple IndexedPiece objects when it imports an Opus and
+        # "expect_opus" is True
+        with patch(u'vis.models.indexed_piece.converter.parse') as mock_parse:
+            mock_parse.return_value = music21.stream.Opus()
+            for _ in xrange(5):
+                mock_parse.return_value.insert(music21.stream.Score())
+            actual = self.ind_piece._import_score(known_opus=True)
+            self.assertEqual(5, len(actual))
+            for i, piece in enumerate(actual):
+                self.assertTrue(isinstance(piece, IndexedPiece))
+                self.assertEqual(i, piece._opus_id)
+
+    def test_import_score_3(self):
+        # That _import_score() raises an OpusWarning when "expect_opus" is True, but it doesn't
+        # import an Opus
+        with patch(u'vis.models.indexed_piece.converter.parse') as mock_parse:
+            mock_parse.return_value = music21.stream.Score()
+            self.assertRaises(OpusWarning, self.ind_piece._import_score, known_opus=True)
+
+    def test_import_score_4(self):
+        # That _import_score() returns the right Score object when it imports an Opus
+        with patch(u'vis.models.indexed_piece.converter.parse') as mock_parse:
+            mock_parse.return_value = music21.stream.Opus()
+            for i in xrange(5):
+                mock_parse.return_value.insert(music21.stream.Score())
+                mock_parse.return_value[i].priority = 42 + i
+            actual = self.ind_piece._import_score(known_opus=True)
+            self.assertEqual(5, len(actual))
+            for i, piece in enumerate(actual):
+                self.assertEqual(42 + i, piece._import_score().priority)
+
+    # TODO: write more tests here, bro
 
 
 class TestPartsAndTitles(TestCase):

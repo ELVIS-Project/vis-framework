@@ -121,14 +121,16 @@ class IndexedPiece(object):
     """
     Hold indexed data from a musical score.
     """
-    def __init__(self, pathname):
+    def __init__(self, pathname, opus_id=None):
         """
         Create a new :class:`IndexedPiece`.
 
         Parameters
         ==========
-        :param pathname: Pathname to the file music21 will import for this IndexedPiece.
-        :type pathname: :obj:`basestring`
+        :param pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
+        :type pathname: basestring
+        :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
+            imports as a :class:`music21.stream.Opus`.
 
         Returns
         =======
@@ -150,6 +152,7 @@ class IndexedPiece(object):
         self._imported = False
         self._noterest_results = None
         self._metadata = {}
+        self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
         init_metadata()
 
     def __repr__(self):
@@ -171,7 +174,7 @@ class IndexedPiece(object):
         post.append(u')>')
         return u''.join(post)
 
-    def _import_score(self):
+    def _import_score(self, known_opus=False):
         """
         Import the score to music21 format.
 
@@ -187,9 +190,21 @@ class IndexedPiece(object):
         """
         score = converter.parse(self.metadata('pathname'))
         if isinstance(score, stream.Opus):
-            # TODO: finish this and test it (we'll need to deal with Opus objects somehow)
-            raise NotImplementedError(u'IndexedPiece cannot process music21 Opus objects')
-        if not self._imported:
+            if known_opus is False and self._opus_id is None:
+                # unexpected Opus---can't continue
+                raise OpusWarning(self.metadata('pathname') + u' is a music21.stream.Opus '
+                                  u'(refer to the IndexedPiece.get_data() documentation)')
+            elif self._opus_id is None:
+                # we'll make new IndexedPiece objects
+                score = [IndexedPiece(self.metadata('pathname'), i) for i in xrange(len(score))]
+            else:
+                # we'll return the appropriate Score
+                score = score.scores[self._opus_id]
+        elif known_opus is True:
+            raise OpusWarning(u'You expected a music21.stream.Opus but ' + \
+                              self.metadata('pathname') + u' is not an Opus '
+                                  u'(refer to the IndexedPiece.get_data() documentation)')
+        elif not self._imported:
             for field in self._metadata:
                 if hasattr(score.metadata, field):
                     self._metadata[field] = getattr(score.metadata, field)
