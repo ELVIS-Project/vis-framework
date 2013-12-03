@@ -112,7 +112,11 @@ def _find_part_names(the_score):
 
 class OpusWarning(RuntimeWarning):
     """
-    TODO: write a description of what this does and when
+    The :class:`OpusWarning` is raised by :meth:`IndexedPiece.get_data` when ``known_opus`` is
+    ``False`` but the file imports as a :class:`music21.stream.Opus` object, and when ``known_opus``
+    is ``True`` but the file does not import as a :class:`music21.stream.Opus` object.
+
+    Internally, the warning is actually raised by :meth:`IndexedPiece._import_score`.
     """
     pass
 
@@ -323,7 +327,6 @@ class IndexedPiece(object):
 
     @staticmethod
     def _type_verifier(cls_list):
-        # TODO: test this method
         """
         Verify that all classes in the list are a subclass of :class:`vis.analyzers.indexer.Indexer`
         or :class:`~vis.analyzers.experimenter.Experimenter`.
@@ -391,7 +394,6 @@ class IndexedPiece(object):
         #. Then call :meth:`get_data` on the new :class:`IndexedPiece` objects to get the results \
             initially desired.
         """
-        # TODO: the NotImplementedError should be removed once _import_score() supports Opus
         IndexedPiece._type_verifier(analyzer_cls)
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
