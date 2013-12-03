@@ -281,6 +281,14 @@ class TestIndexedPieceA(TestCase):
             self.assertEqual(expected, actual)
             self.assertEqual(expected, self.ind_piece._noterest_results)
 
+    def test_get_nrindex_3(self):
+        # That _get_note_rest_index() just flat-out calls _import_score() when "known_opus" is True
+        with patch.object(IndexedPiece, u'_import_score') as mock_is:
+            with patch.object(noterest.NoteRestIndexer, u'run') as mock_nri:
+                self.ind_piece._get_note_rest_index(known_opus=True)
+                mock_is.assert_called_once_with(known_opus=True)
+                self.assertEqual(0, mock_nri.call_count)
+
     def test_unicode_1(self):
         # __unicode__() without having imported yet
         # NB: adjusting _imported is the whole point of the test

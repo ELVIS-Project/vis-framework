@@ -283,7 +283,7 @@ class IndexedPiece(object):
         else:
             self._metadata[field] = value
 
-    def _get_note_rest_index(self):
+    def _get_note_rest_index(self, known_opus=False):
         """
         Return the results of the :class:`NoteRestIndexer` on this piece.
 
@@ -291,12 +291,17 @@ class IndexedPiece(object):
         to re-import the music21 file for every Indexer or Experimenter that uses the
         :class:`NoteRestIndexer`.
 
-        Returns
-        =======
+        :param known_opus: Whether the caller knows this file will be imported as a
+            :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" in the
+            :meth:`get_data` docs.
+        :type known_opus: boolean
+
         :returns: Results of the :class:`NoteRestIndexer`.
-        :rtype: :obj:`list` of :class:`pandas.Series`
+        :rtype: list of :class:`pandas.Series`
         """
-        if self._noterest_results is None:
+        if known_opus is True:
+            return self._import_score(known_opus=known_opus)
+        elif self._noterest_results is None:
             data = [x for x in self._import_score().parts]
             self._noterest_results = noterest.NoteRestIndexer(data).run()
         return self._noterest_results
