@@ -112,7 +112,11 @@ def _find_part_names(the_score):
 
 class OpusWarning(RuntimeWarning):
     """
-    TODO: write a description of what this does and when
+    The :class:`OpusWarning` is raised by :meth:`IndexedPiece.get_data` when ``known_opus`` is
+    ``False`` but the file imports as a :class:`music21.stream.Opus` object, and when ``known_opus``
+    is ``True`` but the file does not import as a :class:`music21.stream.Opus` object.
+
+    Internally, the warning is actually raised by :meth:`IndexedPiece._import_score`.
     """
     pass
 
@@ -123,18 +127,12 @@ class IndexedPiece(object):
     """
     def __init__(self, pathname, opus_id=None):
         """
-        Create a new :class:`IndexedPiece`.
-
-        Parameters
-        ==========
         :param pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :type pathname: basestring
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
             imports as a :class:`music21.stream.Opus`.
 
-        Returns
-        =======
-        :returns: A new IndexedPiece.
+        :returns: A new :class:`IndexedPiece`.
         :rtype: :class:`IndexedPiece`
         """
         def init_metadata():
@@ -178,6 +176,11 @@ class IndexedPiece(object):
         """
         Import the score to music21 format.
 
+        Parameters
+        ==========
+        :param known_opus: Whether you expect the file to import as a :class:`Opus`.
+        :type known_opus: boolean
+
         Returns
         =======
         :returns: the score
@@ -185,8 +188,9 @@ class IndexedPiece(object):
 
         Raises
         ======
-        :raises: :exc:`NotImplementedError` if the file imports as a :class:`music21.stream.Opus`
-            since we do not yet support them.
+        :raises: :exc:`OpusWarning` if the file imports as a :class:`music21.stream.Opus` but
+            ``known_opus`` if ``False``, or if ``known_opus`` is ``True`` but the file does not
+            import as an :class:`Opus`.
         """
         score = converter.parse(self.metadata('pathname'))
         if isinstance(score, stream.Opus):
@@ -220,65 +224,63 @@ class IndexedPiece(object):
         Get or set metadata about the piece.
 
         .. note:: Some metadata fields may not be available for all pieces. The available metadata
-            fields depend on the specific file imported. Not-available fields return the value
-            :const:`None`. We guarantee non-:const:`None` values for ``pathname``, ``title``, and
-            ``parts``.
+            fields depend on the specific file imported. Unavailable fields return :const:`None`.
+            We guarantee real values for ``pathname``, ``title``, and ``parts``.
 
-        Parameters
-        ==========
         :param field: The name of the field to be accessed or modified.
-        :type field: :class:`basestring`
-
+        :type field: basestring
         :param value: If not :const:`None`, the value to be assigned to ``field``.
-        :type value: :class:`object` or :const:`None`
+        :type value: object or :const:`None`
 
-        Returns
-        =======
         :returns: The value of the requested field or :const:`None`, if assigning, or if accessing
             a non-existant field or a field that has not yet been initialized.
-        :rtype: :class:`object` or :const:`None`
+        :rtype: object or :const:`None` (usually a basestring)
 
-        Raises
-        ======
         :raises: :exc:`TypeError` if ``field`` is not a :class:`basestring`.
         :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
+
+        **Metadata Field Descriptions**
+
+        All fields are taken directly from music21 unless otherwise noted.
 
         +---------------------+--------------------------------------------------------------------+
         | Metadata Field      | Description                                                        |
         +=====================+====================================================================+
-        | alternativeTitle    | A possible alternate title for the piece; e.g. Beethoven's         |
-        |                     | Symphony No. 6 in F Major is also known as the 'Pastoral' Symphony.|
-        |                     | Taken from music21.                                                |
+        | alternativeTitle    | A possible alternate title for the piece; e.g. Bruckner's          |
+        |                     | Symphony No. 8 in C minor is known as "The German Michael."        |
         +---------------------+--------------------------------------------------------------------+
-        | anacrusis           | The length of the pick-up measure, if there is one.                |
+        | anacrusis           | The length of the pick-up measure, if there is one. This is not    |
+        |                     | determined by music21.                                             |
         +---------------------+--------------------------------------------------------------------+
-        | composer            | The author of the piece. Taken from music21.                       |
+        | composer            | The author of the piece.                                           |
         +---------------------+--------------------------------------------------------------------+
-        | composers           | If the piece has multiple authors. Taken from music21.             |
+        | composers           | If the piece has multiple authors.                                 |
         +---------------------+--------------------------------------------------------------------+
-        | date                | The date that the piece was composed or published. Taken from      |
-        |                     | music21.                                                           |
+        | date                | The date that the piece was composed or published.                 |
         +---------------------+--------------------------------------------------------------------+
-        | localeOfComposition | Where the piece was composed. Taken from music21.                  |
+        | localeOfComposition | Where the piece was composed.                                      |
         +---------------------+--------------------------------------------------------------------+
         | movementName        | If the piece is part of a larger work, the name of this            |
-        |                     | subsection. Taken from music21.                                    |
+        |                     | subsection.                                                        |
         +---------------------+--------------------------------------------------------------------+
         | movementNumber      | If the piece is part of a larger work, the number of this          |
-        |                     | subsection. Taken from music21.                                    |
+        |                     | subsection.                                                        |
         +---------------------+--------------------------------------------------------------------+
         | number              | Taken from music21.                                                |
         +---------------------+--------------------------------------------------------------------+
         | opusNumber          | Number assigned by the composer to the piece or a group            |
-        |                     | containing it, to help with identification or cataloguing. Taken   |
-        |                     | from music21.                                                      |
+        |                     | containing it, to help with identification or cataloguing.         |
         +---------------------+--------------------------------------------------------------------+
-        | parts               | A list of the parts in a multi-voice work.                         |
+        | parts               | A list of the parts in a multi-voice work. This is determined      |
+        |                     | partially by music21.                                              |
         +---------------------+--------------------------------------------------------------------+
-        | pathname            | The filesystem path to the music file encoding the piece.          |
+        | pathname            | The filesystem path to the music file encoding the piece. This is  |
+        |                     | not determined by music21.                                         |
         +---------------------+--------------------------------------------------------------------+
-        | title               | The title of the piece. Taken from music21.                        |
+        | title               | The title of the piece. This is determined partially by music21.   |
         +---------------------+--------------------------------------------------------------------+
+
+        **Examples**
 
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
@@ -323,14 +325,13 @@ class IndexedPiece(object):
 
     @staticmethod
     def _type_verifier(cls_list):
-        # TODO: test this method
         """
         Verify that all classes in the list are a subclass of :class:`vis.analyzers.indexer.Indexer`
         or :class:`~vis.analyzers.experimenter.Experimenter`.
 
         :param cls_list: A list of the classes to check.
         :type cls_list: list of class
-        :returns: ``None``.
+        :returns: :const:`None`.
         :rtype: None
         :raises: :exc:`TypeError` if a class is not a subclass of :class:`Indexer` or
             :class:`Experimenter`.
@@ -354,7 +355,7 @@ class IndexedPiece(object):
         :param settings: Settings to be used with the analyzers.
         :type settings: dict
         :param data: Input data for the first analyzer to run. If the first indexer uses a
-            :class:`~music21.stream.Score`, you should leave this as ``None``.
+            :class:`~music21.stream.Score`, you should leave this as :const:`None`.
         :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
         :param known_opus: Whether the caller knows this file will be imported as a
             :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" below.
@@ -369,7 +370,7 @@ class IndexedPiece(object):
         ======
         :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
         :raises: :exc:`RuntimeError` if the first analyzer class in ``analyzer_cls`` does not use
-            :class:`~music21.stream.Score` objects, and ``data`` is ``None``.
+            :class:`~music21.stream.Score` objects, and ``data`` is :const:`None`.
         :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if the file imports as a
             :class:`music21.stream.Opus` object and ``known_opus`` is ``False``.
         :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if ``known_opus`` is ``True`` but the
@@ -391,7 +392,6 @@ class IndexedPiece(object):
         #. Then call :meth:`get_data` on the new :class:`IndexedPiece` objects to get the results \
             initially desired.
         """
-        # TODO: the NotImplementedError should be removed once _import_score() supports Opus
         IndexedPiece._type_verifier(analyzer_cls)
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
