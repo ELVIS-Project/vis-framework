@@ -158,7 +158,7 @@ class WorkflowManager(object):
 
     def run(self, instruction):
         """
-        Run an experiment's workflow.
+        Run an experiment's workflow. Remember to call :meth:`load` before this method.
 
         :parameter instruction: The experiment to run (refer to "List of Experiments" below).
         :type instruction: basestring
@@ -168,6 +168,7 @@ class WorkflowManager(object):
 
         :raises: :exc:`RuntimeError` if the ``instruction`` is not valid for this
             :class:`WorkflowManager`.
+        :raises: :exc:`RuntimeError` if you have not called :meth:`load`.
 
         **List of Experiments**
 
@@ -179,6 +180,8 @@ class WorkflowManager(object):
             You must set the ``'voice combinations'`` setting. The default value for ``'n'`` is \
             ``2``.
         """
+        if self._loaded is not True:
+            raise RuntimeError(u'Please call load() before you call run()')
         # NOTE: do not re-order the instructions or this method will break
         possible_instructions = [u'intervals',
                                  u'interval n-grams']

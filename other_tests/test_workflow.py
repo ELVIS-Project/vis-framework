@@ -131,29 +131,41 @@ class WorkflowTests(TestCase):
         self.assertRaises(NotImplementedError, test_wc.load, u'pickle')
 
     def test_run_1(self):
+        # properly deals with "intervals" experiment
         mock_path = u'vis.workflow.WorkflowManager._intervs'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
+            test_wc._loaded = True
             test_wc.run(u'intervals')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
             self.assertEqual(u'intervals', test_wc._previous_exp)
 
     def test_run_2(self):
+        # properly deals with "interval n-grams" experiment
         mock_path = u'vis.workflow.WorkflowManager._interval_ngrams'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
+            test_wc._loaded = True
             test_wc.run(u'interval n-grams')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
             self.assertEqual(u'n-grams', test_wc._previous_exp)
 
-    def test_run_5(self):
+    def test_run_3(self):
+        # raise RuntimeError with invalid instructions
         test_wc = WorkflowManager([])
+        test_wc._loaded = True
         self.assertRaises(RuntimeError, test_wc.run, u'too short')
         self.assertRaises(RuntimeError, test_wc.run, u'this just is not an instruction you know')
+
+    def test_run_4(self):
+        # raise RuntimeError when load() has not been called
+        test_wc = WorkflowManager([])
+        test_wc._loaded = False
+        self.assertRaises(RuntimeError, test_wc.run, u'intervals')
 
 
 class Output(TestCase):
