@@ -110,6 +110,13 @@ def _find_part_names(the_score):
     return post
 
 
+class OpusWarning(RuntimeWarning):
+    """
+    TODO: write a description of what this does and when
+    """
+    pass
+
+
 class IndexedPiece(object):
     """
     Hold indexed data from a musical score.
@@ -316,43 +323,61 @@ class IndexedPiece(object):
                 raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
                                 u'(received {})'.format(cls_list))
 
-    def get_data(self, analyzer_cls, settings=None, data=None):
+    def get_data(self, analyzer_cls, settings=None, data=None, known_opus=False):
         """
         Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
 
         Parameters
         ==========
-        :param analyzer_cls: the analyzers to run, in the order they should be run
-        :type analyzer_cls: :obj:`list` of :obj:`type`
-
+        :param analyzer_cls: The analyzers to run, in the order they should be run.
+        :type analyzer_cls: list of type
         :param settings: Settings to be used with the analyzers.
-        :type settings: :obj:`dict`
-
-        :param data: Input data for the first analyzer to run. If the first indexer uses a Score,
-            you should leave this as None.
-        :type data: :obj:`list` of :class:`pandas.Series` or :class:`pandas.DataFrame`
+        :type settings: dict
+        :param data: Input data for the first analyzer to run. If the first indexer uses a
+            :class:`~music21.stream.Score`, you should leave this as ``None``.
+        :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
+        :param known_opus: Whether the caller knows this file will be imported as a
+            :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" below.
+        :type known_opus: boolean
 
         Returns
         =======
         :returns: Results of the analyzer.
-        :rtype: :class:`pandas.DataFrame` or :obj:`list` of :class:`pandas.Series`
+        :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
 
         Raises
         ======
         :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
         :raises: :exc:`RuntimeError` if the first analyzer class in ``analyzer_cls`` does not use
-            :class:`music21.stream.Score` objects, and ``data`` is :obj:`None`.
-        :raises: :exc:`NotImplementedError` if the file imports as a :class:`music21.stream.Opus`
-            object, since we cannot yet deal with those properly (since they should be treated as
-            more than one piece).
+            :class:`~music21.stream.Score` objects, and ``data`` is ``None``.
+        :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if the file imports as a
+            :class:`music21.stream.Opus` object and ``known_opus`` is ``False``.
+        :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if ``known_opus`` is ``True`` but the
+            file does not import as an :class:`Opus`.
+
+        **Note about Opus Objects**
+
+        Correctly importing :class:`~music21.stream.Opus` objects is a little awkward because
+        we only know a file imports to an :class:`Opus` *after* we import it, but an
+        :class:`Opus` should be treated as multiple :class:`IndexedPiece` objects.
+
+        We recommend you handle :class:`Opus` objects like this:
+
+        #. Try to call :meth:`get_data` on the :class:`IndexedPiece`.
+        #. If :meth:`get_data` raises an :exc:`OpusWarning`, the file contains an :class:`Opus`.
+        #. Call :meth:`get_data` again with the ``known_opus`` parameter set to ``True``.
+        #. :meth:`get_data` will return multiple :class:`IndexedPiece` objects, each \
+            corresponding to a :class:`~music21.stream.Score` held in the :class:`Opus`.
+        #. Then call :meth:`get_data` on the new :class:`IndexedPiece` objects to get the results \
+            initially desired.
         """
         # TODO: the NotImplementedError should be removed once _import_score() supports Opus
         IndexedPiece._type_verifier(analyzer_cls)
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
-                data = self._get_note_rest_index()
+                data = self._get_note_rest_index(known_opus=known_opus)
             elif analyzer_cls[0].required_score_type == stream.Part:
-                data = self._import_score()
+                data = self._import_score(known_opus=known_opus)
                 data = [x for x in data.parts]  # Indexers require a list of Parts
             else:
                 msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])

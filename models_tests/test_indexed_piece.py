@@ -174,7 +174,7 @@ class TestIndexedPieceA(TestCase):
         # That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer.
         with patch.object(IndexedPiece, u'_get_note_rest_index') as mock_gnri:
             self.ind_piece.get_data([noterest.NoteRestIndexer])
-            mock_gnri.assert_called_once_with()
+            mock_gnri.assert_called_once_with(known_opus=False)
 
     def test_get_data_9(self):
         # That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer, and another
@@ -196,7 +196,7 @@ class TestIndexedPieceA(TestCase):
                 self.assertEqual(2, mock_tv.call_count)
                 mock_tv.assert_has_calls([call([noterest.NoteRestIndexer, mock_indexer_cls]),
                                             call([mock_indexer_cls])])
-                mock_gnri.assert_called_once_with()
+                mock_gnri.assert_called_once_with(known_opus=False)
                 mock_indexer_cls.__init__.assert_called_once_with(mock_gnri.return_value, None)
                 mock_indexer_cls.run.assert_called_once_with()
                 self.assertEqual(expected, actual)
@@ -212,8 +212,21 @@ class TestIndexedPieceA(TestCase):
                 # a proper subclass of Indexer
                 actual = self.ind_piece.get_data([noterest.NoteRestIndexer])
                 mock_tv.assert_called_once_with([noterest.NoteRestIndexer])
-                mock_gnri.assert_called_once_with()
+                mock_gnri.assert_called_once_with(known_opus=False)
                 self.assertEqual(mock_gnri.return_value, actual)
+
+    def test_get_data_11(self):
+        # That get_data() correctly passes its "known_opus" parameter to _get_note_rest_indexer()
+        # and _import_score()
+        with patch.object(IndexedPiece, u'_get_note_rest_index') as mock_gnri:
+            self.ind_piece.get_data([noterest.NoteRestIndexer], known_opus='battery')
+            mock_gnri.assert_called_once_with(known_opus='battery')
+        with patch.object(IndexedPiece, u'_import_score') as mock_is:
+            with patch.object(IndexedPiece, u'_type_verifier') as mock_tv:
+                mock_ind = MagicMock()
+                mock_ind.required_score_type = music21.stream.Part
+                self.ind_piece.get_data([mock_ind], known_opus='horse')
+                mock_is.assert_called_once_with(known_opus='horse')
 
     def test_type_verifier_1(self):
         # with an Indexer
