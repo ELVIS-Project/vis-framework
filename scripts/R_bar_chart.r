@@ -1,4 +1,4 @@
-#!/usr/bin/env R
+#!/usr/bin/env Rscript
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------------------------
 # Program Name:           vis
@@ -63,7 +63,7 @@ if (is.na(args[4])) chart_title <- paste(x_label, ' Frequency', sep='') else
 x_label <- paste(x_label, 's', sep='')
 
 # generate the bar chart
-ggplot() +
+the_chart <- ggplot() +
 geom_bar(aes(x=reorder(index, freq, function(x) x * -1), y=freq),
     data=R.test.results,
     stat="identity",
@@ -72,9 +72,7 @@ geom_bar(aes(x=reorder(index, freq, function(x) x * -1), y=freq),
 scale_x_discrete(x_label) +
 scale_y_continuous("Frequency") +
 labs(title = chart_title) +
-theme(axis.text.x = element_text(angle=90, vjust=0.5)) +
-ggsave(args[2])
+theme(axis.text.x = element_text(angle=90, vjust=0.5))
 
-
-# remove the automatically-generated PDF file, which we don't need
-unlink('Rplots.pdf')
+# save the bar chart
+ggsave(args[2], plot=the_chart, width=7, height=7)

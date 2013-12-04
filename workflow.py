@@ -595,8 +595,8 @@ class WorkflowManager(object):
                     token = unicode(self.settings(None, u'n'))
                 else:
                     token = u'things'
-                call_to_r = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path,
-                             u'--args', stata_path, png_path, token, str(len(self._data))]
+                call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+                             stata_path, png_path, token, str(len(self._data))]
                 subprocess.call(call_to_r)
                 return png_path
         else:
