@@ -126,6 +126,9 @@ class WorkflowManager(object):
         Use :meth:`load` with an instruction other than ``u'pieces'`` to load results from a
         previous analysis run by :meth:`run`.
 
+        .. note:: If one of the files imports as a :class:`music21.stream.Opus`, the number of
+            pieces and their order *will* change.
+
         Parameters
         ==========
         :parameter instruction: The type of data to load.
@@ -150,8 +153,12 @@ class WorkflowManager(object):
         #       not actually replace the IndexedPieces, since that would inadvertently cancel the
         #       client's pointer to the IndexedPieces, if they have one
         if u'pieces' == instruction:
-            for piece in self._data:
-                piece.get_data([noterest.NoteRestIndexer])
+            for i, piece in enumerate(self._data):
+                try:
+                    piece.get_data([noterest.NoteRestIndexer])
+                except indexed_piece.OpusWarning:
+                    new_ips = piece.get_data([noterest.NoteRestIndexer], known_opus=True)
+                    self._data = self._data[:i] + self._data[i + 1:] + new_ips
         elif u'hdf5' == instruction or u'stata' == instruction or u'pickle' == instruction:
             raise NotImplementedError(u'The ' + instruction + u' instruction does\'t work yet!')
         self._loaded = True

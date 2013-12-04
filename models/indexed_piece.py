@@ -391,6 +391,9 @@ class IndexedPiece(object):
             corresponding to a :class:`~music21.stream.Score` held in the :class:`Opus`.
         #. Then call :meth:`get_data` on the new :class:`IndexedPiece` objects to get the results \
             initially desired.
+
+        Refer to the source code for :meth:`vis.workflow.WorkflowManager.load` for an example
+        implementation.
         """
         IndexedPiece._type_verifier(analyzer_cls)
         if data is None:

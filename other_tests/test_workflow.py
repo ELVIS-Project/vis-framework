@@ -30,6 +30,7 @@ from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
 import pandas
+from music21.humdrum.spineParser import GlobalReference
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import noterest
@@ -129,6 +130,26 @@ class WorkflowTests(TestCase):
         self.assertRaises(NotImplementedError, test_wc.load, u'hdf5')
         self.assertRaises(NotImplementedError, test_wc.load, u'stata')
         self.assertRaises(NotImplementedError, test_wc.load, u'pickle')
+
+    def test_load_3(self):
+        # NB: this is more of an integration test
+        test_wc = WorkflowManager([u'test_corpus/try_opus.krn'])
+        test_wc.load('pieces')
+        self.assertEqual(3, len(test_wc))
+        # NOTE: we have to do this by digging until music21 imports metadata from **kern files, at
+        #       which point we'll be able to use our very own metadata() method
+        exp_names = [u'Alex', u'Sarah', u'Emerald']
+        for i in xrange(3):
+            # first Score gets some extra metadata
+            which_el = 5 if i == 0 else 3
+            piece = test_wc._data[i]._import_score()
+            self.assertTrue(isinstance(piece[which_el], GlobalReference))
+            self.assertEqual(u'COM', piece[which_el].code)
+            self.assertEqual(exp_names[i], piece[which_el].value)
+        # NOTE: once music21 works:
+        #exp_names = [u'Alex', u'Sarah', u'Emerald']
+        #for i in xrange(3):
+            #self.assertEqual(exp_names[i], test_wc.metadata(i, 'composer'))
 
     def test_run_1(self):
         # properly deals with "intervals" experiment
