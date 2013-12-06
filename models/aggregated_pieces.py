@@ -210,26 +210,26 @@ class AggregatedPieces(object):
 
     def get_data(self, aggregated_experiments, independent_analyzers, settings=None, data=None):
         """
-        Get the results of an Experimenter run on all the IndexedPieces. You must specify all
-        indexers and experimenters to be run to get the results you want.
+        Get the results of an :class:`Experimenter` run on all the :class:`IndexedPiece` objects.
+        You must specify all indexers and experimenters to be run to get the results you want.
 
         The same settings dict will be given to all experiments and indexers.
 
-        If you want the results from all IndexedPieces separately, provide an empty list as the
-        ``aggregated_experiments`` argument.
+        If you want the results from all :class:`IndexedPiece` objects separately, provide an empty
+        list as the ``aggregated_experiments`` argument.
 
         The first analyzer in ``independent_analyzers`` should use a :class:`music21.stream.Score`.
 
-        **Examples:**
+        **Examples**
 
         Run analyzer C then D on each piece individually, then provide a list of those results to
-        Experimenter A, and pass its output to Experimenter B.
+        Experimenter A then B.
 
         >>> pieces.get_data([A, B], [C, D])
 
         Run analyzer C then D on each piece individually, then return a list of those results.
 
-        >>> pieces.get_data([A, B], [C, D])
+        >>> pieces.get_data([], [C, D])
 
         Parameters
         ==========
@@ -249,8 +249,8 @@ class AggregatedPieces(object):
 
         Returns
         =======
-        :return: Either one DataFrame with all experimental results or a list of DataFrames, each
-            with the experimental results for one piece.
+        :return: Either one :class:`DataFrame` with all experimental results or a list of
+            :class:`DataFrame` objects, each with the experimental results for one piece.
         :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series` or \
             :class:`pandas.DataFrame`
 
