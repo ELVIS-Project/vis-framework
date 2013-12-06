@@ -280,8 +280,8 @@ class WorkflowManager(object):
         piece = self._data[index]
         # make settings for interval indexers
         settings = {u'quality': self.settings(index, u'interval quality')}
-        settings[u'simple or compound'] = u'simple' if self.settings(index, u'interval quality') \
-                                          else u'compound'
+        settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
+                                          is True else u'compound'
         vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
         horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
@@ -336,8 +336,8 @@ class WorkflowManager(object):
         piece = self._data[index]
         # make settings for interval indexers
         settings = {u'quality': self.settings(index, u'interval quality')}
-        settings[u'simple or compound'] = u'simple' if self.settings(index, u'interval quality') \
-                                          else u'compound'
+        settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
+                                          is True else u'compound'
         vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
         horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
@@ -390,8 +390,8 @@ class WorkflowManager(object):
         piece = self._data[index]
         # make settings for interval indexers
         settings = {u'quality': self.settings(index, u'interval quality')}
-        settings[u'simple or compound'] = u'simple' if self.settings(index, u'interval quality') \
-                                          else u'compound'
+        settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
+                                          is True else u'compound'
         vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
                                    settings)
         horiz_ints = piece.get_data([noterest.NoteRestIndexer,
@@ -449,8 +449,8 @@ class WorkflowManager(object):
         int_freqs = []
         # shared settings for the IntervalIndexer
         setts = {u'quality': self.settings(None, u'interval quality')}
-        setts[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') == \
-                                       True else u'compound'
+        setts[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
+                                       is True else u'compound'
         for i, piece in enumerate(self._data):
             vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
             # figure out which combinations we need... this might raise a ValueError, but there's

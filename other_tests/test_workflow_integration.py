@@ -95,6 +95,15 @@ class NGramsTests(TestCase):
     EXPECTED_3 = pandas.Series({'[12 10 8]': 11, '[10 8 5]': 10, '[8 5 3]': 9, '[10 5 1]': 5,
                                 '[15 10 5]': 5, '[12 7 3]': 3, '[17 15 12]': 3, '[12 10 7]': 3,
                                 '[12 8 3]': 3, '[13 10 6]': 3})
+    # EXPECTED_4 is the result of "interval n-grams" on BWV2 with "all" as the voice pairs, and
+    # compound intervals portrayed as their single-octave equivalents; note that I didn't verify
+    # by counting... this just ensures a valid value comes out
+    # NB: just the first ten, because seriously.
+    EXPECTED_4 = pandas.Series({'[8 6 3] 2 [6 6 3]': 1, '[3 5 3] _ [3 6 4]': 1,
+                                '[4 2 6] -2 [6 3 8]': 1, '[3 8 5] _ [3 7 5]': 1,
+                                '[3 8 5] 5 [5 3 1]': 1, '[3 8 5] 2 [8 6 3]': 1,
+                                '[3 8 5] -2 [4 4 6]': 1, '[3 7 5] 2 [3 5 3]': 1,
+                                '[3 7 5] 2 [1 5 3]': 1, '[3 6 5] 2 [1 6 3]': 1})
 
     def test_ngrams_1(self):
         # test the two highest voices of bwv77; 2-grams
@@ -137,6 +146,21 @@ class NGramsTests(TestCase):
             self.assertTrue(ind_item in act_ind)
         for ind_item in exp_ind:
             self.assertEqual(NGramsTests.EXPECTED_3[ind_item], actual[ind_item])
+
+    def test_ngrams_4(self):
+        # test all voices of bwv2; 3-grams; simple intervals
+        test_wm = WorkflowManager(['test_corpus/bwv2.xml'])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', 'all')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(None, 'simple intervals', True)
+        actual = test_wm.run('interval n-grams')[:10]
+        exp_ind = list(NGramsTests.EXPECTED_4.index)
+        act_ind = list(actual.index)
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+        for ind_item in exp_ind:
+            self.assertEqual(NGramsTests.EXPECTED_4[ind_item], actual[ind_item])
 
 
 #-------------------------------------------------------------------------------------------------#
