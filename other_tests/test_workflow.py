@@ -214,7 +214,7 @@ class Output(TestCase):
         path = u'pathname!'
         actual = test_wc.output(u'R histogram', path)
         self.assertEqual(0, mock_gdf.call_count)
-        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+        expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
                          path + u'.dta', path + u'.png', u'int', u'20']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
@@ -231,7 +231,7 @@ class Output(TestCase):
         path = u'test_output/output_result'
         actual = test_wc.output(u'R histogram')
         mock_gdf.assert_called_once_with(u'freq', None, None)
-        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+        expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
                          path + u'.dta', path + u'.png', u'14', u'1']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
@@ -248,7 +248,7 @@ class Output(TestCase):
         path = u'test_output/output_result'
         actual = test_wc.output(u'R histogram', top_x=420, threshold=1987)
         mock_gdf.assert_called_once_with(u'freq', 420, 1987)
-        expected_args = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path, u'--args',
+        expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
                          path + u'.dta', path + u'.png', u'14', u'1']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
