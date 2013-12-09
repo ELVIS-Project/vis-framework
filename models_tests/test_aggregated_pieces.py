@@ -245,13 +245,11 @@ class TestAggregatedPieces(TestCase):
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
         an_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        an_experimenter.__init__ = MagicMock()
-        an_experimenter.__init__.return_value = None
+        an_experimenter.__init__ = MagicMock(return_value=None)
         an_experimenter.run = MagicMock()
         an_experimenter.run.return_value = 41
         other_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        other_experimenter.__init__ = MagicMock()
-        other_experimenter.__init__.return_value = None
+        other_experimenter.__init__ = MagicMock(return_value=None)
         other_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
         expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
         actual = self.agg_p.get_data([an_experimenter, other_experimenter], None, {}, 14)
@@ -271,44 +269,39 @@ class TestAggregatedPieces(TestCase):
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
         an_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        an_experimenter.__init__ = MagicMock()
-        an_experimenter.__init__.return_value = None
+        an_experimenter.__init__ = MagicMock(return_value=None)
         an_experimenter.run = MagicMock()
         an_experimenter.run.return_value = 41
         other_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        other_experimenter.__init__ = MagicMock()
-        other_experimenter.__init__.return_value = None
+        other_experimenter.__init__ = MagicMock(return_value=None)
         other_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
         expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        actual = self.agg_p.get_data([an_experimenter, other_experimenter], [], {}, 14)
+        prev_data = [u'data from', u'previous get_data()', u'call']
+        actual = self.agg_p.get_data([an_experimenter, other_experimenter], [], {}, prev_data)
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertSequenceEqual(list(expected), list(actual))
         for piece in self.ind_pieces:
             self.assertEqual(0, piece.get_data.call_count)
-        an_experimenter.__init__.assert_called_once_with(14, {})
+        an_experimenter.__init__.assert_called_once_with(prev_data, {})
         an_experimenter.run.assert_called_once_with()
         other_experimenter.__init__.assert_called_once_with(an_experimenter.run.return_value, {})
         other_experimenter.run.assert_called_once_with()
 
     def test_get_data_11(self):
-        # (based on test 5): one independent experimenter, one aggregated experimenter
-        ind_pieces = [IndexedPiece(x) for x in self.pathnames]
-        for i, ind_p in enumerate(self.ind_pieces):
-            ind_p.metadata = MagicMock(return_value=self.pathnames[i])
-        agg_p = AggregatedPieces(ind_pieces)
+        # (based on test 5): one independent experimenter, one aggregated experimenter; provides
+        # data from a (false) previous call to get_data()
         ind_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        ind_experimenter.__init__ = MagicMock(return_value=None)
         agg_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        agg_experimenter.__init__ = MagicMock(return_value=None)
         agg_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
         expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        actual = agg_p.get_data([agg_experimenter], [ind_experimenter], {}, None)
+        prev_data = [u'data from', u'previous get_data()', u'call']
+        actual = self.agg_p.get_data([agg_experimenter], [ind_experimenter], {}, prev_data)
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertSequenceEqual(list(expected), list(actual))
-        self.assertEqual(3, ind_experimenter.__init__.call_count)
-        self.assertEqual(1, agg_experimenter.__init__.call_count)
+        for i, piece in enumerate(self.ind_pieces):
+            piece.get_data.assert_called_once_with([ind_experimenter], {}, prev_data[i])
         agg_experimenter.run.assert_called_once_with()
 
 #-------------------------------------------------------------------------------------------------#
