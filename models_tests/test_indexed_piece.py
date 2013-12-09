@@ -228,6 +228,19 @@ class TestIndexedPieceA(TestCase):
                 self.ind_piece.get_data([mock_ind], known_opus='horse')
                 mock_is.assert_called_once_with(known_opus='horse')
 
+    def test_get_data_12(self):
+        # get data for an Experimenter requiring other data; this is test 2, slightly modified
+        mock_experimenter_cls = type('MockExperimenter', (Experimenter,), {})
+        mock_init = MagicMock()
+        mock_init.return_value = None
+        mock_experimenter_cls.__init__ = mock_init
+        mock_experimenter_cls.run = MagicMock()
+        mock_experimenter_cls.run.return_value = u'ahhh!'
+        self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_experimenter_cls], {}))
+        mock_experimenter_cls.run.assert_called_once_with()
+        mock_init.assert_called_once_with([14], None)
+        self.assertEqual(0, mock_experimenter_cls.required_score_type.call_count)
+
     def test_type_verifier_1(self):
         # with an Indexer
         # pylint: disable=W0212

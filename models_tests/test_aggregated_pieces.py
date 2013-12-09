@@ -291,7 +291,27 @@ class TestAggregatedPieces(TestCase):
         other_experimenter.__init__.assert_called_once_with(an_experimenter.run.return_value, {})
         other_experimenter.run.assert_called_once_with()
 
+    def test_get_data_11(self):
+        # (based on test 5): one independent experimenter, one aggregated experimenter
+        ind_pieces = [IndexedPiece(x) for x in self.pathnames]
+        for i, ind_p in enumerate(self.ind_pieces):
+            ind_p.metadata = MagicMock(return_value=self.pathnames[i])
+        agg_p = AggregatedPieces(ind_pieces)
+        ind_experimenter = type('AMockExperimenter', (Experimenter,), {})
+        ind_experimenter.__init__ = MagicMock(return_value=None)
+        agg_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
+        agg_experimenter.__init__ = MagicMock(return_value=None)
+        agg_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
+        expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
+        actual = agg_p.get_data([agg_experimenter], [ind_experimenter], {}, None)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertSequenceEqual(list(expected), list(actual))
+        self.assertEqual(3, ind_experimenter.__init__.call_count)
+        self.assertEqual(1, agg_experimenter.__init__.call_count)
+        agg_experimenter.run.assert_called_once_with()
+
 #-------------------------------------------------------------------------------------------------#
-# Definitions                                                                                      #
+# Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
 AGGREGATED_PIECES_SUITE = TestLoader().loadTestsFromTestCase(TestAggregatedPieces)
