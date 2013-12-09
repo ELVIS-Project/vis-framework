@@ -399,7 +399,9 @@ class IndexedPiece(object):
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
                 data = self._get_note_rest_index(known_opus=known_opus)
-            elif analyzer_cls[0].required_score_type == stream.Part:
+            # NB: Experimenter subclasses don't have "required_score_type"
+            elif hasattr(analyzer_cls[0], 'required_score_type') and \
+            analyzer_cls[0].required_score_type == stream.Part:
                 data = self._import_score(known_opus=known_opus)
                 data = [x for x in data.parts]  # Indexers require a list of Parts
             else:

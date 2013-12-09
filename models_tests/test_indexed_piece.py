@@ -231,15 +231,12 @@ class TestIndexedPieceA(TestCase):
     def test_get_data_12(self):
         # get data for an Experimenter requiring other data; this is test 2, slightly modified
         mock_experimenter_cls = type('MockExperimenter', (Experimenter,), {})
-        mock_init = MagicMock()
-        mock_init.return_value = None
-        mock_experimenter_cls.__init__ = mock_init
-        mock_experimenter_cls.run = MagicMock()
-        mock_experimenter_cls.run.return_value = u'ahhh!'
-        self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_experimenter_cls], {}))
+        mock_experimenter_cls.__init__ = MagicMock(return_value=None)
+        mock_experimenter_cls.run = MagicMock(return_value=u'ahhh!')
+        prev_data= u'data from the previous analyzers'
+        self.assertEqual(u'ahhh!', self.ind_piece.get_data([mock_experimenter_cls], {}, prev_data))
         mock_experimenter_cls.run.assert_called_once_with()
-        mock_init.assert_called_once_with([14], None)
-        self.assertEqual(0, mock_experimenter_cls.required_score_type.call_count)
+        mock_experimenter_cls.__init__.assert_called_once_with(prev_data, {})
 
     def test_type_verifier_1(self):
         # with an Indexer
