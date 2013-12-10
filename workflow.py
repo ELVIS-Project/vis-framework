@@ -446,7 +446,7 @@ class WorkflowManager(object):
         :returns: the result of :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
         :rtype: :class:`pandas.Series`
         """
-        int_freqs = []
+        self._result = []
         # shared settings for the IntervalIndexer
         setts = {u'quality': self.settings(None, u'interval quality')}
         setts[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
@@ -462,21 +462,63 @@ class WorkflowManager(object):
             # we no longer need to know the combinations' names, so we can make a list
             vert_ints = list(vert_ints.itervalues())
             # run the offset and repeat indexers, if required
-            if self.settings(i, u'offset interval') is not None:
-                off_sets = {u'quarterLength': self.settings(i, u'offset interval')}
-                vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
-            if self.settings(i, u'filter repeats') is True:
-                vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
-            # aggregate results and save for later
-            int_freqs.append(piece.get_data([frequency.FrequencyExperimenter,
-                                             aggregator.ColumnAggregator],
-                                            {},
-                                            vert_ints))
-        # TODO: find out what happens when there are no results in int_freqs?
+            self._result.append(self._run_off_rep(i, vert_ints))
+        self._run_freq_agg()
+        return self._result
+
+    def _run_off_rep(self, index, so_far):
+        """
+        Run the filter-by-offset and filter-by-repeat indexers, as required by the piece's settings:
+
+        * :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`
+        * :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`
+
+        Use this method from other :class:`WorkflowManager` methods for filtering by note-start
+        offset and repetition.
+
+        .. note:: If the relevant settings (``'offset interval'`` and ``'filter repeats'``) do not
+            require running either indexer, ``so_far`` will be returned unchanged.
+
+        :param index: Index of the piece to run.
+        :type index: :``int``
+        :param so_far: Return value of :meth:`get_data` that we should run through the offset and
+            repeat indexers.
+        :type so_far: As specified in :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`
+            or :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`.
+
+        :returns: The filtered results.
+        :rtype: As specified in :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` or
+            :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`.
+        """
+        if self.settings(index, u'offset interval') is not None:
+            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
+            so_far = self._data[index].get_data([offset.FilterByOffsetIndexer], off_sets, so_far)
+        if self.settings(index, u'filter repeats') is True:
+            so_far = self._data[index].get_data([repeat.FilterByRepeatIndexer], {}, so_far)
+        return so_far
+
+    def _run_freq_agg(self):
+        """
+        Run the frequency and aggregation experimenters:
+
+        * :class:`~vis.analyzers.experimenters.frequencyFrequencyExperimenter`
+        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+
+        Use this method from other :class:`WorkflowManager` methods for counting frequency.
+
+        .. note:: This method runs on, then overwrites, values stored in :attr:`self._result`.
+
+        :returns: Aggregated frequency counts for everything stored in :attr:`self._result`.
+        :rtype: :class:`pandas.Series`
+        """
+        # NB: there's no "logic" here, so I didn't bother testing the method
         agg_p = AggregatedPieces(self._data)
-        post = agg_p.get_data([aggregator.ColumnAggregator], None, {}, int_freqs)
-        post.sort(ascending=False)
-        return post
+        self._result = agg_p.get_data([aggregator.ColumnAggregator],
+                                      [frequency.FrequencyExperimenter],
+                                      {},
+                                      self._result)
+        self._result.sort(ascending=False)
+        return self._result
 
     @staticmethod
     def _remove_extra_pairs(vert_ints, combos):

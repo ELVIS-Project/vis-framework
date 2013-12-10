@@ -75,6 +75,7 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXPORT)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXTRA_PAIRS)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.SETTINGS)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.OUTPUT)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.AUX_METHODS)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_experiments.INTERVAL_NGRAMS)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_experiments.INTERVALS)
 # Integration Tests

@@ -39,27 +39,18 @@ from vis.analyzers.indexers import interval
 # pylint: disable=R0904
 # pylint: disable=C0111
 class Intervals(TestCase):
+    @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
+    @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_intervs_1(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri):
+    def test_intervs_1(self, mock_int, mock_nri, mock_rfa, mock_ror):
         # --> test whether _intervs() calls all those things in the right order, with the right
         #     args, using all the default settings
         # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
         test_settings = {u'simple or compound': u'compound', u'quality': False}
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        returns = [MagicMock(dict, name=u'piece1 1st get_data()'), u'piece1 2nd get_data()',
-                   MagicMock(dict, name=u'piece2 1st get_data()'), u'piece2 2nd get_data()',
-                   MagicMock(dict, name=u'piece3 1st get_data()'), u'piece3 2nd get_data()']
-        ap_ret = [u'piece1 2nd get_data()', u'piece2 2nd get_data()', u'piece3 2nd get_data()']
-        for i in [0, 2, 4]:
-            returns[i].itervalues.return_value = [4]
+        returns = [MagicMock(dict, name=u'get_data() piece' + str(i), return_value=[4]) \
+                   for i in xrange(3)]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
@@ -68,92 +59,29 @@ class Intervals(TestCase):
             piece.get_data.side_effect = side_effect
         # 2.) run the test
         test_wc = WorkflowManager(test_pieces)
-        actual = test_wc._intervs()
+        test_wc._intervs()
         # 3.) confirm everything was called in the right order
         for piece in test_pieces:
-            self.assertEqual(2, piece.get_data.call_count)
-            expected = [mock.call([mock_nri, mock_int], test_settings),
-                        mock.call([mock_freq, mock_agg], {}, [4])]
-            self.assertEqual(piece.get_data.mock_calls, expected)
-        mock_ap.assert_called_once_with(test_pieces)
-        ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
-        self.assertEqual(ap_getdata_ret, actual)
-        ap_getdata_ret.sort.assert_called_once_with(ascending=False)
+            self.assertEqual(1, piece.get_data.call_count)
+            piece.get_data.assert_called_once_with([mock_nri, mock_int], test_settings)
+        self.assertEqual(len(test_pieces), mock_ror.call_count)
+        mock_rfa.assert_called_once_with()
 
-    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
-    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
-    def test_intervs_2(self, mock_rep, mock_off, mock_ap, mock_agg, mock_freq, mock_int, mock_nri):
-        # --> test whether _intervs() calls all those things in the right order, with running the
-        #     offset and repeat indexers
-        # 1.) prepare the test and mocks
-        ap_inst = MagicMock(AggregatedPieces)
-        mock_ap.return_value = ap_inst
-        ap_getdata_ret = MagicMock()
-        ap_inst.get_data.return_value = ap_getdata_ret
-        test_settings = {u'simple or compound': u'compound', u'quality': False}
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        returns = [MagicMock(dict, name=u'piece1 1st get_data()'), u'piece1 2nd get_data()',
-                       u'piece1 3rd get_data()', u'piece1 4th get_data()',
-                   MagicMock(dict, name=u'piece2 1st get_data()'), u'piece2 2nd get_data()',
-                       u'piece2 3rd get_data()', u'piece2 4th get_data()',
-                   MagicMock(dict, name=u'piece3 1st get_data()'), u'piece3 2nd get_data()',
-                       u'piece3 3rd get_data()', u'piece3 4th get_data()']
-        ap_ret = [u'piece1 4th get_data()', u'piece2 4th get_data()', u'piece3 4th get_data()']
-        for i in [0, 4, 8]:
-            returns[i].itervalues.return_value = [4]
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        # 2.) run the test
-        test_wc = WorkflowManager(test_pieces)
-        # (have to set the offset and repeat settings)
-        for i in xrange(3):
-            test_wc._settings[i][u'offset interval'] = 0.5
-            test_wc._settings[i][u'filter repeats'] = True
-        actual = test_wc._intervs()
-        # 3.) confirm everything was called in the right order
-        for i, piece in enumerate(test_pieces):
-            self.assertEqual(4, piece.get_data.call_count)
-            expected = [mock.call([mock_nri, mock_int], test_settings),
-                        mock.call([mock_off], {u'quarterLength': 0.5}, [4]),
-                        mock.call([mock_rep], {}, u'piece' + str(i + 1) + u' 2nd get_data()'),
-                        mock.call([mock_freq, mock_agg], {},
-                                   u'piece' + str(i + 1) + u' 3rd get_data()')]
-            self.assertEqual(piece.get_data.mock_calls, expected)
-        mock_ap.assert_called_once_with(test_pieces)
-        ap_inst.get_data.assert_called_once_with([mock_agg], None, {}, ap_ret)
-        self.assertEqual(ap_getdata_ret, actual)
-        ap_getdata_ret.sort.assert_called_once_with(ascending=False)
-
+    @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
+    @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
     @mock.patch(u'vis.workflow.WorkflowManager._remove_extra_pairs')
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    @mock.patch(u'vis.analyzers.experimenters.frequency.FrequencyExperimenter')
-    @mock.patch(u'vis.analyzers.experimenters.aggregator.ColumnAggregator')
-    @mock.patch(u'vis.workflow.AggregatedPieces')
-    def test_intervs_3(self, mock_ap, mock_agg, mock_freq, mock_int, mock_nri, mock_rep):
+    def test_intervs_2(self, mock_int, mock_nri, mock_rep, mock_rfa, mock_ror):
         # NB: most of the things up there are only mocked to prevent the real versions
         #     from being called
         # --> test whether _intervs() calls all those things in the right order, with specifying
         #     certain voice-pairs
         # 1.) prepare the test and mocks
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
-        the_dicts = [MagicMock(dict, name=u'piece1 1st get_data()'),
-                     MagicMock(dict, name=u'piece2 1st get_data()'),
-                     MagicMock(dict, name=u'piece3 1st get_data()')]
-        returns = [the_dicts[0], u'piece1 2nd get_data()',
-                   the_dicts[1], u'piece2 2nd get_data()',
-                   the_dicts[2], u'piece3 2nd get_data()']
-        for i in [0, 2, 4]:
-            returns[i].itervalues.return_value = [4]
+        the_dicts = [MagicMock(dict, name=u'get_data() piece' + str(i), return_value=[4]) \
+                     for i in xrange(3)]
+        returns = the_dicts
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
@@ -164,14 +92,16 @@ class Intervals(TestCase):
         test_wc = WorkflowManager(test_pieces)
         # (have to set the voice-pair settings)
         expected_pairs = [[0, 1], [0, 2]]
-        for i in xrange(3):
+        for i in xrange(len(test_pieces)):
             test_wc._settings[i][u'voice combinations'] = unicode(expected_pairs)
         test_wc._intervs()
         # 3.) for this test, we'll actually only confirm that mock_rep (_remove_extra_pairs) was
         #     called with the right arguments.
-        self.assertEqual(3, mock_rep.call_count)
+        self.assertEqual(len(test_pieces), mock_rep.call_count)
         for i in xrange(len(the_dicts)):
             mock_rep.assert_any_call(the_dicts[i], expected_pairs)
+        self.assertEqual(len(test_pieces), mock_ror.call_count)
+        mock_rfa.assert_called_once_with()
 
 
 class IntervalNGrams(TestCase):

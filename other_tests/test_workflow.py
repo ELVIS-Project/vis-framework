@@ -497,6 +497,77 @@ class GetDataFrame(TestCase):
         for i in xrange(len(expected['data'])):
             self.assertEqual(expected['data'][i], actual['data'][i])
 
+
+class AuxiliaryExperimentMethods(TestCase):
+    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
+    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
+    def test_run_off_rep_1(self, mock_off, mock_rep):
+        # run neither indexer
+        # setup
+        workm = WorkflowManager(['', '', ''])
+        workm._data = [None, MagicMock(spec=IndexedPiece), None]
+        workm.settings(1, 'offset interval', 0)
+        workm.settings(1, 'filter repeats', False)
+        in_val = 42
+        # run
+        actual = workm._run_off_rep(1, in_val)
+        # test
+        self.assertEqual(in_val, actual)
+        self.assertEqual(0, workm._data[1].get_data.call_count)
+
+    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
+    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
+    def test_run_off_rep_2(self, mock_off, mock_rep):
+        # run offset indexer
+        # setup
+        workm = WorkflowManager(['', '', ''])
+        workm._data = [None, MagicMock(spec=IndexedPiece), None]
+        workm._data[1].get_data.return_value = 24
+        workm.settings(1, 'offset interval', 0.5)
+        workm.settings(1, 'filter repeats', False)
+        in_val = 42
+        # run
+        actual = workm._run_off_rep(1, in_val)
+        # test
+        self.assertEqual(workm._data[1].get_data.return_value, actual)
+        workm._data[1].get_data.assert_called_once_with([mock_off], {'quarterLength': 0.5}, in_val)
+
+    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
+    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
+    def test_run_off_rep_3(self, mock_off, mock_rep):
+        # run repeat indexer
+        # setup
+        workm = WorkflowManager(['', '', ''])
+        workm._data = [None, MagicMock(spec=IndexedPiece), None]
+        workm._data[1].get_data.return_value = 24
+        workm.settings(1, 'offset interval', 0)
+        workm.settings(1, 'filter repeats', True)
+        in_val = 42
+        # run
+        actual = workm._run_off_rep(1, in_val)
+        # test
+        self.assertEqual(workm._data[1].get_data.return_value, actual)
+        workm._data[1].get_data.assert_called_once_with([mock_rep], {}, in_val)
+
+    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
+    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
+    def test_run_off_rep_4(self, mock_off, mock_rep):
+        # run offset and repeat indexer
+        # setup
+        workm = WorkflowManager(['', '', ''])
+        workm._data = [None, MagicMock(spec=IndexedPiece), None]
+        workm._data[1].get_data.return_value = 24
+        workm.settings(1, 'offset interval', 0.5)
+        workm.settings(1, 'filter repeats', True)
+        in_val = 42
+        # run
+        actual = workm._run_off_rep(1, in_val)
+        # test
+        self.assertEqual(workm._data[1].get_data.return_value, actual)
+        self.assertEqual(2, workm._data[1].get_data.call_count)
+        workm._data[1].get_data.assert_any_call([mock_off], {'quarterLength': 0.5}, in_val)
+        workm._data[1].get_data.assert_any_call([mock_rep], {}, workm._data[1].get_data.return_value)
+
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
@@ -506,3 +577,4 @@ EXPORT = TestLoader().loadTestsFromTestCase(Export)
 EXTRA_PAIRS = TestLoader().loadTestsFromTestCase(ExtraPairs)
 SETTINGS = TestLoader().loadTestsFromTestCase(Settings)
 OUTPUT = TestLoader().loadTestsFromTestCase(Output)
+AUX_METHODS = TestLoader().loadTestsFromTestCase(AuxiliaryExperimentMethods)
