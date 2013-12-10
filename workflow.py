@@ -233,7 +233,7 @@ class WorkflowManager(object):
 
         .. note:: To compute more than one value of ``n``, call :meth:`_interval_ngrams` many times.
         """
-        all_results = []
+        self._result = []
         # user helpers to fetch results for each piece
         for i in xrange(len(self._data)):
             # figure out which combinations we need... this might raise a ValueError, but there's
@@ -243,16 +243,13 @@ class WorkflowManager(object):
                 combos = ast.literal_eval(combos)
 
             if u'all' == self.settings(i, u'voice combinations'):
-                all_results.append(self._all_part_modules(i))
+                self._result.append(self._all_part_modules(i))
             elif u'all pairs' == self.settings(i, u'voice combinations'):
-                all_results.append(self._two_part_modules(i))
+                self._result.append(self._two_part_modules(i))
             else:
-                all_results.append(self._variable_part_modules(i))
+                self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
-        agg_p = AggregatedPieces(self._data)
-        self._result = agg_p.get_data([aggregator.ColumnAggregator], None, {}, all_results)
-        self._result.sort(ascending=False)
-        return self._result
+        return self._run_freq_agg()
 
     def _variable_part_modules(self, index):
         """
@@ -286,13 +283,8 @@ class WorkflowManager(object):
         horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
         # run the offset and repeat indexers, if required
-        if self.settings(index, u'offset interval') is not None:
-            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
-            vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
-            horiz_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, horiz_ints)
-        if self.settings(index, u'filter repeats') is True:
-            vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
-            horiz_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, horiz_ints)
+        vert_ints = self._run_off_rep(index, vert_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints)
         # figure out which combinations we need... this might raise a ValueError, but there's not
         # much we can do to save the situation, so we might as well let it go up
         needed_combos = ast.literal_eval(unicode(self.settings(index, u'voice combinations')))
@@ -308,9 +300,7 @@ class WorkflowManager(object):
             setts[u'n'] = self.settings(None, u'n')
             # run NGramIndexer and FrequencyExperimenter, then append the result to the
             # corresponding index of the dict
-            result = piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter],
-                                    setts,
-                                    parts)
+            result = piece.get_data([ngram.NGramIndexer], setts, parts)
         return result
 
     def _two_part_modules(self, index):
@@ -342,13 +332,8 @@ class WorkflowManager(object):
         horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
         # run the offset and repeat indexers, if required
-        if self.settings(index, u'offset interval') is not None:
-            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
-            vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
-            horiz_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, horiz_ints)
-        if self.settings(index, u'filter repeats') is True:
-            vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
-            horiz_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, horiz_ints)
+        vert_ints = self._run_off_rep(index, vert_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints)
         # each key in vert_ints corresponds to a two-voice combination we should use
         for combo in vert_ints.iterkeys():
             # which "horiz" part to use?
@@ -362,9 +347,7 @@ class WorkflowManager(object):
             setts[u'n'] = self.settings(None, u'n')
             # run NGramIndexer and FrequencyExperimenter, then append the result to the
             # corresponding index of the dict
-            result = piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter],
-                                    setts,
-                                    parts)
+            result = piece.get_data([ngram.NGramIndexer], setts, parts)
         return result
 
     def _all_part_modules(self, index):
@@ -398,13 +381,8 @@ class WorkflowManager(object):
                                      interval.HorizontalIntervalIndexer],
                                     settings)
         # run the offset and repeat indexers, if required
-        if self.settings(index, u'offset interval') is not None:
-            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
-            vert_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, vert_ints)
-            horiz_ints = piece.get_data([offset.FilterByOffsetIndexer], off_sets, horiz_ints)
-        if self.settings(index, u'filter repeats') is True:
-            vert_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, vert_ints)
-            horiz_ints = piece.get_data([repeat.FilterByRepeatIndexer], {}, horiz_ints)
+        vert_ints = self._run_off_rep(index, vert_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints)
         # figure out the weird string-index things for the vertical part combos
         lowest_part = len(piece.metadata(u'parts')) - 1
         vert_combos = [str(x) + u',' + str(lowest_part) for x in xrange(lowest_part)]
@@ -412,15 +390,13 @@ class WorkflowManager(object):
         parts = [vert_ints[x] for x in vert_combos]
         parts.append(horiz_ints[-1])  # always the lowest voice
         # assemble settings
-        settings = {u'vertical': range(len(parts) - 1), u'horizontal': [len(parts) - 1]}
-        settings[u'mark singles'] = self.settings(None, u'mark singles')
-        settings[u'continuer'] = self.settings(None, u'continuer')
-        settings[u'n'] = self.settings(None, u'n')
+        setts = {u'vertical': range(len(parts) - 1), u'horizontal': [len(parts) - 1]}
+        setts[u'mark singles'] = self.settings(None, u'mark singles')
+        setts[u'continuer'] = self.settings(None, u'continuer')
+        setts[u'n'] = self.settings(None, u'n')
         # run NGramIndexer and FrequencyExperimenter, then append the result to the
         # corresponding index of the dict
-        result = piece.get_data([ngram.NGramIndexer, frequency.FrequencyExperimenter],
-                                settings,
-                                parts)
+        result = piece.get_data([ngram.NGramIndexer], setts, parts)
         return result
 
     def _intervs(self):
@@ -463,8 +439,7 @@ class WorkflowManager(object):
             vert_ints = list(vert_ints.itervalues())
             # run the offset and repeat indexers, if required
             self._result.append(self._run_off_rep(i, vert_ints))
-        self._run_freq_agg()
-        return self._result
+        return self._run_freq_agg()
 
     def _run_off_rep(self, index, so_far):
         """
