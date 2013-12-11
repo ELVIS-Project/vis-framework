@@ -59,7 +59,8 @@ class WorkflowTests(TestCase):
                 for sett in [u'filter repeats']:
                     self.assertEqual(False, piece_sett[sett])
             exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
-                            u'interval quality': False, u'simple intervals': False}
+                            u'interval quality': False, u'simple intervals': False,
+                            u'include rests': False}
             self.assertEqual(exp_sh_setts, test_wc._shared_settings)
 
     def test_init_2(self):
@@ -77,7 +78,8 @@ class WorkflowTests(TestCase):
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
         exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
-                        u'interval quality': False, u'simple intervals': False}
+                        u'interval quality': False, u'simple intervals': False,
+                        u'include rests': False}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
 
     def test_init_3(self):
@@ -95,7 +97,8 @@ class WorkflowTests(TestCase):
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
         exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
-                        u'interval quality': False, u'simple intervals': False}
+                        u'interval quality': False, u'simple intervals': False,
+                        u'include rests': False}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
 
     def test_init_4(self):
@@ -112,7 +115,8 @@ class WorkflowTests(TestCase):
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
         exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
-                        u'interval quality': False, u'simple intervals': False}
+                        u'interval quality': False, u'simple intervals': False,
+                        u'include rests': False}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
 
     def test_load_1(self):

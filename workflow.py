@@ -99,7 +99,8 @@ class WorkflowManager(object):
                 piece_sett[sett] = False
         # hold settings common to all IndexedPieces
         self._shared_settings = {u'n': 2, u'continuer': u'_', u'mark singles': False,
-                                 u'interval quality': False, u'simple intervals': False}
+                                 u'interval quality': False, u'simple intervals': False,
+                                 u'include rests': False}
         # which was the most recent experiment run? Either 'intervals' or 'n-grams'
         self._previous_exp = None
         # whether the load() method has been called
@@ -724,21 +725,22 @@ class WorkflowManager(object):
         :param index: The index of the piece to access. The range of valid indices is ``0`` through
             one fewer than the return value of calling :func:`len` on this WorkflowManager. If
             ``value`` is not ``None`` and ``index`` is ``None``, you can set a field for all pieces.
-        :type index: :``int`` or ``None``
+        :type index: int or ``None``
         :param field: The name of the field to be accessed or modified.
-        :type field: ``basestring``
+        :type field: basestring
         :param value: If not ``None``, the new value to be assigned to ``field``.
-        :type value: ``object`` or ``None``
+        :type value: object or ``None``
 
         :returns: The value of the requested field or ``None``, if assigning, or if accessing a
             non-existant field or a field that has not yet been initialized.
-        :rtype: :obj:`object` or :obj:`None`
+        :rtype: object or ``None``
 
         :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
         :raises: :exc:`IndexError` if ``index`` is invalid for this ``WorkflowManager``.
         :raises: :exc:`ValueError` if ``index`` and ``value`` are both ``None``.
 
-        **Piece-Specific Settings:**
+        **Piece-Specific Settings**
+
         Pieces do not share these settings.
 
         * ``offset interval``: If you want to run the \
@@ -755,7 +757,8 @@ class WorkflowManager(object):
             should always be a ``basestring`` that nominally represents a list (except the special \
             values for ``'all'`` parts at once or ``'all pairs'``).
 
-        **Shared Settings:**
+        **Shared Settings**
+
         All pieces share these settings. The value of ``index`` is ignored for shared settings, so
         it can be anything.
 
@@ -766,6 +769,8 @@ class WorkflowManager(object):
             ``True``.
         * ``simple intervals``: If you want to display all intervals as their single-octave \
             equivalents, set this setting to ``True``.
+        * ``include rests``: If you want to include ``u'Rest'`` tokens as vertical intervals, \
+            change this setting to ``True``. The default is ``False``.
         """
         if field in self._shared_settings:
             if value is None:
