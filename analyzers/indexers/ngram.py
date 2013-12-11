@@ -289,12 +289,14 @@ class NGramIndexer(indexer.Indexer):
 
         # Fill in all "vertical" NaN values with the previous value
         for i in events[u'v'].columns:
-            events[u'v'][i].fillna(method=u'ffill', inplace=True)
+            # NB: still have to test the fix, as stated in issue 261
+            events.update(events.loc[:,(u'v', i)].fillna(method=u'ffill'))
 
         # Fill in all "horizontal" NaN values with the continuer
         if u'h' in events:
             for i in events[u'h'].columns:
-                events[u'h'][i].fillna(value=self._settings[u'continuer'], inplace=True)
+                # NB: still have to test the fix, as stated in issue 261
+                events.update(events.loc[:,(u'h', i)].fillna(value=self._settings[u'continuer']))
 
         # Iterate the offsets
         for i in xrange(len(events)):
