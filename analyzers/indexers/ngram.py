@@ -83,9 +83,9 @@ class NGramIndexer(indexer.Indexer):
     :type u'vertical': :obj:`list` of :obj:`int`
     :keyword u'n': The number of "vertical" events per n-gram.
     :type u'n': :obj:`int`
-    :keyword u'mark_singles': NOTE: this setting is :obj:`u'mark singles'` and the underscore is only for
-        technical (documentation) reasons. Whether to use delimiters around a direction's events
-        when there is only one event in that direction (e.g., the "horizontal" maps only the
+    :keyword u'mark_singles': NOTE: this setting is :obj:`u'mark singles'` and the underscore is
+        only for technical (documentation) reasons. Whether to use delimiters around a direction's
+        events when there is only one event in that direction (e.g., the "horizontal" maps only the
         activity of a single voice).
     :type u'mark_singles': :obj:`bool`
     :keyword u'terminator': Do not find an n-gram with a vertical item that contains any of these
