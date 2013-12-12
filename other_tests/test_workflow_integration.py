@@ -34,14 +34,30 @@ from vis.workflow import WorkflowManager
 # pylint: disable=R0904
 # pylint: disable=C0111
 class IntervalsTests(TestCase):
-    # EXPECTED_1 is the result of the "intervals" experiment with "[[0, 1]]" as the voice pairs;
-    # note that I didn't verify by counting... this just ensures a valid value comes out
+    # EXPECTED_1 is the result of the "intervals" experiment on bwv77 with "[[0, 1]]" as the voice
+    # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
     EXPECTED_1 = pandas.Series({u'3': 32, u'4': 22, u'5': 18, u'6': 16, u'7': 4, u'2': 3, u'8': 2})
-    # EXPECTED_2 is the result of the "intervals" experiment with "all pairs" as the voice pairs;
-    # note that I didn't verify by counting... this just ensures a valid value comes out
+    # EXPECTED_2 is the result of the "intervals" experiment on bwv77 with "all pairs" as the voice
+    # pairs; note that I didn't verify by counting
     EXPECTED_2 = pandas.Series({u'3': 91, u'6': 90, u'5': 86, u'10': 81, u'4': 62, u'8': 53,
                                 u'12': 37, u'7': 26, u'11': 17, u'13': 16, u'15': 12, u'9': 8,
                                 u'1': 8, u'2': 8, u'14': 7, u'17': 5, u'-2': 3, u'-3': 2, u'16': 1})
+    # EXPECTED_3 is the result of "intervals" experiment on madrigal51 with "all pairs" as the
+    # voice pairs and not including rests; note that I didn't verify this by counting
+    EXPECTED_3 = pandas.Series({'3': 219, '8': 208, '10': 193, '5': 192, '6': 155, '1': 153,
+                                '4': 125, '7': 124, '9': 122, '11': 96, '12': 96, '2': 66,
+                                '-3': 58, '15': 47, '13': 46, '14': 40, '-2': 37, '-4': 31,
+                                '-5': 29, '16': 23, '-6': 22, '17': 14, '-8': 10, '19': 9, '-7': 8,
+                                '18': 4, '-9': 3, '20': 3, '-12': 3, '22': 1, '-10': 1, '-1': 1})
+    # EXPECTED_4 is the result of "intervals" experiment on madrigal51 with "all pairs" as the
+    # voice pairs and including rests; note that I didn't verify this by counting
+    # NB: only difference between this and EXPECTED_3 should be the 'Rest' entry
+    EXPECTED_4 = pandas.Series({'Rest': 1228, '3': 219, '8': 208, '10': 193, '5': 192, '6': 155,
+                                '1': 153, '4': 125, '7': 124, '9': 122, '11': 96, '12': 96,
+                                '2': 66, '-3': 58, '15': 47, '13': 46, '14': 40, '-2': 37,
+                                '-4': 31, '-5': 29, '16': 23, '-6': 22, '17': 14, '-8': 10,
+                                '19': 9, '-7': 8, '18': 4, '-9': 3, '20': 3, '-12': 3, '22': 1,
+                                '-10': 1, '-1': 1})
 
     def test_intervals_1(self):
         # test the two highest voices of bwv77
@@ -68,6 +84,34 @@ class IntervalsTests(TestCase):
             self.assertTrue(ind_item in act_ind)
         for ind_item in exp_ind:
             self.assertEqual(IntervalsTests.EXPECTED_2[ind_item], actual[ind_item])
+
+    def test_intervals_3(self):
+        # test all combinations of madrigal51 without rests
+        test_wm = WorkflowManager(['test_corpus/madrigal51.mxl'])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', 'all pairs')
+        test_wm.settings(None, 'include rests', False)
+        actual = test_wm.run('intervals')
+        exp_ind = list(IntervalsTests.EXPECTED_3.index)
+        act_ind = list(actual.index)
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+        for ind_item in exp_ind:
+            self.assertEqual(IntervalsTests.EXPECTED_3[ind_item], actual[ind_item])
+
+    def test_intervals_4(self):
+        # test all combinations of madrigal51 with rests
+        test_wm = WorkflowManager(['test_corpus/madrigal51.mxl'])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', 'all pairs')
+        test_wm.settings(None, 'include rests', True)
+        actual = test_wm.run('intervals')
+        exp_ind = list(IntervalsTests.EXPECTED_4.index)
+        act_ind = list(actual.index)
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+        for ind_item in exp_ind:
+            self.assertEqual(IntervalsTests.EXPECTED_4[ind_item], actual[ind_item])
 
 
 class NGramsTests(TestCase):
