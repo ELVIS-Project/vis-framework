@@ -104,6 +104,32 @@ class NGramsTests(TestCase):
                                 '[3 8 5] 5 [5 3 1]': 1, '[3 8 5] 2 [8 6 3]': 1,
                                 '[3 8 5] -2 [4 4 6]': 1, '[3 7 5] 2 [3 5 3]': 1,
                                 '[3 7 5] 2 [1 5 3]': 1, '[3 6 5] 2 [1 6 3]': 1})
+    # EXPECTED_5 is the result of "interval n-grams" on madrigal51 with "all" as the voice pairs,
+    # and no rests; note that I didn't verify by counting
+    # NB: just the first ten
+    EXPECTED_5 = pandas.Series({'[15 13 6 10 1] 3 [12 10 5 8 1]': 2,
+                                '[9 8 5 1 -4] _ [9 7 5 1 -4]': 1,
+                                '[13 10 3 8 1] 1 [12 10 3 8 1]': 1,
+                                '[15 15 10 12 1] 8 [8 5 1 3 1]': 1,
+                                '[15 11 5 1 4] _ [15 11 5 1 4]': 1,
+                                '[15 11 5 1 4] _ [14 10 5 1 4]': 1,
+                                '[15 10 5 1 4] _ [15 11 5 1 4]': 1,
+                                '[14 5 7 6 1] -2 [15 6 8 7 1]': 1,
+                                '[14 5 4 5 1] _ [14 5 3 5 1]': 1,
+                                '[14 5 3 5 1] -5 [17 12 8 8 1]': 1})
+    # EXPECTED_6 is the result of "interval n-grams" on madrigal51 with "all" as the voice pairs,
+    # including rests; note that I didn't verify by counting
+    # NB: just the first ten
+    EXPECTED_6 = pandas.Series({'[Rest Rest Rest Rest Rest] _ [Rest Rest Rest Rest Rest]': 4,
+                                '[Rest Rest 1 3 Rest] 1 [Rest Rest 1 3 Rest]': 3,
+                                '[Rest Rest 1 8 Rest] 4 [Rest Rest 1 5 Rest]': 2,
+                                '[Rest Rest 1 5 Rest] -3 [Rest Rest 1 6 Rest]': 2,
+                                '[Rest Rest 1 5 Rest] 1 [Rest Rest 1 5 Rest]': 2,
+                                '[15 13 6 10 1] 3 [12 10 5 8 1]': 2,
+                                '[10 10 5 Rest Rest] _ [10 11 8 2 Rest]': 1,
+                                '[15 11 5 1 4] _ [15 11 5 1 4]': 1,
+                                '[15 11 5 8 Rest] _ [14 11 5 8 Rest]': 1,
+                                '[15 11 Rest 4 Rest] _ [14 10 5 4 Rest]': 1})
 
     def test_ngrams_1(self):
         # test the two highest voices of bwv77; 2-grams
@@ -161,6 +187,34 @@ class NGramsTests(TestCase):
             self.assertTrue(ind_item in act_ind)
         for ind_item in exp_ind:
             self.assertEqual(NGramsTests.EXPECTED_4[ind_item], actual[ind_item])
+
+    def test_ngrams_5(self):
+        # test madrigal51 with all-voice 2-grams and no rests (the default setting)
+        test_wm = WorkflowManager(['test_corpus/madrigal51.mxl'])
+        test_wm.settings(0, 'voice combinations', 'all')
+        test_wm.settings(None, 'include rests', False)
+        test_wm.load('pieces')
+        actual = test_wm.run('interval n-grams')
+        exp_ind = list(NGramsTests.EXPECTED_5.index)
+        act_ind = list(actual.index)
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+        for ind_item in exp_ind:
+            self.assertEqual(NGramsTests.EXPECTED_5[ind_item], actual[ind_item])
+
+    def test_ngrams_6(self):
+        # test madrigal51 with all-voice 2-grams and rests
+        test_wm = WorkflowManager(['test_corpus/madrigal51.mxl'])
+        test_wm.settings(0, 'voice combinations', 'all')
+        test_wm.settings(None, 'include rests', True)
+        test_wm.load('pieces')
+        actual = test_wm.run('interval n-grams')
+        exp_ind = list(NGramsTests.EXPECTED_6.index)
+        act_ind = list(actual.index)
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+        for ind_item in exp_ind:
+            self.assertEqual(NGramsTests.EXPECTED_6[ind_item], actual[ind_item])
 
 
 #-------------------------------------------------------------------------------------------------#
