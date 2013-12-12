@@ -29,6 +29,7 @@ Tests for the WorkflowManager
 from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
+import pandas
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import interval
@@ -55,15 +56,23 @@ class Intervals(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
+        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])]
+        expected = pandas.Series(['P5', 'm3', 'M3'], index=[1, 3, 4])
         # 2.) run the test
         test_wc = WorkflowManager(test_pieces)
-        test_wc._intervs()
+        actual = test_wc._intervs()
         # 3.) confirm everything was called in the right order
         for piece in test_pieces:
             self.assertEqual(1, piece.get_data.call_count)
             piece.get_data.assert_called_once_with([mock_nri, mock_int], test_settings)
         self.assertEqual(len(test_pieces), mock_ror.call_count)
         mock_rfa.assert_called_once_with()
+        self.assertEqual(len(test_pieces), len(actual))
+        for act in actual:
+            # NB: in real use, _run_freq_agg() would aggregate a piece's voice pairs, so we
+            #     wouldn't need to ask for the [0] index here
+            self.assertSequenceEqual(list(expected), list(act[0]))
+            self.assertSequenceEqual(list(expected.index), list(act[0].index))
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
@@ -71,10 +80,8 @@ class Intervals(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     def test_intervs_2(self, mock_int, mock_nri, mock_rep, mock_rfa, mock_ror):
-        # NB: most of the things up there are only mocked to prevent the real versions
-        #     from being called
         # --> test whether _intervs() calls all those things in the right order, with specifying
-        #     certain voice-pairs
+        #     certain voice-pairs and keeping 'Rest' tokens
         # 1.) prepare the test and mocks
         test_settings = {u'simple or compound': u'compound', u'quality': False}
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
@@ -87,13 +94,16 @@ class Intervals(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
+        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])]
+        expected = pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])
         # 2.) run the test
         test_wc = WorkflowManager(test_pieces)
         # (have to set the voice-pair settings)
         expected_pairs = [[0, 1], [0, 2]]
         for i in xrange(len(test_pieces)):
             test_wc._settings[i][u'voice combinations'] = unicode(expected_pairs)
-        test_wc._intervs()
+        test_wc.settings(None, 'include rests', True)
+        actual = test_wc._intervs()
         # 3.) confirm everything was called in the right order
         self.assertEqual(len(test_pieces), mock_rep.call_count)
         for i in xrange(len(the_dicts)):
@@ -102,6 +112,12 @@ class Intervals(TestCase):
             piece.get_data.assert_called_once_with([mock_nri, mock_int], test_settings)
         self.assertEqual(len(test_pieces), mock_ror.call_count)
         mock_rfa.assert_called_once_with()
+        self.assertEqual(len(test_pieces), len(actual))
+        for act in actual:
+            # NB: in real use, _run_freq_agg() would aggregate a piece's voice pairs, so we
+            #     wouldn't need to ask for the [0] index here
+            self.assertSequenceEqual(list(expected), list(act[0]))
+            self.assertSequenceEqual(list(expected.index), list(act[0].index))
 
 
 class IntervalNGrams(TestCase):

@@ -439,8 +439,15 @@ class WorkflowManager(object):
             # we no longer need to know the combinations' names, so we can make a list
             vert_ints = list(vert_ints.itervalues())
             # run the offset and repeat indexers, if required
-            self._result.append(self._run_off_rep(i, vert_ints))
-        return self._run_freq_agg()
+            post = self._run_off_rep(i, vert_ints)
+            # remove the "Rest" entries, if required
+            if self.settings(None, u'include rests') is not True:
+                # we'll just get a view that omits the "Rest" entries in the Series
+                for i, pair in enumerate(post):
+                    post[i] = pair[pair != u'Rest']
+            self._result.append(post)
+        self._run_freq_agg()
+        return self._result
 
     def _run_off_rep(self, index, so_far):
         """
