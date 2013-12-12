@@ -299,6 +299,8 @@ class WorkflowManager(object):
             setts[u'mark singles'] = self.settings(None, u'mark singles')
             setts[u'continuer'] = self.settings(None, u'continuer')
             setts[u'n'] = self.settings(None, u'n')
+            if self.settings(None, u'include rests') is not True:
+                setts[u'terminator'] = u'Rest'
             # run NGramIndexer and FrequencyExperimenter, then append the result to the
             # corresponding index of the dict
             result = piece.get_data([ngram.NGramIndexer], setts, parts)
@@ -346,6 +348,8 @@ class WorkflowManager(object):
             setts[u'mark singles'] = self.settings(None, u'mark singles')
             setts[u'continuer'] = self.settings(None, u'continuer')
             setts[u'n'] = self.settings(None, u'n')
+            if self.settings(None, u'include rests') is not True:
+                setts[u'terminator'] = u'Rest'
             # run NGramIndexer and FrequencyExperimenter, then append the result to the
             # corresponding index of the dict
             result = piece.get_data([ngram.NGramIndexer], setts, parts)
@@ -395,6 +399,8 @@ class WorkflowManager(object):
         setts[u'mark singles'] = self.settings(None, u'mark singles')
         setts[u'continuer'] = self.settings(None, u'continuer')
         setts[u'n'] = self.settings(None, u'n')
+        if self.settings(None, u'include rests') is not True:
+            setts[u'terminator'] = u'Rest'
         # run NGramIndexer and FrequencyExperimenter, then append the result to the
         # corresponding index of the dict
         result = piece.get_data([ngram.NGramIndexer], setts, parts)

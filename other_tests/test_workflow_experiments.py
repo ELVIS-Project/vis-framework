@@ -159,7 +159,7 @@ class IntervalNGrams(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     def test_var_part_modules_1(self, mock_int, mock_nri, mock_ng, mock_horiz, mock_ror):
-        # - we'll only use self._data[1]
+        # - we'll only use self._data[1]; excluding "Rest"
         # 1.) prepare the test and mocks
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         # set up fake part names
@@ -200,8 +200,9 @@ class IntervalNGrams(TestCase):
         # - that every IP is asked for its vertical and horizontal interval indexes
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
-        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2, \
-                                   u'continuer': u'_', u'mark singles': False}
+        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2,
+                                   u'continuer': u'_', u'mark singles': False,
+                                   u'terminator': u'Rest'}
         # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(4, test_pieces[1].get_data.call_count)
         expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
@@ -226,8 +227,8 @@ class IntervalNGrams(TestCase):
     @mock.patch(u'vis.workflow.ngram.NGramIndexer')
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
-    def test_var_part_modules_3(self, mock_int, mock_nri, mock_ng, mock_horiz, mock_ror):
-        # - we'll only use self._data[1]
+    def test_var_part_modules_2(self, mock_int, mock_nri, mock_ng, mock_horiz, mock_ror):
+        # - we'll only use self._data[1]; including "Rest"
         # 1.) prepare the test and mocks
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         # set up fake part names
@@ -263,6 +264,7 @@ class IntervalNGrams(TestCase):
         test_wc.settings(test_index, u'filter repeats', False)
         test_wc.settings(test_index, u'offset interval', None)
         test_wc.settings(test_index, u'voice combinations', unicode(selected_part_combos))
+        test_wc.settings(None, u'include rests', True)
         actual = test_wc._variable_part_modules(test_index)
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes
@@ -296,7 +298,7 @@ class IntervalNGrams(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     def test_all_part_modules_1(self, mock_int, mock_nri, mock_ng, mock_horiz, mock_ror):
-        # - we'll only use self._data[1]
+        # - we'll only use self._data[1]; excluding "Rest"
         # 1.) prepare the test and mocks
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         # set up fake part names
@@ -334,8 +336,9 @@ class IntervalNGrams(TestCase):
         # - that every IP is asked for its vertical and horizontal interval indexes
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
-        expected_ngram_settings = {u'horizontal': [3], u'vertical': [0, 1, 2], u'n': 2, \
-                                   u'continuer': u'_', u'mark singles': False}
+        expected_ngram_settings = {u'horizontal': [3], u'vertical': [0, 1, 2], u'n': 2,
+                                   u'continuer': u'_', u'mark singles': False,
+                                   u'terminator': u'Rest'}
         # all parts at once for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(3, test_pieces[test_index].get_data.call_count)
         # - that _run_off_rep() is called once for horizontal and vertical
@@ -361,7 +364,7 @@ class IntervalNGrams(TestCase):
     @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     def test_two_part_modules_1(self, mock_int, mock_nri, mock_ng, mock_horiz, mock_ror):
-        # - we'll only use self._data[1]
+        # - we'll only use self._data[1]; excluding "Rest"
         # 1.) prepare the test and mocks
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
         # set up fake part names
@@ -402,8 +405,9 @@ class IntervalNGrams(TestCase):
         # - that every IP is asked for its vertical and horizontal interval indexes
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
-        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2, \
-                                   u'continuer': u'_', u'mark singles': False}
+        expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2,
+                                   u'continuer': u'_', u'mark singles': False,
+                                   u'terminator': u'Rest'}
         # four-part piece means 6 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(8, test_pieces[test_index].get_data.call_count)
         expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
