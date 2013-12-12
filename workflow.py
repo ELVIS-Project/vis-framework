@@ -269,15 +269,13 @@ class WorkflowManager(object):
         * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
         * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
         * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
-        * :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`
-        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
 
         :param index: The index of the IndexedPiece on which to the experiment, as stored in
             ``self._data``.
-        :type index: integer
+        :type index: int
 
-        :returns: The result of :class:`ColumnAggregator` for a single piece.
-        :rtype: :class:`pandas.Series` or ``None``
+        :returns: The result of :class:`NGramIndexer` for a single piece.
+        :rtype: list of :class:`pandas.Series`
 
         .. note:: If the piece has an invalid part-combination list, the method returns ``None``.
         """
@@ -296,6 +294,7 @@ class WorkflowManager(object):
         # much we can do to save the situation, so we might as well let it go up
         needed_combos = ast.literal_eval(unicode(self.settings(index, u'voice combinations')))
         # each key in vert_ints corresponds to a two-voice combination we should use
+        post = []
         for combo in needed_combos:
             # make the list of parts
             parts = [vert_ints[str(i) + u',' + str(combo[-1])] for i in combo[:-1]]
@@ -309,8 +308,8 @@ class WorkflowManager(object):
                 setts[u'terminator'] = u'Rest'
             # run NGramIndexer and FrequencyExperimenter, then append the result to the
             # corresponding index of the dict
-            result = piece.get_data([ngram.NGramIndexer], setts, parts)
-        return result
+            post.append(piece.get_data([ngram.NGramIndexer], setts, parts))
+        return post
 
     def _two_part_modules(self, index):
         """
@@ -322,15 +321,13 @@ class WorkflowManager(object):
         * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
         * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
         * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
-        * :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`
-        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
 
         :param index: The index of the IndexedPiece on which to the experiment, as stored in
             ``self._data``.
-        :type index: integer
+        :type index: int
 
-        :returns: The result of :class:`ColumnAggregator` for a single piece.
-        :rtype: :class:`pandas.Series`
+        :returns: The result of :class:`NGramIndexer` for a single piece.
+        :rtype: list of :class:`pandas.Series`
         """
         piece = self._data[index]
         # make settings for interval indexers
@@ -344,6 +341,7 @@ class WorkflowManager(object):
         vert_ints = self._run_off_rep(index, vert_ints)
         horiz_ints = self._run_off_rep(index, horiz_ints)
         # each key in vert_ints corresponds to a two-voice combination we should use
+        post = []
         for combo in vert_ints.iterkeys():
             # which "horiz" part to use?
             horiz_i = interval.key_to_tuple(combo)[1]
@@ -358,8 +356,8 @@ class WorkflowManager(object):
                 setts[u'terminator'] = u'Rest'
             # run NGramIndexer and FrequencyExperimenter, then append the result to the
             # corresponding index of the dict
-            result = piece.get_data([ngram.NGramIndexer], setts, parts)
-        return result
+            post.append(piece.get_data([ngram.NGramIndexer], setts, parts))
+        return post
 
     def _all_part_modules(self, index):
         """
@@ -371,15 +369,14 @@ class WorkflowManager(object):
         * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
         * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
         * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
-        * :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`
-        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
 
         :param index: The index of the IndexedPiece on which to the experiment, as stored in
             ``self._data``.
-        :type index: integer
+        :type index: int
 
-        :returns: The result of :class:`ColumnAggregator` for a single piece.
-        :rtype: :class:`pandas.Series`
+        :returns: The result of :class:`NGramIndexer` for a single piece (for this method, always
+            a single-element list).
+        :rtype: list of :class:`pandas.Series`
         """
         piece = self._data[index]
         # make settings for interval indexers
@@ -409,7 +406,7 @@ class WorkflowManager(object):
             setts[u'terminator'] = u'Rest'
         # run NGramIndexer and FrequencyExperimenter, then append the result to the
         # corresponding index of the dict
-        result = piece.get_data([ngram.NGramIndexer], setts, parts)
+        result = [piece.get_data([ngram.NGramIndexer], setts, parts)]
         return result
 
     def _intervs(self):

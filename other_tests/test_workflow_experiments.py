@@ -219,6 +219,7 @@ class IntervalNGrams(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
+        expected = returns[2:]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -237,10 +238,10 @@ class IntervalNGrams(TestCase):
                                    u'terminator': u'Rest'}
         # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(4, test_pieces[1].get_data.call_count)
-        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
+        exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
                     mock.call([mock_nri, mock_horiz], expected_interv_setts)]
-        for i in xrange(len(expected)):
-            self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
+        for i in xrange(len(exp_calls)):
+            self.assertEqual(test_pieces[1].get_data.mock_calls[i], exp_calls[i])
         # - that _run_off_rep() is called once for horizontal and vertical
         self.assertEqual(2, mock_ror.call_count)
         mock_ror.assert_any_call(test_index, vert_ret)
@@ -252,7 +253,7 @@ class IntervalNGrams(TestCase):
                                                     expected_ngram_settings,
                                                     [ror_vert_ret[zombo],
                                                     ror_horiz_ret[combo[1]]])
-        self.assertEqual(u'piece2 4th get_data()', actual)
+        self.assertEqual(expected, actual)
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
@@ -288,6 +289,7 @@ class IntervalNGrams(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
+        expected = returns[2:]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -306,10 +308,10 @@ class IntervalNGrams(TestCase):
                                    u'continuer': u'_', u'mark singles': False}
         # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(4, test_pieces[1].get_data.call_count)
-        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
+        exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
                     mock.call([mock_nri, mock_horiz], expected_interv_setts)]
-        for i in xrange(len(expected)):
-            self.assertEqual(test_pieces[1].get_data.mock_calls[i], expected[i])
+        for i in xrange(len(exp_calls)):
+            self.assertEqual(test_pieces[1].get_data.mock_calls[i], exp_calls[i])
         # - that _run_off_rep() is called once for horizontal and vertical
         self.assertEqual(2, mock_ror.call_count)
         mock_ror.assert_any_call(test_index, vert_ret)
@@ -322,7 +324,7 @@ class IntervalNGrams(TestCase):
             test_pieces[1].get_data.assert_any_call([mock_ng],
                                                     expected_ngram_settings,
                                                     parts)
-        self.assertEqual(u'piece2 4th get_data()', actual)
+        self.assertEqual(expected, actual)
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
@@ -425,6 +427,7 @@ class IntervalNGrams(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
+        expected = returns[2:]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -442,10 +445,10 @@ class IntervalNGrams(TestCase):
                                    u'terminator': u'Rest'}
         # four-part piece means 6 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(8, test_pieces[test_index].get_data.call_count)
-        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
+        exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
                     mock.call([mock_nri, mock_horiz], expected_interv_setts)]
-        for i in xrange(len(expected)):
-            self.assertEqual(test_pieces[test_index].get_data.mock_calls[i], expected[i])
+        for i in xrange(len(exp_calls)):
+            self.assertEqual(test_pieces[test_index].get_data.mock_calls[i], exp_calls[i])
         # - that _run_off_rep() is called once for horizontal and vertical
         self.assertEqual(2, mock_ror.call_count)
         mock_ror.assert_any_call(test_index, vert_ret)
@@ -456,7 +459,7 @@ class IntervalNGrams(TestCase):
                                                     expected_ngram_settings,
                                                     [ror_vert_ret[combo],
                                                     ror_horiz_ret[interval.key_to_tuple(combo)[1]]])
-        self.assertEqual(u'piece2 8th get_data()', actual)
+        self.assertSequenceEqual(expected, actual)
 
 
 #-------------------------------------------------------------------------------------------------#
