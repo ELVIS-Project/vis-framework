@@ -100,7 +100,7 @@ class WorkflowManager(object):
         # hold settings common to all IndexedPieces
         self._shared_settings = {u'n': 2, u'continuer': u'_', u'mark singles': False,
                                  u'interval quality': False, u'simple intervals': False,
-                                 u'include rests': False}
+                                 u'include rests': False, u'count frequency': True}
         # which was the most recent experiment run? Either 'intervals' or 'n-grams'
         self._previous_exp = None
         # whether the load() method has been called
@@ -788,6 +788,11 @@ class WorkflowManager(object):
             equivalents, set this setting to ``True``.
         * ``include rests``: If you want to include ``u'Rest'`` tokens as vertical intervals, \
             change this setting to ``True``. The default is ``False``.
+        * ``count frequency``: When set to ``True`` (the default), experiments will return the \
+            number of occurrences of each token (i.e., "each interval" or "each interval n-gram").\
+            When set to ``False``, the moment-by-moment analysis of each piece is retained. We \
+            recommend you only request spreadsheet-formatted output when ``count frequency`` is \
+            ``False``.
         """
         if field in self._shared_settings:
             if value is None:
