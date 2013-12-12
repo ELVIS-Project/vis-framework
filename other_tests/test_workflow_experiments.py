@@ -81,7 +81,7 @@ class Intervals(TestCase):
     @mock.patch(u'vis.workflow.interval.IntervalIndexer')
     def test_intervs_2(self, mock_int, mock_nri, mock_rep, mock_rfa, mock_ror):
         # --> test whether _intervs() calls all those things in the right order, with specifying
-        #     certain voice-pairs and keeping 'Rest' tokens
+        #     certain voice-pairs, keeping 'Rest' tokens, and not calling _run_freq_agg()
         # 1.) prepare the test and mocks
         test_settings = {u'simple or compound': u'compound', u'quality': False}
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
@@ -103,6 +103,7 @@ class Intervals(TestCase):
         for i in xrange(len(test_pieces)):
             test_wc._settings[i][u'voice combinations'] = unicode(expected_pairs)
         test_wc.settings(None, 'include rests', True)
+        test_wc.settings(None, 'count frequency', False)
         actual = test_wc._intervs()
         # 3.) confirm everything was called in the right order
         self.assertEqual(len(test_pieces), mock_rep.call_count)
@@ -111,11 +112,12 @@ class Intervals(TestCase):
         for piece in test_pieces:
             piece.get_data.assert_called_once_with([mock_nri, mock_int], test_settings)
         self.assertEqual(len(test_pieces), mock_ror.call_count)
-        mock_rfa.assert_called_once_with()
+        self.assertEqual(0, mock_rfa.call_count)
         self.assertEqual(len(test_pieces), len(actual))
         for act in actual:
             # NB: in real use, _run_freq_agg() would aggregate a piece's voice pairs, so we
-            #     wouldn't need to ask for the [0] index here
+            #     wouldn't need to ask for the [0] index here... but also, this experiment shouldn't
+            #     call _run_freq_agg() anyway
             self.assertSequenceEqual(list(expected), list(act[0]))
             self.assertSequenceEqual(list(expected.index), list(act[0].index))
 
@@ -129,15 +131,45 @@ class IntervalNGrams(TestCase):
         # --> test with three pieces, each of which requires a different helper
         # 1.) prepare mocks
         ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
+        mock_rfa.return_value = u'mock_rfa() return value'
+        mock_two.return_value = u'mock_two() return value'
+        mock_all.return_value = u'mock_all() return value'
+        mock_var.return_value = u'mock_var() return value'
+        expected = [mock_all.return_value, mock_two.return_value, mock_var.return_value]
+        # 2.) run the test
         test_wm = WorkflowManager(ind_pieces)
         test_wm.settings(0, u'voice combinations', u'all')
         test_wm.settings(1, u'voice combinations', u'all pairs')
         test_wm.settings(2, u'voice combinations', u'[[0, 1]]')
+        actual = test_wm._interval_ngrams()
+        # 3.) verify the mocks
+        # NB: in actual use, _run_freq_agg() would have the final say on the value of
+        #     test_wm._result... but it's mocked out, which means we can test whether
+        #     _interval_ngrams() puts the right stuff there
+        self.assertSequenceEqual(expected, test_wm._result)
+        mock_two.assert_called_once_with(1)
+        mock_all.assert_called_once_with(0)
+        mock_var.assert_called_once_with(2)
+        mock_rfa.assert_called_once_with()
+
+    @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
+    @mock.patch(u'vis.workflow.WorkflowManager._variable_part_modules')
+    @mock.patch(u'vis.workflow.WorkflowManager._all_part_modules')
+    @mock.patch(u'vis.workflow.WorkflowManager._two_part_modules')
+    def test_interval_ngrams_2(self, mock_two, mock_all, mock_var, mock_rfa):
+        # --> same as test_interval_ngrams_1(), but with "count frequency" set to False
+        # 1.) prepare mocks
+        ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
         mock_rfa.return_value = u'mock_rfa() return value'
         mock_two.return_value = u'mock_two() return value'
         mock_all.return_value = u'mock_all() return value'
         mock_var.return_value = u'mock_var() return value'
         # 2.) run the test
+        test_wm = WorkflowManager(ind_pieces)
+        test_wm.settings(0, u'voice combinations', u'all')
+        test_wm.settings(1, u'voice combinations', u'all pairs')
+        test_wm.settings(2, u'voice combinations', u'[[0, 1]]')
+        test_wm.settings(None, 'count frequency', False)
         actual = test_wm._interval_ngrams()
         # 3.) verify the mocks
         # NB: in actual use, _run_freq_agg() would have the final say on the value of
@@ -150,8 +182,8 @@ class IntervalNGrams(TestCase):
         mock_two.assert_called_once_with(1)
         mock_all.assert_called_once_with(0)
         mock_var.assert_called_once_with(2)
-        mock_rfa.assert_called_once_with()
-        self.assertEqual(actual, mock_rfa.return_value)
+        self.assertEqual(0, mock_rfa.call_count)
+        self.assertEqual(actual, [mock_all.return_value, mock_two.return_value, mock_var.return_value])
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')

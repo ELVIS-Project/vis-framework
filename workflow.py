@@ -254,7 +254,9 @@ class WorkflowManager(object):
             else:
                 self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
-        return self._run_freq_agg()
+        if self.settings(None, u'count frequency') is True:
+            self._run_freq_agg()
+        return self._result
 
     def _variable_part_modules(self, index):
         """
@@ -456,7 +458,8 @@ class WorkflowManager(object):
                 for i, pair in enumerate(post):
                     post[i] = pair[pair != u'Rest']
             self._result.append(post)
-        self._run_freq_agg()
+        if self.settings(None, 'count frequency') is True:
+            self._run_freq_agg()
         return self._result
 
     def _run_off_rep(self, index, so_far):
