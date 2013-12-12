@@ -411,12 +411,15 @@ class WorkflowManager(object):
 
     def _intervs(self):
         """
-        Prepare a list of frequencies of intervals between all voice pairs of all pieces. These \
-        indexers and experimenters will run:
+        Prepare a list of the intervals found between two parts in all pieces. If particular voice
+        pairs are specified for a piece, only those pairs are included. These  analyzers will run:
 
         * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
-        * :class:`~vis.analyzers.experimenters.frequencyFrequencyExperimenter`
-        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+
+        :returns: the result of :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
+        :rtype: dict of :class:`pandas.Series`
+
+        .. note:: The return value is automatically stored in ``self._result``.
 
         Settings are parsed automatically by piece. For part combinations, ``[all]``,
         ``[all pairs]``, and ``None`` are treated as equivalent. If the ``offset interval`` setting
@@ -428,9 +431,6 @@ class WorkflowManager(object):
         .. note:: The voice combinations must be pairs. Voice combinations with fewer or greater
         than two parts are ignored, which may result in one or more pieces being omitted from the
         results if you aren't careful with settings.
-
-        :returns: the result of :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
-        :rtype: :class:`pandas.Series`
         """
         self._result = []
         # shared settings for the IntervalIndexer
