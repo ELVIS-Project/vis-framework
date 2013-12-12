@@ -155,6 +155,13 @@ class WorkflowTests(TestCase):
         #for i in xrange(3):
             #self.assertEqual(exp_names[i], test_wc.metadata(i, 'composer'))
 
+    def test_load_4(self):
+        # that incorrect instructions cause load() to raise a RuntimeError
+        test_wc = WorkflowManager([])
+        self.assertRaises(RuntimeError, test_wc.load, u'piece')
+        self.assertRaises(RuntimeError, test_wc.load, u'all the data')
+        self.assertRaises(RuntimeError, test_wc.load, u'not sure why I wanted three of these')
+
     def test_run_1(self):
         # properly deals with "intervals" experiment
         mock_path = u'vis.workflow.WorkflowManager._intervs'

@@ -138,7 +138,9 @@ class WorkflowManager(object):
             ``u'pieces'`` instruction.
         :type pathname: basestring
 
-        **Instructions:**
+        :raises: :exc:`RuntimeError` if the ``instruction`` is not recognized.
+
+        **Instructions**
 
         .. note:: only ``u'pieces'`` is implemented at this time.
 
@@ -162,6 +164,8 @@ class WorkflowManager(object):
                     self._data = self._data[:i] + self._data[i + 1:] + new_ips
         elif u'hdf5' == instruction or u'stata' == instruction or u'pickle' == instruction:
             raise NotImplementedError(u'The ' + instruction + u' instruction does\'t work yet!')
+        else:
+            raise RuntimeError(u'Unrecognized load() instruction: "' + unicode(instruction) + '"')
         self._loaded = True
 
     def run(self, instruction):
