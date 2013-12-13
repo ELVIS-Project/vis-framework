@@ -128,11 +128,11 @@ class NGramsTests(TestCase):
     # EXPECTED_2 is the result of the "interval n-grams" experiment with "all pairs" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
     # NB: just the first ten, because seriously.
-    EXPECTED_2 = pandas.Series({'5 _ 6 -2 8 -2 5 -4 8': 2, '3 -4 5 4 1 -2 3 -2 5': 2,
-                                '5 4 1 -2 3 -2 5 _ 6': 2, '3 -2 5 _ 6 -2 8 -2 5': 2,
-                                '5 -4 8 _ 7 4 3 1 3': 2, '5 -4 8 -2 10 -2 12 6 5': 2,
-                                '5 -3 10 2 8 4 3 -4 5': 2, '5 -2 8 4 5 -4 8 -2 10': 2,
-                                '12 6 5 -3 10 2 8 4 3': 2, '6 -2 8 -2 5 -4 8 _ 7': 2,})
+    EXPECTED_2 = pandas.Series({'9 1 10 -2 12 4 10 -4 12': 2, '13 2 12 4 8 -4 10 4 10': 2,
+                                '10 -2 10 -2 10 -2 10 -4 12': 2, '10 -2 10 -2 10 -4 12 4 8': 2,
+                                '10 -2 10 -4 12 4 8 1 8': 2, '10 -2 12 4 10 -4 12 -2 13': 2,
+                                '10 -4 12 -2 13 -2 17 6 12': 2, '10 4 10 -2 10 -2 10 -2 10': 2,
+                                '12 -2 13 -2 17 6 12 -3 13': 2, '12 -3 13 2 12 4 8 -4 10': 2})
     # EXPECTED_3 is the result of the "interval n-grams" experiment with "all" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
     # NB: just the first ten, because seriously.

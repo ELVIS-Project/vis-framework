@@ -132,10 +132,10 @@ class IntervalNGrams(TestCase):
         # 1.) prepare mocks
         ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
         mock_rfa.return_value = u'mock_rfa() return value'
-        mock_two.return_value = u'mock_two() return value'
-        mock_all.return_value = u'mock_all() return value'
-        mock_var.return_value = u'mock_var() return value'
-        expected = [mock_all.return_value, mock_two.return_value, mock_var.return_value]
+        mock_two.return_value = [u'mock_two() return value']
+        mock_all.return_value = [u'mock_all() return value']
+        mock_var.return_value = [u'mock_var() return value']
+        expected = [mock_all.return_value[0], mock_two.return_value[0], mock_var.return_value[0]]
         # 2.) run the test
         test_wm = WorkflowManager(ind_pieces)
         test_wm.settings(0, u'voice combinations', u'all')
@@ -146,11 +146,12 @@ class IntervalNGrams(TestCase):
         # NB: in actual use, _run_freq_agg() would have the final say on the value of
         #     test_wm._result... but it's mocked out, which means we can test whether
         #     _interval_ngrams() puts the right stuff there
-        self.assertSequenceEqual(expected, test_wm._result)
         mock_two.assert_called_once_with(1)
         mock_all.assert_called_once_with(0)
         mock_var.assert_called_once_with(2)
         mock_rfa.assert_called_once_with()
+        self.assertSequenceEqual(expected, actual)
+        self.assertSequenceEqual(expected, test_wm._result)
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
     @mock.patch(u'vis.workflow.WorkflowManager._variable_part_modules')
@@ -161,9 +162,10 @@ class IntervalNGrams(TestCase):
         # 1.) prepare mocks
         ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
         mock_rfa.return_value = u'mock_rfa() return value'
-        mock_two.return_value = u'mock_two() return value'
-        mock_all.return_value = u'mock_all() return value'
-        mock_var.return_value = u'mock_var() return value'
+        mock_two.return_value = [u'mock_two() return value']
+        mock_all.return_value = [u'mock_all() return value']
+        mock_var.return_value = [u'mock_var() return value']
+        expected = [mock_all.return_value, mock_two.return_value, mock_var.return_value]
         # 2.) run the test
         test_wm = WorkflowManager(ind_pieces)
         test_wm.settings(0, u'voice combinations', u'all')
@@ -183,7 +185,8 @@ class IntervalNGrams(TestCase):
         mock_all.assert_called_once_with(0)
         mock_var.assert_called_once_with(2)
         self.assertEqual(0, mock_rfa.call_count)
-        self.assertEqual(actual, [mock_all.return_value, mock_two.return_value, mock_var.return_value])
+        self.assertEqual(expected, actual)
+        self.assertSequenceEqual(expected, test_wm._result)
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')
@@ -358,6 +361,7 @@ class IntervalNGrams(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
+        expected = returns[2:]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -380,7 +384,7 @@ class IntervalNGrams(TestCase):
         mock_ror.assert_any_call(test_index, vert_ret)
         mock_ror.assert_any_call(test_index, horiz_ret)
         # confirm the calls to interval indexers an NGramIndexer all together
-        expected = [mock.call([mock_nri, mock_int], expected_interv_setts),
+        exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
                     mock.call([mock_nri, mock_horiz], expected_interv_setts),
                     mock.call([mock_ng],
                               expected_ngram_settings,
@@ -388,9 +392,9 @@ class IntervalNGrams(TestCase):
                                ror_vert_ret[u'1,3'],
                                ror_vert_ret[u'2,3'],
                                ror_horiz_ret[3]])]
-        for i in xrange(len(expected)):
-            self.assertEqual(test_pieces[test_index].get_data.mock_calls[i], expected[i])
-        self.assertEqual(3, actual)
+        for i in xrange(len(exp_calls)):
+            self.assertEqual(test_pieces[test_index].get_data.mock_calls[i], exp_calls[i])
+        self.assertEqual(expected, actual)
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch(u'vis.workflow.interval.HorizontalIntervalIndexer')

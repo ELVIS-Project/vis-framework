@@ -255,6 +255,10 @@ class WorkflowManager(object):
                 self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
         if self.settings(None, u'count frequency') is True:
+            post = []
+            for piece in self._result:
+                post.extend([part for part in piece])
+            self._result = post
             self._run_freq_agg()
         return self._result
 
