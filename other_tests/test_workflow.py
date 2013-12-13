@@ -26,6 +26,7 @@
 Tests for the WorkflowManager
 """
 
+from subprocess import CalledProcessError
 from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
@@ -215,7 +216,7 @@ class Output(TestCase):
         self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
 
     @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.call')
+    @mock.patch(u'subprocess.check_output')
     def test_output_4(self, mock_call, mock_gdf):
         # with specified pathname; last experiment was intervals with 20 pieces; self._result is DF
         test_wc = WorkflowManager([])
@@ -231,7 +232,7 @@ class Output(TestCase):
         self.assertEqual(path + u'.png', actual)
 
     @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.call')
+    @mock.patch(u'subprocess.check_output')
     def test_output_5(self, mock_call, mock_gdf):
         # with unspecified pathname; last experiment was 14-grams with 1 piece; self._result is S
         test_wc = WorkflowManager([])
@@ -248,7 +249,7 @@ class Output(TestCase):
         self.assertEqual(path + u'.png', actual)
 
     @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.call')
+    @mock.patch(u'subprocess.check_output')
     def test_output_6(self, mock_call, mock_gdf):
         # test_ouput_6, plus top_x and threshold
         test_wc = WorkflowManager([])
@@ -263,6 +264,30 @@ class Output(TestCase):
                          path + u'.dta', path + u'.png', u'14', u'1']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
+
+    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+    @mock.patch(u'subprocess.check_output')
+    def test_output_7(self, mock_call, mock_gdf):
+        # test_output_4() but the subprocess thing fails
+        def raiser(*args):
+            raise CalledProcessError(u'Bach!', 42, u'CPE')
+        mock_call.side_effect = raiser
+        test_wc = WorkflowManager([])
+        test_wc._previous_exp = u'intervals'
+        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._result = MagicMock(spec=pandas.DataFrame)
+        path = u'pathname!'
+        expected_msg = u'Error during call to R: CPE (return code: Bach!)'
+        actual = None
+        try:
+            test_wc.output(u'R histogram', path)
+        except RuntimeError as run_e:
+            actual = run_e
+        self.assertEqual(expected_msg, actual.message)
+        self.assertEqual(0, mock_gdf.call_count)
+        expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+                         path + u'.dta', path + u'.png', u'int', u'20']
+        mock_call.assert_called_once_with(expected_args)
 
 
 class Settings(TestCase):

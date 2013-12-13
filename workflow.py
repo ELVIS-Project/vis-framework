@@ -587,36 +587,28 @@ class WorkflowManager(object):
         """
         Create a visualization from the most recent result of :meth:`run` and save it to a file.
 
-        Parameters
-        ==========
         :parameter instruction: The type of visualization to output.
-        :type instruction: ``basestring``
+        :type instruction: basestring
         :parameter pathname: The pathname for the output. The default is
             ``'test_output/output_result``. A file extension is applied automatically.
-        :type pathname: ``basestring``
+        :type pathname: basestring
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
-        :type top_x: ``int``
+        :type top_x: int
         :param threshold: If a result is strictly less than this number, it will be left out. The
             default is ``None``.
         :type threshold: number
 
-        Returns
-        =======
         :returns: The pathname of the outputted visualization.
-        :rtype: :obj:`unicode`
+        :rtype: unicode
 
-        Raises
-        ======
         :raises: :exc:`NotImplementedError` if you use the ``u'LilyPond'`` instruction.
         :raises: :exc:`RuntimeError` for unrecognized instructions.
         :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
+        :raises: :exc:`RuntiemError` if a call to R encounters a problem.
 
         **Instructions:**
 
-        .. note:: Only the ``u'R histogram'`` instruction works at the moment.
-
-        * :obj:`u'LilyPond'`: not yet sure what this will be like...
-        * :obj:`u'R histogram'`: a histogram with ggplot2 in R.
+        * ``u'R histogram'``: a histogram with ggplot2 in R.
         """
         if instruction == u'LilyPond':
             raise NotImplementedError(u'I didn\'t write that part yet!')
@@ -644,7 +636,11 @@ class WorkflowManager(object):
                     token = u'things'
                 call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
                              stata_path, png_path, token, str(len(self._data))]
-                subprocess.call(call_to_r)
+                try:
+                    subprocess.check_output(call_to_r)
+                except subprocess.CalledProcessError as cpe:
+                    raise RuntimeError(u'Error during call to R: ' + unicode(cpe.output) + \
+                                       u' (return code: ' + unicode(cpe.returncode) + u')')
                 return png_path
         else:
             raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
