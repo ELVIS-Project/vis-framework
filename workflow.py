@@ -181,6 +181,7 @@ class WorkflowManager(object):
         :raises: :exc:`RuntimeError` if the ``instruction`` is not valid for this
             :class:`WorkflowManager`.
         :raises: :exc:`RuntimeError` if you have not called :meth:`load`.
+        :raises: :exc:`ValueError` if the voice-pair selection is invalid or unset.
 
         **List of Experiments**
 
