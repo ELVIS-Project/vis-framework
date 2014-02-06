@@ -295,7 +295,7 @@ class PartNotesIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
         super(PartNotesIndexer, self).__init__(score, None)
-        self._indexer_func = annotate_the_note
+        self._indexer_func = None
 
     @staticmethod
     def _fill_space_between_offsets(start_o, end_o):
@@ -318,7 +318,6 @@ class PartNotesIndexer(indexer.Indexer):
         values to a single dotted value. The longest single value is ``4.0`` (a whole note).
         """
         # TODO: rewrite this as a single recursive function
-        # TODO: port the tests from vis9d
         def highest_valid_ql(rem):
             """
             Returns the largest quarterLength that is less "rem" but not greater than 2.0
