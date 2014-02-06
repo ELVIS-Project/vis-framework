@@ -31,7 +31,8 @@ that should produce a score of the input.
 
 import pandas
 from music21 import stream, note, duration
-from outputlilypond import functions, settings
+from outputlilypond import functions as oly_functions
+from outputlilypond import settings as oly_settings
 from vis.analyzers import indexer
 
 
@@ -49,24 +50,23 @@ def annotation_func(obj):
     :returns: The thing in a markup.
     :rtype: ``unicode``
     """
-    return u''.join([u'_\markup{ "', unicode(obj[0]), u'" }'])
+    return u''.join([u'_\\markup{ "', unicode(obj[0]), u'" }'])
 
 
 def annotate_the_note(obj):
     """
     Used by :class:`AnnotateTheNoteIndexer` to make a :class:`~music21.note.Note` object with the
-    annotation passed in. Take note (hahaha): the ``lily_invisible`` property is, by default,
-    set to ``True``!
+    annotation passed in. Take note (hahaha): the ``lily_invisible`` property is set to ``True``!
 
     Parameters
     ==========
     :param obj: A single-element :class:`Series` with the string to put as the ``lily_markup``
-        property of a new :class:`Note`
+        property of a new :class:`Note`.
     :type obj: :class:`pandas.Series` of ``unicode``
 
     Returns
     =======
-    :returns: The new Note!
+    :returns: An annotated note.
     :rtype: :class:`music21.note.Note`
     """
     post = note.Note()
@@ -165,23 +165,24 @@ class LilyPondIndexer(indexer.Indexer):
         :rtype: ``list`` of ``unicode``
         """
         # TODO: make this work with more than one file
-        lily_setts = settings.LilyPondSettings()
+        lily_setts = oly_settings.LilyPondSettings()
         # append analysis part, if present
         if self._settings[u'annotation_part'] is not None:
-            self._score[0].insert(0, self._settings[u'annotation_part'][0])  # TODO: when it works for more than one file, we shouldn't need these [0] things either
+            # TODO: when it works for more than one file, we shouldn't need these [0] things either
+            self._score[0].insert(0, self._settings[u'annotation_part'][0])
         # because outputlilypond uses multiprocessing by itself, we'll just call it in series
-        the_score = functions.process_score(self._score[0], lily_setts)
+        the_score = oly_functions.process_score(self._score[0], lily_setts)
         # call LilyPond on each file, if required
         if self._settings[u'run_lilypond'] is True:
             with open(self._settings[u'output_pathname'], 'w') as handle:
                 handle.write(the_score)
-            functions.run_lilypond(self._settings[u'output_pathname'], lily_setts)
+            oly_functions.run_lilypond(self._settings[u'output_pathname'], lily_setts)
         return the_score
 
 
 class AnnotationIndexer(indexer.Indexer):
     """
-    From any other index, put ``_\markup{""}`` around it.
+    From any other index, put ``_\\markup{""}`` around it.
     """
 
     required_score_type = pandas.Series
@@ -230,7 +231,7 @@ class AnnotateTheNoteIndexer(indexer.Indexer):
     """
 
     required_score_type = pandas.Series
-    possible_settings = []  # TODO: maybe how to set lily_invisible?
+    possible_settings = []  # TODO: set lily_invisible dynamically?
     default_settings = {}
 
     def __init__(self, score, settings=None):
