@@ -12,6 +12,7 @@ Copyright Information:
 
 Software Dependencies
 =====================
+
 The VIS framework uses many software libraries to help with analysis. These are required dependencies:
 
 - Python 2.7
@@ -25,3 +26,23 @@ These are recommended dependencies:
 - Bottleneck (improved performance for pandas)
 - tables (HDF5 output for pandas)
 - openpyxl (Excel output for pandas)
+
+Citation
+========
+
+To cite the VIS Framework in publications use:
+
+Antila, Christopher and Jamie Klassen. The VIS Framework for Music Analysis. Montréal: The ELVIS Project, 2013. URL https://github.com/ELVIS-Project/vis.
+
+A BibTeX entry for LaTeX users is
+
+```
+@Manual{,
+    title = {The VIS Framework for Music Analysis},
+    author = {Antila, Christopher and Klassen, Jamie},
+    organization = {The ELVIS Project},
+    location = {Montréal, Québec},
+    year = {2013},
+    url = {https://github.com/ELVIS-Project/vis},
+}
+```

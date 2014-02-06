@@ -110,22 +110,29 @@ def _find_part_names(the_score):
     return post
 
 
+class OpusWarning(RuntimeWarning):
+    """
+    The :class:`OpusWarning` is raised by :meth:`IndexedPiece.get_data` when ``known_opus`` is
+    ``False`` but the file imports as a :class:`music21.stream.Opus` object, and when ``known_opus``
+    is ``True`` but the file does not import as a :class:`music21.stream.Opus` object.
+
+    Internally, the warning is actually raised by :meth:`IndexedPiece._import_score`.
+    """
+    pass
+
+
 class IndexedPiece(object):
     """
     Hold indexed data from a musical score.
     """
-    def __init__(self, pathname):
+    def __init__(self, pathname, opus_id=None):
         """
-        Create a new :class:`IndexedPiece`.
+        :param pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
+        :type pathname: basestring
+        :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
+            imports as a :class:`music21.stream.Opus`.
 
-        Parameters
-        ==========
-        :param pathname: Pathname to the file music21 will import for this IndexedPiece.
-        :type pathname: :obj:`basestring`
-
-        Returns
-        =======
-        :returns: A new IndexedPiece.
+        :returns: A new :class:`IndexedPiece`.
         :rtype: :class:`IndexedPiece`
         """
         def init_metadata():
@@ -143,6 +150,7 @@ class IndexedPiece(object):
         self._imported = False
         self._noterest_results = None
         self._metadata = {}
+        self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
         init_metadata()
 
     def __repr__(self):
@@ -164,9 +172,14 @@ class IndexedPiece(object):
         post.append(u')>')
         return u''.join(post)
 
-    def _import_score(self):
+    def _import_score(self, known_opus=False):
         """
         Import the score to music21 format.
+
+        Parameters
+        ==========
+        :param known_opus: Whether you expect the file to import as a :class:`Opus`.
+        :type known_opus: boolean
 
         Returns
         =======
@@ -175,14 +188,27 @@ class IndexedPiece(object):
 
         Raises
         ======
-        :raises: :exc:`NotImplementedError` if the file imports as a :class:`music21.stream.Opus`
-            since we do not yet support them.
+        :raises: :exc:`OpusWarning` if the file imports as a :class:`music21.stream.Opus` but
+            ``known_opus`` if ``False``, or if ``known_opus`` is ``True`` but the file does not
+            import as an :class:`Opus`.
         """
         score = converter.parse(self.metadata('pathname'))
         if isinstance(score, stream.Opus):
-            # TODO: finish this and test it (we'll need to deal with Opus objects somehow)
-            raise NotImplementedError(u'IndexedPiece cannot process music21 Opus objects')
-        if not self._imported:
+            if known_opus is False and self._opus_id is None:
+                # unexpected Opus---can't continue
+                raise OpusWarning(self.metadata('pathname') + u' is a music21.stream.Opus '
+                                  u'(refer to the IndexedPiece.get_data() documentation)')
+            elif self._opus_id is None:
+                # we'll make new IndexedPiece objects
+                score = [IndexedPiece(self.metadata('pathname'), i) for i in xrange(len(score))]
+            else:
+                # we'll return the appropriate Score
+                score = score.scores[self._opus_id]
+        elif known_opus is True:
+            raise OpusWarning(u'You expected a music21.stream.Opus but ' + \
+                              self.metadata('pathname') + u' is not an Opus '
+                                  u'(refer to the IndexedPiece.get_data() documentation)')
+        elif not self._imported:
             for field in self._metadata:
                 if hasattr(score.metadata, field):
                     self._metadata[field] = getattr(score.metadata, field)
@@ -198,65 +224,63 @@ class IndexedPiece(object):
         Get or set metadata about the piece.
 
         .. note:: Some metadata fields may not be available for all pieces. The available metadata
-            fields depend on the specific file imported. Not-available fields return the value
-            :const:`None`. We guarantee non-:const:`None` values for ``pathname``, ``title``, and
-            ``parts``.
+            fields depend on the specific file imported. Unavailable fields return :const:`None`.
+            We guarantee real values for ``pathname``, ``title``, and ``parts``.
 
-        Parameters
-        ==========
         :param field: The name of the field to be accessed or modified.
-        :type field: :class:`basestring`
-
+        :type field: basestring
         :param value: If not :const:`None`, the value to be assigned to ``field``.
-        :type value: :class:`object` or :const:`None`
+        :type value: object or :const:`None`
 
-        Returns
-        =======
         :returns: The value of the requested field or :const:`None`, if assigning, or if accessing
             a non-existant field or a field that has not yet been initialized.
-        :rtype: :class:`object` or :const:`None`
+        :rtype: object or :const:`None` (usually a basestring)
 
-        Raises
-        ======
         :raises: :exc:`TypeError` if ``field`` is not a :class:`basestring`.
         :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
+
+        **Metadata Field Descriptions**
+
+        All fields are taken directly from music21 unless otherwise noted.
 
         +---------------------+--------------------------------------------------------------------+
         | Metadata Field      | Description                                                        |
         +=====================+====================================================================+
-        | alternativeTitle    | A possible alternate title for the piece; e.g. Beethoven's         |
-        |                     | Symphony No. 6 in F Major is also known as the 'Pastoral' Symphony.|
-        |                     | Taken from music21.                                                |
+        | alternativeTitle    | A possible alternate title for the piece; e.g. Bruckner's          |
+        |                     | Symphony No. 8 in C minor is known as "The German Michael."        |
         +---------------------+--------------------------------------------------------------------+
-        | anacrusis           | The length of the pick-up measure, if there is one.                |
+        | anacrusis           | The length of the pick-up measure, if there is one. This is not    |
+        |                     | determined by music21.                                             |
         +---------------------+--------------------------------------------------------------------+
-        | composer            | The author of the piece. Taken from music21.                       |
+        | composer            | The author of the piece.                                           |
         +---------------------+--------------------------------------------------------------------+
-        | composers           | If the piece has multiple authors. Taken from music21.             |
+        | composers           | If the piece has multiple authors.                                 |
         +---------------------+--------------------------------------------------------------------+
-        | date                | The date that the piece was composed or published. Taken from      |
-        |                     | music21.                                                           |
+        | date                | The date that the piece was composed or published.                 |
         +---------------------+--------------------------------------------------------------------+
-        | localeOfComposition | Where the piece was composed. Taken from music21.                  |
+        | localeOfComposition | Where the piece was composed.                                      |
         +---------------------+--------------------------------------------------------------------+
         | movementName        | If the piece is part of a larger work, the name of this            |
-        |                     | subsection. Taken from music21.                                    |
+        |                     | subsection.                                                        |
         +---------------------+--------------------------------------------------------------------+
         | movementNumber      | If the piece is part of a larger work, the number of this          |
-        |                     | subsection. Taken from music21.                                    |
+        |                     | subsection.                                                        |
         +---------------------+--------------------------------------------------------------------+
         | number              | Taken from music21.                                                |
         +---------------------+--------------------------------------------------------------------+
         | opusNumber          | Number assigned by the composer to the piece or a group            |
-        |                     | containing it, to help with identification or cataloguing. Taken   |
-        |                     | from music21.                                                      |
+        |                     | containing it, to help with identification or cataloguing.         |
         +---------------------+--------------------------------------------------------------------+
-        | parts               | A list of the parts in a multi-voice work.                         |
+        | parts               | A list of the parts in a multi-voice work. This is determined      |
+        |                     | partially by music21.                                              |
         +---------------------+--------------------------------------------------------------------+
-        | pathname            | The filesystem path to the music file encoding the piece.          |
+        | pathname            | The filesystem path to the music file encoding the piece. This is  |
+        |                     | not determined by music21.                                         |
         +---------------------+--------------------------------------------------------------------+
-        | title               | The title of the piece. Taken from music21.                        |
+        | title               | The title of the piece. This is determined partially by music21.   |
         +---------------------+--------------------------------------------------------------------+
+
+        **Examples**
 
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
@@ -276,7 +300,7 @@ class IndexedPiece(object):
         else:
             self._metadata[field] = value
 
-    def _get_note_rest_index(self):
+    def _get_note_rest_index(self, known_opus=False):
         """
         Return the results of the :class:`NoteRestIndexer` on this piece.
 
@@ -284,61 +308,111 @@ class IndexedPiece(object):
         to re-import the music21 file for every Indexer or Experimenter that uses the
         :class:`NoteRestIndexer`.
 
-        Returns
-        =======
+        :param known_opus: Whether the caller knows this file will be imported as a
+            :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" in the
+            :meth:`get_data` docs.
+        :type known_opus: boolean
+
         :returns: Results of the :class:`NoteRestIndexer`.
-        :rtype: :obj:`list` of :class:`pandas.Series`
+        :rtype: list of :class:`pandas.Series`
         """
-        if self._noterest_results is None:
+        if known_opus is True:
+            return self._import_score(known_opus=known_opus)
+        elif self._noterest_results is None:
             data = [x for x in self._import_score().parts]
             self._noterest_results = noterest.NoteRestIndexer(data).run()
         return self._noterest_results
 
-    def get_data(self, analyzer_cls, settings=None, data=None):
+    @staticmethod
+    def _type_verifier(cls_list):
+        """
+        Verify that all classes in the list are a subclass of :class:`vis.analyzers.indexer.Indexer`
+        or :class:`~vis.analyzers.experimenter.Experimenter`.
+
+        :param cls_list: A list of the classes to check.
+        :type cls_list: list of class
+        :returns: :const:`None`.
+        :rtype: None
+        :raises: :exc:`TypeError` if a class is not a subclass of :class:`Indexer` or
+            :class:`Experimenter`.
+
+        ..note:: This is a separate function so it can be replaced with a :class:`MagicMock` in
+            testing.
+        """
+        for each_cls in cls_list:
+            if not issubclass(each_cls, (Indexer, Experimenter)):
+                raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
+                                u'(received {})'.format(cls_list))
+
+    def get_data(self, analyzer_cls, settings=None, data=None, known_opus=False):
         """
         Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
 
         Parameters
         ==========
-        :param analyzer_cls: the analyzers to run, in the order they should be run
-        :type analyzer_cls: :obj:`list` of :obj:`type`
-
+        :param analyzer_cls: The analyzers to run, in the order they should be run.
+        :type analyzer_cls: list of type
         :param settings: Settings to be used with the analyzers.
-        :type settings: :obj:`dict`
-
-        :param data: Input data for the first analyzer to run. If the first indexer uses a Score,
-            you should leave this as None.
-        :type data: :obj:`list` of :class:`pandas.Series` or :class:`pandas.DataFrame`
+        :type settings: dict
+        :param data: Input data for the first analyzer to run. If the first indexer uses a
+            :class:`~music21.stream.Score`, you should leave this as :const:`None`.
+        :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
+        :param known_opus: Whether the caller knows this file will be imported as a
+            :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" below.
+        :type known_opus: boolean
 
         Returns
         =======
         :returns: Results of the analyzer.
-        :rtype: :class:`pandas.DataFrame` or :obj:`list` of :class:`pandas.Series`
+        :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
 
         Raises
         ======
         :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
         :raises: :exc:`RuntimeError` if the first analyzer class in ``analyzer_cls`` does not use
-            :class:`music21.stream.Score` objects, and ``data`` is :obj:`None`.
-        :raises: :exc:`NotImplementedError` if the file imports as a :class:`music21.stream.Opus`
-            object, since we cannot yet deal with those properly (since they should be treated as
-            more than one piece).
+            :class:`~music21.stream.Score` objects, and ``data`` is :const:`None`.
+        :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if the file imports as a
+            :class:`music21.stream.Opus` object and ``known_opus`` is ``False``.
+        :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if ``known_opus`` is ``True`` but the
+            file does not import as an :class:`Opus`.
+
+        **Note about Opus Objects**
+
+        Correctly importing :class:`~music21.stream.Opus` objects is a little awkward because
+        we only know a file imports to an :class:`Opus` *after* we import it, but an
+        :class:`Opus` should be treated as multiple :class:`IndexedPiece` objects.
+
+        We recommend you handle :class:`Opus` objects like this:
+
+        #. Try to call :meth:`get_data` on the :class:`IndexedPiece`.
+        #. If :meth:`get_data` raises an :exc:`OpusWarning`, the file contains an :class:`Opus`.
+        #. Call :meth:`get_data` again with the ``known_opus`` parameter set to ``True``.
+        #. :meth:`get_data` will return multiple :class:`IndexedPiece` objects, each \
+            corresponding to a :class:`~music21.stream.Score` held in the :class:`Opus`.
+        #. Then call :meth:`get_data` on the new :class:`IndexedPiece` objects to get the results \
+            initially desired.
+
+        Refer to the source code for :meth:`vis.workflow.WorkflowManager.load` for an example
+        implementation.
         """
-        # TODO: the NotImplementedError should be removed once _import_score() supports Opus
-        for each_cls in analyzer_cls:
-            if not issubclass(each_cls, (Indexer, Experimenter)):
-                raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
-                                u'(received {})'.format(analyzer_cls))
+        IndexedPiece._type_verifier(analyzer_cls)
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
-                data = self._get_note_rest_index()
-            if analyzer_cls[0].required_score_type == stream.Part:
-                data = self._import_score()
+                data = self._get_note_rest_index(known_opus=known_opus)
+            # NB: Experimenter subclasses don't have "required_score_type"
+            elif hasattr(analyzer_cls[0], 'required_score_type') and \
+            analyzer_cls[0].required_score_type == stream.Part:
+                data = self._import_score(known_opus=known_opus)
                 data = [x for x in data.parts]  # Indexers require a list of Parts
             else:
                 msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])
                 raise RuntimeError(msg)
         if len(analyzer_cls) > 1:
+            if analyzer_cls[0] is noterest.NoteRestIndexer:
+                return self.get_data(analyzer_cls[1:], settings, data)
             return self.get_data(analyzer_cls[1:], settings, analyzer_cls[0](data, settings).run())
         else:
-            return analyzer_cls[0](data, settings).run()
+            if analyzer_cls[0] is noterest.NoteRestIndexer:
+                return data
+            else:
+                return analyzer_cls[0](data, settings).run()

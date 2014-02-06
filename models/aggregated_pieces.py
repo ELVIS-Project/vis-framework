@@ -210,26 +210,32 @@ class AggregatedPieces(object):
 
     def get_data(self, aggregated_experiments, independent_analyzers, settings=None, data=None):
         """
-        Get the results of an Experimenter run on all the IndexedPieces. You must specify all
-        indexers and experimenters to be run to get the results you want.
+        Get the results of an :class:`Experimenter` run on all the :class:`IndexedPiece` objects.
+        You must specify all indexers and experimenters to be run to get the results you want.
 
         The same settings dict will be given to all experiments and indexers.
 
-        If you want the results from all IndexedPieces separately, provide an empty list as the
-        ``aggregated_experiments`` argument.
+        If you want the results from all :class:`IndexedPiece` objects separately, provide an empty
+        list as the ``aggregated_experiments`` argument.
 
-        The first analyzer in ``independent_analyzers`` should use a :class:`music21.stream.Score`.
+        Either the first analyzer in ``independent_analyzers`` should use a
+        :class:`music21.stream.Score` or you must provide an argument for ``data`` that is the
+        output from a previous call to this instance's :meth:`get_data` method.
 
-        **Examples:**
+        **Examples**
 
         Run analyzer C then D on each piece individually, then provide a list of those results to
-        Experimenter A, and pass its output to Experimenter B.
+        Experimenter A then B.
 
         >>> pieces.get_data([A, B], [C, D])
 
         Run analyzer C then D on each piece individually, then return a list of those results.
 
-        >>> pieces.get_data([A, B], [C, D])
+        >>> pieces.get_data([], [C, D])
+
+        Run analyzer A then B on the results of a previous :meth:`get_data` call.
+
+        >>> piece.get_data([A, B], [], data=previous_results)
 
         Parameters
         ==========
@@ -238,19 +244,20 @@ class AggregatedPieces(object):
         :type aggregated_experiments: list of types
 
         :param independent_analyzers: The analyzers to run on each piece before aggregation, in the
-            order you want to run them.
+            order you want to run them. For no independent analyzers, use ``[]`` or ``None``.
         :type independent_analyzers: list of types
 
         :param settings: Settings to be used with the analyzers.
         :type settings: dict
 
-        :param data: Input data for the first analyzer to run. This is for internal use only.
+        :param data: Input data for the first analyzer to run. If this argument is not ``None``,
+            you must provide the output from a previous call to :meth:`get_data` of this instance.
         :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
 
         Returns
         =======
-        :return: Either one DataFrame with all experimental results or a list of DataFrames, each
-            with the experimental results for one piece.
+        :return: Either one :class:`DataFrame` with all experimental results or a list of
+            :class:`DataFrame` objects, each with the experimental results for one piece.
         :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series` or \
             :class:`pandas.DataFrame`
 
@@ -265,11 +272,13 @@ class AggregatedPieces(object):
                 msg = u'AggregatedPieces requires Experimenters (received {})'.format(each_cls)
                 raise TypeError(msg)
         if independent_analyzers is not None and len(independent_analyzers) > 0:
-            return self.get_data(aggregated_experiments,
-                                 None,
-                                 settings,
-                                 [piece.get_data(independent_analyzers, settings) \
-                                  for piece in self._pieces])
+            ind_res = None
+            if data is not None:
+                ind_res = [p.get_data(independent_analyzers, settings, data[i]) \
+                           for i, p in enumerate(self._pieces)]
+            else:
+                ind_res = [p.get_data(independent_analyzers, settings) for p in self._pieces]
+            return self.get_data(aggregated_experiments, None, settings, ind_res)
         elif [] == aggregated_experiments:
             return data
         elif 1 == len(aggregated_experiments):
