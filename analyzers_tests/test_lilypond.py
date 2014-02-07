@@ -96,6 +96,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 1.0
         expected = [1.0]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_fill_space_between_offsets_2(self):
@@ -103,6 +104,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 4.0
         expected = [4.0]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_fill_space_between_offsets_3(self):
@@ -110,6 +112,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 5.0
         expected = [4.0, 1.0]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_fill_space_between_offsets_4(self):
@@ -117,6 +120,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 8.0
         expected = [4.0, 4.0]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_fill_space_between_offsets_5(self):
@@ -124,6 +128,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 9.0
         expected = [4.0, 4.0, 1.0]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_fill_space_between_offsets_6(self):
@@ -131,6 +136,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 5.0
         expected = [0.5]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_fill_space_between_offsets_7(self):
@@ -138,6 +144,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 7703.0
         expected = [4.0, 4.0, 1.0, 0.5]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_fill_space_between_offsets_8(self):
@@ -145,6 +152,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 3.96875
         expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_fill_space_between_offsets_9(self):
@@ -152,6 +160,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_2 = 7.9375
         expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
     def test_set_durations_1(self):
@@ -162,6 +171,7 @@ class TestPartNotesIndexer(unittest.TestCase):
             in_val[i].offset = in_offsets[i]
         expected = [(0.0, 4.0), (4.0, 1.0)]
         actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
@@ -174,6 +184,7 @@ class TestPartNotesIndexer(unittest.TestCase):
             in_val[i].offset = in_offsets[i]
         expected = [(0.0, 2.0), (2.0, 1.0), (3.0, 1.0)]
         actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
@@ -186,6 +197,7 @@ class TestPartNotesIndexer(unittest.TestCase):
             in_val[i].offset = in_offsets[i]
         expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
         actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
@@ -199,9 +211,40 @@ class TestPartNotesIndexer(unittest.TestCase):
         expected = [(3.96875, 2.0), (5.96875, 1.0), (6.96875, 0.5), (7.46875, 0.25),
                     (7.71875, 0.125), (7.84375, 0.0625), (7.90625, 0.03125), (7.9375, 1.0)]
         actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
+
+    def test_run_1(self):
+        # test the whole thing! Oh my...
+        markups = [u'_\\markup{ "Réduire" }', u'_\\markup{ "l\'endettement" }']
+        in_val = []
+        for i in xrange(len(markups)):
+            obj = note.Note('C4')
+            obj.lily_invisible = True
+            obj.lily_markup = markups[i]
+            in_val.append(obj)
+        in_val = [pandas.Series(in_val, index=[0.0, 2.75])]
+        expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
+        actual = lilypond.PartNotesIndexer(in_val).run()[0]
+        # Verify...
+        # ... that the result is a Part with the proper LilyPond attributes
+        self.assertTrue(isinstance(actual, stream.Part))
+        self.assertTrue(hasattr(actual, 'lily_analysis_voice'))
+        self.assertEqual(True, actual.lily_analysis_voice)
+        self.assertTrue(hasattr(actual, 'lily_instruction'))
+        self.assertEqual(u'\t\\textLengthOn\n', actual.lily_instruction)
+        # ... that the objects have the right offsets and durations
+        self.assertEqual(len(expected), len(actual))
+        for i, obj in enumerate(actual):
+            self.assertEqual(expected[i][0], obj.offset)
+            self.assertEqual(expected[i][1], obj.duration.quarterLength)
+        # ... that the objects are of the right types
+        for i in [0, 3]:
+            self.assertTrue(actual[i], note.Note)
+        for i in [1, 2]:
+            self.assertTrue(actual[i], note.Rest)
 
 
 class TestLilyPondIndexer(unittest.TestCase):
