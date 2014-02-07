@@ -90,7 +90,69 @@ class TestAnnotateTheNoteIndexer(unittest.TestCase):
 
 
 class TestPartNotesIndexer(unittest.TestCase):
-    pass
+    # the fill_space_between_offsets() tests were taken from vis7
+    def test_fill_space_between_offsets_1(self):
+        in_1 = 0.0
+        in_2 = 1.0
+        expected = [1.0]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_fill_space_between_offsets_2(self):
+        in_1 = 0.0
+        in_2 = 4.0
+        expected = [4.0]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_fill_space_between_offsets_3(self):
+        in_1 = 0.0
+        in_2 = 5.0
+        expected = [4.0, 1.0]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_fill_space_between_offsets_4(self):
+        in_1 = 0.0
+        in_2 = 8.0
+        expected = [4.0, 4.0]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_fill_space_between_offsets_5(self):
+        in_1 = 0.0
+        in_2 = 9.0
+        expected = [4.0, 4.0, 1.0]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_fill_space_between_offsets_6(self):
+        in_1 = 4.5
+        in_2 = 5.0
+        expected = [0.5]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_fill_space_between_offsets_7(self):
+        in_1 = 7693.5
+        in_2 = 7703.0
+        expected = [4.0, 4.0, 1.0, 0.5]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_fill_space_between_offsets_8(self):
+        in_1 = 0.0
+        in_2 = 3.96875
+        expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_fill_space_between_offsets_9(self):
+        in_1 = 3.96875
+        in_2 = 7.9375
+        expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
+        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        self.assertSequenceEqual(expected, actual)
 
 
 class TestLilyPondIndexer(unittest.TestCase):
