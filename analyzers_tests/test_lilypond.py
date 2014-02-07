@@ -31,7 +31,7 @@
 
 import unittest
 import pandas
-from music21 import note
+from music21 import note, stream
 from vis.analyzers.indexers import lilypond
 
 
@@ -153,6 +153,55 @@ class TestPartNotesIndexer(unittest.TestCase):
         expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
         actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
         self.assertSequenceEqual(expected, actual)
+
+    def test_set_durations_1(self):
+        # when only one object is required (i.e., the notes are enough)
+        in_offsets = [0.0, 4.0]
+        in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
+        for i in xrange(len(in_offsets)):
+            in_val[i].offset = in_offsets[i]
+        expected = [(0.0, 4.0), (4.0, 1.0)]
+        actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        for i, obj in enumerate(actual):
+            self.assertEqual(expected[i][0], obj.offset)
+            self.assertEqual(expected[i][1], obj.duration.quarterLength)
+
+    def test_set_durations_2(self):
+        # when we must insert rests
+        in_offsets = [0.0, 3.0]
+        in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
+        for i in xrange(len(in_offsets)):
+            in_val[i].offset = in_offsets[i]
+        expected = [(0.0, 2.0), (2.0, 1.0), (3.0, 1.0)]
+        actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        for i, obj in enumerate(actual):
+            self.assertEqual(expected[i][0], obj.offset)
+            self.assertEqual(expected[i][1], obj.duration.quarterLength)
+
+    def test_set_durations_3(self):
+        # when we must insert rests
+        in_offsets = [0.0, 2.75]
+        in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
+        for i in xrange(len(in_offsets)):
+            in_val[i].offset = in_offsets[i]
+        expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
+        actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        for i, obj in enumerate(actual):
+            self.assertEqual(expected[i][0], obj.offset)
+            self.assertEqual(expected[i][1], obj.duration.quarterLength)
+
+    def test_set_durations_4(self):
+        # when we must insert rests
+        in_offsets = [3.96875, 7.9375]
+        in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
+        for i in xrange(len(in_offsets)):
+            in_val[i].offset = in_offsets[i]
+        expected = [(3.96875, 2.0), (5.96875, 1.0), (6.96875, 0.5), (7.46875, 0.25),
+                    (7.71875, 0.125), (7.84375, 0.0625), (7.90625, 0.03125), (7.9375, 1.0)]
+        actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        for i, obj in enumerate(actual):
+            self.assertEqual(expected[i][0], obj.offset)
+            self.assertEqual(expected[i][1], obj.duration.quarterLength)
 
 
 class TestLilyPondIndexer(unittest.TestCase):
