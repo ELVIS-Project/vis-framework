@@ -29,6 +29,7 @@ The :class:`LilyPondIndexer` uses the :mod:`outputlilypond` module to produces t
 that should produce a score of the input.
 """
 
+from math import fsum
 import pandas
 from music21 import stream, note, duration
 from outputlilypond import functions as oly_functions
@@ -364,6 +365,49 @@ class PartNotesIndexer(indexer.Indexer):
         #return (result[0], result[1:])  # NB: this was the previous "return" statement
         return result
 
+    @staticmethod
+    def _set_durations(new_part):
+        """
+        Set the durations for (:class:`Note`) objects in a :class:`Part` according to the offset
+        values. Each :class`Note` will either occupy all the time until the next, or :class:`Rest`
+        objects will be inserted so all the time is filled regardless. The final :class:`Note`
+        will have a duration of 1.0.
+
+        :param new_part: The :class:`Part` with :class:`~music21.note.Note` objects
+            of which the :attr:`~music21.note.Note.duration` attribute will be modified.
+        :type param: :class:`music21.stream.Part`
+
+        :returns: The :class:`Part` with modified :class:`Note` objects.
+        :rtype: :class:`music21.stream.Part`
+
+        **Examples**
+
+        Input: [Note(offset=0.0), Note(offset=4.0)]
+        Output: [Note(offset=0.0, duration=4.0), Note(offset=4.0, duration=1.0)]
+
+        Input: [Note(offset=0.0), Note(offset=3.0)]
+        Output: [Note(offset=0.0, duration=2.0),
+                 Rest(offset=2.0, duration=1.0),
+                 Note(offset=4.0, duration=1.0)]
+        """
+        for i in xrange(len(new_part)):
+            qls = None
+            try:
+                qls = PartNotesIndexer._fill_space_between_offsets(new_part[i].offset,
+                                                                   new_part[i + 1].offset)
+            except stream.StreamException:  # when we try to access the note after the last
+                qls = [1.0]
+            new_durat = duration.Duration(quarterLength=qls[0])
+            for j in xrange(len(qls[1:])):
+                # the offset for insertion is...
+                #   offset of the Note object, plus
+                #   duration of the Note object, plus
+                #   duration of all the previously-inserted Rest objects
+                new_part.insert(new_part[i].offset + qls[0] + fsum(qls[1:j + 1]),
+                                note.Rest(quarterLength=qls[j + 1]))
+            new_part[i].duration = new_durat
+        return new_part
+
     def run(self):
         """
         Make a new index of the piece.
@@ -377,24 +421,12 @@ class PartNotesIndexer(indexer.Indexer):
         """
         post = []
         for each_series in self._score:
-            prev_offset = None
             new_part = stream.Part()
             new_part.lily_analysis_voice = True
             new_part.lily_instruction = u'\t\\textLengthOn\n'
             # put the Note objects into a new stream.Part, using the right offset
             for off, obj in each_series.iteritems():
                 new_part.insert(off, obj)
-            # set the duration for each Note event
-            for i in xrange(len(new_part)):
-                qls = None
-                try:
-                    qls = PartNotesIndexer._fill_space_between_offsets(new_part[i].offset,
-                                                                        new_part[i + 1].offset)
-                except stream.StreamException:  # when we access the after-the-last note
-                    qls = [1.0]
-                new_durat = duration.Duration(quarterLength=qls[0])
-                for each_ql in qls[1:]:
-                    pass  # TODO: what if there are more than one durations to fill the duration?
-                new_part[i].duration = new_durat
-            post.append(new_part)
+
+            post.append(PartNotesIndexer._set_durations(new_part))
         return post
