@@ -165,6 +165,7 @@ class TestPartNotesIndexer(unittest.TestCase):
 
     def test_set_durations_1(self):
         # when only one object is required (i.e., the notes are enough)
+        # TODO: mock _fill_space_between_offsets()
         in_offsets = [0.0, 4.0]
         in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
         for i in xrange(len(in_offsets)):
@@ -178,6 +179,7 @@ class TestPartNotesIndexer(unittest.TestCase):
 
     def test_set_durations_2(self):
         # when we must insert rests
+        # TODO: mock _fill_space_between_offsets()
         in_offsets = [0.0, 3.0]
         in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
         for i in xrange(len(in_offsets)):
@@ -191,6 +193,7 @@ class TestPartNotesIndexer(unittest.TestCase):
 
     def test_set_durations_3(self):
         # when we must insert rests
+        # TODO: mock _fill_space_between_offsets()
         in_offsets = [0.0, 2.75]
         in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
         for i in xrange(len(in_offsets)):
@@ -204,6 +207,7 @@ class TestPartNotesIndexer(unittest.TestCase):
 
     def test_set_durations_4(self):
         # when we must insert rests
+        # TODO: mock _fill_space_between_offsets()
         in_offsets = [3.96875, 7.9375]
         in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
         for i in xrange(len(in_offsets)):
@@ -218,6 +222,7 @@ class TestPartNotesIndexer(unittest.TestCase):
 
     def test_run_1(self):
         # test the whole thing! Oh my...
+        # TODO: mock _set_durations()
         markups = [u'_\\markup{ "Réduire" }', u'_\\markup{ "l\'endettement" }']
         in_val = []
         for i in xrange(len(markups)):
