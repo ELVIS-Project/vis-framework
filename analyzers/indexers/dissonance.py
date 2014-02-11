@@ -44,7 +44,7 @@ def diss_ind_func(obj):
     """
     dissonance_list = [u'2', u'4', u'7']
     # TODO: u'd5'
-    if obj.iloc[0][:-1] in dissonance_list:
+    if obj.iloc[0][-1:] in dissonance_list:
         return obj.iloc[0]
     else:
         return None
