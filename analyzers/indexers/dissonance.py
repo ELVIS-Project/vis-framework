@@ -32,33 +32,33 @@ import pandas
 from vis.analyzers import indexer
 
 
-# NB: remove this comment and the pylint disable when you write a subclass
-# pylint: disable=W0613
-def indexer_func(obj):
+def diss_ind_func(obj):
     """
-    The function that indexes.
+    If this is a dissonant interval, return the interval.
 
-    Parameters for Indexers Using a Score
-    ======================================
-    :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: list of the types stored in self._types
+    :param obj: The intervals to evaluate for dissonance.
+    :type obj: :class:`pandas.Series` of ``unicode``
 
-    Parameters for Indexers Using a Series
-    ======================================
-    :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: :obj:`pandas.Series` of :obj:`unicode`
-
-    Returns
-    =======
-    :returns: The value to store for this index at this offset.
-    :rtype: :obj:`unicode`
+    :returns: The interval, if it is dissonant, or else none.
+    :rtype: ``unicode`` or ``None``
     """
-    return None
+    dissonance_list = [u'2', u'4', u'7']
+    # TODO: u'd5'
+    if obj.iloc[0][:-1] in dissonance_list:
+        return obj.iloc[0]
+    else:
+        return None
 
 
-class TemplateIndexer(indexer.Indexer):
+class DissonanceIndexer(indexer.Indexer):
     """
-    Locate and name "dissonant" notes in a simultaneity.
+    Locate and name "dissonant" intervals in a simultaneity.
+
+    The following are currently considered "dissonant" intervals:
+    - 2nd
+    - 4th
+    - diminished 5th
+    - 7th
     """
 
     required_score_type = pandas.Series
@@ -81,7 +81,7 @@ class TemplateIndexer(indexer.Indexer):
         Parameters
         ==========
         :param score: The output from :class:`~vis.analyzers.indexers.interval.IntervalIndexer`.
-            Only inclue the voice-pair combinations you wish to consider.
+            You must include interval quality and *not* use compound intervals.
         :type score: `list`` of :class:`pandas.Series`
 
         :param settings: There are no settings?
@@ -97,24 +97,11 @@ class TemplateIndexer(indexer.Indexer):
         # Check all required settings are present in the "settings" argument. You must ignore
         # extra settings.
         # If there are no settings, you may safely remove this.
-        if settings is None:
-            self._settings = {}
+        #if settings is None:
+            #self._settings = {}
 
-        # Change "TemplateIndexer" to the current class name. The superclass will handle the
-        # "score" and "mpc" arguments, but you should have processed "settings" above, so it should
-        # not be sent to the superclass constructor.
-        super(TemplateIndexer, self).__init__(score, None)
-
-        # If self._score is a Stream (subclass), change to a list of types you want to process
-        self._types = []
-
-        # You probably do not want to change this
-        # NB: The lambda function receives events in a list of all voices in the current voice
-        #     combination; if this Indexer processes one voice at a time, it's a one-element list.
-        #     The function receives the unmodified object, the type of which is either in
-        #     self._types object or music21.base.ElementWrapper.
-        # NB: For an example of how to use settings, see vis.analyzers.indexers.interval.py
-        self._indexer_func = indexer_func
+        super(DissonanceIndexer, self).__init__(score, None)
+        self._indexer_func = diss_ind_func
 
     def run(self):
         """
@@ -125,24 +112,10 @@ class TemplateIndexer(indexer.Indexer):
         :returns: A list of the new indices. The index of each Series corresponds to the index of
             the Part used to generate it, in the order specified to the constructor. Each element
             in the Series is a basestring.
-        :rtype: :obj:`list` of :obj:`pandas.Series`
+        :rtype: ``list`` of :class:`pandas.Series`
         """
 
-        # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
-
-        # To calculate each part separately:
+        # each part separately
         combinations = [[x] for x in xrange(len(self._score))]
-
-        # To calculate all 2-part combinations:
-        #for left in xrange(len(self._score)):
-        #    for right in xrange(left + 1, len(self._score)):
-        #        combinations.append([left, right])
-
-        # This method returns once all computation is complete. The results are returned as a list
-        # of Series objects in the same order as the "combinations" argument.
         results = self._do_multiprocessing(combinations)
-
-        # Do applicable post-processing, like adding a label for voice combinations.
-
-        # Return the results.
         return results
