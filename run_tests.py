@@ -41,7 +41,7 @@ import unittest
 from vis.models_tests import test_indexed_piece, test_aggregated_pieces
 from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
     test_aggregator, test_interval_indexer, test_frequency_experimenter, test_offset, test_lilypond, \
-    test_dissonance
+    test_dissonance, test_metre
 from vis.other_tests import bwv2_integration_tests as bwv2
 from vis.other_tests import test_workflow, test_workflow_integration, test_workflow_experiments
 
@@ -65,6 +65,7 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_lilypond.ANNOTATE_NOTE_SUI
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_lilypond.PART_NOTES_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_lilypond.LILYPOND_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_dissonance.DISSONANCE_INDEXER_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_metre.BEATSTRENGTH_INDEXER_SUITE)
 # Experimenter and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_FUNC_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_RUN_SUITE)
