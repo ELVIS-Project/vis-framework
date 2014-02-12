@@ -28,6 +28,9 @@
 What will it do?!
 """
 
+# disable "string statement has no effect" warning---they do have an effect with Sphinx!
+# pylint: disable=W0105
+
 import pandas
 from vis.analyzers import indexer
 

@@ -31,7 +31,6 @@
 
 
 import unittest
-import mock
 import pandas
 from vis.analyzers.indexers import dissonance
 
