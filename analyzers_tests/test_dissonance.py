@@ -4,10 +4,10 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers_tests/template_test.py
-# Purpose:                Template for testing indexers.
+# Filename:               analyzers_tests/test_dissonance.py
+# Purpose:                For testing indexers in the "dissonance" module.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
