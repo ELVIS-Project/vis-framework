@@ -34,17 +34,19 @@ from vis.analyzers import indexer
 
 def diss_ind_func(obj):
     """
-    If this is a dissonant interval, return the interval.
+    If this is a dissonant interval, return the interval. "Dissonant" intervals include any 2nd,
+    any 4th, diminished 5th, and any 7th.
 
     :param obj: The intervals to evaluate for dissonance.
     :type obj: :class:`pandas.Series` of ``unicode``
 
-    :returns: The interval, if it is dissonant, or else none.
+    :returns: The interval, if it is dissonant, or ``None``.
     :rtype: ``unicode`` or ``None``
     """
     dissonance_list = [u'2', u'4', u'7']
-    # TODO: u'd5'
     if obj.iloc[0][-1:] in dissonance_list:
+        return obj.iloc[0]
+    elif len(obj.iloc[0]) > 1 and obj.iloc[0] == u'd5':
         return obj.iloc[0]
     else:
         return None
