@@ -37,63 +37,32 @@ from vis.analyzers.indexers import dissonance
 
 
 class TestDissonanceIndexer(unittest.TestCase):
-    # NOTE: every method that is a test must be named with the "test_" prefix
-    def test_template_0(self):
-        # Test the indexer function alone...
-        # - with as few parts as valid
-        # - with as many parts as valid (or many parts)
-        # - with some parts, each with barely valid values
-        # - with some parts, each with decent
-        pass
+    def test_ind_func_1(self):
+        # test diss_ind_func() with 2nds
+        in_vals = [u'd2', u'm2', u'M2', 'A2']
+        for val in in_vals:
+            self.assertEqual(val, dissonance.diss_ind_func(pandas.Series([val])))
 
-    def test_template_1(self):
-        # Example of how to replace the indexer function with a MagicMock.
-        # NB: This may not make sense for every indexer; you may be better off mocking
-        #     _do_multiprocessing() and ensuring that method gets the right arguments... or try
-        #     mocking both! But not at the same time.
-        #
-        # 1.) Prepare settings.
-        setts = {u'fake_setting': u'fake value'}
-        # 2.) Prepare the input values.
-        in_val = [pandas.Series([1, 2, 3]), pandas.Series([4, 5, 6])]
-        # 3.) Make the test indexer instance.
-        test_ind = template.TemplateIndexer(in_val, setts)
-        # 4.) Setup the mock.
-        with mock.patch(u'vis.analyzers.indexers.template.indexer_func') as mock_indfunc:
-            # 5.) The indexer_func() will always return a zero-length unicode string.
-            mock_indfunc.return_value = u''
-            # 6.) Run the indexer.
-            test_ind.run()
-            # 7.) Test the indexer_func() was called the right number of times (probably 3 in this
-            #     case, if we assume the two Series from "in_val" are treated as simultaneous parts
-            #     of the same piece.
-            self.assertEqual(3, len(mock_indfunc.call_args_list))
-            # 8.) The simultaneities that should have been given to indexer_func().
-            expected_calls = [[1, 4], [2, 5], [3, 6]]
-            # 9.) Everything in the "call_args_list" is a iterable "call" object. What you really
-            #     want is the first thing in that call, which is what the indexer_func() received.
-            actual_calls = [each[0] for each in mock_indfunc.call_args_list]
-            # 10.) Compare expected and actual. (NB: assertSequenceEqual() was new in Python 2.7)
-            self.assertSequenceEqual(expected_calls, actual_calls)
+    def test_ind_func_2(self):
+        # test diss_ind_func() with 4ths
+        in_vals = [u'd4', u'P4', 'A2']
+        for val in in_vals:
+            self.assertEqual(val, dissonance.diss_ind_func(pandas.Series([val])))
 
-    def test_template_2(self):
-        # Example for using the whole indexer; let's pretend this one adds a ^ over characters that
-        # support it, and removes those that don't.
-        # 1.) Prepare the input values.
-        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.5, 1.0, 1.5])]
-        # 2.) Prepare our expected output.
-        expected = [pandas.Series(['â', 'ĉ'], index=[0.0, 1.0])]
-        # 3.) Make then run the test indexer.
-        test_ind = template.TemplateIndexer(in_val)
-        actual = test_ind.run()
-        # 4.) Ensure we received the expected number of parts.
-        self.assertEqual(len(expected), len(actual))
-        # 5.) Compare each part...
-        for i in xrange(len(expected)):
-            # ... to know the index has the expected values, ...
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            # ... and that the values are the expected values.
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
+    def test_ind_func_3(self):
+        # test diss_ind_func() with diminished 5th
+        in_vals = [u'd5']
+        for val in in_vals:
+            self.assertEqual(val, dissonance.diss_ind_func(pandas.Series([val])))
+
+    def test_ind_func_4(self):
+        # test diss_ind_func() with 7ths
+        in_vals = [u'd7', u'm7', u'M7', 'A7']
+        for val in in_vals:
+            self.assertEqual(val, dissonance.diss_ind_func(pandas.Series([val])))
+
+    # NOTE: I decided not to test the rest of this indexer because it uses a pattern very common
+    #       through the rest of the Framework.
 
 
 #--------------------------------------------------------------------------------------------------#
