@@ -37,7 +37,7 @@ except ImportError:
     sys.path.insert(0, u'..')
 
 # now actually import vis
-from vis.analyzers.indexers import noterest, interval, dissonance
+from vis.analyzers.indexers import noterest, interval, dissonance, metre
 from vis.models.indexed_piece import IndexedPiece
 
 # the piece we'll analyze... currently Kyrie of Palestrina's Missa "Dies sanctificatus"
@@ -58,6 +58,7 @@ dissonances = the_piece.get_data([dissonance.DissonanceIndexer], None, interv_in
 dissonances = {interv_combos[i]: dissonances[i] for i in xrange(len(interv_combos))}
 
 # as an example, we'll just use voice-pair [0, 1] (highest and second-highest)
+print(u'Output from DissonanceIndexer (top two voices):\n')
 for label in intervals[u'0,1'].index:
     if dissonances[u'0,1'].loc[label] is None:
         print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]))
@@ -65,27 +66,7 @@ for label in intervals[u'0,1'].index:
         print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]) + ' --> ' + str(dissonances[u'0,1'].loc[label]))
 
 
-
-#print(str(dissonances))
-
-#for i, piece in enumerate(self._data):
-    #vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
-    ## figure out which combinations we need... this might raise a ValueError, but there's
-    ## not much we can do to save the situation, so we might as well let it go up
-    #combos = unicode(self.settings(i, u'voice combinations'))
-    #if combos != u'all' and combos != u'all pairs' and combos != u'None':
-        #combos = ast.literal_eval(combos)
-        #vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-    ## we no longer need to know the combinations' names, so we can make a list
-    #vert_ints = list(vert_ints.itervalues())
-    ## run the offset and repeat indexers, if required
-    #post = self._run_off_rep(i, vert_ints)
-    ## remove the "Rest" entries, if required
-    #if self.settings(None, u'include rests') is not True:
-        ## we'll just get a view that omits the "Rest" entries in the Series
-        #for i, pair in enumerate(post):
-            #post[i] = pair[pair != u'Rest']
-    #self._result.append(post)
-#if self.settings(None, 'count frequency') is True:
-    #self._run_freq_agg()
-#return self._result
+# get and display the output from the "beatStrength" indexer
+print(u'\n\nOutput from NoteBeatStrengthIndexer (top two voices):\n')
+beat_strengths = the_piece.get_data([metre.NoteBeatStrengthIndexer])
+print(str(beat_strengths))
