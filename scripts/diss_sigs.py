@@ -28,6 +28,8 @@
 What will it do?!
 """
 
+print(u'DEBUG 1')  # DEBUG
+
 # Delightful hack to make sure we can import "vis"
 import imp
 try:
@@ -36,26 +38,38 @@ except ImportError:
     import sys
     sys.path.insert(0, u'..')
 
+print(u'DEBUG 2')  # DEBUG
+
 # now actually import vis
 from vis.analyzers.indexers import noterest, interval, dissonance, metre
 from vis.models.indexed_piece import IndexedPiece
 
+print(u'DEBUG 3')  # DEBUG
+
 # the piece we'll analyze... currently Kyrie of Palestrina's Missa "Dies sanctificatus"
 the_piece = IndexedPiece(u'test_corpus/Kyrie.krn')
 
+print(u'DEBUG 4')  # DEBUG
+
 # don't touch this (yet); it's settings required by DissonanceIndexer
 setts = {u'quality': True, 'simple or compound': u'simple'}
+
+print(u'DEBUG 5')  # DEBUG
 
 # find the intervals
 intervals = the_piece.get_data([noterest.NoteRestIndexer,
                                 interval.IntervalIndexer],
                                setts)
 
+print(u'DEBUG 6')  # DEBUG
+
 # find the dissonances
 interv_combos = intervals.keys()
 interv_input = [intervals[combo] for combo in interv_combos]
 dissonances = the_piece.get_data([dissonance.DissonanceIndexer], None, interv_input)
 dissonances = {interv_combos[i]: dissonances[i] for i in xrange(len(interv_combos))}
+
+print(u'DEBUG 7')  # DEBUG
 
 # as an example, we'll just use voice-pair [0, 1] (highest and second-highest)
 print(u'Output from DissonanceIndexer (top two voices):\n')
