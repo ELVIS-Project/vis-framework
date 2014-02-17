@@ -123,33 +123,34 @@ class LilyPondIndexer(indexer.Indexer):
         :param score: The :class:`Score` object to output to LilyPond.
         :type score: singleton list of :class:`music21.stream.Score`
 
-        :param settings: All required settings.
-        :type settings: ``dict`` or :dict:`None`
+        :param settings: Your settings. There are no required settings.
+        :type settings: ``dict`` or :const:`None`
 
         Raises
         ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
-        :raises: :exc:`RuntimeError` if required settings are not present in ``settings``.
         :raises: :exc:`RuntimeError` if ``u'run_lilypond'`` is ``True`` but ``u'output_pathname'`` \
             is unspecified.
         """
         settings = {} if settings is None else settings
         self._settings = {}
-        if u'run_lilypond' in settings and settings[u'run_lilypond'] is True:
-            if u'output_pathname' in settings:
-                self._settings[u'run_lilypond'] = True
-                self._settings[u'output_pathname'] = settings[u'output_pathname']
-            else:
-                raise RuntimeError(LilyPondIndexer.error_no_pathname)
-        elif u'output_pathname' in settings:
-            self._settings[u'run_lilypond'] = LilyPondIndexer.default_settings[u'run_lilypond']
+        # dealing with output_pathname is a little complicated...
+        if u'output_pathname' in settings:
             self._settings[u'output_pathname'] = settings[u'output_pathname']
+            if u'run_lilypond' in settings:
+                self._settings[u'run_lilypond'] = settings[u'run_lilypond']
         else:
-            self._settings[u'run_lilypond'] = LilyPondIndexer.default_settings[u'run_lilypond']
             self._settings[u'output_pathname'] = LilyPondIndexer.default_settings[u'output_pathname']
-        self._settings[u'annotation_part'] = settings[u'annotation_part'] if u'annotation_part' in \
-            settings else LilyPondIndexer.default_settings[u'annotation_part']
+            if u'run_lilypond' in settings and settings[u'run_lilypond'] is True:
+                raise RuntimeError(LilyPondIndexer.error_no_pathname)
+        # if they didn't specify whether to run LilyPond
+        if u'run_lilypond' not in self._settings:
+            self._settings[u'run_lilypond'] = LilyPondIndexer.default_settings[u'run_lilypond']
+        # deal with the annotation_part
+        if u'annotation_part' in settings:
+            self._settings[u'annotation_part'] = settings[u'annotation_part']
+        else:
+            self._settings[u'annotation_part'] = LilyPondIndexer.default_settings[u'annotation_part']
         super(LilyPondIndexer, self).__init__(score, None)
         # We won't use an indexer function; run() is just going to pass the Score to outputlilypond
         self._indexer_func = None
