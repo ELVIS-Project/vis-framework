@@ -30,6 +30,7 @@
 
 
 import unittest
+from mock import patch
 import pandas
 from music21 import note, stream
 from vis.analyzers.indexers import lilypond
@@ -252,8 +253,34 @@ class TestPartNotesIndexer(unittest.TestCase):
             self.assertTrue(actual[i], note.Rest)
 
 
+@patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
 class TestLilyPondIndexer(unittest.TestCase):
-    pass
+    # {u'run_lilypond', u'output_pathname', u'annotation_part'}
+    def test_init_1(self):
+        # output_pathname unspecified; run lily (RuntimeError)
+        setts = {u'run_lilypond': True}
+        self.assertRaises(RuntimeError, lilypond.LilyPondIndexer, 12, setts)
+
+    def test_init_2(self):
+        # output_pathname unspecified; don't run lily; have annotation part
+        setts = {u'run_lilypond': False, u'annotation_part': 42}
+        expected = {u'run_lilypond': False, u'annotation_part': 42, u'output_pathname': None}
+        actual = lilypond.LilyPondIndexer(12, setts)
+        self.assertEqual(expected, actual._settings)
+
+    def test_init_3(self):
+        # output_pathname specified; run lily; no annotation part
+        setts = {u'run_lilypond': True, u'output_pathname': u'PATH!'}
+        expected = {u'run_lilypond': True, u'annotation_part': None, u'output_pathname': u'PATH!'}
+        actual = lilypond.LilyPondIndexer(12, setts)
+        self.assertEqual(expected, actual._settings)
+
+    def test_init_4(self):
+        # output_pathname specified; don't run lily; no annotation part
+        setts = {u'run_lilypond': False, u'output_pathname': u'PATH!'}
+        expected = {u'run_lilypond': False, u'annotation_part': None, u'output_pathname': u'PATH!'}
+        actual = lilypond.LilyPondIndexer(12, setts)
+        self.assertEqual(expected, actual._settings)
 
 
 #--------------------------------------------------------------------------------------------------#
