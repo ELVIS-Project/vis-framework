@@ -30,7 +30,7 @@
 
 
 import unittest
-from mock import patch
+import mock
 import pandas
 from music21 import note, stream
 from vis.analyzers.indexers import lilypond
@@ -253,14 +253,14 @@ class TestPartNotesIndexer(unittest.TestCase):
             self.assertTrue(actual[i], note.Rest)
 
 
-@patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
 class TestLilyPondIndexer(unittest.TestCase):
-    # {u'run_lilypond', u'output_pathname', u'annotation_part'}
+    @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_1(self):
         # output_pathname unspecified; run lily (RuntimeError)
         setts = {u'run_lilypond': True}
         self.assertRaises(RuntimeError, lilypond.LilyPondIndexer, 12, setts)
 
+    @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_2(self):
         # output_pathname unspecified; don't run lily; have annotation part
         setts = {u'run_lilypond': False, u'annotation_part': 42}
@@ -268,6 +268,7 @@ class TestLilyPondIndexer(unittest.TestCase):
         actual = lilypond.LilyPondIndexer(12, setts)
         self.assertEqual(expected, actual._settings)
 
+    @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_3(self):
         # output_pathname specified; run lily; no annotation part
         setts = {u'run_lilypond': True, u'output_pathname': u'PATH!'}
@@ -275,12 +276,66 @@ class TestLilyPondIndexer(unittest.TestCase):
         actual = lilypond.LilyPondIndexer(12, setts)
         self.assertEqual(expected, actual._settings)
 
+    @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_4(self):
         # output_pathname specified; don't run lily; no annotation part
         setts = {u'run_lilypond': False, u'output_pathname': u'PATH!'}
-        expected = {u'run_lilypond': False, u'annotation_part': None, u'output_pathname': u'PATH!'}
+        exp_setts = {u'run_lilypond': False, u'annotation_part': None, u'output_pathname': u'PATH!'}
         actual = lilypond.LilyPondIndexer(12, setts)
-        self.assertEqual(expected, actual._settings)
+        self.assertEqual(exp_setts, actual._settings)
+
+    def test_run_1(self):
+        # with annotation_part; without output_pathname; not run_lilypond
+        # prepare mocks
+        mock_open = mock.mock_open()
+        mock_score_cls = type('MockIndexer', (stream.Score,), {})
+        mock_score = mock_score_cls()
+        mock_score.insert = mock.MagicMock()
+        mock_part = mock.MagicMock(spec_set=stream.Part)
+        setts = {u'annotation_part': mock_part}
+        oly_setts = mock.MagicMock()
+        expected = mock.MagicMock(spec_set=unicode)
+        run_ly = mock.MagicMock()
+        # run test
+        with mock.patch('vis.analyzers.indexers.lilypond.outputlilypond') as mock_oly:
+            mock_oly.process_score.return_value = expected
+            mock_oly.run_lilypond = run_ly
+            with mock.patch('vis.analyzers.indexers.lilypond.oly_settings') as mock_oly_s:
+                mock_oly_s.LilyPondSettings.return_value = oly_setts
+                with mock.patch('__builtin__.open', mock_open):
+                    actual = lilypond.LilyPondIndexer([mock_score], setts).run()
+        # verify results
+            mock_oly.process_score.assert_called_once_with(mock_score, oly_setts)
+        self.assertEqual(0, mock_open.call_count)
+        self.assertEqual(0, run_ly.call_count)
+        mock_score.insert.assert_called_once_with(0, mock_part)
+        self.assertEqual(expected, actual)
+
+    def test_run_2(self):
+        # without annotation_part; with output_pathname; do run_lilypond
+        # prepare mocks
+        mock_open = mock.mock_open()
+        mock_score_cls = type('MockIndexer', (stream.Score,), {})
+        mock_score = mock_score_cls()
+        mock_score.insert = mock.MagicMock()
+        setts = {u'run_lilypond': True, u'output_pathname': u'PATH!'}
+        oly_setts = mock.MagicMock()
+        expected = mock.MagicMock(spec_set=unicode)
+        run_ly = mock.MagicMock()
+        # run test
+        with mock.patch('vis.analyzers.indexers.lilypond.outputlilypond') as mock_oly:
+            mock_oly.process_score.return_value = expected
+            mock_oly.run_lilypond = run_ly
+            with mock.patch('vis.analyzers.indexers.lilypond.oly_settings') as mock_oly_s:
+                mock_oly_s.LilyPondSettings.return_value = oly_setts
+                with mock.patch('__builtin__.open', mock_open):
+                    actual = lilypond.LilyPondIndexer([mock_score], setts).run()
+        # verify results
+            mock_oly.process_score.assert_called_once_with(mock_score, oly_setts)
+        mock_open.assert_called_once_with(setts[u'output_pathname'], 'w')
+        run_ly.assert_called_once_with(setts[u'output_pathname'], oly_setts)
+        self.assertEqual(0, mock_score.insert.call_count)
+        self.assertEqual(expected, actual)
 
 
 #--------------------------------------------------------------------------------------------------#
