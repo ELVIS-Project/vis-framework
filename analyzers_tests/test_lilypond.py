@@ -91,6 +91,8 @@ class TestAnnotateTheNoteIndexer(unittest.TestCase):
 
 
 class TestPartNotesIndexer(unittest.TestCase):
+    # NB: this is to help mock this method later
+    FSBO_PATH = u'vis.analyzers.indexers.lilypond.PartNotesIndexer._fill_space_between_offsets'
     # the fill_space_between_offsets() tests were taken from vis7
     def test_fsbo_1(self):
         # pylint: disable=W0212
@@ -175,64 +177,88 @@ class TestPartNotesIndexer(unittest.TestCase):
 
     def test_set_durations_1(self):
         # when only one object is required (i.e., the notes are enough)
-        # TODO: mock _fill_space_between_offsets()
+        # --> has lily_analysis_voice
         in_offsets = [0.0, 4.0]
         in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
         for i in xrange(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
+        in_val.lily_analysis_voice = 42
         expected = [(0.0, 4.0), (4.0, 1.0)]
-        actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+        with mock.patch(TestPartNotesIndexer.FSBO_PATH) as mock_fsbo:
+            mock_fsbo.side_effect = [[4.0]]
+            actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+            self.assertEqual(len(in_offsets) - 1, mock_fsbo.call_count)
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
+        self.assertEqual(in_val.lily_analysis_voice, actual.lily_analysis_voice)
+        self.assertFalse(hasattr(actual, u'lily_instruction'))
 
     def test_set_durations_2(self):
         # when we must insert rests
-        # TODO: mock _fill_space_between_offsets()
+        # --> has lily_instruction
         in_offsets = [0.0, 3.0]
         in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
         for i in xrange(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
+        in_val.lily_instruction = 66
         expected = [(0.0, 2.0), (2.0, 1.0), (3.0, 1.0)]
-        actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+        with mock.patch(TestPartNotesIndexer.FSBO_PATH) as mock_fsbo:
+            mock_fsbo.side_effect = [[2.0, 1.0]]
+            actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+            self.assertEqual(len(in_offsets) - 1, mock_fsbo.call_count)
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
+        self.assertEqual(in_val.lily_instruction, actual.lily_instruction)
+        self.assertFalse(hasattr(actual, u'lily_analysis_voice'))
 
     def test_set_durations_3(self):
         # when we must insert rests
-        # TODO: mock _fill_space_between_offsets()
+        # --> both lily_instruction and lily_analysis_voice
         in_offsets = [0.0, 2.75]
         in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
         for i in xrange(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
+        in_val.lily_analysis_voice = 42
+        in_val.lily_instruction = 66
         expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
-        actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+        with mock.patch(TestPartNotesIndexer.FSBO_PATH) as mock_fsbo:
+            mock_fsbo.side_effect = [[2.0, 0.5, 0.25]]
+            actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+            self.assertEqual(len(in_offsets) - 1, mock_fsbo.call_count)
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
+        self.assertEqual(in_val.lily_instruction, actual.lily_instruction)
+        self.assertEqual(in_val.lily_analysis_voice, actual.lily_analysis_voice)
 
     def test_set_durations_4(self):
         # when we must insert rests
-        # TODO: mock _fill_space_between_offsets()
+        # --> neither lily_analysis_voice nor lily_instruction
         in_offsets = [3.96875, 7.9375]
         in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
         for i in xrange(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
         expected = [(3.96875, 2.0), (5.96875, 1.0), (6.96875, 0.5), (7.46875, 0.25),
                     (7.71875, 0.125), (7.84375, 0.0625), (7.90625, 0.03125), (7.9375, 1.0)]
-        actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+        with mock.patch(TestPartNotesIndexer.FSBO_PATH) as mock_fsbo:
+            mock_fsbo.side_effect = [[2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]]
+            actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+            self.assertEqual(len(in_offsets) - 1, mock_fsbo.call_count)
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
+        self.assertFalse(hasattr(actual, u'lily_analysis_voice'))
+        self.assertFalse(hasattr(actual, u'lily_instruction'))
 
     def test_run_1(self):
         # test the whole thing! Oh my...
-        # TODO: mock _set_durations()
+        # kind of an integration test
         markups = [u'_\\markup{ "Réduire" }', u'_\\markup{ "l\'endettement" }']
         in_val = []
         for i in xrange(len(markups)):

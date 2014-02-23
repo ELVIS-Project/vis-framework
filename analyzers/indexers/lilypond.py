@@ -368,18 +368,18 @@ class PartNotesIndexer(indexer.Indexer):
         return result
 
     @staticmethod
-    def _set_durations(new_part):
+    def _set_durations(in_part):
         """
         Set the durations for (:class:`Note`) objects in a :class:`Part` according to the offset
         values. Each :class`Note` will either occupy all the time until the next, or :class:`Rest`
         objects will be inserted so all the time is filled regardless. The final :class:`Note`
         will have a duration of 1.0.
 
-        :param new_part: The :class:`Part` with :class:`~music21.note.Note` objects
+        :param in_part: The :class:`Part` with :class:`~music21.note.Note` objects
             of which the :attr:`~music21.note.Note.duration` attribute will be modified.
         :type param: :class:`music21.stream.Part`
 
-        :returns: The :class:`Part` with modified :class:`Note` objects.
+        :returns: A *new* :class:`Part` with modified :class:`Note` objects.
         :rtype: :class:`music21.stream.Part`
 
         **Examples**
@@ -392,23 +392,29 @@ class PartNotesIndexer(indexer.Indexer):
                  Rest(offset=2.0, duration=1.0),
                  Note(offset=4.0, duration=1.0)]
         """
-        for i in xrange(len(new_part)):
+        in_len = len(in_part)
+        ret_part = stream.Part()
+        for i in xrange(in_len):
             qls = None
             try:
-                qls = PartNotesIndexer._fill_space_between_offsets(new_part[i].offset,
-                                                                   new_part[i + 1].offset)
+                qls = PartNotesIndexer._fill_space_between_offsets(in_part[i].offset,
+                                                                   in_part[i + 1].offset)
             except stream.StreamException:  # when we try to access the note after the last
                 qls = [1.0]
-            new_durat = duration.Duration(quarterLength=qls[0])
+            in_part[i].duration = duration.Duration(quarterLength=qls[0])
+            ret_part.insert(in_part[i].offset, in_part[i])
             for j in xrange(len(qls[1:])):
                 # the offset for insertion is...
                 #   offset of the Note object, plus
                 #   duration of the Note object, plus
                 #   duration of all the previously-inserted Rest objects
-                new_part.insert(new_part[i].offset + qls[0] + fsum(qls[1:j + 1]),
+                ret_part.insert(in_part[i].offset + qls[0] + fsum(qls[1:j + 1]),
                                 note.Rest(quarterLength=qls[j + 1]))
-            new_part[i].duration = new_durat
-        return new_part
+        if hasattr(in_part, u'lily_analysis_voice'):
+            ret_part.lily_analysis_voice = in_part.lily_analysis_voice
+        if hasattr(in_part, u'lily_instruction'):
+            ret_part.lily_instruction = in_part.lily_instruction
+        return ret_part
 
     def run(self):
         """
