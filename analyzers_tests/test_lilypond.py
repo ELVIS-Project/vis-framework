@@ -92,7 +92,8 @@ class TestAnnotateTheNoteIndexer(unittest.TestCase):
 
 class TestPartNotesIndexer(unittest.TestCase):
     # the fill_space_between_offsets() tests were taken from vis7
-    def test_fill_space_between_offsets_1(self):
+    def test_fsbo_1(self):
+        # pylint: disable=W0212
         in_1 = 0.0
         in_2 = 1.0
         expected = [1.0]
@@ -100,7 +101,8 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
-    def test_fill_space_between_offsets_2(self):
+    def test_fsbo_2(self):
+        # pylint: disable=W0212
         in_1 = 0.0
         in_2 = 4.0
         expected = [4.0]
@@ -108,7 +110,8 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
-    def test_fill_space_between_offsets_3(self):
+    def test_fsbo_3(self):
+        # pylint: disable=W0212
         in_1 = 0.0
         in_2 = 5.0
         expected = [4.0, 1.0]
@@ -116,7 +119,8 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
-    def test_fill_space_between_offsets_4(self):
+    def test_fsbo_4(self):
+        # pylint: disable=W0212
         in_1 = 0.0
         in_2 = 8.0
         expected = [4.0, 4.0]
@@ -124,7 +128,8 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
-    def test_fill_space_between_offsets_5(self):
+    def test_fsbo_5(self):
+        # pylint: disable=W0212
         in_1 = 0.0
         in_2 = 9.0
         expected = [4.0, 4.0, 1.0]
@@ -132,7 +137,8 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
-    def test_fill_space_between_offsets_6(self):
+    def test_fsbo_6(self):
+        # pylint: disable=W0212
         in_1 = 4.5
         in_2 = 5.0
         expected = [0.5]
@@ -140,7 +146,8 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
-    def test_fill_space_between_offsets_7(self):
+    def test_fsbo_7(self):
+        # pylint: disable=W0212
         in_1 = 7693.5
         in_2 = 7703.0
         expected = [4.0, 4.0, 1.0, 0.5]
@@ -148,7 +155,8 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
-    def test_fill_space_between_offsets_8(self):
+    def test_fsbo_8(self):
+        # pylint: disable=W0212
         in_1 = 0.0
         in_2 = 3.96875
         expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
@@ -156,7 +164,8 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
-    def test_fill_space_between_offsets_9(self):
+    def test_fsbo_9(self):
+        # pylint: disable=W0212
         in_1 = 3.96875
         in_2 = 7.9375
         expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
@@ -172,7 +181,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         for i in xrange(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
         expected = [(0.0, 4.0), (4.0, 1.0)]
-        actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
@@ -186,7 +195,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         for i in xrange(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
         expected = [(0.0, 2.0), (2.0, 1.0), (3.0, 1.0)]
-        actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
@@ -200,7 +209,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         for i in xrange(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
         expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
-        actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
@@ -215,7 +224,7 @@ class TestPartNotesIndexer(unittest.TestCase):
             in_val[i].offset = in_offsets[i]
         expected = [(3.96875, 2.0), (5.96875, 1.0), (6.96875, 0.5), (7.46875, 0.25),
                     (7.71875, 0.125), (7.84375, 0.0625), (7.90625, 0.03125), (7.9375, 1.0)]
-        actual = lilypond.PartNotesIndexer._set_durations(in_val)
+        actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
@@ -266,7 +275,7 @@ class TestLilyPondIndexer(unittest.TestCase):
         setts = {u'run_lilypond': False, u'annotation_part': 42}
         expected = {u'run_lilypond': False, u'annotation_part': 42, u'output_pathname': None}
         actual = lilypond.LilyPondIndexer(12, setts)
-        self.assertEqual(expected, actual._settings)
+        self.assertEqual(expected, actual._settings)  # pylint: disable=W0212
 
     @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_3(self):
@@ -274,7 +283,7 @@ class TestLilyPondIndexer(unittest.TestCase):
         setts = {u'run_lilypond': True, u'output_pathname': u'PATH!'}
         expected = {u'run_lilypond': True, u'annotation_part': None, u'output_pathname': u'PATH!'}
         actual = lilypond.LilyPondIndexer(12, setts)
-        self.assertEqual(expected, actual._settings)
+        self.assertEqual(expected, actual._settings)  # pylint: disable=W0212
 
     @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_4(self):
@@ -282,7 +291,7 @@ class TestLilyPondIndexer(unittest.TestCase):
         setts = {u'run_lilypond': False, u'output_pathname': u'PATH!'}
         exp_setts = {u'run_lilypond': False, u'annotation_part': None, u'output_pathname': u'PATH!'}
         actual = lilypond.LilyPondIndexer(12, setts)
-        self.assertEqual(exp_setts, actual._settings)
+        self.assertEqual(exp_setts, actual._settings)  # pylint: disable=W0212
 
     def test_run_1(self):
         # with annotation_part; without output_pathname; not run_lilypond
