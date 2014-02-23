@@ -29,10 +29,13 @@ The :class:`LilyPondIndexer` uses the :mod:`outputlilypond` module to produces t
 that should produce a score of the input.
 """
 
+# Disable "string statement has no effect." It's for Sphinx, silly!
+# pylint: disable=W0105
+
 from math import fsum
 import pandas
 from music21 import stream, note, duration
-from outputlilypond import functions as oly_functions
+import outputlilypond
 from outputlilypond import settings as oly_settings
 from vis.analyzers import indexer
 
@@ -80,8 +83,6 @@ class LilyPondIndexer(indexer.Indexer):
     """
     Use the :mod:`outputlilypond` module to produce the LilyPond file that should produce a score
     of the input.
-
-    .. note:: The class currently only works for the first :class:`IndexedPiece` given.
     """
 
     required_score_type = stream.Score
@@ -166,19 +167,19 @@ class LilyPondIndexer(indexer.Indexer):
             score that was in that index.
         :rtype: ``list`` of ``unicode``
         """
-        # TODO: make this work with more than one file
         lily_setts = oly_settings.LilyPondSettings()
         # append analysis part, if present
         if self._settings[u'annotation_part'] is not None:
-            # TODO: when it works for more than one file, we shouldn't need these [0] things either
-            self._score[0].insert(0, self._settings[u'annotation_part'][0])
+            self._score[0].insert(0, self._settings[u'annotation_part'])
         # because outputlilypond uses multiprocessing by itself, we'll just call it in series
-        the_score = oly_functions.process_score(self._score[0], lily_setts)
-        # call LilyPond on each file, if required
-        if self._settings[u'run_lilypond'] is True:
+        the_score = outputlilypond.process_score(self._score[0], lily_setts)
+        # output the score, if given a pathname
+        if self._settings[u'output_pathname'] is not None:
             with open(self._settings[u'output_pathname'], 'w') as handle:
                 handle.write(the_score)
-            oly_functions.run_lilypond(self._settings[u'output_pathname'], lily_setts)
+        # call LilyPond on each file, if required
+        if self._settings[u'run_lilypond'] is True:
+            outputlilypond.run_lilypond(self._settings[u'output_pathname'], lily_setts)
         return the_score
 
 
