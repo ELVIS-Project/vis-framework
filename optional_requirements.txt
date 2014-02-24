@@ -8,3 +8,5 @@ Bottleneck>=0.7.0
 # NB: commented "tables" until we actually use HDF5
 # tables>=3.0.0
 openpyxl>=1.6.2
+# Required to build the docs
+sphinx_rtd_theme
