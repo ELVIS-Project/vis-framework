@@ -56,8 +56,8 @@ class Intervals(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])]
-        expected = pandas.Series(['P5', 'm3', 'M3'], index=[1, 3, 4])
+        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
+        expected = [pandas.Series(['P5', 'm3'], index=[1, 2]) for _ in xrange(len(test_pieces))]
         # 2.) run the test
         test_wc = WorkflowManager(test_pieces)
         actual = test_wc._intervs()
@@ -67,12 +67,13 @@ class Intervals(TestCase):
             piece.get_data.assert_called_once_with([mock_nri, mock_int], test_settings)
         self.assertEqual(len(test_pieces), mock_ror.call_count)
         mock_rfa.assert_called_once_with()
-        self.assertEqual(len(test_pieces), len(actual))
-        for act in actual:
+        self.assertEqual(len(test_pieces), len(expected), len(actual))
+        for i in xrange(len(actual)):
             # NB: in real use, _run_freq_agg() would aggregate a piece's voice pairs, so we
-            #     wouldn't need to ask for the [0] index here
-            self.assertSequenceEqual(list(expected), list(act[0]))
-            self.assertSequenceEqual(list(expected.index), list(act[0].index))
+            #     wouldn't need to ask for the [0] index here... but also, this experiment shouldn't
+            #     call _run_freq_agg() anyway
+            self.assertSequenceEqual(list(expected[i]), list(actual[i][0]))
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i][0].index))
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
@@ -94,8 +95,8 @@ class Intervals(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])]
-        expected = pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])
+        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
+        expected = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
         # 2.) run the test
         test_wc = WorkflowManager(test_pieces)
         # (have to set the voice-pair settings)
@@ -113,13 +114,13 @@ class Intervals(TestCase):
             piece.get_data.assert_called_once_with([mock_nri, mock_int], test_settings)
         self.assertEqual(len(test_pieces), mock_ror.call_count)
         self.assertEqual(0, mock_rfa.call_count)
-        self.assertEqual(len(test_pieces), len(actual))
-        for act in actual:
+        self.assertEqual(len(test_pieces), len(expected), len(actual))
+        for i in xrange(len(actual)):
             # NB: in real use, _run_freq_agg() would aggregate a piece's voice pairs, so we
             #     wouldn't need to ask for the [0] index here... but also, this experiment shouldn't
             #     call _run_freq_agg() anyway
-            self.assertSequenceEqual(list(expected), list(act[0]))
-            self.assertSequenceEqual(list(expected.index), list(act[0].index))
+            self.assertSequenceEqual(list(expected[i]), list(actual[i][0]))
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i][0].index))
 
 
 class IntervalNGrams(TestCase):
