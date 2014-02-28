@@ -7,7 +7,7 @@
 # Filename:               analyzers_tests/test_ngram.py
 # Purpose:                Test the NGram Indexer
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -86,7 +86,7 @@ class TestNGramIndexer(unittest.TestCase):
         # most basic test
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A a B', u'B b C', u'C c D'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -101,8 +101,23 @@ class TestNGramIndexer(unittest.TestCase):
         # like test _0 but with an extra element in "scores" and no "horizontal" assignment
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 2, u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A B', u'B C', u'C D'])]
+        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
+        actual = ng_ind.run()
+        self.assertEqual(len(expected), len(actual))
+        for i in xrange(len(expected)):
+            self.assertEqual(len(expected[i]), len(actual[i]))
+        for i in xrange(len(expected)):
+            for j in expected[i].index:
+                self.assertEqual(expected[i][j], actual[i][j])
+
+    def test_ngram_0b(self):
+        # like test _0 but with u'mark singles' instead of u'mark_singles'
+        vertical = pandas.Series(['A', 'B', 'C', 'D'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        expected = [pandas.Series([u'A a B', u'B b C', u'C c D'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
@@ -116,7 +131,7 @@ class TestNGramIndexer(unittest.TestCase):
         # adds the brackets and parentheses
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': True}
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': True}
         expected = [pandas.Series([u'[A] (a) [B]', u'[B] (b) [C]', u'[C] (c) [D]'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -131,7 +146,7 @@ class TestNGramIndexer(unittest.TestCase):
         # test _0 but n=3
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 3, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 3, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A a B b C', u'B b C c D'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -147,7 +162,7 @@ class TestNGramIndexer(unittest.TestCase):
         vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [2], u'vertical': [0, 1], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [2], u'vertical': [0, 1], u'mark_singles': False}
         expected = [pandas.Series([u'[A Z] a [B X]', u'[B X] b [C Y]', u'[C Y] c [D W]'])]
         ng_ind = ngram.NGramIndexer([vertical_a, vertical_b, horizontal], setts)
         actual = ng_ind.run()
@@ -163,7 +178,7 @@ class TestNGramIndexer(unittest.TestCase):
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
         horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A (a z) B', u'B (b x) C', u'C (c y) D'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal_b, horizontal_a], setts)
         actual = ng_ind.run()
@@ -180,7 +195,7 @@ class TestNGramIndexer(unittest.TestCase):
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
         horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
         horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0], u'mark_singles': False}
         expected = [pandas.Series([u'[A Z] (a z) [B X]',
                                    u'[B X] (b x) [C Y]', u'[C Y] (c y) [D W]'])]
         ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a, vertical_a], setts)
@@ -253,7 +268,7 @@ class TestNGramIndexer(unittest.TestCase):
         # test _0 with too few "horizontal" things (should use "continuer" character in settings)
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b'], index=[1, 2])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A a B', u'B b C', u'C _ D'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -268,7 +283,7 @@ class TestNGramIndexer(unittest.TestCase):
         # test _10 with one "horizontal" thing at the end
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['z'], index=[3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A _ B', u'B _ C', u'C z D'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -283,7 +298,7 @@ class TestNGramIndexer(unittest.TestCase):
         # test _11 with one missing "horizontal" thing in the middle
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'z'], index=[1, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A a B', u'B _ C', u'C z D'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -298,7 +313,7 @@ class TestNGramIndexer(unittest.TestCase):
         # test _0 with too few "vertical" things (last should be repeated)
         vertical = pandas.Series(['A', 'B', 'C'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A a B', u'B b C', u'C c C'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -313,7 +328,7 @@ class TestNGramIndexer(unittest.TestCase):
         # test _13 with one missing "vertical" thing in the middle
         vertical = pandas.Series(['A', 'C', 'D'], index=[0, 2, 3])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
         expected = [pandas.Series([u'A a A', u'A b C', u'C c D'])]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -329,7 +344,7 @@ class TestNGramIndexer(unittest.TestCase):
         vertical = series_maker(VERTICAL_TUPLES)
         horizontal = series_maker(HORIZONTAL_TUPLES)
         setts = {u'n': 4, u'horizontal': [1], u'vertical': [0], u'continuer': u'P1',
-                 u'terminator': u'Rest', u'mark singles': True}
+                 u'terminator': u'Rest', u'mark_singles': True}
         expected = [series_maker(EXPECTED)]
         ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
         actual = ng_ind.run()
@@ -423,7 +438,7 @@ class TestNGramIndexer(unittest.TestCase):
         vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
         vertical_d = pandas.Series(['J', 'K', 'L', 'M', 'N'])
         setts_many = {u'n': 1, u'vertical': [0, 1, 2, 3]}
-        setts_one = {u'n': 1, u'vertical': [0], u'mark singles': False}
+        setts_one = {u'n': 1, u'vertical': [0], u'mark_singles': False}
         expected_many = [pandas.Series([u'[A Z Q J]', u'[B X R K]', u'[C Y S L]', u'[D W T M]',
                                    u'[E V U N]'],
                                   index=[0, 1, 2, 3, 4])]
