@@ -436,8 +436,8 @@ class WorkflowManager(object):
         relevant).
 
         .. note:: The voice combinations must be pairs. Voice combinations with fewer or greater
-        than two parts are ignored, which may result in one or more pieces being omitted from the
-        results if you aren't careful with settings.
+            than two parts are ignored, which may result in one or more pieces being omitted from
+            the results if you aren't careful with settings.
         """
         self._result = []
         # shared settings for the IntervalIndexer
@@ -459,6 +459,7 @@ class WorkflowManager(object):
             # remove the "Rest" entries, if required
             if self.settings(None, u'include rests') is not True:
                 # we'll just get a view that omits the "Rest" entries in the Series
+                # TODO: this is pandas magic; check it for 0.13
                 for i, pair in enumerate(post):
                     post[i] = pair[pair != u'Rest']
             self._result.append(post)
