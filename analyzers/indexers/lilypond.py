@@ -104,9 +104,10 @@ class LilyPondIndexer(indexer.Indexer):
         by :meth:`run` as a ``unicode``.
     :type u'output_pathname': ``basestring``
 
-    :keyword u'annotation_part': A :class:`Part` with annotation instructions for
-        :mod:`outputlilypond`. This :class:`Part` will be appended as last in the :class:`Score`.
-    :type u'annotation_part': :class:`music21.stream.Part`
+    :keyword u'annotation_part': A :class:`Part` or list of :class:`Part` objects with annotation
+        instructions for :mod:`outputlilypond`. This :class:`Part` will be appended as last in
+        the :class:`Score`.
+    :type u'annotation_part': :class:`music21.stream.Part` or list of :class:`Part`
     """
 
     default_settings = {u'run_lilypond': False, u'output_pathname': None, u'annotation_part': None}
@@ -150,6 +151,8 @@ class LilyPondIndexer(indexer.Indexer):
         # deal with the annotation_part
         if u'annotation_part' in settings:
             self._settings[u'annotation_part'] = settings[u'annotation_part']
+            if not isinstance(self._settings[u'annotation_part'], list):
+                self._settings[u'annotation_part'] = [self._settings[u'annotation_part']]
         else:
             self._settings[u'annotation_part'] = LilyPondIndexer.default_settings[u'annotation_part']
         super(LilyPondIndexer, self).__init__(score, None)
@@ -170,7 +173,8 @@ class LilyPondIndexer(indexer.Indexer):
         lily_setts = oly_settings.LilyPondSettings()
         # append analysis part, if present
         if self._settings[u'annotation_part'] is not None:
-            self._score[0].insert(0, self._settings[u'annotation_part'])
+            for part in self._settings[u'annotation_part']:
+                self._score[0].insert(0, part)
         # because outputlilypond uses multiprocessing by itself, we'll just call it in series
         the_score = outputlilypond.process_score(self._score[0], lily_setts)
         # output the score, if given a pathname
