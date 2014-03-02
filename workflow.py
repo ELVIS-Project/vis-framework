@@ -241,7 +241,9 @@ class WorkflowManager(object):
         :class:`~vis.analyzers.repeat.FilterByRepeatIndexer` is run (after the offset indexer, if
         relevant).
 
-        :returns: The result of the :class:`ColumnAggregator`.
+        :returns: Result of the :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+            or a list of outputs from :class:`~vis.analyzers.indexers.ngram.NGramIndexer`,
+            depending on the ``count frequency`` setting.
 
         .. note:: To compute more than one value of ``n``, call :meth:`_interval_ngrams` many times.
         """
@@ -262,10 +264,6 @@ class WorkflowManager(object):
                 self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
         if self.settings(None, u'count frequency') is True:
-            post = []
-            for piece in self._result:
-                post.extend([part for part in piece])
-            self._result = post
             self._run_freq_agg()
         return self._result
 
@@ -317,9 +315,8 @@ class WorkflowManager(object):
             setts[u'n'] = self.settings(None, u'n')
             if self.settings(None, u'include rests') is not True:
                 setts[u'terminator'] = u'Rest'
-            # run NGramIndexer and FrequencyExperimenter, then append the result to the
-            # corresponding index of the dict
-            post.append(piece.get_data([ngram.NGramIndexer], setts, parts))
+            # run NGramIndexer, then append the result to the corresponding index of the dict
+            post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
         return post
 
     def _two_part_modules(self, index):
@@ -365,9 +362,9 @@ class WorkflowManager(object):
             setts[u'n'] = self.settings(None, u'n')
             if self.settings(None, u'include rests') is not True:
                 setts[u'terminator'] = u'Rest'
-            # run NGramIndexer and FrequencyExperimenter, then append the result to the
-            # corresponding index of the dict
-            post.append(piece.get_data([ngram.NGramIndexer], setts, parts))
+            # run NGramIndexer, then append the result to the corresponding index of the dict
+            post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
+            #post.append(piece.get_data([ngram.NGramIndexer], setts, parts))  # DEBUG
         return post
 
     def _all_part_modules(self, index):
@@ -415,9 +412,8 @@ class WorkflowManager(object):
         setts[u'n'] = self.settings(None, u'n')
         if self.settings(None, u'include rests') is not True:
             setts[u'terminator'] = u'Rest'
-        # run NGramIndexer and FrequencyExperimenter, then append the result to the
-        # corresponding index of the dict
-        result = [piece.get_data([ngram.NGramIndexer], setts, parts)]
+        # run NGramIndexer, then append the result to the corresponding index of the dict
+        result = [piece.get_data([ngram.NGramIndexer], setts, parts)[0]]
         return result
 
     def _intervs(self):
