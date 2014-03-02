@@ -135,7 +135,7 @@ class IntervalNGrams(TestCase):
         mock_two.return_value = [u'mock_two() return value']
         mock_all.return_value = [u'mock_all() return value']
         mock_var.return_value = [u'mock_var() return value']
-        expected = [mock_all.return_value[0], mock_two.return_value[0], mock_var.return_value[0]]
+        expected = [mock_all.return_value, mock_two.return_value, mock_var.return_value]
         # 2.) run the test
         test_wm = WorkflowManager(ind_pieces)
         test_wm.settings(0, u'voice combinations', u'all')
@@ -178,9 +178,8 @@ class IntervalNGrams(TestCase):
         #     test_wm._result... but it's mocked out, which means we can test whether
         #     _interval_ngrams() puts the right stuff there
         self.assertEqual(3, len(test_wm._result))
-        self.assertTrue(mock_two.return_value in test_wm._result)
-        self.assertTrue(mock_all.return_value in test_wm._result)
-        self.assertTrue(mock_var.return_value in test_wm._result)
+        for ret_val in expected:
+            self.assertTrue(ret_val in test_wm._result)
         mock_two.assert_called_once_with(1)
         mock_all.assert_called_once_with(0)
         mock_var.assert_called_once_with(2)
@@ -215,14 +214,14 @@ class IntervalNGrams(TestCase):
         vert_ret = u"IntervalIndexer's return"
         horiz_ret = u"HorizontalIntervalIndexer's return"
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()']
+        returns = [vert_ret, horiz_ret, [u'piece2 3rd get_data()'], [u'piece2 4th get_data()']]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = returns[2:]
+        expected = [x[0] for x in returns[2:]]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -285,14 +284,14 @@ class IntervalNGrams(TestCase):
         vert_ret = u"IntervalIndexer's return"
         horiz_ret = u"HorizontalIntervalIndexer's return"
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()']
+        returns = [vert_ret, horiz_ret, [u'piece2 3rd get_data()'], [u'piece2 4th get_data()']]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = returns[2:]
+        expected = [x[0] for x in returns[2:]]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -354,14 +353,14 @@ class IntervalNGrams(TestCase):
         vert_ret = u"IntervalIndexer's return"
         horiz_ret = u"HorizontalIntervalIndexer's return"
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, 3]
+        returns = [vert_ret, horiz_ret, [3]]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = returns[2:]
+        expected = [x[0] for x in returns[2:]]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -422,16 +421,16 @@ class IntervalNGrams(TestCase):
         vert_ret = u"IntervalIndexer's return"
         horiz_ret = u"HorizontalIntervalIndexer's return"
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()',
-                   u'piece2 5th get_data()', u'piece2 6th get_data()', u'piece2 7th get_data()',
-                   u'piece2 8th get_data()']
+        returns = [vert_ret, horiz_ret, [u'piece2 3rd get_data()'], [u'piece2 4th get_data()'],
+                   [u'piece2 5th get_data()'], [u'piece2 6th get_data()'], [u'piece2 7th get_data()'],
+                   [u'piece2 8th get_data()']]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = returns[2:]
+        expected = [x[0] for x in returns[2:]]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1

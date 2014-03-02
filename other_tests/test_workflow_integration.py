@@ -128,11 +128,11 @@ class NGramsTests(TestCase):
     # EXPECTED_2 is the result of the "interval n-grams" experiment with "all pairs" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
     # NB: just the first ten, because seriously.
-    EXPECTED_2 = pandas.Series({'9 1 10 -2 12 4 10 -4 12': 2, '13 2 12 4 8 -4 10 4 10': 2,
-                                '10 -2 10 -2 10 -2 10 -4 12': 2, '10 -2 10 -2 10 -4 12 4 8': 2,
-                                '10 -2 10 -4 12 4 8 1 8': 2, '10 -2 12 4 10 -4 12 -2 13': 2,
-                                '10 -4 12 -2 13 -2 17 6 12': 2, '10 4 10 -2 10 -2 10 -2 10': 2,
-                                '12 -2 13 -2 17 6 12 -3 13': 2, '12 -3 13 2 12 4 8 -4 10': 2})
+    EXPECTED_2 = pandas.Series({'6 -2 7 _ 6 -2 7 _ 6': 4, '5 1 4 -2 5 1 4 -2 5': 4,
+                                '6 -2 7 _ 6 -2 8 -4 10': 2, '6 -2 8 -2 5 -4 8 _ 7': 2,
+                                '4 _ 3 -2 4 -2 3 1 3': 2, '6 -2 8 -4 10 4 5 1 5': 2,
+                                '2 2 4 3 3 1 4 1 3': 2, '3 -2 3 -3 3 -2 4 -2 5': 2,
+                                '4 1 5 -2 8 4 5 -4 8': 2, '6 -3 8 4 4 -2 5 -3 6': 2})
     # EXPECTED_3 is the result of the "interval n-grams" experiment with "all" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
     # NB: just the first ten, because seriously.
@@ -174,6 +174,11 @@ class NGramsTests(TestCase):
                                 '[15 11 5 1 4] _ [15 11 5 1 4]': 1,
                                 '[15 11 5 8 Rest] _ [14 11 5 8 Rest]': 1,
                                 '[15 11 Rest 4 Rest] _ [14 10 5 4 Rest]': 1})
+    # EXPECTED_7 is the result of "interval n-grams" on vis_Test_Piece.xml with all two-part
+    # combinations of 2-grams. I counted it by hand!
+    EXPECTED_7 = pandas.Series({u'4 1 5': 1, u'5 1 4': 1, u'6 2 6': 1, u'6 -2 6': 1, u'8 -2 10': 1,
+                                u'10 2 8': 1, u'3 2 2': 1, u'2 -2 3': 1, u'5 -2 6': 1, u'6 2 5': 1,
+                                u'3 -2 5': 1, u'5 2 3': 1})
 
     def test_ngrams_1(self):
         # test the two highest voices of bwv77; 2-grams
@@ -190,7 +195,7 @@ class NGramsTests(TestCase):
             self.assertEqual(NGramsTests.EXPECTED_1[ind_item], actual[ind_item])
 
     def test_ngrams_2(self):
-        # test all combinations of bwv77; 5-grams
+        # test all two-part combinations of bwv77; 5-grams
         test_wm = WorkflowManager(['test_corpus/bwv77.mxl'])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
@@ -259,6 +264,34 @@ class NGramsTests(TestCase):
             self.assertTrue(ind_item in act_ind)
         for ind_item in exp_ind:
             self.assertEqual(NGramsTests.EXPECTED_6[ind_item], actual[ind_item])
+
+    def test_ngrams_7(self):
+        # test all two-part combinations of the test piece; 2-grams
+        test_wm = WorkflowManager(['test_corpus/vis_Test_Piece.xml'])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', 'all pairs')
+        test_wm.settings(0, 'n', 2)
+        actual = test_wm.run('interval n-grams')
+        exp_ind = list(NGramsTests.EXPECTED_7.index)
+        act_ind = list(actual.index)
+        self.assertEqual(len(exp_ind), len(act_ind))
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+            self.assertEqual(NGramsTests.EXPECTED_7[ind_item], actual[ind_item])
+
+    def test_ngrams_8(self):
+        # test_ngrams_7 *but* with part combinations specified rather than 'all pairs'
+        test_wm = WorkflowManager(['test_corpus/vis_Test_Piece.xml'])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]')
+        test_wm.settings(0, 'n', 2)
+        actual = test_wm.run('interval n-grams')
+        exp_ind = list(NGramsTests.EXPECTED_7.index)  # yes, this *should* be EXPECTED_7
+        act_ind = list(actual.index)
+        self.assertEqual(len(exp_ind), len(act_ind))
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+            self.assertEqual(NGramsTests.EXPECTED_7[ind_item], actual[ind_item])
 
 
 #-------------------------------------------------------------------------------------------------#
