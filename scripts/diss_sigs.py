@@ -28,59 +28,65 @@
 What will it do?!
 """
 
-print(u'DEBUG 1')  # DEBUG
-
 # Delightful hack to make sure we can import "vis"
 import imp
 try:
     imp.find_module(u'vis')
 except ImportError:
     import sys
-    sys.path.insert(0, u'..')
-
-print(u'DEBUG 2')  # DEBUG
+    sys.path.insert(0, u'.')  # NB: somehow, this lets us find the outputlilypond submodule
+    sys.path.insert(1, u'..')
 
 # now actually import vis
 from vis.analyzers.indexers import noterest, interval, dissonance, metre
 from vis.models.indexed_piece import IndexedPiece
-
-print(u'DEBUG 3')  # DEBUG
+from vis.workflow import WorkflowManager
 
 # the piece we'll analyze... currently Kyrie of Palestrina's Missa "Dies sanctificatus"
-the_piece = IndexedPiece(u'test_corpus/Kyrie.krn')
-
-print(u'DEBUG 4')  # DEBUG
+piece_path = u'test_corpus/bwv2.xml'
+the_piece = IndexedPiece(piece_path)
 
 # don't touch this (yet); it's settings required by DissonanceIndexer
 setts = {u'quality': True, 'simple or compound': u'simple'}
-
-print(u'DEBUG 5')  # DEBUG
 
 # find the intervals
 intervals = the_piece.get_data([noterest.NoteRestIndexer,
                                 interval.IntervalIndexer],
                                setts)
 
-print(u'DEBUG 6')  # DEBUG
-
 # find the dissonances
+print(u'\n\nRunning the DissonanceIndexer...\n')
 interv_combos = intervals.keys()
 interv_input = [intervals[combo] for combo in interv_combos]
 dissonances = the_piece.get_data([dissonance.DissonanceIndexer], None, interv_input)
 dissonances = {interv_combos[i]: dissonances[i] for i in xrange(len(interv_combos))}
 
-print(u'DEBUG 7')  # DEBUG
-
 # as an example, we'll just use voice-pair [0, 1] (highest and second-highest)
-print(u'Output from DissonanceIndexer (top two voices):\n')
-for label in intervals[u'0,1'].index:
-    if dissonances[u'0,1'].loc[label] is None:
-        print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]))
-    else:
-        print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]) + ' --> ' + str(dissonances[u'0,1'].loc[label]))
+#print(u'Output from DissonanceIndexer (top two voices):\n')
+#for label in intervals[u'0,1'].index:
+    #if dissonances[u'0,1'].loc[label] is None:
+        #print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]))
+    #else:
+        #print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]) + ' --> ' + str(dissonances[u'0,1'].loc[label]))
 
 
 # get and display the output from the "beatStrength" indexer
-print(u'\n\nOutput from NoteBeatStrengthIndexer (top two voices):\n')
+print(u'\n\nRunning the NoteBeatStrengthIndexer...\n')
 beat_strengths = the_piece.get_data([metre.NoteBeatStrengthIndexer])
-print(str(beat_strengths))
+#print(u'Output from NoteBeatStrengthIndexer (top voice):\n')
+#print(str(beat_strengths[0]))
+
+# break a WorkflowManager so we can get annotated score output
+print(u'\n\nPreparing and outputting the score, running LilyPond, etc.\n')
+# 1.) collect indicces for this part combo
+part_diss_orig = dissonances[u'0,1']
+beats_zero_orig = beat_strengths[0]
+beats_one_orig = beat_strengths[1]
+# 2.) filter out where there isn't a dissonance
+part_diss = part_diss_orig[~part_diss_orig.isin([None])]
+beats_zero = beats_zero_orig[~part_diss_orig.isin([None])]
+beats_one = beats_one_orig[~part_diss_orig.isin([None])]
+# 3.) mangle the WorkflowManager
+workm = WorkflowManager([piece_path])
+workm._result = [[part_diss, beats_zero, beats_one]]
+workm.output('LilyPond', 'test_output/asdf_diss')
