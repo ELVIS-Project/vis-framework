@@ -84,6 +84,11 @@ class WorkflowManager(object):
     # NOTE: do not re-order these, or run() will break
     _experiments_list = [u'intervals', u'interval n-grams']
 
+    # Error message when users call output() with LilyPond, but they probably called run() with
+    # ``count frequency`` set to True.
+    _count_frequency_message = u'LilyPond output is not possible after you call run() with ' + \
+        '"count frequency" set to True.'
+
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
         self._data = []
@@ -588,29 +593,48 @@ class WorkflowManager(object):
         """
         Create a visualization from the most recent result of :meth:`run` and save it to a file.
 
+        .. note:: For LiliyPond output, you must have called :meth:`run` with ``count frequency``
+            set to ``False``.
+
         :parameter instruction: The type of visualization to output.
         :type instruction: basestring
         :parameter pathname: The pathname for the output. The default is
-            ``'test_output/output_result``. A file extension is applied automatically.
+            ``'test_output/output_result``. Do not include a file-type "extension," since we add
+            this automatically. For the LilyPond experiment, if there are multiple pieces in the
+            :class:`WorkflowManager`, we append the piece's index to the pathname.
         :type pathname: basestring
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
-        :type top_x: int
+            Does not apply to the LilyPond experiment.
+        :type top_x: integer
         :param threshold: If a result is strictly less than this number, it will be left out. The
-            default is ``None``. This is ignored for the ``u'LilyPond'`` instruction.
-        :type threshold: number
+            default is ``None``. This is ignored for the ``u'LilyPond'`` instruction. Does not
+            apply to the LilyPond experiment.
+        :type threshold: integer
 
-        :returns: The pathname of the outputted visualization.
-        :rtype: unicode
+        :returns: The pathname(s) of the outputted visualization(s). Requesting a histogram always
+            returns a single string; requesting a score (or some scores) always returns a list.
+        :rtype: basestring or list of basestring
 
-        :raises: :exc:`NotImplementedError` if you use the ``u'LilyPond'`` instruction.
         :raises: :exc:`RuntimeError` for unrecognized instructions.
         :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
         :raises: :exc:`RuntiemError` if a call to R encounters a problem.
+        :raises: :exc:`RuntimeError` with LilyPond output, if we think you called :meth:`run` with
+            ``count frequency`` set to ``True``.
 
         **Instructions:**
 
         * ``u'R histogram'``: a histogram with ggplot2 in R.
+        * ``u'LilyPond'``: each score with annotations for analyzed objects.
+
+        .. note :: We try to prevent you from requesting LilyPond output if you called :meth:`run`
+            with ``count frequency`` set to ``True`` by raising a :exc:`RuntimeError` if ``count
+            frequency`` is ``True``, or the number of pieces is not the same as the number of
+            results. It is still possible to call :meth:`run` with ``count frequency`` set to
+            ``True`` in a way we will not detect. However, this always causes :meth:`output` to
+            fail. The error will probably be a :exc:`TypeError` that says ``object of type
+            'numpy.float64' has no len()``.
         """
+        # TODO: break each output method to a private method
         # ensure we have some results
         if self._result is None:
             raise RuntimeError(u'Please call run() before you call export().')
@@ -618,25 +642,34 @@ class WorkflowManager(object):
             # properly set output paths
             pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
         if instruction == u'LilyPond':
-            # NB: we do this in two steps because the second is more likely to fail; if it does,
-            #     at least users will have the first steps available.
+            # try to determine whether they called run() properly (with ``count frequency`` set
+            # to False)
+            if self.settings(None, 'count frequency') is False or \
+            len(self._data) != len(self._result):
+                raise RuntimeError(WorkflowManager._count_frequency_message)
+            # the file extension for LilyPond
+            file_ext = u'.ly'
             # assume we have the result of a suitable Indexer
             annotation_parts = []
             # run additional indexers for annotation
-            for i, each_result in enumerate(self._result):
-                annotation_parts.append(self._data[i].get_data([lilypond.AnnotationIndexer,
-                                                                lilypond.AnnotateTheNoteIndexer,
-                                                                lilypond.PartNotesIndexer],
-                                                               None,
-                                                               each_result))
-            self._result = annotation_parts
+            for i in xrange(len(self._data)):
+                for j in xrange(len(self._result[i])):
+                    annotation_parts.append(self._data[i].get_data([lilypond.AnnotationIndexer,
+                                                                    lilypond.AnnotateTheNoteIndexer,
+                                                                    lilypond.PartNotesIndexer],
+                                                                None,
+                                                                [self._result[i][j]])[0])
             # run OutputLilyPond and LilyPond
+            enum = True if len(self._data) > 1 else False
             pathnames = []
-            for i, each_result in enumerate(self._result):
-                setts = {u'run_lilypond': True, u'output_pathname': pathname,
-                         u'annotation_part': each_result}
+            for i in xrange(len(self._data)):
+                setts = {u'run_lilypond': True,  u'annotation_part': annotation_parts}
+                # append piece index to pathname, if there are many pieces
+                setts[u'output_pathname'] = pathname + u'-' + str(i) + file_ext if enum \
+                    else pathname + file_ext
                 self._data[i].get_data([lilypond.LilyPondIndexer], setts)
-                pathnames.append(pathname)  # TODO: make the pathnames work with multiple files
+                pathnames.append(setts[u'output_pathname'])
+            return pathnames
         elif instruction == u'R histogram':
             # set output paths
             stata_path = pathname + u'.dta'
