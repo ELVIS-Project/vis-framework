@@ -35,7 +35,7 @@ import subprocess
 import pandas
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
-from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat
+from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat, lilypond
 from vis.analyzers.experimenters import frequency, aggregator
 
 
@@ -79,6 +79,15 @@ class WorkflowManager(object):
 
     # path to the R-language script that makes bar charts
     _R_bar_chart_path = u'scripts/R_bar_chart.r'
+
+    # names of the experiments available through run()
+    # NOTE: do not re-order these, or run() will break
+    _experiments_list = [u'intervals', u'interval n-grams']
+
+    # Error message when users call output() with LilyPond, but they probably called run() with
+    # ``count frequency`` set to True.
+    _count_frequency_message = u'LilyPond output is not possible after you call run() with ' + \
+        '"count frequency" set to True.'
 
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
@@ -149,6 +158,7 @@ class WorkflowManager(object):
         * ``u'stata'`` to load data from a previous :meth:`export`.
         * ``u'pickle'`` to load data from a previous :meth:`export`.
         """
+        # TODO: remove requirement to provide "instruction"; should default to 'pieces'
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
         #       and run the NoteRestIndexer, then pickle it and send that to a callback method
@@ -195,19 +205,18 @@ class WorkflowManager(object):
         """
         if self._loaded is not True:
             raise RuntimeError(u'Please call load() before you call run()')
-        # NOTE: do not re-order the instructions or this method will break
-        possible_instructions = [u'intervals',
-                                 u'interval n-grams']
         error_msg = u'WorkflowManager.run() could not parse the instruction'
         post = None
         # run the experiment
-        if len(instruction) < min([len(x) for x in possible_instructions]):
+        if len(instruction) < min([len(x) for x in WorkflowManager._experiments_list]):
             raise RuntimeError(error_msg)
-        if instruction.startswith(possible_instructions[0]):
-            self._previous_exp = u'intervals'
+        if instruction.startswith(WorkflowManager._experiments_list[0]):
+            # intervals
+            self._previous_exp = WorkflowManager._experiments_list[0]
             post = self._intervs()
-        elif instruction.startswith(possible_instructions[1]):
-            self._previous_exp = u'n-grams'
+        elif instruction.startswith(WorkflowManager._experiments_list[1]):
+            # interval n-grams
+            self._previous_exp = WorkflowManager._experiments_list[1]
             post = self._interval_ngrams()
         else:
             raise RuntimeError(error_msg)
@@ -235,7 +244,9 @@ class WorkflowManager(object):
         :class:`~vis.analyzers.repeat.FilterByRepeatIndexer` is run (after the offset indexer, if
         relevant).
 
-        :returns: The result of the :class:`ColumnAggregator`.
+        :returns: Result of the :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+            or a list of outputs from :class:`~vis.analyzers.indexers.ngram.NGramIndexer`,
+            depending on the ``count frequency`` setting.
 
         .. note:: To compute more than one value of ``n``, call :meth:`_interval_ngrams` many times.
         """
@@ -256,10 +267,6 @@ class WorkflowManager(object):
                 self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
         if self.settings(None, u'count frequency') is True:
-            post = []
-            for piece in self._result:
-                post.extend([part for part in piece])
-            self._result = post
             self._run_freq_agg()
         return self._result
 
@@ -311,9 +318,8 @@ class WorkflowManager(object):
             setts[u'n'] = self.settings(None, u'n')
             if self.settings(None, u'include rests') is not True:
                 setts[u'terminator'] = u'Rest'
-            # run NGramIndexer and FrequencyExperimenter, then append the result to the
-            # corresponding index of the dict
-            post.append(piece.get_data([ngram.NGramIndexer], setts, parts))
+            # run NGramIndexer, then append the result to the corresponding index of the dict
+            post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
         return post
 
     def _two_part_modules(self, index):
@@ -359,9 +365,8 @@ class WorkflowManager(object):
             setts[u'n'] = self.settings(None, u'n')
             if self.settings(None, u'include rests') is not True:
                 setts[u'terminator'] = u'Rest'
-            # run NGramIndexer and FrequencyExperimenter, then append the result to the
-            # corresponding index of the dict
-            post.append(piece.get_data([ngram.NGramIndexer], setts, parts))
+            # run NGramIndexer, then append the result to the corresponding index of the dict
+            post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
         return post
 
     def _all_part_modules(self, index):
@@ -409,9 +414,8 @@ class WorkflowManager(object):
         setts[u'n'] = self.settings(None, u'n')
         if self.settings(None, u'include rests') is not True:
             setts[u'terminator'] = u'Rest'
-        # run NGramIndexer and FrequencyExperimenter, then append the result to the
-        # corresponding index of the dict
-        result = [piece.get_data([ngram.NGramIndexer], setts, parts)]
+        # run NGramIndexer, then append the result to the corresponding index of the dict
+        result = [piece.get_data([ngram.NGramIndexer], setts, parts)[0]]
         return result
 
     def _intervs(self):
@@ -434,8 +438,8 @@ class WorkflowManager(object):
         relevant).
 
         .. note:: The voice combinations must be pairs. Voice combinations with fewer or greater
-        than two parts are ignored, which may result in one or more pieces being omitted from the
-        results if you aren't careful with settings.
+            than two parts are ignored, which may result in one or more pieces being omitted from
+            the results if you aren't careful with settings.
         """
         self._result = []
         # shared settings for the IntervalIndexer
@@ -457,6 +461,7 @@ class WorkflowManager(object):
             # remove the "Rest" entries, if required
             if self.settings(None, u'include rests') is not True:
                 # we'll just get a view that omits the "Rest" entries in the Series
+                # TODO: this is pandas magic; check it for 0.13
                 for i, pair in enumerate(post):
                     post[i] = pair[pair != u'Rest']
             self._result.append(post)
@@ -588,35 +593,98 @@ class WorkflowManager(object):
         """
         Create a visualization from the most recent result of :meth:`run` and save it to a file.
 
+        .. note:: For LiliyPond output, you must have called :meth:`run` with ``count frequency``
+            set to ``False``.
+
         :parameter instruction: The type of visualization to output.
         :type instruction: basestring
         :parameter pathname: The pathname for the output. The default is
-            ``'test_output/output_result``. A file extension is applied automatically.
+            ``'test_output/output_result``. Do not include a file-type "extension," since we add
+            this automatically. For the LilyPond experiment, if there are multiple pieces in the
+            :class:`WorkflowManager`, we append the piece's index to the pathname.
         :type pathname: basestring
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
-        :type top_x: int
+            Does not apply to the LilyPond experiment.
+        :type top_x: integer
         :param threshold: If a result is strictly less than this number, it will be left out. The
-            default is ``None``.
-        :type threshold: number
+            default is ``None``. This is ignored for the ``u'LilyPond'`` instruction. Does not
+            apply to the LilyPond experiment.
+        :type threshold: integer
 
-        :returns: The pathname of the outputted visualization.
-        :rtype: unicode
+        :returns: The pathname(s) of the outputted visualization(s). Requesting a histogram always
+            returns a single string; requesting a score (or some scores) always returns a list.
+        :rtype: basestring or list of basestring
 
-        :raises: :exc:`NotImplementedError` if you use the ``u'LilyPond'`` instruction.
         :raises: :exc:`RuntimeError` for unrecognized instructions.
         :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
         :raises: :exc:`RuntiemError` if a call to R encounters a problem.
+        :raises: :exc:`RuntimeError` with LilyPond output, if we think you called :meth:`run` with
+            ``count frequency`` set to ``True``.
 
         **Instructions:**
 
         * ``u'R histogram'``: a histogram with ggplot2 in R.
+        * ``u'LilyPond'``: each score with annotations for analyzed objects.
+
+        .. note :: We try to prevent you from requesting LilyPond output if you called :meth:`run`
+            with ``count frequency`` set to ``True`` by raising a :exc:`RuntimeError` if ``count
+            frequency`` is ``True``, or the number of pieces is not the same as the number of
+            results. It is still possible to call :meth:`run` with ``count frequency`` set to
+            ``True`` in a way we will not detect. However, this always causes :meth:`output` to
+            fail. The error will probably be a :exc:`TypeError` that says ``object of type
+            'numpy.float64' has no len()``.
         """
+        # TODO: break each output method to a private method
+        # ensure we have some results
+        if self._result is None:
+            raise RuntimeError(u'Please call run() before you call export().')
+        else:
+            # properly set output paths
+            pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
         if instruction == u'LilyPond':
-            raise NotImplementedError(u'I didn\'t write that part yet!')
+            # try to determine whether they called run() properly (with ``count frequency`` set
+            # to False)
+            if self.settings(None, 'count frequency') is False or \
+            len(self._data) != len(self._result):
+                raise RuntimeError(WorkflowManager._count_frequency_message)
+            # the file extension for LilyPond
+            file_ext = u'.ly'
+            # assume we have the result of a suitable Indexer
+            annotation_parts = []
+            # run additional indexers for annotation
+            for i in xrange(len(self._data)):
+                for j in xrange(len(self._result[i])):
+                    annotation_parts.append(self._data[i].get_data([lilypond.AnnotationIndexer,
+                                                                    lilypond.AnnotateTheNoteIndexer,
+                                                                    lilypond.PartNotesIndexer],
+                                                                None,
+                                                                [self._result[i][j]])[0])
+            # run OutputLilyPond and LilyPond
+            enum = True if len(self._data) > 1 else False
+            pathnames = []
+            for i in xrange(len(self._data)):
+                setts = {u'run_lilypond': True,  u'annotation_part': annotation_parts}
+                # append piece index to pathname, if there are many pieces
+                setts[u'output_pathname'] = pathname + u'-' + str(i) + file_ext if enum \
+                    else pathname + file_ext
+                self._data[i].get_data([lilypond.LilyPondIndexer], setts)
+                pathnames.append(setts[u'output_pathname'])
+            return pathnames
         elif instruction == u'R histogram':
-            # ensure we have some results
-            if self._result is None:
-                raise RuntimeError(u'Call run() before calling export()')
+            # set output paths
+            stata_path = pathname + u'.dta'
+            png_path = pathname + u'.png'
+            # ensure we have a DataFrame
+            if not isinstance(self._result, pandas.DataFrame):
+                out_me = self._get_dataframe(u'freq', top_x, threshold)
+            else:
+                out_me = self._result
+            out_me.to_stata(stata_path)
+            token = None
+            if u'intervals' == self._previous_exp:
+                token = u'int'
+            elif u'n-grams' == self._previous_exp:
+                token = unicode(self.settings(None, u'n'))
             else:
                 # properly set output paths
                 pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
@@ -680,6 +748,7 @@ class WorkflowManager(object):
         * ``u'Excel'``: output an Excel file for Peter Schubert.
         * ``u'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
         """
+        # TODO: merge export() functionality into output() (as a private method)
         # ensure we have some results
         if self._result is None:
             raise RuntimeError(u'Call run() before calling export()')

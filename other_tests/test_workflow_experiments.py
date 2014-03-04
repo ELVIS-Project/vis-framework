@@ -56,8 +56,8 @@ class Intervals(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])]
-        expected = pandas.Series(['P5', 'm3', 'M3'], index=[1, 3, 4])
+        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
+        expected = [pandas.Series(['P5', 'm3'], index=[1, 2]) for _ in xrange(len(test_pieces))]
         # 2.) run the test
         test_wc = WorkflowManager(test_pieces)
         actual = test_wc._intervs()
@@ -67,12 +67,13 @@ class Intervals(TestCase):
             piece.get_data.assert_called_once_with([mock_nri, mock_int], test_settings)
         self.assertEqual(len(test_pieces), mock_ror.call_count)
         mock_rfa.assert_called_once_with()
-        self.assertEqual(len(test_pieces), len(actual))
-        for act in actual:
+        self.assertEqual(len(test_pieces), len(expected), len(actual))
+        for i in xrange(len(actual)):
             # NB: in real use, _run_freq_agg() would aggregate a piece's voice pairs, so we
-            #     wouldn't need to ask for the [0] index here
-            self.assertSequenceEqual(list(expected), list(act[0]))
-            self.assertSequenceEqual(list(expected.index), list(act[0].index))
+            #     wouldn't need to ask for the [0] index here... but also, this experiment shouldn't
+            #     call _run_freq_agg() anyway
+            self.assertSequenceEqual(list(expected[i]), list(actual[i][0]))
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i][0].index))
 
     @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
@@ -94,8 +95,8 @@ class Intervals(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])]
-        expected = pandas.Series(['Rest', 'P5', 'Rest', 'm3', 'M3', 'Rest'])
+        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
+        expected = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
         # 2.) run the test
         test_wc = WorkflowManager(test_pieces)
         # (have to set the voice-pair settings)
@@ -113,13 +114,13 @@ class Intervals(TestCase):
             piece.get_data.assert_called_once_with([mock_nri, mock_int], test_settings)
         self.assertEqual(len(test_pieces), mock_ror.call_count)
         self.assertEqual(0, mock_rfa.call_count)
-        self.assertEqual(len(test_pieces), len(actual))
-        for act in actual:
+        self.assertEqual(len(test_pieces), len(expected), len(actual))
+        for i in xrange(len(actual)):
             # NB: in real use, _run_freq_agg() would aggregate a piece's voice pairs, so we
             #     wouldn't need to ask for the [0] index here... but also, this experiment shouldn't
             #     call _run_freq_agg() anyway
-            self.assertSequenceEqual(list(expected), list(act[0]))
-            self.assertSequenceEqual(list(expected.index), list(act[0].index))
+            self.assertSequenceEqual(list(expected[i]), list(actual[i][0]))
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i][0].index))
 
 
 class IntervalNGrams(TestCase):
@@ -135,7 +136,7 @@ class IntervalNGrams(TestCase):
         mock_two.return_value = [u'mock_two() return value']
         mock_all.return_value = [u'mock_all() return value']
         mock_var.return_value = [u'mock_var() return value']
-        expected = [mock_all.return_value[0], mock_two.return_value[0], mock_var.return_value[0]]
+        expected = [mock_all.return_value, mock_two.return_value, mock_var.return_value]
         # 2.) run the test
         test_wm = WorkflowManager(ind_pieces)
         test_wm.settings(0, u'voice combinations', u'all')
@@ -178,9 +179,8 @@ class IntervalNGrams(TestCase):
         #     test_wm._result... but it's mocked out, which means we can test whether
         #     _interval_ngrams() puts the right stuff there
         self.assertEqual(3, len(test_wm._result))
-        self.assertTrue(mock_two.return_value in test_wm._result)
-        self.assertTrue(mock_all.return_value in test_wm._result)
-        self.assertTrue(mock_var.return_value in test_wm._result)
+        for ret_val in expected:
+            self.assertTrue(ret_val in test_wm._result)
         mock_two.assert_called_once_with(1)
         mock_all.assert_called_once_with(0)
         mock_var.assert_called_once_with(2)
@@ -215,14 +215,14 @@ class IntervalNGrams(TestCase):
         vert_ret = u"IntervalIndexer's return"
         horiz_ret = u"HorizontalIntervalIndexer's return"
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()']
+        returns = [vert_ret, horiz_ret, [u'piece2 3rd get_data()'], [u'piece2 4th get_data()']]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = returns[2:]
+        expected = [x[0] for x in returns[2:]]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -285,14 +285,14 @@ class IntervalNGrams(TestCase):
         vert_ret = u"IntervalIndexer's return"
         horiz_ret = u"HorizontalIntervalIndexer's return"
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()']
+        returns = [vert_ret, horiz_ret, [u'piece2 3rd get_data()'], [u'piece2 4th get_data()']]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = returns[2:]
+        expected = [x[0] for x in returns[2:]]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -354,14 +354,14 @@ class IntervalNGrams(TestCase):
         vert_ret = u"IntervalIndexer's return"
         horiz_ret = u"HorizontalIntervalIndexer's return"
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, 3]
+        returns = [vert_ret, horiz_ret, [3]]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = returns[2:]
+        expected = [x[0] for x in returns[2:]]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -422,16 +422,16 @@ class IntervalNGrams(TestCase):
         vert_ret = u"IntervalIndexer's return"
         horiz_ret = u"HorizontalIntervalIndexer's return"
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, u'piece2 3rd get_data()', u'piece2 4th get_data()',
-                   u'piece2 5th get_data()', u'piece2 6th get_data()', u'piece2 7th get_data()',
-                   u'piece2 8th get_data()']
+        returns = [vert_ret, horiz_ret, [u'piece2 3rd get_data()'], [u'piece2 4th get_data()'],
+                   [u'piece2 5th get_data()'], [u'piece2 6th get_data()'], [u'piece2 7th get_data()'],
+                   [u'piece2 8th get_data()']]
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = returns[2:]
+        expected = [x[0] for x in returns[2:]]
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1

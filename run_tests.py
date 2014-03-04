@@ -7,7 +7,7 @@
 # Filename: run_tests.py
 # Purpose: Run the autmated tests for the models in vis.
 #
-# Copyright (C) 2012, 2013 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013, 2014 Jamie Klassen, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -40,7 +40,7 @@ VERBOSITY = 1
 import unittest
 from vis.models_tests import test_indexed_piece, test_aggregated_pieces
 from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
-    test_aggregator, test_interval_indexer, test_frequency_experimenter, test_offset, \
+    test_aggregator, test_interval_indexer, test_frequency_experimenter, test_offset, test_lilypond, \
     test_dissonance, test_metre
 from vis.other_tests import bwv2_integration_tests as bwv2
 from vis.other_tests import test_workflow, test_workflow_integration, test_workflow_experiments
@@ -60,6 +60,10 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_repeat.REPEAT_INDEXER_SUIT
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_ngram.NGRAM_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_SINGLE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_MULTI_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_lilypond.ANNOTATION_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_lilypond.ANNOTATE_NOTE_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_lilypond.PART_NOTES_SUITE)
+unittest.TextTestRunner(verbosity=VERBOSITY).run(test_lilypond.LILYPOND_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_dissonance.DISSONANCE_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_metre.BEATSTRENGTH_INDEXER_SUITE)
 # Experimenter and Subclasses

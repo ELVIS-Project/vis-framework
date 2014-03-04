@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/ngram.py
 # Purpose:                k-part anything n-gram Indexer
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -28,6 +28,9 @@
 Indexer to find k-part any-object n-grams.
 """
 
+# Turn off "string statement has no effect" warning; the strings are for Sphinx!
+# pylint: disable=W0105
+
 import pandas
 from vis.analyzers import indexer
 
@@ -45,23 +48,23 @@ class NGramIndexer(indexer.Indexer):
     There is no relationship between the number of index types, though there must be at least one
     "vertical" index.
 
-    The settings given to :meth:`__init__` specify which index values in :obj:`score` are
+    The settings given to :meth:`__init__` specify which index values in ``score`` are
     horizontal or vertical intervals. They will be added in the n-gram in the order specified, so
-    if the :obj:`u'vertical'` setting is :obj:`[4, 1, 3]` for lists of intervals, then for each\
+    if the ``u'vertical'`` setting is ``[4, 1, 3]`` for lists of intervals, then for each\
     vertical event, objects will be listed in that order.
 
     In the output, groups of "vertical" events are enclosed in brackets, while groups of
     "horizontal" events are enclosed in parentheses.
 
     For cases where there is only one index in a particular direction, you can avoid printing the
-    brackets or parentheses by setting the :obj:`u'mark singles'` setting to False (though the
-    default is True).
+    brackets or parentheses by setting the ``u'mark singles'`` setting to False (though the
+    default is ``True``).
 
     If you want n-grams to terminate when finding one or several particular values, you can specify
-    this with the :obj:`u'terminator'` setting.
+    this with the ``u'terminator'`` setting.
 
-    To show that a horizontal event continues, we use the :obj:`u'_'` character by default, but
-    this can be set separately, to :obj:`u'P1'` or :obj:`u'0'` or similar, if desired.
+    To show that a horizontal event continues, we use ``u'_'`` by default, but you can set this
+    separately, for example to ``u'P1'`` ``u'0'``, as seems appropriate.
 
     You can also use the :class:`NGramIndexer` to collect "stacks" of single vertical events. If
     you provide indices of intervals above a lowest part, for example, these "stacks" become the
@@ -72,34 +75,30 @@ class NGramIndexer(indexer.Indexer):
     required_score_type = pandas.Series
     "The :class:`NGramIndexer` requires :class:`pandas.Series` as input."
 
-    possible_settings = [u'horizontal', u'vertical', u'n', u'mark singles', u'terminator',
+    possible_settings = [u'horizontal', u'vertical', u'n', u'mark_singles', u'terminator',
                          u'continuer']
     """
-    A :obj:`list` of possible settings for the :class:`NGramIndexer`.
+    A list of possible settings for the :class:`NGramIndexer`.
 
     :keyword u'horizontal': The parts to consider as "horizontal."
-    :type u'horizontal': :obj:`list` of :obj:`int`
+    :type u'horizontal': ``list`` of ``int``
     :keyword u'vertical': The parts to consider as "vertical."
-    :type u'vertical': :obj:`list` of :obj:`int`
+    :type u'vertical': ``list`` of ``int``
     :keyword u'n': The number of "vertical" events per n-gram.
-    :type u'n': :obj:`int`
-    :keyword u'mark_singles': NOTE: this setting is :obj:`u'mark singles'` and the underscore is
-        only for technical (documentation) reasons. Whether to use delimiters around a direction's
-        events when there is only one event in that direction (e.g., the "horizontal" maps only the
-        activity of a single voice).
-    :type u'mark_singles': :obj:`bool`
+    :type u'n': ``int``
+    :keyword u'mark_singles': Whether to use delimiters around a direction's events when
+        there is only one event in that direction (e.g., the "horizontal" maps only the activity
+        of a single voice). (You may also use ``u'mark singles'``).
+    :type u'mark_singles': ``bool``
     :keyword u'terminator': Do not find an n-gram with a vertical item that contains any of these
         values.
-    :type u'terminator': :obj:`list` of :obj:`basestring`
+    :type u'terminator': ``list`` of ``basestring``
     :keyword u'continuer': When there is no "horizontal" event that corresponds to a vertical
         event, this is printed instead, to show that the previous "horizontal" event continues.
-    :type u'continuer': :obj:`basestring`
-
-    .. note:: The :obj:`u'mark singles'` setting should have no _ characters, which appear in our \
-        documentation only because of a technical limitation in the documentation tool.
+    :type u'continuer': ``basestring``
     """
 
-    default_settings = {u'mark singles': True, u'horizontal': [], u'terminator': [],
+    default_settings = {u'mark_singles': True, u'horizontal': [], u'terminator': [],
                         u'continuer': u'_'}
     "A :obj:`dict` of default settings for the :class:`NGramIndexer`."
 
@@ -108,15 +107,15 @@ class NGramIndexer(indexer.Indexer):
         :param score: A list of the "horizontal" and "vertical" indices to use for n-grams. You \
             can put the "horizontal" and "vertical" indices anywhere in the list, so long as you \
             use settings to specify the order.
-        :type score: :obj:`list` of :class:`pandas.Series`
+        :type score: ``list`` of :class:`pandas.Series`
         :param settings: Required and optional settings. See descriptions in \
             :const:`possible_settings`.
-        :type settings: :obj:`dict`
+        :type settings: ``dict``
 
-        :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
-        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
-        :raises: :exc:`RuntimeError` if required settings are not present in :obj:`settings`.
-        :raises: :exc:`RuntimeError` if :obj:`u'n'` is less than 1.
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        :raises: :exc:`RuntimeError` if required settings are not present in ``settings``.
+        :raises: :exc:`RuntimeError` if ``u'n'`` is less than ``1``.
         """
         # Check all required settings are present in the "settings" argument.
         if settings is None or u'vertical' not in settings or u'n' not in settings:
@@ -131,8 +130,12 @@ class NGramIndexer(indexer.Indexer):
             self._settings[u'n'] = settings[u'n']
             self._settings[u'horizontal'] = settings[u'horizontal'] if u'horizontal' in settings \
                 else NGramIndexer.default_settings[u'horizontal']
-            self._settings[u'mark singles'] = settings[u'mark singles'] if u'mark singles' in \
-                settings else NGramIndexer.default_settings[u'mark singles']
+            if u'mark singles' in settings:
+                self._settings[u'mark_singles'] = settings[u'mark singles']
+            elif u'mark_singles' in settings:
+                self._settings[u'mark_singles'] = settings[u'mark_singles']
+            else:
+                self._settings[u'mark_singles'] = NGramIndexer.default_settings[u'mark_singles']
             self._settings[u'terminator'] = settings[u'terminator'] if u'terminator' in settings \
                 else NGramIndexer.default_settings[u'terminator']
             self._settings[u'continuer'] = settings[u'continuer'] if u'continuer' in settings \
@@ -264,7 +267,7 @@ class NGramIndexer(indexer.Indexer):
         Returns
         =======
         :returns: A single-item list with the new index.
-        :rtype: :obj:`list` of :class:`pandas.Series`
+        :rtype: ``list`` of :class:`pandas.Series`
         """
         # TODO: pylint says there are too many branches; it's right
 
@@ -272,7 +275,7 @@ class NGramIndexer(indexer.Indexer):
         post_offsets = []
 
         # for the formatting methods
-        m_singles = self._settings[u'mark singles']
+        m_singles = self._settings[u'mark_singles']
         term = self._settings[u'terminator']
 
         # Order the parts as specified. We have to track "i" and "name" separately so we have a new
