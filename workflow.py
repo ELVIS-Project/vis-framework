@@ -153,6 +153,7 @@ class WorkflowManager(object):
         * ``u'stata'`` to load data from a previous :meth:`export`.
         * ``u'pickle'`` to load data from a previous :meth:`export`.
         """
+        # TODO: remove requirement to provide "instruction"; should default to 'pieces'
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
         #       and run the NoteRestIndexer, then pickle it and send that to a callback method
@@ -199,9 +200,6 @@ class WorkflowManager(object):
         """
         if self._loaded is not True:
             raise RuntimeError(u'Please call load() before you call run()')
-        # NOTE: do not re-order the instructions or this method will break
-        possible_instructions = [u'intervals',
-                                 u'interval n-grams']
         error_msg = u'WorkflowManager.run() could not parse the instruction'
         post = None
         # run the experiment
@@ -364,7 +362,6 @@ class WorkflowManager(object):
                 setts[u'terminator'] = u'Rest'
             # run NGramIndexer, then append the result to the corresponding index of the dict
             post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
-            #post.append(piece.get_data([ngram.NGramIndexer], setts, parts))  # DEBUG
         return post
 
     def _all_part_modules(self, index):
@@ -718,6 +715,7 @@ class WorkflowManager(object):
         * ``u'Excel'``: output an Excel file for Peter Schubert.
         * ``u'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
         """
+        # TODO: merge export() functionality into output() (as a private method)
         # ensure we have some results
         if self._result is None:
             raise RuntimeError(u'Call run() before calling export()')
