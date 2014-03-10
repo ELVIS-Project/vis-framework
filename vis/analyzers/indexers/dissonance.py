@@ -25,7 +25,7 @@
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 
-What will it do?!
+Indexers related to dissonance.
 """
 
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
@@ -35,35 +35,11 @@ import pandas
 from vis.analyzers import indexer
 
 
-def diss_ind_func(obj):
-    """
-    If this is a dissonant interval, return the interval. "Dissonant" intervals include any 2nd,
-    any 4th, diminished 5th, and any 7th.
-
-    :param obj: The intervals to evaluate for dissonance.
-    :type obj: :class:`pandas.Series` of ``unicode``
-
-    :returns: The interval, if it is dissonant, or ``None``.
-    :rtype: ``unicode`` or ``None``
-    """
-    dissonance_list = [u'2', u'4', u'7']
-    if obj.iloc[0][-1:] in dissonance_list:
-        return obj.iloc[0]
-    elif len(obj.iloc[0]) > 1 and obj.iloc[0] == u'd5':
-        return obj.iloc[0]
-    else:
-        return None
-
-
 class DissonanceIndexer(indexer.Indexer):
     """
-    Locate and name "dissonant" intervals in a simultaneity.
+    Remove consonant intervals. All remaining intervals are a "dissonance."
 
-    The following are currently considered "dissonant" intervals:
-    - 2nd
-    - 4th
-    - diminished 5th
-    - 7th
+    The following intervals are curently considered "consonant": P1, m3, M3, P5, m6, M6, and P8.
     """
 
     required_score_type = pandas.Series
@@ -83,30 +59,17 @@ class DissonanceIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The output from :class:`~vis.analyzers.indexers.interval.IntervalIndexer`.
             You must include interval quality and *not* use compound intervals.
         :type score: `list`` of :class:`pandas.Series`
 
-        :param settings: There are no settings?
+        :param settings: There are no settings.
         :type settings: ``None``
 
-        Raises
-        ======
-        :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
-        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
-        :raises: :exc:`RuntimeError` if required settings are not present in :obj:`settings`.
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
-
-        # Check all required settings are present in the "settings" argument. You must ignore
-        # extra settings.
-        # If there are no settings, you may safely remove this.
-        #if settings is None:
-            #self._settings = {}
-
         super(DissonanceIndexer, self).__init__(score, None)
-        self._indexer_func = diss_ind_func
 
     def run(self):
         """
@@ -119,8 +82,5 @@ class DissonanceIndexer(indexer.Indexer):
             in the Series is a basestring.
         :rtype: ``list`` of :class:`pandas.Series`
         """
-
-        # each part separately
-        combinations = [[x] for x in xrange(len(self._score))]
-        results = self._do_multiprocessing(combinations)
+        results = [p.loc[~p.str.contains(r'P1|m3|M3|P5|m6|M6|P8')] for p in self._score]
         return results
