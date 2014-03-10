@@ -36,29 +36,51 @@ from vis.analyzers.indexers import dissonance
 
 
 class TestDissonanceIndexer(unittest.TestCase):
-    def test_ind_func_1(self):
-        # test diss_ind_func() with 2nds
-        in_vals = [u'd2', u'm2', u'M2', 'A2']
+    def test_ind_1(self):
+        # that it picks up simple major/minor things as dissonant
+        in_vals = [u'm2', u'M2', u'P4', u'm7', u'M7']
         for val in in_vals:
-            self.assertEqual(val, dissonance.diss_ind_func(pandas.Series([val])))
+            exp = pandas.Series([val])
+            act = dissonance.DissonanceIndexer([exp]).run()[0]
+            self.assertEqual(exp, act)
 
-    def test_ind_func_2(self):
-        # test diss_ind_func() with 4ths
-        in_vals = [u'd4', u'P4', 'A2']
+    def test_ind_2(self):
+        # that it picks up diminished/augmented dissonances
+        in_vals = ['A4', 'd5', 'A1', 'd8']
         for val in in_vals:
-            self.assertEqual(val, dissonance.diss_ind_func(pandas.Series([val])))
+            exp = pandas.Series([val])
+            act = dissonance.DissonanceIndexer([exp]).run()[0]
+            self.assertEqual(exp, act)
 
-    def test_ind_func_3(self):
-        # test diss_ind_func() with diminished 5th
-        in_vals = [u'd5']
+    def test_ind_3(self):
+        # that consonances are properly noted as consonant
+        in_vals = [u'm3', u'M3', u'P5', u'm6', u'M6']
         for val in in_vals:
-            self.assertEqual(val, dissonance.diss_ind_func(pandas.Series([val])))
+            in_ser = pandas.Series([val])
+            act = dissonance.DissonanceIndexer([in_ser]).run()[0]
+            self.assertEqual(0, len(act))
 
-    def test_ind_func_4(self):
-        # test diss_ind_func() with 7ths
-        in_vals = [u'd7', u'm7', u'M7', 'A7']
-        for val in in_vals:
-            self.assertEqual(val, dissonance.diss_ind_func(pandas.Series([val])))
+    def test_ind_4(self):
+        # a quasi-realistic, single-part test
+        in_ser = pandas.Series(['m3', 'M2', 'm2', 'P4', 'd5', 'P5', 'M6', 'm7'])
+        expected = pandas.Series(['M2', 'm2', 'P4', 'd5', 'm7'], index=[1, 2, 3, 4, 7])
+        actual = dissonance.DissonanceIndexer([in_ser]).run()[0]
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_ind_5(self):
+        # a quasi-realistic, multi-part test
+        in_sers = [pandas.Series(['m3', 'M2', 'm2', 'P4', 'd5', 'P5', 'M6', 'm7']),
+                   pandas.Series(['M2', 'm2', 'P4', 'd5', 'P5', 'M6', 'm7', 'm3']),
+                   pandas.Series(['m2', 'P4', 'd5', 'P5', 'M6', 'm7', 'm3', 'M2'])]
+        expected = [pandas.Series(['M2', 'm2', 'P4', 'd5', 'm7'], index=[1, 2, 3, 4, 7]),
+                    pandas.Series(['M2', 'm2', 'P4', 'd5', 'm7'], index=[0, 1, 2, 3, 6]),
+                    pandas.Series(['m2', 'P4', 'd5', 'm7', 'M2'], index=[0, 1, 2, 5, 7])]
+        actual = dissonance.DissonanceIndexer(in_sers).run()
+        self.assertEqual(len(expected), len(actual))
+        for i in xrange(len(expected)):
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     # NOTE: I decided not to test the rest of this indexer because it uses a pattern very common
     #       through the rest of the Framework.
