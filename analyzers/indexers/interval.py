@@ -30,10 +30,13 @@ parts. Use the :class:`HorizontalIntervalIndexer` to find horizontal (melodic) i
 same part.
 """
 
+# disable "string statement has no effect"... it's for sphinx
+# pylint: disable=W0105
+
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
-from vis.analyzers.indexers.noterest import NoteRestIndexer
+#from vis.analyzers.indexers.noterest import NoteRestIndexer
 
 
 def key_to_tuple(key):
@@ -268,7 +271,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         :type score: list of :class:`pandas.Series`
         :param settings: Required and optional settings. See descriptions in \
             :const:`IntervalIndexer.possible_settings`.
-        :type settings: dict
+        :type settings: ``dict``
         """
         super(HorizontalIntervalIndexer, self).__init__(score, settings)
 
@@ -280,7 +283,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         =======
         :returns: A list of the new indices. The index of each Series corresponds to the index it \
             has in the list of :class:`Series` given to the constructor.
-        :rtype: :obj:`list` of :class:`pandas.Series`
+        :rtype: ``list`` of :class:`pandas.Series`
         """
         # This indexer is a little tricky, since we must fake "horizontality" so we can use the
         # same _do_multiprocessing() method as in the IntervalIndexer.
@@ -289,8 +292,8 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # first element, and the other will be missing the last element. We'll also use the index
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
-        new_parts = [pandas.Series(list(x[1:]), index=list(x.index[1:])) for x in self._score]
-        self._score = [pandas.Series(list(x[:-1]), index=list(x.index[1:])) for x in self._score]
+        new_parts = [x.iloc[1:] for x in self._score]
+        self._score = [pandas.Series(x.values[:-1], index=x.index.tolist()[1:]) for x in self._score]
 
         new_zero = len(self._score)
         self._score.extend(new_parts)
