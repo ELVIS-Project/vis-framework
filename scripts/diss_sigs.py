@@ -41,6 +41,7 @@ except ImportError:
 from vis.analyzers.indexers import noterest, interval, dissonance, metre
 from vis.models.indexed_piece import IndexedPiece
 from vis.workflow import WorkflowManager
+import pandas
 
 # the piece we'll analyze... currently Kyrie of Palestrina's Missa "Dies sanctificatus"
 piece_path = u'test_corpus/bwv2.xml'
@@ -62,31 +63,32 @@ dissonances = the_piece.get_data([dissonance.DissonanceIndexer], None, interv_in
 dissonances = {interv_combos[i]: dissonances[i] for i in xrange(len(interv_combos))}
 
 # as an example, we'll just use voice-pair [0, 1] (highest and second-highest)
-#print(u'Output from DissonanceIndexer (top two voices):\n')
+print(u'Output from DissonanceIndexer (top two voices):\n')
+new_df = pandas.DataFrame({'intervals': intervals['0,1'], 'dissonances': dissonances['0,1']})
+print(new_df)
 #for label in intervals[u'0,1'].index:
-    #if dissonances[u'0,1'].loc[label] is None:
-        #print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]))
-    #else:
+    #if label in dissonances[u'0,1'].index:
         #print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]) + ' --> ' + str(dissonances[u'0,1'].loc[label]))
+    #else:
+        #print(str(label) + '\t' + str(intervals[u'0,1'].loc[label]))
 
+## get and display the output from the "beatStrength" indexer
+#print(u'\n\nRunning the NoteBeatStrengthIndexer...\n')
+#beat_strengths = the_piece.get_data([metre.NoteBeatStrengthIndexer])
+##print(u'Output from NoteBeatStrengthIndexer (top voice):\n')
+##print(str(beat_strengths[0]))
 
-# get and display the output from the "beatStrength" indexer
-print(u'\n\nRunning the NoteBeatStrengthIndexer...\n')
-beat_strengths = the_piece.get_data([metre.NoteBeatStrengthIndexer])
-#print(u'Output from NoteBeatStrengthIndexer (top voice):\n')
-#print(str(beat_strengths[0]))
-
-# break a WorkflowManager so we can get annotated score output
-print(u'\n\nPreparing and outputting the score, running LilyPond, etc.\n')
-# 1.) collect indicces for this part combo
-part_diss_orig = dissonances[u'0,1']
-beats_zero_orig = beat_strengths[0]
-beats_one_orig = beat_strengths[1]
-# 2.) filter out where there isn't a dissonance
-part_diss = part_diss_orig[~part_diss_orig.isin([None])]
-beats_zero = beats_zero_orig[~part_diss_orig.isin([None])]
-beats_one = beats_one_orig[~part_diss_orig.isin([None])]
-# 3.) mangle the WorkflowManager
-workm = WorkflowManager([piece_path])
-workm._result = [[part_diss, beats_zero, beats_one]]
-workm.output('LilyPond', 'test_output/asdf_diss')
+## break a WorkflowManager so we can get annotated score output
+#print(u'\n\nPreparing and outputting the score, running LilyPond, etc.\n')
+## 1.) collect indicces for this part combo
+#part_diss_orig = dissonances[u'0,1']
+#beats_zero_orig = beat_strengths[0]
+#beats_one_orig = beat_strengths[1]
+## 2.) filter out where there isn't a dissonance
+#part_diss = part_diss_orig[~part_diss_orig.isin([None])]
+#beats_zero = beats_zero_orig[~part_diss_orig.isin([None])]
+#beats_one = beats_one_orig[~part_diss_orig.isin([None])]
+## 3.) mangle the WorkflowManager
+#workm = WorkflowManager([piece_path])
+#workm._result = [[part_diss, beats_zero, beats_one]]
+#workm.output('LilyPond', 'test_output/asdf_diss')
