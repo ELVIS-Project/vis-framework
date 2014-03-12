@@ -243,7 +243,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         self.assertEqual(len(expected[0]), len(actual[0]))
         self.assertEqual(len(expected[1]), len(actual[1]))
 
-    def test_note_rest_indexer_10(self):
+    def test_note_rest_indexer_6(self):
         # When the Part has nothing in it
         expected = [[]]
         test_part = [stream.Part()]
@@ -252,7 +252,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
 
-    def test_note_rest_indexer_11(self):
+    def test_note_rest_indexer_7(self):
         # When the part has no Note or Rest objects in it
         expected = [[]]
         test_part = stream.Part()
@@ -271,10 +271,10 @@ class TestNoteRestIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))
         self.assertEqual(len(expected[0]), len(actual[0]))
 
-    def test_note_rest_indexer_12(self):
+    def test_note_rest_indexer_8(self):
         # When there are a bunch of notes
-        expected = [[(0.0, u'C4'), (1.0, u'C4'), (2.0, u'C4'), (3.0, u'C4'), (4.0, u'C4'),
-                     (5.0, u'C4'), (6.0, u'C4'), (7.0, u'C4'), (8.0, u'C4'), (9.0, u'C4')]]
+        expected = pandas.Series([u'C4', u'C4', u'C4', u'C4', u'C4', u'C4', u'C4', u'C4', u'C4', u'C4'],
+                                 index=[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])
         test_part = stream.Part()
         # add stuff to the test_part
         for i in xrange(10):
@@ -285,13 +285,12 @@ class TestNoteRestIndexer(unittest.TestCase):
         # finished adding stuff to the test_part
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        for i, ind in enumerate(list(actual[0].index)):
-            self.assertEqual(expected[0][i][0], ind)
-            self.assertEqual(expected[0][i][1], actual[0][ind])
+        self.assertEqual(1, len(actual))
+        actual = actual[0]
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
 
-    def test_note_rest_indexer_200(self):
+    def test_note_rest_indexer_9(self):
         # Soprano part of bwv77.mxl
         expected = [self.bwv77_soprano]
         test_part = [converter.parse('test_corpus/bwv77.mxl').parts[0]]
@@ -303,7 +302,7 @@ class TestNoteRestIndexer(unittest.TestCase):
             self.assertEqual(expected[0][i][0], ind)
             self.assertEqual(expected[0][i][1], actual[0][ind])
 
-    def test_note_rest_indexer_201(self):
+    def test_note_rest_indexer_10(self):
         # Bass part of bwv77.mxl
         expected = [self.bwv77_bass]
         test_part = [converter.parse('test_corpus/bwv77.mxl').parts[3]]
@@ -315,7 +314,7 @@ class TestNoteRestIndexer(unittest.TestCase):
             self.assertEqual(expected[0][i][0], ind)
             self.assertEqual(expected[0][i][1], actual[0][ind])
 
-    def test_note_rest_indexer_202(self):
+    def test_note_rest_indexer_11(self):
         # Soprano and Bass parts of bwv77.mxl
         expected = [self.bwv77_soprano, self.bwv77_bass]
         bwv77 = converter.parse('test_corpus/bwv77.mxl')
