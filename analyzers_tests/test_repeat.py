@@ -64,7 +64,7 @@ class TestRepeatIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))  # same number of parts?
         for i in xrange(len(expected)):  # compare each Series
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_offset_1part_3(self):
         # remove a bunch at the end
@@ -76,7 +76,7 @@ class TestRepeatIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))  # same number of parts?
         for i in xrange(len(expected)):  # compare each Series
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_offset_1part_4(self):
         # remove a bunch at the beginning
@@ -88,7 +88,7 @@ class TestRepeatIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))  # same number of parts?
         for i in xrange(len(expected)):  # compare each Series
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_offset_1part_5(self):
         # remove every other thing
@@ -100,7 +100,7 @@ class TestRepeatIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))  # same number of parts?
         for i in xrange(len(expected)):  # compare each Series
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_offset_1part_6(self):
         # pseudo-random
@@ -116,7 +116,7 @@ class TestRepeatIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))  # same number of parts?
         for i in xrange(len(expected)):  # compare each Series
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_offset_2parts_1(self):
         # pseudo-random, many parts
@@ -139,7 +139,7 @@ class TestRepeatIndexer(unittest.TestCase):
         self.assertEqual(len(expected), len(actual))  # same number of parts?
         for i in xrange(len(expected)):  # compare each Series
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
