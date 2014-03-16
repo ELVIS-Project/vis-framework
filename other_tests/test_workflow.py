@@ -499,9 +499,10 @@ class GetDataFrame(TestCase):
         test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
         expected = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
         actual = test_wc._get_dataframe()
-        self.assertEqual(expected, actual)
-        for i in xrange(len(expected['data'])):
-            self.assertEqual(expected['data'][i], actual['data'][i])
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected.loc[:,i].index), list(actual.loc[:,i].index))
+            self.assertSequenceEqual(list(expected.loc[:,i].values), list(actual.loc[:,i].values))
 
     def test_get_dataframe_2(self):
         # test with name='asdf', top_x=3, threshold=auto
@@ -509,9 +510,10 @@ class GetDataFrame(TestCase):
         test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
         expected = pandas.DataFrame({'asdf': pandas.Series([10, 9, 8])})
         actual = test_wc._get_dataframe('asdf', 3)
-        self.assertEqual(expected, actual)
-        for i in xrange(len(expected['asdf'])):
-            self.assertEqual(expected['asdf'][i], actual['asdf'][i])
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected.loc[:,i].index), list(actual.loc[:,i].index))
+            self.assertSequenceEqual(list(expected.loc[:,i].values), list(actual.loc[:,i].values))
 
     def test_get_dataframe_3(self):
         # test with name=auto, top_x=3, threshold=5 (so the top_x still removes after threshold)
@@ -519,9 +521,10 @@ class GetDataFrame(TestCase):
         test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
         expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
         actual = test_wc._get_dataframe(top_x=3, threshold=5)
-        self.assertEqual(expected, actual)
-        for i in xrange(len(expected['data'])):
-            self.assertEqual(expected['data'][i], actual['data'][i])
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected.loc[:,i].index), list(actual.loc[:,i].index))
+            self.assertSequenceEqual(list(expected.loc[:,i].values), list(actual.loc[:,i].values))
 
     def test_get_dataframe_4(self):
         # test with name=auto, top_x=5, threshold=7 (so threshold leaves fewer than 3 results)
@@ -529,9 +532,10 @@ class GetDataFrame(TestCase):
         test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
         expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
         actual = test_wc._get_dataframe(top_x=5, threshold=7)
-        self.assertEqual(expected, actual)
-        for i in xrange(len(expected['data'])):
-            self.assertEqual(expected['data'][i], actual['data'][i])
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected.loc[:,i].index), list(actual.loc[:,i].index))
+            self.assertSequenceEqual(list(expected.loc[:,i].values), list(actual.loc[:,i].values))
 
 
 class AuxiliaryExperimentMethods(TestCase):
