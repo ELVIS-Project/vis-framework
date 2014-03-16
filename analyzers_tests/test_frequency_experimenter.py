@@ -90,7 +90,10 @@ class TestRun(unittest.TestCase):
         actual = exp.run()
         exp._do_multiprocessing.assert_called_once_with(experimenter_func, [[(0, in_a)],
             [(1, in_b)], [(2, in_c)]])
-        self.assertTrue(expected.sort(axis=1) == actual.sort(axis=1))
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected.loc[:,i].index), list(actual.loc[:,i].index))
+            self.assertSequenceEqual(list(expected.loc[:,i].values), list(actual.loc[:,i].values))
 
     def test_run_2(self):
         # should have the same output as test_run_1, but without the MagicMock
@@ -104,7 +107,10 @@ class TestRun(unittest.TestCase):
                               u'all': Series({1: 15, 2: 6, 3: 6, 4: 3, 5: 3})})
         exp = FrequencyExperimenter(in_series)
         actual = exp.run()
-        self.assertTrue(expected.sort(axis=1) == actual.sort(axis=1))
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected.loc[:,i].index), list(actual.loc[:,i].index))
+            self.assertSequenceEqual(list(expected.loc[:,i].values), list(actual.loc[:,i].values))
 
     def test_run_3(self):
         # more complicated arithmetic
@@ -115,10 +121,16 @@ class TestRun(unittest.TestCase):
         expected = DataFrame({0: Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1}),
                               1: Series({1: 8, 2: 2, 3: 3, 4: 3, 5: 2}),
                               2: Series({1: 5, 2: 2, 3: 2}),
-                              u'all': Series({1: 18, 2: 6, 3: 7, 4: 7, 5: 3})})
+                              u'all': Series({1: 18, 2: 6, 3: 7, 4: 4, 5: 3})})
         exp = FrequencyExperimenter(in_series)
         actual = exp.run()
-        self.assertTrue(expected.sort(axis=1) == actual.sort(axis=1))
+        # because numpy's NaN != NaN
+        actual = actual.fillna(value=4000)
+        expected = expected.fillna(value=4000)
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected.loc[:,i].index), list(actual.loc[:,i].index))
+            self.assertSequenceEqual(list(expected.loc[:,i].values), list(actual.loc[:,i].values))
 
     def test_run_4(self):
         # same as test_run_3, but input is a dict
@@ -129,10 +141,16 @@ class TestRun(unittest.TestCase):
         expected = DataFrame({u'hello': Series({1: 5, 2: 2, 3: 2, 4: 1, 5: 1}),
                               u'zello': Series({1: 8, 2: 2, 3: 3, 4: 3, 5: 2}),
                               u'jello': Series({1: 5, 2: 2, 3: 2}),
-                              u'all': Series({1: 18, 2: 6, 3: 7, 4: 7, 5: 3})})
+                              u'all': Series({1: 18, 2: 6, 3: 7, 4: 4, 5: 3})})
         exp = FrequencyExperimenter(in_series)
         actual = exp.run()
-        self.assertTrue(expected.sort(axis=1) == actual.sort(axis=1))
+        # because numpy's NaN != NaN
+        actual = actual.fillna(value=4000)
+        expected = expected.fillna(value=4000)
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected.loc[:,i].index), list(actual.loc[:,i].index))
+            self.assertSequenceEqual(list(expected.loc[:,i].values), list(actual.loc[:,i].values))
 
 
 #--------------------------------------------------------------------------------------------------#
