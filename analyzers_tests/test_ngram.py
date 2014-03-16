@@ -92,10 +92,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_0a(self):
         # like test _0 but with an extra element in "scores" and no "horizontal" assignment
@@ -107,10 +105,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_0b(self):
         # like test _0 but with u'mark singles' instead of u'mark_singles'
@@ -122,10 +118,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_1(self):
         # adds the brackets and parentheses
@@ -137,10 +131,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_2(self):
         # test _0 but n=3
@@ -152,10 +144,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_3(self):
         # test _0 but with two verticals
@@ -168,10 +158,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_4(self):
         # test _0 but with two horizontals, and the order of u'horizontal' setting is important
@@ -184,10 +172,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_5(self):
         # combination of tests _3 and _4
@@ -202,10 +188,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_6(self):
         # test constructor fails when it should
@@ -225,10 +209,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_8(self):
         # test _5 with a terminator; nothing should be picked up before terminator
@@ -242,10 +224,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_9(self):
         # test _9 but longer; things happen before and after terminator
@@ -259,10 +239,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_10(self):
         # test _0 with too few "horizontal" things (should use "continuer" character in settings)
@@ -274,10 +252,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_11(self):
         # test _10 with one "horizontal" thing at the end
@@ -289,10 +265,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_12(self):
         # test _11 with one missing "horizontal" thing in the middle
@@ -304,10 +278,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_13(self):
         # test _0 with too few "vertical" things (last should be repeated)
@@ -319,10 +291,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_14(self):
         # test _13 with one missing "vertical" thing in the middle
@@ -334,10 +304,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_15(self):
         # longer test, inspired by the first five measures of "Kyrie.krn" parts 1 and 3
@@ -350,10 +318,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_16a(self):
         # test _9 but with three "vertical" parts and no terminator
@@ -371,10 +337,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_16b(self):
         # test _16a but with a MagicMock for the formatter
@@ -426,10 +390,8 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ng_ind.run()
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(actual[i]))
-        for i in xrange(len(expected)):
-            for j in expected[i].index:
-                self.assertEqual(expected[i][j], actual[i][j])
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
     def test_ngram_18(self):
         # n=1
@@ -447,18 +409,14 @@ class TestNGramIndexer(unittest.TestCase):
         ng_one = ngram.NGramIndexer([vertical_a, vertical_b, vertical_c, vertical_d], setts_one)
         actual_many = ng_many.run()
         actual_one = ng_one.run()
-        self.assertEqual(len(expected_many), len(actual_many))
-        for i in xrange(len(expected_many)):
-            self.assertEqual(len(expected_many[i]), len(actual_many[i]))
-        for i in xrange(len(expected_many)):
-            for j in expected_many[i].index:
-                self.assertEqual(expected_many[i][j], actual_many[i][j])
         self.assertEqual(len(expected_one), len(actual_one))
         for i in xrange(len(expected_one)):
-            self.assertEqual(len(expected_one[i]), len(actual_one[i]))
-        for i in xrange(len(expected_one)):
-            for j in expected_one[i].index:
-                self.assertEqual(expected_one[i][j], actual_one[i][j])
+            self.assertSequenceEqual(list(expected_one[i].index), list(actual_one[i].index))
+            self.assertSequenceEqual(list(expected_one[i].values), list(actual_one[i].values))
+        self.assertEqual(len(expected_many), len(actual_many))
+        for i in xrange(len(expected_many)):
+            self.assertSequenceEqual(list(expected_many[i].index), list(actual_many[i].index))
+            self.assertSequenceEqual(list(expected_many[i].values), list(actual_many[i].values))
 
     def test_ngram_format_1(self):
         # one thing, it's a terminator (don't mark singles)

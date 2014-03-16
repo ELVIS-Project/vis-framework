@@ -306,26 +306,26 @@ class NGramIndexer(indexer.Indexer):
             loop_post = None
             try:
                 # first vertical event
-                loop_post = [NGramIndexer._format_vert(list(events[u'v'].ix[i].sort_index()),
+                loop_post = [NGramIndexer._format_vert(list(events[u'v'].iloc[i].sort_index()),
                                                             m_singles,
                                                             term)]
             except RuntimeWarning:  # we hit a terminator
                 continue
             try:
                 for j in xrange(self._settings[u'n'] - 1):  # iterate to the end of 'n'
-                    ell = i + j + 1  # the index we need (it's an "L" but spelled out)
+                    k = i + j + 1  # the index we need
                     ilp = None  # it means "Inner Loop Post"
                     if u'h' in events:  # are there "horizontal" events?
                         ilp = [u' ',
-                               NGramIndexer._format_horiz(list(events[u'h'].ix[ell].sort_index()),
+                               NGramIndexer._format_horiz(list(events[u'h'].iloc[k].sort_index()),
                                                           m_singles),
                                u' ',
-                               NGramIndexer._format_vert(list(events[u'v'].ix[ell].sort_index()),
+                               NGramIndexer._format_vert(list(events[u'v'].iloc[k].sort_index()),
                                                          m_singles,
                                                          term)]
                     else:
                         ilp = [u' ',
-                               NGramIndexer._format_vert(list(events[u'v'].ix[ell].sort_index()),
+                               NGramIndexer._format_vert(list(events[u'v'].iloc[k].sort_index()),
                                                          m_singles,
                                                          term)]
                     loop_post.extend(ilp)
