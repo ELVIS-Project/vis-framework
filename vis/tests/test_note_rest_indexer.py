@@ -293,7 +293,7 @@ class TestNoteRestIndexer(unittest.TestCase):
     def test_note_rest_indexer_9(self):
         # Soprano part of bwv77.mxl
         expected = [self.bwv77_soprano]
-        test_part = [converter.parse('test_corpus/bwv77.mxl').parts[0]]
+        test_part = [converter.parse('vis/tests/corpus/bwv77.mxl').parts[0]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
@@ -305,7 +305,7 @@ class TestNoteRestIndexer(unittest.TestCase):
     def test_note_rest_indexer_10(self):
         # Bass part of bwv77.mxl
         expected = [self.bwv77_bass]
-        test_part = [converter.parse('test_corpus/bwv77.mxl').parts[3]]
+        test_part = [converter.parse('vis/tests/corpus/bwv77.mxl').parts[3]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()
         self.assertEqual(len(expected), len(actual))
@@ -317,7 +317,7 @@ class TestNoteRestIndexer(unittest.TestCase):
     def test_note_rest_indexer_11(self):
         # Soprano and Bass parts of bwv77.mxl
         expected = [self.bwv77_soprano, self.bwv77_bass]
-        bwv77 = converter.parse('test_corpus/bwv77.mxl')
+        bwv77 = converter.parse('vis/tests/corpus/bwv77.mxl')
         test_part = [bwv77.parts[0], bwv77.parts[3]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()

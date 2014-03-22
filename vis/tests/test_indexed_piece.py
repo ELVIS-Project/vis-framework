@@ -382,7 +382,7 @@ class TestPartsAndTitles(TestCase):
    # _find_part_names() and _find_piece_title() methods.
    # NOTE: not testing "Sanctus.krn" because it's an Opus, and we can't deal with them yet.
     def test_bwv77(self):
-        path = u'test_corpus/bwv77.mxl'
+        path = u'vis/tests/corpus/bwv77.mxl'
         expected_title = u'bwv77'
         expected_parts = [u'Soprano', u'Alto', u'Tenor', u'Bass']
         the_score = music21.converter.parse(path)
@@ -392,7 +392,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_jos2308_krn(self):
-        path = u'test_corpus/Jos2308.krn'
+        path = u'vis/tests/corpus/Jos2308.krn'
         expected_title = u'Jos2308'
         expected_parts = [u'spine_3', u'spine_2', u'spine_1', u'spine_0']
         the_score = music21.converter.parse(path)
@@ -402,7 +402,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_kyrie(self):
-        path = u'test_corpus/Kyrie.krn'
+        path = u'vis/tests/corpus/Kyrie.krn'
         expected_title = u'Kyrie'
         expected_parts = [u'spine_4', u'spine_3', u'spine_2', u'spine_1', u'spine_0']
         the_score = music21.converter.parse(path)
@@ -412,7 +412,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_madrigal51(self):
-        path = u'test_corpus/madrigal51.mxl'
+        path = u'vis/tests/corpus/madrigal51.mxl'
         expected_title = u'madrigal51'
         expected_parts = [u'Canto', u'Alto', u'Tenor', u'Quinto', u'Basso', u'Continuo']
         the_score = music21.converter.parse(path)
@@ -422,7 +422,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_sinfony(self):
-        path = u'test_corpus/sinfony.md'
+        path = u'vis/tests/corpus/sinfony.md'
         expected_title = u'Messiah'
         expected_parts = [u'Violino I', u'Violino II', u'Viola', u'Bassi']
         the_score = music21.converter.parse(path)
@@ -432,7 +432,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_opus76(self):
-        path = u'test_corpus/sqOp76-4-i.midi'
+        path = u'vis/tests/corpus/sqOp76-4-i.midi'
         expected_title = u'sqOp76-4-i'
         expected_parts = [u'Part 1', u'Part 2', u'Part 3', u'Part 4']
         the_score = music21.converter.parse(path)
@@ -442,7 +442,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_bwv2(self):
-        path = u'test_corpus/bwv2.xml'
+        path = u'vis/tests/corpus/bwv2.xml'
         expected_title = u'bwv2'
         expected_parts = [u'Soprano', u'Alto', u'Tenor', u'Bass']
         the_score = music21.converter.parse(path)

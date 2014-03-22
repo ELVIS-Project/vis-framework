@@ -35,7 +35,7 @@ import copy
 import pandas
 from music21 import base, stream, duration, note, converter, clef
 from vis.analyzers import indexer
-from vis.test_corpus import int_indexer_short
+from vis.tests.corpus import int_indexer_short
 
 
 def fake_indexer_func(ecks):

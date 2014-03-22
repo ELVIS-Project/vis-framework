@@ -138,7 +138,7 @@ class WorkflowTests(TestCase):
 
     def test_load_3(self):
         # NB: this is more of an integration test
-        test_wc = WorkflowManager([u'test_corpus/try_opus.krn'])
+        test_wc = WorkflowManager([u'vis/tests/corpus/try_opus.krn'])
         test_wc.load('pieces')
         self.assertEqual(3, len(test_wc))
         # NOTE: we have to do this by digging until music21 imports metadata from **kern files, at

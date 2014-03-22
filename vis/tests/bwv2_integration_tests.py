@@ -117,7 +117,7 @@ class AllVoiceIntervalNGrams(TestCase):
 
     def test_ngrams_1(self):
         # test that all-voice interval 2-grams work
-        ind_piece = IndexedPiece(u'test_corpus/bwv2.xml')
+        ind_piece = IndexedPiece(u'vis/tests/corpus/bwv2.xml')
         setts = {u'quality': False, u'simple': False}
         horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                          interval.HorizontalIntervalIndexer],
@@ -144,7 +144,7 @@ class AllVoiceIntervalNGrams(TestCase):
 
     #def test_ngrams_2(self):
         ## test frequency of bass-voice motion
-        #ind_piece = IndexedPiece(u'test_corpus/bwv2.xml')
+        #ind_piece = IndexedPiece(u'vis/tests/corpus/bwv2.xml')
         #setts = {u'quality': True, u'simple': False}
         #actual = ind_piece.get_data([noterest.NoteRestIndexer,
                                          #interval.HorizontalIntervalIndexer,
@@ -159,7 +159,7 @@ class AllVoiceIntervalNGrams(TestCase):
 
     #def test_ngrams_3(self):
         ## test frequency of all-voice interval 1-grams
-        #ind_piece = IndexedPiece(u'test_corpus/bwv2.xml')
+        #ind_piece = IndexedPiece(u'vis/tests/corpus/bwv2.xml')
         #setts = {u'quality': False, u'simple': False}
         #horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                          #interval.HorizontalIntervalIndexer],
