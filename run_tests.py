@@ -30,11 +30,11 @@ VERBOSITY = 1
 
 # Imports
 import unittest
-from vis.models_tests import test_indexed_piece, test_aggregated_pieces
-from vis.analyzers_tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
+from vis.tests import test_indexer, test_note_rest_indexer, test_ngram, test_repeat, \
     test_aggregator, test_interval_indexer, test_frequency_experimenter, test_offset
-from vis.other_tests import bwv2_integration_tests as bwv2
-from vis.other_tests import test_workflow, test_workflow_integration, test_workflow_experiments
+#from vis.models_tests import test_indexed_piece, test_aggregated_pieces
+#from vis.other_tests import bwv2_integration_tests as bwv2
+#from vis.other_tests import test_workflow, test_workflow_integration, test_workflow_experiments
 
 # Indexer and Subclasses
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_SUITE)
@@ -51,26 +51,26 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_repeat.REPEAT_INDEXER_SUIT
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_ngram.NGRAM_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_SINGLE_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_offset.OFFSET_INDEXER_MULTI_SUITE)
-# Experimenter and Subclasses
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_FUNC_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_RUN_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregator.COLUMN_AGGREGATOR_SUITE)
-# IndexedPiece and AggregatedPieces
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_SUITE_A)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_SUITE_B)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_PARTS_TITLES)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregated_pieces.AGGREGATED_PIECES_SUITE)
-# WorkflowManager
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.GET_DATA_FRAME)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXPORT)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXTRA_PAIRS)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.SETTINGS)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.OUTPUT)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.AUX_METHODS)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_experiments.INTERVAL_NGRAMS)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_experiments.INTERVALS)
-# Integration Tests
-unittest.TextTestRunner(verbosity=VERBOSITY).run(bwv2.ALL_VOICE_INTERVAL_NGRAMS)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_integration.INTERVALS_TESTS)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_integration.NGRAMS_TESTS)
+## Experimenter and Subclasses
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_FUNC_SUITE)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_frequency_experimenter.FREQUENCY_RUN_SUITE)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregator.COLUMN_AGGREGATOR_SUITE)
+## IndexedPiece and AggregatedPieces
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_SUITE_A)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_SUITE_B)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexed_piece.INDEXED_PIECE_PARTS_TITLES)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_aggregated_pieces.AGGREGATED_PIECES_SUITE)
+## WorkflowManager
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.WORKFLOW_TESTS)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.GET_DATA_FRAME)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXPORT)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.EXTRA_PAIRS)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.SETTINGS)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.OUTPUT)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow.AUX_METHODS)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_experiments.INTERVAL_NGRAMS)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_experiments.INTERVALS)
+## Integration Tests
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(bwv2.ALL_VOICE_INTERVAL_NGRAMS)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_integration.INTERVALS_TESTS)
+#unittest.TextTestRunner(verbosity=VERBOSITY).run(test_workflow_integration.NGRAMS_TESTS)

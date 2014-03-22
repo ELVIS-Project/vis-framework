@@ -34,7 +34,7 @@ import pandas
 from music21 import interval, note
 from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, \
     real_indexer, key_to_tuple
-from vis.analyzers_tests.test_note_rest_indexer import TestNoteRestIndexer
+from vis.tests.test_note_rest_indexer import TestNoteRestIndexer
 
 
 class TestIntervalIndexerShort(unittest.TestCase):
