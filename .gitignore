@@ -2,8 +2,8 @@
 *~
 */.directory
 .directory
-vis/test_output/**
-!vis/test_output/explanation.txt
+test_output/**
+!test_output/explanation.txt
 extra_trials/*
 *.kate-swp
 .eric4project/*
@@ -13,7 +13,7 @@ extra_trials/*
 */*.DS_Store
 *.nja
 *.komodoproject
-doc/api/_build/*
+doc/api/_build/**
 .Rhistory
 Rplots.pdf
 outputs/*
