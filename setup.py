@@ -49,13 +49,9 @@ setup(
         ],
     requires = [
         # NB: keep this in sync with vis/requirements.txt and vis/optional_requirements.txt
-        # NB2: I left out "tables" since afaik nobody uses our HDF5 output...
+        # NB2: I left out the optional requirements and mock, since they aren't *required*
         'music21 (>=1.7.1)',
         'pandas (>=0.12.0, <0.14)',
-        'mock (>=1.0.1)',
-        'numexpr (>=2.2.2)',
-        'Bottleneck (>=0.7.0)',
-        'openpyxl (>=1.6.2)',
         ],
     packages = [
         'vis',
