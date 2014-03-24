@@ -40,17 +40,19 @@ class TestDissonanceIndexer(unittest.TestCase):
         # that it picks up simple major/minor things as dissonant
         in_vals = [u'm2', u'M2', u'P4', u'm7', u'M7']
         for val in in_vals:
-            exp = pandas.Series([val])
-            act = dissonance.DissonanceIndexer([exp]).run()[0]
-            self.assertEqual(exp, act)
+            expected = pandas.Series([val])
+            actual = dissonance.DissonanceIndexer([expected]).run()[0]
+            self.assertSequenceEqual(list(expected.index), list(actual.index))
+            self.assertSequenceEqual(list(expected.values), list(actual.values))
 
     def test_ind_2(self):
         # that it picks up diminished/augmented dissonances
         in_vals = ['A4', 'd5', 'A1', 'd8']
         for val in in_vals:
-            exp = pandas.Series([val])
-            act = dissonance.DissonanceIndexer([exp]).run()[0]
-            self.assertEqual(exp, act)
+            expected = pandas.Series([val])
+            actual = dissonance.DissonanceIndexer([expected]).run()[0]
+            self.assertSequenceEqual(list(expected.index), list(actual.index))
+            self.assertSequenceEqual(list(expected.values), list(actual.values))
 
     def test_ind_3(self):
         # that consonances are properly noted as consonant
