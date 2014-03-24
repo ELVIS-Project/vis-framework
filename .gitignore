@@ -17,6 +17,7 @@ doc/api/_build/**
 .Rhistory
 Rplots.pdf
 outputs/*
+MANIFEST
 
 *.py[co]
 
