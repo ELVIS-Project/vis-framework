@@ -25,4 +25,7 @@
 include vis/*requirements.txt
 include vis/tests/*
 include run_tests.py
+include doc/CC-BY-SA.txt
+include doc/agpl-3.0.txt
+include doc/api/*
 global-exclude *.pyc
