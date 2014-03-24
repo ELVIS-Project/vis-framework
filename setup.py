@@ -31,7 +31,10 @@ Distutils information for the VIS Framework.
 from distutils.core import setup
 
 
-VERSION = '1.0.0'
+MAJOR = 1
+MINOR = 0
+PATCH = 0
+VERSION = '%d.%d.%d' % (MAJOR, MINOR, PATCH)
 
 setup(
     name = "vis-framework",
@@ -41,15 +44,16 @@ setup(
     author_email = "christopher@antila.ca",
     license = "AGPLv3+",
     url = "http://elvisproject.ca/api/",
-    download_url = "http://elvisproject.ca/download/framework-%s.tar.bz2" % VERSION,
-    keywords = [],
-    provides = [
-        'vis',
-        # 'outputlilypond',
-        ],
+    download_url = 'https://pypi.python.org/packages/source/v/vis-framework/vis-framework-%s.tar.bz2' % VERSION,
+    platforms = 'any',
+    keywords = ['music', 'music analysis', 'music theory', 'counterpoint'],
     requires = [
         # NB: keep this in sync with vis/requirements.txt and vis/optional_requirements.txt
         # NB2: I left out the optional requirements and mock, since they aren't *required*
+        'music21 (>=1.7.1)',
+        'pandas (>=0.12.0, <0.14)',
+        ],
+    install_requires = [
         'music21 (>=1.7.1)',
         'pandas (>=0.12.0, <0.14)',
         ],
