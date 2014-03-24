@@ -28,12 +28,12 @@
 Distutils information for the VIS Framework.
 """
 
-from distutils.core import setup
+from setuptools import setup
 
 
 MAJOR = 1
 MINOR = 0
-PATCH = 0
+PATCH = 1
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, PATCH)
 
 setup(
@@ -50,12 +50,12 @@ setup(
     requires = [
         # NB: keep this in sync with vis/requirements.txt and vis/optional_requirements.txt
         # NB2: I left out the optional requirements and mock, since they aren't *required*
-        'music21 (>=1.7.1)',
+        'music21 (>= 1.7.1)',
         'pandas (>=0.12.0, <0.14)',
         ],
     install_requires = [
-        'music21 (>=1.7.1)',
-        'pandas (>=0.12.0, <0.14)',
+        'music21 >=1.7.1',
+        'pandas >=0.12.0, <0.14',
         ],
     packages = [
         'vis',
