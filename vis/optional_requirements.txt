@@ -10,3 +10,5 @@ Bottleneck>=0.7.0
 openpyxl>=1.6.2
 # Required to build the docs
 sphinx_rtd_theme
+# Static analysis to make sure we don't make a hugebig mess.
+pylint
