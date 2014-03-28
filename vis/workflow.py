@@ -612,7 +612,7 @@ class WorkflowManager(object):
         elif instruction == u'R histogram':
             # ensure we have some results
             if self._result is None:
-                raise RuntimeError(u'Call run() before calling export()')
+                raise RuntimeError(u'Call run() before calling output()')
             else:
                 # properly set output paths
                 pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
