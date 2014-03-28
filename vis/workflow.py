@@ -623,8 +623,11 @@ class WorkflowManager(object):
 
         **Instructions:**
 
-        * ``u'R histogram'``: a histogram with ggplot2 in R.
+        * ``u'histogram'``: a histogram. Currently equivalent to the ``'R histogram'`` instruction.
         * ``u'LilyPond'``: each score with annotations for analyzed objects.
+        * ``u'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
+            ``'histogram'`` instruction. In the future, this will be used to distinguish histograms
+            produced with R from those produced with other libraries, like matplotlib or bokeh.
 
         .. note :: We try to prevent you from requesting LilyPond output if you called :meth:`run`
             with ``count frequency`` set to ``True`` by raising a :exc:`RuntimeError` if ``count
@@ -641,62 +644,82 @@ class WorkflowManager(object):
             # properly set output paths
             pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
         if instruction == u'LilyPond':
-            # try to determine whether they called run() properly (with ``count frequency`` set
-            # to False)
-            if self.settings(None, 'count frequency') is False or \
-            len(self._data) != len(self._result):
-                raise RuntimeError(WorkflowManager._count_frequency_message)
-            # the file extension for LilyPond
-            file_ext = u'.ly'
-            # assume we have the result of a suitable Indexer
-            annotation_parts = []
-            # run additional indexers for annotation
-            for i in xrange(len(self._data)):
-                for j in xrange(len(self._result[i])):
-                    annotation_parts.append(self._data[i].get_data([lilypond.AnnotationIndexer,
-                                                                    lilypond.AnnotateTheNoteIndexer,
-                                                                    lilypond.PartNotesIndexer],
-                                                                None,
-                                                                [self._result[i][j]])[0])
-            # run OutputLilyPond and LilyPond
-            enum = True if len(self._data) > 1 else False
-            pathnames = []
-            for i in xrange(len(self._data)):
-                setts = {u'run_lilypond': True,  u'annotation_part': annotation_parts}
-                # append piece index to pathname, if there are many pieces
-                setts[u'output_pathname'] = pathname + u'-' + str(i) + file_ext if enum \
-                    else pathname + file_ext
-                self._data[i].get_data([lilypond.LilyPondIndexer], setts)
-                pathnames.append(setts[u'output_pathname'])
-            return pathnames
-        elif instruction == u'R histogram':
-            # properly set output paths
-            pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
-            stata_path = pathname + u'.dta'
-            png_path = pathname + u'.png'
-            # ensure we have a DataFrame
-            if not isinstance(self._result, pandas.DataFrame):
-                out_me = self._get_dataframe(u'freq', top_x, threshold)
-            else:
-                out_me = self._result
-            out_me.to_stata(stata_path)
-            token = None
-            if u'intervals' == self._previous_exp:
-                token = u'int'
-            elif u'n-grams' == self._previous_exp:
-                token = unicode(self.settings(None, u'n'))
-            else:
-                token = u'things'
-            call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
-                            stata_path, png_path, token, str(len(self._data))]
-            try:
-                subprocess.check_output(call_to_r)
-            except subprocess.CalledProcessError as cpe:
-                raise RuntimeError(u'Error during call to R: ' + unicode(cpe.output) + \
-                                    u' (return code: ' + unicode(cpe.returncode) + u')')
-            return png_path
+            return self._make_lilypond(pathname)
+        elif instruction == u'histogram' or instruction == u'R histogram':
+            return self._make_histogram(pathname, top_x, threshold)
         else:
             raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
+
+    def _make_histogram(self, pathname=None, top_x=None, threshold=None):
+        """
+        Make a histogram. To be called by output(). Currently uses ggplot2 in R.
+
+        Arguments as per output().
+        """
+        # properly set output paths
+        pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
+        stata_path = pathname + u'.dta'
+        png_path = pathname + u'.png'
+        # ensure we have a DataFrame
+        if not isinstance(self._result, pandas.DataFrame):
+            out_me = self._get_dataframe(u'freq', top_x, threshold)
+        else:
+            out_me = self._result
+        out_me.to_stata(stata_path)
+        token = None
+        if u'intervals' == self._previous_exp:
+            token = u'int'
+        elif u'n-grams' == self._previous_exp:
+            token = unicode(self.settings(None, u'n'))
+        else:
+            token = u'things'
+        call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+                        stata_path, png_path, token, str(len(self._data))]
+        try:
+            subprocess.check_output(call_to_r)
+        except subprocess.CalledProcessError as cpe:
+            raise RuntimeError(u'Error during call to R: ' + unicode(cpe.output) + \
+                                u' (return code: ' + unicode(cpe.returncode) + u')')
+        return png_path
+
+    def _make_lilypond(self, pathname=None):
+        """
+        Make annotated scores with LilyPond. To be called by output().
+
+        Argument as per output().
+        """
+        # try to determine whether they called run() properly (``count frequency`` should be False)
+        if self.settings(None, 'count frequency') is True or len(self._data) != len(self._result):
+            raise RuntimeError(WorkflowManager._count_frequency_message)
+        pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
+        # the file extension for LilyPond
+        file_ext = u'.ly'
+        # assume we have the result of a suitable Indexer
+        annotation_parts = []
+        # run additional indexers for annotation
+        for i in xrange(len(self._data)):
+            ann_p = []
+            for j in xrange(len(self._result[i])):
+                ann_p.append(self._data[i].get_data([lilypond.AnnotationIndexer,
+                                                     lilypond.AnnotateTheNoteIndexer,
+                                                     lilypond.PartNotesIndexer],
+                                                    None,
+                                                    [self._result[i][j]])[0])
+            annotation_parts.append(ann_p)
+        # run OutputLilyPond and LilyPond
+        enum = True if len(self._data) > 1 else False
+        pathnames = []
+        for i in xrange(len(self._data)):
+            setts = {u'run_lilypond': True, u'annotation_part': annotation_parts[i]}
+            # append piece index to pathname, if there are many pieces
+            if enum:
+                setts[u'output_pathname'] = pathname + u'-' + str(i) + file_ext
+            else:
+                setts[u'output_pathname'] = pathname + file_ext
+            self._data[i].get_data([lilypond.LilyPondIndexer], setts)
+            pathnames.append(setts[u'output_pathname'])
+        return pathnames
+
 
     def export(self, form, pathname=None, top_x=None, threshold=None):
         """
