@@ -634,10 +634,9 @@ class WorkflowManager(object):
             fail. The error will probably be a :exc:`TypeError` that says ``object of type
             'numpy.float64' has no len()``.
         """
-        # TODO: break each output method to a private method
         # ensure we have some results
         if self._result is None:
-            raise RuntimeError(u'Please call run() before you call export().')
+            raise RuntimeError(u'Please call run() before you call output().')
         else:
             # properly set output paths
             pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
