@@ -34,7 +34,7 @@ from music21 import stream
 from vis.analyzers import indexer
 
 
-# NB: remove this comment and the pylint disable when you write a subclass
+# NB: remove this comment and the "pylint: disable" comment below when you write a subclass
 # pylint: disable=W0613
 def indexer_func(obj):
     """
@@ -65,8 +65,8 @@ class TemplateIndexer(indexer.Indexer):
 
     required_score_type = stream.Part
     """
-    Depending on how this Indexer works, you'll either need to provie :class:`music21.stream.Part`
-    or :class:`pandas.Series`.
+    Depending on how this Indexer works, you'll either need to provide :class:`music21.stream.Part`,
+    :class:`music21.stream.Score`, or :class:`pandas.Series`.
     """
 
     possible_settings = [u'fake_setting']
@@ -89,20 +89,19 @@ class TemplateIndexer(indexer.Indexer):
         """
         Parameters
         ==========
-        :param score: Depending on how this Indexer works, this is a list of either Part or Series
-            objects to use in creating a new index.
-        :type score: :obj:`list` of :class:`pandas.Series` or :obj:`list` of
-            :class:`music21.stream.Part`
+        :param score: The input from which to produce a new index.
+        :type score: ``list`` of :class:`pandas.Series`, :class:`music21.stream.Part`, or \
+            :class:`music21.stream.Score`
 
         :param settings: All the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is None.
-        :type settings: :obj:`dict` or :dict:`None`
+        :type settings: ``dict`` or ``None``
 
         Raises
         ======
-        :raises: :exc:`RuntimeError` if :obj:`score` is the wrong type.
-        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the same types.
-        :raises: :exc:`RuntimeError` if required settings are not present in :obj:`settings`.
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        :raises: :exc:`RuntimeError` if required settings are not present in ``settings``.
         """
 
         # Check all required settings are present in the "settings" argument. You must ignore
@@ -112,8 +111,8 @@ class TemplateIndexer(indexer.Indexer):
             self._settings = {}
 
         # Change "TemplateIndexer" to the current class name. The superclass will handle the
-        # "score" and "mpc" arguments, but you should have processed "settings" above, so it should
-        # not be sent to the superclass constructor.
+        # "score" argument, but you should have processed "settings" above, so it should not be
+        # sent to the superclass constructor.
         super(TemplateIndexer, self).__init__(score, None)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process

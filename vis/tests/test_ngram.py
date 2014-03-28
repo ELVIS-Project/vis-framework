@@ -121,6 +121,21 @@ class TestNGramIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
             self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
+    def test_ngram_0b(self):
+        # like test _0 but with u'mark singles' instead of u'mark_singles'
+        vertical = pandas.Series(['A', 'B', 'C', 'D'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
+        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
+        expected = [pandas.Series([u'A a B', u'B b C', u'C c D'])]
+        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
+        actual = ng_ind.run()
+        self.assertEqual(len(expected), len(actual))
+        for i in xrange(len(expected)):
+            self.assertEqual(len(expected[i]), len(actual[i]))
+        for i in xrange(len(expected)):
+            for j in expected[i].index:
+                self.assertEqual(expected[i][j], actual[i][j])
+
     def test_ngram_1(self):
         # adds the brackets and parentheses
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
