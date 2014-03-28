@@ -61,7 +61,6 @@ horiz_intervals = the_piece.get_data([noterest.NoteRestIndexer,
                                setts)
 
 
-
 # find the dissonances
 print(u'\n\nRunning the DissonanceIndexer...\n')
 interv_combos = intervals.keys()

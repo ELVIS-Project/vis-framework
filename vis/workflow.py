@@ -671,7 +671,8 @@ class WorkflowManager(object):
                 pathnames.append(setts[u'output_pathname'])
             return pathnames
         elif instruction == u'R histogram':
-            # set output paths
+            # properly set output paths
+            pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
             stata_path = pathname + u'.dta'
             png_path = pathname + u'.png'
             # ensure we have a DataFrame
@@ -687,9 +688,13 @@ class WorkflowManager(object):
                 token = unicode(self.settings(None, u'n'))
             else:
                 token = u'things'
-            call_to_r = [u'R', u'--vanilla', u'-f', WorkflowManager._R_bar_chart_path,
-                            u'--args', stata_path, png_path, token, str(len(self._data))]
-            subprocess.call(call_to_r)
+            call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+                            stata_path, png_path, token, str(len(self._data))]
+            try:
+                subprocess.check_output(call_to_r)
+            except subprocess.CalledProcessError as cpe:
+                raise RuntimeError(u'Error during call to R: ' + unicode(cpe.output) + \
+                                    u' (return code: ' + unicode(cpe.returncode) + u')')
             return png_path
         else:
             raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
