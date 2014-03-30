@@ -7,7 +7,7 @@
 # Filename:               controllers/workflow.py
 # Purpose:                Workflow Controller
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 The ``workflow`` module holds the :class:`WorkflowManager`, which automates several common music
 analysis patterns for counterpoint. The :class:`TemplateWorkflow` class is a template for writing
