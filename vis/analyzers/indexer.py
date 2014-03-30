@@ -227,7 +227,7 @@ class Indexer(object):
         :returns: The new indices. Refer to the note below.
         :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
 
-        **Return Values**
+        **Rules for Return Values:**
 
         * If the return value is a list of :class:`Series`, the index of the :class:`Series` will \
         correspond to the index of the inputted :class:`Series` or :class:`Score` used to produce \
@@ -248,6 +248,14 @@ class Indexer(object):
         >>> the_intervals = IntervalIndexer(the_notes).run()
         >>> the_intervals['IntervalIndexer']['5,6']
         (Series with vertical intervals between first and second clarinet)
+
+        Generally, if an indexer produces a result with all parts, each in its own :class:`Series`,
+        it should return a list of :class:`Series`. Otherwise, the indexer will return a
+        :class:`DataFrame` with :class:`MultiIndex` to clarify the meaning of each index.
+
+        .. note:: In release 1.0.0, it was sometimes acceptable to use undocumented return values;
+            from release 1.1.0, this is no longer necessary, and you should avoid it. In a future
+            release, the :class:`IndexedPiece` class will depend on indexers following these rules.
         """
         pass
 
