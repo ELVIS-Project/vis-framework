@@ -259,33 +259,46 @@ class Indexer(object):
         Make a new index of the piece.
 
         :returns: The new indices. Refer to the note below.
-        :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
+        :rtype: :class:`pandas.DataFrame`
 
-        **Rules for Return Values:**
+        **About Return Values:**
 
-        * If the return value is a list of :class:`Series`, the index of the :class:`Series` will \
-        correspond to the index of the inputted :class:`Series` or :class:`Score` used to produce \
-        it. For example:
+        Every indexer must return a :class:`DataFrame` with a special kind of :class:`MultiIndex`
+        that helps organize data across multiple indexers. Programmers making a new indexer should
+        follow the instructions in the :class:`TemplateIndexer`
+        :meth:`~vis.analyzers.indexers.template.TemplateIndexer.run` method to ensure this happens
+        properly.
+
+        Indexers return a :class:`DataFrame` where the columns are indexed on two levels: the first
+        level is a string with the name of the indexer, and the second level is a string with the
+        index of the part, the indices of the parts in a combination, or some other value as
+        specified by the indexer.
+
+        This allows, for example:
 
         >>> the_score = music21.converter.parse('sibelius_5-i.mei')
         >>> the_score.parts[5]
         (the first clarinet Part)
         >>> the_notes = NoteRestIndexer(the_score).run()
-        >>> the_notes[5]
+        >>> the_notes['noterest.NoteRestIndexer']['5']
         (the first clarinet Series)
-
-        * If the return value is a :class:`DataFrame`, the columns should have a \
-        :class:`~pandas.MultiIndex` where the first level is a string representing the module and \
-        class of the indexer, and the second level is a string with either the part index or part \
-        combination used to produce it. To continue the previous example:
-
         >>> the_intervals = IntervalIndexer(the_notes).run()
-        >>> the_intervals['IntervalIndexer']['5,6']
+        >>> the_intervals['interval.IntervalIndexer']['5,6']
         (Series with vertical intervals between first and second clarinet)
 
-        Generally, if an indexer produces a result with all parts, each in its own :class:`Series`,
-        it should return a list of :class:`Series`. Otherwise, the indexer will return a
-        :class:`DataFrame` with :class:`MultiIndex` to clarify the meaning of each index.
+        This is more useful when you have a larger :class:`DataFrame` with the results of multiple
+        indexers. Refer to :func:`Indexer.combine_results` to see how that works.
+
+        >>> some_results = Indexer.combine_results([the_notes, the_intervals])
+        >>> some_results['noterest.NoteRestIndexer']['5']
+        (the first clarinet Series)
+        >>> some_results['interval.IntervalIndexer']['5,6']
+        (Series with vertical intervals between first and second clarinet)
+        >>> some_results.to_hdf('brahms3.h5', 'table')
+
+        After the call to :meth:`~pandas.DataFrame.to_hdf`, your results are stored in the
+        'brahms3.h5' file. When you load them (very quickly!) with the :func:`~pandas.read_hdf`
+        method, the :class:`DataFrame` returns exactly as it was.
 
         .. note:: In release 1.0.0, it was sometimes acceptable to use undocumented return values;
             from release 1.1.0, this is no longer necessary, and you should avoid it. In a future
@@ -325,3 +338,25 @@ class Indexer(object):
             else:
                 post.append(series_indexer(0, voices, self._indexer_func)[1])
         return post
+
+    @staticmethod
+    def make_return(labels, indices):
+        """
+        Prepare a properly-formatted :class:`DataFrame` as should be returned by any :class:`Indexer`
+        subclass. We intend for this to be called by :class:`Indexer` subclasses only.
+
+        The index of a label in ``labels`` should be the same as the index of the :class:`Series`
+        to which it corresponds in ``indices``. For example, if ``indices[12]`` is the tuba part,
+        then ``labels[12]`` might say ``'Tuba'``.
+
+        :param labels: Indices of the parts or the part combinations, or another descriptive label
+            as described in the indexer subclass documentation.
+        :type labels: list of basestring
+        :param indices: The results of the indexer.
+        :type indices: list of :class:`pandas.Series`.
+
+        :returns: A :class:`DataFrame` with the appropriate :class:`~pandas.MultiIndex` required
+            by the :meth:`Indexer.run` method signature.
+        :rtype: :class:`pandas.DataFrame`
+        """
+        pass
