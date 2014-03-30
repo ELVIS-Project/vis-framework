@@ -106,17 +106,22 @@ class TemplateIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        :param score: The input from which to produce a new index.
-        :type score: ``list`` of :class:`pandas.Series`, :class:`music21.stream.Part`, or \
-            :class:`music21.stream.Score`
+        :param score: The input from which to produce a new index. Refer to the superclass
+            :class:`~vis.analyzers.indexer.Indexer` for more information about what to require here.
+        :type score: :class:`pandas.DataFrame`, :class:`music21.stream.Score`, or list of \
+            :class:`pandas.Series` or :class:`music21.stream.Part`
         :param settings: All the settings required by this Indexer. All required settings should be
-            listed in subclasses. Default is None.
-        :type settings: ``dict`` or ``None``
+            listed in subclasses. Default is ``None``.
+        :type settings: dict or None
 
-        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
-        :raises: :exc:`RuntimeError` if required settings are not present in ``settings``.
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
+        :raises: :exc:`RuntimeError` if the required settings are not present in the ``settings``
+            argument.
+        :raises: :exc:`IndexError` if ``required_score_type`` is ``'pandas.Series'`` and the
+            ``score`` argument is an improperly-formatted :class:`DataFrame` (e.g., it contains the
+            results of more than one indexer, or the columns do not have a :class:`MultiInex`).
         """
+        # NOTE: you should make the exceptions more specific, if possible
 
         # Check all required settings are present in the "settings" argument. You must ignore
         # extra settings.
@@ -124,9 +129,9 @@ class TemplateIndexer(indexer.Indexer):
         if settings is None:
             self._settings = {}
 
-        # Change "TemplateIndexer" to the current class name. The superclass will handle the
-        # "score" argument, but you should have processed "settings" above, so it should not be
-        # sent to the superclass constructor.
+        # Change "TemplateIndexer" to the current class name.
+        # You must provide "score" here---do not modify it.
+        # You must handle the settings by yourself.
         super(TemplateIndexer, self).__init__(score, None)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
