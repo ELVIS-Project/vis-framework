@@ -27,31 +27,47 @@
 
 Template for writing a new indexer. Use this class to help write a new :class`Indexer` subclass. \
 The :class:`TemplateIndexer` does nothing, and should only be used by programmers.
+
+.. note:: Follow these instructions to write a new :class:`Indexer` subclass:
+
+    #. Replace my name with yours in the "codeauthor" directive above.
+    #. Change the "Filename" and "Purpose" on lines 7 and 8.
+    #. Modify the "Copyright" on line 10 *or* add an additional copyright line immediately below.
+    #. Remove the ``# pylint: disable=W0613`` comment just before :func:`indexer_func`.
+    #. Rename the class.
+    #. Adjust :attr:`required_score_type`.
+    #. Add settings to :attr:`possible_settings` and :attr:`default_settings`, as required.
+    #. Rewrite the documentation for :meth:`__init__`.
+    #. Rewrite the documentation for :meth:`~TemplateIndexer.run`.
+    #. Rewrite the documentation for :func:`indexer_func`.
+    #. Write all relevant tests for :meth:`__init__`, :meth:`~TemplateIndexer.run`, and \
+        :func:`indexer_func`.
+    #. Follow the instructions in :meth:`__init__` to write that method.
+    #. Follow the instructions in :meth:`~TemplateIndexer.run` to write that method.
+    #. Write a new :func:`indexer_func`.
+    #. Ensure your tests pass, adding additional ones as required.
+    #. Finally, run ``pylint`` with the VIS style rules.
 """
-# NOTE: you should replace my name with yours, in the "codeauthor" directive above
 
 from music21 import stream
 from vis.analyzers import indexer
 
 
-# NB: remove this comment and the "pylint: disable" comment below when you write a subclass
 # pylint: disable=W0613
 def indexer_func(obj):
     """
     The function that indexes.
 
-    Parameters for Indexers Using a Score
-    ======================================
-    :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: list of the types stored in :attr:`TemplateIndexer._types`
+    :param obj: The simultaneous event(s) to use when creating this index. (For indexers using a
+        :class:`Score`).
+    :type obj: list of objects of the types stored in :attr:`TemplateIndexer._types`
 
-    Parameters for Indexers Using a Series
-    ======================================
-    :param obj: The simultaneous event(s) to use when creating this index.
+    **or**
+
+    :param obj: The simultaneous event(s) to use when creating this index. (For indexers using a
+        :class:`Series`).
     :type obj: :class:`pandas.Series` of unicode strings
 
-    Returns
-    =======
     :returns: The value to store for this index at this offset.
     :rtype: unicode string
     """
@@ -77,7 +93,7 @@ class TemplateIndexer(indexer.Indexer):
     This is a list of basestrings that are the names of the settings used in this indexer. Specify
     the types and reasons for each setting as though it were an argument list, like this:
 
-    :keyword 'fake_setting': This is a fake setting.
+    :keyword 'fake_setting': This is the description of a fake setting.
     :type 'fake_setting': boolean
     """
 
@@ -90,18 +106,13 @@ class TemplateIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The input from which to produce a new index.
         :type score: ``list`` of :class:`pandas.Series`, :class:`music21.stream.Part`, or \
             :class:`music21.stream.Score`
-
         :param settings: All the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is None.
         :type settings: ``dict`` or ``None``
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         :raises: :exc:`RuntimeError` if required settings are not present in ``settings``.
@@ -133,12 +144,11 @@ class TemplateIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
-        :returns: A list of the new indices. The index of each Series corresponds to the index of
-            the Part used to generate it, in the order specified to the constructor. Each element
-            in the Series is a basestring.
-        :rtype: :obj:`list` of :obj:`pandas.Series`
+        :returns: The new indices. Refer to the note below.
+        :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
+
+        .. important:: Please be sure you read and understand the rules about return values in the
+            full documentation for :meth:`~vis.analyzers.indexer.Indexer.run`.
         """
 
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
