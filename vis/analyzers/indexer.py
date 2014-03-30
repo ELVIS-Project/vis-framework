@@ -7,7 +7,7 @@
 # Filename:               controllers/indexer.py
 # Purpose:                Help with indexing data from musical scores.
 #
-# Copyright (C) 2013 Christopher Antila, Jamie Klassen
+# Copyright (C) 2013, 2014 Christopher Antila and Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 .. codeauthor:: Jamie Klassen <michigan.j.frog@gmail.com>
 
 The controllers that deal with indexing data from music21 Score objects.
@@ -35,17 +35,14 @@ from music21 import stream, converter
 
 def mpi_unique_offsets(streams):
     """
-    For a set of streams, find the offsets at which events begin. Used by mp_indexer.
+    For a set of :class:`Stream` objects, find the offsets at which events begin. Used by
+    :meth:`stream_indexer`.
 
-    Parameters
-    ==========
-    :param streams: A list of Streams in which to find the offsets at which events begin.
-    :type streams: list of music21.stream.Stream
+    :param streams: A list of Stream objects in which to find the offsets at which events begin.
+    :type streams: list of :class:`music21.stream.Stream`
 
-    Returns
-    =======
     :returns: A list of floating-point numbers representing offsets at which a new event begins in
-        any of the streams. Offsets are sorted from lowest to highest (start to end).
+        any of the :class:`Stream` objects. Offsets are sorted from lowest to highest (start to end).
     :rtype: list of float
     """
     offsets = ({e.offset for e in part.elements} for part in streams)
@@ -54,38 +51,34 @@ def mpi_unique_offsets(streams):
 
 def stream_indexer(pipe_index, parts, indexer_func, types=None):
     """
-    Perform the indexation of a part or part combination. This is a module-level function designed
-    to ease implementation of multiprocessing.
+    Perform the indexation of a :class:`Part` or :class:`Part` combination. This is a module-level
+    function designed to ease implementation of multiprocessing.
 
-    If your Indexer has settings, use the indexer_func() to adjust for them.
+    If your :class:`Indexer` subclass has settings, use the :func:`indexer_func` to adjust for them.
 
     If an offset has multiple events of the correct type, only the "first" discovered results will
     be included in the output. This may produce misleading results when, for example, a double-stop
-    was imported as two Note objects in the same Part, rather than as a Chord.
+    was imported as two :class:`Note` objects in the same :class:`Part`, rather than as a
+    :class:`Chord`.
 
-    Parameters
-    ==========
-    :param pipe_index: An identifier value for use by the caller.
+    :param pipe_index: An identifier value for use by the caller. This is returned unchanged, so a
+        caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
     :type pipe_index: any
-
-    :param parts: A list of at least one Stream object. Every new event, or change of simlutaneity,
-        will appear in the outputted index. Therefore, the new index will contain at least as many
-        events as the inputted Part or Series with the most events.
-    :type parts: list of music21.stream.Stream
-
+    :param parts: A list of at least one :class:`Stream` object. Every new event or change of
+        simlutaneity will appear in the outputted index. Therefore, the new index will contain at
+        least as many events as the inputted :class:`Part` with the most events.
+    :type parts: list of :class:`music21.stream.Stream`
     :param indexer_func: This function transforms found events into a unicode object.
     :type indexer_func: function
+    :param types: Only objects of a type in this list will be passed to the :function:`indexer_func`
+        for inclusion in the resulting index.
+    :type types: list of type
 
-    :param types: Only objects of a type in this list will be passed to the indexer_func for
-        inclusion in the resulting index.
-    :type types: list of types
-
-    Returns
-    =======
-    :returns: The "pipe_index" argument and the new index. The new index is a pandas.Series where
-        every element is a unicode object. The Series' index corresponds to the quarterLength
-        offset of the event in the input Stream.
-    :rtype: 2-tuple of any and pandas.Series
+    :returns: The ``pipe_index`` argument and the new index. The new index is a :class:`pandas.Series`
+        where every element is a unicode object. The :class:`~pandas.core.index.Index` of the
+        :class:`Series` corresponds to the ``quarterLength`` offset of the event in the inputted
+        :class:`Stream`.
+    :rtype: 2-tuple of any and :class:`pandas.Series`
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
     # NB2: This must not be a single-line if/else statement, or the getter() call will fail.
@@ -128,34 +121,29 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
 def series_indexer(pipe_index, parts, indexer_func):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
-    to ease implementation of multiprocessing with the MPController module.
+    to ease implementation of multiprocessing.
 
-    If your Indexer has settings, use the indexer_func() to adjust for them.
+    If your :class:`Indexer` has settings, use the :func:`indexer_func` to adjust for them.
 
-    Parameters
-    ==========
-    :param pipe_index: An identifier value for use by the caller.
+    :param pipe_index: An identifier value for use by the caller. This is returned unchanged, so a
+        caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
     :type pipe_index: any
-
-    :param parts: A list of at least one Series object. Every new event, or change of simlutaneity,
-        will appear in the outputted index. Therefore, the new index will contain at least as many
-        events as the inputted Part or Series with the most events. This is not a DataFrame, since
-        each part will likely have different offsets.
-    :type parts: list of pandas.Series
-
+    :param parts: A list of at least one :class:`Series` object. Every new event, or change of
+        simlutaneity, will appear in the outputted index. Therefore, the new index will contain at
+        least as many events as the inputted :class:`Series` with the most events. This is not a
+        :class:`DataFrame`, since each part will likely have different offsets.
+    :type parts: list of :class:`pandas.Series`
     :param indexer_func: This function transforms found events into a unicode object.
     :type indexer_func: function
 
-    Returns
-    =======
-    :returns: The new index where each element is a unicode object and the "index" of the pandas
-        object corresponds to the offset at which each event begins. Index 0 is the argument
-        "pipe_index" unchanged.
-    :rtype: 2-tuple with "pipe_index" and pandas.Series or pandas.DataFrame
+    :returns: The ``pipe_index`` argument and the new index. The new index is a :class:`pandas.Series`
+        where every element is a unicode object. The :class:`~pandas.core.index.Index` of the
+        :class:`Series` corresponds to the ``quarterLength`` offset of the event in the inputted
+        :class:`Stream`.
+    :rtype: 2-tuple of any and :class:`pandas.Series`
 
-    Raises
-    ======
-    :raises: ValueError, if there are multiple events at an offset in any of the inputted Series.
+    :raises: :exc:`ValueError` if there are multiple events at an offset in any of the inputted
+        :class:`Series`.
     """
 
     # find the offsets at which things happen
@@ -178,7 +166,8 @@ def series_indexer(pipe_index, parts, indexer_func):
 
 class Indexer(object):
     """
-    Create an index of a music21 stream.
+    Create an index from a :class:`music21.stream.Stream`, :class:`pandas.Series`, or
+    :class:`pandas.DataFrame`.
 
     Use the :attr:`requires_score` attribute to know whether :meth:`__init__` requires a list of
     :class:`~music21.stream.Part` objects. If ``False``, read the documentation to know which
@@ -192,15 +181,15 @@ class Indexer(object):
     required_score_type = None
     possible_settings = {}
     default_settings = {}
-    # self._score
-    # self._indexer_func
-    # self._types
+    # self._score  # this will hold the input data
+    # self._indexer_func  # this function will do the indexing
+    # self._types  # if the input is a Score, this is a list of types we'll use for the index
 
     # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
     # pylint: disable=W0613
     def __init__(self, score, settings=None):
         """
-        Create a new Indexer.
+        Create a new :class:`Indexer`.
 
         :param score: Depending on how this Indexer works, this is a list of either :class:`Part`
             or :class:`Series` objects to use in creating a new index.
