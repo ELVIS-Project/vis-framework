@@ -49,14 +49,13 @@ class TestIndexerHardcore(unittest.TestCase):
         # That calling Indexer.__init__() with the wrong type results in the proper error message.
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
-            required_score_type = stream.Stream
+            required_score_type = 'stream.Part'
 
         test_parts = [pandas.Series()]
         settings = {}
         self.assertRaises(TypeError, TestIndexer, test_parts, settings)
-        error_msg = unicode("<class 'vis.tests.test_indexer.TestIndexer'> requires "
-                            "<class 'music21.stream.Stream'> objects, not <class 'pandas.core"
-                            ".series.Series'>")
+        error_msg = unicode("<class \'vis.tests.test_indexer.TestIndexer\'> requires \"stream.Part\" "
+                            "objects, not <class \'pandas.core.series.Series\'>")
         try:
             TestIndexer(test_parts, settings)
         except TypeError as err:
@@ -66,11 +65,11 @@ class TestIndexerHardcore(unittest.TestCase):
         # That _do_multiprocessing() passes the correct arguments to stream_indexer()
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
-            required_score_type = stream.Stream
+            required_score_type = 'stream.Part'
             def run(self):
                 self._do_multiprocessing([[0]])
         # the actual testing
-        test_parts = [stream.Stream()]
+        test_parts = [stream.Part()]
         settings = {}
         # prepare mocks
         with mock.patch(u'vis.analyzers.indexer.stream_indexer') as mpi_mock:
@@ -82,6 +81,23 @@ class TestIndexerHardcore(unittest.TestCase):
             mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
 
     def test_indexer_hardcore_3(self):
+        # That calling Indexer.__init__() with required_score_type set to an invalid value results
+        # in the proper error message.
+        class TestIndexer(indexer.Indexer):
+            # Class with bare minimum changes, since we can't instantiate Indexer directly
+            required_score_type = stream.Part
+
+        test_parts = [pandas.Series()]
+        settings = {}
+        self.assertRaises(TypeError, TestIndexer, test_parts, settings)
+        error_msg = unicode('<class \'vis.tests.test_indexer.TestIndexer\'> has an incorrectly-set '
+                            '"required_score_type"')
+        try:
+            TestIndexer(test_parts, settings)
+        except TypeError as err:
+            self.assertEqual(err.args[0], error_msg)
+
+    def test_indexer_hardcore_4(self):
         # when no "types" is specified, make sure it returns everything in the Stream
         # setup the input stream
         the_stream = stream.Stream()

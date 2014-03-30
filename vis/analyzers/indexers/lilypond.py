@@ -33,7 +33,6 @@ that should produce a score of the input.
 # pylint: disable=W0105
 
 from math import fsum
-import pandas
 from music21 import stream, note, duration
 import outputlilypond
 from outputlilypond import settings as oly_settings
@@ -85,7 +84,7 @@ class LilyPondIndexer(indexer.Indexer):
     of the input.
     """
 
-    required_score_type = stream.Score
+    required_score_type = 'stream.Score'
     """
     You must provide a :class:`music21.stream.Score` to this Indexer.
     """
@@ -192,7 +191,7 @@ class AnnotationIndexer(indexer.Indexer):
     From any other index, put ``_\\markup{""}`` around it.
     """
 
-    required_score_type = pandas.Series
+    required_score_type = 'pandas.Series'
     possible_settings = []  # TODO: add a setting for whether _ or - or ^ before \markup
     default_settings = {}
 
@@ -237,7 +236,7 @@ class AnnotateTheNoteIndexer(indexer.Indexer):
     :class:`Note`.
     """
 
-    required_score_type = pandas.Series
+    required_score_type = 'pandas.Series'
     possible_settings = []  # TODO: set lily_invisible dynamically?
     default_settings = {}
 
@@ -282,7 +281,7 @@ class PartNotesIndexer(indexer.Indexer):
     each ``duration`` property is set to match.
     """
 
-    required_score_type = pandas.Series
+    required_score_type = 'pandas.Series'
     possible_settings = []
     default_settings = {}
 

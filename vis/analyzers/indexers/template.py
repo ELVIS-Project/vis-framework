@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/template.py
 # Purpose:                Template indexer
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Template for writing a new indexer. Use this class to help write a new :class`Indexer` subclass. \
 The :class:`TemplateIndexer` does nothing, and should only be used by programmers.
@@ -43,17 +43,17 @@ def indexer_func(obj):
     Parameters for Indexers Using a Score
     ======================================
     :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: list of the types stored in self._types
+    :type obj: list of the types stored in :attr:`TemplateIndexer._types`
 
     Parameters for Indexers Using a Series
     ======================================
     :param obj: The simultaneous event(s) to use when creating this index.
-    :type obj: :obj:`pandas.Series` of :obj:`unicode`
+    :type obj: :class:`pandas.Series` of unicode strings
 
     Returns
     =======
     :returns: The value to store for this index at this offset.
-    :rtype: :obj:`unicode`
+    :rtype: unicode string
     """
     return None
 
@@ -63,19 +63,22 @@ class TemplateIndexer(indexer.Indexer):
     Template for an :class:`Indexer` subclass.
     """
 
-    required_score_type = stream.Part
+    required_score_type = 'stream.Part'
+    # required_score_type = 'stream.Score'
+    # required_score_type = 'pandas.Series'
+    # required_score_type = 'pandas.DataFrame'
     """
-    Depending on how this Indexer works, you'll either need to provide :class:`music21.stream.Part`,
-    :class:`music21.stream.Score`, or :class:`pandas.Series`.
+    Depending on how this Indexer works, you must provide a list of Part, Score, or Series objects,
+    or a single DataFrame. Choose only one of the four values shown here.
     """
 
-    possible_settings = [u'fake_setting']
+    possible_settings = ['fake_setting']
     """
     This is a list of basestrings that are the names of the settings used in this indexer. Specify
     the types and reasons for each setting as though it were an argument list, like this:
 
-    :keyword u'fake_setting': This is a fake setting.
-    :type u'fake_setting': boolean
+    :keyword 'fake_setting': This is a fake setting.
+    :type 'fake_setting': boolean
     """
 
     default_settings = {}

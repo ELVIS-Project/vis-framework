@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/noterest.py
 # Purpose:                Index note and rest objects.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,12 +23,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Index note and rest objects.
 """
 
-from music21 import stream, note
+from music21 import note
 from vis.analyzers import indexer
 
 def indexer_func(obj):
@@ -60,7 +60,7 @@ class NoteRestIndexer(indexer.Indexer):
     their :attr:`pitchWithOctave` attribute.
     """
 
-    required_score_type = stream.Part
+    required_score_type = 'stream.Part'
     "The :class:`NoteRestIndexer` uses :class:`Part` objects directly."
 
     def __init__(self, score, settings=None):

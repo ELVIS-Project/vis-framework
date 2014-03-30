@@ -185,6 +185,13 @@ class Indexer(object):
     # self._indexer_func  # this function will do the indexing
     # self._types  # if the input is a Score, this is a list of types we'll use for the index
 
+    # In subclasses, we might get these values for required_score_type. The superclass here will
+    # "convert" them into the actual type.
+    _TYPE_CONVERTER = {u'stream.Part': stream.Part,
+                       u'stream.Score': stream.Score,
+                       u'pandas.Series': pandas.Series,
+                       u'pandas.DataFrame': pandas.DataFrame}
+
     # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
     # pylint: disable=W0613
     def __init__(self, score, settings=None):
@@ -203,11 +210,16 @@ class Indexer(object):
             argument.
         """
         # Check the "score" argument is either uniformly Part or Series objects.
+        try:
+            required_score_type = Indexer._TYPE_CONVERTER[self.required_score_type]
+        except KeyError:
+            msg = unicode(self.__class__) + u' has an incorrectly-set "required_score_type"'
+            raise TypeError(msg)
         for elem in score:
-            if not isinstance(elem, self.required_score_type):
-                msg = u'{} requires {} objects, not {}'.format(self.__class__,
-                                                               self.required_score_type,
-                                                               type(elem))
+            if not isinstance(elem, required_score_type):
+                msg = u'{} requires "{}" objects, not {}'.format(self.__class__,
+                                                                 self.required_score_type,
+                                                                 type(elem))
                 raise TypeError(msg)
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()

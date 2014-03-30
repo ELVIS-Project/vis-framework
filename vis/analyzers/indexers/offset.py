@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/offset.py
 # Purpose:                Indexer to regularize the observed offsets.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Indexers that modify the "offset" values (floats stored as the "index" of a :class:`pandas.Series`),
 potentially adding repetitions of or removing pre-existing events, without modifying the events
@@ -149,7 +149,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
     appear to end with a dissonant sonority!
     """
 
-    required_score_type = pandas.Series
+    required_score_type = 'pandas.Series'
     "The :class:`FilterByOffsetIndexer` uses :class:`pandas.Series` objects."
 
     possible_settings = [u'quarterLength']

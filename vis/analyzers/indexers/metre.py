@@ -31,7 +31,7 @@ Indexers for metric concerns.
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
 # pylint: disable=W0105
 
-from music21 import stream, note
+from music21 import note
 from vis.analyzers import indexer
 
 
@@ -56,7 +56,7 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         objects rather than ``unicode`` objects.
     """
 
-    required_score_type = stream.Part
+    required_score_type = 'stream.Part'
     """
     Provie a list of all :class:`music21.stream.Part` objects in this piece.
     """

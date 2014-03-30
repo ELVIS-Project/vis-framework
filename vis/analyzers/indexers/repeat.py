@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/repeat.py
 # Purpose:                Indexers that somehow consider repetition.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,13 +23,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Indexers that consider repetition in any way.
 """
 
 import numpy
-import pandas
 from vis.analyzers import indexer
 
 
@@ -39,7 +38,7 @@ class FilterByRepeatIndexer(indexer.Indexer):
     lowest ``offset`` value (i.e., the "first" event).
     """
 
-    required_score_type = pandas.Series
+    required_score_type = 'pandas.Series'
     "The :class:`FilterByRepeatIndexer` requires :class:`pandas.Series` as input."
 
     def __init__(self, score, settings=None):

@@ -72,7 +72,7 @@ class NGramIndexer(indexer.Indexer):
     events are obviously ignored.
     """
 
-    required_score_type = pandas.Series
+    required_score_type = 'pandas.Series'
     "The :class:`NGramIndexer` requires :class:`pandas.Series` as input."
 
     possible_settings = [u'horizontal', u'vertical', u'n', u'mark_singles', u'terminator',

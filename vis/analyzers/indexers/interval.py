@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/interval.py
 # Purpose:                Index vertical intervals.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Index intervals. Use the :class:`IntervalIndexer` to find vertical (harmonic) intervals between two
 parts. Use the :class:`HorizontalIntervalIndexer` to find horizontal (melodic) intervals in the
@@ -158,7 +158,7 @@ class IntervalIndexer(indexer.Indexer):
     You should provide the result of :class:`~vis.analyzers.indexers.noterest.NoteRestIndexer`.
     """
 
-    required_score_type = pandas.Series
+    required_score_type = 'pandas.Series'
     """
     The :class:`IntervalIndexer` requires a list of :class:`Series` as input. These should be the
     result of :class:`NoteRestIndexer`.

@@ -31,7 +31,6 @@ Indexers related to dissonance.
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
 # pylint: disable=W0105
 
-import pandas
 from vis.analyzers import indexer
 
 
@@ -42,7 +41,7 @@ class DissonanceIndexer(indexer.Indexer):
     The following intervals are curently considered "consonant": P1, m3, M3, P5, m6, M6, and P8.
     """
 
-    required_score_type = pandas.Series
+    required_score_type = 'pandas.Series'
     """
     Provide a list of :class:`pandas.Series`.
     """
