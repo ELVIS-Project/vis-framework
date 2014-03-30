@@ -503,61 +503,6 @@ class TestMpiUniqueOffsets(unittest.TestCase):
         self.assertSequenceEqual(expected, actual)
 
 
-class TestMpiVertAligner(unittest.TestCase):
-    def test_mpi_vert_aligner_1(self):
-        in_list = [[1]]
-        expected = [[1]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_mpi_vert_aligner_2(self):
-        in_list = [[1, 2]]
-        expected = [[1], [2]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_mpi_vert_aligner_3(self):
-        in_list = [[1], [2]]
-        expected = [[1, 2]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_mpi_vert_aligner_4(self):
-        in_list = [[1, 2], [1, 2]]
-        expected = [[1, 1], [2, 2]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_mpi_vert_aligner_5(self):
-        in_list = [[1, 2], [5]]
-        expected = [[1, 5], [2]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_mpi_vert_aligner_6(self):
-        in_list = [[1, 2, 3], [1, 2, 3], [1, 2, 3]]
-        expected = [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_mpi_vert_aligner_7(self):
-        in_list = [[1, 2, 3], [1], [1, 2, 3]]
-        expected = [[1, 1, 1], [2, 2], [3, 3]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_mpi_vert_aligner_8(self):
-        in_list = [[1, 2, 3], [1], [1, 2]]
-        expected = [[1, 1, 1], [2, 2], [3]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_mpi_vert_aligner_9(self):
-        in_list = [[1], [1], [1]]
-        expected = [[1, 1, 1]]
-        actual = indexer.mpi_vert_aligner(in_list)
-        self.assertSequenceEqual(expected, actual)
-
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
