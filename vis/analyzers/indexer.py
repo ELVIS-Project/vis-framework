@@ -224,11 +224,30 @@ class Indexer(object):
         """
         Make a new index of the piece.
 
-        :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
-            index of the :class:`Part` or :class:`Series` used to generate it, as given to the
-            constructor. Each element in each :class:`Series` is a basestring (unless specified
-            otherwise in a subclass).
-        :rtype: list of :class:`pandas.Series`
+        :returns: The new indices. Refer to the note below.
+        :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
+
+        **Return Values**
+
+        * If the return value is a list of :class:`Series`, the index of the :class:`Series` will \
+        correspond to the index of the inputted :class:`Series` or :class:`Score` used to produce \
+        it. For example:
+
+        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
+        >>> the_score.parts[5]
+        (the first clarinet Part)
+        >>> the_notes = NoteRestIndexer(the_score).run()
+        >>> the_notes[5]
+        (the first clarinet Series)
+
+        * If the return value is a :class:`DataFrame`, the columns should have a \
+        :class:`~pandas.MultiIndex` where the first level is a string representing the module and \
+        class of the indexer, and the second level is a string with either the part index or part \
+        combination used to produce it. To continue the previous example:
+
+        >>> the_intervals = IntervalIndexer(the_notes).run()
+        >>> the_intervals['IntervalIndexer']['5,6']
+        (Series with vertical intervals between first and second clarinet)
         """
         pass
 
