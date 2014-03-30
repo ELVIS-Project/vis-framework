@@ -509,5 +509,4 @@ class TestMpiUniqueOffsets(unittest.TestCase):
 INDEXER_1_PART_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerSinglePart)
 INDEXER_MULTI_EVENT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerMultiEvent)
 UNIQUE_OFFSETS_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMpiUniqueOffsets)
-VERT_ALIGNER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMpiVertAligner)
 INDEXER_HARDCORE_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerHardcore)
