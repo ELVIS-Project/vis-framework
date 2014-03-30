@@ -52,32 +52,6 @@ def mpi_unique_offsets(streams):
     return sorted(set.union(*offsets))  # pylint: disable=W0142
 
 
-def mpi_vert_aligner(events):
-    """
-    When there is more than one event at an offset, call this method to ensure parsing
-    simultaneities.
-
-    Example:
-    Transforms this...
-    [[1, 2, 3], [1, 2, 3], [1, 2]]
-    ... into this...
-    [[1, 1, 1], [2, 2, 2], [3, 3]]
-    """
-    post = []
-    for i in xrange(max([len(x) for x in events])):
-        # for every 'i' from 0 to the highest index of any object at this offset
-        this_e = []
-        for j in xrange(len(events)):
-            # for every part
-            try:
-                this_e.append(events[j][i])
-            except IndexError:
-                # when some parts have fewer objects at this offset
-                pass
-        post.append(this_e)
-    return post
-
-
 def stream_indexer(pipe_index, parts, indexer_func, types=None):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed

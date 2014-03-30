@@ -42,7 +42,6 @@ unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_HARDCORE_S
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_1_PART_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.INDEXER_MULTI_EVENT_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.UNIQUE_OFFSETS_SUITE)
-unittest.TextTestRunner(verbosity=VERBOSITY).run(test_indexer.VERT_ALIGNER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_note_rest_indexer.NOTE_REST_INDEXER_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE)
 unittest.TextTestRunner(verbosity=VERBOSITY).run(test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE)
