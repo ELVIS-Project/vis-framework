@@ -153,7 +153,8 @@ class TemplateIndexer(indexer.Indexer):
         :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
 
         .. important:: Please be sure you read and understand the rules about return values in the
-            full documentation for :meth:`~vis.analyzers.indexer.Indexer.run`.
+            full documentation for :meth:`~vis.analyzers.indexer.Indexer.run` and
+            :func:`~vis.analyzers.indexer.Indexer.make_return`.
         """
 
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
@@ -170,7 +171,9 @@ class TemplateIndexer(indexer.Indexer):
         # of Series objects in the same order as the "combinations" argument.
         results = self._do_multiprocessing(combinations)
 
-        # Do applicable post-processing, like adding a label for voice combinations.
+        # Do applicable post-processing.
 
-        # Return the results.
-        return results
+        # Convert results to a DataFrame in the appropriate format, then return it. This will work
+        # as written for nearly all cases, but refer to the documentation for make_return() for
+        # more information.
+        return indexer.Indexer.make_return([unicode(x) for x in combinations], results)
