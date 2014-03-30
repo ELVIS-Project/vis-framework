@@ -191,16 +191,38 @@ class Indexer(object):
         """
         Create a new :class:`Indexer`.
 
-        :param score: Depending on how this Indexer works, this is a list of either :class:`Part`
-            or :class:`Series` objects to use in creating a new index.
-        :type score: list of :class:`pandas.Series` or :class:`music21.stream.Part`
+        :param score: The input from which to produce a new index. Each indexer will specify its
+            required input type, but also refer to the note below.
+        :type score: :class:`pandas.DataFrame`, :class:`music21.stream.Score`, or list of \
+            :class:`pandas.Series` or :class:`music21.stream.Part`
         :param settings: A dict of all the settings required by this :class:`Indexer`. All required
             settings should be listed in subclasses. Default is ``None``.
         :type settings: dict or None
 
-        :raises: :exc:`TypeError` if the ``score`` argument is not a list of the right types.
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
         :raises: :exc:`RuntimeError` if the required settings are not present in the ``settings``
             argument.
+        :raises: :exc:`IndexError` if ``required_score_type`` is ``'pandas.Series'`` and the
+            ``score`` argument is an improperly-formatted :class:`DataFrame` (e.g., it contains the
+            results of more than one indexer, or the columns do not have a :class:`MultiInex`).
+
+        .. note:: **About the "score" Parameter:**
+
+            A two-dimensional type, :class:`DataFrame` or :class:`Score`, can be provided to an
+            indexer that otherwise requires a list of the corresponding single-dimensional type
+            (being :class:`Series` or :class:`Part`, respectively).
+
+            When a :class:`Part`-requiring indexer is given a :class:`Score`, the call to the
+            :class:`Indexer` superclass constructor (i.e., this method) will use the
+            :attr:`~music21.stream.Score.parts` attribute to get a list of :class:`Part` objects.
+
+            When a :class:`Series`-requiring indexer is given a :class:`DataFrame`, the call to the
+            :class:`Indexer` superclass constructor (i.e., this method) exepcts a :class:`DataFrame`
+            in the style outputted by :meth:`run`. In other words, the columns must have a
+            :class:`pandas.MultiIndex` where the first level is the name of the indexer class that
+            produced the results and the second level is the name of the part or part combination
+            that produced those results. In this case, the :class:`DataFrame` *must* contain the
+            results of only one indexer.
         """
         # Check the "score" argument is either uniformly Part or Series objects.
         for elem in score:
