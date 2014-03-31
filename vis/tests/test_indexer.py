@@ -125,8 +125,7 @@ class TestIndexerInit(unittest.TestCase):
         try:
             test_ind = TestIndexer(test_score)
         except IndexError as inderr:
-            err = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
-            self.assertEqual(err, inderr.message)
+            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
 
     def test_indexer_init_5c(self):
         # The first six tests ensure __init__() accepts the six valid types of "score" argument.
@@ -139,8 +138,7 @@ class TestIndexerInit(unittest.TestCase):
         try:
             test_ind = TestIndexer(test_score)
         except IndexError as inderr:
-            err = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
-            self.assertEqual(err, inderr.message)
+            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
 
     def test_indexer_init_5d(self):
         # The first six tests ensure __init__() accepts the six valid types of "score" argument.
@@ -152,8 +150,7 @@ class TestIndexerInit(unittest.TestCase):
         try:
             test_ind = TestIndexer(test_score)
         except IndexError as inderr:
-            err = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
-            self.assertEqual(err, inderr.message)
+            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
 
     def test_indexer_init_6(self):
         # The first six tests ensure __init__() accepts the six valid types of "score" argument.
@@ -180,8 +177,8 @@ class TestIndexerInit(unittest.TestCase):
         test_parts = [pandas.Series()]
         settings = {}
         self.assertRaises(TypeError, TestIndexer, test_parts, settings)
-        error_msg = unicode("<class \'vis.tests.test_indexer.TestIndexer\'> requires \"stream.Part\" "
-                            "objects, not <class \'pandas.core.series.Series\'>")
+        error_msg = indexer.Indexer._INIT_TYPE_ERR.format(u"<class 'vis.tests.test_indexer.TestIndexer'>",
+                                                          u"stream.Part")
         try:
             TestIndexer(test_parts, settings)
         except TypeError as err:
@@ -679,7 +676,7 @@ class TestMakeReturn(unittest.TestCase):
         try:
             actual = test_ind.make_return(names, parts)
         except IndexError as inderr:
-            self.assertEqual(indexer.Indexer.MAKE_RETURN_INDEX_ERR, inderr.message)
+            self.assertEqual(indexer.Indexer._MAKE_RETURN_INDEX_ERR, inderr.message)
 
     def test_make_return_3(self):
         # 3: more names than parts
@@ -697,8 +694,7 @@ class TestMakeReturn(unittest.TestCase):
         try:
             actual = test_ind.make_return(names, parts)
         except IndexError as inderr:
-            err = u'Indexer.make_return(): arguments must have the same legnth.'
-            self.assertEqual(indexer.Indexer.MAKE_RETURN_INDEX_ERR, inderr.message)
+            self.assertEqual(indexer.Indexer._MAKE_RETURN_INDEX_ERR, inderr.message)
 
 
 #--------------------------------------------------------------------------------------------------#
