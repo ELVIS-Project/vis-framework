@@ -46,6 +46,132 @@ class TestIndexerInit(unittest.TestCase):
     # accessing TestIndexer._indexer_func is part of the test
     # pylint: disable=W0212
     def test_indexer_init_1(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 1: stream.Part, given a list of Part
+        class TestIndexer(indexer.Indexer):
+            # Minimum required changes!
+            required_score_type = 'stream.Part'
+        test_score = [stream.Part(), stream.Part()]
+        test_ind = TestIndexer(test_score)
+        self.assertTrue(isinstance(test_ind._score, list))
+        self.assertSequenceEqual(test_score, test_ind._score)
+
+    def test_indexer_init_2a(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 2a: stream.Part, given a Score (two parts in the Score)
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'stream.Part'
+        test_score = stream.Score([stream.Part(), stream.Part()])
+        test_ind = TestIndexer(test_score)
+        self.assertTrue(isinstance(test_ind._score, list))
+        self.assertSequenceEqual(test_score, test_ind._score)
+
+    def test_indexer_init_2b(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 2b: stream.Part, given a Score (no parts in the Score)
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'stream.Part'
+        test_score = stream.Score([])
+        test_ind = TestIndexer(test_score)
+        self.assertTrue(isinstance(test_ind._score, list))
+        self.assertSequenceEqual(test_score, test_ind._score)
+
+    def test_indexer_init_3(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 3: stream.Score, given a Score
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'stream.Score'
+        test_score = stream.Score([stream.Part(), stream.Part()])
+        test_ind = TestIndexer(test_score)
+        self.assertTrue(isinstance(test_ind._score, stream.Score))
+        self.assertSequenceEqual(test_score, test_ind._score)
+
+    def test_indexer_init_4(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 4: pandas.Series, given a list of Series
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        test_score = [pandas.Series(), pandas.Series()]
+        test_ind = TestIndexer(test_score)
+        self.assertTrue(isinstance(test_ind._score, list))
+        self.assertSequenceEqual(test_score, test_ind._score)
+
+    def test_indexer_init_5a(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 5a: pandas.Series, given a DataFrame
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        the_index = pandas.MultiIndex.from_tuples([('NRI', '0'), ('NRI', '1')],
+                                                  names=['Indexer', 'Parts'])
+        series_list = [pandas.Series([2]), pandas.Series([1])]
+        test_score = pandas.DataFrame(series_list, index=the_index).T
+        test_ind = TestIndexer(test_score)
+        self.assertTrue(isinstance(test_ind._score, list))
+        self.assertSequenceEqual(list(series_list[0].index), list(test_ind._score[0].index))
+        self.assertSequenceEqual(list(series_list[1].index), list(test_ind._score[1].index))
+        self.assertSequenceEqual(list(series_list[0].values), list(test_ind._score[0].values))
+        self.assertSequenceEqual(list(series_list[1].values), list(test_ind._score[1].values))
+
+    def test_indexer_init_5b(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 5b: pandas.Series, given a DataFrame (but there are two indexers of results!)
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        the_tuples = [('NRI', '0'), ('NRI', '1'), ('HII', '0'), ('HII', '1')]
+        the_index = pandas.MultiIndex.from_tuples(the_tuples, names=['Indexer', 'Parts'])
+        series_list = [pandas.Series([i]) for i in [2, 4, 6, 8]]  # who do we appreciate?
+        test_score = pandas.DataFrame(series_list, index=the_index).T
+        self.assertRaises(IndexError, TestIndexer, test_score)
+        try:
+            test_ind = TestIndexer(test_score)
+        except IndexError as inderr:
+            err = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
+            self.assertEqual(err, inderr.message)
+
+    def test_indexer_init_5c(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 5c: pandas.Series, given a DataFrame (but there is no MultiIndex)
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        series_dict = {str(i): pandas.Series([i]) for i in [2, 4, 6, 8]}
+        test_score = pandas.DataFrame(series_dict)
+        self.assertRaises(IndexError, TestIndexer, test_score)
+        try:
+            test_ind = TestIndexer(test_score)
+        except IndexError as inderr:
+            err = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
+            self.assertEqual(err, inderr.message)
+
+    def test_indexer_init_5d(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 5d: pandas.Series, given a DataFrame (but there are no indexers)
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        test_score = pandas.DataFrame()
+        self.assertRaises(IndexError, TestIndexer, test_score)
+        try:
+            test_ind = TestIndexer(test_score)
+        except IndexError as inderr:
+            err = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
+            self.assertEqual(err, inderr.message)
+
+    def test_indexer_init_6(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 6: pandas.DataFrame, given a DataFrame
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'pandas.DataFrame'
+        the_index = pandas.MultiIndex.from_tuples([('NRI', '0'), ('NRI', '1')],
+                                                  names=['Indexer', 'Parts'])
+        series_list = [pandas.Series([2]), pandas.Series([1])]
+        test_score = pandas.DataFrame(series_list, index=the_index).T
+        test_ind = TestIndexer(test_score)
+        self.assertTrue(isinstance(test_ind._score, pandas.DataFrame))
+        self.assertSequenceEqual(list(series_list[0].index), list(test_ind._score['NRI']['0'].index))
+        self.assertSequenceEqual(list(series_list[1].index), list(test_ind._score['NRI']['1'].index))
+        self.assertSequenceEqual(list(series_list[0].values), list(test_ind._score['NRI']['0'].values))
+        self.assertSequenceEqual(list(series_list[1].values), list(test_ind._score['NRI']['1'].values))
+
+    def test_indexer_init_7(self):
         # That calling Indexer.__init__() with the wrong type results in the proper error message.
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
@@ -62,7 +188,7 @@ class TestIndexerInit(unittest.TestCase):
         except TypeError as err:
             self.assertEqual(err.args[0], error_msg)
 
-    def test_indexer_init_2(self):
+    def test_indexer_init_8(self):
         # That _do_multiprocessing() passes the correct arguments to stream_indexer()
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
@@ -81,7 +207,7 @@ class TestIndexerInit(unittest.TestCase):
             # check results
             mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
 
-    def test_indexer_init_3(self):
+    def test_indexer_init_9(self):
         # That calling Indexer.__init__() with required_score_type set to an invalid value results
         # in the proper error message.
         class TestIndexer(indexer.Indexer):
@@ -98,7 +224,7 @@ class TestIndexerInit(unittest.TestCase):
         except TypeError as err:
             self.assertEqual(err.args[0], error_msg)
 
-    def test_indexer_init_4(self):
+    def test_indexer_init_10(self):
         # when no "types" is specified, make sure it returns everything in the Stream
         # setup the input stream
         the_stream = stream.Stream()
