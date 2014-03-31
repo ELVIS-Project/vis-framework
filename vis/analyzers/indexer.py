@@ -194,6 +194,9 @@ class Indexer(object):
 
     # Error messages
     MAKE_RETURN_INDEX_ERR = u'Indexer.make_return(): arguments must have the same legnth.'
+    INIT_KEY_ERR = u'{} has an incorrectly-set "required_score_type"'
+    INIT_INDEX_ERR = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
+    INIT_TYPE_ERR = u'{} requires "{}" objects, not {}'
 
     # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
     # pylint: disable=W0613
@@ -238,20 +241,17 @@ class Indexer(object):
         try:
             req_s_type = Indexer._TYPE_CONVERTER[self.required_score_type]
         except KeyError:
-            msg = unicode(self.__class__) + u' has an incorrectly-set "required_score_type"'
-            raise TypeError(msg)
+            raise TypeError(Indexer.INIT_KEY_ERR.format(unicode(self.__class__)))
         # if "score" is a list, check it's of the right type
         if isinstance(score, list) and (req_s_type is pandas.Series or req_s_type is stream.Part):
             for elem in score:
                 if not isinstance(elem, req_s_type):
-                    msg = u'{} requires "{}" objects, not {}'.format(self.__class__,
-                                                                     self.required_score_type,
-                                                                     type(elem))
-                    raise TypeError(msg)
+                    raise TypeError(Indexer.INIT_TYPE_ERR.format(self.__class__,
+                                                                 self.required_score_type,
+                                                                 type(elem)))
         elif isinstance(score, pandas.DataFrame) and req_s_type is pandas.Series:
-            err_msg = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
             if (not isinstance(score.columns, pandas.MultiIndex)) or 1 != len(score.columns.levels[0]):
-                raise IndexError(err_msg)
+                raise IndexError(Indexer.INIT_INDEX_ERR)
             else:
                 ind_name = score.columns.levels[0][0]
                 num_parts = len(score[ind_name].columns)
