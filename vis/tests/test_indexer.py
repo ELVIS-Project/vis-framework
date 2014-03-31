@@ -520,6 +520,10 @@ class TestMpiUniqueOffsets(unittest.TestCase):
         self.assertSequenceEqual(expected, actual)
 
 
+class TestMakeReturn(unittest.TestCase):
+    pass
+
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
@@ -527,3 +531,4 @@ INDEXER_1_PART_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerSi
 INDEXER_MULTI_EVENT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerMultiEvent)
 UNIQUE_OFFSETS_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMpiUniqueOffsets)
 INDEXER_INIT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerInit)
+MAKE_RETURN_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMakeReturn)
