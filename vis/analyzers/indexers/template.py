@@ -84,8 +84,10 @@ class TemplateIndexer(indexer.Indexer):
     # required_score_type = 'pandas.Series'
     # required_score_type = 'pandas.DataFrame'
     """
-    Depending on how this Indexer works, you must provide a list of Part, Score, or Series objects,
-    or a single DataFrame. Choose only one of the four values shown here.
+    Depending on how this indexer works, you must provide a :class:`DataFrame`, a :class:`Score`,
+    or list of :class:`Part` or :class:`Series` objects. Only choose :class:`Part` or
+    :class:`Series` if the input will always have single-integer part combinations (i.e., there are
+    no combinations---it will be each part independently).
     """
 
     possible_settings = ['fake_setting']

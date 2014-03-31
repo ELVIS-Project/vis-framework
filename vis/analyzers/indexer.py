@@ -211,7 +211,7 @@ class Indexer(object):
             argument.
         :raises: :exc:`IndexError` if ``required_score_type`` is ``'pandas.Series'`` and the
             ``score`` argument is an improperly-formatted :class:`DataFrame` (e.g., it contains the
-            results of more than one indexer, or the columns do not have a :class:`MultiInex`).
+            results of more than one indexer, or the columns do not have a :class:`MultiIndex`).
 
         .. note:: **About the "score" Parameter:**
 
@@ -231,18 +231,30 @@ class Indexer(object):
             that produced those results. In this case, the :class:`DataFrame` *must* contain the
             results of only one indexer.
         """
-        # Check the "score" argument is either uniformly Part or Series objects.
+        # check the required_score_type is valid
         try:
-            required_score_type = Indexer._TYPE_CONVERTER[self.required_score_type]
+            req_s_type = Indexer._TYPE_CONVERTER[self.required_score_type]
         except KeyError:
             msg = unicode(self.__class__) + u' has an incorrectly-set "required_score_type"'
             raise TypeError(msg)
-        for elem in score:
-            if not isinstance(elem, required_score_type):
-                msg = u'{} requires "{}" objects, not {}'.format(self.__class__,
-                                                                 self.required_score_type,
-                                                                 type(elem))
-                raise TypeError(msg)
+        # if "score" is a list, check it's of the right type
+        if isinstance(score, list) and (req_s_type is pandas.Series or req_s_type is stream.Part):
+            for elem in score:
+                if not isinstance(elem, req_s_type):
+                    msg = u'{} requires "{}" objects, not {}'.format(self.__class__,
+                                                                     self.required_score_type,
+                                                                     type(elem))
+                    raise TypeError(msg)
+        elif isinstance(score, pandas.DataFrame) and req_s_type is pandas.Series:
+            err_msg = u'Indexer: got a DataFrame but expected a Series. Problem with the MultiIndex'
+            if (not isinstance(score.columns, pandas.MultiIndex)) or 1 != len(score.columns.levels[0]):
+                raise IndexError(err_msg)
+            else:
+                ind_name = score.columns.levels[0][0]
+                num_parts = len(score[ind_name].columns)
+                score = [score[ind_name][str(i)] for i in xrange(num_parts)]
+        elif isinstance(score, stream.Score) and req_s_type is stream.Part:
+            score = [score.parts[i] for i in xrange(len(score.parts))]
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
         self._score = score
