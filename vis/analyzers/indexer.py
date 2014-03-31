@@ -244,11 +244,9 @@ class Indexer(object):
             raise TypeError(Indexer.INIT_KEY_ERR.format(unicode(self.__class__)))
         # if "score" is a list, check it's of the right type
         if isinstance(score, list) and (req_s_type is pandas.Series or req_s_type is stream.Part):
-            for elem in score:
-                if not isinstance(elem, req_s_type):
-                    raise TypeError(Indexer.INIT_TYPE_ERR.format(self.__class__,
-                                                                 self.required_score_type,
-                                                                 type(elem)))
+            if not all([isinstance(e, req_s_type) for e in score]):
+                raise TypeError(Indexer.INIT_TYPE_ERR.format(self.__class__,
+                                                             self.required_score_type))
         elif isinstance(score, pandas.DataFrame) and req_s_type is pandas.Series:
             if (not isinstance(score.columns, pandas.MultiIndex)) or 1 != len(score.columns.levels[0]):
                 raise IndexError(Indexer.INIT_INDEX_ERR)
