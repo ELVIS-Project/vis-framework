@@ -178,4 +178,4 @@ class TemplateIndexer(indexer.Indexer):
         # Convert results to a DataFrame in the appropriate format, then return it. This will work
         # as written for nearly all cases, but refer to the documentation for make_return() for
         # more information.
-        return indexer.Indexer.make_return([unicode(x) for x in combinations], results)
+        return self.make_return([unicode(x) for x in combinations], results)
