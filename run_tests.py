@@ -39,7 +39,7 @@ from vis.tests import test_workflow, test_workflow_integration, test_workflow_ex
 
 test_list = [ \
     # Indexer and Subclasses
-    test_indexer.INDEXER_HARDCORE_SUITE,
+    test_indexer.INDEXER_INIT_SUITE,
     test_indexer.INDEXER_1_PART_SUITE,
     test_indexer.INDEXER_MULTI_EVENT_SUITE,
     test_indexer.UNIQUE_OFFSETS_SUITE,

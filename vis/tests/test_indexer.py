@@ -42,10 +42,10 @@ def fake_indexer_func(ecks):
     return unicode(ecks)
 
 
-class TestIndexerHardcore(unittest.TestCase):
+class TestIndexerInit(unittest.TestCase):
     # accessing TestIndexer._indexer_func is part of the test
     # pylint: disable=W0212
-    def test_indexer_hardcore_1(self):
+    def test_indexer_init_1(self):
         # That calling Indexer.__init__() with the wrong type results in the proper error message.
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
@@ -62,7 +62,7 @@ class TestIndexerHardcore(unittest.TestCase):
         except TypeError as err:
             self.assertEqual(err.args[0], error_msg)
 
-    def test_indexer_hardcore_2(self):
+    def test_indexer_init_2(self):
         # That _do_multiprocessing() passes the correct arguments to stream_indexer()
         class TestIndexer(indexer.Indexer):
             # Class with bare minimum changes, since we can't instantiate Indexer directly
@@ -81,7 +81,24 @@ class TestIndexerHardcore(unittest.TestCase):
             # check results
             mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
 
-    def test_indexer_hardcore_3(self):
+    def test_indexer_init_3(self):
+        # That calling Indexer.__init__() with required_score_type set to an invalid value results
+        # in the proper error message.
+        class TestIndexer(indexer.Indexer):
+            # Class with bare minimum changes, since we can't instantiate Indexer directly
+            required_score_type = stream.Part
+
+        test_parts = [pandas.Series()]
+        settings = {}
+        self.assertRaises(TypeError, TestIndexer, test_parts, settings)
+        error_msg = unicode('<class \'vis.tests.test_indexer.TestIndexer\'> has an incorrectly-set '
+                            '"required_score_type"')
+        try:
+            TestIndexer(test_parts, settings)
+        except TypeError as err:
+            self.assertEqual(err.args[0], error_msg)
+
+    def test_indexer_init_4(self):
         # when no "types" is specified, make sure it returns everything in the Stream
         # setup the input stream
         the_stream = stream.Stream()
@@ -509,4 +526,4 @@ class TestMpiUniqueOffsets(unittest.TestCase):
 INDEXER_1_PART_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerSinglePart)
 INDEXER_MULTI_EVENT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerMultiEvent)
 UNIQUE_OFFSETS_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMpiUniqueOffsets)
-INDEXER_HARDCORE_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerHardcore)
+INDEXER_INIT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIndexerInit)
