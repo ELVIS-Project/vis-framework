@@ -123,7 +123,7 @@ class TestIndexerInit(unittest.TestCase):
         test_score = pandas.DataFrame(series_list, index=the_index).T
         self.assertRaises(IndexError, TestIndexer, test_score)
         try:
-            test_ind = TestIndexer(test_score)
+            TestIndexer(test_score)
         except IndexError as inderr:
             self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
 
@@ -136,7 +136,7 @@ class TestIndexerInit(unittest.TestCase):
         test_score = pandas.DataFrame(series_dict)
         self.assertRaises(IndexError, TestIndexer, test_score)
         try:
-            test_ind = TestIndexer(test_score)
+            TestIndexer(test_score)
         except IndexError as inderr:
             self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
 
@@ -148,7 +148,7 @@ class TestIndexerInit(unittest.TestCase):
         test_score = pandas.DataFrame()
         self.assertRaises(IndexError, TestIndexer, test_score)
         try:
-            test_ind = TestIndexer(test_score)
+            TestIndexer(test_score)
         except IndexError as inderr:
             self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
 
@@ -674,7 +674,7 @@ class TestMakeReturn(unittest.TestCase):
         self.assertRaises(IndexError, test_ind.make_return, names, parts)
         # check
         try:
-            actual = test_ind.make_return(names, parts)
+            test_ind.make_return(names, parts)
         except IndexError as inderr:
             self.assertEqual(indexer.Indexer._MAKE_RETURN_INDEX_ERR, inderr.message)
 
@@ -682,7 +682,7 @@ class TestMakeReturn(unittest.TestCase):
         # 3: more names than parts
         # prepare
         clarinet = pandas.Series([x for x in xrange(10)])
-        tuba = pandas.Series([x + 10 for x in xrange(10)])
+        #tuba = pandas.Series([x + 10 for x in xrange(10)])
         names = [u'Clarinet', u'Tuba']
         parts = [clarinet]
         class SadIndexer(indexer.Indexer):
@@ -692,7 +692,7 @@ class TestMakeReturn(unittest.TestCase):
         self.assertRaises(IndexError, test_ind.make_return, names, parts)
         # check
         try:
-            actual = test_ind.make_return(names, parts)
+            test_ind.make_return(names, parts)
         except IndexError as inderr:
             self.assertEqual(indexer.Indexer._MAKE_RETURN_INDEX_ERR, inderr.message)
 
