@@ -185,6 +185,16 @@ class Indexer(object):
     # self._indexer_func  # this function will do the indexing
     # self._types  # if the input is a Score, this is a list of types we'll use for the index
 
+    # In subclasses, we might get these values for required_score_type. The superclass here will
+    # "convert" them into the actual type.
+    _TYPE_CONVERTER = {u'stream.Part': stream.Part,
+                       u'stream.Score': stream.Score,
+                       u'pandas.Series': pandas.Series,
+                       u'pandas.DataFrame': pandas.DataFrame}
+
+    # Error messages
+    MAKE_RETURN_INDEX_ERR = u'Indexer.make_return(): arguments must have the same legnth.'
+
     # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
     # pylint: disable=W0613
     def __init__(self, score, settings=None):
@@ -345,8 +355,7 @@ class Indexer(object):
                 post.append(series_indexer(0, voices, self._indexer_func)[1])
         return post
 
-    @staticmethod
-    def make_return(labels, indices):
+    def make_return(self, labels, indices):
         """
         Prepare a properly-formatted :class:`DataFrame` as should be returned by any :class:`Indexer`
         subclass. We intend for this to be called by :class:`Indexer` subclasses only.
@@ -364,5 +373,17 @@ class Indexer(object):
         :returns: A :class:`DataFrame` with the appropriate :class:`~pandas.MultiIndex` required
             by the :meth:`Indexer.run` method signature.
         :rtype: :class:`pandas.DataFrame`
+
+        :raises: :exc:`IndexError` if the number of labels and indices does not match.
         """
-        pass
+        if len(labels) != len(indices):
+            raise IndexError(Indexer.MAKE_RETURN_INDEX_ERR)
+        # make the indexer's name using filename and classname (but not full class name)
+        my_mod = unicode(self.__module__)[unicode(self.__module__).rfind(u'.') + 1:]
+        my_class = unicode(self.__class__)[unicode(self.__class__).rfind(u'.'):-2]
+        my_name = my_mod + my_class
+        # make the MultiIndex and its labels
+        tuples = [(my_name, labels[i]) for i in xrange(len(labels))]
+        multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Indexer', 'Parts'])
+        # foist our MultiIndex onto the new results
+        return pandas.DataFrame(indices, index=multiindex).T

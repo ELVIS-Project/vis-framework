@@ -647,7 +647,59 @@ class TestMpiUniqueOffsets(unittest.TestCase):
 
 
 class TestMakeReturn(unittest.TestCase):
-    pass
+    def test_make_return_1(self):
+        # 1: the usual case
+        # prepare
+        violini = pandas.Series([x for x in xrange(10)])
+        violinii = pandas.Series([x + 10 for x in xrange(10)])
+        viola = pandas.Series([x + 20 for x in xrange(10)])
+        cello = pandas.Series([x + 30 for x in xrange(10)])
+        names = [u'Violin I', u'Violin II', u'Viola', u'Violoncello']
+        parts = [violini, violinii, viola, cello]
+        class QuartetIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        # run
+        test_ind = QuartetIndexer(parts)
+        actual = test_ind.make_return(names, parts)
+        # check
+        self.assertEqual(u'test_indexer.QuartetIndexer', actual.columns.levels[0][0])
+
+    def test_make_return_2(self):
+        # 2: more parts than names
+        # prepare
+        clarinet = pandas.Series([x for x in xrange(10)])
+        tuba = pandas.Series([x + 10 for x in xrange(10)])
+        names = [u'Clarinet']
+        parts = [clarinet, tuba]
+        class SadIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        # run
+        test_ind = SadIndexer(parts)
+        self.assertRaises(IndexError, test_ind.make_return, names, parts)
+        # check
+        try:
+            actual = test_ind.make_return(names, parts)
+        except IndexError as inderr:
+            self.assertEqual(indexer.Indexer.MAKE_RETURN_INDEX_ERR, inderr.message)
+
+    def test_make_return_3(self):
+        # 3: more names than parts
+        # prepare
+        clarinet = pandas.Series([x for x in xrange(10)])
+        tuba = pandas.Series([x + 10 for x in xrange(10)])
+        names = [u'Clarinet', u'Tuba']
+        parts = [clarinet]
+        class SadIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        # run
+        test_ind = SadIndexer(parts)
+        self.assertRaises(IndexError, test_ind.make_return, names, parts)
+        # check
+        try:
+            actual = test_ind.make_return(names, parts)
+        except IndexError as inderr:
+            err = u'Indexer.make_return(): arguments must have the same legnth.'
+            self.assertEqual(indexer.Indexer.MAKE_RETURN_INDEX_ERR, inderr.message)
 
 
 #--------------------------------------------------------------------------------------------------#
