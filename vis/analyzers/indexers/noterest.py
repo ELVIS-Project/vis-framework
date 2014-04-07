@@ -33,64 +33,70 @@ from vis.analyzers import indexer
 
 def indexer_func(obj):
     """
-    Used internally by :class:`NoteRestIndexer`. Convert objects from the :mod:`music21.note` \
-    module into a :obj:`unicode`.
+    Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
+    :class:`~music21.note.Rest` objects into a ``unicode`` string.
 
-    Parameters
-    ==========
-    :param obj: A list with the object to convert.
-    :type obj: :obj:`list` of :class:`music21.note.Note` or :class:`music21.note.Rest`
+    :param obj: An iterable (nominally a :class:`~pandas.Series`) with an object to convert. Only
+        the first object in the iterable is processed.
+    :type obj: iterable of :class:`music21.note.Note` or :class:`music21.note.Rest`
 
-    Returns
-    =======
     :returns: If the first object in the list is a :class:`music21.note.Rest`, the string
-        :obj:`u'Rest'`; otherwise the :attr:`nameWithOctave` attribute, which is the pitch class
-        and octave of the :class:`music21.note.Note`.
-    :rtype: :obj:`unicode`
+        ``u'Rest'``; otherwise the :attr:`~music21.note.Note.nameWithOctave` attribute, which is
+        the pitch class and octave of the :class:`Note`.
+    :rtype: unicode
+
+    **Examples:**
+
+    >>> from music21 import note
+    >>> indexer_func([note.Note('C4')])
+    u'C4'
+    >>> indexer_func([note.Rest()])
+    u'Rest'
     """
     return u'Rest' if isinstance(obj[0], note.Rest) else unicode(obj[0].nameWithOctave)
 
 
 class NoteRestIndexer(indexer.Indexer):
     """
-    Index :class:`music21.note.Note` and :class:`Rest` objects found in a
-    :class:`music21.stream.Part`.
+    Index :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects in a
+    :class:`~music21.stream.Part`.
 
-    Rest objects are indexed as :obj:`u'Rest'`, and Note objects as the unicode-format version of
-    their :attr:`pitchWithOctave` attribute.
+    :class:`Rest` objects become ``'Rest'``, and :class:`Note objects become the unicode-format
+    version of their :attr:`~music21.note.Note.nameWithOctave` attribute.
     """
 
     required_score_type = 'stream.Part'
-    "The :class:`NoteRestIndexer` uses :class:`Part` objects directly."
 
     def __init__(self, score, settings=None):
         """
         :param score: A list of all the Parts to index.
-        :type score: :obj:`list` of :class:`music21.stream.Part`
+        :type score: list of :class:`music21.stream.Part`
         :param settings: This indexer uses no settings, so this is ignored.
-        :type settings: :obj:`dict` or :obj:`None`
+        :type settings: NoneType
 
-        :raises: :exc:`RuntimeError` if :obj:`score` is not a list of the right type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the right type.
         """
         super(NoteRestIndexer, self).__init__(score, None)
-
-        # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = [note.Note, note.Rest]
-
-        # You probably do not want to change this
         self._indexer_func = indexer_func
 
     def run(self):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
-        :returns: A list of the new indices. The index of each Series corresponds to the index of
-            the Part used to generate it, in the order specified to the constructor. Each element
-            in the Series is a unicode.
-        :rtype: :obj:`list` of :obj:`pandas.Series`
-        """
+        :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`;
+            refer to the example below for more details.
+        :rtype: :class:`pandas.DataFrame`
 
+        **Example:**
+
+        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
+        >>> the_score.parts[5]
+        (the first clarinet Part)
+        >>> the_notes = NoteRestIndexer(the_score).run()
+        >>> the_notes['noterest.NoteRestIndexer']['5']
+        (the first clarinet Series)
+        """
         combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately
-        return self._do_multiprocessing(combinations)
+        results = self._do_multiprocessing(combinations)
+        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
