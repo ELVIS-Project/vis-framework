@@ -61,24 +61,22 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
     was imported as two :class:`Note` objects in the same :class:`Part`, rather than as a
     :class:`Chord`.
 
-    :param pipe_index: An identifier value for use by the caller. This is returned unchanged, so a
-        caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
-    :type pipe_index: any
+    :param object pipe_index: An identifier value for use by the caller. This is returned unchanged,
+        so a caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
     :param parts: A list of at least one :class:`Stream` object. Every new event or change of
         simlutaneity will appear in the outputted index. Therefore, the new index will contain at
         least as many events as the inputted :class:`Part` with the most events.
     :type parts: list of :class:`music21.stream.Stream`
-    :param indexer_func: This function transforms found events into a unicode object.
-    :type indexer_func: function
-    :param types: Only objects of a type in this list will be passed to the :function:`indexer_func`
-        for inclusion in the resulting index.
+    :param function indexer_func: This function transforms found events into a unicode object.
+    :param types: Only objects of a type in this list will be passed to the
+        :func:`~vis.analyzers.indexers.template.indexer_func` for inclusion in the resulting index.
     :type types: list of type
 
     :returns: The ``pipe_index`` argument and the new index. The new index is a :class:`pandas.Series`
-        where every element is a unicode object. The :class:`~pandas.core.index.Index` of the
+        where every element is a unicode string. The :class:`~pandas.core.index.Index` of the
         :class:`Series` corresponds to the ``quarterLength`` offset of the event in the inputted
         :class:`Stream`.
-    :rtype: 2-tuple of any and :class:`pandas.Series`
+    :rtype: 2-tuple of object and :class:`pandas.Series`
     """
     # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
     # NB2: This must not be a single-line if/else statement, or the getter() call will fail.
@@ -127,20 +125,19 @@ def series_indexer(pipe_index, parts, indexer_func):
 
     :param pipe_index: An identifier value for use by the caller. This is returned unchanged, so a
         caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
-    :type pipe_index: any
+    :type pipe_index: object
     :param parts: A list of at least one :class:`Series` object. Every new event, or change of
         simlutaneity, will appear in the outputted index. Therefore, the new index will contain at
         least as many events as the inputted :class:`Series` with the most events. This is not a
         :class:`DataFrame`, since each part will likely have different offsets.
     :type parts: list of :class:`pandas.Series`
-    :param indexer_func: This function transforms found events into a unicode object.
-    :type indexer_func: function
+    :param function indexer_func: This function transforms found events into a unicode object.
 
     :returns: The ``pipe_index`` argument and the new index. The new index is a :class:`pandas.Series`
-        where every element is a unicode object. The :class:`~pandas.core.index.Index` of the
+        where every element is a unicode string. The :class:`~pandas.core.index.Index` of the
         :class:`Series` corresponds to the ``quarterLength`` offset of the event in the inputted
         :class:`Stream`.
-    :rtype: 2-tuple of any and :class:`pandas.Series`
+    :rtype: 2-tuple of object and :class:`pandas.Series`
 
     :raises: :exc:`ValueError` if there are multiple events at an offset in any of the inputted
         :class:`Series`.
