@@ -240,6 +240,11 @@ class Indexer(object):
             produced the results and the second level is the name of the part or part combination
             that produced those results. In this case, the :class:`DataFrame` *must* contain the
             results of only one indexer.
+
+            Also in the last case, any ``NaN`` values are "dropped" with :meth:`~pandas.Series.dropna`.
+            The ``NaN`` values would have been introduced as the part (or part combination) was
+            re-indexed when being added to the :class:`DataFrame`, and they're only relevant when
+            considering all the parts at once.
         """
         # check the required_score_type is valid
         try:
@@ -257,7 +262,7 @@ class Indexer(object):
             else:
                 ind_name = score.columns.levels[0][0]
                 num_parts = len(score[ind_name].columns)
-                score = [score[ind_name][str(i)] for i in xrange(num_parts)]
+                score = [score[ind_name][str(i)].dropna() for i in xrange(num_parts)]
         elif isinstance(score, stream.Score) and req_s_type is stream.Part:
             score = [score.parts[i] for i in xrange(len(score.parts))]
         # Call our superclass constructor, then set instance variables
