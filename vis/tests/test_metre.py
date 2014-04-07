@@ -32,6 +32,7 @@
 
 import unittest
 import mock
+import pandas
 from music21 import base, note, stream
 from music21 import meter as m21_meter
 from vis.analyzers.indexers import metre
@@ -53,13 +54,23 @@ class TestBeatStrengthIndexer(unittest.TestCase):
         expected = 1.0
         a_meas = stream.Measure()
         a_meas.timeSignature = m21_meter.TimeSignature('3/4')
-        a_meas.append(note.Note(quarterLength = 0.5))
+        a_meas.append(note.Note(quarterLength=0.5))
         in_val = a_meas.notes
         actual = metre.beatstrength_ind_func(in_val)
         self.assertEqual(expected, actual)
 
-    # NOTE: I decided not to test the rest of this indexer because it uses a pattern very common
-    #       through the rest of the Framework.
+    def test_ind_func_3(self):
+        # Test the whole indexer, in part to make sure the DataFrame is well-formatted
+        expected = {'0': pandas.Series([1.0, 0.25, 0.5, 0.25, 0.5, 0.25, 1.0, 0.25, 0.5, 0.25],
+                                       index=[x/2.0 for x in xrange(10)])}
+        some_part = stream.Part([m21_meter.TimeSignature('3/4')])
+        some_part.repeatAppend(note.Note(quarterLength=0.5), 10)
+        actual = metre.NoteBeatStrengthIndexer([some_part]).run()['metre.NoteBeatStrengthIndexer']
+        self.assertEqual(len(expected), len(actual.columns))
+        for key in expected.iterkeys():
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
 
 #--------------------------------------------------------------------------------------------------#
