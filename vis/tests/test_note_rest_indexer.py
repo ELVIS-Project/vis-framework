@@ -7,7 +7,7 @@
 # Filename:               analyzers_tests/test_note_rest_indexer.py
 # Purpose:                Tests for the NoteRestIndexer
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
