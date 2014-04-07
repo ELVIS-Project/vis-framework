@@ -177,5 +177,6 @@ class TemplateIndexer(indexer.Indexer):
 
         # Convert results to a DataFrame in the appropriate format, then return it. This will work
         # as written for nearly all cases, but refer to the documentation for make_return() for
-        # more information.
-        return self.make_return([unicode(x) for x in combinations], results)
+        # more information. The string-slicing simply removes the ``'['`` and ``']'`` characters
+        # that appear because each combination is a list.
+        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
