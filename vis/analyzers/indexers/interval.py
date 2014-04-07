@@ -36,7 +36,6 @@ same part.
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
-#from vis.analyzers.indexers.noterest import NoteRestIndexer
 
 
 def key_to_tuple(key):
@@ -65,26 +64,16 @@ def real_indexer(simultaneity, simple, quality):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
 
-    Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
-    because of the ``u'Rest'` strings, you can compare the duration of the piece in which the two
-    parts do or do not have notes sounding together.
-
-    Parameters
-    ==========
-    :param simultaneity: A two-item iterable with the note names (or :class:`u'Rest'`) for the top
-        then lower voice.
+    :param simultaneity: A two-item iterable with the note names for the higher and lower parts,
+        respectively.
     :type simultaneity: list of basestring
-
     :param simple: Whether intervals should be reduced to their single-octave version.
     :type simple: boolean
-
     :param quality: Whether the interval's quality should be prepended.
     :type quality: boolean
 
-    Returns
-    =======
-    :returns: :class:`u'Rest'` if one or more of the parts is :obj:`u'Rest'`; otherwise, the interval
-        between parts.
+    :returns: ``'Rest'`` if one or more of the parts is ``'Rest'``; otherwise, the interval
+        between the parts.
     :rtype: unicode string
     """
 
@@ -155,15 +144,13 @@ class IntervalIndexer(indexer.Indexer):
     Use :class:`music21.interval.Interval` to create an index of the vertical (harmonic) intervals
     between two-part combinations.
 
-    You should provide the result of :class:`~vis.analyzers.indexers.noterest.NoteRestIndexer`.
+    You should provide the result of the :class:`~vis.analyzers.indexers.noterest.NoteRestIndexer`.
+    However, to increase your flexibility, the constructor requires only a list of :class:`Series`.
+    You may also provide a :class:`DataFrame` exactly as outputted by the
+    :class:`NoteRestIndexer`.
     """
 
-    required_score_type = pandas.Series
-    """
-    The :class:`IntervalIndexer` requires a list of :class:`Series` as input. These should be the
-    result of :class:`NoteRestIndexer`.
-    """
-
+    required_score_type = 'pandas.Series'
     possible_settings = [u'simple or compound', u'quality']
     """
     A list of possible settings for the :class:`IntervalIndexer`.
@@ -178,13 +165,11 @@ class IntervalIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        The output format is described in :meth:`run`.
-
-        :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
-        :type score: list of :class:`pandas.Series`
-        :param settings: Required and optional settings. See descriptions in \
+        :param score: The output of :class:`NoteRestIndexer` for all parts in a piece, or a list of
+            :class:`Series` of the style produced by the :class:`NoteRestIndexer`.
+        :type score: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
+        :param dict settings: Required and optional settings. Refer to descriptions in \
             :const:`possible_settings`.
-        :type settings: dict
         """
 
         if settings is None:
@@ -220,39 +205,36 @@ class IntervalIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
-        :returns: A dictionary of the new interval indices. Find part combinations by using the
-            index of the parts as provided to the :meth:`__init__` method, set as a string with
-            a comma. Refer to the "Example" below.
-        :rtype: dict of :class:`pandas.Series`
+        :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`;
+            refer to the example below for more details.
+        :rtype: :class:`pandas.DataFrame`
 
-        ** Example **
+        **Example:**
 
-        To access the intervals between the two highest parts in a score:
-
-        >>> result = an_interval_indexer.run()
-        >>> result['0,1']
-        Series([], type: object)  # whatever intervals
+        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
+        >>> the_score.parts[5]
+        (the first clarinet Part)
+        >>> the_notes = NoteRestIndexer(the_score).run()
+        >>> the_notes['noterest.NoteRestIndexer']['5']
+        (the first clarinet Series)
+        >>> the_intervals = IntervalIndexer(the_notes).run()
+        >>> the_intervals['interval.IntervalIndexer']['5,6']
+        (Series with vertical intervals between first and second clarinet)
         """
         combinations = []
+        combination_labels = []
         # To calculate all 2-part combinations:
         for left in xrange(len(self._score)):
-            # noinspection PyArgumentList
             for right in xrange(left + 1, len(self._score)):
                 combinations.append([left, right])
+                combination_labels.append(unicode(left) + u',' + unicode(right))
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
         results = self._do_multiprocessing(combinations)
 
-        # Do applicable post-processing, like adding a label for voice combinations.
-        post = {}
-        for i, combo in enumerate(combinations):
-            post[unicode(combo[0]) + u',' + unicode(combo[1])] = results[i]
-
         # Return the results.
-        return post
+        return self.make_return(combination_labels, results)
 
 
 class HorizontalIntervalIndexer(IntervalIndexer):
