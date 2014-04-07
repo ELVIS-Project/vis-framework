@@ -32,6 +32,7 @@
 import unittest
 import mock
 import copy
+from numpy import NaN
 import pandas
 from music21 import base, stream, duration, note, converter, clef
 from vis.analyzers import indexer
@@ -151,6 +152,26 @@ class TestIndexerInit(unittest.TestCase):
             TestIndexer(test_score)
         except IndexError as inderr:
             self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
+
+    def test_indexer_init_5e(self):
+        # The first six tests ensure __init__() accepts the six valid types of "score" argument.
+        # 5e: pandas.Series, given a DataFrame---make sure NaN values are dropped from the Series
+        class TestIndexer(indexer.Indexer):
+            required_score_type = 'pandas.Series'
+        the_index = pandas.MultiIndex.from_tuples([('NRI', '0'), ('NRI', '1')],
+                                                  names=['Indexer', 'Parts'])
+        series_input = [pandas.Series([1, NaN, 2, NaN, 3, NaN, 4, NaN, NaN, 5]),
+                        pandas.Series([42, 43, 44, NaN, NaN, NaN])]
+        # NB: the first Series will have a strange index because of the "internal" NaNs
+        expected = [pandas.Series([1, 2, 3, 4, 5], index=[0, 2, 4, 6, 9]),
+                    pandas.Series([42, 43, 44])]
+        test_score = pandas.DataFrame(series_input, index=the_index).T
+        test_ind = TestIndexer(test_score)
+        self.assertTrue(isinstance(test_ind._score, list))
+        self.assertSequenceEqual(list(expected[0].index), list(test_ind._score[0].index))
+        self.assertSequenceEqual(list(expected[1].index), list(test_ind._score[1].index))
+        self.assertSequenceEqual(list(expected[0].values), list(test_ind._score[0].values))
+        self.assertSequenceEqual(list(expected[1].values), list(test_ind._score[1].values))
 
     def test_indexer_init_6(self):
         # The first six tests ensure __init__() accepts the six valid types of "score" argument.
