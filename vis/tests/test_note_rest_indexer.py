@@ -71,28 +71,32 @@ class TestNoteRestIndexer(unittest.TestCase):
                   (67.0, "D3"), (68.0, "E3"), (68.5, "F#3"), (69.0, "G3"), (69.5, "E3"),
                   (70.0, "F#3"), (71.0, "B2")]
 
-    def test_note_rest_indexer_5(self):
-        # Should be fine
-        expected = [[], []]
+    @staticmethod
+    def make_series(lotuples):
+        """
+        From a list of two-tuples, make a Series. The list should be like this:
+
+        [(desired_index, value), (desired_index, value), (desired_index, value)]
+        """
+        new_index = [x[0] for x in lotuples]
+        vals = [x[1] for x in lotuples]
+        return pandas.Series(vals, index=new_index)
+
+    def test_note_rest_indexer_1(self):
+        # When the parts are empty
+        expected = {'0': pandas.Series(), '1': pandas.Series()}
         test_part = [stream.Part(), stream.Part()]
         nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        self.assertEqual(len(expected[1]), len(actual[1]))
+        actual = nr_indexer.run()['noterest.NoteRestIndexer']
+        self.assertEqual(len(expected), len(actual.columns))
+        for key in expected.iterkeys():
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-    def test_note_rest_indexer_6(self):
-        # When the Part has nothing in it
-        expected = [[]]
-        test_part = [stream.Part()]
-        nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-
-    def test_note_rest_indexer_7(self):
+    def test_note_rest_indexer_2(self):
         # When the part has no Note or Rest objects in it
-        expected = [[]]
+        expected = {'0': pandas.Series()}
         test_part = stream.Part()
         # add stuff to the test_part
         for i in xrange(1000):
@@ -105,14 +109,17 @@ class TestNoteRestIndexer(unittest.TestCase):
         test_part = [test_part]
         # finished adding stuff to the test_part
         nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
+        actual = nr_indexer.run()['noterest.NoteRestIndexer']
+        self.assertEqual(len(expected), len(actual.columns))
+        for key in expected.iterkeys():
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-    def test_note_rest_indexer_8(self):
+    def test_note_rest_indexer_3(self):
         # When there are a bunch of notes
-        expected = pandas.Series([u'C4', u'C4', u'C4', u'C4', u'C4', u'C4', u'C4', u'C4', u'C4', u'C4'],
-                                 index=[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0])
+        expected = {'0': pandas.Series([u'C4' for _ in xrange(10)],
+                                       index=[float(x) for x in xrange(10)])}
         test_part = stream.Part()
         # add stuff to the test_part
         for i in xrange(10):
@@ -122,51 +129,54 @@ class TestNoteRestIndexer(unittest.TestCase):
         test_part = [test_part]
         # finished adding stuff to the test_part
         nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(1, len(actual))
-        actual = actual[0]
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected.values), list(actual.values))
+        actual = nr_indexer.run()['noterest.NoteRestIndexer']
+        self.assertEqual(len(expected), len(actual.columns))
+        for key in expected.iterkeys():
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-    def test_note_rest_indexer_9(self):
+    def test_note_rest_indexer_4(self):
         # Soprano part of bwv77.mxl
-        expected = [self.bwv77_soprano]
+        expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)}
         test_part = [converter.parse('vis/tests/corpus/bwv77.mxl').parts[0]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        for i, ind in enumerate(list(actual[0].index)):
-            self.assertEqual(expected[0][i][0], ind)
-            self.assertEqual(expected[0][i][1], actual[0][ind])
+        actual = nr_indexer.run()['noterest.NoteRestIndexer']
+        self.assertEqual(len(expected), len(actual.columns))
+        for key in expected.iterkeys():
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-    def test_note_rest_indexer_10(self):
+    def test_note_rest_indexer_5(self):
         # Bass part of bwv77.mxl
-        expected = [self.bwv77_bass]
+        expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)}
         test_part = [converter.parse('vis/tests/corpus/bwv77.mxl').parts[3]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        for i, ind in enumerate(list(actual[0].index)):
-            self.assertEqual(expected[0][i][0], ind)
-            self.assertEqual(expected[0][i][1], actual[0][ind])
+        actual = nr_indexer.run()['noterest.NoteRestIndexer']
+        self.assertEqual(len(expected), len(actual.columns))
+        for key in expected.iterkeys():
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-    def test_note_rest_indexer_11(self):
+    def test_note_rest_indexer_6(self):
         # Soprano and Bass parts of bwv77.mxl
-        expected = [self.bwv77_soprano, self.bwv77_bass]
+        # We won't verify all the part, but we'll submit them all for analysis.
+        expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano),
+                    '3': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)}
         bwv77 = converter.parse('vis/tests/corpus/bwv77.mxl')
-        test_part = [bwv77.parts[0], bwv77.parts[3]]
+        test_part = [bwv77.parts[0], bwv77.parts[1], bwv77.parts[2], bwv77.parts[3]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()
-        self.assertEqual(len(expected), len(actual))
-        self.assertEqual(len(expected[0]), len(actual[0]))
-        for i, ind in enumerate(list(actual[0].index)):
-            self.assertEqual(expected[0][i][0], ind)
-            self.assertEqual(expected[0][i][1], actual[0][ind])
-        for i, ind in enumerate(list(actual[1].index)):
-            self.assertEqual(expected[1][i][0], ind)
-            self.assertEqual(expected[1][i][1], actual[1][ind])
+        actual = nr_indexer.run()['noterest.NoteRestIndexer']
+        self.assertEqual(4, len(actual.columns))
+        for key in expected.iterkeys():
+            # We have to call dropna() to remove the NaN values; these appear for offsets that have
+            # an event in one part, but not necessarily all the others.
+            this_actual = actual[key].dropna(inplace=False)
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(this_actual.index))
+            self.assertSequenceEqual(list(expected[key]), list(this_actual))
 
 
 #--------------------------------------------------------------------------------------------------#
