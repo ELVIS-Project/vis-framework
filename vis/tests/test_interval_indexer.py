@@ -674,80 +674,59 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         self.bwv77_soprano = make_series(TestNoteRestIndexer.bwv77_soprano)
         self.bwv77_bass = make_series(TestNoteRestIndexer.bwv77_bass)
 
-    @staticmethod
-    def do_wrapping(of_this):
-        "Convert a list of tuples (offset, obj) into the expected Series version."
-        post_data = []
-        post_offsets = []
-        for each_obj in of_this:
-            post_data.append(unicode(each_obj[1]))
-            post_offsets.append(each_obj[0])
-        return pandas.Series(post_data, index=post_offsets)
-
     def test_interval_indexer_1a(self):
         # BWV7.7: first 26 things in soprano part
         test_parts = [self.bwv77_soprano]
-        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short
+        expected = make_series(TestHorizIntervalIndexerLong.bwv77_S_B_short)
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        res = int_indexer.run()
-        actual = res[0].iloc[:26]
-        self.assertEqual(len(expected), len(actual))
-        for i, ind in enumerate(list(actual.index)):
-            self.assertEqual(expected[i][0], ind)
-            self.assertEqual(expected[i][1], actual[ind])
+        actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']['0'].iloc[:26]
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected), list(actual))
 
     def test_interval_indexer_1b(self):
         # BWV7.7: first 26 things in soprano part (no settings specified)
         test_parts = [self.bwv77_soprano]
-        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual
+        expected = make_series(TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual)
         #setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts)
-        res = int_indexer.run()
-        actual = res[0].iloc[:26]
-        self.assertEqual(len(expected), len(actual))
-        for i, ind in enumerate(list(actual.index)):
-            self.assertEqual(expected[i][0], ind)
-            self.assertEqual(expected[i][1], actual[ind])
+        actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']['0'].iloc[:26]
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected), list(actual))
 
     def test_interval_indexer_1c(self):
         # BWV7.7: first 26 things in soprano part (simple; quality)
         test_parts = [self.bwv77_soprano]
-        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short
+        expected = make_series(TestHorizIntervalIndexerLong.bwv77_S_B_short)
         setts = {u'simple or compound': u'simple', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        res = int_indexer.run()
-        actual = res[0].iloc[:26]
-        self.assertEqual(len(expected), len(actual))
-        for i, ind in enumerate(list(actual.index)):
-            self.assertEqual(expected[i][0], ind)
-            self.assertEqual(expected[i][1], actual[ind])
+        actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']['0'].iloc[:26]
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected), list(actual))
 
     def test_interval_indexer_1d(self):
         # BWV7.7: first 26 things in soprano part (simple; no quality)
         test_parts = [self.bwv77_soprano]
-        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual
+        expected = make_series(TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual)
         setts = {u'simple or compound': u'simple', u'quality': False}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        res = int_indexer.run()
-        actual = res[0].iloc[:26]
-        self.assertEqual(len(expected), len(actual))
-        for i, ind in enumerate(list(actual.index)):
-            self.assertEqual(expected[i][0], ind)
-            self.assertEqual(expected[i][1], actual[ind])
+        actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']['0'].iloc[:26]
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected), list(actual))
 
     def test_interval_indexer_2(self):
         # BWV7.7: whole soprano part
+        # NB: this test is more rigourous than the others, since it actually uses the DataFrame
         test_parts = [self.bwv77_soprano]
-        expected = TestHorizIntervalIndexerLong.bwv77_S_B_basis
+        expected = {'0': make_series(TestHorizIntervalIndexerLong.bwv77_S_B_basis)}
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        res = int_indexer.run()
-        actual = res[0]
-        self.assertEqual(len(expected), len(actual))
-        for i, ind in enumerate(list(actual.index)):
-            self.assertEqual(expected[i][0], ind)
-            self.assertEqual(expected[i][1], actual[ind])
+        actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']
+        self.assertEqual(len(expected), len(actual.columns))
+        for key in expected.iterkeys():
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
 
 #-------------------------------------------------------------------------------------------------#

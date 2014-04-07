@@ -242,7 +242,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     Use :class:`music21.interval.Interval` to create an index of the horizontal (melodic) intervals
     in a single part.
 
-    You should provide the result of :class:`NoteRestIndexer`.
+    You should provide the result of :class:`~vis.analyzers.noterest.NoteRestIndexer`.
     """
 
     def __init__(self, score, settings=None):
@@ -251,9 +251,8 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
         :type score: list of :class:`pandas.Series`
-        :param settings: Required and optional settings. See descriptions in \
+        :param dict settings: Required and optional settings. See descriptions in \
             :const:`IntervalIndexer.possible_settings`.
-        :type settings: ``dict``
         """
         super(HorizontalIntervalIndexer, self).__init__(score, settings)
 
@@ -261,11 +260,20 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
-        :returns: A list of the new indices. The index of each Series corresponds to the index it \
-            has in the list of :class:`Series` given to the constructor.
-        :rtype: ``list`` of :class:`pandas.Series`
+        :returns: The new indices. Refer to the example below.
+        :rtype: :class:`pandas.DataFrame`
+
+        **Example:**
+
+        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
+        >>> the_score.parts[5]
+        (the first clarinet Part)
+        >>> the_notes = NoteRestIndexer(the_score).run()
+        >>> the_notes['noterest.NoteRestIndexer']['5']
+        (the first clarinet Series)
+        >>> the_intervals = HorizontalIntervalIndexer(the_notes).run()
+        >>> the_intervals['interval.HorizontalIntervalIndexer']['5']
+        (Series with melodic intervals of the first clarinet)
         """
         # This indexer is a little tricky, since we must fake "horizontality" so we can use the
         # same _do_multiprocessing() method as in the IntervalIndexer.
@@ -274,6 +282,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # first element, and the other will be missing the last element. We'll also use the index
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
+        combination_labels = [unicode(x) for x in xrange(len(self._score))]
         new_parts = [x.iloc[1:] for x in self._score]
         self._score = [pandas.Series(x.values[:-1], index=x.index.tolist()[1:]) for x in self._score]
 
@@ -284,6 +293,5 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # "upper voice," so ascending intervals don't get a direction.
         combinations = [[new_zero + x, x] for x in xrange(new_zero)]
 
-        # This method returns once all computation is complete. The results are returned as a list
-        # of Series objects in the same order as the "combinations" argument.
-        return self._do_multiprocessing(combinations)
+        results = self._do_multiprocessing(combinations)
+        return  self.make_return(combination_labels, results)
