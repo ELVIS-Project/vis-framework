@@ -166,21 +166,27 @@ def series_indexer(pipe_index, parts, indexer_func):
 
 class Indexer(object):
     """
-    Create an index from a :class:`music21.stream.Stream`, :class:`pandas.Series`, or
-    :class:`pandas.DataFrame`.
+    An object that manages creating an index of a piece, or part of a piece, based on one feature.
 
-    Use the :attr:`requires_score` attribute to know whether :meth:`__init__` requires a list of
-    :class:`~music21.stream.Part` objects. If ``False``, read the documentation to know which
-    indexers' results it requires.
+    Use the :attr:`required_score_type` attribute to know what type of object is required in
+    :meth:`__init__`.
 
-    The name of the indexer, as stored in an :class:`IndexedPiece`, is the unicode-format version
-    of the class name.
+    The name of the indexer, as stored in the :class:`DataFrame` it returns, is the module name and
+    class name. For example, the name of the :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
+    is ``'interval.IntervalIndexer'``.
+
+    .. caution::
+        This module underwent significant changes for  release 2.0.0. In particular, the
+        constructor's ``score`` argument and the :meth:`run` method's return type have changed.
     """
 
     # just the standard instance variables
     required_score_type = None
+    "Described in the :class:`~vis.analyzers.indexers.template.TemplateIndexer`."
     possible_settings = {}
+    "Described in the :class:`~vis.analyzers.indexers.template.TemplateIndexer`."
     default_settings = {}
+    "Described in the :class:`~vis.analyzers.indexers.template.TemplateIndexer`."
     # self._score  # this will hold the input data
     # self._indexer_func  # this function will do the indexing
     # self._types  # if the input is a Score, this is a list of types we'll use for the index
@@ -202,12 +208,10 @@ class Indexer(object):
     # pylint: disable=W0613
     def __init__(self, score, settings=None):
         """
-        Create a new :class:`Indexer`.
-
         :param score: The input from which to produce a new index. Each indexer will specify its
-            required input type, but also refer to the note below.
+            required input type, of which there will be one. Also refer to the note below.
         :type score: :class:`pandas.DataFrame`, :class:`music21.stream.Score`, or list of \
-            :class:`pandas.Series` or :class:`music21.stream.Part`
+            :class:`pandas.Series` or of :class:`music21.stream.Part`
         :param settings: A dict of all the settings required by this :class:`Indexer`. All required
             settings should be listed in subclasses. Default is ``None``.
         :type settings: dict or None
@@ -271,7 +275,7 @@ class Indexer(object):
         """
         Make a new index of the piece.
 
-        :returns: The new indices. Refer to the note below.
+        :returns: The new indices. Refer to the section below.
         :rtype: :class:`pandas.DataFrame`
 
         **About Return Values:**
