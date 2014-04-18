@@ -25,15 +25,82 @@
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 
-Indexers related to dissonance.
+Indexers related to dissonance:
+
+* :class:`DissonanceIndexer` removes non-dissonant intervals.
+* :class:`SuspensionIndexer` distinguishes suspensions from other dissonances.
 """
 
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
 # pylint: disable=W0105
 
-from numpy import nan
+from numpy import nan, isnan
 import pandas
 from vis.analyzers import indexer
+
+
+# used by susp_ind_func() as the labels for suspensions and other dissonances
+_susp_susp_label = u'susp'
+_susp_other_label = u'nan'  # TODO: make this actually nan
+
+
+def susp_ind_func(obj):
+    """
+    Indexer function for the :class:`SuspensionIndexer`. This function processes all parts, and
+    returns a :class:`Series` that should be used as a row for the :class:`DataFrame` that will be
+    the resulting index returned by :class:`SuspensionIndexer`.
+
+    :param obj: A 2-tuple with adjacent rows from the indexer's requested :class:`DataFrame`. If
+        the first row has index ``i`` in the :class:`DataFrame`, the second row should have index
+        ``i + 1``.
+    :type obj: 2-tuple of :class:`pandas.Series`
+
+    :returns: A row for the new index's :class:`DataFrame`. The row's proper offset is that of the
+        *second* :class:`Series` in the ``obj`` argument.
+    :rtype: :class:`pandas.Series` of unicode string
+    """
+    # Description of the variables:
+    # - x: melodic interval of lower part into suspension, not unison (upper part is unison)
+    # - d: dissonant harmonic interval
+    # - y: melodic interval of lower part out of suspension (upper part is -2)
+    # - z: d-y if y >= 1 else d-y-2 (it's the resolution vert-int)
+
+    # for better legibility (i.e., shorter lines)
+    diss_ind = u'dissonance.DissonanceIndexer'
+    horiz_int_ind = u'interval.HorizontalIntervalIndexer'
+    int_ind = u'interval.IntervalIndexer'
+
+    one_row, next_row = obj
+    post = []
+    for combo in one_row[diss_ind].index:
+        upper_i = int(combo.split(u',')[0])  # TODO: unused?
+        lower_i = int(combo.split(u',')[0])
+        # is there a dissonance?
+        if (isinstance(one_row[diss_ind][combo], basestring) or
+            (not isnan(one_row[diss_ind][combo]))):
+            # check x (lower part of melodic into diss)
+            if one_row[horiz_int_ind][lower_i] == 'P1':
+                post.append(_susp_other_label)
+                continue
+            # set d (diss vert int)
+            d = int(one_row[diss_ind][combo][-1:])
+            # set y (lower part melodic out of diss)
+            y = (1 if (not isinstance(next_row[horiz_int_ind][lower_i], basestring)
+                   and isnan(next_row[horiz_int_ind][lower_i]))
+                 else int(next_row[horiz_int_ind][lower_i][-1:]))
+            # set z (vert int after diss)
+            try:
+                z = int(next_row[int_ind][combo][-1:])
+            except TypeError:  # happens when 'z' is NaN
+                z = 1
+            # deal with z
+            if (y >= y and d - y == z) or (d - y - 2 == z):
+                post.append(_susp_susp_label)
+            else:
+                post.append(_susp_other_label)
+        else:
+            post.append(nan)
+    return pandas.Series(post, index=one_row[diss_ind].index)
 
 
 class DissonanceIndexer(indexer.Indexer):
@@ -172,3 +239,77 @@ class DissonanceIndexer(indexer.Indexer):
         post = post.apply(DissonanceIndexer.nan_consonance, axis=1)
         return self.make_return([x for x in post.columns],
                                 [post[x] for x in post.columns])
+
+
+class SuspensionIndexer(indexer.Indexer):
+    """
+    Mark dissonant intervals as a suspension or another dissonance.
+    """
+
+    required_score_type = 'pandas.DataFrame'
+    """
+    Depending on how this indexer works, you must provide a :class:`DataFrame`, a :class:`Score`,
+    or list of :class:`Part` or :class:`Series` objects. Only choose :class:`Part` or
+    :class:`Series` if the input will always have single-integer part combinations (i.e., there are
+    no combinations---it will be each part independently).
+    """
+
+    possible_settings = [u'suspension_label', u'other_label']
+    """
+    You may change the words used to label suspensions and other dissonances.
+
+    :keyword 'suspension_label': The string used to label suspensions.
+    :type 'suspension_label': basestring
+    :keyword 'other_label': The string used to label other dissonances.
+    :type 'other_label': basestring
+    """
+
+    default_settings = {u'suspension_label': u'susp', u'other_label': u''}
+
+    def __init__(self, score, settings=None):
+        """
+        :param score: The input from which to produce a new index. You must provide a
+            :class:`DataFrame` with results from the
+            :class:`~vis.analyzers.indexers.interval.IntervalIndexer`, the
+            :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`, and the
+            :class:`DissonanceIndexer. The :class:`DataFrame` may contain results from additional
+            indexers, which will be ignored.
+        :type score: :class:`pandas.DataFrame`
+        :param settings: This indexer has no settings, so this is ignored.
+        :type settings: NoneType
+
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
+        :raises: :exc:`IndexError` if ``required_score_type`` is ``'pandas.Series'`` and the
+            ``score`` argument is an improperly-formatted :class:`DataFrame` (e.g., it does not
+            contain results of the required indexers, or the columns do not have a
+            :class:`MultiIndex`).
+        """
+        super(SuspensionIndexer, self).__init__(score, None)
+        self._indexer_func = susp_ind_func
+        # TODO: write the settings
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        :returns: The new indices.
+        :rtype: :class:`pandas.DataFrame`
+
+        .. important:: Please be sure you read and understand the rules about return values in the
+            full documentation for :meth:`~vis.analyzers.indexer.Indexer.run` and
+            :func:`~vis.analyzers.indexer.Indexer.make_return`.
+        """
+        # TODO: implement this in parallel
+        results = []
+        for i in xrange(len(self._score.index) - 1):
+            results.append(susp_ind_func((self._score.iloc[i], self._score.iloc[i + 1])))
+
+        # Add results for the first offset in the piece. It obviously can't be a suspension, since
+        # it wouldn't have been prepared. (Why the first offset? See susp_ind_func()).
+        results.insert(0, pandas.Series([nan for _ in xrange(len(results[0]))]))
+
+        # Convert from the list of Series into a DataFrame. Each inputted Series becomes a row.
+        results = pandas.DataFrame({self._score.index[j]: results[i] for i, j in enumerate(self._score.index)}).T
+
+        # the part names are the column names
+        return self.make_return(list(results.columns), [results[i] for i in results.columns])
