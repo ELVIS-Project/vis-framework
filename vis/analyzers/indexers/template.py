@@ -121,7 +121,8 @@ class TemplateIndexer(indexer.Indexer):
             argument.
         :raises: :exc:`IndexError` if ``required_score_type`` is ``'pandas.Series'`` and the
             ``score`` argument is an improperly-formatted :class:`DataFrame` (e.g., it contains the
-            results of more than one indexer, or the columns do not have a :class:`MultiInex`).
+            results of more than one indexer, does not contain results of the required indexers,
+            or the columns do not have a :class:`MultiIndex`).
         """
         # NOTE: you should make the exceptions more specific, if possible
 
