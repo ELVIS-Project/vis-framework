@@ -39,21 +39,27 @@ import pandas
 from vis.analyzers import indexer
 
 
-# used by susp_ind_func() as the labels for suspensions and other dissonances
-_susp_susp_label = u'susp'
-_susp_other_label = u'nan'  # TODO: make this actually nan
+# Used by susp_ind_func() as the labels for suspensions and other dissonances. They're module-level
+# so they can be changed, and possibly withstand multiprocessing... and so the unit tests can
+# modify them to more easily check the classification.
+_SUSP_SUSP_LABEL = u'susp'
+_SUSP_OTHER_LABEL = nan
+_SUSP_NODISS_LABEL = nan
 
 
 def susp_ind_func(obj):
+    # TODO: what about descending intervals?
     """
     Indexer function for the :class:`SuspensionIndexer`. This function processes all parts, and
     returns a :class:`Series` that should be used as a row for the :class:`DataFrame` that will be
     the resulting index returned by :class:`SuspensionIndexer`.
 
-    :param obj: A 2-tuple with adjacent rows from the indexer's requested :class:`DataFrame`. If
-        the first row has index ``i`` in the :class:`DataFrame`, the second row should have index
-        ``i + 1``.
-    :type obj: 2-tuple of :class:`pandas.Series`
+    The suspect dissonances occur in the second row.
+
+    :param obj: A 3-element iterable with adjacent rows from the indexer's requested
+        :class:`DataFrame`. If the first row has index ``i`` in the :class:`DataFrame`, the second
+        row should have index ``i + 1``, and the third ``i + 2``.
+    :type obj: 3-tuple of :class:`pandas.Series`
 
     :returns: A row for the new index's :class:`DataFrame`. The row's proper offset is that of the
         *second* :class:`Series` in the ``obj`` argument.
@@ -70,37 +76,39 @@ def susp_ind_func(obj):
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
     int_ind = u'interval.IntervalIndexer'
 
-    one_row, next_row = obj
-    post = []
-    for combo in one_row[diss_ind].index:
-        upper_i = int(combo.split(u',')[0])  # TODO: unused?
-        lower_i = int(combo.split(u',')[0])
+    row_one, row_two, row_three = obj
+
+    # this avoids the list's reallocation penalty if we used append()
+    post = [None for _ in xrange(len(row_one[diss_ind].index))]
+    for post_i, combo in enumerate(row_one[diss_ind].index):
+        lower_i = int(combo.split(u',')[1])
         # is there a dissonance?
-        if (isinstance(one_row[diss_ind][combo], basestring) or
-            (not isnan(one_row[diss_ind][combo]))):
-            # check x (lower part of melodic into diss)
-            if one_row[horiz_int_ind][lower_i] == 'P1':
-                post.append(_susp_other_label)
+        if (isinstance(row_two[diss_ind][combo], basestring) or
+            (not isnan(row_two[diss_ind][combo]))):
+            # check x (melodic of lower part into diss)
+            if row_one[horiz_int_ind][lower_i] == 'P1':
+                post[post_i] = _SUSP_OTHER_LABEL
                 continue
-            # set d (diss vert int)
-            d = int(one_row[diss_ind][combo][-1:])
+            # set d (the dissonant vertical interval)
+            d = int(row_two[diss_ind][combo][-1:])
             # set y (lower part melodic out of diss)
-            y = (1 if (not isinstance(next_row[horiz_int_ind][lower_i], basestring)
-                   and isnan(next_row[horiz_int_ind][lower_i]))
-                 else int(next_row[horiz_int_ind][lower_i][-1:]))
+            y = (1 if (not isinstance(row_two[horiz_int_ind][lower_i], basestring)
+                   and isnan(row_two[horiz_int_ind][lower_i]))
+                 else int(row_two[horiz_int_ind][lower_i][-1:]))
             # set z (vert int after diss)
             try:
-                z = int(next_row[int_ind][combo][-1:])
+                z = int(row_three[int_ind][combo][-1:])
             except TypeError:  # happens when 'z' is NaN
                 z = 1
             # deal with z
+            #print('*** d, y, z: ' + str(d) + ', ' + str(y) + ', ' + str(z))  # DEBUG
             if (y >= y and d - y == z) or (d - y - 2 == z):
-                post.append(_susp_susp_label)
+                post[post_i] = _SUSP_SUSP_LABEL
             else:
-                post.append(_susp_other_label)
+                post[post_i] = _SUSP_OTHER_LABEL
         else:
-            post.append(nan)
-    return pandas.Series(post, index=one_row[diss_ind].index)
+            post[post_i] = _SUSP_NODISS_LABEL
+    return pandas.Series(post, index=row_one[diss_ind].index)
 
 
 class DissonanceIndexer(indexer.Indexer):

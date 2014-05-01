@@ -26,7 +26,7 @@
 Run the tests for the models
 """
 
-VERBOSITY = 1
+VERBOSITY = 2
 
 # Imports
 import unittest
@@ -37,7 +37,7 @@ from vis.tests import test_indexed_piece, test_aggregated_pieces
 from vis.tests import bwv2_integration_tests as bwv2
 from vis.tests import test_workflow, test_workflow_integration, test_workflow_experiments
 
-test_list = [ \
+test_list = ( \
     # Indexer and Subclasses
     test_indexer.INDEXER_INIT_SUITE,
     test_indexer.MAKE_RETURN_SUITE,
@@ -58,6 +58,7 @@ test_list = [ \
     test_lilypond.PART_NOTES_SUITE,
     test_lilypond.LILYPOND_SUITE,
     test_dissonance.DISSONANCE_INDEXER_SUITE,
+    test_dissonance.SUSPENSION_INDEXER_SUITE,
     test_metre.BEATSTRENGTH_INDEXER_SUITE,
     # Experimenter and Subclasses
     test_frequency_experimenter.FREQUENCY_FUNC_SUITE,
@@ -82,7 +83,7 @@ test_list = [ \
     bwv2.ALL_VOICE_INTERVAL_NGRAMS,
     test_workflow_integration.INTERVALS_TESTS,
     test_workflow_integration.NGRAMS_TESTS,
-    ]
+    )
 
 # Test runner
 for each_test in test_list:
