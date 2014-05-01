@@ -277,6 +277,9 @@ class SuspensionIndexer(indexer.Indexer):
 
     default_settings = {u'suspension_label': u'susp', u'other_label': u''}
 
+    # Text for the RuntimeError raised when a score has fewer than 3 event offsets.
+    _TOO_SHORT_ERROR = u'SuspensionIndexer: input must have at least 3 events'
+
     def __init__(self, score, settings=None):
         """
         :param score: The input from which to produce a new index. You must provide a
@@ -289,15 +292,18 @@ class SuspensionIndexer(indexer.Indexer):
         :param settings: This indexer has no settings, so this is ignored.
         :type settings: NoneType
 
+        .. note:: The :meth:`run` method will raise a :exc:`KeyError` if ``score`` does not contain
+            results from the required indices.
+
         :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
-        :raises: :exc:`IndexError` if ``required_score_type`` is ``'pandas.Series'`` and the
-            ``score`` argument is an improperly-formatted :class:`DataFrame` (e.g., it does not
-            contain results of the required indexers, or the columns do not have a
-            :class:`MultiIndex`).
+        :raises: :exc:`RuntimeError` if the ``score`` argument has fewer than three event offsets,
+            which is the minimum required for a suspension (preparation, dissonance, resolution).
+            An exception here prevents an error later.
         """
         super(SuspensionIndexer, self).__init__(score, None)
+        if len(score.index) < 3:
+            raise RuntimeError(SuspensionIndexer._TOO_SHORT_ERROR)
         self._indexer_func = susp_ind_func
-        # TODO: write the settings
 
     def run(self):
         """
@@ -305,7 +311,12 @@ class SuspensionIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` with suspensions labeled *and* all inputted indices.
         :rtype: :class:`pandas.DataFrame`
+
+        :raises: :exc:`KeyError` if the ``score`` given to the constructor was an
+            improperly-formatted :class:`DataFrame` (e.g., it does not contain results of the
+            required indexers, or the columns do not have a :class:`MultiIndex`).
         """
+        # NB: it's actually susp_ind_func() that raises the KeyError
 
         # this avoids the list's reallocation penalty if we used append()
         post = [None for _ in xrange(len(self._score.index))]
@@ -320,8 +331,6 @@ class SuspensionIndexer(indexer.Indexer):
         for i in [0, -1]:
             post[i] = pandas.Series([_SUSP_NODISS_LABEL for _ in xrange(len(post[1]))],
                                     index=post[1].index)
-        # TODO: test what happens when you get a score with three and fewer than three offsets
-        # TODO: maybe the problem is that I'm not "forward filling" properly with the vertical intervals?
 
         # Convert from the list of Series into a DataFrame. Each inputted Series becomes a row.
         post = pandas.DataFrame({j: post[i] for i, j in enumerate(self._score.index)}).T

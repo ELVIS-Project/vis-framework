@@ -537,6 +537,59 @@ class TestSuspensionIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected.iloc[i].index), list(actual.iloc[i].index))
             self.assertSequenceEqual(list(expected.iloc[i].values), list(actual.iloc[i].values))
 
+    def test_run_3(self):
+        # Combining the complexities of test_run_1() and test_run_2(), to know what happens with
+        # scores that have only three offsets.
+        # 1.) prepare inputs
+        in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(3)])})
+        in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
+        in_frame.index = pandas.Index([i / 2.0 for i in xrange(3)])
+        # Susp_Ind_Func mock's Side Effect
+        sifse = lambda x: pandas.Series((x[0].iloc[0], x[1].iloc[0], x[2].iloc[0]),
+                                        index=('left', 'middle', 'right'))
+        # we have to change this so we don't have to use isnan() in step 3, which is complicated
+        dissonance._SUSP_NODISS_LABEL = 'nan'
+        # 2.1.) prepare exp_run for run()
+        mind = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),
+                                              ('dissonance.SuspensionIndexer', 'left'),
+                                              ('dissonance.SuspensionIndexer', 'middle'),
+                                              ('dissonance.SuspensionIndexer', 'right')))
+        rows = ((0, dissonance._SUSP_NODISS_LABEL,
+                 dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL),
+                (1, 0, 1, 2),
+                (2, dissonance._SUSP_NODISS_LABEL,
+                 dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL))
+        exp_run = pandas.DataFrame({(i / 2.0): pandas.Series(rows[i], index=mind)
+                                    for i in xrange(3)}).T
+        # 2.2.) prepare exp_run for susp_ind_func()
+        exp_sif = [[pandas.Series(i, index=(('FakeIndexer', 'col'),)) for i in xrange(3)]]
+        # 3.) run
+        with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
+            sif.side_effect = sifse
+            actual = dissonance.SuspensionIndexer(in_frame).run()
+            calist = sif.call_args_list
+        # 4.1) check for run()
+        self.assertSequenceEqual(list(exp_run.index), list(actual.index))
+        for i in xrange(len(exp_run.index)):
+            self.assertSequenceEqual(list(exp_run.iloc[i].index), list(actual.iloc[i].index))
+            self.assertSequenceEqual(list(exp_run.iloc[i].values), list(actual.iloc[i].values))
+        # 4.2.) check for susp_ind_func()
+        self.assertEqual(len(exp_sif), len(calist))  # same number of calls
+        for i in xrange(len(exp_sif)):
+            self.assertEqual(len(exp_sif[i]), len(calist[i][0][0]))  # same nr of args per call
+            for j in xrange(len(exp_sif[i])):
+                # check indices then values
+                self.assertSequenceEqual(list(exp_sif[i][j].index),
+                                            list(calist[i][0][0][j].index))
+                self.assertSequenceEqual(list(exp_sif[i][j].values),
+                                            list(calist[i][0][0][j].values))
+
+    def test_init_1(self):
+        # an exception is raised about a score that's too short (fewer than 3 offsets)
+        in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(2)])})
+        in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
+        in_frame.index = pandas.Index([i / 2.0 for i in xrange(2)])
+        self.assertRaises(RuntimeError, dissonance.SuspensionIndexer, in_frame)
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
