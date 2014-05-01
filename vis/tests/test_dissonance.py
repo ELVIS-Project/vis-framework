@@ -31,6 +31,7 @@
 
 
 import unittest
+import mock
 from numpy import nan, isnan
 import pandas
 from vis.analyzers.indexers import dissonance
@@ -464,6 +465,78 @@ class TestSuspensionIndexer(unittest.TestCase):
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         for key in expected.index:
             self.assertEqual(expected[key], actual[key])
+
+    def test_run_1(self):
+        # Given a DataFrame with a bunch of rows, ensure run() gives them to susp_ind_func(),
+        # three at a time, in the right order.
+        # 1.) prepare inputs
+        in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(10)])})
+        in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
+        # Susp_Ind_Func mock's Side Effect (bare minimum for the method to not fail)
+        sifse = lambda x: pandas.Series((None,), index=('None',))
+        # 2.) prepare expected
+        expected = []
+        for i in xrange(8):  # because we won't want to start on .iloc[8] or 9
+            # NB: this is a bit of a hack, since it doesn't technically make a MultiIndex, but
+            #     when we run .index through list() it will look the same
+            arg = [pandas.Series([j], index=[('FakeIndexer', 'col')], name=j)
+                   for j in [i, i + 1, i + 2]]
+            expected.append(arg)
+        # 3.) run and check
+        with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
+            sif.side_effect = sifse
+            dissonance.SuspensionIndexer(in_frame).run()
+            calist = sif.call_args_list
+        self.assertEqual(len(expected), len(calist))  # same number of calls
+        for i in xrange(len(expected)):
+            self.assertEqual(len(expected[i]), len(calist[i][0][0]))  # same nr of args per call
+            for j in xrange(len(expected[i])):
+                # check indices then values
+                self.assertSequenceEqual(list(expected[i][j].index),
+                                            list(calist[i][0][0][j].index))
+                self.assertSequenceEqual(list(expected[i][j].values),
+                                            list(calist[i][0][0][j].values))
+
+    def test_run_2(self):
+        # Given the same input as test_run_1(), with predetermined results from susp_ind_func(),
+        # ensure run() reinserts the results properly
+        # 1.) prepare inputs
+        in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(10)])})
+        in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
+        in_frame.index = pandas.Index([i / 2.0 for i in xrange(10)])
+        # Susp_Ind_Func mock's Side Effect
+        sifse = lambda x: pandas.Series((x[0].iloc[0], x[1].iloc[0], x[2].iloc[0]),
+                                        index=('left', 'middle', 'right'))
+        # we have to change this so we don't have to use isnan() in step 3, which is complicated
+        dissonance._SUSP_NODISS_LABEL = 'nan'
+        # 2.) prepare expected
+        mind = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),
+                                              ('dissonance.SuspensionIndexer', 'left'),
+                                              ('dissonance.SuspensionIndexer', 'middle'),
+                                              ('dissonance.SuspensionIndexer', 'right')))
+        rows = ((0, dissonance._SUSP_NODISS_LABEL,
+                 dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL),
+                (1, 0, 1, 2),
+                (2, 1, 2, 3),
+                (3, 2, 3, 4),
+                (4, 3, 4, 5),
+                (5, 4, 5, 6),
+                (6, 5, 6, 7),
+                (7, 6, 7, 8),
+                (8, 7, 8, 9),
+                (9, dissonance._SUSP_NODISS_LABEL,
+                 dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL))
+        expected = pandas.DataFrame({(i / 2.0): pandas.Series(rows[i], index=mind)
+                                     for i in xrange(10)}).T
+        # 3.) run and check
+        with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
+            sif.side_effect = sifse
+            actual = dissonance.SuspensionIndexer(in_frame).run()
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        for i in xrange(len(expected.index)):
+            self.assertSequenceEqual(list(expected.iloc[i].index), list(actual.iloc[i].index))
+            self.assertSequenceEqual(list(expected.iloc[i].values), list(actual.iloc[i].values))
+
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #

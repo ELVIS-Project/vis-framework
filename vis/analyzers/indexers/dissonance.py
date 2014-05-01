@@ -252,6 +252,9 @@ class DissonanceIndexer(indexer.Indexer):
 class SuspensionIndexer(indexer.Indexer):
     """
     Mark dissonant intervals as a suspension or another dissonance.
+
+    Inputted results from the :mod:`interval` module require the same settings as were given to
+    the :class:`DissonanceIndexer.
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -300,24 +303,29 @@ class SuspensionIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        :returns: The new indices.
+        :returns: A :class:`DataFrame` with suspensions labeled *and* all inputted indices.
         :rtype: :class:`pandas.DataFrame`
-
-        .. important:: Please be sure you read and understand the rules about return values in the
-            full documentation for :meth:`~vis.analyzers.indexer.Indexer.run` and
-            :func:`~vis.analyzers.indexer.Indexer.make_return`.
         """
-        # TODO: implement this in parallel
-        results = []
-        for i in xrange(len(self._score.index) - 1):
-            results.append(susp_ind_func((self._score.iloc[i], self._score.iloc[i + 1])))
 
-        # Add results for the first offset in the piece. It obviously can't be a suspension, since
-        # it wouldn't have been prepared. (Why the first offset? See susp_ind_func()).
-        results.insert(0, pandas.Series([nan for _ in xrange(len(results[0]))]))
+        # this avoids the list's reallocation penalty if we used append()
+        post = [None for _ in xrange(len(self._score.index))]
+        for i in xrange(len(self._score.index) - 2):
+            post[i + 1] = susp_ind_func((self._score.iloc[i],
+                                         self._score.iloc[i + 1],
+                                         self._score.iloc[i + 2]))
+
+        # Add post for the final two offsets in the piece. They obviously can't be suspensions,
+        # since they wouldn't  be prepared or resolved. (Make sure we use the same index as the
+        # other rows, or we'll have empty columns in the output).
+        for i in [0, -1]:
+            post[i] = pandas.Series([_SUSP_NODISS_LABEL for _ in xrange(len(post[1]))],
+                                    index=post[1].index)
+        # TODO: test what happens when you get a score with three and fewer than three offsets
+        # TODO: maybe the problem is that I'm not "forward filling" properly with the vertical intervals?
 
         # Convert from the list of Series into a DataFrame. Each inputted Series becomes a row.
-        results = pandas.DataFrame({self._score.index[j]: results[i] for i, j in enumerate(self._score.index)}).T
+        post = pandas.DataFrame({j: post[i] for i, j in enumerate(self._score.index)}).T
 
         # the part names are the column names
-        return self.make_return(list(results.columns), [results[i] for i in results.columns])
+        post = self.make_return(list(post.columns), [post[i] for i in post.columns])
+        return pandas.concat(objs=[self._score, post], axis=1, join='outer')
