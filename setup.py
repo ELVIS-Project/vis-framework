@@ -32,8 +32,8 @@ from setuptools import setup
 
 
 MAJOR = 1
-MINOR = 0
-PATCH = 1
+MINOR = 1
+PATCH = 0
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, PATCH)
 
 setup(
@@ -54,7 +54,7 @@ setup(
         'pandas (>=0.13.1, <0.14)',
         ],
     install_requires = [
-        'music21 >=1.7.1',
+        'music21 >=1.7.1, <1.8',
         'pandas >=0.13.1, <0.14',
         ],
     packages = [
