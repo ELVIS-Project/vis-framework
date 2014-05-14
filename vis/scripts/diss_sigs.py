@@ -76,60 +76,23 @@ beat_strengths = the_piece.get_data([metre.NoteBeatStrengthIndexer],
 new_df = pandas.concat(objs=[notes, intervals, horiz_intervals, dissonances, beat_strengths],
                        axis=1, join='outer')
 
-# indexer function for SuspendionIndexer
-# - x: melodic interval of lower part into suspension, not unison (upper part is unison)
-# - d: dissonant harmonic interval
-# - y: melodic interval of lower part out of suspension (upper part is -2)
-# - z: d-y if y >= 1 else d-y-2 (it's the resolution vert-int)
-def susp_detector(one_row, next_row, offset):
-    post = []
-    for combo in one_row['dissonance.DissonanceIndexer'].index:
-        upper_i = int(combo.split(u',')[0])
-        lower_i = int(combo.split(u',')[0])
-        # is there a dissonance?
-        if (isinstance(one_row['dissonance.DissonanceIndexer'][combo], basestring) or
-            (not isnan(one_row['dissonance.DissonanceIndexer'][combo]))):
-            # check x (lower part of melodic into diss)
-            if one_row['interval.HorizontalIntervalIndexer'][lower_i] == 'P1':
-                post.append('other diss')
-                continue
-            # set d (diss vert int)
-            d = int(one_row['dissonance.DissonanceIndexer'][combo][-1:])
-            # set y (lower part melodic out of diss)
-            y = (1 if (not isinstance(next_row['interval.HorizontalIntervalIndexer'][lower_i], basestring)
-                       and isnan(next_row['interval.HorizontalIntervalIndexer'][lower_i]))
-                 else int(next_row['interval.HorizontalIntervalIndexer'][lower_i][-1:]))
-            # set z (vert int after diss)
-            try:
-                z = int(next_row['interval.IntervalIndexer'][combo][-1:])
-            except TypeError:
-                z = 1
-            # deal with z
-            if (y >= y and d - y == z) or (d - y - 2 == z):
-                post.append('susp')
-            else:
-                post.append('other diss')
-        else:
-            post.append(NaN)
-    return pandas.Series(post, index=one_row['dissonance.DissonanceIndexer'].index)
+
+# "forward fill" the IntervalIndexer results (required by the "dissonance" module)
+new_df = new_df.T
+new_ints = new_df.loc['interval.IntervalIndexer'].fillna(method='ffill', axis=1)
+new_multiindex = [('interval.IntervalIndexer', x) for x in list(new_ints.index)]
+new_ints.index = pandas.MultiIndex.from_tuples(new_multiindex)
+new_df.update(new_ints)
+new_df = new_df.T
+del new_ints
 
 # run() for SuspensionIndexer
-print(u'\n\nRunning the faux SuspensionIndexer...\n')
-results = []
-for i in xrange(len(new_df.index) - 1):
-    results.append(susp_detector(new_df.iloc[i], new_df.iloc[i + 1], i))
-results.append(pandas.Series([NaN for _ in xrange(len(results[0]))]))  # because we did the "- 1" thing in the loop above
-tuples = [(u'prelim-SuspensionIndexer', combo) for combo in results[0].index]
-multiindex = pandas.MultiIndex.from_tuples(tuples, names=[u'Indexer', u'Parts'])
-for i in xrange(len(results)):
-    results[i] = pandas.Series(results[i].values, index=multiindex)
-results = pandas.DataFrame({new_df.index[j]: results[i] for i, j in enumerate(new_df.index)}).T
-
-# add the prelim-SuspensionIndexer results onto the existing results
-new_df = pandas.concat(objs=[new_df, results], axis=1, join='outer')
+print(u'\n\nRunning the SuspensionIndexer...\n')
+new_df = dissonance.SuspensionIndexer(new_df).run()
 
 # output the whole DataFrame to a CSV file, for easy viewing
 new_df.to_csv('test_output/nice_results.csv')
+new_df.to_excel('test_output/nice_results.xlsx')
 
 ## LilyPond Output! ##
 # break a WorkflowManager so we can get annotated score output
