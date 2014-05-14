@@ -33,7 +33,7 @@ from setuptools import setup
 
 MAJOR = 1
 MINOR = 1
-PATCH = 0
+PATCH = 2
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, PATCH)
 
 setup(
@@ -50,11 +50,11 @@ setup(
     requires = [
         # NB: keep this in sync with vis/requirements.txt and vis/optional_requirements.txt
         # NB2: I left out the optional requirements and mock, since they aren't *required*
-        'music21 (>= 1.7.1)',
+        'music21 (>= 1.7.0, <1.8)',
         'pandas (>=0.13.1, <0.14)',
         ],
     install_requires = [
-        'music21 >=1.7.1, <1.8',
+        'music21 >=1.7.0, <1.8',
         'pandas >=0.13.1, <0.14',
         ],
     packages = [
@@ -63,12 +63,13 @@ setup(
         'vis.analyzers',
         'vis.analyzers.indexers',
         'vis.analyzers.experimenters',
+        'outputlilypond',
         ],
     package_data = {'vis': ['scripts/*']},
     classifiers = [
         "Programming Language :: Python",
         "Natural Language :: English",
-        "Development Status :: 5 - Production/Stable",
+        "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Environment :: Web Environment",
         "Intended Audience :: End Users/Desktop",
