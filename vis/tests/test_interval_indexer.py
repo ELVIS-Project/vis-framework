@@ -644,17 +644,20 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
     # data_interval_indexer_1.csv
     bwv77_S_B_short = pandas.read_csv('vis/tests/data_interval_indexer_1.csv',
                                       index_col=0,
-                                      names=['a'])
+                                      names=['a'],
+                                      dtype={'a': str})
 
     # data_interval_indexer_2.csv
     bwv77_S_B_short_noqual = pandas.read_csv('vis/tests/data_interval_indexer_2.csv',
                                              index_col=0,
-                                             names=['a'])
+                                             names=['a'],
+                                             dtype={'a': str})
 
     # data_interval_indexer_3.csv
     bwv77_S_B_basis = pandas.read_csv('vis/tests/data_interval_indexer_3.csv',
                                       index_col=0,
-                                      names=['a'])
+                                      names=['a'],
+                                      dtype={'a': str})
 
     def setUp(self):
         self.bwv77_soprano = make_series(TestNoteRestIndexer.bwv77_soprano)
@@ -704,7 +707,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         # BWV7.7: whole soprano part
         # NB: this test is more rigourous than the others, since it actually uses the DataFrame
         test_parts = [self.bwv77_soprano]
-        expected = {'0': TestHorizIntervalIndexerLong.bwv77_S_B_basis}
+        expected = {'0': TestHorizIntervalIndexerLong.bwv77_S_B_basis['a']}
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']

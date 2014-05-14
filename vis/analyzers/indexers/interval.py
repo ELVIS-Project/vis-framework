@@ -283,8 +283,8 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
         combination_labels = [unicode(x) for x in xrange(len(self._score))]
-        new_parts = [x.iloc[1:] for x in self._score]
-        self._score = [pandas.Series(x.values[:-1], index=x.index.tolist()[1:]) for x in self._score]
+        new_parts = [pandas.Series(x.values[1:], index=x.index[:-1]) for x in self._score]
+        self._score = [pandas.Series(x.values[:-1], index=x.index[:-1]) for x in self._score]
 
         new_zero = len(self._score)
         self._score.extend(new_parts)
