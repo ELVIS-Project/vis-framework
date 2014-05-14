@@ -641,34 +641,20 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
 
 
 class TestHorizIntervalIndexerLong(unittest.TestCase):
-    bwv77_S_B_short = [(0.5, "M2"), (1.0, "m2"), (2.0, "M2"), (3.0, "M2"), (4.0, "-M2"), (5.0, "P4"),
-                       (6.0, "-m2"), (7.0, "-M2"), (8.0, "-M2"), (9.0, "P4"), (10.0, "-m2"),
-                       (11.0, "-M2"), (12.0, "-M2"), (13.0, "-M2"), (14.0, "-m2"), (15.0, "-M2"),
-                       (16.0, "P1"), (16.5, "M2"), (17.0, "m2"), (18.0, "M2"), (19.0, "M2"),
-                       (20.0, "-M2"), (21.0, "P4"), (22.0, "-m2"), (23.0, "-M2"), (24.0, "-M2")]
+    # data_interval_indexer_1.csv
+    bwv77_S_B_short = pandas.read_csv('vis/tests/data_interval_indexer_1.csv',
+                                      index_col=0,
+                                      names=['a'])
 
-    bwv77_S_B_short_noqual = [(0.5, "2"), (1.0, "2"), (2.0, "2"), (3.0, "2"), (4.0, "-2"), (5.0, "4"),
-                              (6.0, "-2"), (7.0, "-2"), (8.0, "-2"), (9.0, "4"), (10.0, "-2"),
-                              (11.0, "-2"), (12.0, "-2"), (13.0, "-2"), (14.0, "-2"), (15.0, "-2"),
-                              (16.0, "1"), (16.5, "2"), (17.0, "2"), (18.0, "2"), (19.0, "2"),
-                              (20.0, "-2"), (21.0, "4"), (22.0, "-2"), (23.0, "-2"), (24.0, "-2")]
+    # data_interval_indexer_2.csv
+    bwv77_S_B_short_noqual = pandas.read_csv('vis/tests/data_interval_indexer_2.csv',
+                                             index_col=0,
+                                             names=['a'])
 
-    bwv77_S_B_basis = [(0.5, "M2"), (1.0, "m2"), (2.0, "M2"), (3.0, "M2"), (4.0, "-M2"), (5.0, "P4"),
-                       (6.0, "-m2"), (7.0, "-M2"), (8.0, "-M2"), (9.0, "P4"), (10.0, "-m2"),
-                       (11.0, "-M2"), (12.0, "-M2"), (13.0, "-M2"), (14.0, "-m2"), (15.0, "-M2"),
-                       (16.0, "P1"), (16.5, "M2"), (17.0, "m2"), (18.0, "M2"), (19.0, "M2"),
-                       (20.0, "-M2"), (21.0, "P4"), (22.0, "-m2"), (23.0, "-M2"), (24.0, "-M2"),
-                       (25.0, "P4"), (26.0, "-m2"), (27.0, "-M2"), (28.0, "-M2"), (29.0, "-M2"),
-                       (30.0, "-m2"), (31.0, "-M2"), (32.0, "P1"), (33.0, "P4"), (34.0, "P1"),
-                       (34.5, "-M2"), (35.0, "-m2"), (36.0, "P4"), (37.0, "P1"), (38.0, "-m2"),
-                       (39.0, "m2"), (40.0, "P1"), (41.0, "P4"), (42.0, "P1"), (43.0, "M2"),
-                       (43.5, "-M2"), (44.0, "-M2"), (45.0, "M2"), (45.5, "-M2"), (46.0, "-m2"),
-                       (47.0, "-M2"), (48.0, "M2"), (49.0, "m2"), (50.0, "-m2"), (51.0, "-M2"),
-                       (52.0, "-M2"), (53.0, "M2"), (53.5, "-M2"), (54.0, "-M2"), (55.0, "-m2"),
-                       (56.0, "-M2"), (56.5, "M2"), (57.0, "m2"), (58.0, "M2"), (59.0, "M2"),
-                       (60.0, "-M2"), (60.5, "-M2"), (61.0, "M2"), (61.5, "-M2"), (62.0, "-m2"),
-                       (63.0, "-M2"), (64.0, "P8"), (65.0, "P1"), (66.0, "P1"), (67.0, "M2"),
-                       (68.0, "-M2"), (69.0, "-M2"), (70.0, "-m2"), (71.0, "-M2")]
+    # data_interval_indexer_3.csv
+    bwv77_S_B_basis = pandas.read_csv('vis/tests/data_interval_indexer_3.csv',
+                                      index_col=0,
+                                      names=['a'])
 
     def setUp(self):
         self.bwv77_soprano = make_series(TestNoteRestIndexer.bwv77_soprano)
@@ -677,7 +663,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
     def test_interval_indexer_1a(self):
         # BWV7.7: first 26 things in soprano part
         test_parts = [self.bwv77_soprano]
-        expected = make_series(TestHorizIntervalIndexerLong.bwv77_S_B_short)
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short['a']
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']['0'].iloc[:26]
@@ -687,7 +673,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
     def test_interval_indexer_1b(self):
         # BWV7.7: first 26 things in soprano part (no settings specified)
         test_parts = [self.bwv77_soprano]
-        expected = make_series(TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual)
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual['a']
         #setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts)
         actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']['0'].iloc[:26]
@@ -697,7 +683,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
     def test_interval_indexer_1c(self):
         # BWV7.7: first 26 things in soprano part (simple; quality)
         test_parts = [self.bwv77_soprano]
-        expected = make_series(TestHorizIntervalIndexerLong.bwv77_S_B_short)
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short['a']
         setts = {u'simple or compound': u'simple', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']['0'].iloc[:26]
@@ -707,7 +693,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
     def test_interval_indexer_1d(self):
         # BWV7.7: first 26 things in soprano part (simple; no quality)
         test_parts = [self.bwv77_soprano]
-        expected = make_series(TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual)
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual['a']
         setts = {u'simple or compound': u'simple', u'quality': False}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']['0'].iloc[:26]
@@ -718,7 +704,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         # BWV7.7: whole soprano part
         # NB: this test is more rigourous than the others, since it actually uses the DataFrame
         test_parts = [self.bwv77_soprano]
-        expected = {'0': make_series(TestHorizIntervalIndexerLong.bwv77_S_B_basis)}
+        expected = {'0': TestHorizIntervalIndexerLong.bwv77_S_B_basis}
         setts = {u'simple or compound': u'compound', u'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         actual = int_indexer.run()[u'interval.HorizontalIntervalIndexer']
@@ -730,7 +716,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
 
 
 #-------------------------------------------------------------------------------------------------#
-# Definitions                                                                                      #
+# Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
 INTERVAL_INDEXER_SHORT_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerShort)
 INTERVAL_INDEXER_LONG_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestIntervalIndexerLong)
