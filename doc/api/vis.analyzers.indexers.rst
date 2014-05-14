@@ -9,14 +9,6 @@ indexers Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`dissonance` Module
-----------------------
-
-.. automodule:: vis.analyzers.indexers.dissonance
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 :mod:`interval` Module
 ----------------------
 
@@ -29,14 +21,6 @@ indexers Package
 ----------------------
 
 .. automodule:: vis.analyzers.indexers.lilypond
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`metre` Module
-----------------------
-
-.. automodule:: vis.analyzers.indexers.metre
     :members:
     :undoc-members:
     :show-inheritance:
