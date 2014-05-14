@@ -29,6 +29,19 @@ Indexers related to dissonance:
 
 * :class:`DissonanceIndexer` removes non-dissonant intervals.
 * :class:`SuspensionIndexer` distinguishes suspensions from other dissonances.
+
+**Forward Fill the IntervalIndexer**
+
+The :class:`DissonanceIndexer` and :class:`SuspensionIndexer` require you to "forward fill" the
+:class:`IntervalIndexer`. You may do this in a variety of ways, including this, where ``input_df``
+is the DataFrame you wish to modify::
+
+    input_df = input_df.T
+    new_intervals = input_df.loc['interval.IntervalIndexer'].fillna(method='ffill', axis=1)
+    new_multiindex = [('interval.IntervalIndexer', x) for x in list(new_intervals.index)]
+    new_intervals.index = pandas.MultiIndex.from_tuples(new_multiindex)
+    input_df.update(new_intervals)
+    input_df = input_df.T
 """
 
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
@@ -48,7 +61,7 @@ _SUSP_NODISS_LABEL = nan
 
 
 def susp_ind_func(obj):
-    # TODO: what about descending intervals?
+    # TODO: what about rests?
     """
     Indexer function for the :class:`SuspensionIndexer`. This function processes all parts, and
     returns a :class:`Series` that should be used as a row for the :class:`DataFrame` that will be
@@ -137,6 +150,10 @@ class DissonanceIndexer(indexer.Indexer):
             You *must* include interval quality and *must not* use compound intervals.
         :type score: :class:`pandas.DataFrame`
         :param NoneType settings: There are no settings.
+
+        .. warning:: The :class:`DissonanceIndexer` requires the results of the
+            :class:`IntervalIndexer` to have been "forward filled," or there will be errors. Do not
+            "forward fill" other indices.
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
@@ -291,6 +308,10 @@ class SuspensionIndexer(indexer.Indexer):
         :type score: :class:`pandas.DataFrame`
         :param settings: This indexer has no settings, so this is ignored.
         :type settings: NoneType
+
+        .. warning:: The :class:`SuspensionIndexer` requires the results of the
+            :class:`IntervalIndexer` to have been "forward filled," or there will be errors. Do not
+            "forward fill" other indices.
 
         .. note:: The :meth:`run` method will raise a :exc:`KeyError` if ``score`` does not contain
             results from the required indices.
