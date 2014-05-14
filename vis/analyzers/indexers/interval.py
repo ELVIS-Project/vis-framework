@@ -258,7 +258,9 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
     def run(self):
         """
-        Make a new index of the piece.
+        Make a new index of the piece, with the horizontal (melodic) intervals of every individual
+        part. In the output, an interval's offset is the same as that of the first note that
+        comprises the interval.
 
         :returns: The new indices. Refer to the example below.
         :rtype: :class:`pandas.DataFrame`
