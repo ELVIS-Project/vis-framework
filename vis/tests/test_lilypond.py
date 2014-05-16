@@ -286,6 +286,38 @@ class TestPartNotesIndexer(unittest.TestCase):
         for i in [1, 2]:
             self.assertTrue(actual[i], note.Rest)
 
+    def test_run_2(self):
+        # same as test_run_1(), but with a 'part_names' setting
+        markups = [u'_\\markup{ "Réduire" }', u'_\\markup{ "l\'endettement" }']
+        #u'\t\\textLengthOn\n\t\\set Staff.instrumentName = "the name"\n'
+        in_val = []
+        for i in xrange(len(markups)):
+            obj = note.Note('C4')
+            obj.lily_invisible = True
+            obj.lily_markup = markups[i]
+            in_val.append(obj)
+        in_val = [pandas.Series(in_val, index=[0.0, 2.75])]
+        setts = {'part_names': ['the name']}
+        expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
+        actual = lilypond.PartNotesIndexer(in_val, setts).run()[0]
+        # Verify...
+        # ... that the result is a Part with the proper LilyPond attributes
+        self.assertTrue(isinstance(actual, stream.Part))
+        self.assertTrue(hasattr(actual, 'lily_analysis_voice'))
+        self.assertEqual(True, actual.lily_analysis_voice)
+        self.assertTrue(hasattr(actual, 'lily_instruction'))
+        self.assertEqual(u'\t\\textLengthOn\n\t\\set Staff.instrumentName = "the name"\n', actual.lily_instruction)
+        # ... that the objects have the right offsets and durations
+        self.assertEqual(len(expected), len(actual))
+        for i, obj in enumerate(actual):
+            self.assertEqual(expected[i][0], obj.offset)
+            self.assertEqual(expected[i][1], obj.duration.quarterLength)
+        # ... that the objects are of the right types
+        for i in [0, 3]:
+            self.assertTrue(actual[i], note.Note)
+        for i in [1, 2]:
+            self.assertTrue(actual[i], note.Rest)
+
     def test_prepend_rests_1(self):
         # simple: add one thing in front of one other thing
         in_val = pandas.Series(['first'], index=[2.0])

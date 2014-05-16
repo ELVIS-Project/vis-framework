@@ -254,11 +254,20 @@ class PartNotesIndexer(indexer.Indexer):
     From a :class:`Series` full of :class:`Note` objects, craft a :class:`music21.stream.Part`. The
     offset of each :class:`Note` in the output matches its index in the input :class:`Series`, and
     each ``duration`` property is set to match.
+
+    To print a "name" along with the first item in a part, for example to indicate to which part
+    or part combinations the annotations belong, use the optional ``part_names`` setting.
     """
 
     required_score_type = pandas.Series
-    possible_settings = []
     default_settings = {}
+    possible_settings = [u'part_names']
+    """
+    :param part_names: Names for the annotation parts, in order. If there are more part names than
+        parts, extra names will be ignored. If there are fewer part names than parts, some parts
+        will not be named.
+    :type part_names: list of basestring
+    """
 
     _IMPOSSIBLE_QUARTERLENGTH = u'Impossible \'quarterLength\': %s.'
 
@@ -275,6 +284,10 @@ class PartNotesIndexer(indexer.Indexer):
         """
         super(PartNotesIndexer, self).__init__(score, None)
         self._indexer_func = None
+        if settings is not None and 'part_names' in settings:
+            self._settings['part_names'] = settings['part_names']
+        else:
+            settings = {}
 
     @staticmethod
     def _fill_space_between_offsets(start_o, end_o):
@@ -409,11 +422,15 @@ class PartNotesIndexer(indexer.Indexer):
         :rtype: ``list`` of :class:`music21.stream.Part`
         """
         post = []
-        for each_series in self._score:
+        for i, each_series in enumerate(self._score):
             each_series = PartNotesIndexer._prepend_rests(each_series)
             new_part = stream.Part()
             new_part.lily_analysis_voice = True
-            new_part.lily_instruction = u'\t\\textLengthOn\n'
+            if 'part_names' in self._settings:
+                new_part.lily_instruction = (u'\t\\textLengthOn\n\t\\set Staff.instrumentName = "%s"\n'
+                                             % self._settings['part_names'][i])
+            else:
+                new_part.lily_instruction = u'\t\\textLengthOn\n'
             # put the Note objects into a new stream.Part, using the right offset
             for off, obj in each_series.iteritems():
                 new_part.insert(off, obj)
