@@ -179,7 +179,7 @@ class AnnotationIndexer(indexer.Indexer):
     """
 
     required_score_type = pandas.Series
-    possible_settings = []  # TODO: add a setting for whether _ or - or ^ before \markup
+    possible_settings = []
     default_settings = {}
 
     def __init__(self, score, settings=None):
@@ -218,7 +218,7 @@ class AnnotateTheNoteIndexer(indexer.Indexer):
     """
 
     required_score_type = pandas.Series
-    possible_settings = []  # TODO: set lily_invisible dynamically?
+    possible_settings = []
     default_settings = {}
 
     def __init__(self, score, settings=None):
@@ -260,6 +260,8 @@ class PartNotesIndexer(indexer.Indexer):
     possible_settings = []
     default_settings = {}
 
+    _IMPOSSIBLE_QUARTERLENGTH = u'Impossible \'quarterLength\': %s.'
+
     def __init__(self, score, settings=None):
         """
         :param score: The input from which to produce a new index.
@@ -290,52 +292,38 @@ class PartNotesIndexer(indexer.Indexer):
         The algorithm tries to use as few ``quarterLength`` values as possible, but prefers multiple
         values to a single dotted value. The longest single value is ``4.0`` (a whole note).
         """
-        # TODO: rewrite this as a single recursive function
-        def highest_valid_ql(rem):
+        VALID_DURATIONS = (2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0)  # pylint: disable=invalid-name
+
+        def find_highest_valid_ql(this_ql, recursor=0):
             """
-            Returns the largest quarterLength that is less "rem" but not greater than 2.0
+            Returns the largest quarterLength that is less then "this_ql" but not greater than 2.0.
             """
-            # Holds the valid quarterLength durations from whole note to 256th.
-            list_of_durations = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0]
-            # Easy terminal condition
-            if rem in list_of_durations:
-                return rem
-            # Otherwise, we have to look around
-            for dur in list_of_durations:
-                if dur < rem:
-                    return dur
+            if VALID_DURATIONS[recursor] <= this_ql:
+                return VALID_DURATIONS[recursor]
+            else:
+                return find_highest_valid_ql(this_ql, recursor + 1)
 
         def the_solver(ql_remains):
             """
             Given the "quarterLength that remains to be dealt with," this method returns
             the solution.
             """
-            if 4.0 == ql_remains:
-                # Terminal condition, just return!
+            if 0.0 == ql_remains:
+                return [0.0]
+            elif 4.0 == ql_remains:
                 return [4.0]
-            elif 4.0 > ql_remains >= 0.0:
-                if 0.015625 > ql_remains:
-                    # give up... ?
-                    return [ql_remains]
-                else:
-                    possible_finish = highest_valid_ql(ql_remains)
-                    if possible_finish == ql_remains:
-                        return [ql_remains]
-                    else:
-                        return [possible_finish] + \
-                        the_solver(ql_remains - possible_finish)
             elif ql_remains > 4.0:
                 return [4.0] + the_solver(ql_remains - 4.0)
+            elif 4.0 > ql_remains >= 0.015625:
+                highest = find_highest_valid_ql(ql_remains)
+                if highest == ql_remains:
+                    return [ql_remains]
+                else:
+                    return [highest] + the_solver(ql_remains - highest)
             else:
-                msg = u'Impossible quarterLength remaining: ' + unicode(ql_remains) + \
-                    u'... we started with ' + unicode(start_o) + u' to ' + unicode(end_o)
-                raise RuntimeError(msg)
+                raise RuntimeError(PartNotesIndexer._IMPOSSIBLE_QUARTERLENGTH % (end_o - start_o))
 
-        start_o = float(start_o)
-        end_o = float(end_o)
-        result = the_solver(end_o - start_o)
-        #return (result[0], result[1:])  # NB: this was the previous "return" statement
-        return result
+        return the_solver(float(end_o) - float(start_o))
 
     @staticmethod
     def _set_durations(in_part):
