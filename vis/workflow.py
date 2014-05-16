@@ -127,7 +127,7 @@ class WorkflowManager(object):
         """
         return self._data[index]
 
-    def load(self, instruction, pathname=None):
+    def load(self, instruction='pieces', pathname=None):
         """
         Import analysis data from long-term storage on a filesystem. This should primarily be \
         used for the ``u'pieces'`` instruction, to control when the initial music21 import \
@@ -139,9 +139,7 @@ class WorkflowManager(object):
         .. note:: If one of the files imports as a :class:`music21.stream.Opus`, the number of
             pieces and their order *will* change.
 
-        Parameters
-        ==========
-        :parameter instruction: The type of data to load.
+        :parameter instruction: The type of data to load. Defaults to ``'pieces'``.
         :type instruction: basestring
         :parameter pathname: The pathname of the data to import; not required for the \
             ``u'pieces'`` instruction.
