@@ -386,6 +386,31 @@ class PartNotesIndexer(indexer.Indexer):
             ret_part.lily_instruction = in_part.lily_instruction
         return ret_part
 
+    @staticmethod
+    def _prepend_rests(in_part):
+        """
+        Prepends rest objects to fill empty space at the beginning of a :class:`Series`. That is,
+        if the first object in the :class:`Series` doesn't have offset ``0.0``, we add a
+        :class:`Rest` at offset ``0.0``, and enough additional :class:`Rest` objects to fill the
+        duration until the first inputted object.
+
+        If the first object in the inputed :class:`Series` is at offset 0.0, no changes are made.
+
+        :param in_part: The part to fill in.
+        :type in_part: :class:`pandas.Series`
+
+        :returns: The filled-in part.
+        :type in_part: :class:`pandas.Series`
+        """
+        if 0.0 != in_part.index[0]:
+            durations = PartNotesIndexer._fill_space_between_offsets(0.0, in_part.index[0])
+            offsets = [max(0.0, sum(durations[:i])) for i in xrange(len(durations))]
+            for i, offset in enumerate(offsets):
+                in_part[offset] = note.Rest(quarterLength=durations[i])
+            return in_part.sort_index()
+        else:
+            return in_part
+
     def run(self):
         """
         Make a new index of the piece.
@@ -397,6 +422,7 @@ class PartNotesIndexer(indexer.Indexer):
         """
         post = []
         for each_series in self._score:
+            each_series = PartNotesIndexer._prepend_rests(each_series)
             new_part = stream.Part()
             new_part.lily_analysis_voice = True
             new_part.lily_instruction = u'\t\\textLengthOn\n'

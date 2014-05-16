@@ -286,6 +286,69 @@ class TestPartNotesIndexer(unittest.TestCase):
         for i in [1, 2]:
             self.assertTrue(actual[i], note.Rest)
 
+    def test_prepend_rests_1(self):
+        # simple: add one thing in front of one other thing
+        in_val = pandas.Series(['first'], index=[2.0])
+        expected = pandas.Series([note.Rest(quarterLength=2.0), 'first'], index=[0.0, 2.0])
+        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_prepend_rests_2(self):
+        # simple: everything's already right
+        in_val = pandas.Series(['first'], index=[0.0])
+        expected = pandas.Series(['first'], index=[0.0])
+        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_prepend_rests_3(self):
+        # complexer: everything's already right
+        in_val = pandas.Series(['first', 'second', 'third', 'fourth'],
+                               index=[0.0, 0.25, 400.369, 1024.1024])
+        expected = pandas.Series(['first', 'second', 'third', 'fourth'],
+                                 index=[0.0, 0.25, 400.369, 1024.1024])
+        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_prepend_rests_4(self):
+        # complexer: add two things in front of one other thing
+        in_val = pandas.Series(['first'], index=[6.0])
+        expected = pandas.Series([note.Rest(quarterLength=4.0), note.Rest(quarterLength=2.0), 'first'],
+                                 index=[0.0, 4.0, 6.0])
+        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_prepend_rests_5(self):
+        # complexer: add three things in front of one other thing
+        in_val = pandas.Series(['first'], index=[7.0])
+        expected = pandas.Series([note.Rest(quarterLength=4.0),
+                                  note.Rest(quarterLength=2.0),
+                                  note.Rest(quarterLength=1.0),
+                                  'first'],
+                                 index=[0.0, 4.0, 6.0, 7.0])
+        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_prepend_rests_6(self):
+        # complexest: add three things in front of four other things
+        in_val = pandas.Series(['first', 'second', 'third', 'fourth'],
+                               index=[7.0, 7.25, 400.369, 1024.1024])
+        expected = pandas.Series([note.Rest(quarterLength=4.0),
+                                  note.Rest(quarterLength=2.0),
+                                  note.Rest(quarterLength=1.0),
+                                  'first',
+                                  'second',
+                                  'third',
+                                  'fourth'],
+                                 index=[0.0, 4.0, 6.0, 7.0, 7.25, 400.369, 1024.1024])
+        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
 
 class TestLilyPondIndexer(unittest.TestCase):
     @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
