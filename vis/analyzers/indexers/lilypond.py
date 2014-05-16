@@ -23,13 +23,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 The :class:`LilyPondIndexer` uses the :mod:`outputlilypond` module to produces the LilyPond file
 that should produce a score of the input.
 """
 
-# Disable "string statement has no effect." It's for Sphinx, silly!
+# Disable "string statement has no effect"
 # pylint: disable=W0105
 
 from math import fsum
@@ -44,13 +44,9 @@ def annotation_func(obj):
     """
     Used by :class:`AnnotationIndexer` to make a "markup" command for LilyPond scores.
 
-    Parameters
-    ==========
     :param obj: A single-element :class:`Series` with the string to wrap in a "markup" command.
     :type obj: :class:`pandas.Series` of ``unicode``
 
-    Returns
-    =======
     :returns: The thing in a markup.
     :rtype: ``unicode``
     """
@@ -62,14 +58,10 @@ def annotate_the_note(obj):
     Used by :class:`AnnotateTheNoteIndexer` to make a :class:`~music21.note.Note` object with the
     annotation passed in. Take note (hahaha): the ``lily_invisible`` property is set to ``True``!
 
-    Parameters
-    ==========
     :param obj: A single-element :class:`Series` with the string to put as the ``lily_markup``
         property of a new :class:`Note`.
     :type obj: :class:`pandas.Series` of ``unicode``
 
-    Returns
-    =======
     :returns: An annotated note.
     :rtype: :class:`music21.note.Note`
     """
@@ -120,16 +112,12 @@ class LilyPondIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The :class:`Score` object to output to LilyPond.
         :type score: singleton list of :class:`music21.stream.Score`
 
         :param settings: Your settings. There are no required settings.
         :type settings: ``dict`` or :const:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``u'run_lilypond'`` is ``True`` but ``u'output_pathname'`` \
             is unspecified.
@@ -164,8 +152,6 @@ class LilyPondIndexer(indexer.Indexer):
         Make a string with the LilyPond representation of each score. Run LilyPond, if we're
         supposed to.
 
-        Returns
-        =======
         :returns: A list of strings, where each string is the LilyPond-format representation of the
             score that was in that index.
         :rtype: ``list`` of ``unicode``
@@ -198,16 +184,12 @@ class AnnotationIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The input from which to produce a new index.
         :type score: ``list`` of :class:`pandas.Series`
 
         :param settings: Nothing.
         :type settings: ``dict`` or :const:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
@@ -218,8 +200,6 @@ class AnnotationIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
             index of the :class:`Part` used to generate it, in the order specified to the
             constructor. Each element in the :class:`Series` is a ``basestring``.
@@ -243,16 +223,12 @@ class AnnotateTheNoteIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The input from which to produce a new index.
         :type score: ``list`` of :class:`pandas.Series`
 
         :param settings: Nothing.
         :type settings: ``dict`` or :const:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
@@ -263,8 +239,6 @@ class AnnotateTheNoteIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
             index of the :class:`Part` used to generate it, in the order specified to the
             constructor. Each element in the :class:`Series` is a ``basestring``.
@@ -288,16 +262,12 @@ class PartNotesIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The input from which to produce a new index.
         :type score: ``list`` of :class:`pandas.Series` of :class:`music21.note.Note`
 
         :param settings: Nothing.
         :type settings: ``dict`` or :const:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
@@ -309,15 +279,11 @@ class PartNotesIndexer(indexer.Indexer):
         """
         Given two offsets, finds the ``quarterLength`` values that fill the whole duration.
 
-        Parameters
-        ==========
         :param start_o: The starting offset.
         :type start_o: ``float``
         :param end_o: The ending offset.
         :type end_o: ``float``
 
-        Returns
-        =======
         :returns: The ``quarterLength`` values that fill the whole duration (see below).
         :rtype: ``list`` of ``float``
 
@@ -424,8 +390,6 @@ class PartNotesIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each :class:`Part` corresponds to the
             index of the :class:`Series` used to generate it, in the order specified to the
             constructor. Each element in the :class:`Part` is a :class:`Note`.
