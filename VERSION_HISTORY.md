@@ -4,6 +4,8 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
+* 1.2.0:
+    - WorkflowManager offers output('LilyPond') with part names on annotation lines
 * 1.1.2:
     - include and install the 'outputlilypond' package
 * 1.1.0:
