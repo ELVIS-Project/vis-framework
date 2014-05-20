@@ -427,8 +427,11 @@ class PartNotesIndexer(indexer.Indexer):
             new_part = stream.Part()
             new_part.lily_analysis_voice = True
             if 'part_names' in self._settings:
-                new_part.lily_instruction = (u'\t\\textLengthOn\n\t\\set Staff.instrumentName = "%s"\n'
-                                             % self._settings['part_names'][i])
+                new_part.lily_instruction = (u'\t\\textLengthOn\n'
+                                             u'\t\\set Staff.instrumentName = "%s"\n'
+                                             u'\t\\set Staff.shortInstrumentName = "%s"\n'
+                                             % (self._settings['part_names'][i],
+                                                self._settings['part_names'][i]))
             else:
                 new_part.lily_instruction = u'\t\\textLengthOn\n'
             # put the Note objects into a new stream.Part, using the right offset

@@ -306,7 +306,9 @@ class TestPartNotesIndexer(unittest.TestCase):
         self.assertTrue(hasattr(actual, 'lily_analysis_voice'))
         self.assertEqual(True, actual.lily_analysis_voice)
         self.assertTrue(hasattr(actual, 'lily_instruction'))
-        self.assertEqual(u'\t\\textLengthOn\n\t\\set Staff.instrumentName = "the name"\n', actual.lily_instruction)
+        self.assertEqual(u'\t\\textLengthOn\n'
+                         u'\t\\set Staff.instrumentName = "the name"\n'
+                         u'\t\\set Staff.shortInstrumentName = "the name"\n', actual.lily_instruction)
         # ... that the objects have the right offsets and durations
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
