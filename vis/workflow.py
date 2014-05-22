@@ -89,6 +89,9 @@ class WorkflowManager(object):
     _COUNT_FREQUENCY_MESSAGE = u'LilyPond output is not possible after you call run() with ' + \
         '"count frequency" set to True.'
 
+    # The error when we required two-voice pairs, but one of the combinations wasn't a pair.
+    _REQUIRE_PAIRS_ERROR = u'All voice combinations must have two parts (found %s).'
+
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
         self._data = []
@@ -451,6 +454,10 @@ class WorkflowManager(object):
             combos = unicode(self.settings(i, u'voice combinations'))
             if combos != u'all' and combos != u'all pairs' and combos != u'None':
                 combos = ast.literal_eval(combos)
+                # ensure each combination is a two-voice pair
+                for pair in combos:
+                    if 2 != len(pair):
+                        raise RuntimeError(WorkflowManager._REQUIRE_PAIRS_ERROR % len(pair))
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
             # we no longer need to know the combinations' names, so we can make a list
             vert_ints = list(vert_ints.itervalues())

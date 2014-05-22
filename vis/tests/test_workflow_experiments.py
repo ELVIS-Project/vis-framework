@@ -122,6 +122,41 @@ class Intervals(TestCase):
             self.assertSequenceEqual(list(expected[i]), list(actual[i][0]))
             self.assertSequenceEqual(list(expected[i].index), list(actual[i][0].index))
 
+    @mock.patch(u'vis.workflow.WorkflowManager._run_off_rep')
+    @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
+    @mock.patch(u'vis.workflow.WorkflowManager._remove_extra_pairs')
+    @mock.patch(u'vis.workflow.noterest.NoteRestIndexer')
+    @mock.patch(u'vis.workflow.interval.IntervalIndexer')
+    def test_intervs_3(self, mock_int, mock_nri, mock_rep, mock_rfa, mock_ror):
+        # --> test whether _intervs() when we specify an impossible voice pair ('[[0, 1, 2]]')
+        # 1.) prepare the test and mocks
+        test_settings = {u'simple or compound': u'compound', u'quality': False}
+        test_pieces = [MagicMock(IndexedPiece, name=x) for x in [u'test1', u'test2', u'test3']]
+        the_dicts = [MagicMock(dict, name=u'get_data() piece' + str(i), return_value=[4]) \
+                     for i in xrange(3)]
+        returns = the_dicts
+        def side_effect(*args):
+            # NB: we need to accept "args" as a mock framework formality
+            # pylint: disable=W0613
+            return returns.pop(0)
+        for piece in test_pieces:
+            piece.get_data.side_effect = side_effect
+        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
+        expected = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
+        expected_pairs = [[0, 1, 2]]
+        expected_error_message = WorkflowManager._REQUIRE_PAIRS_ERROR % len(expected_pairs[0])
+        # 2.) run the test
+        test_wc = WorkflowManager(test_pieces)
+        # (have to set the voice-pair settings)
+        for i in xrange(len(test_pieces)):
+            test_wc._settings[i][u'voice combinations'] = unicode(expected_pairs)
+        # 3.) verify
+        self.assertRaises(RuntimeError, test_wc._intervs)
+        try:
+            test_wc._intervs()
+        except RuntimeError as runerr:
+            self.assertEqual(expected_error_message, runerr.message)
+
 
 class IntervalNGrams(TestCase):
     @mock.patch(u'vis.workflow.WorkflowManager._run_freq_agg')
