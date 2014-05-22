@@ -168,6 +168,86 @@ class TestDissonanceIndexer(unittest.TestCase):
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
+    def test_special_fifths_1(self):
+        """
+        +------------------+----------+
+        | Part Combination | Interval |
+        +==================+==========+
+        | 0,1              | M3       |
+        +------------------+----------+
+        | 0,2              | d5       |  retained
+        +------------------+----------+
+        | 0,3              | M3       |
+        +------------------+----------+
+        | 1,2              | M3       |
+        +------------------+----------+
+        | 1,3              | M3       |
+        +------------------+----------+
+        | 2,3              | P8       |
+        +------------------+----------+
+        """
+        in_series = pandas.Series(['M3', 'd5', 'M3', 'M3', 'M3', 'P8'],
+                                  index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        expected = pandas.Series(['M3', 'd5', 'M3', 'M3', 'M3', 'P8'],
+                                 index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        actual = dissonance.DissonanceIndexer.special_fifths(in_series)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_special_fifths_2(self):
+        """
+        +------------------+----------+
+        | Part Combination | Interval |
+        +==================+==========+
+        | 0,1              | P4       |  removed
+        +------------------+----------+
+        | 0,2              | P4       |  retained
+        +------------------+----------+
+        | 0,3              | M3       |
+        +------------------+----------+
+        | 1,2              | M6       |
+        +------------------+----------+
+        | 1,3              | M3       |
+        +------------------+----------+
+        | 2,3              | P8       |
+        +------------------+----------+
+        """
+        in_series = pandas.Series(['d5', 'd5', 'M3', 'M6', 'M3', 'P8'],
+                                  index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        expected = pandas.Series([nan, 'd5', 'M3', 'M6', 'M3', 'P8'],
+                                 index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        actual = dissonance.DissonanceIndexer.special_fifths(in_series)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        for i in xrange(len(expected)):
+            # NB: if you get a TypeError here, that means failure
+            self.assertTrue((expected.iloc[i] == actual.iloc[i]) or
+                            (isnan(expected.iloc[i]) and isnan(actual.iloc[i])))
+
+    def test_special_fifths_3(self):
+        """
+        +------------------+----------+
+        | Part Combination | Interval |  all retained
+        +==================+==========+
+        | 0,1              | M3       |
+        +------------------+----------+
+        | 0,2              | P5       |
+        +------------------+----------+
+        | 0,3              | M3       |
+        +------------------+----------+
+        | 1,2              | M3       |
+        +------------------+----------+
+        | 1,3              | M3       |
+        +------------------+----------+
+        | 2,3              | P8       |
+        +------------------+----------+
+        """
+        in_series = pandas.Series(['M3', 'P5', 'M3', 'M3', 'M3', 'P8'],
+                                  index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        expected = pandas.Series(['M3', 'P5', 'M3', 'M3', 'M3', 'P8'],
+                                 index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        actual = dissonance.DissonanceIndexer.special_fifths(in_series)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
 
     def test_ind_1(self):
         # A quasi-realistic, multi-part test---special_P4 is False
@@ -418,7 +498,7 @@ class TestSuspensionIndexer(unittest.TestCase):
 
     def test_ind_func_7(self):
         # multi-part: mixed "susp," "other," and "no" dissonances
-        # NB: the input is taken from the first offset of bwv77.mxl
+        # NB: the input is taken from bwv77.mxl, offsets 10.5, 11.0, and 11.5
         # 1.) prepare inputs
         columns = (('interval.IntervalIndexer', '0,1'),
                    ('interval.IntervalIndexer', '0,2'),

@@ -135,13 +135,16 @@ class DissonanceIndexer(indexer.Indexer):
     _CONSONANCE_MAKERS = [u'm3', u'M3', u'm6', u'M6']
 
     required_score_type = 'pandas.DataFrame'
-    default_settings = {u'special_P4': True}
-    possible_settings = [u'special_P4']
+    default_settings = {'special_P4': True, 'special_P5': True}
+    possible_settings = ['special_P4', 'special_P5']
     """
     :keyword bool 'special_P4': Whether to account for the Perfect Fourth's "special"
         characteristic of being a dissonance only when no major or minor third or sixth appears
         below it. If this is ``True``, an additional indexing process is run that removes all
         fourths "under" which the following intervals appear: m3, M3, m6, M6.
+    :keyword bool 'special_P5': Whether to account for the Diminished Fifth's "special"
+        characteristic of being consonant when a Major Sixth appears at any point below the
+        lowest note.
     """
 
     def __init__(self, score, settings=None):
@@ -212,7 +215,7 @@ class DissonanceIndexer(indexer.Indexer):
         is considered "dissonant," and therefore retained.
 
         For this reason, it's very important that the index has good part-combination labels that
-        follow the ``'int,int'`` format.
+        follow the ``'int,int'`` format, as outputted by the :class:`IntervalIndexer`.
         """
         post = []
         for combo in simul.index:
@@ -225,6 +228,61 @@ class DissonanceIndexer(indexer.Indexer):
                 found_one = False
                 for possibility in investigate_these:
                     if simul.loc[possibility] in DissonanceIndexer._CONSONANCE_MAKERS:
+                        found_one = True
+                        break
+                if found_one:
+                    post.append(nan)
+                else:
+                    post.append(simul.loc[combo])
+            else:
+                post.append(simul.loc[combo])
+        return pandas.Series(post, index=simul.index)
+
+    @staticmethod
+    def special_fifths(simul):
+        """
+        Used internally by the :class:`DissonanceIndexer`.
+
+        Replace all consonant fifths in a :class:`Series` with nan. The method checks each part
+        combination and, if it finds a ``'d5'``, checks all part combinations for a major sixth
+        sounding below the lower note of the fifth.
+
+        For example, consider the following simultaneity:
+
+        +------------------+----------+
+        | Part Combination | Interval |
+        +==================+==========+
+        | 0,1              | M3       |
+        +------------------+----------+
+        | 0,2              | d5       |
+        +------------------+----------+
+        | 0,3              | M3       |
+        +------------------+----------+
+        | 1,2              | M3       |
+        +------------------+----------+
+        | 1,3              | M3       |
+        +------------------+----------+
+        | 2,3              | P8       |
+        +------------------+----------+
+
+        On encountering ``'d5'`` in the ``'0,2'`` part combination, :meth:`_special_fourths` only
+        looks at the ``'2,3'`` combination for a major sixth. Finding an octave, this fifth
+        is considered "dissonant," and therefore retained.
+
+        For this reason, it's very important that the index has good part-combination labels that
+        follow the ``'int,int'`` format, as outputted by the :class:`IntervalIndexer`.
+        """
+        post = []
+        for combo in simul.index:
+            if u'd5' == simul.loc[combo]:
+                lower_voice = combo.split(u',')[1]
+                investigate_these = []
+                for possibility in simul.index:
+                    if possibility.split(u',')[0] == lower_voice:
+                        investigate_these.append(possibility)
+                found_one = False
+                for possibility in investigate_these:
+                    if 'M6' == simul.loc[possibility]:  # in DissonanceIndexer._CONSONANCE_MAKERS:
                         found_one = True
                         break
                 if found_one:
