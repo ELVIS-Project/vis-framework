@@ -360,7 +360,7 @@ class MakeLilyPond(TestCase):
         try:
             test_wm._make_lilypond(['paths'])
         except RuntimeError as the_err:
-            self.assertEqual(WorkflowManager._count_frequency_message, the_err.message)
+            self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, the_err.message)
 
     def test_lilypond_1b(self):
         # error conditions: if the lengths are different, (but 'count frequency' is okay)
@@ -372,7 +372,7 @@ class MakeLilyPond(TestCase):
         try:
             test_wm._make_lilypond(['paths'])
         except RuntimeError as the_err:
-            self.assertEqual(WorkflowManager._count_frequency_message, the_err.message)
+            self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, the_err.message)
 
     @mock.patch(u'vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
     def test_lilypond_2(self, test_ip):

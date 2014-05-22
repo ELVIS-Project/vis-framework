@@ -86,7 +86,7 @@ class WorkflowManager(object):
 
     # Error message when users call output() with LilyPond, but they probably called run() with
     # ``count frequency`` set to True.
-    _count_frequency_message = u'LilyPond output is not possible after you call run() with ' + \
+    _COUNT_FREQUENCY_MESSAGE = u'LilyPond output is not possible after you call run() with ' + \
         '"count frequency" set to True.'
 
     def __init__(self, pathnames):
@@ -459,7 +459,6 @@ class WorkflowManager(object):
             # remove the "Rest" entries, if required
             if self.settings(None, u'include rests') is not True:
                 # we'll just get a view that omits the "Rest" entries in the Series
-                # TODO: this is pandas magic; check it for 0.13
                 for i, pair in enumerate(post):
                     post[i] = pair[pair != u'Rest']
             self._result.append(post)
@@ -688,7 +687,7 @@ class WorkflowManager(object):
         """
         # try to determine whether they called run() properly (``count frequency`` should be False)
         if self.settings(None, 'count frequency') is True or len(self._data) != len(self._result):
-            raise RuntimeError(WorkflowManager._count_frequency_message)
+            raise RuntimeError(WorkflowManager._COUNT_FREQUENCY_MESSAGE)
         pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
         # the file extension for LilyPond
         file_ext = u'.ly'
