@@ -31,9 +31,10 @@ Distutils information for the VIS Framework.
 from setuptools import setup
 
 
+# NOTE: remember to update __init__.py
 MAJOR = 1
-MINOR = 1
-PATCH = 2
+MINOR = 2
+PATCH = 1
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, PATCH)
 
 setup(
