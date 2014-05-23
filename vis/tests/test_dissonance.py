@@ -250,7 +250,7 @@ class TestDissonanceIndexer(unittest.TestCase):
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
     def test_ind_1(self):
-        # A quasi-realistic, multi-part test---special_P4 is False
+        # A quasi-realistic, multi-part test---special_P4 and special_d5 are False
         in_val = [pandas.Series(['m3', 'M2', 'm2', 'P4', 'd5', 'P5', 'M6', 'm7']),
                   pandas.Series(['M2', 'm2', 'P4', 'd5', 'P5', 'M6', 'm7', 'm3']),
                   pandas.Series(['m2', 'P4', 'd5', 'P5', 'M6', 'm7', 'm3', 'M2'])]
@@ -260,7 +260,7 @@ class TestDissonanceIndexer(unittest.TestCase):
         expected = {'0,1': pandas.Series([nan, 'M2', 'm2', 'P4', 'd5', nan, nan, 'm7']),
                     '0,2': pandas.Series(['M2', 'm2', 'P4', 'd5', nan, nan, 'm7', nan]),
                     '1,2': pandas.Series(['m2', 'P4', 'd5', nan, nan, 'm7', nan, 'M2'])}
-        actual = dissonance.DissonanceIndexer(in_val, {u'special_P4': False})
+        actual = dissonance.DissonanceIndexer(in_val, {'special_P4': False, 'special_d5': False})
         actual = actual.run()['dissonance.DissonanceIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in expected.iterkeys():
