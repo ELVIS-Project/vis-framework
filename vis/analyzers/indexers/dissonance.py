@@ -131,8 +131,8 @@ class DissonanceIndexer(indexer.Indexer):
     _CONSONANCE_MAKERS = [u'm3', u'M3', u'm6', u'M6']
 
     required_score_type = 'pandas.DataFrame'
-    default_settings = {'special_P4': True, 'special_P5': True}
-    possible_settings = ['special_P4', 'special_P5']
+    default_settings = {'special_P4': True, 'special_d5': True}
+    possible_settings = ['special_P4', 'special_d5']
     """
     :keyword bool 'special_P4': Whether to account for the Perfect Fourth's "special"
         characteristic of being a dissonance only when no major or minor third or sixth appears
@@ -157,9 +157,13 @@ class DissonanceIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
-        self._settings = {u'special_P4': DissonanceIndexer.default_settings[u'special_P4']}
-        if settings is not None and u'special_P4' in settings:
-            self._settings[u'special_P4'] = settings[u'special_P4']
+        self._settings = {'special_P4': DissonanceIndexer.default_settings['special_P4'],
+                          'special_d5': DissonanceIndexer.default_settings['special_d5']}
+        if settings is not None:  # TODO: test this stuff
+            if u'special_P4' in settings:
+                self._settings[u'special_P4'] = settings[u'special_P4']
+            if 'special_d5' in settings:
+                self._settings['special_d5'] = settings['special_d5']
         super(DissonanceIndexer, self).__init__(score, None)
 
     @staticmethod
@@ -315,6 +319,8 @@ class DissonanceIndexer(indexer.Indexer):
         post = self._score['interval.IntervalIndexer']
         if self._settings[u'special_P4'] is True:
             post = post.apply(DissonanceIndexer.special_fourths, axis=1)
+        if self._settings[u'special_d5'] is True:
+            post = post.apply(DissonanceIndexer.special_fifths, axis=1)  # TODO: test this branch works
         post = post.apply(DissonanceIndexer.nan_consonance, axis=1)
         return self.make_return([x for x in post.columns],
                                 [post[x] for x in post.columns])
