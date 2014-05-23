@@ -33,6 +33,7 @@ same part.
 # disable "string statement has no effect"... it's for sphinx
 # pylint: disable=W0105
 
+from numpy import isnan
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
@@ -58,6 +59,43 @@ def key_to_tuple(key):
     """
     post = key.split(u',')
     return int(post[0]), int(post[1])
+
+
+def interval_to_int(interv, nan_is=1):
+    """
+    Convert a simple interval in a string to an integer. This basically drops the quality, maintains
+    direction, and converts to an integer.
+
+    :obj:`numpy.nan` becomes the value specified by the ``nan_is`` parameter.
+
+    :param interv: The simple interval to convert.
+    :type interv: basestring or :obj:`numpy.nan`
+    :param any nan_is: The value to return when ``interv`` is :obj:`numpy.nan`. The default is 1.
+    :returns: An integer representation of the interval.
+    :rtype: int
+
+    >>> interval_to_int('M3')
+    3
+    >>> interval_to_int('3')
+    3
+    >>> interval_to_int('-M3')
+    -3
+    >>> interval_to_int('-3')
+    -3
+    >>> interval_to_int(numpy.nan)
+    1
+    >>> interval_to_int('P12')  # this is a compound interval
+    2  # this does not work
+    >>> interval_to_int(numpy.nan, nan_is=42)
+    42
+    """
+    # NOTE: so far this is only used by the dissonance.SuspensionIndexer, but it belongs here
+    if not isinstance(interv, basestring) and isnan(interv):
+        return nan_is
+    elif interv.startswith('-'):  # descending motion
+        return int(interv[-1:]) * -1
+    else:
+        return int(interv[-1:])
 
 
 def real_indexer(simultaneity, simple, quality):

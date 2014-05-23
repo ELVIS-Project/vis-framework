@@ -30,10 +30,11 @@
 
 
 import unittest
+from numpy import nan
 import pandas
 from music21 import interval, note
 from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, \
-    real_indexer, key_to_tuple
+    real_indexer, key_to_tuple, interval_to_int
 from vis.tests.test_note_rest_indexer import TestNoteRestIndexer
 
 
@@ -637,6 +638,43 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
         notes = [u'C4', u'D4', u'E4']
         expected = None
         actual = real_indexer(notes, quality=True, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_interval_to_int_1(self):
+        expected = 3
+        actual = interval_to_int('M3')
+        self.assertEqual(expected, actual)
+
+    def test_interval_to_int_2(self):
+        expected = 3
+        actual = interval_to_int('3')
+        self.assertEqual(expected, actual)
+
+    def test_interval_to_int_3(self):
+        expected = -3
+        actual = interval_to_int('-M3')
+        self.assertEqual(expected, actual)
+
+    def test_interval_to_int_4(self):
+        expected = -3
+        actual = interval_to_int('-3')
+        self.assertEqual(expected, actual)
+
+    def test_interval_to_int_5(self):
+        expected = 1
+        actual = interval_to_int(nan)
+        self.assertEqual(expected, actual)
+
+    def test_interval_to_int_6(self):
+        # the function doesn't work for compound intervals
+        expected = 2
+        actual = interval_to_int('P12')
+        self.assertEqual(expected, actual)
+
+    def test_interval_to_int_7(self):
+        # the function doesn't work for compound intervals
+        expected = 42
+        actual = interval_to_int(nan, nan_is=42)
         self.assertEqual(expected, actual)
 
 
