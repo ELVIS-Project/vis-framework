@@ -326,23 +326,16 @@ class TestDissonanceIndexer(unittest.TestCase):
                                 (isnan(expected[key].iloc[i]) and isnan(actual[key].iloc[i])))
 
 
+@mock.patch('vis.analyzers.indexers.dissonance._SUSP_NODISS_LABEL',
+            mock.MagicMock(name='no dissonance'))
+@mock.patch('vis.analyzers.indexers.dissonance._SUSP_OTHER_LABEL',
+            mock.MagicMock(name='other dissonance'))
+@mock.patch('vis.analyzers.indexers.dissonance._SUSP_USUSP_LABEL',
+            mock.MagicMock(name='upper-voice suspension'))
+@mock.patch('vis.analyzers.indexers.dissonance._SUSP_LSUSP_LABEL',
+            mock.MagicMock(name='lower-voice suspension'))
 class TestSuspensionIndexer(unittest.TestCase):
-    def setUp(self):
-        self._SUSP_USUSP_LABEL = dissonance._SUSP_USUSP_LABEL
-        self._SUSP_LSUSP_LABEL = dissonance._SUSP_LSUSP_LABEL
-        self._SUSP_OTHER_LABEL = dissonance._SUSP_OTHER_LABEL
-        self._SUSP_NODISS_LABEL = dissonance._SUSP_NODISS_LABEL
-        dissonance._SUSP_USUSP_LABEL = u'upper-voice suspension'
-        dissonance._SUSP_LSUSP_LABEL = u'lower-voice suspension'
-        dissonance._SUSP_OTHER_LABEL = u'other dissonance'
-        dissonance._SUSP_NODISS_LABEL = u'no dissonance'
-
-    def tearDown(self):
-        dissonance._SUSP_USUSP_LABEL = self._SUSP_USUSP_LABEL
-        dissonance._SUSP_LSUSP_LABEL = self._SUSP_LSUSP_LABEL
-        dissonance._SUSP_OTHER_LABEL = self._SUSP_OTHER_LABEL
-        dissonance._SUSP_NODISS_LABEL = self._SUSP_NODISS_LABEL
-
+    # NOTE: we patch the objects to ensure all four are different, and that we don't need isnan()
     def test_ind_func_1(self):
         # simple: it's a suspension
         # 1.) prepare inputs
