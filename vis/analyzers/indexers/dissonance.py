@@ -81,7 +81,9 @@ def susp_ind_func(obj):
     :rtype: :class:`pandas.Series` of unicode string
     """
     # Description of the variables:
-    # - x: melodic interval of lower part into suspension, not unison (upper part is unison)
+    # - a: melodic interval of upper part into suspension
+    # - b: melodic interval of upper part out of suspension
+    # - x: melodic interval of lower part into suspension
     # - d: dissonant harmonic interval
     # - y: melodic interval of lower part out of suspension (upper part is -2)
     # - z: d-y if y >= 1 else d-y-2 (it's the resolution vert-int)
@@ -97,9 +99,14 @@ def susp_ind_func(obj):
     post = [None for _ in xrange(len(row_one[diss_ind].index))]
     for post_i, combo in enumerate(row_one[diss_ind].index):
         lower_i = int(combo.split(u',')[1])
+        upper_i = int(combo.split(u',')[0])
         # is there a dissonance?
         if (isinstance(row_two[diss_ind][combo], basestring) or
             (not isnan(row_two[diss_ind][combo]))):
+            # set a (melodic of upper part into diss)
+            a = interval_to_int(row_one[horiz_int_ind][upper_i])
+            # set b (melodic of upper part out of diss)
+            b = interval_to_int(row_two[horiz_int_ind][upper_i])
             # set x (melodic of lower part into diss)
             x = interval_to_int(row_one[horiz_int_ind][lower_i])
             # set d (the dissonant vertical interval)
@@ -109,9 +116,10 @@ def susp_ind_func(obj):
             # set z (vert int after diss)
             z = interval_to_int(row_three[int_ind][combo])
             # deal with z
-            if 1 == x and -2 == y:
+            if 1 == x and ((b >= 1 and d + b == z) or  # if the upper voice ascends out of d
+                           (d + b + 2 == z)):  # if the upper voice descends out of d
                 post[post_i] = _SUSP_LSUSP_LABEL
-            elif 1 != x and ((y >= 1 and d - y == z) or  # if the lower voice ascends out of d
+            elif 1 == a and ((y >= 1 and d - y == z) or  # if the lower voice ascends out of d
                              (d - y - 2 == z)):  # if the lower voice descends out of d
                 post[post_i] = _SUSP_USUSP_LABEL
             else:
