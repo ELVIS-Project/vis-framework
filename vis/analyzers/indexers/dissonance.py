@@ -50,6 +50,7 @@ is the DataFrame you wish to modify::
 from numpy import nan, isnan
 import pandas
 from vis.analyzers import indexer
+from .interval import interval_to_int
 
 
 # Used by susp_ind_func() as the labels for suspensions and other dissonances. They're module-level
@@ -99,20 +100,15 @@ def susp_ind_func(obj):
         if (isinstance(row_two[diss_ind][combo], basestring) or
             (not isnan(row_two[diss_ind][combo]))):
             # check x (melodic of lower part into diss)
-            if row_one[horiz_int_ind][lower_i] == 'P1':
+            if 1 == interval_to_int(row_one[horiz_int_ind][lower_i]):
                 post[post_i] = _SUSP_OTHER_LABEL
                 continue
             # set d (the dissonant vertical interval)
-            d = int(row_two[diss_ind][combo][-1:])
+            d = interval_to_int(row_two[diss_ind][combo][-1:])
             # set y (lower part melodic out of diss)
-            y = (1 if (not isinstance(row_two[horiz_int_ind][lower_i], basestring)
-                   and isnan(row_two[horiz_int_ind][lower_i]))
-                 else int(row_two[horiz_int_ind][lower_i][-1:]))
+            y = interval_to_int(row_two[horiz_int_ind][lower_i])
             # set z (vert int after diss)
-            try:
-                z = int(row_three[int_ind][combo][-1:])
-            except TypeError:  # happens when 'z' is NaN
-                z = 1
+            z = interval_to_int(row_three[int_ind][combo])
             # deal with z
             #print('*** d, y, z: ' + str(d) + ', ' + str(y) + ', ' + str(z))  # DEBUG
             if (y >= y and d - y == z) or (d - y - 2 == z):
