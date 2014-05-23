@@ -56,7 +56,8 @@ from .interval import interval_to_int
 # Used by susp_ind_func() as the labels for suspensions and other dissonances. They're module-level
 # so they can be changed, and possibly withstand multiprocessing... and so the unit tests can
 # modify them to more easily check the classification.
-_SUSP_SUSP_LABEL = u'susp'
+_SUSP_USUSP_LABEL = 'USUSP'  # for upper-voice suspensions
+_SUSP_LSUSP_LABEL = 'LSUSP'  # for lower-voice suspensions
 _SUSP_OTHER_LABEL = nan
 _SUSP_NODISS_LABEL = nan
 
@@ -99,10 +100,8 @@ def susp_ind_func(obj):
         # is there a dissonance?
         if (isinstance(row_two[diss_ind][combo], basestring) or
             (not isnan(row_two[diss_ind][combo]))):
-            # check x (melodic of lower part into diss)
-            if 1 == interval_to_int(row_one[horiz_int_ind][lower_i]):
-                post[post_i] = _SUSP_OTHER_LABEL
-                continue
+            # set x (melodic of lower part into diss)
+            x = interval_to_int(row_one[horiz_int_ind][lower_i])
             # set d (the dissonant vertical interval)
             d = interval_to_int(row_two[diss_ind][combo][-1:])
             # set y (lower part melodic out of diss)
@@ -110,9 +109,11 @@ def susp_ind_func(obj):
             # set z (vert int after diss)
             z = interval_to_int(row_three[int_ind][combo])
             # deal with z
-            #print('*** d, y, z: ' + str(d) + ', ' + str(y) + ', ' + str(z))  # DEBUG
-            if (y >= y and d - y == z) or (d - y - 2 == z):
-                post[post_i] = _SUSP_SUSP_LABEL
+            if 1 == x and -2 == y:
+                post[post_i] = _SUSP_LSUSP_LABEL
+            elif 1 != x and ((y >= 1 and d - y == z) or  # if the lower voice ascends out of d
+                             (d - y - 2 == z)):  # if the lower voice descends out of d
+                post[post_i] = _SUSP_USUSP_LABEL
             else:
                 post[post_i] = _SUSP_OTHER_LABEL
         else:
