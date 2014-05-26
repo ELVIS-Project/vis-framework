@@ -4,6 +4,13 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
+* 1.2.0:
+    - WorkflowManager offers output('LilyPond') with part names on annotation lines
+* 1.1.2:
+    - include and install the 'outputlilypond' package
+* 1.1.0:
+    - add LilyPond indexers
+    - add support for 'LilyPond' to WorkflowManager.output()
 * 1.0.1:
     - minor change so vis-framework will install successfully with pip
 * 1.0.0:

@@ -86,8 +86,11 @@ class WorkflowManager(object):
 
     # Error message when users call output() with LilyPond, but they probably called run() with
     # ``count frequency`` set to True.
-    _count_frequency_message = u'LilyPond output is not possible after you call run() with ' + \
+    _COUNT_FREQUENCY_MESSAGE = u'LilyPond output is not possible after you call run() with ' + \
         '"count frequency" set to True.'
+
+    # The error when we required two-voice pairs, but one of the combinations wasn't a pair.
+    _REQUIRE_PAIRS_ERROR = u'All voice combinations must have two parts (found %s).'
 
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
@@ -127,7 +130,7 @@ class WorkflowManager(object):
         """
         return self._data[index]
 
-    def load(self, instruction, pathname=None):
+    def load(self, instruction='pieces', pathname=None):
         """
         Import analysis data from long-term storage on a filesystem. This should primarily be \
         used for the ``u'pieces'`` instruction, to control when the initial music21 import \
@@ -139,9 +142,7 @@ class WorkflowManager(object):
         .. note:: If one of the files imports as a :class:`music21.stream.Opus`, the number of
             pieces and their order *will* change.
 
-        Parameters
-        ==========
-        :parameter instruction: The type of data to load.
+        :parameter instruction: The type of data to load. Defaults to ``'pieces'``.
         :type instruction: basestring
         :parameter pathname: The pathname of the data to import; not required for the \
             ``u'pieces'`` instruction.
@@ -453,6 +454,10 @@ class WorkflowManager(object):
             combos = unicode(self.settings(i, u'voice combinations'))
             if combos != u'all' and combos != u'all pairs' and combos != u'None':
                 combos = ast.literal_eval(combos)
+                # ensure each combination is a two-voice pair
+                for pair in combos:
+                    if 2 != len(pair):
+                        raise RuntimeError(WorkflowManager._REQUIRE_PAIRS_ERROR % len(pair))
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
             # we no longer need to know the combinations' names, so we can make a list
             vert_ints = list(vert_ints.itervalues())
@@ -461,7 +466,6 @@ class WorkflowManager(object):
             # remove the "Rest" entries, if required
             if self.settings(None, u'include rests') is not True:
                 # we'll just get a view that omits the "Rest" entries in the Series
-                # TODO: this is pandas magic; check it for 0.13
                 for i, pair in enumerate(post):
                     post[i] = pair[pair != u'Rest']
             self._result.append(post)
@@ -623,8 +627,11 @@ class WorkflowManager(object):
 
         **Instructions:**
 
-        * ``u'R histogram'``: a histogram with ggplot2 in R.
+        * ``u'histogram'``: a histogram. Currently equivalent to the ``'R histogram'`` instruction.
         * ``u'LilyPond'``: each score with annotations for analyzed objects.
+        * ``u'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
+            ``'histogram'`` instruction. In the future, this will be used to distinguish histograms
+            produced with R from those produced with other libraries, like matplotlib or bokeh.
 
         .. note :: We try to prevent you from requesting LilyPond output if you called :meth:`run`
             with ``count frequency`` set to ``True`` by raising a :exc:`RuntimeError` if ``count
@@ -634,70 +641,101 @@ class WorkflowManager(object):
             fail. The error will probably be a :exc:`TypeError` that says ``object of type
             'numpy.float64' has no len()``.
         """
-        # TODO: break each output method to a private method
         # ensure we have some results
         if self._result is None:
-            raise RuntimeError(u'Please call run() before you call export().')
+            raise RuntimeError(u'Please call run() before you call output().')
         else:
             # properly set output paths
             pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
         if instruction == u'LilyPond':
-            # try to determine whether they called run() properly (with ``count frequency`` set
-            # to False)
-            if self.settings(None, 'count frequency') is False or \
-            len(self._data) != len(self._result):
-                raise RuntimeError(WorkflowManager._count_frequency_message)
-            # the file extension for LilyPond
-            file_ext = u'.ly'
-            # assume we have the result of a suitable Indexer
-            annotation_parts = []
-            # run additional indexers for annotation
-            for i in xrange(len(self._data)):
-                for j in xrange(len(self._result[i])):
-                    annotation_parts.append(self._data[i].get_data([lilypond.AnnotationIndexer,
-                                                                    lilypond.AnnotateTheNoteIndexer,
-                                                                    lilypond.PartNotesIndexer],
-                                                                None,
-                                                                [self._result[i][j]])[0])
-            # run OutputLilyPond and LilyPond
-            enum = True if len(self._data) > 1 else False
-            pathnames = []
-            for i in xrange(len(self._data)):
-                setts = {u'run_lilypond': True,  u'annotation_part': annotation_parts}
-                # append piece index to pathname, if there are many pieces
-                setts[u'output_pathname'] = pathname + u'-' + str(i) + file_ext if enum \
-                    else pathname + file_ext
-                self._data[i].get_data([lilypond.LilyPondIndexer], setts)
-                pathnames.append(setts[u'output_pathname'])
-            return pathnames
-        elif instruction == u'R histogram':
-            # properly set output paths
-            pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
-            stata_path = pathname + u'.dta'
-            png_path = pathname + u'.png'
-            # ensure we have a DataFrame
-            if not isinstance(self._result, pandas.DataFrame):
-                out_me = self._get_dataframe(u'freq', top_x, threshold)
-            else:
-                out_me = self._result
-            out_me.to_stata(stata_path)
-            token = None
-            if u'intervals' == self._previous_exp:
-                token = u'int'
-            elif u'n-grams' == self._previous_exp:
-                token = unicode(self.settings(None, u'n'))
-            else:
-                token = u'things'
-            call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
-                            stata_path, png_path, token, str(len(self._data))]
-            try:
-                subprocess.check_output(call_to_r)
-            except subprocess.CalledProcessError as cpe:
-                raise RuntimeError(u'Error during call to R: ' + unicode(cpe.output) + \
-                                    u' (return code: ' + unicode(cpe.returncode) + u')')
-            return png_path
+            return self._make_lilypond(pathname)
+        elif instruction == u'histogram' or instruction == u'R histogram':
+            return self._make_histogram(pathname, top_x, threshold)
         else:
             raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
+
+    def _make_histogram(self, pathname=None, top_x=None, threshold=None):
+        """
+        Make a histogram. To be called by output(). Currently uses ggplot2 in R.
+
+        Arguments as per output().
+        """
+        # properly set output paths
+        pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
+        stata_path = pathname + u'.dta'
+        png_path = pathname + u'.png'
+        # ensure we have a DataFrame
+        if not isinstance(self._result, pandas.DataFrame):
+            out_me = self._get_dataframe(u'freq', top_x, threshold)
+        else:
+            out_me = self._result
+        out_me.to_stata(stata_path)
+        token = None
+        if u'intervals' == self._previous_exp:
+            token = u'int'
+        elif u'n-grams' == self._previous_exp:
+            token = unicode(self.settings(None, u'n'))
+        else:
+            token = u'things'
+        call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+                        stata_path, png_path, token, str(len(self._data))]
+        try:
+            subprocess.check_output(call_to_r)
+        except subprocess.CalledProcessError as cpe:
+            raise RuntimeError(u'Error during call to R: ' + unicode(cpe.output) + \
+                                u' (return code: ' + unicode(cpe.returncode) + u')')
+        return png_path
+
+    def _make_lilypond(self, pathname=None):
+        """
+        Make annotated scores with LilyPond. To be called by output().
+
+        Argument as per output().
+        """
+        # try to determine whether they called run() properly (``count frequency`` should be False)
+        if self.settings(None, 'count frequency') is True or len(self._data) != len(self._result):
+            raise RuntimeError(WorkflowManager._COUNT_FREQUENCY_MESSAGE)
+        pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
+        # the file extension for LilyPond
+        file_ext = u'.ly'
+        # assume we have the result of a suitable Indexer
+        annotation_parts = []
+        # run additional indexers for annotation
+        for i in xrange(len(self._data)):
+            ann_p = []
+            combos = []
+            if 'all' == self.settings(i, 'voice combinations'):
+                lowest_part = len(self.metadata(i, 'parts')) - 1
+                combos = [[x, lowest_part] for x in xrange(lowest_part)]
+            elif 'all pairs' == self.settings(i, 'voice combinations'):
+                # Calculate all 2-part combinations. We must do this in the same order as the
+                # IntervalIndexer, or else the labels will be wrong.
+                for left in xrange(len(self.metadata(i, 'parts'))):
+                    for right in xrange(left + 1, len(self.metadata(i, 'parts'))):
+                        combos.append([left, right])
+            else:
+                combos = ast.literal_eval(self.settings(i, 'voice combinations'))
+            for j in xrange(len(self._result[i])):
+                ann_p.append(self._data[i].get_data([lilypond.AnnotationIndexer,
+                                                     lilypond.AnnotateTheNoteIndexer,
+                                                     lilypond.PartNotesIndexer],
+                                                    None,
+                                                    [self._result[i][j]])[0])
+            annotation_parts.append(ann_p)
+        # run OutputLilyPond and LilyPond
+        enum = True if len(self._data) > 1 else False
+        pathnames = []
+        for i in xrange(len(self._data)):
+            setts = {u'run_lilypond': True, u'annotation_part': annotation_parts[i]}
+            # append piece index to pathname, if there are many pieces
+            if enum:
+                setts[u'output_pathname'] = pathname + u'-' + str(i) + file_ext
+            else:
+                setts[u'output_pathname'] = pathname + file_ext
+            self._data[i].get_data([lilypond.LilyPondIndexer], setts)
+            pathnames.append(setts[u'output_pathname'])
+        return pathnames
+
 
     def export(self, form, pathname=None, top_x=None, threshold=None):
         """

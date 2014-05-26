@@ -29,7 +29,7 @@ The :class:`LilyPondIndexer` uses the :mod:`outputlilypond` module to produces t
 that should produce a score of the input.
 """
 
-# Disable "string statement has no effect." It's for Sphinx, silly!
+# Disable "string statement has no effect"
 # pylint: disable=W0105
 
 from math import fsum
@@ -43,13 +43,9 @@ def annotation_func(obj):
     """
     Used by :class:`AnnotationIndexer` to make a "markup" command for LilyPond scores.
 
-    Parameters
-    ==========
     :param obj: A single-element :class:`Series` with the string to wrap in a "markup" command.
     :type obj: :class:`pandas.Series` of ``unicode``
 
-    Returns
-    =======
     :returns: The thing in a markup.
     :rtype: ``unicode``
     """
@@ -61,14 +57,10 @@ def annotate_the_note(obj):
     Used by :class:`AnnotateTheNoteIndexer` to make a :class:`~music21.note.Note` object with the
     annotation passed in. Take note (hahaha): the ``lily_invisible`` property is set to ``True``!
 
-    Parameters
-    ==========
     :param obj: A single-element :class:`Series` with the string to put as the ``lily_markup``
         property of a new :class:`Note`.
     :type obj: :class:`pandas.Series` of ``unicode``
 
-    Returns
-    =======
     :returns: An annotated note.
     :rtype: :class:`music21.note.Note`
     """
@@ -119,16 +111,12 @@ class LilyPondIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The :class:`Score` object to output to LilyPond.
         :type score: singleton list of :class:`music21.stream.Score`
 
         :param settings: Your settings. There are no required settings.
         :type settings: ``dict`` or :const:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``u'run_lilypond'`` is ``True`` but ``u'output_pathname'`` \
             is unspecified.
@@ -163,8 +151,6 @@ class LilyPondIndexer(indexer.Indexer):
         Make a string with the LilyPond representation of each score. Run LilyPond, if we're
         supposed to.
 
-        Returns
-        =======
         :returns: A list of strings, where each string is the LilyPond-format representation of the
             score that was in that index.
         :rtype: ``list`` of ``unicode``
@@ -192,21 +178,17 @@ class AnnotationIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
-    possible_settings = []  # TODO: add a setting for whether _ or - or ^ before \markup
+    possible_settings = []
     default_settings = {}
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The input from which to produce a new index.
         :type score: ``list`` of :class:`pandas.Series`
 
         :param settings: Nothing.
         :type settings: ``dict`` or :const:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
@@ -217,8 +199,6 @@ class AnnotationIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
             index of the :class:`Part` used to generate it, in the order specified to the
             constructor. Each element in the :class:`Series` is a ``basestring``.
@@ -237,21 +217,17 @@ class AnnotateTheNoteIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
-    possible_settings = []  # TODO: set lily_invisible dynamically?
+    possible_settings = []
     default_settings = {}
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The input from which to produce a new index.
         :type score: ``list`` of :class:`pandas.Series`
 
         :param settings: Nothing.
         :type settings: ``dict`` or :const:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
@@ -262,8 +238,6 @@ class AnnotateTheNoteIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
             index of the :class:`Part` used to generate it, in the order specified to the
             constructor. Each element in the :class:`Series` is a ``basestring``.
@@ -279,96 +253,90 @@ class PartNotesIndexer(indexer.Indexer):
     From a :class:`Series` full of :class:`Note` objects, craft a :class:`music21.stream.Part`. The
     offset of each :class:`Note` in the output matches its index in the input :class:`Series`, and
     each ``duration`` property is set to match.
+
+    To print a "name" along with the first item in a part, for example to indicate to which part
+    or part combinations the annotations belong, use the optional ``part_names`` setting.
     """
 
     required_score_type = 'pandas.Series'
     possible_settings = []
     default_settings = {}
+    possible_settings = [u'part_names']
+    """
+    :param part_names: Names for the annotation parts, in order. If there are more part names than
+        parts, extra names will be ignored. If there are fewer part names than parts, some parts
+        will not be named.
+    :type part_names: list of basestring
+    """
+
+    _IMPOSSIBLE_QUARTERLENGTH = u'Impossible \'quarterLength\': %s.'
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The input from which to produce a new index.
         :type score: ``list`` of :class:`pandas.Series` of :class:`music21.note.Note`
 
         :param settings: Nothing.
         :type settings: ``dict`` or :const:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
         super(PartNotesIndexer, self).__init__(score, None)
         self._indexer_func = None
+        if settings is not None and 'part_names' in settings:
+            self._settings['part_names'] = settings['part_names']
+        else:
+            settings = {}
 
     @staticmethod
     def _fill_space_between_offsets(start_o, end_o):
         """
         Given two offsets, finds the ``quarterLength`` values that fill the whole duration.
 
-        Parameters
-        ==========
         :param start_o: The starting offset.
         :type start_o: ``float``
         :param end_o: The ending offset.
         :type end_o: ``float``
 
-        Returns
-        =======
         :returns: The ``quarterLength`` values that fill the whole duration (see below).
         :rtype: ``list`` of ``float``
 
         The algorithm tries to use as few ``quarterLength`` values as possible, but prefers multiple
         values to a single dotted value. The longest single value is ``4.0`` (a whole note).
         """
-        # TODO: rewrite this as a single recursive function
-        def highest_valid_ql(rem):
+        VALID_DURATIONS = (2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0)  # pylint: disable=invalid-name
+
+        def find_highest_valid_ql(this_ql, recursor=0):
             """
-            Returns the largest quarterLength that is less "rem" but not greater than 2.0
+            Returns the largest quarterLength that is less then "this_ql" but not greater than 2.0.
             """
-            # Holds the valid quarterLength durations from whole note to 256th.
-            list_of_durations = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0]
-            # Easy terminal condition
-            if rem in list_of_durations:
-                return rem
-            # Otherwise, we have to look around
-            for dur in list_of_durations:
-                if dur < rem:
-                    return dur
+            if VALID_DURATIONS[recursor] <= this_ql:
+                return VALID_DURATIONS[recursor]
+            else:
+                return find_highest_valid_ql(this_ql, recursor + 1)
 
         def the_solver(ql_remains):
             """
             Given the "quarterLength that remains to be dealt with," this method returns
             the solution.
             """
-            if 4.0 == ql_remains:
-                # Terminal condition, just return!
+            if 0.0 == ql_remains:
+                return [0.0]
+            elif 4.0 == ql_remains:
                 return [4.0]
-            elif 4.0 > ql_remains >= 0.0:
-                if 0.015625 > ql_remains:
-                    # give up... ?
-                    return [ql_remains]
-                else:
-                    possible_finish = highest_valid_ql(ql_remains)
-                    if possible_finish == ql_remains:
-                        return [ql_remains]
-                    else:
-                        return [possible_finish] + \
-                        the_solver(ql_remains - possible_finish)
             elif ql_remains > 4.0:
                 return [4.0] + the_solver(ql_remains - 4.0)
+            elif 4.0 > ql_remains >= 0.015625:
+                highest = find_highest_valid_ql(ql_remains)
+                if highest == ql_remains:
+                    return [ql_remains]
+                else:
+                    return [highest] + the_solver(ql_remains - highest)
             else:
-                msg = u'Impossible quarterLength remaining: ' + unicode(ql_remains) + \
-                    u'... we started with ' + unicode(start_o) + u' to ' + unicode(end_o)
-                raise RuntimeError(msg)
+                raise RuntimeError(PartNotesIndexer._IMPOSSIBLE_QUARTERLENGTH % (end_o - start_o))
 
-        start_o = float(start_o)
-        end_o = float(end_o)
-        result = the_solver(end_o - start_o)
-        #return (result[0], result[1:])  # NB: this was the previous "return" statement
-        return result
+        return the_solver(float(end_o) - float(start_o))
 
     @staticmethod
     def _set_durations(in_part):
@@ -419,22 +387,53 @@ class PartNotesIndexer(indexer.Indexer):
             ret_part.lily_instruction = in_part.lily_instruction
         return ret_part
 
+    @staticmethod
+    def _prepend_rests(in_part):
+        """
+        Prepends rest objects to fill empty space at the beginning of a :class:`Series`. That is,
+        if the first object in the :class:`Series` doesn't have offset ``0.0``, we add a
+        :class:`Rest` at offset ``0.0``, and enough additional :class:`Rest` objects to fill the
+        duration until the first inputted object.
+
+        If the first object in the inputed :class:`Series` is at offset 0.0, no changes are made.
+
+        :param in_part: The part to fill in.
+        :type in_part: :class:`pandas.Series`
+
+        :returns: The filled-in part.
+        :type in_part: :class:`pandas.Series`
+        """
+        if 0.0 != in_part.index[0]:
+            durations = PartNotesIndexer._fill_space_between_offsets(0.0, in_part.index[0])
+            offsets = [max(0.0, sum(durations[:i])) for i in xrange(len(durations))]
+            for i, offset in enumerate(offsets):
+                in_part[offset] = note.Rest(quarterLength=durations[i])
+            return in_part.sort_index()
+        else:
+            return in_part
+
     def run(self):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each :class:`Part` corresponds to the
             index of the :class:`Series` used to generate it, in the order specified to the
             constructor. Each element in the :class:`Part` is a :class:`Note`.
         :rtype: ``list`` of :class:`music21.stream.Part`
         """
         post = []
-        for each_series in self._score:
+        for i, each_series in enumerate(self._score):
+            each_series = PartNotesIndexer._prepend_rests(each_series)
             new_part = stream.Part()
             new_part.lily_analysis_voice = True
-            new_part.lily_instruction = u'\t\\textLengthOn\n'
+            if 'part_names' in self._settings:
+                new_part.lily_instruction = (u'\t\\textLengthOn\n'
+                                             u'\t\\set Staff.instrumentName = "%s"\n'
+                                             u'\t\\set Staff.shortInstrumentName = "%s"\n'
+                                             % (self._settings['part_names'][i],
+                                                self._settings['part_names'][i]))
+            else:
+                new_part.lily_instruction = u'\t\\textLengthOn\n'
             # put the Note objects into a new stream.Part, using the right offset
             for off, obj in each_series.iteritems():
                 new_part.insert(off, obj)

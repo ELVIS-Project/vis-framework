@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/offset.py
 # Purpose:                Indexer to regularize the observed offsets.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013 to 2014, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -150,24 +150,24 @@ class FilterByOffsetIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
-    "The :class:`FilterByOffsetIndexer` uses :class:`pandas.Series` objects."
-
     possible_settings = [u'quarterLength']
     """
     A ``list`` of possible settings for the :class:`FilterByOffsetIndexer`.
 
-    :keyword u'quarterLength': The quarterLength duration between observations desired in the
+    :keyword float 'quarterLength': The quarterLength duration between observations desired in the
         output. This value must not have more than three digits to the right of the decimal
         (i.e. 0.001 is the smallest possible value).
-    :type u'quarterLength': ``float``
     """
+
+    _ZERO_PART_ERROR = u'FilterByOffsetIndexer requires an index with at least one part.'
+    _NO_QLENGTH_ERROR = u'FilterByOffsetIndexer requires a "quarterLength" setting.'
+    _QLENGTH_TOO_SMALL_ERROR = u'FilterByOffsetIndexer requires a "quarterLength" greater than 0.001'
 
     def __init__(self, score, settings=None):
         """
         :param score: A list of Series you wish to filter by offset values, stored in the Index.
         :type score: ``list`` of :class:`pandas.Series`
-        :param settings: There is one required setting. See :const:`possible_settings`.
-        :type settings: ``dict`
+        :param dict settings: There is one required setting. See :const:`possible_settings`.
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
@@ -179,11 +179,9 @@ class FilterByOffsetIndexer(indexer.Indexer):
 
         # check the settings instance has a u'quarterLength' property.
         if settings is None or u'quarterLength' not in settings:
-            err_msg = u'FilterByOffsetIndexer requires a "quarterLength" setting.'
-            raise RuntimeError(err_msg)
+            raise RuntimeError(FilterByOffsetIndexer._NO_QLENGTH_ERROR)
         elif settings[u'quarterLength'] < 0.001:
-            err_msg = u'FilterByOffsetIndexer requires a "quarterLength" greater than 0.001'
-            raise RuntimeError(err_msg)
+            raise RuntimeError(FilterByOffsetIndexer._QLENGTH_TOO_SMALL_ERROR)
         else:
             self._settings[u'quarterLength'] = settings[u'quarterLength']
 
@@ -193,41 +191,44 @@ class FilterByOffsetIndexer(indexer.Indexer):
         # This Indexer uses pandas magic, not an _indexer_func().
         self._indexer_func = None
 
+        # Ensure the score has at least one part.
+        if len(self._score) == 0:
+            raise RuntimeError(FilterByOffsetIndexer._ZERO_PART_ERROR)
+
     def run(self):
         """
         Regularize the observed offsets for the inputted Series.
 
-        Returns
-        =======
-        :returns: A DataFrame with the indices for all the inputted parts, where the "index" value
-            for each part is the same as in the list in which they were submitted to the
-            constructor. The "index" for each member Series is the same, starting at 0.0 then at
-            every "quarterLength" after, until either the last observation in the piece, or the
-            nearest multiple before.
+        :returns: A :class:`DataFrame` with offset-indexed values for all inputted parts. The
+            pandas indices (holding music21 offsets) start at the first offset at which there is an
+            event in any of the inputted parts. An offset appears every ``quarterLength`` until the
+            final offset, which is either the last observation in the piece (if it is divisible by
+            the ``quarterLength``) or the next-highest value that is divisible by ``quarterLength``.
         :rtype: :class:`pandas.DataFrame`
         """
-        if 0 == len(self._score):
-            return []
+        post = []
         start_offset = None
-        try:
+        try:  # usually this finds the first offset in the piece
             start_offset = int(min([part.index[0] for part in self._score]) * 1000)
-        except IndexError:
+        except (ValueError, IndexError):
             # if one of the parts has 0 length
             start_offset = []
             for part in self._score:
                 if 0 < len(part.index):
                     start_offset.append(part.index[0])
             if start_offset == []:
-                # all the parts have no length, so return a DataFrame with as many empty parts
-                return [pandas.Series() for _ in xrange(len(self._score))]
-            start_offset = int(min(start_offset))
-        step = int(self._settings[u'quarterLength'] * 1000)
-        post = []
-        for part in self._score:
-            if len(part.index) < 1:
-                post.append(part)
+                # all the parts have no length, so we need as many empty parts
+                post = [pandas.Series() for _ in xrange(len(self._score))]
             else:
-                end_offset = int(part.index[-1] * 1000)
-                off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
-                post.append(part.reindex(index=off_list, method='ffill'))
+                start_offset = int(min(start_offset))
+        if post == []:
+            for part in self._score:
+                if len(part.index) < 1:
+                    post.append(part)
+                else:
+                    end_offset = int(part.index[-1] * 1000)
+                    step = int(self._settings[u'quarterLength'] * 1000)
+                    off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
+                    post.append(part.reindex(index=off_list, method='ffill'))
+        post = self.make_return([unicode(x) for x in xrange(len(post))], [x for x in post])
         return post

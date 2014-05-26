@@ -36,7 +36,7 @@ import pandas
 from music21.humdrum.spineParser import GlobalReference
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import noterest
+from vis.analyzers.indexers import noterest, lilypond
 
 
 # pylint: disable=R0904
@@ -204,29 +204,87 @@ class WorkflowTests(TestCase):
 
 
 class Output(TestCase):
-    def test_output_1(self):
+    @mock.patch('vis.workflow.WorkflowManager._make_histogram')
+    def test_output_1a(self, mock_histo):
+        # ensure output() calls _make_histogram() as required (with 'histogram' instruction)
+        # 1: prepare
+        histo_path = u'the_path.svg'
+        mock_histo.return_value = histo_path
         test_wc = WorkflowManager([])
-        self.assertRaises(NotImplementedError, test_wc.output, u'LilyPond')
+        test_wc._previous_exp = u'intervals'
+        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._result = MagicMock(spec=pandas.DataFrame)
+        path = u'pathname!'
+        top_x = 20
+        threshold = 10
+        expected_args = [path, top_x, threshold]
+        # 2: run
+        actual = test_wc.output('histogram', path, top_x, threshold)
+        # 3: check
+        self.assertEqual(histo_path, actual)
+        mock_histo.assert_called_once_with(*expected_args)
 
-    def test_output_2(self):
+    @mock.patch('vis.workflow.WorkflowManager._make_histogram')
+    def test_output_1b(self, mock_histo):
+        # ensure output() calls _make_histogram() as required (with 'R histogram' instruction)
+        # 1: prepare
+        histo_path = u'the_path.svg'
+        mock_histo.return_value = histo_path
         test_wc = WorkflowManager([])
-        self.assertRaises(RuntimeError, test_wc.output, u'LJKDSFLAESFLKJ')
+        test_wc._previous_exp = u'intervals'
+        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._result = MagicMock(spec=pandas.DataFrame)
+        path = u'pathname!'
+        top_x = 20
+        threshold = 10
+        expected_args = [path, top_x, threshold]
+        # 2: run
+        actual = test_wc.output('R histogram', path, top_x, threshold)
+        # 3: check
+        self.assertEqual(histo_path, actual)
+        mock_histo.assert_called_once_with(*expected_args)
+
+    @mock.patch('vis.workflow.WorkflowManager._make_lilypond')
+    def test_output_2(self, mock_lily):
+        # ensure output() calls _make_lilypond() as required
+        # 1: prepare
+        lily_path = u'the_path'
+        mock_lily.return_value = lily_path
+        test_wc = WorkflowManager([])
+        test_wc._previous_exp = u'intervals'
+        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._result = MagicMock(spec=pandas.DataFrame)
+        path = u'pathname!'
+        expected_args = [path]
+        # 2: run
+        actual = test_wc.output('LilyPond', path)
+        # 3: check
+        self.assertEqual(lily_path, actual)
+        mock_lily.assert_called_once_with(*expected_args)
 
     def test_output_3(self):
-        # with self._result as None
         test_wc = WorkflowManager([])
+        test_wc._result = [5]  # make sure that's not what causes it
+        self.assertRaises(RuntimeError, test_wc.output, u'LJKDSFLAESFLKJ')
+
+    def test_output_4(self):
+        # ensure RuntimeError if self._result is None
+        test_wc = WorkflowManager([])
+        test_wc._result = None  # just in case
         self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
 
+
+class MakeHistogram(TestCase):
     @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
     @mock.patch(u'subprocess.check_output')
-    def test_output_4(self, mock_call, mock_gdf):
+    def test_histogram_1(self, mock_call, mock_gdf):
         # with specified pathname; last experiment was intervals with 20 pieces; self._result is DF
         test_wc = WorkflowManager([])
         test_wc._previous_exp = u'intervals'
         test_wc._data = [1 for _ in xrange(20)]
         test_wc._result = MagicMock(spec=pandas.DataFrame)
         path = u'pathname!'
-        actual = test_wc.output(u'R histogram', path)
+        actual = test_wc._make_histogram(path)
         self.assertEqual(0, mock_gdf.call_count)
         expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
                          path + u'.dta', path + u'.png', u'int', u'20']
@@ -235,7 +293,7 @@ class Output(TestCase):
 
     @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
     @mock.patch(u'subprocess.check_output')
-    def test_output_5(self, mock_call, mock_gdf):
+    def test_histogram_2(self, mock_call, mock_gdf):
         # with unspecified pathname; last experiment was 14-grams with 1 piece; self._result is S
         test_wc = WorkflowManager([])
         test_wc._previous_exp = u'n-grams'
@@ -243,7 +301,7 @@ class Output(TestCase):
         test_wc._shared_settings[u'n'] = 14
         test_wc._result = MagicMock(spec=pandas.Series)
         path = u'test_output/output_result'
-        actual = test_wc.output(u'R histogram')
+        actual = test_wc._make_histogram()
         mock_gdf.assert_called_once_with(u'freq', None, None)
         expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
                          path + u'.dta', path + u'.png', u'14', u'1']
@@ -252,7 +310,7 @@ class Output(TestCase):
 
     @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
     @mock.patch(u'subprocess.check_output')
-    def test_output_6(self, mock_call, mock_gdf):
+    def test_histogram_3(self, mock_call, mock_gdf):
         # test_ouput_6, plus top_x and threshold
         test_wc = WorkflowManager([])
         test_wc._previous_exp = u'n-grams'
@@ -260,7 +318,7 @@ class Output(TestCase):
         test_wc._shared_settings[u'n'] = 14
         test_wc._result = MagicMock(spec=pandas.Series)
         path = u'test_output/output_result'
-        actual = test_wc.output(u'R histogram', top_x=420, threshold=1987)
+        actual = test_wc._make_histogram(top_x=420, threshold=1987)
         mock_gdf.assert_called_once_with(u'freq', 420, 1987)
         expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
                          path + u'.dta', path + u'.png', u'14', u'1']
@@ -269,7 +327,7 @@ class Output(TestCase):
 
     @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
     @mock.patch(u'subprocess.check_output')
-    def test_output_7(self, mock_call, mock_gdf):
+    def test_histogram_4(self, mock_call, mock_gdf):
         # test_output_4() but the subprocess thing fails
         def raiser(*args):
             raise CalledProcessError(u'Bach!', 42, u'CPE')
@@ -282,7 +340,7 @@ class Output(TestCase):
         expected_msg = u'Error during call to R: CPE (return code: Bach!)'
         actual = None
         try:
-            test_wc.output(u'R histogram', path)
+            test_wc._make_histogram(path)
         except RuntimeError as run_e:
             actual = run_e
         self.assertEqual(expected_msg, actual.message)
@@ -290,6 +348,157 @@ class Output(TestCase):
         expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
                          path + u'.dta', path + u'.png', u'int', u'20']
         mock_call.assert_called_once_with(expected_args)
+
+
+class MakeLilyPond(TestCase):
+    def test_lilypond_1a(self):
+        # error conditions: if 'count frequency' is True (but the lengths are okay)
+        test_wm = WorkflowManager(['fake piece'])
+        test_wm._data = ['fake IndexedPiece']
+        test_wm._result = ['fake results']
+        # test twice like this to make sure (1) the try/except will definitely catch something, and
+        # (2) we're not getting hit by another RuntimeError, of which there could be many
+        self.assertRaises(RuntimeError, test_wm._make_lilypond, ['paths'])
+        try:
+            test_wm._make_lilypond(['paths'])
+        except RuntimeError as the_err:
+            self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, the_err.message)
+
+    def test_lilypond_1b(self):
+        # error conditions: if the lengths are different, (but 'count frequency' is okay)
+        test_wm = WorkflowManager(['fake piece'])
+        test_wm._data = ['fake IndexedPiece']
+        test_wm._result = ['fake results', 'more fake results', 'so many fake results']
+        test_wm.settings(None, 'count frequency', False)
+        self.assertRaises(RuntimeError, test_wm._make_lilypond, ['paths'])
+        try:
+            test_wm._make_lilypond(['paths'])
+        except RuntimeError as the_err:
+            self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, the_err.message)
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
+    def test_lilypond_2(self, test_ip):
+        # make sure it works correctly with one piece that has one part
+        # ("voice combinations" with literal_eval())
+        # 1: prepare
+        input_path = u'carpathia'
+        get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
+        num_parts = 1  # how many parts per piece?
+        piece_list = ['test_piece.mei']
+        test_wm = WorkflowManager(piece_list)
+        for i in xrange(len(piece_list)):
+            test_wm._data[i] = mock.MagicMock(spec_set=IndexedPiece)
+            test_wm._data[i].get_data.side_effect = get_data_ret
+        # the results will be like this: [['fake result 0-0', 'fake result 0-1'],
+        #                                 ['fake result 1-0', 'fake result 1-1']]
+        exp_results = [['fake result ' + str(i) + '-' + str(j) for j in xrange(num_parts)] \
+                       for i in xrange(len(piece_list))]
+        test_wm._result = exp_results
+        test_wm.settings(None, 'count frequency', False)
+        test_wm.settings(0, 'voice combinations', '[[0]]')
+        #exp_part_labels = [{'part_names': [[0]]}]
+        # 2: run
+        test_wm._make_lilypond(input_path)
+        # 3: check
+        self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
+        lily_ind_list = [lilypond.AnnotationIndexer,
+                         lilypond.AnnotateTheNoteIndexer,
+                         lilypond.PartNotesIndexer]
+        for i, piece in enumerate(test_wm._data):
+            self.assertEqual(num_parts + 1, piece.get_data.call_count)
+            for j in xrange(num_parts):
+                piece.get_data.assert_any_call(lily_ind_list,
+                                               None,  # {'part_names': exp_part_labels[i]},
+                                               [exp_results[i][j]])
+            sett_dict = {u'run_lilypond': True,
+                         u'output_pathname': input_path + '.ly',
+                         u'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
+            piece.get_data.assert_any_call([lilypond.LilyPondIndexer], sett_dict)
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
+    @mock.patch('vis.workflow.WorkflowManager.metadata')
+    def test_lilypond_3(self, mock_metadata, test_ip):
+        # make sure it works correctly with one piece that has three parts
+        # ("voice combinations" is "all pairs")
+        # 1: prepare
+        input_path = u'carpathia'
+        get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
+        num_parts = 3  # how many parts per piece? -- NB: different from previous test
+        piece_list = ['test_piece.mei']
+        test_wm = WorkflowManager(piece_list)
+        for i in xrange(len(piece_list)):
+            test_wm._data[i] = mock.MagicMock(spec_set=IndexedPiece)
+            test_wm._data[i].get_data.side_effect = get_data_ret
+        mock_metadata.return_value = ['part %i' % x for x in xrange(num_parts)]
+        # the results will be like this: [['fake result 0-0', 'fake result 0-1'],
+        #                                 ['fake result 1-0', 'fake result 1-1']]
+        exp_results = [['fake result ' + str(i) + '-' + str(j) for j in xrange(num_parts)] \
+                       for i in xrange(len(piece_list))]
+        test_wm._result = exp_results
+        test_wm.settings(None, 'count frequency', False)
+        test_wm.settings(0, 'voice combinations', 'all pairs')
+        #exp_part_labels = [[[0, 1], [0, 2], [1, 2]]]
+        # 2: run
+        test_wm._make_lilypond(input_path)
+        # 3: check
+        self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
+        lily_ind_list = [lilypond.AnnotationIndexer,
+                         lilypond.AnnotateTheNoteIndexer,
+                         lilypond.PartNotesIndexer]
+        for i, piece in enumerate(test_wm._data):
+            self.assertEqual(num_parts + 1, piece.get_data.call_count)
+            for j in xrange(num_parts):
+                piece.get_data.assert_any_call(lily_ind_list,
+                                               None,  # {'part_names': exp_part_labels[i]},
+                                               [exp_results[i][j]])
+            sett_dict = {u'run_lilypond': True,
+                         u'output_pathname': input_path + '.ly',
+                         u'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
+            piece.get_data.assert_any_call([lilypond.LilyPondIndexer], sett_dict)
+
+    @mock.patch(u'vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
+    @mock.patch('vis.workflow.WorkflowManager.metadata')
+    def test_lilypond_4(self, mock_metadata, test_ip):
+        # make sure it works correctly with three pieces that have three parts
+        # ("voice combinations" is "all")
+        # 1: prepare
+        input_path = u'carpathia'
+        get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
+        num_parts = 3  # how many parts per piece? -- NB: diffferent from first test
+        piece_list = ['test_piece_1.mei', 'test_piece_2.mei', 'test_piece_3.mei']
+        test_wm = WorkflowManager(piece_list)
+        for i in xrange(len(piece_list)):
+            test_wm._data[i] = mock.MagicMock(spec_set=IndexedPiece)
+            test_wm._data[i].get_data.side_effect = get_data_ret
+        mock_metadata.return_value = ['part %i' % x for x in xrange(num_parts)]
+        # the results will be like this: [['fake result 0-0', 'fake result 0-1'],
+        #                                 ['fake result 1-0', 'fake result 1-1']]
+        exp_results = [['fake result ' + str(i) + '-' + str(j) for j in xrange(num_parts)] \
+                       for i in xrange(len(piece_list))]
+        test_wm._result = exp_results
+        test_wm.settings(None, 'count frequency', False)
+        test_wm.settings(0, 'voice combinations', 'all')
+        test_wm.settings(1, 'voice combinations', 'all')
+        test_wm.settings(2, 'voice combinations', 'all')
+        #exp_part_labels = [[[0, 2], [1, 2]] for _ in xrange(len(piece_list))]
+        # 2: run
+        test_wm._make_lilypond(input_path)
+        # 3: check
+        self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
+        lily_ind_list = [lilypond.AnnotationIndexer,
+                         lilypond.AnnotateTheNoteIndexer,
+                         lilypond.PartNotesIndexer]
+        for i, piece in enumerate(test_wm._data):
+            self.assertEqual(num_parts + 1, piece.get_data.call_count)
+            for j in xrange(num_parts):
+                piece.get_data.assert_any_call(lily_ind_list,
+                                               None,  # {'part_names': exp_part_labels[j]},
+                                               [exp_results[i][j]])
+            # NB: the output_pathname is different from the previous two tests
+            sett_dict = {u'run_lilypond': True,
+                        u'output_pathname': input_path + '-' + str(i) + '.ly',
+                        u'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
+            piece.get_data.assert_any_call([lilypond.LilyPondIndexer], sett_dict)
 
 
 class Settings(TestCase):
@@ -636,3 +845,5 @@ EXTRA_PAIRS = TestLoader().loadTestsFromTestCase(ExtraPairs)
 SETTINGS = TestLoader().loadTestsFromTestCase(Settings)
 OUTPUT = TestLoader().loadTestsFromTestCase(Output)
 AUX_METHODS = TestLoader().loadTestsFromTestCase(AuxiliaryExperimentMethods)
+MAKE_HISTOGRAM = TestLoader().loadTestsFromTestCase(MakeHistogram)
+MAKE_LILYPOND = TestLoader().loadTestsFromTestCase(MakeLilyPond)

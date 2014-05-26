@@ -262,6 +262,7 @@ class Indexer(object):
                 score = [score[ind_name][str(i)].dropna() for i in xrange(num_parts)]
         elif isinstance(score, stream.Score) and req_s_type is stream.Part:
             score = [score.parts[i] for i in xrange(len(score.parts))]
+
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
         self._score = score

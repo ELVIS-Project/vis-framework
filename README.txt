@@ -10,6 +10,8 @@ Copyright Information:
 * All other content is subject to the CC-BY-SA Unported 3.0 Licence. A copy of this licence is included as doc/CC-BY-SA.txt
 * All content in the test_corpus directory is subject to the licence in the file test_corpus/test_corpus_licence.txt
 
+[![Build Status](https://travis-ci.org/ELVIS-Project/vis.svg?branch=master)](https://travis-ci.org/ELVIS-Project/vis)
+
 Software Dependencies
 =====================
 
