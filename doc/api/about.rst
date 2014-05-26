@@ -22,17 +22,33 @@ After you install the framework, we recommend you begin with the two tutorials b
 
 Install and Test the Framework
 ==============================
-If you want to use the ``vis`` framework, you must install it. Because the framework is not (yet?) available on the Python Package Index, you cannot use ``pip``. While this limitation may hinder deployment efforts, it makes little difference for programmers while they extend and build on the framework. We recommend using git to clone either the "master" branch from the vis GitHub repository at https://github.com/ELVIS-Project/vis. We only merge changes to the "master" branch after they are well-tested, but you may wish to use a specific version for development. We use git "tags" to mark versions. Find the name of the version tag you want to use (``visX`` for example) then choose that version with the "checkout" command: ``git checkout tags/visX``.
+Install for Deployment
+----------------------
+You must install the VIS Framework before you use it. If you will not write extensions for the Framework, you may use ``pip`` to install the package from the Python Package Index (PyPI---`https://pypi.python.org/pypi/vis-framework/ <https://pypi.python.org/pypi/vis-framework/>`_). Run this command::
+
+    $ pip install vis-framework
+
+You may also wish to install some or all of the optional dependencies:
+
+    * ``numexpr`` and ``bottleneck``, which speed up ``pandas``.
+    * ``openpyxl``, which allows ``pandas`` to export Excel-format spreadsheets.
+    * ``cython`` and ``tables``, which allow ``pandas`` to export HDF5-format binary files.
+
+You may install optional dependencies in the same ways as VIS itself. For example::
+
+    $ pip install numexpr bottleneck
+
+Install for Development
+-----------------------
+If you wish to install the VIS Framework for development work, we recommend you clone our Git repository from https://github.com/ELVIS-Project/vis/, or even make your own fork on GitHub. You may also wish to checkout a particular version for development with the "checkout" command, as ``git checkout tags/vis-framework-1.2.3`` or ``git checkout master``.
 
 If you installed git, but you need help to clone a repository, you may find useful information in the `git documentation <http://git-scm.com/book/en/Git-Basics-Getting-a-Git-Repository#Cloning-an-Existing-Repository>`_.
 
-.. important:: By default, git copies the repository into a directory called "vis." Do not rename this directory. If you do, no modules will import.
+After you clone the vis repository, you should install its dependencies (currently music21, pandas, and mock), for which we recommend you use ``pip``. From the main VIS directory, run ``pip install -r requirements.txt`` to automatically download and install the library dependencies as specified in our ``requirements.txt`` file. We also recommend you run ``pip install -r optional_requirements.txt`` to install several additional packages that improve the speed of pandas and allow additional output formats (Excel, HDF5). You may need to use ``sudo`` or ``su`` to run pip with the proper privileges. If you do not have pip installed, use your package manager (the package is probably called ``python-pip``---at least for users of Fedora, Ubuntu, and openSUSE). If you are one of those unfortunate souls who uses Windows, or worse, Mac OS X, then clearly we come from different planets. The `pip documentation <http://www.pip-installer.org/en/latest/installing.html>`_ may help you.
 
-After you clone the vis repository, you should install its dependencies (currently music21, pandas, and mock). We recommend you use pip for easy installation and updating. From the main vis directory, run ``pip install -r requirements.txt`` to automatically download and install the library dependencies as specified in our ``requirements.txt`` file. We also recommend you run ``pip install -r optional_requirements.txt`` to install several additional packages that improve the speed of pandas and allow additional output formats (Excel, HDF5). You may need to use ``sudo`` or ``su`` to run pip with the proper privileges. If you do not have pip installed, use your package manager (the package is probably called ``python-pip``---at least for users of Fedora, Ubuntu, and openSUSE). If you are one of those unfortunate souls who uses Windows, or worse, Mac OS X, then clearly we come from different planets. The `pip documentation <http://www.pip-installer.org/en/latest/installing.html>`_ may help you.
+During development, you should usually start ``python`` (or ``ipython``, etc.) from within the main "vis" directory to ensure proper importing.
 
-To ease development tasks, we modified the relevant ``__init__.py`` files to add "one directory up" (i.e., ``..``) to the ``$PYTHONPATH`` so it is possible to import ``vis`` and its submodules from within the "vis" directory.
-
-After you install the ``vis`` framework, we recommend you run our automated tests. From the main vis directory, run ``python run_tests.py``. Python prints ``.`` for every test that passes, and a large error or warning for every test that fails. Certain versions of music21 may cause tests to fail; refer to :ref:`known_issues_and_limitations` for more information.
+After you install the VIS Framework, we recommend you run our automated tests. From the main vis directory, run ``python run_tests.py``. Python prints ``.`` for every test that passes, and a large error or warning for every test that fails. Certain versions of music21 may cause tests to fail; refer to :ref:`known_issues_and_limitations` for more information.
 
 The :class:`~vis.workflow.WorkflowManager` is not required for the framework's operation. We recommend you use the :class:`WorkflowManager` directly or as an example to write new applications. The vis framework gives you tools to answer a wide variety of musical questions. The :class:`WorkflowManager` uses the framework to answer specific questions. Please refer to :ref:`use_the_workflowmanager` for more information. If you will not use the :class:`WorkflowManager`, we recommend you delete it: remove the ``workflow.py`` and ``other_tests/test_workflow.py`` files.
 
@@ -76,11 +92,11 @@ Quit R. You do not need to save your workspace::
 
 Known Issues and Limitations
 ============================
-* Issue: music21 releases earlier than specified in our ``requirements.txt`` file may contain bugs that cause some of our automated tests to fail. We recommend you use music21 version 1.7.1 or newer. In particular, we do not recommend versions 1.5.0 or 1.6.0.
+* Issue: music21 releases earlier than specified in our ``requirements.txt`` file may contain bugs that cause some of our automated tests to fail. We recommend you use a music21 release from the 1.7.x series. In particular, we do not recommend versions 1.5.0 or 1.6.0.
 
-* Limitation: Some symbolic music files import to a music21 object called :class:`~music21.stream.Opus`. During testing, this primarily happens with ``**kern`` files that contain multiple movements of a mass. Even though development on the vis framework is what prompted this music21 feature, and even though vis (before it was a framework) incorporated support for this feature, the framework's current design cannot deal with Opus objects. The reason for this limitation is rather straight-forward: an :class:`~vis.models.indexed_piece.IndexedPiece` object assumes it holds a pathname that refers to a single musical entity (either a movement or, for single-movement works, a piece). :class:`IndexedPiece` will only know its file imports to an :class:`Opus` object *after* importing the file, which happens during the first call to :meth:`~vis.models.indexed_piece.IndexedPiece.get_data`. There are many possible solutions, most of which are not technically challenging, but we have so far focussed on solving larger problems.
+* Issue: Additionally, music21 releases later than 1.7.1 have not been tested. We do not recommend using music21 1.8.0 or later until after the VIS Framework 2.0 release.
 
-* Limitation: By default, the vis framework does not use multiprocessing at all. If you install the optional packages for pandas, many of the pandas-based indexers and experimenters will use multi-threading in C. However, there are many opportunities to use multiprocessing where we have yet to do so. While we initially planned for the indexers and experimenters to use multiprocessing, we later decided that the high overhead of multiprocessing in Python means we should leave the multiprocessing implementation up to application developers---the realm of the :class:`WorkflowManager`.
+* Limitation: By default, the vis framework does not use multiprocessing at all. If you install the optional packages for pandas, many of the pandas-based indexers and experimenters will use multi-threading in C. However, there are many opportunities to use multiprocessing where we have yet to do so. While we initially planned for the indexers and experimenters to use multiprocessing, we later decided that the high overhead of multiprocessing in Python means we should leave the multiprocessing implementation up to application developers---the realm of the :class:`~vis.workflow.WorkflowManager`.
 
 * Limitation: This is a point of information for users and developers concerned with counterpoint. The framework currently offers no way to sensitively process voice crossing in contrapuntal modules ("interval n-grams"). "Higher" and "lower" voices are consistently presented in score order. We have planned for several ways to deal with this situation, but the developer assigned to the task is a busy doctoral student and a novice programmer, so they have not been fully implemented yet.
 
