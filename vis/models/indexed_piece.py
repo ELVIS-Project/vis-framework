@@ -41,13 +41,9 @@ def _find_piece_title(the_score):
     """
     Find the title of a score. If there is none, return the filename without an extension.
 
-    Parameters
-    ==========
     :param the_score: The score of which to find the title.
     :type the_score: :class:`music21.stream.Score`
 
-    Returns
-    =======
     :returns: The title of the score.
     :rtype: :obj:`unicode`
     """
@@ -73,13 +69,9 @@ def _find_part_names(the_score):
     Return a list of part names in a score. If the score does not have proper part names, return a
     list of enumerated parts.
 
-    Parameters
-    ==========
     :param the_score: The score in which to find the part names.
     :type the_score: :class:`music21.stream.Score`
 
-    Returns
-    =======
     :returns: The title of the score.
     :rtype: :obj:`list` of :obj:`unicode`
     """
@@ -176,18 +168,12 @@ class IndexedPiece(object):
         """
         Import the score to music21 format.
 
-        Parameters
-        ==========
         :param known_opus: Whether you expect the file to import as a :class:`Opus`.
         :type known_opus: boolean
 
-        Returns
-        =======
         :returns: the score
         :rtype: :class:`music21.stream.Score`
 
-        Raises
-        ======
         :raises: :exc:`OpusWarning` if the file imports as a :class:`music21.stream.Opus` but
             ``known_opus`` if ``False``, or if ``known_opus`` is ``True`` but the file does not
             import as an :class:`Opus`.
@@ -348,8 +334,6 @@ class IndexedPiece(object):
         """
         Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
 
-        Parameters
-        ==========
         :param analyzer_cls: The analyzers to run, in the order they should be run.
         :type analyzer_cls: list of type
         :param settings: Settings to be used with the analyzers.
@@ -361,13 +345,9 @@ class IndexedPiece(object):
             :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" below.
         :type known_opus: boolean
 
-        Returns
-        =======
         :returns: Results of the analyzer.
         :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
 
-        Raises
-        ======
         :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
         :raises: :exc:`RuntimeError` if the first analyzer class in ``analyzer_cls`` does not use
             :class:`~music21.stream.Score` objects, and ``data`` is :const:`None`.

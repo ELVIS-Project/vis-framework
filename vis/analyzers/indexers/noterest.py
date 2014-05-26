@@ -36,13 +36,9 @@ def indexer_func(obj):
     Used internally by :class:`NoteRestIndexer`. Convert objects from the :mod:`music21.note` \
     module into a :obj:`unicode`.
 
-    Parameters
-    ==========
     :param obj: A list with the object to convert.
     :type obj: :obj:`list` of :class:`music21.note.Note` or :class:`music21.note.Rest`
 
-    Returns
-    =======
     :returns: If the first object in the list is a :class:`music21.note.Rest`, the string
         :obj:`u'Rest'`; otherwise the :attr:`nameWithOctave` attribute, which is the pitch class
         and octave of the :class:`music21.note.Note`.
@@ -84,8 +80,6 @@ class NoteRestIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each Series corresponds to the index of
             the Part used to generate it, in the order specified to the constructor. Each element
             in the Series is a unicode.

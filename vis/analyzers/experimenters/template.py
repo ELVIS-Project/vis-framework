@@ -56,8 +56,6 @@ class TemplateExperimenter(experimenter.Experimenter):
 
     def __init__(self, index, settings=None):
         """
-        Parameters
-        ==========
         :param index: The indices or experimental results to use for this experiment.
         :type index: list, nested lists, or dict of pandas.Series or pandas.DataFrame, or simply
             the pandas object itself.
@@ -66,8 +64,6 @@ class TemplateExperimenter(experimenter.Experimenter):
             settings should be listed in subclasses. Default is None.
         :type settings: :obj:`dict` or :obj:`None`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if required settings are not present in the ``settings`` \
             argument.
         """
@@ -87,8 +83,6 @@ class TemplateExperimenter(experimenter.Experimenter):
         """
         Run an experiment on a piece.
 
-        Returns
-        =======
         :returns: The result of the experiment. Each experiment should describe its data storage.
         :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame`
         """

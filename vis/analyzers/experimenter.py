@@ -51,8 +51,6 @@ class Experimenter(object):
         """
         Create a new Experimenter.
 
-        Parameters
-        ==========
         :param index: lists or nested lists of pandas.Series or pandas.DataFrame objects.
             A list (or list of lists) of Series. The minimum and maximum numbers, and whether to use
             embedded lists, depends on the Experimenter subclass.
@@ -61,8 +59,6 @@ class Experimenter(object):
             A dict of all the settings required by this Experimenter. All required settings should
             be listed in subclasses. Default is {}.
 
-        Raises
-        ======
         :raises: RuntimeError, if required settings are not present in the "settings" argument.
         """
 
@@ -79,8 +75,6 @@ class Experimenter(object):
         """
         Run an experiment on a piece.
 
-        Returns
-        =======
         :returns: The result of the experiment. Data is stored uniquely depending on the Experiment.
         :rtype: pandas.Series or pandas.DataFrame
         """
@@ -91,8 +85,6 @@ class Experimenter(object):
         Submit each of the argument lists in func_args to the function in func. In the future, this
         method may use multiprocessing.
 
-        Parameters
-        ==========
         :param func: The function to call. The function should return a pandas.Series or DataFrame
         :type func: module-level function
 
@@ -100,13 +92,11 @@ class Experimenter(object):
             element will be a single call to "func".
         :type func_args: iterable of iterables of objects
 
-        Returns
-        =======
         :returns: A list of whatever was returned by the "func" function.
         :rtype: list of pandas.Series or of pandas.DataFrame
 
-        Side Effects
-        ============
+        **Side Effects**
+
         Blocks until all calculations have completed.
         """
         post = []

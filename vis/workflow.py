@@ -743,8 +743,6 @@ class WorkflowManager(object):
         """
         Save data from the most recent result of :meth:`run` to a file.
 
-        Parameters
-        ==========
         :parameter form: The output format you want.
         :type form: :obj:`basestring`
         :parameter pathname: The pathname for the output. The default is
@@ -756,13 +754,9 @@ class WorkflowManager(object):
             default is :obj:`None`.
         :type threshold: :obj:`int` or :obj:`float`
 
-        Returns
-        =======
         :returns: The pathname of the outputted file.
         :rtype: :obj:`unicode`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` for unrecognized instructions.
         :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
 

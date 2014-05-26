@@ -37,13 +37,9 @@ def mpi_unique_offsets(streams):
     """
     For a set of streams, find the offsets at which events begin. Used by mp_indexer.
 
-    Parameters
-    ==========
     :param streams: A list of Streams in which to find the offsets at which events begin.
     :type streams: list of music21.stream.Stream
 
-    Returns
-    =======
     :returns: A list of floating-point numbers representing offsets at which a new event begins in
         any of the streams. Offsets are sorted from lowest to highest (start to end).
     :rtype: list of float
@@ -89,25 +85,18 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
     be included in the output. This may produce misleading results when, for example, a double-stop
     was imported as two Note objects in the same Part, rather than as a Chord.
 
-    Parameters
-    ==========
     :param pipe_index: An identifier value for use by the caller.
     :type pipe_index: any
-
     :param parts: A list of at least one Stream object. Every new event, or change of simlutaneity,
         will appear in the outputted index. Therefore, the new index will contain at least as many
         events as the inputted Part or Series with the most events.
     :type parts: list of music21.stream.Stream
-
     :param indexer_func: This function transforms found events into a unicode object.
     :type indexer_func: function
-
     :param types: Only objects of a type in this list will be passed to the indexer_func for
         inclusion in the resulting index.
     :type types: list of types
 
-    Returns
-    =======
     :returns: The "pipe_index" argument and the new index. The new index is a pandas.Series where
         every element is a unicode object. The Series' index corresponds to the quarterLength
         offset of the event in the input Stream.
@@ -158,29 +147,21 @@ def series_indexer(pipe_index, parts, indexer_func):
 
     If your Indexer has settings, use the indexer_func() to adjust for them.
 
-    Parameters
-    ==========
     :param pipe_index: An identifier value for use by the caller.
     :type pipe_index: any
-
     :param parts: A list of at least one Series object. Every new event, or change of simlutaneity,
         will appear in the outputted index. Therefore, the new index will contain at least as many
         events as the inputted Part or Series with the most events. This is not a DataFrame, since
         each part will likely have different offsets.
     :type parts: list of pandas.Series
-
     :param indexer_func: This function transforms found events into a unicode object.
     :type indexer_func: function
 
-    Returns
-    =======
     :returns: The new index where each element is a unicode object and the "index" of the pandas
         object corresponds to the offset at which each event begins. Index 0 is the argument
         "pipe_index" unchanged.
     :rtype: 2-tuple with "pipe_index" and pandas.Series or pandas.DataFrame
 
-    Raises
-    ======
     :raises: ValueError, if there are multiple events at an offset in any of the inputted Series.
     """
 

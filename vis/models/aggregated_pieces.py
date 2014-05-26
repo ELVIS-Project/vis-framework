@@ -94,18 +94,13 @@ class AggregatedPieces(object):
         - "----/--/-- to ----/--/--"
         where each - is an integer.
 
-        Parameters
-        ==========
         :param dates: The date strings to use.
         :type dates: list of basesetring
 
-        Returns
-        =======
         :returns: The earliest and latest years in the list of dates.
         :rtype: 2-tuple of unicode
 
-        Examples
-        ========
+        **Examples**
         >>> ranges = [u'1987/09/09', u'1865/12/08', u'1993/08/08']
         >>> AggregatedPieces._make_date_range(ranges)
         (u'1865', u'1993')
@@ -133,13 +128,9 @@ class AggregatedPieces(object):
         """
         Collect metadata from the IndexedPieces and store it in our own Metadata object.
 
-        Parameters
-        ==========
         :param field: The metadata field to return
         :type field: basestring
 
-        Returns
-        =======
         :returns: The requested metadata field.
         :rtype: list of basestring or tuple of basestring
         """
@@ -183,19 +174,13 @@ class AggregatedPieces(object):
         * ``u'locales``: list of all the locales in the IndexedPieces
         * ``u'pathnames``: list of all the pathnames in the IndexedPieces
 
-        Parameters
-        ==========
         :param field: The name of the field to be accessed or modified.
         :type field: :obj:`basestring`
 
-        Returns
-        =======
         :returns: The value of the requested field or None, if accessing a non-existant field or a
             field that has not yet been initialized in the IndexedPieces.
         :rtype: object or None
 
-        Raises
-        ======
         :raises: :exc:`TypeError` if ``field`` is not a basestring.
         """
         if not isinstance(field, basestring):
@@ -237,32 +222,23 @@ class AggregatedPieces(object):
 
         >>> piece.get_data([A, B], [], data=previous_results)
 
-        Parameters
-        ==========
         :param aggregated_experiments: The Experimenters to run on aggregated data of all pieces,
             in the order you want to run them.
         :type aggregated_experiments: list of types
-
         :param independent_analyzers: The analyzers to run on each piece before aggregation, in the
             order you want to run them. For no independent analyzers, use ``[]`` or ``None``.
         :type independent_analyzers: list of types
-
         :param settings: Settings to be used with the analyzers.
         :type settings: dict
-
         :param data: Input data for the first analyzer to run. If this argument is not ``None``,
             you must provide the output from a previous call to :meth:`get_data` of this instance.
         :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
 
-        Returns
-        =======
         :return: Either one :class:`DataFrame` with all experimental results or a list of
             :class:`DataFrame` objects, each with the experimental results for one piece.
         :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series` or \
             :class:`pandas.DataFrame`
 
-        Raises
-        ======
         :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
         """
         if [] == self._pieces:

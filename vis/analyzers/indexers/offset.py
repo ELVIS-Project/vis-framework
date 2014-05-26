@@ -159,20 +159,20 @@ class FilterByOffsetIndexer(indexer.Indexer):
     :keyword u'quarterLength': The quarterLength duration between observations desired in the
         output. This value must not have more than three digits to the right of the decimal
         (i.e. 0.001 is the smallest possible value).
-    :type u'quarterLength': ``float``
+    :type u'quarterLength': float
     """
 
     def __init__(self, score, settings=None):
         """
         :param score: A list of Series you wish to filter by offset values, stored in the Index.
-        :type score: ``list`` of :class:`pandas.Series`
+        :type score: list of :class:`pandas.Series`
         :param settings: There is one required setting. See :const:`possible_settings`.
-        :type settings: ``dict`
+        :type settings: dict
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         :raises: :exc:`RuntimeError` if the required setting is not present in ``settings``.
-        :raises: :exc:`RuntimeError` if the ``u'quarterLength'`` setting has a value less
+        :raises: :exc:`RuntimeError` if the ``'quarterLength'`` setting has a value less
             than ``0.001``.
         """
         super(FilterByOffsetIndexer, self).__init__(score, None)
@@ -197,8 +197,6 @@ class FilterByOffsetIndexer(indexer.Indexer):
         """
         Regularize the observed offsets for the inputted Series.
 
-        Returns
-        =======
         :returns: A DataFrame with the indices for all the inputted parts, where the "index" value
             for each part is the same as in the list in which they were submitted to the
             constructor. The "index" for each member Series is the same, starting at 0.0 then at

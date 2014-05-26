@@ -40,18 +40,14 @@ def indexer_func(obj):
     """
     The function that indexes.
 
-    Parameters for Indexers Using a Score
-    ======================================
+    **Parameters for Indexers Using a Score**
     :param obj: The simultaneous event(s) to use when creating this index.
     :type obj: list of the types stored in self._types
 
-    Parameters for Indexers Using a Series
-    ======================================
+    **Parameters for Indexers Using a Series**
     :param obj: The simultaneous event(s) to use when creating this index.
     :type obj: :obj:`pandas.Series` of :obj:`unicode`
 
-    Returns
-    =======
     :returns: The value to store for this index at this offset.
     :rtype: :obj:`unicode`
     """
@@ -87,18 +83,13 @@ class TemplateIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        Parameters
-        ==========
         :param score: The input from which to produce a new index.
         :type score: ``list`` of :class:`pandas.Series`, :class:`music21.stream.Part`, or \
             :class:`music21.stream.Score`
-
         :param settings: All the settings required by this Indexer. All required settings should be
             listed in subclasses. Default is None.
         :type settings: ``dict`` or ``None``
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         :raises: :exc:`RuntimeError` if required settings are not present in ``settings``.
@@ -130,8 +121,6 @@ class TemplateIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each Series corresponds to the index of
             the Part used to generate it, in the order specified to the constructor. Each element
             in the Series is a basestring.

@@ -36,13 +36,9 @@ def experimenter_func(obj):
     """
     Used by the :class:`FrequencyExperimenter` to calculate the frequencies of things in an index.
 
-    Parameters
-    ==========
     :param obj: An identifier plus the results of an indexer.
     :type obj: :obj:`tuple` of (anything, :class:`pandas.Series`)
 
-    Returns
-    =======
     :returns: An identifier plus the result of this indexation. In the series, the index is the \
         names of objects found in the inputted series, and the value is the number of occurrences. \
         The first element is the first element given here, used for identification purposes.

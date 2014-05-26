@@ -66,23 +66,17 @@ def real_indexer(simultaneity, simple, quality):
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
 
     Turn a notes-and-rests simultaneity into the name of the interval it represents. Note that,
-    because of the ``u'Rest'` strings, you can compare the duration of the piece in which the two
+    because of the ``'Rest'`` strings, you can compare the duration of the piece in which the two
     parts do or do not have notes sounding together.
 
-    Parameters
-    ==========
     :param simultaneity: A two-item iterable with the note names (or :class:`u'Rest'`) for the top
         then lower voice.
     :type simultaneity: list of basestring
-
     :param simple: Whether intervals should be reduced to their single-octave version.
     :type simple: boolean
-
     :param quality: Whether the interval's quality should be prepended.
     :type quality: boolean
 
-    Returns
-    =======
     :returns: :class:`u'Rest'` if one or more of the parts is :obj:`u'Rest'`; otherwise, the interval
         between parts.
     :rtype: unicode string
@@ -220,8 +214,6 @@ class IntervalIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A dictionary of the new interval indices. Find part combinations by using the
             index of the parts as provided to the :meth:`__init__` method, set as a string with
             a comma. Refer to the "Example" below.
@@ -279,8 +271,6 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         """
         Make a new index of the piece.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each Series corresponds to the index it \
             has in the list of :class:`Series` given to the constructor.
         :rtype: ``list`` of :class:`pandas.Series`
