@@ -86,8 +86,11 @@ class WorkflowManager(object):
 
     # Error message when users call output() with LilyPond, but they probably called run() with
     # ``count frequency`` set to True.
-    _count_frequency_message = u'LilyPond output is not possible after you call run() with ' + \
+    _COUNT_FREQUENCY_MESSAGE = u'LilyPond output is not possible after you call run() with ' + \
         '"count frequency" set to True.'
+
+    # The error when we required two-voice pairs, but one of the combinations wasn't a pair.
+    _REQUIRE_PAIRS_ERROR = u'All voice combinations must have two parts (found %s).'
 
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
@@ -451,6 +454,10 @@ class WorkflowManager(object):
             combos = unicode(self.settings(i, u'voice combinations'))
             if combos != u'all' and combos != u'all pairs' and combos != u'None':
                 combos = ast.literal_eval(combos)
+                # ensure each combination is a two-voice pair
+                for pair in combos:
+                    if 2 != len(pair):
+                        raise RuntimeError(WorkflowManager._REQUIRE_PAIRS_ERROR % len(pair))
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
             # we no longer need to know the combinations' names, so we can make a list
             vert_ints = list(vert_ints.itervalues())
@@ -459,7 +466,6 @@ class WorkflowManager(object):
             # remove the "Rest" entries, if required
             if self.settings(None, u'include rests') is not True:
                 # we'll just get a view that omits the "Rest" entries in the Series
-                # TODO: this is pandas magic; check it for 0.13
                 for i, pair in enumerate(post):
                     post[i] = pair[pair != u'Rest']
             self._result.append(post)
@@ -688,7 +694,7 @@ class WorkflowManager(object):
         """
         # try to determine whether they called run() properly (``count frequency`` should be False)
         if self.settings(None, 'count frequency') is True or len(self._data) != len(self._result):
-            raise RuntimeError(WorkflowManager._count_frequency_message)
+            raise RuntimeError(WorkflowManager._COUNT_FREQUENCY_MESSAGE)
         pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
         # the file extension for LilyPond
         file_ext = u'.ly'
@@ -697,6 +703,18 @@ class WorkflowManager(object):
         # run additional indexers for annotation
         for i in xrange(len(self._data)):
             ann_p = []
+            combos = []
+            if 'all' == self.settings(i, 'voice combinations'):
+                lowest_part = len(self.metadata(i, 'parts')) - 1
+                combos = [[x, lowest_part] for x in xrange(lowest_part)]
+            elif 'all pairs' == self.settings(i, 'voice combinations'):
+                # Calculate all 2-part combinations. We must do this in the same order as the
+                # IntervalIndexer, or else the labels will be wrong.
+                for left in xrange(len(self.metadata(i, 'parts'))):
+                    for right in xrange(left + 1, len(self.metadata(i, 'parts'))):
+                        combos.append([left, right])
+            else:
+                combos = ast.literal_eval(self.settings(i, 'voice combinations'))
             for j in xrange(len(self._result[i])):
                 ann_p.append(self._data[i].get_data([lilypond.AnnotationIndexer,
                                                      lilypond.AnnotateTheNoteIndexer,
