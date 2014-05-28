@@ -63,8 +63,6 @@ class FilterByRepeatIndexer(indexer.Indexer):
         """
         Make a new index of the piece, removing any event that is identical to the preceding.
 
-        Returns
-        =======
         :returns: A list of the new indices. The index of each Series corresponds to the index of
             the Part used to generate it, in the order specified to the constructor. Each element
             in the Series is a :obj:`basestring`.

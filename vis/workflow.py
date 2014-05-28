@@ -30,9 +30,11 @@ analysis patterns for counterpoint. The :class:`TemplateWorkflow` class is a tem
 new ``WorkflowManager`` classes.
 """
 
+from os import path
 import ast
 import subprocess
 import pandas
+import vis
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat, lilypond
@@ -76,9 +78,7 @@ class WorkflowManager(object):
     # - self._shared_settings: settings shared among all piecesd
     # - self._previous_exp: name of the experiments whose results are stored in self._result
     # - self._loaded: whether the load() method has been called
-
-    # path to the R-language script that makes bar charts
-    _R_bar_chart_path = u'scripts/R_bar_chart.r'
+    # - self._R_bar_chart_path: path to the R-language script that makes bar charts
 
     # names of the experiments available through run()
     # NOTE: do not re-order these, or run() will break
@@ -117,6 +117,8 @@ class WorkflowManager(object):
         self._previous_exp = None
         # whether the load() method has been called
         self._loaded = False
+        # calculate the bar chart script's path
+        self._R_bar_chart_path = path.join(vis.__path__[0], 'scripts', 'R_bar_chart.r')
 
     def __len__(self):
         """
@@ -677,8 +679,8 @@ class WorkflowManager(object):
             token = unicode(self.settings(None, u'n'))
         else:
             token = u'things'
-        call_to_r = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
-                        stata_path, png_path, token, str(len(self._data))]
+        call_to_r = [u'Rscript', u'--vanilla', self._R_bar_chart_path,
+                     stata_path, png_path, token, str(len(self._data))]
         try:
             subprocess.check_output(call_to_r)
         except subprocess.CalledProcessError as cpe:
@@ -741,8 +743,6 @@ class WorkflowManager(object):
         """
         Save data from the most recent result of :meth:`run` to a file.
 
-        Parameters
-        ==========
         :parameter form: The output format you want.
         :type form: :obj:`basestring`
         :parameter pathname: The pathname for the output. The default is
@@ -754,13 +754,9 @@ class WorkflowManager(object):
             default is :obj:`None`.
         :type threshold: :obj:`int` or :obj:`float`
 
-        Returns
-        =======
         :returns: The pathname of the outputted file.
         :rtype: :obj:`unicode`
 
-        Raises
-        ======
         :raises: :exc:`RuntimeError` for unrecognized instructions.
         :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
 

@@ -155,8 +155,6 @@ class NGramIndexer(indexer.Indexer):
         Format unicode objects by concatenating them with a space between and the appropriate
         grouping symbol, if relevant. This method is used by _format_vert() and _format_horiz().
 
-        Parameters
-        ==========
         :param things: All the events for this moment.
         :type things: iterable of basestring
 
@@ -170,14 +168,10 @@ class NGramIndexer(indexer.Indexer):
             is [None].
         :type terminator: list of unicode or None
 
-        Returns
-        =======
         :returns: A unicode with a space between every event and marker characters if there is more
             than one event or m_singles is True.
         :rtype: unicode
 
-        Raises
-        ======
         :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
         terminator = [] if terminator is None else terminator
@@ -206,8 +200,6 @@ class NGramIndexer(indexer.Indexer):
         Format "vertical" unicode objects by concatenating them with a space between and the
         appropriate grouping symbol, if relevant.
 
-        Parameters
-        ==========
         :param verts: All the "vertical" events for this moment.
         :type verts: iterable of basestring
 
@@ -218,14 +210,10 @@ class NGramIndexer(indexer.Indexer):
             is [None].
         :type terminator: list of unicode or None
 
-        Returns
-        =======
         :returns: A unicode with a space between every event and marker characters if there is more
             than one event or m_singles is True.
         :rtype: unicode
 
-        Raises
-        ======
         :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
         return NGramIndexer._format_thing(verts, m_singles, (u'[', u']'), terminator)
@@ -236,8 +224,6 @@ class NGramIndexer(indexer.Indexer):
         Format "horizontal" unicode objects by concatenating them with a space between and the
         appropriate grouping symbol, if relevant.
 
-        Parameters
-        ==========
         :param verts: All the "horizontal" events for this moment.
         :type verts: iterable of basestring
 
@@ -248,14 +234,10 @@ class NGramIndexer(indexer.Indexer):
             is [None].
         :type terminator: list of unicode or None
 
-        Returns
-        =======
         :returns: A unicode with a space between every event and marker characters if there is more
             than one event or m_singles is True.
         :rtype: unicode
 
-        Raises
-        ======
         :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
         return NGramIndexer._format_thing(horizs, m_singles, (u'(', u')'), terminator)
@@ -264,8 +246,6 @@ class NGramIndexer(indexer.Indexer):
         """
         Make an index of k-part n-grams of anything.
 
-        Returns
-        =======
         :returns: A single-item list with the new index.
         :rtype: ``list`` of :class:`pandas.Series`
         """

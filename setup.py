@@ -29,13 +29,14 @@ Distutils information for the VIS Framework.
 """
 
 from setuptools import setup
+import vis  # to get the version numbers
 
 
-# NOTE: remember to update __init__.py
-MAJOR = 1
-MINOR = 2
-PATCH = 1
-VERSION = '%d.%d.%d' % (MAJOR, MINOR, PATCH)
+# NOTE: update this from 'vis/__init__.py'
+MAJOR = vis._MAJOR
+MINOR = vis._MINOR
+PATCH = vis._PATCH
+VERSION = vis.__version__
 
 setup(
     name = "vis-framework",

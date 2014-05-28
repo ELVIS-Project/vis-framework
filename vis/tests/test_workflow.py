@@ -28,6 +28,7 @@
 Tests for the WorkflowManager
 """
 
+import os
 from subprocess import CalledProcessError
 from unittest import TestCase, TestLoader
 import mock
@@ -43,8 +44,10 @@ from vis.analyzers.indexers import noterest, lilypond
 # pylint: disable=C0111
 class WorkflowTests(TestCase):
     # NB: this class is just for __init__(), load(), and run() (without the run() helper methods)
-    def test_init_1(self):
+    @mock.patch('vis.workflow.path.join', return_value='/some/vis/path.r')
+    def test_init_1(self, mock_join):
         # with a list of basestrings
+        # NB: mocked out os.path.join()
         with mock.patch(u'vis.models.indexed_piece.IndexedPiece') as mock_ip:
             in_val = [u'help.txt', 'path.xml', u'why_you_do_this.rtf']
             test_wc = WorkflowManager(in_val)
@@ -65,9 +68,14 @@ class WorkflowTests(TestCase):
                             u'interval quality': False, u'simple intervals': False,
                             u'include rests': False, u'count frequency': True}
             self.assertEqual(exp_sh_setts, test_wc._shared_settings)
+            self.assertEqual(1, mock_join.call_count)
 
-    def test_init_2(self):
+    @mock.patch('vis.workflow.vis')
+    def test_init_2(self, mock_vis):
         # with a list of IndexedPieces
+        # NB: mocked out vis
+        mock_vis.__path__ = ['/some/path/']
+        exp_chart_path = '/some/path/scripts/R_bar_chart.r'
         in_val = [IndexedPiece(u'help.txt'), IndexedPiece('path.xml'),
                   IndexedPiece(u'why_you_do_this.rtf')]
         test_wc = WorkflowManager(in_val)
@@ -84,9 +92,11 @@ class WorkflowTests(TestCase):
                         u'interval quality': False, u'simple intervals': False,
                         u'include rests': False, u'count frequency': True}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
+        self.assertEqual(exp_chart_path, test_wc._R_bar_chart_path)
 
     def test_init_3(self):
         # with a mixed list of valid things
+        # NB: ensure the _R_bar_chart_path actually exists
         in_val = [IndexedPiece(u'help.txt'), 'path.xml', u'why_you_do_this.rtf']
         test_wc = WorkflowManager(in_val)
         self.assertEqual(3, len(test_wc._data))
@@ -103,6 +113,7 @@ class WorkflowTests(TestCase):
                         u'interval quality': False, u'simple intervals': False,
                         u'include rests': False, u'count frequency': True}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
+        self.assertTrue(os.path.exists(test_wc._R_bar_chart_path))
 
     def test_init_4(self):
         # with mostly basestrings but a few ints
@@ -274,10 +285,11 @@ class Output(TestCase):
         self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
 
 
+@mock.patch('vis.workflow.path.join', return_value='hello')
+@mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
+@mock.patch(u'subprocess.check_output')
 class MakeHistogram(TestCase):
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.check_output')
-    def test_histogram_1(self, mock_call, mock_gdf):
+    def test_histogram_1(self, mock_call, mock_gdf, mock_join):
         # with specified pathname; last experiment was intervals with 20 pieces; self._result is DF
         test_wc = WorkflowManager([])
         test_wc._previous_exp = u'intervals'
@@ -286,14 +298,13 @@ class MakeHistogram(TestCase):
         path = u'pathname!'
         actual = test_wc._make_histogram(path)
         self.assertEqual(0, mock_gdf.call_count)
-        expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+        expected_args = [u'Rscript', u'--vanilla', mock_join.return_value,
                          path + u'.dta', path + u'.png', u'int', u'20']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
+        self.assertEqual(1, mock_join.call_count)
 
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.check_output')
-    def test_histogram_2(self, mock_call, mock_gdf):
+    def test_histogram_2(self, mock_call, mock_gdf, mock_join):
         # with unspecified pathname; last experiment was 14-grams with 1 piece; self._result is S
         test_wc = WorkflowManager([])
         test_wc._previous_exp = u'n-grams'
@@ -303,14 +314,13 @@ class MakeHistogram(TestCase):
         path = u'test_output/output_result'
         actual = test_wc._make_histogram()
         mock_gdf.assert_called_once_with(u'freq', None, None)
-        expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+        expected_args = [u'Rscript', u'--vanilla', mock_join.return_value,
                          path + u'.dta', path + u'.png', u'14', u'1']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
+        self.assertEqual(1, mock_join.call_count)
 
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.check_output')
-    def test_histogram_3(self, mock_call, mock_gdf):
+    def test_histogram_3(self, mock_call, mock_gdf, mock_join):
         # test_ouput_6, plus top_x and threshold
         test_wc = WorkflowManager([])
         test_wc._previous_exp = u'n-grams'
@@ -320,14 +330,13 @@ class MakeHistogram(TestCase):
         path = u'test_output/output_result'
         actual = test_wc._make_histogram(top_x=420, threshold=1987)
         mock_gdf.assert_called_once_with(u'freq', 420, 1987)
-        expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+        expected_args = [u'Rscript', u'--vanilla', mock_join.return_value,
                          path + u'.dta', path + u'.png', u'14', u'1']
         mock_call.assert_called_once_with(expected_args)
         self.assertEqual(path + u'.png', actual)
+        self.assertEqual(1, mock_join.call_count)
 
-    @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-    @mock.patch(u'subprocess.check_output')
-    def test_histogram_4(self, mock_call, mock_gdf):
+    def test_histogram_4(self, mock_call, mock_gdf, mock_join):
         # test_output_4() but the subprocess thing fails
         def raiser(*args):
             raise CalledProcessError(u'Bach!', 42, u'CPE')
@@ -345,9 +354,10 @@ class MakeHistogram(TestCase):
             actual = run_e
         self.assertEqual(expected_msg, actual.message)
         self.assertEqual(0, mock_gdf.call_count)
-        expected_args = [u'Rscript', u'--vanilla', WorkflowManager._R_bar_chart_path,
+        expected_args = [u'Rscript', u'--vanilla', mock_join.return_value,
                          path + u'.dta', path + u'.png', u'int', u'20']
         mock_call.assert_called_once_with(expected_args)
+        self.assertEqual(1, mock_join.call_count)
 
 
 class MakeLilyPond(TestCase):
