@@ -56,8 +56,6 @@ class ColumnAggregator(experimenter.Experimenter):
         """
         Run the :class:`ColumnAggregator` experiment.
 
-        Returns
-        =======
         :returns: A :class:`Series` with an index that is the combination of all indices of the \
             provided pandas objects, and the value is the sum of all values in the pandas objects.
         :rtype: :class:`pandas.Series`

@@ -172,7 +172,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         :raises: :exc:`RuntimeError` if the required setting is not present in ``settings``.
-        :raises: :exc:`RuntimeError` if the ``u'quarterLength'`` setting has a value less
+        :raises: :exc:`RuntimeError` if the ``'quarterLength'`` setting has a value less
             than ``0.001``.
         """
         super(FilterByOffsetIndexer, self).__init__(score, None)

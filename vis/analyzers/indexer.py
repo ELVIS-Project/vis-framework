@@ -38,7 +38,7 @@ def mpi_unique_offsets(streams):
     For a set of :class:`Stream` objects, find the offsets at which events begin. Used by
     :meth:`stream_indexer`.
 
-    :param streams: A list of Stream objects in which to find the offsets at which events begin.
+    :param streams: A list of :class:`Stream` objects in which to find the offsets where events begin.
     :type streams: list of :class:`music21.stream.Stream`
 
     :returns: A list of floating-point numbers representing offsets at which a new event begins in
