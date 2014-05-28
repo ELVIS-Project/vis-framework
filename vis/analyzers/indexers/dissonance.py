@@ -147,7 +147,7 @@ class DissonanceIndexer(indexer.Indexer):
         characteristic of being a dissonance only when no major or minor third or sixth appears
         below it. If this is ``True``, an additional indexing process is run that removes all
         fourths "under" which the following intervals appear: m3, M3, m6, M6.
-    :keyword bool 'special_P5': Whether to account for the Diminished Fifth's "special"
+    :keyword bool 'special_d5': Whether to account for the Diminished Fifth's "special"
         characteristic of being consonant when a Major Sixth appears at any point below the
         lowest note.
     """
