@@ -56,7 +56,7 @@ class TestDissonanceIndexer(unittest.TestCase):
         multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Indexer', 'Parts'])
         return pandas.DataFrame(from_these, index=multiindex).T
 
-    def test_nancons_1(self):
+    def test_nancons_1a(self):
         # that it picks up simple major/minor things as dissonant
         in_vals = [u'm2', u'M2', u'P4', u'm7', u'M7']
         expected = pandas.Series(in_vals)
@@ -64,7 +64,15 @@ class TestDissonanceIndexer(unittest.TestCase):
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
-    def test_nancons_2(self):
+    def test_nancons_1b(self):
+        # with descending intervals
+        in_vals = [u'-m2', u'-M2', u'-P4', u'-m7', u'-M7']
+        expected = pandas.Series(in_vals)
+        actual = dissonance.DissonanceIndexer.nan_consonance(expected)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_nancons_2a(self):
         # that it picks up diminished/augmented dissonances
         in_vals = ['A4', 'd5', 'A1', 'd8']
         expected = pandas.Series(in_vals)
@@ -72,17 +80,40 @@ class TestDissonanceIndexer(unittest.TestCase):
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
-    def test_nancons_3(self):
+    def test_nancons_2b(self):
+        # with descending intervals
+        in_vals = ['-A4', '-d5', '-A1', '-d8']
+        expected = pandas.Series(in_vals)
+        actual = dissonance.DissonanceIndexer.nan_consonance(expected)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_nancons_3a(self):
         # that consonances are properly noted as consonant
         in_vals = [u'm3', u'M3', u'P5', u'm6', u'M6']
         actual = dissonance.DissonanceIndexer.nan_consonance(pandas.Series(in_vals))
         self.assertEqual(len(in_vals), len(actual))
         self.assertTrue(all([isnan(x) for x in actual]))
 
-    def test_nancons_4(self):
+    def test_nancons_3b(self):
+        # with descending intervals
+        in_vals = [u'-m3', u'-M3', u'-P5', u'-m6', u'-M6']
+        actual = dissonance.DissonanceIndexer.nan_consonance(pandas.Series(in_vals))
+        self.assertEqual(len(in_vals), len(actual))
+        self.assertTrue(all([isnan(x) for x in actual]))
+
+    def test_nancons_4a(self):
         # a quasi-realistic, single-part test
         in_ser = pandas.Series(['m3', 'M2', 'm2', 'P4', 'd5', 'P5', 'M6', 'm7'])
         expected = pandas.Series([nan, 'M2', 'm2', 'P4', 'd5', nan, nan, 'm7'])
+        actual = dissonance.DissonanceIndexer.nan_consonance(in_ser)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_nancons_4b(self):
+        # with descending intervals
+        in_ser = pandas.Series(['-m3', '-M2', '-m2', '-P4', '-d5', '-P5', '-M6', '-m7'])
+        expected = pandas.Series([nan, '-M2', '-m2', '-P4', '-d5', nan, nan, '-m7'])
         actual = dissonance.DissonanceIndexer.nan_consonance(in_ser)
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))

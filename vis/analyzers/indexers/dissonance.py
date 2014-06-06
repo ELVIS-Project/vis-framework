@@ -136,7 +136,8 @@ class DissonanceIndexer(indexer.Indexer):
     consonant---refer to the ``'special_P4'`` setting for more information.
     """
 
-    CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8']
+    CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8',
+                   u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
     _CONSONANCE_MAKERS = [u'm3', u'M3', u'm6', u'M6']
 
     required_score_type = 'pandas.DataFrame'
