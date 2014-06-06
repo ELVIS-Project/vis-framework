@@ -677,6 +677,16 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
         actual = interval_to_int(nan, nan_is=42)
         self.assertEqual(expected, actual)
 
+    def test_interval_to_int_8(self):
+        expected = 'Rest'
+        actual = interval_to_int('Rest')
+        self.assertEqual(expected, actual)
+
+    def test_interval_to_int_9(self):
+        expected = 'Rest'
+        actual = interval_to_int('t')
+        self.assertEqual(expected, actual)
+
 
 class TestHorizIntervalIndexerLong(unittest.TestCase):
     # data_interval_indexer_1.csv

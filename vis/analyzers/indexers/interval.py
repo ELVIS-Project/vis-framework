@@ -71,8 +71,8 @@ def interval_to_int(interv, nan_is=1):
     :param interv: The simple interval to convert.
     :type interv: basestring or :obj:`numpy.nan`
     :param any nan_is: The value to return when ``interv`` is :obj:`numpy.nan`. The default is 1.
-    :returns: An integer representation of the interval.
-    :rtype: int
+    :returns: An integer representation of the interval **or** the string ``'Rest'``.
+    :rtype: int or string
 
     >>> interval_to_int('M3')
     3
@@ -90,7 +90,11 @@ def interval_to_int(interv, nan_is=1):
     42
     """
     # NOTE: so far this is only used by the dissonance.SuspensionIndexer, but it belongs here
-    if not isinstance(interv, basestring) and isnan(interv):
+    # NOTE: the first branch eliminates rests; we can't *just* use ('Rest' == interv) because
+    #       the function sometimes receives "t" from the SuspensionIndexer.
+    if isinstance(interv, basestring) and interv.endswith('t'):
+        return 'Rest'
+    elif not isinstance(interv, basestring) and isnan(interv):
         return nan_is
     elif interv.startswith('-'):  # descending motion
         return int(interv[-1:]) * -1
@@ -334,4 +338,10 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         combinations = [[new_zero + x, x] for x in xrange(new_zero)]
 
         results = self._do_multiprocessing(combinations)
+        # START DEBUG (this hack makes the indices start with offset 0.0, rather than the first thing after that)
+        #beaches = [[0.0] for _ in xrange(len(results))]
+        #for i, each_beach in enumerate(beaches):
+            #each_beach.extend(results[i].index.tolist()[:-1])
+        #results = [pandas.Series(x.values, index=beaches[i]) for i, x in enumerate(results)]
+        # END DEBUG
         return  self.make_return(combination_labels, results)
