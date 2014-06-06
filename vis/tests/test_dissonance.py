@@ -32,7 +32,7 @@
 
 import unittest
 import mock
-from numpy import nan, isnan
+from numpy import nan, isnan  # pylint: disable=no-name-in-module
 import pandas
 from vis.analyzers.indexers import dissonance
 
@@ -235,7 +235,7 @@ class TestDissonanceIndexer(unittest.TestCase):
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
-    def test_special_fourths_3(self):
+    def test_special_fourths_5(self):
         """
         +------------------+----------+
         | Part Combination | Interval |  all retained
@@ -428,6 +428,7 @@ class TestDissonanceIndexer(unittest.TestCase):
 @mock.patch('vis.analyzers.indexers.dissonance._SUSP_LSUSP_LABEL',
             mock.MagicMock(name='lower-voice suspension'))
 class TestSuspensionIndexer(unittest.TestCase):
+    # pylint: disable=protected-access
     # NOTE: we patch the objects to ensure all four are different, and that we don't need isnan()
     def test_ind_func_1(self):
         # simple: it's a suspension
