@@ -93,7 +93,7 @@ ignore-mixin-members=yes
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
-ignored-classes=SQLObject,PyQt4.QtCore,PyQt4.QtCore.pyqtSignal,PyQt4.QtCore.QThread,PyQt4.QtCore.QObject
+ignored-classes=SQLObject
 
 # When zope mode is activated, add a predefined set of Zope acquired attributes
 # to generated-members.
