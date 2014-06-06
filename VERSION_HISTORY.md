@@ -4,6 +4,8 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
+* 1.2.4:
+    - Allow pandas 0.14.x
 * 1.2.3:
     - Improvements for Sphinx to auto-generate documentation at readthedocs.org
     - Revision to the API's installation instructions, accounting for installation from the PyPI
