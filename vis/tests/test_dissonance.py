@@ -87,6 +87,14 @@ class TestDissonanceIndexer(unittest.TestCase):
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
+    def test_nancons_5(self):
+        # test_nancons_4, with some 'Rest' objects
+        in_ser = pandas.Series(['m3', 'Rest', 'm2', 'P4', 'd5', 'P5', 'M6', 'm7'])
+        expected = pandas.Series([nan, nan, 'm2', 'P4', 'd5', nan, nan, 'm7'])
+        actual = dissonance.DissonanceIndexer.nan_consonance(in_ser)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
     def test_special_fourths_1(self):
         """
         +------------------+----------+
