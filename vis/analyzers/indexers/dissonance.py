@@ -138,7 +138,7 @@ class DissonanceIndexer(indexer.Indexer):
 
     CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8',
                    u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
-    _CONSONANCE_MAKERS = [u'm3', u'M3', u'm6', u'M6']
+    _CONSONANCE_MAKERS = [u'm3', u'M3', u'P5']
 
     required_score_type = 'pandas.DataFrame'
     default_settings = {'special_P4': True, 'special_d5': True}

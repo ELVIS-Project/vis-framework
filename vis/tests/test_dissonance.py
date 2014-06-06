@@ -183,6 +183,60 @@ class TestDissonanceIndexer(unittest.TestCase):
 
     def test_special_fourths_3(self):
         """
+        Ensure a sixth doesn't trigger (regression test).
+        +------------------+----------+
+        | Part Combination | Interval |
+        +==================+==========+
+        | 0,1              | M3       |
+        +------------------+----------+
+        | 0,2              | P4       |  retained
+        +------------------+----------+
+        | 0,3              | M3       |
+        +------------------+----------+
+        | 1,2              | M3       |
+        +------------------+----------+
+        | 1,3              | M3       |
+        +------------------+----------+
+        | 2,3              | M6       |
+        +------------------+----------+
+        """
+        in_series = pandas.Series(['M3', 'P4', 'M3', 'M3', 'M3', 'M6'],
+                                  index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        expected = pandas.Series(['M3', 'P4', 'M3', 'M3', 'M3', 'M6'],
+                                 index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        actual = dissonance.DissonanceIndexer.special_fourths(in_series)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_special_fourths_4(self):
+        """
+        Ensure a fifth does trigger (regression test).
+        +------------------+----------+
+        | Part Combination | Interval |
+        +==================+==========+
+        | 0,1              | M3       |
+        +------------------+----------+
+        | 0,2              | P4       |  removed
+        +------------------+----------+
+        | 0,3              | M3       |
+        +------------------+----------+
+        | 1,2              | M3       |
+        +------------------+----------+
+        | 1,3              | M3       |
+        +------------------+----------+
+        | 2,3              | P5       |
+        +------------------+----------+
+        """
+        in_series = pandas.Series(['M3', 'P4', 'M3', 'M3', 'M3', 'P5'],
+                                  index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        expected = pandas.Series(['M3', nan, 'M3', 'M3', 'M3', 'P5'],
+                                 index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        actual = dissonance.DissonanceIndexer.special_fourths(in_series)
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertSequenceEqual(list(expected.values), list(actual.values))
+
+    def test_special_fourths_3(self):
+        """
         +------------------+----------+
         | Part Combination | Interval |  all retained
         +==================+==========+
@@ -337,17 +391,17 @@ class TestDissonanceIndexer(unittest.TestCase):
                                                         i_event_lists)
         e_event_lists = [[nan, nan, nan, nan, nan, nan],
                          [nan, nan, 'M2', 'M2', nan, 'P4'],
-                         [nan, nan, nan, 'P4', nan, nan],
                          [nan, nan, nan, nan, nan, nan],
-                         [nan, nan, nan, 'P4', nan, nan],
+                         [nan, nan, nan, nan, nan, nan],
+                         [nan, nan, nan, nan, nan, nan],
                          [nan, nan, nan, nan, nan, nan],
                          [nan, nan, nan, 'M2', 'P4', nan],
-                         [nan, nan, nan, 'P4', nan, nan],
+                         [nan, nan, nan, nan, nan, nan],
                          [nan, nan, nan, nan, nan, nan],
                          ['M2', 'A4', nan, nan, nan, nan],
                          [nan, nan, nan, nan, nan, nan],
                          [nan, nan, nan, nan, nan, nan],
-                         [nan, nan, nan, 'P4', nan, nan],
+                         [nan, nan, nan, nan, nan, nan],
                          [nan, nan, nan, nan, nan, nan],
                          [nan, nan, nan, nan, nan, nan]]
         e_event_lists = [pandas.Series(x, index=parts_index) for x in e_event_lists]
