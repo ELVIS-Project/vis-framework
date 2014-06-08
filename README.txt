@@ -37,7 +37,7 @@ Citation
 
 To cite the VIS Framework in publications use:
 
-Antila, Christopher and Jamie Klassen. The VIS Framework for Music Analysis. Montréal: The ELVIS Project, 2013. URL https://github.com/ELVIS-Project/vis.
+Antila, Christopher and Jamie Klassen. The VIS Framework for Music Analysis. Montréal: The ELVIS Project, 2014. URL https://github.com/ELVIS-Project/vis.
 
 A BibTeX entry for LaTeX users is
 
