@@ -6,4 +6,6 @@ python:
 
 install: pip install -r vis/requirements.txt --allow-external music21 --allow-unverified music21
 
-script:  python run_tests.py
+script:  coverage run run_tests.py
+
+after_success: coveralls
