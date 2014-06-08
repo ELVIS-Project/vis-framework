@@ -3,3 +3,5 @@
 music21>=1.7.0,<1.8
 pandas>=0.13.1,<0.15
 mock>=1.0.1
+coverage
+python-coveralls
