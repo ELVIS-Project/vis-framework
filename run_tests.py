@@ -50,11 +50,10 @@ from vis.tests import test_workflow_experiments
 
 
 THE_TESTS = (# Indexer and Subclasses
-             test_indexer.INDEXER_HARDCORE_SUITE,
+             test_indexer.INDEXER_INIT_SUITE,
              test_indexer.INDEXER_1_PART_SUITE,
              test_indexer.INDEXER_MULTI_EVENT_SUITE,
              test_indexer.UNIQUE_OFFSETS_SUITE,
-             test_indexer.VERT_ALIGNER_SUITE,
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE,
@@ -75,7 +74,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_frequency_experimenter.FREQUENCY_FUNC_SUITE,
              test_frequency_experimenter.FREQUENCY_RUN_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
-             # IndexedPiece and AggregatedPieces\
+             # IndexedPiece and AggregatedPieces
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_SUITE_B,
              test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
