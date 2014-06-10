@@ -63,7 +63,6 @@ _SUSP_NODISS_LABEL = '_'  # DEBUG: temporarily not nan
 
 
 def susp_ind_func(obj):
-    # TODO: what about rests?
     """
     Indexer function for the :class:`SuspensionIndexer`. This function processes all parts, and
     returns a :class:`Series` that should be used as a row for the :class:`DataFrame` that will be
@@ -357,13 +356,6 @@ class SuspensionIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.DataFrame'
-    """
-    Depending on how this indexer works, you must provide a :class:`DataFrame`, a :class:`Score`,
-    or list of :class:`Part` or :class:`Series` objects. Only choose :class:`Part` or
-    :class:`Series` if the input will always have single-integer part combinations (i.e., there are
-    no combinations---it will be each part independently).
-    """
-
     possible_settings = [u'suspension_label', u'other_label']
     """
     You may change the words used to label suspensions and other dissonances.
@@ -384,12 +376,13 @@ class SuspensionIndexer(indexer.Indexer):
         :param score: The input from which to produce a new index. You must provide a
             :class:`DataFrame` with results from the
             :class:`~vis.analyzers.indexers.interval.IntervalIndexer`, the
-            :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`, and the
+            :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`,
+            :class:`~vis.analyzers.indexers.metre.NoteBeatStrengthIndexer`, and the
             :class:`DissonanceIndexer. The :class:`DataFrame` may contain results from additional
             indexers, which will be ignored.
         :type score: :class:`pandas.DataFrame`
-        :param settings: This indexer has no settings, so this is ignored.
-        :type settings: NoneType
+        :param dict settings: A dict with settings as specified in
+            :attr:`~SuspensionIndexer.possible_settings`.
 
         .. warning:: The :class:`SuspensionIndexer` requires the results of the
             :class:`IntervalIndexer` to have been "forward filled," or there will be errors. Do not
