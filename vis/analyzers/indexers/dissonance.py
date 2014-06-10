@@ -62,6 +62,15 @@ _SUSP_OTHER_LABEL = 'o'  # DEBUG: temporarily not nan
 _SUSP_NODISS_LABEL = '_'  # DEBUG: temporarily not nan
 
 
+# Used by neighbour_ind_func() as the labels for neighbour notes and other dissonances. They're
+# module-level so they can be changed, and possibly withstand multiprocessing... and so the unit
+# tests can modify them to more easily check the classification.
+_NEIGH_UN_LABEL = 'UN'  # for upper-voice neighbour notes
+_NEIGH_LN_LABEL = 'LN'  # for lower-voice neighbour notes
+_NEIGH_OTHER_LABEL = 'o'  # DEBUG: temporarily not nan
+_NEIGH_NODISS_LABEL = '_'  # DEBUG: temporarily not nan
+
+
 def susp_ind_func(obj):
     """
     Indexer function for the :class:`SuspensionIndexer`. This function processes all parts, and
@@ -121,7 +130,7 @@ def susp_ind_func(obj):
             beat_strength_three = row_three[beat_ind][lower_i] if isnan(row_three[beat_ind][upper_i]) else row_three[beat_ind][upper_i]  # TODO: untested
             # ensure there aren't any rests  # TODO: untested
             #print('a: %s, b: %s, x: %s, d: %s, y: %s, z: %s' % (a, b, x, d, y, z))  # DEBUG
-            print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
+            #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
             if 'Rest' in (a, b, x, d, y, z):  # TODO: untested
                 post[post_i] = _SUSP_NODISS_LABEL  # TODO: untested
             # deal with z
@@ -135,6 +144,83 @@ def susp_ind_func(obj):
                 post[post_i] = _SUSP_USUSP_LABEL
             else:
                 post[post_i] = _SUSP_OTHER_LABEL
+        else:
+            post[post_i] = _SUSP_NODISS_LABEL
+    return pandas.Series(post, index=row_one[diss_ind].index)
+
+
+def neighbour_ind_func(obj):
+    # TODO: NOTE: TEST: this whole indexer is untested
+    """
+    Indexer function for the :class:`NeighbourNoteIndexer`. This function processes all parts, and
+    returns a :class:`Series` that should be used as a row for the :class:`DataFrame` that will be
+    the resulting index returned by :class:`NeighbourNoteIndexer`.
+
+    The suspect dissonances occur in the second row.
+
+    :param obj: A 3-element iterable with adjacent rows from the indexer's requested
+        :class:`DataFrame`. If the first row has index ``i`` in the :class:`DataFrame`, the second
+        row should have index ``i + 1``, and the third ``i + 2``.
+    :type obj: 3-tuple of :class:`pandas.Series`
+
+    :returns: A row for the new index's :class:`DataFrame`. The row's proper offset is that of the
+        *second* :class:`Series` in the ``obj`` argument.
+    :rtype: :class:`pandas.Series` of unicode string
+    """
+    # Description of the variables:
+    # - a: melodic interval of upper part into dissonance
+    # - b: melodic interval of upper part out of dissonance
+    # - x: melodic interval of lower part into dissonance
+    # - y: melodic interval of lower part out of dissonance
+
+    # TODO: incorporate these metric things
+    # -it is on a weak half and its duration is one half note or less,  OR
+    # -it is on a weak quarter and its duration is one quarter or less,  OR
+    # -it is on a weak eighth and its duration is one eighth or less.
+
+    #Subcategories of the above: N1u and N1l (upper and lower neighbours).
+
+    # for better legibility (i.e., shorter lines)
+    diss_ind = u'dissonance.DissonanceIndexer'
+    horiz_int_ind = u'interval.HorizontalIntervalIndexer'
+    int_ind = u'interval.IntervalIndexer'
+    beat_ind = 'metre.NoteBeatStrengthIndexer'
+
+    row_one, row_two, row_three = obj
+
+    # this avoids the list's reallocation penalty if we used append()
+    post = [None for _ in xrange(len(row_one[diss_ind].index))]
+    for post_i, combo in enumerate(row_one[diss_ind].index):
+        lower_i = int(combo.split(u',')[1])
+        upper_i = int(combo.split(u',')[0])
+        # is there a dissonance?
+        if (isinstance(row_two[diss_ind][combo], basestring) or
+            (not isnan(row_two[diss_ind][combo]))):
+            # pylint: disable=invalid-name
+            # set a (melodic of upper part into diss)
+            a = interval_to_int(row_two[horiz_int_ind][upper_i])
+            # set b (melodic of upper part out of diss)
+            b = interval_to_int(row_three[horiz_int_ind][upper_i])
+            # set x (melodic of lower part into diss)
+            x = interval_to_int(row_two[horiz_int_ind][lower_i])
+            # set y (lower part melodic out of diss)
+            y = interval_to_int(row_three[horiz_int_ind][lower_i])
+            # find the beatStrength of the dissonance and resolution
+            beat_strength_two = row_two[beat_ind][lower_i] if isnan(row_two[beat_ind][upper_i]) else row_two[beat_ind][upper_i]
+            beat_strength_three = row_three[beat_ind][lower_i] if isnan(row_three[beat_ind][upper_i]) else row_three[beat_ind][upper_i]
+            # ensure there aren't any rests
+            #print('a: %s, b: %s, x: %s, y: %s' % (a, b, x, y))  # DEBUG
+            #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
+            if 'Rest' in (a, b, x, y):
+                post[post_i] = _NEIGH_NODISS_LABEL
+            # see if it's an upper neighbour
+            elif 2 == a and -2 == b:
+                post[post_i] = _NEIGH_UN_LABEL
+            # see if it's a lower neighbour
+            elif -2 == x and 2 == y:
+                post[post_i] = _NEIGH_LN_LABEL
+            else:
+                post[post_i] = _NEIGH_OTHER_LABEL
         else:
             post[post_i] = _SUSP_NODISS_LABEL
     return pandas.Series(post, index=row_one[diss_ind].index)
@@ -426,6 +512,87 @@ class SuspensionIndexer(indexer.Indexer):
         # other rows, or we'll have empty columns in the output).
         for i in [0, -1]:
             post[i] = pandas.Series([_SUSP_NODISS_LABEL for _ in xrange(len(post[1]))],
+                                    index=post[1].index)
+
+        # Convert from the list of Series into a DataFrame. Each inputted Series becomes a row.
+        post = pandas.DataFrame({j: post[i] for i, j in enumerate(self._score.index)}).T
+
+        # the part names are the column names
+        post = self.make_return(list(post.columns), [post[i] for i in post.columns])
+        return pandas.concat(objs=[self._score, post], axis=1, join='outer')
+
+
+class NeighbourNoteIndexer(indexer.Indexer):
+    # TODO: NOTE: TEST: this whole indexer is untested
+    # TODO: NOTE: TEST: this whole court is out of order!
+    """
+    Mark dissonant intervals as a neighbour note or another dissonance.
+
+    Inputted results from the :mod:`interval` module require the same settings as were given to
+    the :class:`DissonanceIndexer.
+    """
+
+    required_score_type = 'pandas.DataFrame'
+    possible_settings = []
+    default_settings = {}
+
+    # Text for the RuntimeError raised when a score has fewer than 3 event offsets.
+    _TOO_SHORT_ERROR = u'NeighbourNoteIndexer: input must have at least 3 events'
+
+    def __init__(self, score, settings=None):
+        """
+        :param score: The input from which to produce a new index. You must provide a
+            :class:`DataFrame` with results from the
+            :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`,
+            :class:`~vis.analyzers.indexers.metre.NoteBeatStrengthIndexer`, and the
+            :class:`DissonanceIndexer. The :class:`DataFrame` may contain results from additional
+            indexers, which will be ignored.
+        :type score: :class:`pandas.DataFrame`
+        :param settings: This indexer has no settings, so this is ignored.
+        :type settings: NoneType
+
+        .. warning:: The :class:`NeighbourNoteIndexer` requires the results of the
+            :class:`IntervalIndexer` to have been "forward filled," or there will be errors. Do not
+            "forward fill" other indices.
+
+        .. note:: The :meth:`run` method will raise a :exc:`KeyError` if ``score`` does not contain
+            results from the required indices.
+
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
+        :raises: :exc:`RuntimeError` if the ``score`` argument has fewer than three event offsets,
+            which is the minimum required for a suspension (preparation, dissonance, resolution).
+            An exception here prevents an error later.
+        """
+        super(NeighbourNoteIndexer, self).__init__(score, None)
+        if len(score.index) < 3:
+            raise RuntimeError(NeighbourNoteIndexer._TOO_SHORT_ERROR)
+        self._indexer_func = neighbour_ind_func
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        :returns: A :class:`DataFrame` with suspensions labeled *and* all inputted indices.
+        :rtype: :class:`pandas.DataFrame`
+
+        :raises: :exc:`KeyError` if the ``score`` given to the constructor was an
+            improperly-formatted :class:`DataFrame` (e.g., it does not contain results of the
+            required indexers, or the columns do not have a :class:`MultiIndex`).
+        """
+        # NB: it's actually susp_ind_func() that raises the KeyError
+
+        # this avoids the list's reallocation penalty if we used append()
+        post = [None for _ in xrange(len(self._score.index))]
+        for i in xrange(len(self._score.index) - 2):
+            post[i + 1] = neighbour_ind_func((self._score.iloc[i],
+                                              self._score.iloc[i + 1],
+                                              self._score.iloc[i + 2]))
+
+        # Add post for the final two offsets in the piece. They obviously can't be suspensions,
+        # since they wouldn't  be prepared or resolved. (Make sure we use the same index as the
+        # other rows, or we'll have empty columns in the output).
+        for i in [0, -1]:
+            post[i] = pandas.Series([_NEIGH_NODISS_LABEL for _ in xrange(len(post[1]))],
                                     index=post[1].index)
 
         # Convert from the list of Series into a DataFrame. Each inputted Series becomes a row.
