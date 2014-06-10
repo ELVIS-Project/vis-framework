@@ -452,369 +452,369 @@ class TestSuspensionIndexer(unittest.TestCase):
         for key in expected.index:
             self.assertEqual(expected[key], actual[key])
 
-    def test_ind_func_2(self):
-        # simple: it's not a suspension (lower part into diss is P1)
-        # 1.) prepare inputs
-        columns = (('interval.IntervalIndexer', '0,1'),
-                   ('interval.HorizontalIntervalIndexer', '0'),
-                   ('interval.HorizontalIntervalIndexer', '1'),
-                   ('dissonance.DissonanceIndexer', '0,1'))
-        columns = pandas.MultiIndex.from_tuples(columns)
-        row_one = ['M6', 'M2', 'P1', nan]
-        row_two = ['M7', 'M2', 'M3', 'M7']
-        row_three = ['m6', '-M2', 'P1', nan]
-        row_one = pandas.Series(row_one, index=columns)
-        row_two = pandas.Series(row_two, index=columns)
-        row_three = pandas.Series(row_three, index=columns)
-        # 2.) prepare expected
-        expected = pandas.Series([dissonance._SUSP_OTHER_LABEL], index=['0,1'])
-        # 3.) run and check
-        actual = dissonance.susp_ind_func((row_one, row_two, row_three))
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        for key in expected.index:
-            self.assertEqual(expected[key], actual[key])
+    #def test_ind_func_2(self):
+        ## simple: it's not a suspension (lower part into diss is P1)
+        ## 1.) prepare inputs
+        #columns = (('interval.IntervalIndexer', '0,1'),
+                   #('interval.HorizontalIntervalIndexer', '0'),
+                   #('interval.HorizontalIntervalIndexer', '1'),
+                   #('dissonance.DissonanceIndexer', '0,1'))
+        #columns = pandas.MultiIndex.from_tuples(columns)
+        #row_one = ['M6', 'M2', 'P1', nan]
+        #row_two = ['M7', 'M2', 'M3', 'M7']
+        #row_three = ['m6', '-M2', 'P1', nan]
+        #row_one = pandas.Series(row_one, index=columns)
+        #row_two = pandas.Series(row_two, index=columns)
+        #row_three = pandas.Series(row_three, index=columns)
+        ## 2.) prepare expected
+        #expected = pandas.Series([dissonance._SUSP_OTHER_LABEL], index=['0,1'])
+        ## 3.) run and check
+        #actual = dissonance.susp_ind_func((row_one, row_two, row_three))
+        #self.assertSequenceEqual(list(expected.index), list(actual.index))
+        #for key in expected.index:
+            #self.assertEqual(expected[key], actual[key])
 
-    def test_ind_func_3(self):
-        # simple: it's not a suspension (lower part into diss is not P1)
-        # 1.) prepare inputs
-        columns = (('interval.IntervalIndexer', '0,1'),
-                   ('interval.HorizontalIntervalIndexer', '0'),
-                   ('interval.HorizontalIntervalIndexer', '1'),
-                   ('dissonance.DissonanceIndexer', '0,1'))
-        columns = pandas.MultiIndex.from_tuples(columns)
-        row_one = ['M6', 'M2', '-M2', nan]
-        row_two = ['M7', 'M2', 'M3', 'M7']
-        row_three = ['m6', '-M2', 'P1', nan]
-        row_one = pandas.Series(row_one, index=columns)
-        row_two = pandas.Series(row_two, index=columns)
-        row_three = pandas.Series(row_three, index=columns)
-        # 2.) prepare expected
-        expected = pandas.Series([dissonance._SUSP_OTHER_LABEL], index=['0,1'])
-        # 3.) run and check
-        actual = dissonance.susp_ind_func((row_one, row_two, row_three))
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        for key in expected.index:
-            self.assertEqual(expected[key], actual[key])
+    #def test_ind_func_3(self):
+        ## simple: it's not a suspension (lower part into diss is not P1)
+        ## 1.) prepare inputs
+        #columns = (('interval.IntervalIndexer', '0,1'),
+                   #('interval.HorizontalIntervalIndexer', '0'),
+                   #('interval.HorizontalIntervalIndexer', '1'),
+                   #('dissonance.DissonanceIndexer', '0,1'))
+        #columns = pandas.MultiIndex.from_tuples(columns)
+        #row_one = ['M6', 'M2', '-M2', nan]
+        #row_two = ['M7', 'M2', 'M3', 'M7']
+        #row_three = ['m6', '-M2', 'P1', nan]
+        #row_one = pandas.Series(row_one, index=columns)
+        #row_two = pandas.Series(row_two, index=columns)
+        #row_three = pandas.Series(row_three, index=columns)
+        ## 2.) prepare expected
+        #expected = pandas.Series([dissonance._SUSP_OTHER_LABEL], index=['0,1'])
+        ## 3.) run and check
+        #actual = dissonance.susp_ind_func((row_one, row_two, row_three))
+        #self.assertSequenceEqual(list(expected.index), list(actual.index))
+        #for key in expected.index:
+            #self.assertEqual(expected[key], actual[key])
 
-    def test_ind_func_4(self):
-        # simple: it's not a dissonance
-        # 1.) prepare inputs
-        columns = (('interval.IntervalIndexer', '0,1'),
-                   ('interval.HorizontalIntervalIndexer', '0'),
-                   ('interval.HorizontalIntervalIndexer', '1'),
-                   ('dissonance.DissonanceIndexer', '0,1'))
-        columns = pandas.MultiIndex.from_tuples(columns)
-        row_one = ['M3', 'M3', 'M3', nan]
-        row_two = ['M3', '-M2', 'P1', nan]
-        row_three = ['M2', '-M2', 'P1', 'M2']
-        row_one = pandas.Series(row_one, index=columns)
-        row_two = pandas.Series(row_two, index=columns)
-        row_three = pandas.Series(row_three, index=columns)
-        # 2.) prepare expected
-        expected = pandas.Series([dissonance._SUSP_NODISS_LABEL], index=['0,1'])
-        # 3.) run and check
-        actual = dissonance.susp_ind_func((row_one, row_two, row_three))
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        for key in expected.index:
-            self.assertEqual(expected[key], actual[key])
+    #def test_ind_func_4(self):
+        ## simple: it's not a dissonance
+        ## 1.) prepare inputs
+        #columns = (('interval.IntervalIndexer', '0,1'),
+                   #('interval.HorizontalIntervalIndexer', '0'),
+                   #('interval.HorizontalIntervalIndexer', '1'),
+                   #('dissonance.DissonanceIndexer', '0,1'))
+        #columns = pandas.MultiIndex.from_tuples(columns)
+        #row_one = ['M3', 'M3', 'M3', nan]
+        #row_two = ['M3', '-M2', 'P1', nan]
+        #row_three = ['M2', '-M2', 'P1', 'M2']
+        #row_one = pandas.Series(row_one, index=columns)
+        #row_two = pandas.Series(row_two, index=columns)
+        #row_three = pandas.Series(row_three, index=columns)
+        ## 2.) prepare expected
+        #expected = pandas.Series([dissonance._SUSP_NODISS_LABEL], index=['0,1'])
+        ## 3.) run and check
+        #actual = dissonance.susp_ind_func((row_one, row_two, row_three))
+        #self.assertSequenceEqual(list(expected.index), list(actual.index))
+        #for key in expected.index:
+            #self.assertEqual(expected[key], actual[key])
 
-    def test_ind_func_5(self):
-        # simple: it would be a suspension, even though the lower voice drops out
-        # 1.) prepare inputs
-        columns = (('interval.IntervalIndexer', '0,1'),
-                   ('interval.HorizontalIntervalIndexer', '0'),
-                   ('interval.HorizontalIntervalIndexer', '1'),
-                   ('dissonance.DissonanceIndexer', '0,1'))
-        columns = pandas.MultiIndex.from_tuples(columns)
-        row_one = ['P8', 'P1', 'M2', nan]
-        row_two = ['m7', '-M2', nan, 'm7']
-        row_three = [nan, '-M2', nan, nan]
-        row_one = pandas.Series(row_one, index=columns)
-        row_two = pandas.Series(row_two, index=columns)
-        row_three = pandas.Series(row_three, index=columns)
-        # 2.) prepare expected
-        expected = pandas.Series([dissonance._SUSP_OTHER_LABEL], index=['0,1'])
-        # 3.) run and check
-        actual = dissonance.susp_ind_func((row_one, row_two, row_three))
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        for key in expected.index:
-            self.assertEqual(expected[key], actual[key])
+    #def test_ind_func_5(self):
+        ## simple: it would be a suspension, even though the lower voice drops out
+        ## 1.) prepare inputs
+        #columns = (('interval.IntervalIndexer', '0,1'),
+                   #('interval.HorizontalIntervalIndexer', '0'),
+                   #('interval.HorizontalIntervalIndexer', '1'),
+                   #('dissonance.DissonanceIndexer', '0,1'))
+        #columns = pandas.MultiIndex.from_tuples(columns)
+        #row_one = ['P8', 'P1', 'M2', nan]
+        #row_two = ['m7', '-M2', nan, 'm7']
+        #row_three = [nan, '-M2', nan, nan]
+        #row_one = pandas.Series(row_one, index=columns)
+        #row_two = pandas.Series(row_two, index=columns)
+        #row_three = pandas.Series(row_three, index=columns)
+        ## 2.) prepare expected
+        #expected = pandas.Series([dissonance._SUSP_OTHER_LABEL], index=['0,1'])
+        ## 3.) run and check
+        #actual = dissonance.susp_ind_func((row_one, row_two, row_three))
+        #self.assertSequenceEqual(list(expected.index), list(actual.index))
+        #for key in expected.index:
+            #self.assertEqual(expected[key], actual[key])
 
-    def test_ind_func_6(self):
-        # multi-part: mixed "other" and "no" dissonances
-        # NB: the input is taken from the first offset of bwv77.mxl
-        # 1.) prepare inputs
-        columns = (('interval.IntervalIndexer', '0,1'),
-                   ('interval.IntervalIndexer', '0,2'),
-                   ('interval.IntervalIndexer', '0,3'),
-                   ('interval.IntervalIndexer', '1,2'),
-                   ('interval.IntervalIndexer', '1,3'),
-                   ('interval.IntervalIndexer', '2,3'),
-                   ('interval.HorizontalIntervalIndexer', '0'),
-                   ('interval.HorizontalIntervalIndexer', '1'),
-                   ('interval.HorizontalIntervalIndexer', '2'),
-                   ('interval.HorizontalIntervalIndexer', '3'),
-                   ('dissonance.DissonanceIndexer', '0,1'),
-                   ('dissonance.DissonanceIndexer', '0,2'),
-                   ('dissonance.DissonanceIndexer', '0,3'),
-                   ('dissonance.DissonanceIndexer', '1,2'),
-                   ('dissonance.DissonanceIndexer', '1,3'),
-                   ('dissonance.DissonanceIndexer', '2,3'))
-        columns = pandas.MultiIndex.from_tuples(columns)
-        #         int: 0,1  0,2  0,3  1,2  1,3  2,3
-        #         horiz: 0, 1, 2, 3
-        #         diss: 0,1  0,2  0,3  1,2  1,3  2,3
-        row_one = ['P4', 'M6', 'P8', 'M3', 'P5', 'm3',
-                   'M2', nan, 'M2', nan,
-                   nan, nan, nan, nan, nan, nan]
-        row_two = ['P5', 'M6', 'M2', 'M2', nan, 'P4',
-                   'm2', 'P4', 'M2', 'P1',
-                   nan, nan, 'M2', 'M2', nan, 'P4']  # they're all "other"
-        row_three = ['m3', 'm6', 'm3', 'P4', 'P8', 'P5',
-                     'M2', 'M2', 'm3', '-M2',
-                     nan, nan, nan, 'P4', nan, nan]
-        row_one = pandas.Series(row_one, index=columns)
-        row_two = pandas.Series(row_two, index=columns)
-        row_three = pandas.Series(row_three, index=columns)
-        # 2.) prepare expected
-        expected = pandas.Series([dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_OTHER_LABEL,
-                                  dissonance._SUSP_OTHER_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_OTHER_LABEL],
-                                 index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
-        # 3.) run and check
-        actual = dissonance.susp_ind_func((row_one, row_two, row_three))
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        for key in expected.index:
-            self.assertEqual(expected[key], actual[key])
+    #def test_ind_func_6(self):
+        ## multi-part: mixed "other" and "no" dissonances
+        ## NB: the input is taken from the first offset of bwv77.mxl
+        ## 1.) prepare inputs
+        #columns = (('interval.IntervalIndexer', '0,1'),
+                   #('interval.IntervalIndexer', '0,2'),
+                   #('interval.IntervalIndexer', '0,3'),
+                   #('interval.IntervalIndexer', '1,2'),
+                   #('interval.IntervalIndexer', '1,3'),
+                   #('interval.IntervalIndexer', '2,3'),
+                   #('interval.HorizontalIntervalIndexer', '0'),
+                   #('interval.HorizontalIntervalIndexer', '1'),
+                   #('interval.HorizontalIntervalIndexer', '2'),
+                   #('interval.HorizontalIntervalIndexer', '3'),
+                   #('dissonance.DissonanceIndexer', '0,1'),
+                   #('dissonance.DissonanceIndexer', '0,2'),
+                   #('dissonance.DissonanceIndexer', '0,3'),
+                   #('dissonance.DissonanceIndexer', '1,2'),
+                   #('dissonance.DissonanceIndexer', '1,3'),
+                   #('dissonance.DissonanceIndexer', '2,3'))
+        #columns = pandas.MultiIndex.from_tuples(columns)
+        ##         int: 0,1  0,2  0,3  1,2  1,3  2,3
+        ##         horiz: 0, 1, 2, 3
+        ##         diss: 0,1  0,2  0,3  1,2  1,3  2,3
+        #row_one = ['P4', 'M6', 'P8', 'M3', 'P5', 'm3',
+                   #'M2', nan, 'M2', nan,
+                   #nan, nan, nan, nan, nan, nan]
+        #row_two = ['P5', 'M6', 'M2', 'M2', nan, 'P4',
+                   #'m2', 'P4', 'M2', 'P1',
+                   #nan, nan, 'M2', 'M2', nan, 'P4']  # they're all "other"
+        #row_three = ['m3', 'm6', 'm3', 'P4', 'P8', 'P5',
+                     #'M2', 'M2', 'm3', '-M2',
+                     #nan, nan, nan, 'P4', nan, nan]
+        #row_one = pandas.Series(row_one, index=columns)
+        #row_two = pandas.Series(row_two, index=columns)
+        #row_three = pandas.Series(row_three, index=columns)
+        ## 2.) prepare expected
+        #expected = pandas.Series([dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_OTHER_LABEL,
+                                  #dissonance._SUSP_OTHER_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_OTHER_LABEL],
+                                 #index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        ## 3.) run and check
+        #actual = dissonance.susp_ind_func((row_one, row_two, row_three))
+        #self.assertSequenceEqual(list(expected.index), list(actual.index))
+        #for key in expected.index:
+            #self.assertEqual(expected[key], actual[key])
 
-    def test_ind_func_7(self):  # TODO: verify the test!
-        # multi-part: mixed "susp," "other," and "no" dissonances
-        # NB: the input is taken from bwv77.mxl, offsets 10.5, 11.0, and 11.5
-        # 1.) prepare inputs
-        columns = (('interval.IntervalIndexer', '0,1'),
-                   ('interval.IntervalIndexer', '0,2'),
-                   ('interval.IntervalIndexer', '0,3'),
-                   ('interval.IntervalIndexer', '1,2'),
-                   ('interval.IntervalIndexer', '1,3'),
-                   ('interval.IntervalIndexer', '2,3'),
-                   ('interval.HorizontalIntervalIndexer', '0'),
-                   ('interval.HorizontalIntervalIndexer', '1'),
-                   ('interval.HorizontalIntervalIndexer', '2'),
-                   ('interval.HorizontalIntervalIndexer', '3'),
-                   ('dissonance.DissonanceIndexer', '0,1'),
-                   ('dissonance.DissonanceIndexer', '0,2'),
-                   ('dissonance.DissonanceIndexer', '0,3'),
-                   ('dissonance.DissonanceIndexer', '1,2'),
-                   ('dissonance.DissonanceIndexer', '1,3'),
-                   ('dissonance.DissonanceIndexer', '2,3'))
-        columns = pandas.MultiIndex.from_tuples(columns)
-        #         int: 0,1  0,2  0,3  1,2  1,3  2,3
-        #         horiz: 0, 1, 2, 3
-        #         diss: 0,1  0,2  0,3  1,2  1,3  2,3
-        row_one = ['P5', 'P8', 'M3', 'P4', 'M6', 'M3',  # IntervalIndexer
-                   '-M2', 'P1', 'M2', '-M2',  # HorizontalIntervalIndexer
-                   nan, nan, nan, nan, nan, nan]  # DissonanceIndexer
-        row_two = ['P4', 'm6', 'M3', 'm3', 'M7', 'A5',
-                   nan, '-M2', 'm2', nan,
-                   nan, nan, nan, nan, 'M7', 'A5']  # M7 is susp, A5 is other (PT)
-        row_three = ['P5', 'P5', 'M3', 'P1', 'M6', 'M6',
-                     nan, nan, nan, nan,
-                     nan, nan, nan, nan, nan, nan]
-        row_one = pandas.Series(row_one, index=columns)
-        row_two = pandas.Series(row_two, index=columns)
-        row_three = pandas.Series(row_three, index=columns)
-        # 2.) prepare expected
-        expected = pandas.Series([dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_USUSP_LABEL,
-                                  dissonance._SUSP_OTHER_LABEL],
-                                 index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
-        # 3.) run and check
-        actual = dissonance.susp_ind_func((row_one, row_two, row_three))
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        for key in expected.index:
-            self.assertEqual(expected[key], actual[key])
+    #def test_ind_func_7(self):  # TODO: verify the test!
+        ## multi-part: mixed "susp," "other," and "no" dissonances
+        ## NB: the input is taken from bwv77.mxl, offsets 10.5, 11.0, and 11.5
+        ## 1.) prepare inputs
+        #columns = (('interval.IntervalIndexer', '0,1'),
+                   #('interval.IntervalIndexer', '0,2'),
+                   #('interval.IntervalIndexer', '0,3'),
+                   #('interval.IntervalIndexer', '1,2'),
+                   #('interval.IntervalIndexer', '1,3'),
+                   #('interval.IntervalIndexer', '2,3'),
+                   #('interval.HorizontalIntervalIndexer', '0'),
+                   #('interval.HorizontalIntervalIndexer', '1'),
+                   #('interval.HorizontalIntervalIndexer', '2'),
+                   #('interval.HorizontalIntervalIndexer', '3'),
+                   #('dissonance.DissonanceIndexer', '0,1'),
+                   #('dissonance.DissonanceIndexer', '0,2'),
+                   #('dissonance.DissonanceIndexer', '0,3'),
+                   #('dissonance.DissonanceIndexer', '1,2'),
+                   #('dissonance.DissonanceIndexer', '1,3'),
+                   #('dissonance.DissonanceIndexer', '2,3'))
+        #columns = pandas.MultiIndex.from_tuples(columns)
+        ##         int: 0,1  0,2  0,3  1,2  1,3  2,3
+        ##         horiz: 0, 1, 2, 3
+        ##         diss: 0,1  0,2  0,3  1,2  1,3  2,3
+        #row_one = ['P5', 'P8', 'M3', 'P4', 'M6', 'M3',  # IntervalIndexer
+                   #'-M2', 'P1', 'M2', '-M2',  # HorizontalIntervalIndexer
+                   #nan, nan, nan, nan, nan, nan]  # DissonanceIndexer
+        #row_two = ['P4', 'm6', 'M3', 'm3', 'M7', 'A5',
+                   #nan, '-M2', 'm2', nan,
+                   #nan, nan, nan, nan, 'M7', 'A5']  # M7 is susp, A5 is other (PT)
+        #row_three = ['P5', 'P5', 'M3', 'P1', 'M6', 'M6',
+                     #nan, nan, nan, nan,
+                     #nan, nan, nan, nan, nan, nan]
+        #row_one = pandas.Series(row_one, index=columns)
+        #row_two = pandas.Series(row_two, index=columns)
+        #row_three = pandas.Series(row_three, index=columns)
+        ## 2.) prepare expected
+        #expected = pandas.Series([dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_USUSP_LABEL,
+                                  #dissonance._SUSP_OTHER_LABEL],
+                                 #index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        ## 3.) run and check
+        #actual = dissonance.susp_ind_func((row_one, row_two, row_three))
+        #self.assertSequenceEqual(list(expected.index), list(actual.index))
+        #for key in expected.index:
+            #self.assertEqual(expected[key], actual[key])
 
-    def test_ind_func_8(self):
-        # multi-part: mixed "susp," "other," and "no" dissonances
-        # NB: this is a lower-voice suspension
-        # NB: the input is taken from bwv77.mxl, offsets 5.5, 6.0, 6.5
-        # 1.) prepare inputs
-        columns = (('interval.IntervalIndexer', '0,1'),
-                   ('interval.IntervalIndexer', '0,2'),
-                   ('interval.IntervalIndexer', '0,3'),
-                   ('interval.IntervalIndexer', '1,2'),
-                   ('interval.IntervalIndexer', '1,3'),
-                   ('interval.IntervalIndexer', '2,3'),
-                   ('interval.HorizontalIntervalIndexer', '0'),
-                   ('interval.HorizontalIntervalIndexer', '1'),
-                   ('interval.HorizontalIntervalIndexer', '2'),
-                   ('interval.HorizontalIntervalIndexer', '3'),
-                   ('dissonance.DissonanceIndexer', '0,1'),
-                   ('dissonance.DissonanceIndexer', '0,2'),
-                   ('dissonance.DissonanceIndexer', '0,3'),
-                   ('dissonance.DissonanceIndexer', '1,2'),
-                   ('dissonance.DissonanceIndexer', '1,3'),
-                   ('dissonance.DissonanceIndexer', '2,3'))
-        columns = pandas.MultiIndex.from_tuples(columns)
-        #         int: 0,1  0,2  0,3  1,2  1,3  2,3
-        #         horiz: 0, 1, 2, 3
-        #         diss: 0,1  0,2  0,3  1,2  1,3  2,3
-        row_one = ['m3', 'P8', 'P12', 'M3', 'M10', 'P5',  # IntervalIndexer
-                   '-m2', nan, 'P4', '-m3',  # HorizontalIntervalIndexer
-                   nan, nan, nan, nan, nan, nan]  # DissonanceIndexer
-        row_two = ['M2', 'A4', 'M13', 'M3', 'm10', '',
-                   nan, '-m2', '-m2', 'M2',
-                   'M2', 'A4', nan, nan, nan, nan]  # M2 is suspension; A4 is other
-        row_three = ['m3', 'P5', 'P12', 'M3', 'M10', 'P8',
-                     '-M2', '-M3', '-M3', 'P4',
-                     nan, nan, nan, nan, nan, nan]
-        row_one = pandas.Series(row_one, index=columns)
-        row_two = pandas.Series(row_two, index=columns)
-        row_three = pandas.Series(row_three, index=columns)
-        # 2.) prepare expected
-        expected = pandas.Series([dissonance._SUSP_LSUSP_LABEL,
-                                  dissonance._SUSP_OTHER_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL,
-                                  dissonance._SUSP_NODISS_LABEL],
-                                 index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
-        # 3.) run and check
-        actual = dissonance.susp_ind_func((row_one, row_two, row_three))
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        for key in expected.index:
-            self.assertEqual(expected[key], actual[key])
+    #def test_ind_func_8(self):
+        ## multi-part: mixed "susp," "other," and "no" dissonances
+        ## NB: this is a lower-voice suspension
+        ## NB: the input is taken from bwv77.mxl, offsets 5.5, 6.0, 6.5
+        ## 1.) prepare inputs
+        #columns = (('interval.IntervalIndexer', '0,1'),
+                   #('interval.IntervalIndexer', '0,2'),
+                   #('interval.IntervalIndexer', '0,3'),
+                   #('interval.IntervalIndexer', '1,2'),
+                   #('interval.IntervalIndexer', '1,3'),
+                   #('interval.IntervalIndexer', '2,3'),
+                   #('interval.HorizontalIntervalIndexer', '0'),
+                   #('interval.HorizontalIntervalIndexer', '1'),
+                   #('interval.HorizontalIntervalIndexer', '2'),
+                   #('interval.HorizontalIntervalIndexer', '3'),
+                   #('dissonance.DissonanceIndexer', '0,1'),
+                   #('dissonance.DissonanceIndexer', '0,2'),
+                   #('dissonance.DissonanceIndexer', '0,3'),
+                   #('dissonance.DissonanceIndexer', '1,2'),
+                   #('dissonance.DissonanceIndexer', '1,3'),
+                   #('dissonance.DissonanceIndexer', '2,3'))
+        #columns = pandas.MultiIndex.from_tuples(columns)
+        ##         int: 0,1  0,2  0,3  1,2  1,3  2,3
+        ##         horiz: 0, 1, 2, 3
+        ##         diss: 0,1  0,2  0,3  1,2  1,3  2,3
+        #row_one = ['m3', 'P8', 'P12', 'M3', 'M10', 'P5',  # IntervalIndexer
+                   #'-m2', nan, 'P4', '-m3',  # HorizontalIntervalIndexer
+                   #nan, nan, nan, nan, nan, nan]  # DissonanceIndexer
+        #row_two = ['M2', 'A4', 'M13', 'M3', 'm10', '',
+                   #nan, '-m2', '-m2', 'M2',
+                   #'M2', 'A4', nan, nan, nan, nan]  # M2 is suspension; A4 is other
+        #row_three = ['m3', 'P5', 'P12', 'M3', 'M10', 'P8',
+                     #'-M2', '-M3', '-M3', 'P4',
+                     #nan, nan, nan, nan, nan, nan]
+        #row_one = pandas.Series(row_one, index=columns)
+        #row_two = pandas.Series(row_two, index=columns)
+        #row_three = pandas.Series(row_three, index=columns)
+        ## 2.) prepare expected
+        #expected = pandas.Series([dissonance._SUSP_LSUSP_LABEL,
+                                  #dissonance._SUSP_OTHER_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL,
+                                  #dissonance._SUSP_NODISS_LABEL],
+                                 #index=['0,1', '0,2', '0,3', '1,2', '1,3', '2,3'])
+        ## 3.) run and check
+        #actual = dissonance.susp_ind_func((row_one, row_two, row_three))
+        #self.assertSequenceEqual(list(expected.index), list(actual.index))
+        #for key in expected.index:
+            #self.assertEqual(expected[key], actual[key])
 
-    def test_run_1(self):
-        # Given a DataFrame with a bunch of rows, ensure run() gives them to susp_ind_func(),
-        # three at a time, in the right order.
-        # 1.) prepare inputs
-        in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(10)])})
-        in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
-        # Susp_Ind_Func mock's Side Effect (bare minimum for the method to not fail)
-        sifse = lambda x: pandas.Series((None,), index=('None',))
-        # 2.) prepare expected
-        expected = []
-        for i in xrange(8):  # because we won't want to start on .iloc[8] or 9
-            # NB: this is a bit of a hack, since it doesn't technically make a MultiIndex, but
-            #     when we run .index through list() it will look the same
-            arg = [pandas.Series([j], index=[('FakeIndexer', 'col')], name=j)
-                   for j in [i, i + 1, i + 2]]
-            expected.append(arg)
-        # 3.) run and check
-        with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
-            sif.side_effect = sifse
-            dissonance.SuspensionIndexer(in_frame).run()
-            calist = sif.call_args_list
-        self.assertEqual(len(expected), len(calist))  # same number of calls
-        for i in xrange(len(expected)):
-            self.assertEqual(len(expected[i]), len(calist[i][0][0]))  # same nr of args per call
-            for j in xrange(len(expected[i])):
-                # check indices then values
-                self.assertSequenceEqual(list(expected[i][j].index),
-                                            list(calist[i][0][0][j].index))
-                self.assertSequenceEqual(list(expected[i][j].values),
-                                            list(calist[i][0][0][j].values))
+    #def test_run_1(self):
+        ## Given a DataFrame with a bunch of rows, ensure run() gives them to susp_ind_func(),
+        ## three at a time, in the right order.
+        ## 1.) prepare inputs
+        #in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(10)])})
+        #in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
+        ## Susp_Ind_Func mock's Side Effect (bare minimum for the method to not fail)
+        #sifse = lambda x: pandas.Series((None,), index=('None',))
+        ## 2.) prepare expected
+        #expected = []
+        #for i in xrange(8):  # because we won't want to start on .iloc[8] or 9
+            ## NB: this is a bit of a hack, since it doesn't technically make a MultiIndex, but
+            ##     when we run .index through list() it will look the same
+            #arg = [pandas.Series([j], index=[('FakeIndexer', 'col')], name=j)
+                   #for j in [i, i + 1, i + 2]]
+            #expected.append(arg)
+        ## 3.) run and check
+        #with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
+            #sif.side_effect = sifse
+            #dissonance.SuspensionIndexer(in_frame).run()
+            #calist = sif.call_args_list
+        #self.assertEqual(len(expected), len(calist))  # same number of calls
+        #for i in xrange(len(expected)):
+            #self.assertEqual(len(expected[i]), len(calist[i][0][0]))  # same nr of args per call
+            #for j in xrange(len(expected[i])):
+                ## check indices then values
+                #self.assertSequenceEqual(list(expected[i][j].index),
+                                            #list(calist[i][0][0][j].index))
+                #self.assertSequenceEqual(list(expected[i][j].values),
+                                            #list(calist[i][0][0][j].values))
 
-    def test_run_2(self):
-        # Given the same input as test_run_1(), with predetermined results from susp_ind_func(),
-        # ensure run() reinserts the results properly
-        # 1.) prepare inputs
-        in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(10)])})
-        in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
-        in_frame.index = pandas.Index([i / 2.0 for i in xrange(10)])
-        # Susp_Ind_Func mock's Side Effect
-        sifse = lambda x: pandas.Series((x[0].iloc[0], x[1].iloc[0], x[2].iloc[0]),
-                                        index=('left', 'middle', 'right'))
-        # we have to change this so we don't have to use isnan() in step 3, which is complicated
-        dissonance._SUSP_NODISS_LABEL = 'nan'
-        # 2.) prepare expected
-        mind = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),
-                                              ('dissonance.SuspensionIndexer', 'left'),
-                                              ('dissonance.SuspensionIndexer', 'middle'),
-                                              ('dissonance.SuspensionIndexer', 'right')))
-        rows = ((0, dissonance._SUSP_NODISS_LABEL,
-                 dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL),
-                (1, 0, 1, 2),
-                (2, 1, 2, 3),
-                (3, 2, 3, 4),
-                (4, 3, 4, 5),
-                (5, 4, 5, 6),
-                (6, 5, 6, 7),
-                (7, 6, 7, 8),
-                (8, 7, 8, 9),
-                (9, dissonance._SUSP_NODISS_LABEL,
-                 dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL))
-        expected = pandas.DataFrame({(i / 2.0): pandas.Series(rows[i], index=mind)
-                                     for i in xrange(10)}).T
-        # 3.) run and check
-        with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
-            sif.side_effect = sifse
-            actual = dissonance.SuspensionIndexer(in_frame).run()
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        for i in xrange(len(expected.index)):
-            self.assertSequenceEqual(list(expected.iloc[i].index), list(actual.iloc[i].index))
-            self.assertSequenceEqual(list(expected.iloc[i].values), list(actual.iloc[i].values))
+    #def test_run_2(self):
+        ## Given the same input as test_run_1(), with predetermined results from susp_ind_func(),
+        ## ensure run() reinserts the results properly
+        ## 1.) prepare inputs
+        #in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(10)])})
+        #in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
+        #in_frame.index = pandas.Index([i / 2.0 for i in xrange(10)])
+        ## Susp_Ind_Func mock's Side Effect
+        #sifse = lambda x: pandas.Series((x[0].iloc[0], x[1].iloc[0], x[2].iloc[0]),
+                                        #index=('left', 'middle', 'right'))
+        ## we have to change this so we don't have to use isnan() in step 3, which is complicated
+        #dissonance._SUSP_NODISS_LABEL = 'nan'
+        ## 2.) prepare expected
+        #mind = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),
+                                              #('dissonance.SuspensionIndexer', 'left'),
+                                              #('dissonance.SuspensionIndexer', 'middle'),
+                                              #('dissonance.SuspensionIndexer', 'right')))
+        #rows = ((0, dissonance._SUSP_NODISS_LABEL,
+                 #dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL),
+                #(1, 0, 1, 2),
+                #(2, 1, 2, 3),
+                #(3, 2, 3, 4),
+                #(4, 3, 4, 5),
+                #(5, 4, 5, 6),
+                #(6, 5, 6, 7),
+                #(7, 6, 7, 8),
+                #(8, 7, 8, 9),
+                #(9, dissonance._SUSP_NODISS_LABEL,
+                 #dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL))
+        #expected = pandas.DataFrame({(i / 2.0): pandas.Series(rows[i], index=mind)
+                                     #for i in xrange(10)}).T
+        ## 3.) run and check
+        #with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
+            #sif.side_effect = sifse
+            #actual = dissonance.SuspensionIndexer(in_frame).run()
+        #self.assertSequenceEqual(list(expected.index), list(actual.index))
+        #for i in xrange(len(expected.index)):
+            #self.assertSequenceEqual(list(expected.iloc[i].index), list(actual.iloc[i].index))
+            #self.assertSequenceEqual(list(expected.iloc[i].values), list(actual.iloc[i].values))
 
-    def test_run_3(self):
-        # Combining the complexities of test_run_1() and test_run_2(), to know what happens with
-        # scores that have only three offsets.
-        # 1.) prepare inputs
-        in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(3)])})
-        in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
-        in_frame.index = pandas.Index([i / 2.0 for i in xrange(3)])
-        # Susp_Ind_Func mock's Side Effect
-        sifse = lambda x: pandas.Series((x[0].iloc[0], x[1].iloc[0], x[2].iloc[0]),
-                                        index=('left', 'middle', 'right'))
-        # we have to change this so we don't have to use isnan() in step 3, which is complicated
-        dissonance._SUSP_NODISS_LABEL = 'nan'
-        # 2.1.) prepare exp_run for run()
-        mind = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),
-                                              ('dissonance.SuspensionIndexer', 'left'),
-                                              ('dissonance.SuspensionIndexer', 'middle'),
-                                              ('dissonance.SuspensionIndexer', 'right')))
-        rows = ((0, dissonance._SUSP_NODISS_LABEL,
-                 dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL),
-                (1, 0, 1, 2),
-                (2, dissonance._SUSP_NODISS_LABEL,
-                 dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL))
-        exp_run = pandas.DataFrame({(i / 2.0): pandas.Series(rows[i], index=mind)
-                                    for i in xrange(3)}).T
-        # 2.2.) prepare exp_run for susp_ind_func()
-        exp_sif = [[pandas.Series(i, index=(('FakeIndexer', 'col'),)) for i in xrange(3)]]
-        # 3.) run
-        with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
-            sif.side_effect = sifse
-            actual = dissonance.SuspensionIndexer(in_frame).run()
-            calist = sif.call_args_list
-        # 4.1) check for run()
-        self.assertSequenceEqual(list(exp_run.index), list(actual.index))
-        for i in xrange(len(exp_run.index)):
-            self.assertSequenceEqual(list(exp_run.iloc[i].index), list(actual.iloc[i].index))
-            self.assertSequenceEqual(list(exp_run.iloc[i].values), list(actual.iloc[i].values))
-        # 4.2.) check for susp_ind_func()
-        self.assertEqual(len(exp_sif), len(calist))  # same number of calls
-        for i in xrange(len(exp_sif)):
-            self.assertEqual(len(exp_sif[i]), len(calist[i][0][0]))  # same nr of args per call
-            for j in xrange(len(exp_sif[i])):
-                # check indices then values
-                self.assertSequenceEqual(list(exp_sif[i][j].index),
-                                            list(calist[i][0][0][j].index))
-                self.assertSequenceEqual(list(exp_sif[i][j].values),
-                                            list(calist[i][0][0][j].values))
+    #def test_run_3(self):
+        ## Combining the complexities of test_run_1() and test_run_2(), to know what happens with
+        ## scores that have only three offsets.
+        ## 1.) prepare inputs
+        #in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(3)])})
+        #in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
+        #in_frame.index = pandas.Index([i / 2.0 for i in xrange(3)])
+        ## Susp_Ind_Func mock's Side Effect
+        #sifse = lambda x: pandas.Series((x[0].iloc[0], x[1].iloc[0], x[2].iloc[0]),
+                                        #index=('left', 'middle', 'right'))
+        ## we have to change this so we don't have to use isnan() in step 3, which is complicated
+        #dissonance._SUSP_NODISS_LABEL = 'nan'
+        ## 2.1.) prepare exp_run for run()
+        #mind = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),
+                                              #('dissonance.SuspensionIndexer', 'left'),
+                                              #('dissonance.SuspensionIndexer', 'middle'),
+                                              #('dissonance.SuspensionIndexer', 'right')))
+        #rows = ((0, dissonance._SUSP_NODISS_LABEL,
+                 #dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL),
+                #(1, 0, 1, 2),
+                #(2, dissonance._SUSP_NODISS_LABEL,
+                 #dissonance._SUSP_NODISS_LABEL, dissonance._SUSP_NODISS_LABEL))
+        #exp_run = pandas.DataFrame({(i / 2.0): pandas.Series(rows[i], index=mind)
+                                    #for i in xrange(3)}).T
+        ## 2.2.) prepare exp_run for susp_ind_func()
+        #exp_sif = [[pandas.Series(i, index=(('FakeIndexer', 'col'),)) for i in xrange(3)]]
+        ## 3.) run
+        #with mock.patch('vis.analyzers.indexers.dissonance.susp_ind_func') as sif:
+            #sif.side_effect = sifse
+            #actual = dissonance.SuspensionIndexer(in_frame).run()
+            #calist = sif.call_args_list
+        ## 4.1) check for run()
+        #self.assertSequenceEqual(list(exp_run.index), list(actual.index))
+        #for i in xrange(len(exp_run.index)):
+            #self.assertSequenceEqual(list(exp_run.iloc[i].index), list(actual.iloc[i].index))
+            #self.assertSequenceEqual(list(exp_run.iloc[i].values), list(actual.iloc[i].values))
+        ## 4.2.) check for susp_ind_func()
+        #self.assertEqual(len(exp_sif), len(calist))  # same number of calls
+        #for i in xrange(len(exp_sif)):
+            #self.assertEqual(len(exp_sif[i]), len(calist[i][0][0]))  # same nr of args per call
+            #for j in xrange(len(exp_sif[i])):
+                ## check indices then values
+                #self.assertSequenceEqual(list(exp_sif[i][j].index),
+                                            #list(calist[i][0][0][j].index))
+                #self.assertSequenceEqual(list(exp_sif[i][j].values),
+                                            #list(calist[i][0][0][j].values))
 
-    def test_init_1(self):
-        # an exception is raised about a score that's too short (fewer than 3 offsets)
-        in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(2)])})
-        in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
-        in_frame.index = pandas.Index([i / 2.0 for i in xrange(2)])
-        self.assertRaises(RuntimeError, dissonance.SuspensionIndexer, in_frame)
+    #def test_init_1(self):
+        ## an exception is raised about a score that's too short (fewer than 3 offsets)
+        #in_frame = pandas.DataFrame({'col': pandas.Series([i for i in xrange(2)])})
+        #in_frame.columns = pandas.MultiIndex.from_tuples((('FakeIndexer', 'col'),))
+        #in_frame.index = pandas.Index([i / 2.0 for i in xrange(2)])
+        #self.assertRaises(RuntimeError, dissonance.SuspensionIndexer, in_frame)
 
 
 #--------------------------------------------------------------------------------------------------#

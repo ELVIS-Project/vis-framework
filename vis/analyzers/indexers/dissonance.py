@@ -47,7 +47,7 @@ is the DataFrame you wish to modify::
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
 # pylint: disable=W0105
 
-from numpy import nan, isnan
+from numpy import nan, isnan  # pylint: disable=no-name-in-module
 import pandas
 from vis.analyzers import indexer
 from .interval import interval_to_int
@@ -58,8 +58,8 @@ from .interval import interval_to_int
 # modify them to more easily check the classification.
 _SUSP_USUSP_LABEL = 'USUSP'  # for upper-voice suspensions
 _SUSP_LSUSP_LABEL = 'LSUSP'  # for lower-voice suspensions
-_SUSP_OTHER_LABEL = nan
-_SUSP_NODISS_LABEL = nan
+_SUSP_OTHER_LABEL = 'o'  # DEBUG: temporarily not nan
+_SUSP_NODISS_LABEL = '_'  # DEBUG: temporarily not nan
 
 
 def susp_ind_func(obj):
@@ -92,6 +92,7 @@ def susp_ind_func(obj):
     diss_ind = u'dissonance.DissonanceIndexer'
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
     int_ind = u'interval.IntervalIndexer'
+    beat_ind = 'metre.NoteBeatStrengthIndexer'
 
     row_one, row_two, row_three = obj
 
@@ -103,24 +104,35 @@ def susp_ind_func(obj):
         # is there a dissonance?
         if (isinstance(row_two[diss_ind][combo], basestring) or
             (not isnan(row_two[diss_ind][combo]))):
+            # pylint: disable=invalid-name
             # set a (melodic of upper part into diss)
-            a = interval_to_int(row_one[horiz_int_ind][upper_i])
+            a = interval_to_int(row_two[horiz_int_ind][upper_i])  # TODO: untested (using end-of-interval offsets is what's untested)
             # set b (melodic of upper part out of diss)
-            b = interval_to_int(row_two[horiz_int_ind][upper_i])
+            b = interval_to_int(row_three[horiz_int_ind][upper_i])  # TODO: untested
             # set x (melodic of lower part into diss)
-            x = interval_to_int(row_one[horiz_int_ind][lower_i])
+            x = interval_to_int(row_two[horiz_int_ind][lower_i])  # TODO: untested
             # set d (the dissonant vertical interval)
             d = interval_to_int(row_two[diss_ind][combo][-1:])
             # set y (lower part melodic out of diss)
-            y = interval_to_int(row_two[horiz_int_ind][lower_i])
+            y = interval_to_int(row_three[horiz_int_ind][lower_i])  # TODO: untested
             # set z (vert int after diss)
             z = interval_to_int(row_three[int_ind][combo])
+            # find the beatStrength of the dissonance and resolution
+            beat_strength_two = row_two[beat_ind][lower_i] if isnan(row_two[beat_ind][upper_i]) else row_two[beat_ind][upper_i]  # TODO: untested
+            beat_strength_three = row_three[beat_ind][lower_i] if isnan(row_three[beat_ind][upper_i]) else row_three[beat_ind][upper_i]  # TODO: untested
+            # ensure there aren't any rests  # TODO: untested
+            #print('a: %s, b: %s, x: %s, d: %s, y: %s, z: %s' % (a, b, x, d, y, z))  # DEBUG
+            print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
+            if 'Rest' in (a, b, x, d, y, z):  # TODO: untested
+                post[post_i] = _SUSP_NODISS_LABEL  # TODO: untested
             # deal with z
-            if 1 == x and ((b >= 1 and d + b == z) or  # if the upper voice ascends out of d
-                           (d + b + 2 == z)):  # if the upper voice descends out of d
+            elif (1 == x and ((b >= 1 and d + b == z) or  # if the upper voice ascends out of d
+                              (d + b + 2 == z))  # if the upper voice descends out of d
+                  and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = _SUSP_LSUSP_LABEL
-            elif 1 == a and ((y >= 1 and d - y == z) or  # if the lower voice ascends out of d
-                             (d - y - 2 == z)):  # if the lower voice descends out of d
+            elif (1 == a and ((y >= 1 and d - y == z) or  # if the lower voice ascends out of d
+                              (d - y - 2 == z))  # if the lower voice descends out of d
+                  and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = _SUSP_USUSP_LABEL
             else:
                 post[post_i] = _SUSP_OTHER_LABEL
@@ -138,7 +150,7 @@ class DissonanceIndexer(indexer.Indexer):
 
     CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8',
                    u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
-    _CONSONANCE_MAKERS = [u'm3', u'M3', u'P5']
+    _CONSONANCE_MAKERS = [u'm3', u'M3', u'P5']  # TODO: this should probably include 'd5'
 
     required_score_type = 'pandas.DataFrame'
     default_settings = {'special_P4': True, 'special_d5': True}
