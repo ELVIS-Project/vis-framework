@@ -843,6 +843,25 @@ class AuxiliaryExperimentMethods(TestCase):
         self.assertSequenceEqual(in_val, actual)
         self.assertEqual(0, workm._data[1].get_data.call_count)
 
+    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
+    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
+    def test_run_off_rep_6(self, mock_off, mock_rep):
+        # run offset indexer with is_horizontal set to True
+        # setup
+        workm = WorkflowManager(['', '', ''])
+        workm._data = [None, MagicMock(spec=IndexedPiece), None]
+        workm._data[1].get_data.return_value = 24
+        workm.settings(1, 'offset interval', 0.5)
+        workm.settings(1, 'filter repeats', False)
+        in_val = 42
+        # run
+        actual = workm._run_off_rep(1, in_val, True)
+        # test
+        self.assertEqual(workm._data[1].get_data.return_value, actual)
+        workm._data[1].get_data.assert_called_once_with([mock_off],
+                                                        {'quarterLength': 0.5, 'method': None},
+                                                        in_val)
+
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#

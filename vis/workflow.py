@@ -475,7 +475,7 @@ class WorkflowManager(object):
             self._run_freq_agg()
         return self._result
 
-    def _run_off_rep(self, index, so_far):
+    def _run_off_rep(self, index, so_far, is_horizontal=False):
         """
         Run the filter-by-offset and filter-by-repeat indexers, as required by the piece's settings:
 
@@ -494,6 +494,8 @@ class WorkflowManager(object):
             repeat indexers.
         :type so_far: As specified in :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`
             or :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`.
+        :param is_horizontal: Whether ``index`` is an index of horizontal events. Default is False.
+        :type is_horizontal: bool
 
         :returns: The filtered results.
         :rtype: As specified in :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` or
@@ -506,7 +508,9 @@ class WorkflowManager(object):
         if dict_keys is not None:  # dict-to-list in a known order
             so_far = [so_far[key] for key in dict_keys]
         if self.settings(index, u'offset interval') is not None:
-            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
+            off_sets = {'quarterLength': self.settings(index, 'offset interval')}
+            if is_horizontal:
+                off_sets['method'] = None
             so_far = self._data[index].get_data([offset.FilterByOffsetIndexer], off_sets, so_far)
         if self.settings(index, u'filter repeats') is True:
             so_far = self._data[index].get_data([repeat.FilterByRepeatIndexer], {}, so_far)
