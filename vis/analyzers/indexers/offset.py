@@ -152,15 +152,21 @@ class FilterByOffsetIndexer(indexer.Indexer):
     required_score_type = pandas.Series
     "The :class:`FilterByOffsetIndexer` uses :class:`pandas.Series` objects."
 
-    possible_settings = [u'quarterLength']
+    possible_settings = ['quarterLength', 'method']
     """
     A ``list`` of possible settings for the :class:`FilterByOffsetIndexer`.
 
-    :keyword u'quarterLength': The quarterLength duration between observations desired in the
+    :keyword 'quarterLength': The quarterLength duration between observations desired in the
         output. This value must not have more than three digits to the right of the decimal
         (i.e. 0.001 is the smallest possible value).
-    :type u'quarterLength': float
+    :type 'quarterLength': float
+    :keyword 'method': The value passed as the ``method`` kwarg to :meth:`~pandas.DataFrame.reindex`.
+        The default is ``'ffill'``, which fills in missing indices with the previous value. This is
+        useful for vertical intervals, but not for horizontal, where you should use ``None`` instead.
+    :type 'method': str or None
     """
+    
+    default_settings = {'method': 'ffill'}
 
     def __init__(self, score, settings=None):
         """
@@ -186,6 +192,9 @@ class FilterByOffsetIndexer(indexer.Indexer):
             raise RuntimeError(err_msg)
         else:
             self._settings[u'quarterLength'] = settings[u'quarterLength']
+
+        self._settings['method'] = (settings['method'] if 'method' in settings else
+                                    FilterByOffsetIndexer.default_settings['method'])
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []
@@ -227,5 +236,5 @@ class FilterByOffsetIndexer(indexer.Indexer):
             else:
                 end_offset = int(part.index[-1] * 1000)
                 off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
-                post.append(part.reindex(index=off_list, method='ffill'))
+                post.append(part.reindex(index=off_list, method=self._settings['method']))
         return post

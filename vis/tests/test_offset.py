@@ -30,11 +30,37 @@
 
 
 import unittest
+import mock
 import pandas
 from vis.analyzers.indexers.offset import FilterByOffsetIndexer
 
 
 class TestOffsetIndexerSinglePart(unittest.TestCase):
+    def test_init_method(self):
+        # ensure that __init__() properly sets the "method" setting
+        in_val = []
+        settings = {'quarterLength': 0.5, 'method': 'silly'}
+        ind = FilterByOffsetIndexer(in_val, settings)
+        self.assertEqual('silly', ind._settings['method'])
+    
+    def test_run_method_0(self):
+        # ensure that run() properly gets "method" from self._settings
+        in_val = [mock.MagicMock(spec_set=pandas.Series)]
+        in_val[0].index = [0.0]
+        settings = {'quarterLength': 0.5, 'method': 'silly'}
+        ind = FilterByOffsetIndexer(in_val, settings)
+        ind.run()
+        in_val[0].reindex.assert_called_once_with(index=[0.0], method='silly')
+        
+    def test_run_method_1(self):
+        # ensure that run() properly gets "method" from self._settings (default value)
+        in_val = [mock.MagicMock(spec_set=pandas.Series)]
+        in_val[0].index = [0.0]
+        settings = {'quarterLength': 0.5}
+        ind = FilterByOffsetIndexer(in_val, settings)
+        ind.run()
+        in_val[0].reindex.assert_called_once_with(index=[0.0], method='ffill')
+    
     def test_offset_1part_0(self):
         # 0 parts
         in_val = []
