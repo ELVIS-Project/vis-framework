@@ -8,25 +8,13 @@
 # Purpose:                Demo scripts for our work with "dissonance signatures."
 #
 # Copyright (C) 2013, 2014 Christopher Antila
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 What will it do?!
 """
+
+from collections import defaultdict
 
 # Delightful hack to make sure we can import "vis"
 import imp
@@ -49,6 +37,7 @@ import pandas
 # the piece we'll analyze... currently Kyrie of Palestrina's Missa "Dies sanctificatus"
 print(u'\n\nLoading the piece and running the NoteRestIndexer...\n')
 piece_path = u'vis/tests/corpus/Palestrina-Lhomme_arme_1582-Agnus_I.krn'
+#piece_path = u'vis/tests/corpus/bwv77.mxl'
 the_piece = IndexedPiece(piece_path)
 
 # don't touch this (yet); it's settings required by DissonanceIndexer
@@ -56,7 +45,6 @@ setts = {u'quality': True, 'simple or compound': u'simple'}
 
 # find the intervals
 print(u'\n\nRunning the IntervalIndexer...\n')
-#notes = the_piece.get_data([noterest.NoteRestIndexer])
 intervals = the_piece.get_data([noterest.NoteRestIndexer,
                                 interval.IntervalIndexer],
                                setts)
@@ -91,11 +79,34 @@ del new_ints
 
 # run() for SuspensionIndexer
 print(u'\n\nRunning the SuspensionIndexer...\n')
-new_df = dissonance.SuspensionIndexer(new_df).run()
+susp_df = dissonance.SuspensionIndexer(new_df).run()
+neigh_df = dissonance.NeighbourNoteIndexer(new_df).run()
+#pass_df = dissonance.PassingNoteIndexer(new_df).run()
+
+combined_df = susp_df['dissonance.SuspensionIndexer'].combine_first(neigh_df['dissonance.NeighbourNoteIndexer'])
 
 # output the whole DataFrame to a CSV file, for easy viewing
 print('\nOutputting per-piece results to a spreadsheet\n')
-new_df.to_excel('test_output/piecewise_results.xlsx')
+combined_df.to_excel('test_output/combined_dissonances.xlsx')
+neigh_df.to_excel('test_output/neighbours.xlsx')
+
+# Make the one-column-per-part DataFrame
+# NOTE: this requires that *every* value is prefixed with a voice number (i.e., you can't have called fillna() yet)
+post = {str(i): defaultdict(lambda *x: NaN) for i in xrange(len(the_piece.metadata('parts')))}
+for combo_i in combined_df:
+    for i, value in combined_df[combo_i].iteritems():
+        if (not isinstance(value, basestring)) and isnan(value):
+            continue
+        split_value = value.split(':')
+        which_part_i = split_value[0]
+        post[which_part_i][i] = split_value[1]
+for key in post.iterkeys():
+    post[key] = pandas.Series(post[key])
+combined_df = pandas.DataFrame(post)
+del post
+
+# Replace all the NaNs with '_'.
+combined_df = combined_df.fillna(value='_')
 
 # aggregate results and count frequency, then output that
 # NOTE: for this to work, I'll have to prepare ColumnAggregator and FrequencyExperimenter for vis-framework-2.0.0
@@ -122,5 +133,8 @@ print(u'\n\nPreparing and outputting the score, running LilyPond, etc.\n')
 workm = WorkflowManager([piece_path])
 workm.settings(None, 'voice combinations', '[[0, 1]]')
 workm.settings(None, 'count frequency', False)
-workm._result = [new_df['dissonance.SuspensionIndexer']]
-workm.output('LilyPond', 'test_output/asdf_diss')
+#workm._result = [new_df['dissonance.SuspensionIndexer']]
+#workm._result = [new_df['dissonance.NeighbourNoteIndexer']]
+#workm._result = [new_df['dissonance.PassingNoteIndexer']]
+workm._result = [combined_df]
+workm.output('LilyPond', 'test_output/combined_dissonances')
