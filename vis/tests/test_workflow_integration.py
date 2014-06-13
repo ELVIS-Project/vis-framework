@@ -179,6 +179,11 @@ class NGramsTests(TestCase):
     EXPECTED_7 = pandas.Series({u'4 1 5': 1, u'5 1 4': 1, u'6 2 6': 1, u'6 -2 6': 1, u'8 -2 10': 1,
                                 u'10 2 8': 1, u'3 2 2': 1, u'2 -2 3': 1, u'5 -2 6': 1, u'6 2 5': 1,
                                 u'3 -2 5': 1, u'5 2 3': 1})
+    # EXPECTED_9 is the result of "interval n-grams" on Kyrie_short.krn with voices 1 and 3, and
+    # I counted it by hand!
+    EXPECTED_9 = pandas.Series({'8 3 6': 1, '6 _ 6': 1, '6 -2 8': 1, '5 _ 5': 1, '5 4 3': 1,
+                                '3 _ 3': 1, '3 -3 6': 1})
+
 
     def test_ngrams_1(self):
         # test the two highest voices of bwv77; 2-grams
@@ -293,6 +298,22 @@ class NGramsTests(TestCase):
             self.assertTrue(ind_item in act_ind)
             self.assertEqual(NGramsTests.EXPECTED_7[ind_item], actual[ind_item])
 
+    def test_ngrams_9(self):
+        # test the calculation of horizontal intervals when the lower voice is sustained
+        # longer than the offset interval. Regression test for:
+        # https://github.com/ELVIS-Project/vis/issues/305
+        test_wm = WorkflowManager(['vis/tests/corpus/Kyrie_short.krn'])
+        test_wm.load()
+        test_wm.settings(0, 'voice combinations', '[[1,3]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(0, 'offset interval', 2.0)
+        actual = test_wm.run('interval n-grams')
+        exp_ind = list(NGramsTests.EXPECTED_9.index)
+        act_ind = list(actual.index)
+        self.assertEqual(len(exp_ind), len(act_ind))
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+            self.assertEqual(NGramsTests.EXPECTED_9[ind_item], actual[ind_item])
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
