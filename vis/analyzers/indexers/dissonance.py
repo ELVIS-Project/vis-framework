@@ -278,11 +278,11 @@ def passing_ind_func(obj):
     # Description of the variables:
     # - a: melodic interval of upper part into dissonance
     # - b: melodic interval of upper part out of dissonance
-    # - c: harmonic interval preceding the dissonance
+    # - p: harmonic interval preceding the dissonance
     # - d: dissonant harmonic interval
+    # - r: harmoinc interval following the dissonance
     # - x: melodic interval of lower part into dissonance
     # - y: melodic interval of lower part out of dissonance
-    # - z: harmoinc interval following the dissonance
 
     # for better legibility (i.e., shorter lines)
     diss_ind = u'dissonance.DissonanceIndexer'
@@ -304,73 +304,52 @@ def passing_ind_func(obj):
             a = interval_to_int(row_two[horiz_int_ind][upper_i])
             # set b (melodic of upper part out of diss)
             b = interval_to_int(row_three[horiz_int_ind][upper_i])
-            # set c (harmonic interval preceding the dissonance)
-            c = interval_to_int(row_one[int_ind][combo])
+            # set p (harmonic interval preceding the dissonance)
+            p = interval_to_int(row_one[int_ind][combo])
             # set d (the dissonant vertical interval)
             d = interval_to_int(row_two[diss_ind][combo][-1:])
+            # set r (vert int after diss)
+            r = interval_to_int(row_three[int_ind][combo])
             # set x (melodic of lower part into diss)
             x = interval_to_int(row_two[horiz_int_ind][lower_i])
             # set y (lower part melodic out of diss)
             y = interval_to_int(row_three[horiz_int_ind][lower_i])
-            # set z (vert int after diss)
-            z = interval_to_int(row_three[int_ind][combo])
             # ensure there aren't any rests
             #print('a: %s, b: %s, x: %s, d: %s, y: %s, z: %s' % (a, b, x, d, y, z))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, b, c, d, x, y, z):
-                post[post_i] = _PASS_OTHER_LABEL
-            # Classify! Note that the order here isn't important, because it's impossible to have
-            # a passing tone where *both* parts move by same-direction seconds, whether the parts
-            # move in the same direction or opposite.
-            elif 4 == a + b:
-                # check for upper rising PN
-                if c != d - 1 or x != 1:
-                    print('a')  # DEBUG
-                    post[post_i] = _PASS_OTHER_LABEL
-                elif (d + 1 >= y >= 1) and (z == d + 2 - x):
-                    post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
-                    print('this')  # DEBUG
-                elif ((x < (-1)) or (x > d + 1)) and (y == d - x):
-                    post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
-                    print('that')  # DEBUG
-                else:
-                    print('A')  # DEBUG
-            elif -4 == a + b:
-                # check for upper descending PN
-                if c != d + 1 or x != 1:
-                    print('b')  # DEBUG
-                    post[post_i] = _PASS_OTHER_LABEL
-                elif (d - 1 >= x >= 1) and (y == d - x):
+            if 'Rest' in (a, b, p, d, r, x, y):
+                post[post_i] = _PASS_OTHER_LABEL + '-r'  # DEBUG: temp change
+            # Classify!
+            elif d < 0:
+                post[post_i] = _PASS_OTHER_LABEL + '-vc'  # DEBUG: temp change
+            elif 1 == x:
+                if ((p == d + 1) and
+                    ((y > 0 and r == d - y) or
+                     (r == d - y - 2))):
+                    # upper-voice descending
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
-                elif ((x < (-1)) or (x > d - 1)) and (y == d - x - 2):
-                    post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
+                elif ((p == d - 1) and
+                      ((y > 0 and r == d - y + 2) or
+                       (r == d - y))):
+                    # upper-voice rising
+                    post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
                 else:
-                    print('B')  # DEBUG
-            elif 4 == x + y:
-                # check for lower rising PN
-                if c != d - 1 or a != 1:
-                    print('c')  # DEBUG
-                    post[post_i] = _PASS_OTHER_LABEL
-                elif (d + 1 >= b >= 1) and (z == d + 2 - a):
-                    post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
-                elif ((a < (-1)) or (a > d + 1)) and (b == d - a):
+                    post[post_i] = _PASS_OTHER_LABEL + '-2a'  # DEBUG: temp change
+            elif 1 == a:
+                if ((p == d - 1) and
+                    ((b > 0 and r == d + b) or
+                     (r == d + b + 2))):
+                    # lower-voice descending
+                    post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
+                elif ((p == d + 1) and
+                      ((b > 0 and r == d + b - 2) or
+                       (r == d + b))):
+                    # lower-voice rising
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
                 else:
-                    print('C')  # DEBUG
-            elif -4 == x + y:
-                # check for lower descending PN
-                if c != d + 1 or a != 1:
-                    print('d')  # DEBUG
-                    post[post_i] = _PASS_OTHER_LABEL
-                elif (d - 1 >= a >= 1) and (b == d - a):
-                    post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
-                elif ((a < (-1)) or (a > d - 1)) and (b == d - a - 2):
-                    post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
-                else:
-                    print('D')  # DEBUG
+                    post[post_i] = _PASS_OTHER_LABEL + '-2b'  # DEBUG: temp change
             else:
-                post[post_i] = _PASS_OTHER_LABEL
-                print('  o')  # DEBUG
+                post[post_i] = _PASS_OTHER_LABEL + '?'  # DEBUG: temp change
 
     return pandas.Series(post, index=row_one[diss_ind].index)
 

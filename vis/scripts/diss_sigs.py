@@ -81,7 +81,7 @@ del new_ints
 print(u'\n\nRunning the SuspensionIndexer...\n')
 susp_df = dissonance.SuspensionIndexer(new_df).run()
 neigh_df = dissonance.NeighbourNoteIndexer(new_df).run()
-#pass_df = dissonance.PassingNoteIndexer(new_df).run()
+pass_df = dissonance.PassingNoteIndexer(new_df).run()
 
 combined_df = susp_df['dissonance.SuspensionIndexer'].combine_first(neigh_df['dissonance.NeighbourNoteIndexer'])
 
@@ -107,6 +107,9 @@ del post
 
 # Replace all the NaNs with '_'.
 combined_df = combined_df.fillna(value='_')
+
+# TODO: NOTE: TEST: this is temporary
+combined_df = pass_df['dissonance.PassingNoteIndexer'].fillna(value='_')
 
 # aggregate results and count frequency, then output that
 # NOTE: for this to work, I'll have to prepare ColumnAggregator and FrequencyExperimenter for vis-framework-2.0.0
