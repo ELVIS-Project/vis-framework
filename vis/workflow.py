@@ -304,7 +304,7 @@ class WorkflowManager(object):
                                     settings)
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
         # figure out which combinations we need... this might raise a ValueError, but there's not
         # much we can do to save the situation, so we might as well let it go up
         needed_combos = ast.literal_eval(unicode(self.settings(index, u'voice combinations')))
@@ -353,7 +353,7 @@ class WorkflowManager(object):
                                     settings)
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
         # each key in vert_ints corresponds to a two-voice combination we should use
         post = []
         for combo in vert_ints.iterkeys():
@@ -403,7 +403,7 @@ class WorkflowManager(object):
                                     settings)
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
         # figure out the weird string-index things for the vertical part combos
         lowest_part = len(piece.metadata(u'parts')) - 1
         vert_combos = [str(x) + u',' + str(lowest_part) for x in xrange(lowest_part)]
