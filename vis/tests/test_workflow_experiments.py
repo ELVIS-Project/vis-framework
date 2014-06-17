@@ -7,7 +7,7 @@
 # Filename:               controllers_tests/test_workflow.py
 # Purpose:                Tests for the WorkflowManager
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -272,7 +272,7 @@ class IntervalNGrams(TestCase):
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
         expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2,
-                                   u'continuer': u'_', u'mark singles': False,
+                                   u'continuer': 'dynamic quality', u'mark singles': False,
                                    u'terminator': u'Rest'}
         # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(4, test_pieces[1].get_data.call_count)
@@ -343,7 +343,7 @@ class IntervalNGrams(TestCase):
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
         expected_ngram_settings = {u'horizontal': [2], u'vertical': [0, 1], u'n': 2, \
-                                   u'continuer': u'_', u'mark singles': False}
+                                   u'continuer': 'dynamic quality', u'mark singles': False}
         # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(4, test_pieces[1].get_data.call_count)
         exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
@@ -410,7 +410,7 @@ class IntervalNGrams(TestCase):
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
         expected_ngram_settings = {u'horizontal': [3], u'vertical': [0, 1, 2], u'n': 2,
-                                   u'continuer': u'_', u'mark singles': False,
+                                   u'continuer': 'dynamic quality', u'mark singles': False,
                                    u'terminator': u'Rest'}
         # all parts at once for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(3, test_pieces[test_index].get_data.call_count)
@@ -480,7 +480,7 @@ class IntervalNGrams(TestCase):
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
         expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2,
-                                   u'continuer': u'_', u'mark singles': False,
+                                   u'continuer': 'dynamic quality', u'mark singles': False,
                                    u'terminator': u'Rest'}
         # four-part piece means 6 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(8, test_pieces[test_index].get_data.call_count)

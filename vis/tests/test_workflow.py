@@ -7,7 +7,7 @@
 # Filename:               controllers_tests/test_workflow.py
 # Purpose:                Tests for the WorkflowManager
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -62,7 +62,7 @@ class WorkflowTests(TestCase):
                     self.assertEqual(None, piece_sett[sett])
                 for sett in [u'filter repeats']:
                     self.assertEqual(False, piece_sett[sett])
-            exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+            exp_sh_setts = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                             u'interval quality': False, u'simple intervals': False,
                             u'include rests': False, u'count frequency': True}
             self.assertEqual(exp_sh_setts, test_wc._shared_settings)
@@ -86,7 +86,7 @@ class WorkflowTests(TestCase):
                 self.assertEqual(None, piece_sett[sett])
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
-        exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+        exp_sh_setts = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                         u'interval quality': False, u'simple intervals': False,
                         u'include rests': False, u'count frequency': True}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
@@ -107,7 +107,7 @@ class WorkflowTests(TestCase):
                 self.assertEqual(None, piece_sett[sett])
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
-        exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+        exp_sh_setts = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                         u'interval quality': False, u'simple intervals': False,
                         u'include rests': False, u'count frequency': True}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
@@ -126,7 +126,7 @@ class WorkflowTests(TestCase):
                 self.assertEqual(None, piece_sett[sett])
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
-        exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+        exp_sh_setts = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                         u'interval quality': False, u'simple intervals': False,
                         u'include rests': False, u'count frequency': True}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)

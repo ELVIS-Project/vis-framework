@@ -7,7 +7,7 @@
 # Filename:               controllers/workflow.py
 # Purpose:                Workflow Controller
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -110,7 +110,7 @@ class WorkflowManager(object):
             for sett in [u'filter repeats']:
                 piece_sett[sett] = False
         # hold settings common to all IndexedPieces
-        self._shared_settings = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+        self._shared_settings = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                                  u'interval quality': False, u'simple intervals': False,
                                  u'include rests': False, u'count frequency': True}
         # which was the most recent experiment run? Either 'intervals' or 'n-grams'
@@ -206,6 +206,12 @@ class WorkflowManager(object):
             You must set the ``'voice combinations'`` setting. The default value for ``'n'`` is \
             ``2``.
         """
+        if 'dynamic quality' == self.settings(None, 'continuer'):
+            if self.settings(None, 'interval quality'):
+                self.settings(None, 'continuer', 'P1')
+            else:
+                self.settings(None, 'continuer', '1')
+
         if self._loaded is not True:
             raise RuntimeError(u'Please call load() before you call run()')
         error_msg = u'WorkflowManager.run() could not parse the instruction'
@@ -872,9 +878,12 @@ class WorkflowManager(object):
         All pieces share these settings. The value of ``index`` is ignored for shared settings, so
         it can be anything.
 
-        * ``n``: As specified in :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`
-        * ``continuer``: As specified in \
-            :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`
+        * ``n``: As specified in :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`.
+        * ``continuer``: Determines the way unisons that arise from sustained notes in the lowest \
+            voice are represented. The default is 'dynamic quality' which sets to 'P1' if interval \
+            quality is set to True, and '1' if it is set to False. This is given directly to the \
+            :class:`NGramIndexer`. Refer to \
+            :attr:`~vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`.
         * ``interval quality``: If you want to display interval quality, set this setting to \
             ``True``.
         * ``simple intervals``: If you want to display all intervals as their single-octave \

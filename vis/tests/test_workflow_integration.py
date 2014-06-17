@@ -7,7 +7,7 @@
 # Filename:               other_tests/test_workflow_integration.py
 # Purpose:                Integration tests for the WorkflowManager
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -191,6 +191,7 @@ class NGramsTests(TestCase):
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0, 1]]')
         test_wm.settings(0, 'n', 2)
+        test_wm.settings(0, 'continuer', '_')
         actual = test_wm.run('interval n-grams')
         exp_ind = list(NGramsTests.EXPECTED_1.index)
         act_ind = list(actual.index)
@@ -205,6 +206,7 @@ class NGramsTests(TestCase):
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(0, 'n', 5)
+        test_wm.settings(0, 'continuer', '_')
         actual = test_wm.run('interval n-grams')[:10]
         exp_ind = list(NGramsTests.EXPECTED_2.index)
         act_ind = list(actual.index)
@@ -234,6 +236,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(None, 'simple intervals', True)
+        test_wm.settings(0, 'continuer', '_')
         actual = test_wm.run('interval n-grams')[:10]
         exp_ind = list(NGramsTests.EXPECTED_4.index)
         act_ind = list(actual.index)
@@ -248,6 +251,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(None, 'include rests', False)
         test_wm.load('pieces')
+        test_wm.settings(0, 'continuer', '_')
         actual = test_wm.run('interval n-grams')
         exp_ind = list(NGramsTests.EXPECTED_5.index)
         act_ind = list(actual.index)
@@ -262,6 +266,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(None, 'include rests', True)
         test_wm.load('pieces')
+        test_wm.settings(0, 'continuer', '_')
         actual = test_wm.run('interval n-grams')
         exp_ind = list(NGramsTests.EXPECTED_6.index)
         act_ind = list(actual.index)
@@ -307,6 +312,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'voice combinations', '[[1,3]]')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(0, 'offset interval', 2.0)
+        test_wm.settings(0, 'continuer', '_')
         actual = test_wm.run('interval n-grams')
         exp_ind = list(NGramsTests.EXPECTED_9.index)
         act_ind = list(actual.index)
