@@ -176,27 +176,48 @@ class WorkflowTests(TestCase):
 
     def test_run_1(self):
         # properly deals with "intervals" experiment
+        # also tests that the user can pass a custom string to the continuer setting
         mock_path = u'vis.workflow.WorkflowManager._intervs'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
             test_wc._loaded = True
+            test_wc.settings(None, 'continuer', 'Unisonus')
             test_wc.run(u'intervals')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
             self.assertEqual(u'intervals', test_wc._previous_exp)
+            self.assertEqual('Unisonus', test_wc.settings(None, 'continuer'))
 
-    def test_run_2(self):
+    def test_run_2a(self):
         # properly deals with "interval n-grams" experiment
+        # checks that the continuer returns to 'dynamic quality' after runtime when
+        # interval quality was set to True
         mock_path = u'vis.workflow.WorkflowManager._interval_ngrams'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
             test_wc._loaded = True
+            test_wc.settings(None, 'interval quality', True)
             test_wc.run(u'interval n-grams')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
             self.assertEqual(u'interval n-grams', test_wc._previous_exp)
+            self.assertEqual('dynamic quality', test_wc.settings(None, 'continuer'))
+
+    def test_run_2b(self):
+        # same as 2a but 'interval quality' is set to False
+        mock_path = u'vis.workflow.WorkflowManager._interval_ngrams'
+        with mock.patch(mock_path) as mock_meth:
+            mock_meth.return_value = u'the final countdown'
+            test_wc = WorkflowManager([])
+            test_wc._loaded = True
+            test_wc.settings(None, 'interval quality', False)
+            test_wc.run(u'interval n-grams')
+            mock_meth.assert_called_once_with()
+            self.assertEqual(mock_meth.return_value, test_wc._result)
+            self.assertEqual(u'interval n-grams', test_wc._previous_exp)
+            self.assertEqual('dynamic quality', test_wc.settings(None, 'continuer'))
 
     def test_run_3(self):
         # raise RuntimeError with invalid instructions
