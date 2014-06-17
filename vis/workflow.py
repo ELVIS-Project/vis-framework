@@ -207,10 +207,13 @@ class WorkflowManager(object):
             ``2``.
         """
         if 'dynamic quality' == self.settings(None, 'continuer'):
+            was_dynamic_quality = True
             if self.settings(None, 'interval quality'):
                 self.settings(None, 'continuer', 'P1')
             else:
                 self.settings(None, 'continuer', '1')
+        else:
+            was_dynamic_quality = False
 
         if self._loaded is not True:
             raise RuntimeError(u'Please call load() before you call run()')
@@ -229,6 +232,8 @@ class WorkflowManager(object):
             post = self._interval_ngrams()
         else:
             raise RuntimeError(error_msg)
+        if was_dynamic_quality:
+            self.settings(None, 'continuer', 'dynamic quality')
         self._result = post
         return post
 
