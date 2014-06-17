@@ -576,7 +576,7 @@ class Settings(TestCase):
         self.assertEqual(4000, test_wm._shared_settings[u'n'])
 
     @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_0(self, mock_ip):
+    def test_settings_9(self, mock_ip):
         # - if trying to set 'offset interval' to 0, it should actually be set to None
         test_wm = WorkflowManager([u'a', u'b', u'c'])
         self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
