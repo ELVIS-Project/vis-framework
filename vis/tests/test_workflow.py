@@ -199,6 +199,10 @@ class WorkflowTests(TestCase):
             test_wc = WorkflowManager([])
             test_wc._loaded = True
             test_wc.settings(None, 'interval quality', True)
+            def the_side_effect():
+                assert 'P1' == test_wc.settings(None, 'continuer')
+                return mock.DEFAULT
+            mock_meth.side_effect = the_side_effect
             test_wc.run(u'interval n-grams')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
@@ -213,6 +217,10 @@ class WorkflowTests(TestCase):
             test_wc = WorkflowManager([])
             test_wc._loaded = True
             test_wc.settings(None, 'interval quality', False)
+            def the_side_effect():
+                assert '1' == test_wc.settings(None, 'continuer')
+                return mock.DEFAULT
+            mock_meth.side_effect = the_side_effect
             test_wc.run(u'interval n-grams')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)

@@ -181,8 +181,12 @@ class NGramsTests(TestCase):
                                 u'3 -2 5': 1, u'5 2 3': 1})
     # EXPECTED_9 is the result of "interval n-grams" on Kyrie_short.krn with voices 1 and 3, and
     # I counted it by hand!
-    EXPECTED_9 = pandas.Series({'8 3 6': 1, '6 _ 6': 1, '6 -2 8': 1, '5 _ 5': 1, '5 4 3': 1,
-                                '3 _ 3': 1, '3 -3 6': 1})
+    EXPECTED_9a = pandas.Series({'8 3 6': 1, '6 zamboni 6': 1, '6 -2 8': 1, '5 zamboni 5': 1,
+                                 '5 4 3': 1, '3 zamboni 3': 1, '3 -3 6': 1})
+    EXPECTED_9b = pandas.Series({'P8 M3 m6': 1, 'P5 P4 M3': 1, 'P5 P1 P5': 1, 'M6 P1 M6': 1,
+                                 'M6 -M2 P8': 1, 'M3 P1 M3': 1, 'M3 -m3 M6': 1})
+    EXPECTED_9c = pandas.Series({'8 3 6': 1, '6 1 6': 1, '6 -2 8': 1, '5 4 3': 1, '5 1 5': 1,
+                                 '3 1 3': 1, '3 -3 6': 1})
 
 
     def test_ngrams_1(self):
@@ -303,23 +307,56 @@ class NGramsTests(TestCase):
             self.assertTrue(ind_item in act_ind)
             self.assertEqual(NGramsTests.EXPECTED_7[ind_item], actual[ind_item])
 
-    def test_ngrams_9(self):
+    def test_ngrams_9a(self):
         # test the calculation of horizontal intervals when the lower voice is sustained
-        # longer than the offset interval. Regression test for:
+        # longer than the offset interval. A custom string is passed for horizontal
+        # unisons resulting from a sustained lower voice. Regression test for:
         # https://github.com/ELVIS-Project/vis/issues/305
         test_wm = WorkflowManager(['vis/tests/corpus/Kyrie_short.krn'])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[1,3]]')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(0, 'offset interval', 2.0)
-        test_wm.settings(0, 'continuer', '_')
+        test_wm.settings(0, 'continuer', 'zamboni')
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(NGramsTests.EXPECTED_9.index)
+        exp_ind = list(NGramsTests.EXPECTED_9a.index)
         act_ind = list(actual.index)
         self.assertEqual(len(exp_ind), len(act_ind))
         for ind_item in exp_ind:
             self.assertTrue(ind_item in act_ind)
-            self.assertEqual(NGramsTests.EXPECTED_9[ind_item], actual[ind_item])
+            self.assertEqual(NGramsTests.EXPECTED_9a[ind_item], actual[ind_item])
+
+    def test_ngrams_9b(self):
+        # same as 9a but tests functionality of 'dynamic quality setting of continuer
+        # when 'interval quality' is set to True.
+        test_wm = WorkflowManager(['vis/tests/corpus/Kyrie_short.krn'])
+        test_wm.load()
+        test_wm.settings(0, 'voice combinations', '[[1,3]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(0, 'offset interval', 2.0)
+        test_wm.settings(0, 'interval quality', True)
+        actual = test_wm.run('interval n-grams')
+        exp_ind = list(NGramsTests.EXPECTED_9b.index)
+        act_ind = list(actual.index)
+        self.assertEqual(len(exp_ind), len(act_ind))
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+            self.assertEqual(NGramsTests.EXPECTED_9b[ind_item], actual[ind_item])
+
+    def test_ngrams_9c(self):
+        # same as 9b but 'interval quality' is set to False (by default).
+        test_wm = WorkflowManager(['vis/tests/corpus/Kyrie_short.krn'])
+        test_wm.load()
+        test_wm.settings(0, 'voice combinations', '[[1,3]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(0, 'offset interval', 2.0)
+        actual = test_wm.run('interval n-grams')
+        exp_ind = list(NGramsTests.EXPECTED_9c.index)
+        act_ind = list(actual.index)
+        self.assertEqual(len(exp_ind), len(act_ind))
+        for ind_item in exp_ind:
+            self.assertTrue(ind_item in act_ind)
+            self.assertEqual(NGramsTests.EXPECTED_9c[ind_item], actual[ind_item])
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
