@@ -310,12 +310,15 @@ class WorkflowManager(object):
         settings = {u'quality': self.settings(index, u'interval quality')}
         settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
                                           is True else u'compound'
-        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
-        horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                                    settings)
+        # vert and horiz intervals are still together at the NoteRestIndexer stage
+        vost = []
+        vost = piece.get_data([noterest.NoteRestIndexer], settings)
         # run the offset and repeat indexers, if required
-        vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
+        # vert and horiz intervals are still together at the run_off_rep stage
+        vost = self._run_off_rep(index, vost)
+        # here vert and horiz intervals begin to get handled separately
+        vert_ints = piece.get_data([interval.IntervalIndexer], settings, vost)
+        horiz_ints = piece.get_data([interval.HorizontalIntervalIndexer], settings, vost)
         # figure out which combinations we need... this might raise a ValueError, but there's not
         # much we can do to save the situation, so we might as well let it go up
         needed_combos = ast.literal_eval(unicode(self.settings(index, u'voice combinations')))
@@ -359,12 +362,15 @@ class WorkflowManager(object):
         settings = {u'quality': self.settings(index, u'interval quality')}
         settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
                                           is True else u'compound'
-        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
-        horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                                    settings)
+        # vert and horiz intervals are still together at the NoteRestIndexer stage
+        vost = []
+        vost = piece.get_data([noterest.NoteRestIndexer], settings)
         # run the offset and repeat indexers, if required
-        vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
+        # vert and horiz intervals are still together at the run_off_rep stage
+        vost = self._run_off_rep(index, vost)
+        # here vert and horiz intervals begin to get handled separately
+        vert_ints = piece.get_data([interval.IntervalIndexer], settings, vost)
+        horiz_ints = piece.get_data([interval.HorizontalIntervalIndexer], settings, vost)
         # each key in vert_ints corresponds to a two-voice combination we should use
         post = []
         for combo in vert_ints.iterkeys():
@@ -407,14 +413,15 @@ class WorkflowManager(object):
         settings = {u'quality': self.settings(index, u'interval quality')}
         settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
                                           is True else u'compound'
-        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                                   settings)
-        horiz_ints = piece.get_data([noterest.NoteRestIndexer,
-                                     interval.HorizontalIntervalIndexer],
-                                    settings)
-        # run the offset and repeat indexers, if required
-        vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
+        # vert and horiz intervals are still together at the NoteRestIndexer stage
+        post = []
+        post = piece.get_data([noterest.NoteRestIndexer], settings)
+        # vert and horiz intervals are still together at the run_off_rep stage
+        post = self._run_off_rep(index, post)
+        # here vert and horiz intervals begin to get handled separately
+        vert_ints = piece.get_data([interval.IntervalIndexer], settings, post)
+        horiz_ints = piece.get_data([interval.HorizontalIntervalIndexer], settings, post)
+
         # figure out the weird string-index things for the vertical part combos
         lowest_part = len(piece.metadata(u'parts')) - 1
         vert_combos = [str(x) + u',' + str(lowest_part) for x in xrange(lowest_part)]
