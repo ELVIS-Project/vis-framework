@@ -7,7 +7,7 @@
 # Filename:               controllers/workflow.py
 # Purpose:                Workflow Controller
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -110,7 +110,7 @@ class WorkflowManager(object):
             for sett in [u'filter repeats']:
                 piece_sett[sett] = False
         # hold settings common to all IndexedPieces
-        self._shared_settings = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+        self._shared_settings = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                                  u'interval quality': False, u'simple intervals': False,
                                  u'include rests': False, u'count frequency': True}
         # which was the most recent experiment run? Either 'intervals' or 'n-grams'
@@ -206,6 +206,15 @@ class WorkflowManager(object):
             You must set the ``'voice combinations'`` setting. The default value for ``'n'`` is \
             ``2``.
         """
+        if 'dynamic quality' == self.settings(None, 'continuer'):
+            was_dynamic_quality = True
+            if self.settings(None, 'interval quality'):
+                self.settings(None, 'continuer', 'P1')
+            else:
+                self.settings(None, 'continuer', '1')
+        else:
+            was_dynamic_quality = False
+
         if self._loaded is not True:
             raise RuntimeError(u'Please call load() before you call run()')
         error_msg = u'WorkflowManager.run() could not parse the instruction'
@@ -223,6 +232,8 @@ class WorkflowManager(object):
             post = self._interval_ngrams()
         else:
             raise RuntimeError(error_msg)
+        if was_dynamic_quality:
+            self.settings(None, 'continuer', 'dynamic quality')
         self._result = post
         return post
 
@@ -304,7 +315,7 @@ class WorkflowManager(object):
                                     settings)
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
         # figure out which combinations we need... this might raise a ValueError, but there's not
         # much we can do to save the situation, so we might as well let it go up
         needed_combos = ast.literal_eval(unicode(self.settings(index, u'voice combinations')))
@@ -353,7 +364,7 @@ class WorkflowManager(object):
                                     settings)
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
         # each key in vert_ints corresponds to a two-voice combination we should use
         post = []
         for combo in vert_ints.iterkeys():
@@ -403,7 +414,7 @@ class WorkflowManager(object):
                                     settings)
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints)
+        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
         # figure out the weird string-index things for the vertical part combos
         lowest_part = len(piece.metadata(u'parts')) - 1
         vert_combos = [str(x) + u',' + str(lowest_part) for x in xrange(lowest_part)]
@@ -475,7 +486,7 @@ class WorkflowManager(object):
             self._run_freq_agg()
         return self._result
 
-    def _run_off_rep(self, index, so_far):
+    def _run_off_rep(self, index, so_far, is_horizontal=False):
         """
         Run the filter-by-offset and filter-by-repeat indexers, as required by the piece's settings:
 
@@ -494,6 +505,8 @@ class WorkflowManager(object):
             repeat indexers.
         :type so_far: As specified in :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`
             or :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`.
+        :param is_horizontal: Whether ``index`` is an index of horizontal events. Default is False.
+        :type is_horizontal: bool
 
         :returns: The filtered results.
         :rtype: As specified in :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` or
@@ -506,7 +519,9 @@ class WorkflowManager(object):
         if dict_keys is not None:  # dict-to-list in a known order
             so_far = [so_far[key] for key in dict_keys]
         if self.settings(index, u'offset interval') is not None:
-            off_sets = {u'quarterLength': self.settings(index, u'offset interval')}
+            off_sets = {'quarterLength': self.settings(index, 'offset interval')}
+            if is_horizontal:
+                off_sets['method'] = None
             so_far = self._data[index].get_data([offset.FilterByOffsetIndexer], off_sets, so_far)
         if self.settings(index, u'filter repeats') is True:
             so_far = self._data[index].get_data([repeat.FilterByRepeatIndexer], {}, so_far)
@@ -870,9 +885,12 @@ class WorkflowManager(object):
         All pieces share these settings. The value of ``index`` is ignored for shared settings, so
         it can be anything.
 
-        * ``n``: As specified in :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`
-        * ``continuer``: As specified in \
-            :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`
+        * ``n``: As specified in :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`.
+        * ``continuer``: Determines the way unisons that arise from sustained notes in the lowest \
+            voice are represented. The default is 'dynamic quality' which sets to 'P1' if interval \
+            quality is set to True, and '1' if it is set to False. This is given directly to the \
+            :class:`NGramIndexer`. Refer to \
+            :attr:`~vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`.
         * ``interval quality``: If you want to display interval quality, set this setting to \
             ``True``.
         * ``simple intervals``: If you want to display all intervals as their single-octave \

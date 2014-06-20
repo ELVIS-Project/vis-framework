@@ -7,7 +7,7 @@
 # Filename:               controllers_tests/test_workflow.py
 # Purpose:                Tests for the WorkflowManager
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -241,7 +241,7 @@ class IntervalNGrams(TestCase):
         ror_vert_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
         ror_horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
         ror_returns = [ror_vert_ret, ror_horiz_ret]
-        def ror_side_effect(*args):
+        def ror_side_effect(*args, **kwargs):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return ror_returns.pop(0)
@@ -272,7 +272,7 @@ class IntervalNGrams(TestCase):
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
         expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2,
-                                   u'continuer': u'_', u'mark singles': False,
+                                   u'continuer': 'dynamic quality', u'mark singles': False,
                                    u'terminator': u'Rest'}
         # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(4, test_pieces[1].get_data.call_count)
@@ -283,7 +283,7 @@ class IntervalNGrams(TestCase):
         # - that _run_off_rep() is called once for horizontal and vertical
         self.assertEqual(2, mock_ror.call_count)
         mock_ror.assert_any_call(test_index, vert_ret)
-        mock_ror.assert_any_call(test_index, horiz_ret)
+        mock_ror.assert_any_call(test_index, horiz_ret, is_horizontal=True)
         # - that each IndP.get_data() called NGramIndexer with the right settings at some point
         for combo in selected_part_combos:
             zombo = str(combo[0]) + u',' + str(combo[1])
@@ -311,7 +311,7 @@ class IntervalNGrams(TestCase):
         ror_vert_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in all_part_combos}
         ror_horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
         ror_returns = [ror_vert_ret, ror_horiz_ret]
-        def ror_side_effect(*args):
+        def ror_side_effect(*args, **kwargs):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return ror_returns.pop(0)
@@ -343,17 +343,17 @@ class IntervalNGrams(TestCase):
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
         expected_ngram_settings = {u'horizontal': [2], u'vertical': [0, 1], u'n': 2, \
-                                   u'continuer': u'_', u'mark singles': False}
+                                   u'continuer': 'dynamic quality', u'mark singles': False}
         # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(4, test_pieces[1].get_data.call_count)
         exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
-                    mock.call([mock_nri, mock_horiz], expected_interv_setts)]
+                     mock.call([mock_nri, mock_horiz], expected_interv_setts)]
         for i in xrange(len(exp_calls)):
             self.assertEqual(test_pieces[1].get_data.mock_calls[i], exp_calls[i])
         # - that _run_off_rep() is called once for horizontal and vertical
         self.assertEqual(2, mock_ror.call_count)
         mock_ror.assert_any_call(test_index, vert_ret)
-        mock_ror.assert_any_call(test_index, horiz_ret)
+        mock_ror.assert_any_call(test_index, horiz_ret, is_horizontal=True)
         # - that each IndP.get_data() called NGramIndexer with the right settings at some point
         selected_part_combos = [[0, 1, 2], [1, 2, 3]]
         for combo in selected_part_combos:
@@ -380,7 +380,7 @@ class IntervalNGrams(TestCase):
         ror_vert_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in [u'0,3', u'1,3', u'2,3']}
         ror_horiz_ret = [None, None, None, MagicMock(name=u'piece1 horiz')]
         ror_returns = [ror_vert_ret, ror_horiz_ret]
-        def ror_side_effect(*args):
+        def ror_side_effect(*args, **kwargs):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return ror_returns.pop(0)
@@ -410,14 +410,14 @@ class IntervalNGrams(TestCase):
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
         expected_ngram_settings = {u'horizontal': [3], u'vertical': [0, 1, 2], u'n': 2,
-                                   u'continuer': u'_', u'mark singles': False,
+                                   u'continuer': 'dynamic quality', u'mark singles': False,
                                    u'terminator': u'Rest'}
         # all parts at once for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(3, test_pieces[test_index].get_data.call_count)
         # - that _run_off_rep() is called once for horizontal and vertical
         self.assertEqual(2, mock_ror.call_count)
         mock_ror.assert_any_call(test_index, vert_ret)
-        mock_ror.assert_any_call(test_index, horiz_ret)
+        mock_ror.assert_any_call(test_index, horiz_ret, is_horizontal=True)
         # confirm the calls to interval indexers an NGramIndexer all together
         exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
                     mock.call([mock_nri, mock_horiz], expected_interv_setts),
@@ -448,7 +448,7 @@ class IntervalNGrams(TestCase):
         ror_vert_ret = {x: MagicMock(name=u'piece2 part ' + x) for x in part_combos}
         ror_horiz_ret = [MagicMock(name=u'piece2 horiz ' + str(x)) for x in xrange(4)]
         ror_returns = [ror_vert_ret, ror_horiz_ret]
-        def ror_side_effect(*args):
+        def ror_side_effect(*args, **kwargs):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
             return ror_returns.pop(0)
@@ -480,7 +480,7 @@ class IntervalNGrams(TestCase):
         #   (that "mark singles" and "continuer" weren't put in the settings)
         expected_interv_setts = {u'quality': True, u'simple or compound': u'simple'}
         expected_ngram_settings = {u'horizontal': [1], u'vertical': [0], u'n': 2,
-                                   u'continuer': u'_', u'mark singles': False,
+                                   u'continuer': 'dynamic quality', u'mark singles': False,
                                    u'terminator': u'Rest'}
         # four-part piece means 6 combinations for NGramIndexer, plus 2 calls to interval indexers
         self.assertEqual(8, test_pieces[test_index].get_data.call_count)
@@ -491,7 +491,7 @@ class IntervalNGrams(TestCase):
         # - that _run_off_rep() is called once for horizontal and vertical
         self.assertEqual(2, mock_ror.call_count)
         mock_ror.assert_any_call(test_index, vert_ret)
-        mock_ror.assert_any_call(test_index, horiz_ret)
+        mock_ror.assert_any_call(test_index, horiz_ret, is_horizontal=True)
         # - that each IndP.get_data() called NGramIndexer with the right settings at some point
         for combo in ror_vert_ret.iterkeys():
             test_pieces[1].get_data.assert_any_call([mock_ng],
