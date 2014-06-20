@@ -7,7 +7,7 @@
 # Filename:               controllers_tests/test_workflow.py
 # Purpose:                Tests for the WorkflowManager
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -64,7 +64,7 @@ class WorkflowTests(TestCase):
                     self.assertEqual(None, piece_sett[sett])
                 for sett in [u'filter repeats']:
                     self.assertEqual(False, piece_sett[sett])
-            exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+            exp_sh_setts = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                             u'interval quality': False, u'simple intervals': False,
                             u'include rests': False, u'count frequency': True}
             self.assertEqual(exp_sh_setts, test_wc._shared_settings)
@@ -88,7 +88,7 @@ class WorkflowTests(TestCase):
                 self.assertEqual(None, piece_sett[sett])
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
-        exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+        exp_sh_setts = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                         u'interval quality': False, u'simple intervals': False,
                         u'include rests': False, u'count frequency': True}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
@@ -109,7 +109,7 @@ class WorkflowTests(TestCase):
                 self.assertEqual(None, piece_sett[sett])
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
-        exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+        exp_sh_setts = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                         u'interval quality': False, u'simple intervals': False,
                         u'include rests': False, u'count frequency': True}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
@@ -128,7 +128,7 @@ class WorkflowTests(TestCase):
                 self.assertEqual(None, piece_sett[sett])
             for sett in [u'filter repeats']:
                 self.assertEqual(False, piece_sett[sett])
-        exp_sh_setts = {u'n': 2, u'continuer': u'_', u'mark singles': False,
+        exp_sh_setts = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
                         u'interval quality': False, u'simple intervals': False,
                         u'include rests': False, u'count frequency': True}
         self.assertEqual(exp_sh_setts, test_wc._shared_settings)
@@ -178,27 +178,56 @@ class WorkflowTests(TestCase):
 
     def test_run_1(self):
         # properly deals with "intervals" experiment
+        # also tests that the user can pass a custom string to the continuer setting
         mock_path = u'vis.workflow.WorkflowManager._intervs'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
             test_wc._loaded = True
+            test_wc.settings(None, 'continuer', 'Unisonus')
             test_wc.run(u'intervals')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
             self.assertEqual(u'intervals', test_wc._previous_exp)
+            self.assertEqual('Unisonus', test_wc.settings(None, 'continuer'))
 
-    def test_run_2(self):
+    def test_run_2a(self):
         # properly deals with "interval n-grams" experiment
+        # checks that the continuer returns to 'dynamic quality' after runtime when
+        # interval quality was set to True
         mock_path = u'vis.workflow.WorkflowManager._interval_ngrams'
         with mock.patch(mock_path) as mock_meth:
             mock_meth.return_value = u'the final countdown'
             test_wc = WorkflowManager([])
             test_wc._loaded = True
+            test_wc.settings(None, 'interval quality', True)
+            def the_side_effect():
+                assert 'P1' == test_wc.settings(None, 'continuer')
+                return mock.DEFAULT
+            mock_meth.side_effect = the_side_effect
             test_wc.run(u'interval n-grams')
             mock_meth.assert_called_once_with()
             self.assertEqual(mock_meth.return_value, test_wc._result)
             self.assertEqual(u'interval n-grams', test_wc._previous_exp)
+            self.assertEqual('dynamic quality', test_wc.settings(None, 'continuer'))
+
+    def test_run_2b(self):
+        # same as 2a but 'interval quality' is set to False
+        mock_path = u'vis.workflow.WorkflowManager._interval_ngrams'
+        with mock.patch(mock_path) as mock_meth:
+            mock_meth.return_value = u'the final countdown'
+            test_wc = WorkflowManager([])
+            test_wc._loaded = True
+            test_wc.settings(None, 'interval quality', False)
+            def the_side_effect():
+                assert '1' == test_wc.settings(None, 'continuer')
+                return mock.DEFAULT
+            mock_meth.side_effect = the_side_effect
+            test_wc.run(u'interval n-grams')
+            mock_meth.assert_called_once_with()
+            self.assertEqual(mock_meth.return_value, test_wc._result)
+            self.assertEqual(u'interval n-grams', test_wc._previous_exp)
+            self.assertEqual('dynamic quality', test_wc.settings(None, 'continuer'))
 
     def test_run_3(self):
         # raise RuntimeError with invalid instructions
@@ -578,7 +607,7 @@ class Settings(TestCase):
         self.assertEqual(4000, test_wm._shared_settings[u'n'])
 
     @mock.patch(u'vis.models.indexed_piece.IndexedPiece')
-    def test_settings_0(self, mock_ip):
+    def test_settings_9(self, mock_ip):
         # - if trying to set 'offset interval' to 0, it should actually be set to None
         test_wm = WorkflowManager([u'a', u'b', u'c'])
         self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
@@ -844,6 +873,25 @@ class AuxiliaryExperimentMethods(TestCase):
         # test
         self.assertSequenceEqual(in_val, actual)
         self.assertEqual(0, workm._data[1].get_data.call_count)
+
+    @mock.patch(u'vis.workflow.repeat.FilterByRepeatIndexer')
+    @mock.patch(u'vis.workflow.offset.FilterByOffsetIndexer')
+    def test_run_off_rep_6(self, mock_off, mock_rep):
+        # run offset indexer with is_horizontal set to True
+        # setup
+        workm = WorkflowManager(['', '', ''])
+        workm._data = [None, MagicMock(spec=IndexedPiece), None]
+        workm._data[1].get_data.return_value = 24
+        workm.settings(1, 'offset interval', 0.5)
+        workm.settings(1, 'filter repeats', False)
+        in_val = 42
+        # run
+        actual = workm._run_off_rep(1, in_val, True)
+        # test
+        self.assertEqual(workm._data[1].get_data.return_value, actual)
+        workm._data[1].get_data.assert_called_once_with([mock_off],
+                                                        {'quarterLength': 0.5, 'method': None},
+                                                        in_val)
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #

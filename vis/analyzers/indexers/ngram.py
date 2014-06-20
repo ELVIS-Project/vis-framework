@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/ngram.py
 # Purpose:                k-part anything n-gram Indexer
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -64,7 +64,10 @@ class NGramIndexer(indexer.Indexer):
     this with the ``u'terminator'`` setting.
 
     To show that a horizontal event continues, we use ``u'_'`` by default, but you can set this
-    separately, for example to ``u'P1'`` ``u'0'``, as seems appropriate.
+    separately, for example to ``u'P1'`` ``u'0'``, as seems appropriate. Note that the default
+    :class:`WorkflowManager` is set to override this setting by dynamically adjusting to whether
+    interval quality is set to True or False or if the user chooses to pass a custom string for
+    this setting.
 
     You can also use the :class:`NGramIndexer` to collect "stacks" of single vertical events. If
     you provide indices of intervals above a lowest part, for example, these "stacks" become the

@@ -29,11 +29,67 @@
 # pylint: disable=R0904
 
 import unittest
+import mock
 import pandas
 from vis.analyzers.indexers.offset import FilterByOffsetIndexer
 
 
 class TestOffsetIndexerSinglePart(unittest.TestCase):
+    def test_init_1(self):
+        # ensure that __init__() properly sets the "method" setting
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.1])]
+        settings = {'quarterLength': 0.5, 'method': 'silly'}
+        ind = FilterByOffsetIndexer(in_val, settings)
+        self.assertEqual('silly', ind._settings['method'])
+
+    def test_init_2(self):
+        # when there is no quarterLength specified
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.1])]
+        setts = {u'void setting': u'just so void'}
+        self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
+        try:
+            FilterByOffsetIndexer(in_val, setts)
+        except RuntimeError as runerr:
+            self.assertEqual(FilterByOffsetIndexer._NO_QLENGTH_ERROR, runerr.message)
+
+    def test_init_3(self):
+        # when the specified quarterLength is less than 0.001
+        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.1])]
+        setts = {u'void setting': u'just so void', u'quarterLength': 0.0003}
+        self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
+        try:
+            FilterByOffsetIndexer(in_val, setts)
+        except RuntimeError as runerr:
+            self.assertEqual(FilterByOffsetIndexer._QLENGTH_TOO_SMALL_ERROR, runerr.message)
+
+    def test_init_4(self):
+        # when the inputted indices have no parts
+        in_val = []
+        setts = {u'quarterLength': 0.5}
+        self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
+        try:
+            FilterByOffsetIndexer(in_val, setts)
+        except RuntimeError as runerr:
+            self.assertEqual(FilterByOffsetIndexer._ZERO_PART_ERROR, runerr.message)
+    
+    def test_run_1(self):
+        # ensure that run() properly gets "method" from self._settings
+        in_val = [mock.MagicMock(spec_set=pandas.Series)]
+        in_val[0].index = [0.0]
+        settings = {'quarterLength': 0.5, 'method': 'silly'}
+        ind = FilterByOffsetIndexer(in_val, settings)
+        ind.run()
+        in_val[0].reindex.assert_called_once_with(index=[0.0], method='silly')
+        
+    def test_run_2(self):
+        # ensure that run() properly gets "method" from self._settings (default value)
+        in_val = [mock.MagicMock(spec_set=pandas.Series)]
+        in_val[0].index = [0.0]
+        settings = {'quarterLength': 0.5}
+        ind = FilterByOffsetIndexer(in_val, settings)
+        ind.run()
+        in_val[0].reindex.assert_called_once_with(index=[0.0], method='ffill')
+
     def test_offset_1part_1(self):
         # 0 length
         in_val = [pandas.Series()]
@@ -169,36 +225,6 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
         actual = actual['0']
         self.assertSequenceEqual(list(expected.values), list(actual.values))  # same rows?
         self.assertSequenceEqual(list(expected.index), list(actual.index))  # same index?
-
-    def test_init_1(self):
-        # when there is no quarterLength specified
-        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.1])]
-        setts = {u'void setting': u'just so void'}
-        self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
-        try:
-            FilterByOffsetIndexer(in_val, setts)
-        except RuntimeError as runerr:
-            self.assertEqual(FilterByOffsetIndexer._NO_QLENGTH_ERROR, runerr.message)
-
-    def test_init_2(self):
-        # when the specified quarterLength is less than 0.001
-        in_val = [pandas.Series(['a', 'b', 'c', 'd'], index=[0.0, 0.4, 1.1, 2.1])]
-        setts = {u'void setting': u'just so void', u'quarterLength': 0.0003}
-        self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
-        try:
-            FilterByOffsetIndexer(in_val, setts)
-        except RuntimeError as runerr:
-            self.assertEqual(FilterByOffsetIndexer._QLENGTH_TOO_SMALL_ERROR, runerr.message)
-
-    def test_init_3(self):
-        # when the inputted indices have no parts
-        in_val = []
-        setts = {u'quarterLength': 0.5}
-        self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
-        try:
-            FilterByOffsetIndexer(in_val, setts)
-        except RuntimeError as runerr:
-            self.assertEqual(FilterByOffsetIndexer._ZERO_PART_ERROR, runerr.message)
 
 
 class TestOffsetIndexerManyParts(unittest.TestCase):

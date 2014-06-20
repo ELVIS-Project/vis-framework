@@ -129,18 +129,18 @@ class FilterByOffsetIndexer(indexer.Indexer):
     | offset | 410.0 | 411.0 | 411.5 | 412.0 |
     +========+=======+=======+=======+=======+
     | in-S   | 2     | 1                     |
-    +--------+-------+-------+---------------+
-    | in-A   | 7---  | 6     | 1             |
-    +--------+-------+-------+---------------+
-    | in-T   | 4     | 3                     |
     +--------+-------+-----------------------+
+    | in-A   | 7     | 5                     |
+    +--------+-------+-------+---------------+
+    | in-T   | 4 ----------- | 3             |
+    +--------+-------+-------+---------------+
     | in-B   | 5     | 1                     |
     +--------+-------+---------------+-------+
     | out-S  | 2     | 1             | 1     |
     +--------+-------+---------------+-------+
-    | out-A  | 7---  | 7             | 1     |
+    | out-A  | 7     | 5             | 5     |
     +--------+-------+---------------+-------+
-    | out-T  | 4     | 3             | 3     |
+    | out-T  | 4     | 4             | 3     |
     +--------+-------+---------------+-------+
     | out-B  | 5     | 1             | 1     |
     +--------+-------+---------------+-------+
@@ -150,14 +150,23 @@ class FilterByOffsetIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
-    possible_settings = [u'quarterLength']
+    "The :class:`FilterByOffsetIndexer` uses :class:`pandas.Series` objects."
+
+    possible_settings = ['quarterLength', 'method']
     """
     A ``list`` of possible settings for the :class:`FilterByOffsetIndexer`.
 
-    :keyword float 'quarterLength': The quarterLength duration between observations desired in the
+    :keyword 'quarterLength': The quarterLength duration between observations desired in the
         output. This value must not have more than three digits to the right of the decimal
         (i.e. 0.001 is the smallest possible value).
+    :type 'quarterLength': float
+    :keyword 'method': The value passed as the ``method`` kwarg to :meth:`~pandas.DataFrame.reindex`.
+        The default is ``'ffill'``, which fills in missing indices with the previous value. This is
+        useful for vertical intervals, but not for horizontal, where you should use ``None`` instead.
+    :type 'method': str or None
     """
+    
+    default_settings = {'method': 'ffill'}
 
     _ZERO_PART_ERROR = u'FilterByOffsetIndexer requires an index with at least one part.'
     _NO_QLENGTH_ERROR = u'FilterByOffsetIndexer requires a "quarterLength" setting.'
@@ -184,6 +193,9 @@ class FilterByOffsetIndexer(indexer.Indexer):
             raise RuntimeError(FilterByOffsetIndexer._QLENGTH_TOO_SMALL_ERROR)
         else:
             self._settings[u'quarterLength'] = settings[u'quarterLength']
+
+        self._settings['method'] = (settings['method'] if 'method' in settings else
+                                    FilterByOffsetIndexer.default_settings['method'])
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []
@@ -229,6 +241,6 @@ class FilterByOffsetIndexer(indexer.Indexer):
                     end_offset = int(part.index[-1] * 1000)
                     step = int(self._settings[u'quarterLength'] * 1000)
                     off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
-                    post.append(part.reindex(index=off_list, method='ffill'))
+                    post.append(part.reindex(index=off_list, method=self._settings['method']))
         post = self.make_return([unicode(x) for x in xrange(len(post))], [x for x in post])
         return post
