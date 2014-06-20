@@ -218,9 +218,12 @@ class FilterByOffsetIndexer(indexer.Indexer):
             the ``quarterLength``) or the next-highest value that is divisible by ``quarterLength``.
         :rtype: :class:`pandas.DataFrame`
         """
+        # NB: we have to convert all the "offset" values to integers so we can use the range()
+        #     function to iterate through offsets.
         post = []
         start_offset = None
-        try:  # usually this finds the first offset in the piece
+        try:
+            # usually this finds the first offset in the piece
             start_offset = int(min([part.index[0] for part in self._score]) * 1000)
         except (ValueError, IndexError):
             # if one of the parts has 0 length
@@ -228,12 +231,12 @@ class FilterByOffsetIndexer(indexer.Indexer):
             for part in self._score:
                 if 0 < len(part.index):
                     start_offset.append(part.index[0])
-            if start_offset == []:
+            if 0 == len(start_offset):
                 # all the parts have no length, so we need as many empty parts
                 post = [pandas.Series() for _ in xrange(len(self._score))]
             else:
                 start_offset = int(min(start_offset))
-        if post == []:
+        if 0 == len(post):
             for part in self._score:
                 if len(part.index) < 1:
                     post.append(part)
