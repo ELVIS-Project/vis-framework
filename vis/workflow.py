@@ -504,7 +504,8 @@ class WorkflowManager(object):
         offset and repetition.
 
         .. note:: If the relevant settings (``'offset interval'`` and ``'filter repeats'``) do not
-            require running either indexer, ``so_far`` will be returned unchanged.
+            require running either indexer, ``so_far`` will be returned unchanged. Also if the
+            offset filter is used the continuer will not be used no matter what it is set to.
 
         :param index: Index of the piece to run.
         :type index: :``int``
@@ -892,8 +893,9 @@ class WorkflowManager(object):
 
         * ``n``: As specified in :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`.
         * ``continuer``: Determines the way unisons that arise from sustained notes in the lowest \
-            voice are represented. The default is 'dynamic quality' which sets to 'P1' if interval \
-            quality is set to True, and '1' if it is set to False. This is given directly to the \
+            voice are represented. Note that if the FilterByOffsetIndexer is used, the continuer \
+            won't get used. The default is 'dynamic quality' which sets to 'P1' if interval quality \
+            is set to True, and '1' if it is set to False. This is given directly to the \
             :class:`NGramIndexer`. Refer to \
             :attr:`~vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`.
         * ``interval quality``: If you want to display interval quality, set this setting to \
