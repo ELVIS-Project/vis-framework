@@ -78,17 +78,19 @@ new_df = new_df.T
 del new_ints
 
 # run() for SuspensionIndexer
-print(u'\n\nRunning the SuspensionIndexer...\n')
+print(u'\n\nRunning the SuspensionIndexer...')
 susp_df = dissonance.SuspensionIndexer(new_df).run()
+print(u'Running the NeighbourNoteIndexer...')
 neigh_df = dissonance.NeighbourNoteIndexer(new_df).run()
+print(u'Running the PassingNoteIndexer...\n')
 pass_df = dissonance.PassingNoteIndexer(new_df).run()
 
 combined_df = susp_df['dissonance.SuspensionIndexer'].combine_first(neigh_df['dissonance.NeighbourNoteIndexer'])
+combined_df = combined_df.combine_first(pass_df['dissonance.PassingNoteIndexer'])
 
 # output the whole DataFrame to a CSV file, for easy viewing
 print('\nOutputting per-piece results to a spreadsheet\n')
 combined_df.to_excel('test_output/combined_dissonances.xlsx')
-neigh_df.to_excel('test_output/neighbours.xlsx')
 
 # Make the one-column-per-part DataFrame
 # NOTE: this requires that *every* value is prefixed with a voice number (i.e., you can't have called fillna() yet)
@@ -98,6 +100,9 @@ for combo_i in combined_df:
         if (not isinstance(value, basestring)) and isnan(value):
             continue
         split_value = value.split(':')
+        if 1 == len(split_value):  # deal with "o"
+            split_value.insert(0, '0')
+            split_value[1] = ''.join(('??:', split_value[1]))
         which_part_i = split_value[0]
         post[which_part_i][i] = split_value[1]
 for key in post.iterkeys():
@@ -107,9 +112,6 @@ del post
 
 # Replace all the NaNs with '_'.
 combined_df = combined_df.fillna(value='_')
-
-# TODO: NOTE: TEST: this is temporary
-combined_df = pass_df['dissonance.PassingNoteIndexer'].fillna(value='_')
 
 # aggregate results and count frequency, then output that
 # NOTE: for this to work, I'll have to prepare ColumnAggregator and FrequencyExperimenter for vis-framework-2.0.0
