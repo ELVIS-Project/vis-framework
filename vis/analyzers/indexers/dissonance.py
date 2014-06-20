@@ -57,20 +57,17 @@ from .interval import interval_to_int
 # so they can be changed, and possibly withstand multiprocessing... and so the unit tests can
 # modify them to more easily check the classification.
 _SUSP_SUSP_LABEL = 'SUSP'  # for suspensions (where the voice number is prefixed)
-_SUSP_USUSP_LABEL = 'uvSUSP'  # for upper-voice suspensions
-_SUSP_LSUSP_LABEL = 'lvSUSP'  # for lower-voice suspensions
-_SUSP_OTHER_LABEL = nan  # DEBUG: temporarily not nan
-_SUSP_NODISS_LABEL = nan  # DEBUG: temporarily not nan
+_SUSP_OTHER_LABEL = 'o'  # ReconciliationIndexer requires this is a string
+_SUSP_NODISS_LABEL = nan
 
 
 # Used by neighbour_ind_func() as the labels for neighbour notes and other dissonances. They're
 # module-level so they can be changed, and possibly withstand multiprocessing... and so the unit
 # tests can modify them to more easily check the classification.
-_NEIGH_N_LABEL = 'N'  # for neighbour notes (where the voice number is prefixed)
 _NEIGH_UN_LABEL = 'UN'  # for upper neighbour notes
 _NEIGH_LN_LABEL = 'LN'  # for lower neighbour notes
-_NEIGH_OTHER_LABEL = nan  # DEBUG: temporarily not nan
-_NEIGH_NODISS_LABEL = nan  # DEBUG: temporarily not nan
+_NEIGH_OTHER_LABEL = 'o'  # ReconciliationIndexer requires this is a string
+_NEIGH_NODISS_LABEL = nan
 
 
 # Used by passing_ind_func() as the labels for neighbour notes and other dissonances. They're
@@ -78,12 +75,8 @@ _NEIGH_NODISS_LABEL = nan  # DEBUG: temporarily not nan
 # tests can modify them to more easily check the classification.
 _PASS_RP_LABEL = 'RP'  # for rising passing notes (where the voice number is prefixed)
 _PASS_DP_LABEL = 'DP'  # for descending passing notes (where the voice number is prefixed)
-_PASS_URP_LABEL = 'uvRP'  # for upper-voice rising passing notes
-_PASS_UDP_LABEL = 'uvDP'  # for upper-voice descending passing notes
-_PASS_LRP_LABEL = 'lvrP'  # for upper-voice rising passing notes
-_PASS_LDP_LABEL = 'lvDP'  # for lower-voice descending passing notes
-_PASS_OTHER_LABEL = 'o'  # DEBUG: temporarily not nan
-_PASS_NODISS_LABEL = nan  # DEBUG: temporarily not nan
+_PASS_OTHER_LABEL = 'o'  # ReconciliationIndexer requires this is a string
+_PASS_NODISS_LABEL = nan
 
 
 def susp_ind_func(obj):
