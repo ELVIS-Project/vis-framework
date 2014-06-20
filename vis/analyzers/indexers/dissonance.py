@@ -311,38 +311,38 @@ def passing_ind_func(obj):
             #print('a: %s, b: %s, x: %s, d: %s, y: %s, z: %s' % (a, b, x, d, y, z))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
             if 'Rest' in (a, b, p, d, r, x, y):
-                post[post_i] = _PASS_OTHER_LABEL + '-r'  # DEBUG: temp change
+                post[post_i] = _PASS_OTHER_LABEL
             # Classify!
             elif d < 0:
-                post[post_i] = _PASS_OTHER_LABEL + '-vc'  # DEBUG: temp change
+                post[post_i] = _PASS_OTHER_LABEL
             elif 1 == x:
                 if ((p == d + 1) and
                     ((y > 0 and r == d - y) or
-                     (r == d - y - 2))):
+                     ((y < 0 or y > d - 1) and r == d - y - 2))):
                     # upper-voice descending
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
                 elif ((p == d - 1) and
                       ((y > 0 and r == d - y + 2) or
-                       (r == d - y))):
+                       ((y < 0 or y > d - 1) and r == d - y))):
                     # upper-voice rising
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
                 else:
-                    post[post_i] = _PASS_OTHER_LABEL + '-2a'  # DEBUG: temp change
+                    post[post_i] = _PASS_OTHER_LABEL
             elif 1 == a:
                 if ((p == d - 1) and
                     ((b > 0 and r == d + b) or
-                     (r == d + b + 2))):
+                     ((b < 0 or b > d - 1) and r == d + b + 2))):
                     # lower-voice descending
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
                 elif ((p == d + 1) and
                       ((b > 0 and r == d + b - 2) or
-                       (r == d + b))):
+                       ((b < 0 or b > d - 1) and r == d + b))):
                     # lower-voice rising
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
                 else:
-                    post[post_i] = _PASS_OTHER_LABEL + '-2b'  # DEBUG: temp change
+                    post[post_i] = _PASS_OTHER_LABEL
             else:
-                post[post_i] = _PASS_OTHER_LABEL + '?'  # DEBUG: temp change
+                post[post_i] = _PASS_OTHER_LABEL
 
     return pandas.Series(post, index=row_one[diss_ind].index)
 
