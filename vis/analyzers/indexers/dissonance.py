@@ -347,6 +347,74 @@ def passing_ind_func(obj):
     return pandas.Series(post, index=row_one[diss_ind].index)
 
 
+def reconciliation_func(obj):
+    '''
+    Indexer function for the :class:`ReconciliationIndexer`.
+
+    :param obj: A row from the :class:`DataFrame` of indices given to :class:`ReconciliationIndexer`.
+    :type obj: :class:`pandas.Series`
+
+    :returns: Reconciled results for this offset.
+    :rtype: :class:`pandas.Series`
+
+    .. note:: The length of the returned :class:`Series` is the same as the number of parts in the
+        original score. This is usually different than the length of the input :class:`Series`
+        because the number of part combinations is almost never equal to the number of parts (only
+        for scores with three parts is this true).
+    '''
+    susp_ind = 'dissonance.SuspensionIndexer'
+    neigh_ind = 'dissonance.NeighbourNoteIndexer'
+    pass_ind = 'dissonance.PassingNoteIndexer'
+
+    # make "post" dict with one entry for each of the parts
+    input_parts = []
+    for combo in obj[susp_ind].index:
+        input_parts.append(combo.split(',')[0])
+        input_parts.append(combo.split(',')[1])
+    input_parts = set(input_parts)
+    post = {x: None for x in input_parts}
+
+    for combo_i in obj[susp_ind].index:
+        # for each combination
+        combowise = []
+        for ind in (susp_ind, neigh_ind, pass_ind):
+            # compile dissonances specific to this combination
+            if (not isinstance(obj[ind][combo_i], basestring)) and isnan(obj[ind][combo_i]):
+                continue
+            else:
+                combowise.append(obj[ind][combo_i])
+
+        if 0 == len(combowise):
+            continue
+
+        # if we only have "other" categorizations, then we'll just use that
+        for signature in combowise:
+            if signature not in (_SUSP_OTHER_LABEL, _NEIGH_OTHER_LABEL, _PASS_OTHER_LABEL):
+                print('break (combowise is %s)' % combowise)  # DEBUG
+                break
+        else:
+            print('else  (combowise is %s)' % combowise)  # DEBUG
+            post[combo_i.split(',')[0]] = 'o'
+            post[combo_i.split(',')[1]] = 'o'
+
+        # filter the "other" categorizations
+        signatures = filter(lambda x: x not in (_SUSP_OTHER_LABEL, _NEIGH_OTHER_LABEL, _PASS_OTHER_LABEL), combowise)
+        #signatures = combowise
+
+        # add the classification
+        for signature in signatures:
+            # add a "good" classification to the relevant voice
+            split_signature = signature.split(':')
+            if post[split_signature[0]] is None or post[split_signature[0]] in (_SUSP_OTHER_LABEL, _NEIGH_OTHER_LABEL, _PASS_OTHER_LABEL):
+                # if there's no existing classification, or it's "other," then overwrite it
+                post[split_signature[0]] = split_signature[1]
+            elif post[split_signature[0]] != split_signature[1]:
+                # if there's an existing "good" classification, add to it
+                post[split_signature[0]] += ',' + split_signature[1]
+
+    return pandas.Series(post, index=input_parts)
+
+
 class DissonanceIndexer(indexer.Indexer):
     """
     Remove consonant intervals. All remaining intervals are a "dissonance." Refer to the
@@ -802,3 +870,63 @@ class PassingNoteIndexer(indexer.Indexer):
         # the part names are the column names
         post = self.make_return(list(post.columns), [post[i] for i in post.columns])
         return pandas.concat(objs=[self._score, post], axis=1, join='outer')
+
+
+class ReconciliationIndexer(indexer.Indexer):
+    # TODO: NOTE: TEST: this whole indexer is untested
+    """
+    Reconcile the results from the three dissonance indexers (:class:`SuspensionIndexer`,
+    :class:`NeighbourNoteIndexer`, and :class:`PassingNoteIndexer`).
+
+    This means:
+    * dissonances are placed into single voices rather than voice pairs,
+    * dissonances categorized as "other" are ignored if another indexer has a better classification,
+    * a dissonance classified by more than one indexer is marked as both dissonances.
+
+    The dissonance indexers must therefore output well-classified results as a string where a colon
+    separates the voice with a dissonant note and the note's classification (e.g., ``'0:UN'`` for
+    an upper neighbour note in the highest voice). For each "other" dissonance, we defer to the
+    relevant module-level private constants: :const:`_SUSP_OTHER_LABEL`, :const:`_SUSP_NEIGH_LABEL`,
+    and :const:`_SUSP_PASS_LABEL`. These are usually set to ``'o'``, but they should always be a
+    string (and never :const:`numpy.NaN`, which will cause errors).
+
+    .. note:: All the dissonance indexers must have the same part combinations. That is, they must
+        have been generated from the same piece.
+    """
+
+    required_score_type = 'pandas.DataFrame'
+    possible_settings = []
+    default_settings = {}
+
+    def __init__(self, score, settings=None):
+        """
+        :param score: The input from which to produce a new index. You must provide a
+            :class:`DataFrame` with results from the :class:`SuspensionIndexer`,
+            :class:`NeighbourNoteIndexer`, and :class:`PassingNoteIndexer`. The :class:`DataFrame`
+            may contain results from additional indexers, which will be ignored.
+        :type score: :class:`pandas.DataFrame`
+        :param settings: This indexer has no settings, so this is ignored.
+        :type settings: NoneType
+
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
+        """
+        super(ReconciliationIndexer, self).__init__(score, None)
+        self._indexer_func = reconciliation_func
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        :returns: A :class:`DataFrame` with dissonance classifications reconciled as above.
+        :rtype: :class:`pandas.DataFrame`
+
+        .. note:: The returned :class:`DataFrame` only includes the results of this indexer. Any
+            other indexers given to :meth:`__init__` are omitted from the return value.
+        """
+        results = {}
+        for i, jay in self._score.iterrows():
+            print('--> offset is %s' % i)  # DEBUG
+            results[i] = self._indexer_func(jay)
+        results = pandas.DataFrame(results).T
+        results.columns = pandas.MultiIndex.from_tuples([('dissonance.ReconciliationIndexer', x) for x in results.columns])
+        return results
