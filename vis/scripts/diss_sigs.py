@@ -77,38 +77,16 @@ new_df.update(new_ints)
 new_df = new_df.T
 del new_ints
 
-# run() for SuspensionIndexer
-print(u'\n\nRunning the SuspensionIndexer...')
+# run the dissonance-classification indexers
+print(u'\n\nRunning the dissonance-classification indexers...')
 susp_df = dissonance.SuspensionIndexer(new_df).run()
-print(u'Running the NeighbourNoteIndexer...')
 neigh_df = dissonance.NeighbourNoteIndexer(new_df).run()
-print(u'Running the PassingNoteIndexer...\n')
 pass_df = dissonance.PassingNoteIndexer(new_df).run()
-
-combined_df = susp_df['dissonance.SuspensionIndexer'].combine_first(neigh_df['dissonance.NeighbourNoteIndexer'])
-combined_df = combined_df.combine_first(pass_df['dissonance.PassingNoteIndexer'])
+combined_df = dissonance.ReconciliationIndexer(pandas.concat([susp_df, neigh_df, pass_df], axis=1)).run()
 
 # output the whole DataFrame to a CSV file, for easy viewing
 print('\nOutputting per-piece results to a spreadsheet\n')
 combined_df.to_excel('test_output/combined_dissonances.xlsx')
-
-# Make the one-column-per-part DataFrame
-# NOTE: this requires that *every* value is prefixed with a voice number (i.e., you can't have called fillna() yet)
-post = {str(i): defaultdict(lambda *x: NaN) for i in xrange(len(the_piece.metadata('parts')))}
-for combo_i in combined_df:
-    for i, value in combined_df[combo_i].iteritems():
-        if (not isinstance(value, basestring)) and isnan(value):
-            continue
-        split_value = value.split(':')
-        if 1 == len(split_value):  # deal with "o"
-            split_value.insert(0, '0')
-            split_value[1] = ''.join(('??:', split_value[1]))
-        which_part_i = split_value[0]
-        post[which_part_i][i] = split_value[1]
-for key in post.iterkeys():
-    post[key] = pandas.Series(post[key])
-combined_df = pandas.DataFrame(post)
-del post
 
 # Replace all the NaNs with '_'.
 combined_df = combined_df.fillna(value='_')
