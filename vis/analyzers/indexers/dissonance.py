@@ -313,12 +313,12 @@ def passing_ind_func(obj):
             if 'Rest' in (a, b, p, d, r, x, y):
                 post[post_i] = _PASS_OTHER_LABEL
             # Classify!
-            elif d < 0:
-                post[post_i] = _PASS_OTHER_LABEL
-            elif 1 == x:
+            #elif d < 0:       ## DEBUG, this seems undesirable and commenting it out seems to have no effect.
+                #post[post_i] = _PASS_OTHER_LABEL
+            elif 1 == x:      ## DEBUG, should "or 7== x" be added because of 8ve equivalence?
                 if ((p == d + 1) and
-                    ((y > 0 and r == d - y) or
-                     ((y < 0 or y > d - 1) and r == d - y - 2))):
+                    (y > 0 and (r == d - y or (p == 3 and d == 2 and r == 8)) or
+                    ((y < 0 or y > d - 1) and r == d - y - 2))):
                     # upper-voice descending
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
                 elif ((p == d - 1) and
@@ -329,7 +329,7 @@ def passing_ind_func(obj):
                 else:
                     post[post_i] = _PASS_OTHER_LABEL
             elif 1 == a:
-                if ((p == d - 1) and
+                if ((p == d - 1 or p == d + 6) and     # or +6 because of 8ve equivalence or should this be 5 in mod 7?
                     ((b > 0 and r == d + b) or
                      ((b < 0 or b > d - 1) and r == d + b + 2))):
                     # lower-voice descending
@@ -515,7 +515,7 @@ class DissonanceIndexer(indexer.Indexer):
         """
         post = []
         for combo in simul.index:
-            if u'P4' == simul.loc[combo]:
+            if u'P4' == simul.loc[combo] or u'-P4' == simul.loc[combo]:
                 lower_voice = combo.split(u',')[1]
                 investigate_these = []
                 for possibility in simul.index:
