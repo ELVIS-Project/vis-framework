@@ -146,7 +146,7 @@ def susp_ind_func(obj):
                               (d + b + 2 == z))  # if the upper voice descends out of d
                   and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = ''.join((str(lower_i), ':', _SUSP_SUSP_LABEL))
-            elif (1 == a and ((y >= 1 and d - y == z) or  # if the lower voice ascends out of d
+            elif (1 == a and ((y >= 1 and (d - y == z or (d == 2 and z == 8))) or  # if the lower voice ascends out of d, the last bit is for 9-8 suspensions.
                               (d - y - 2 == z) or   # if the lower voice descends out of d
                               ((y == 8 or y == -8) and d -1 == z)) # TODO: verify this logic, meant to apply to octave leaps in bass at moment of resolution.
                   and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
