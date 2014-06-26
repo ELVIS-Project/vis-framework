@@ -139,7 +139,7 @@ def susp_ind_func(obj):
             # ensure there aren't any rests  # TODO: untested
             #print('a: %s, b: %s, x: %s, d: %s, y: %s, z: %s' % (a, b, x, d, y, z))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, b, x, d, y, z):  # TODO: untested
+            if 'Rest' in (b, d, y, z):  # TODO: untested # NB: a and x are absent because the agent needn't be present in the preparation
                 post[post_i] = _SUSP_NODISS_LABEL  # TODO: untested
             # deal with z
             elif (1 == x and ((b >= 1 and d + b == z) or  # if the upper voice ascends out of d
@@ -315,21 +315,21 @@ def passing_ind_func(obj):
             # Classify!
             #elif d < 0:       ## DEBUG, this seems undesirable and commenting it out seems to have no effect.
                 #post[post_i] = _PASS_OTHER_LABEL
-            elif 1 == x:      ## DEBUG, should "or 7== x" be added because of 8ve equivalence?
+            elif 1 == x:
                 if ((p == d + 1) and
                     (y > 0 and (r == d - y or (p == 3 and d == 2 and r == 8)) or
-                    ((y < 0 or y > d - 1) and r == d - y - 2))):
+                     ((y < 0 or y > d - 1) and r == d - y - 2))):
                     # upper-voice descending
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
-                elif ((p == d - 1) and
-                      ((y > 0 and r == d - y + 2) or
+                elif ((p == d - 1 or p == d - 6) and
+                      ((y > 0 and r == d - y + 2) or (p == 8 and d == 2 and r == 3) or
                        ((y < 0 or y > d - 1) and r == d - y))):
                     # upper-voice rising
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
                 else:
                     post[post_i] = _PASS_OTHER_LABEL
             elif 1 == a:
-                if ((p == d - 1 or p == d + 6) and     # or +6 because of 8ve equivalence or should this be 5 in mod 7?
+                if ((p == d - 1 or p == d + 6) and     # +6 is used because of 8ve equivalence.
                     ((b > 0 and r == d + b) or
                      ((b < 0 or b > d - 1) and r == d + b + 2))):
                     # lower-voice descending
