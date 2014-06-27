@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/dissonance.py
 # Purpose:                Indexers related to dissonance.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -493,8 +493,8 @@ class DissonanceIndexer(indexer.Indexer):
         Used internally by the :class:`DissonanceIndexer`.
 
         Replace all consonant fourths in a :class:`Series` with nan. The method checks each part
-        combination and, if it finds a ``'P4'``, checks all part combinations for a major or minor
-        third or sixth sounding below the lower note of the fourth.
+        combination and, if it finds a ``'P4'`` or a ``'-P4'``, checks all part combinations for a
+        major or minor third or perfect fifth sounding below the lower pitch of the fourth.
 
         For example, consider the following simultaneity:
 
@@ -523,8 +523,23 @@ class DissonanceIndexer(indexer.Indexer):
         """
         post = []
         for combo in simul.index:
-            if u'P4' == simul.loc[combo] or u'-P4' == simul.loc[combo]:
+            if u'P4' == simul.loc[combo]:
                 lower_voice = combo.split(u',')[1]
+                investigate_these = []
+                for possibility in simul.index:
+                    if possibility.split(u',')[0] == lower_voice:
+                        investigate_these.append(possibility)
+                found_one = False
+                for possibility in investigate_these:
+                    if simul.loc[possibility] in DissonanceIndexer._CONSONANCE_MAKERS:
+                        found_one = True
+                        break
+                if found_one:
+                    post.append(nan)
+                else:
+                    post.append(simul.loc[combo])
+            elif u'-P4' == simul.loc[combo]:
+                lower_voice = combo.split(u',')[0]
                 investigate_these = []
                 for possibility in simul.index:
                     if possibility.split(u',')[0] == lower_voice:
