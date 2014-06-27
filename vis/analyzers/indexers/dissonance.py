@@ -57,6 +57,7 @@ from .interval import interval_to_int
 # so they can be changed, and possibly withstand multiprocessing... and so the unit tests can
 # modify them to more easily check the classification.
 _SUSP_SUSP_LABEL = 'SUSP'  # for suspensions (where the voice number is prefixed)
+_SUSP_FAKE_LABEL = 'FSUS'  # for 'fake' suspensions
 _SUSP_OTHER_LABEL = 'o'  # ReconciliationIndexer requires this is a string
 _SUSP_NODISS_LABEL = nan
 
@@ -134,6 +135,7 @@ def susp_ind_func(obj):
             # set z (vert int after diss)
             z = interval_to_int(row_three[int_ind][combo])
             # find the beatStrength of the dissonance and resolution
+            beat_strength_one = row_one[beat_ind][lower_i] if isnan(row_one[beat_ind][upper_i]) else row_one[beat_ind][upper_i]
             beat_strength_two = row_two[beat_ind][lower_i] if isnan(row_two[beat_ind][upper_i]) else row_two[beat_ind][upper_i]  # TODO: untested
             beat_strength_three = row_three[beat_ind][lower_i] if isnan(row_three[beat_ind][upper_i]) else row_three[beat_ind][upper_i]  # TODO: untested
             # ensure there aren't any rests  # TODO: untested
@@ -146,6 +148,11 @@ def susp_ind_func(obj):
                               (d + b + 2 == z))  # if the upper voice descends out of d
                   and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = ''.join((str(lower_i), ':', _SUSP_SUSP_LABEL))
+            # for fake suspensions
+            elif (2 == a and (1 == x or 8 == x or -8 == x) and 4 == d and 4 == z and 1 == b and
+                    (1 == y or 8 == y or -8 == y) and
+                    beat_strength_one > beat_strength_two and beat_strength_three > beat_strength_two):
+                post[post_i] = ''.join((str(upper_i), ':', _SUSP_FAKE_LABEL))
             elif (1 == a and ((y >= 1 and (d - y == z or (d == 2 and z == 8))) or  # if the lower voice ascends out of d, the last bit is for 9-8 suspensions.
                               (d - y - 2 == z) or   # if the lower voice descends out of d
                               ((y == 8 or y == -8) and d -1 == z)) # TODO: verify this logic, meant to apply to octave leaps in bass at moment of resolution.
@@ -227,7 +234,7 @@ def neighbour_ind_func(obj):
             # ensure there aren't any rests
             #print('a: %s, b: %s, x: %s, y: %s' % (a, b, x, y))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, b, x, y):
+            if 'Rest' in (a, b, x, y): ## DEBUG: this is the problematic line because the voice without the neighbor note should be able to drop out
                 post[post_i] = _NEIGH_NODISS_LABEL
             # filter out what would be accented neighbour tones
             elif (beat_strength_one < beat_strength_two) or (beat_strength_three < beat_strength_two):
