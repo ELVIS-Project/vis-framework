@@ -49,6 +49,10 @@ is the DataFrame you wish to modify::
 
 from numpy import nan, isnan  # pylint: disable=no-name-in-module
 import pandas
+## print_full is just used for debugging purposes.
+def print_full(x):
+    pandas.set_option('display.max_rows', len(x))
+    print(x)
 from vis.analyzers import indexer
 from .interval import interval_to_int
 
@@ -114,7 +118,7 @@ def susp_ind_func(obj):
     row_one, row_two, row_three = obj
 
     # this avoids the list's reallocation penalty if we used append()
-    post = [None for _ in xrange(len(row_one[diss_ind].index))]
+    post = [nan for _ in xrange(len(row_one[diss_ind].index))]
     for post_i, combo in enumerate(row_one[diss_ind].index):
         lower_i = int(combo.split(u',')[1])
         upper_i = int(combo.split(u',')[0])
@@ -129,7 +133,7 @@ def susp_ind_func(obj):
             # set x (melodic of lower part into diss)
             x = interval_to_int(row_two[horiz_int_ind][lower_i])  # TODO: untested
             # set d (the dissonant vertical interval)
-            d = interval_to_int(row_two[diss_ind][combo][-1:])
+            d = interval_to_int(row_two[diss_ind][combo])
             # set y (lower part melodic out of diss)
             y = interval_to_int(row_three[horiz_int_ind][lower_i])  # TODO: untested
             # set z (vert int after diss)
@@ -205,7 +209,7 @@ def neighbour_ind_func(obj):
     row_one, row_two, row_three = obj
 
     # this avoids the list's reallocation penalty if we used append()
-    post = [None for _ in xrange(len(row_one[diss_ind].index))]
+    post = [nan for _ in xrange(len(row_one[diss_ind].index))]
     for post_i, combo in enumerate(row_one[diss_ind].index):
         lower_i = int(combo.split(u',')[1])
         upper_i = int(combo.split(u',')[0])
@@ -220,7 +224,7 @@ def neighbour_ind_func(obj):
             # set c (harmonic interval preceding the dissonance)
             c = interval_to_int(row_one[int_ind][combo])
             # set d (the dissonant vertical interval)
-            d = interval_to_int(row_two[diss_ind][combo][-1:])
+            d = interval_to_int(row_two[diss_ind][combo])
             # set x (melodic of lower part into diss)
             x = interval_to_int(row_two[horiz_int_ind][lower_i])
             # set y (lower part melodic out of diss)
@@ -234,27 +238,74 @@ def neighbour_ind_func(obj):
             # ensure there aren't any rests
             #print('a: %s, b: %s, x: %s, y: %s' % (a, b, x, y))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, b, x, y): ## DEBUG: this is the problematic line because the voice without the neighbor note should be able to drop out
+            if 'Rest' in (a, x): ## DEBUG: this is the problematic line because the voice without the neighbor note should be able to drop out
                 post[post_i] = _NEIGH_NODISS_LABEL
             # filter out what would be accented neighbour tones
             elif (beat_strength_one < beat_strength_two) or (beat_strength_three < beat_strength_two):
                 post[post_i] = _NEIGH_NODISS_LABEL
             # see if it's an upper neighbour in the upper part
-            elif (c == d - 1) and ((z == d - y and y > 0) or (z == d - y - 2 and y < 0)):
-                post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
+            elif a == 2 and x == 1 and b == -2:
+                if (((c == 1 or c == 8) and d == 2) or
+                    (c == 3 and d == 4) or
+                     (c == 6 and d == 7) or
+                      (c == -8 and d == -7) or #these last three are for when the voices are crossed but the 'upper' voice has the neighbor note
+                       (c == -5 and d == -4) or
+                        (c == -3 and d == -2)):
+                    post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
+      #(      #elif (c == d - 1) and ((z == d - y and y > 0) or (z == d - y - 2 and y < 0)):
+                ##post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
+            #)
+
             # see if it's a lower neighbour in the upper part
-            elif (c == d + 1) and ((z == d - y + 2 and y > 0) or (z == d - y and y < 0)):
-                post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
+            elif a == -2 and x == 1 and b == 2:
+                if (((c == 1 and d == -2) or (c == 8 and d == 7) or
+                    (c == 3 and d == 2) or
+                     (c == 5 and d == 4) or
+                      (c == -8 and d == -2)) or #these last three are for when the voices are crossed but the 'upper' voice has the neighbor note
+                       (c == -6 and d == -7) or
+                        (c == -3 and d == -4)):
+                    post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
+
+            #(elif (c == d + 1) and ((z == d - y + 2 and y > 0) or (z == d - y and y < 0)):
+                #post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
+            #)
+
+            #(elif (((c == 1 or c == 8) and a == 2 and d == 2 and b == -2) or
+                  #(c == 3 and a == 2 and d == 4 and b == -2)):
+                #)
+
             # see if it's an upper neighbour in the lower part
-            elif (c == d + 1) and (2 == x) and (-2 == y):
-                post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
+            elif x == 2 and a == 1 and y == -2:
+                if (((c == 1 and d == -2) or (c == 8 and d == 7)) or
+                    (c == 3 and d == 2) or
+                     (c == 5 and d == 4) or
+                      (c == -8 and d == -2) or
+                       (c == -6 and d == -7) or
+                        (c == -3 and d == -4)):
+                    post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
+
+            #(elif (c == d + 1) and (2 == x) and (-2 == y):
+                #post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
+            #)
+
             # see if it's a lower neighbour in the lower part
-            elif (c == d - 1) and (-2 == x) and (2 == y):
-                post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
+            #(elif (c == d - 1) and (-2 == x) and (2 == y):
+                #post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
+            #)
+
+            # see if it's a lower neighbour in the lower part
+            elif x == -2 and a == 1 and y == 2:
+                if (((c == 1 or c == 8) and d == 2) or
+                    (c == 3 and d == 4) or
+                     (c == 6 and d == 7) or
+                      (c == -8 and d == -7) or
+                       (c == -5 and d == -4) or
+                        (c == -3 and d == -2)):
+                    post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
             else:
                 post[post_i] = _NEIGH_OTHER_LABEL
         else:
-            post[post_i] = _SUSP_NODISS_LABEL
+            post[post_i] = _NEIGH_NODISS_LABEL
     return pandas.Series(post, index=row_one[diss_ind].index)
 
 
@@ -308,7 +359,7 @@ def passing_ind_func(obj):
             # set p (harmonic interval preceding the dissonance)
             p = interval_to_int(row_one[int_ind][combo])
             # set d (the dissonant vertical interval)
-            d = interval_to_int(row_two[diss_ind][combo][-1:])
+            d = interval_to_int(row_two[diss_ind][combo])
             # set r (vert int after diss)
             r = interval_to_int(row_three[int_ind][combo])
             # set x (melodic of lower part into diss)
@@ -323,7 +374,10 @@ def passing_ind_func(obj):
             # Classify!
             #elif d < 0:       ## DEBUG, this seems undesirable and commenting it out seems to have no effect.
                 #post[post_i] = _PASS_OTHER_LABEL
-            elif 1 == x:
+            elif a == -2 and x == 1 and p == -3 and d == 4 and b == -2: #Majorly debug, pick up here. "upper" voice is moving and voices are crossed
+                   # upper-voice descending and voices are crossed
+                    post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
+            elif 1 == x and d > 0: # upper voice is moving and voices are not crossed
                 if ((p == d + 1) and
                     (y > 0 and (r == d - y or (p == 3 and d == 2 and r == 8)) or
                      ((y < 0 or y > d - 1) and r == d - y - 2))):
@@ -387,6 +441,7 @@ def reconciliation_func(obj):
         combowise = []
         for ind in (susp_ind, neigh_ind, pass_ind):
             # compile dissonances specific to this combination
+            print(str(type(obj[ind][combo_i])))
             if (not isinstance(obj[ind][combo_i], basestring)) and isnan(obj[ind][combo_i]):
                 continue
             else:
@@ -439,9 +494,9 @@ class DissonanceIndexer(indexer.Indexer):
     possible_settings = ['special_P4', 'special_d5']
     """
     :keyword bool 'special_P4': Whether to account for the Perfect Fourth's "special"
-        characteristic of being a dissonance only when no major or minor third or sixth appears
+        characteristic of being a dissonance only when no major or minor third or fifth appears
         below it. If this is ``True``, an additional indexing process is run that removes all
-        fourths "under" which the following intervals appear: m3, M3, m6, M6.
+        fourths "under" which the following intervals appear: m3, M3, P5.
     :keyword bool 'special_d5': Whether to account for the Diminished Fifth's "special"
         characteristic of being consonant when a Major Sixth appears at any point below the
         lowest note.
@@ -515,7 +570,7 @@ class DissonanceIndexer(indexer.Indexer):
         +------------------+----------+
 
         On encountering ``'P4'`` in the ``'0,2'`` part combination, :meth:`_special_fourths` only
-        looks at the ``'2,3'`` combination for a third or sixth. Finding an octave, this fourth
+        looks at the ``'2,3'`` combination for a third or fifth. Finding an octave, this fourth
         is considered "dissonant," and therefore retained.
 
         For this reason, it's very important that the index has good part-combination labels that
@@ -591,6 +646,7 @@ class DissonanceIndexer(indexer.Indexer):
         For this reason, it's very important that the index has good part-combination labels that
         follow the ``'int,int'`` format, as outputted by the :class:`IntervalIndexer`.
         """
+        ## TODO: figure this out for d5s that arise from a voice crossing.
         post = []
         for combo in simul.index:
             if u'd5' == simul.loc[combo]:
@@ -713,7 +769,7 @@ class SuspensionIndexer(indexer.Indexer):
         # NB: it's actually susp_ind_func() that raises the KeyError
 
         # this avoids the list's reallocation penalty if we used append()
-        post = [None for _ in xrange(len(self._score.index))]
+        post = [nan for _ in xrange(len(self._score.index))]
         for i in xrange(len(self._score.index) - 2):
             post[i + 1] = susp_ind_func((self._score.iloc[i],
                                          self._score.iloc[i + 1],
@@ -794,7 +850,7 @@ class NeighbourNoteIndexer(indexer.Indexer):
         # NB: it's actually susp_ind_func() that raises the KeyError
 
         # this avoids the list's reallocation penalty if we used append()
-        post = [None for _ in xrange(len(self._score.index))]
+        post = [nan for _ in xrange(len(self._score.index))]
         for i in xrange(len(self._score.index) - 2):
             post[i + 1] = neighbour_ind_func((self._score.iloc[i],
                                               self._score.iloc[i + 1],
@@ -874,7 +930,7 @@ class PassingNoteIndexer(indexer.Indexer):
         # NB: it's actually susp_ind_func() that raises the KeyError
 
         # this avoids the list's reallocation penalty if we used append()
-        post = [None for _ in xrange(len(self._score.index))]
+        post = [nan for _ in xrange(len(self._score.index))]
         for i in xrange(len(self._score.index) - 2):
             post[i + 1] = passing_ind_func((self._score.iloc[i],
                                             self._score.iloc[i + 1],
