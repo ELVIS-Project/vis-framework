@@ -238,7 +238,7 @@ def neighbour_ind_func(obj):
             # ensure there aren't any rests
             #print('a: %s, b: %s, x: %s, y: %s' % (a, b, x, y))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, x): ## DEBUG: this is the problematic line because the voice without the neighbor note should be able to drop out
+            if 'Rest' in (a, x):
                 post[post_i] = _NEIGH_NODISS_LABEL
             # filter out what would be accented neighbour tones
             elif (beat_strength_one < beat_strength_two) or (beat_strength_three < beat_strength_two):
@@ -369,40 +369,72 @@ def passing_ind_func(obj):
             # ensure there aren't any rests
             #print('a: %s, b: %s, x: %s, d: %s, y: %s, z: %s' % (a, b, x, d, y, z))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, b, p, d, r, x, y):
+            if 'Rest' in (a, p, d, x):
                 post[post_i] = _PASS_OTHER_LABEL
             # Classify!
             #elif d < 0:       ## DEBUG, this seems undesirable and commenting it out seems to have no effect.
                 #post[post_i] = _PASS_OTHER_LABEL
-            elif a == -2 and x == 1 and p == -3 and d == 4 and b == -2: #Majorly debug, pick up here. "upper" voice is moving and voices are crossed
-                   # upper-voice descending and voices are crossed
+            elif a == -2 and x == 1 and b == -2: # "upper" voice is descending
+                if ((p == 8 and d == 7) or
+                    (p == 5 and d == 4) or
+                     (p == 3 and d == 2) or
+                      ((p == 1 or p == 8) and d == -2) or
+                       (p == -3 and d == -4) or
+                        (p == -6 and d == -7)):
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
-            elif 1 == x and d > 0: # upper voice is moving and voices are not crossed
-                if ((p == d + 1) and
-                    (y > 0 and (r == d - y or (p == 3 and d == 2 and r == 8)) or
-                     ((y < 0 or y > d - 1) and r == d - y - 2))):
-                    # upper-voice descending
-                    post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
-                elif ((p == d - 1 or p == d - 6) and
-                      ((y > 0 and r == d - y + 2) or (p == 8 and d == 2 and r == 3) or
-                       ((y < 0 or y > d - 1) and r == d - y))):
-                    # upper-voice rising
+            #elif 1 == x and d > 0: # upper voice is moving and voices are not crossed
+                #if ((p == d + 1) and
+                    #(y > 0 and (r == d - y or (p == 3 and d == 2 and r == 8)) or
+                     #((y < 0 or y > d - 1) and r == d - y - 2))):
+                    ## upper-voice descending
+                    #post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
+            elif a == 2 and x == 1 and b == 2: # upper voice is rising
+                if (((p == 1 or p == 8) and d == 2) or
+                    (p == 3 and d == 4) or
+                     (p == 6 and d == 7) or
+                      (p == -8 and d == -7) or
+                       (p == -5 and d == -4) or
+                        (p == -3 and d == -2)):
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
-                else:
-                    post[post_i] = _PASS_OTHER_LABEL
-            elif 1 == a:
-                if ((p == d - 1 or p == d + 6) and     # +6 is used because of 8ve equivalence.
-                    ((b > 0 and r == d + b) or
-                     ((b < 0 or b > d - 1) and r == d + b + 2))):
-                    # lower-voice descending
+
+                #elif ((p == d - 1 or p == d - 6) and
+                      #((y > 0 and r == d - y + 2) or (p == 8 and d == 2 and r == 3) or
+                       #((y < 0 or y > d - 1) and r == d - y))):
+                    ## upper-voice rising
+                    #post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
+                #else:
+                    #post[post_i] = _PASS_OTHER_LABEL
+            elif x == -2 and a == 1 and y == -2: # lower voice descending
+                if (((p == 1 or p == 8) and d == 2) or
+                    (p == 3 and d == 4) or
+                     (p == 6 and d == 7) or
+                      (p == -8 and d == -7) or
+                       (p == -5 and d == -4) or
+                        (p == -3 and d == -2)):
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
-                elif ((p == d + 1) and
-                      ((b > 0 and r == d + b - 2) or
-                       ((b < 0 or b > d - 1) and r == d + b))):
-                    # lower-voice rising
+
+            #elif 1 == a:
+                #if ((p == d - 1 or p == d + 6) and     # +6 is used because of 8ve equivalence.
+                    #((b > 0 and r == d + b) or
+                     #((b < 0 or b > d - 1) and r == d + b + 2))):
+                    ## lower-voice descending
+                    #post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
+
+            elif x == 2 and a == 1 and y == 2: # lower voice rising
+                if (((p == 1 or p == -8) and d == -2) or
+                    (p == 3 and d == 2) or
+                     (p == 5 and d == 4) or
+                      (p == 8 and d == 7) or
+                       (p == -3 and d == -4) or
+                        (p == -6 and d == -7)):
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
-                else:
-                    post[post_i] = _PASS_OTHER_LABEL
+                #elif ((p == d + 1) and
+                      #((b > 0 and r == d + b - 2) or
+                       #((b < 0 or b > d - 1) and r == d + b))):
+                    ## lower-voice rising
+                    #post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
+                #else:
+                    #post[post_i] = _PASS_OTHER_LABEL
             else:
                 post[post_i] = _PASS_OTHER_LABEL
 
