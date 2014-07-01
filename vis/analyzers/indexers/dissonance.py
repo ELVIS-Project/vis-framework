@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
+.. codeauthor:: Alexander Morgan
 
 Indexers related to dissonance:
 
@@ -49,10 +50,6 @@ is the DataFrame you wish to modify::
 
 from numpy import nan, isnan  # pylint: disable=no-name-in-module
 import pandas
-## print_full is just used for debugging purposes.
-def print_full(x):
-    pandas.set_option('display.max_rows', len(x))
-    print(x)
 from vis.analyzers import indexer
 from .interval import interval_to_int
 
@@ -247,10 +244,12 @@ def neighbour_ind_func(obj):
             elif a == 2 and x == 1 and b == -2:
                 if (((c == 1 or c == 8) and d == 2) or
                     (c == 3 and d == 4) or
-                     (c == 6 and d == 7) or
-                      (c == -8 and d == -7) or #these last three are for when the voices are crossed but the 'upper' voice has the neighbor note
-                       (c == -5 and d == -4) or
-                        (c == -3 and d == -2)):
+                     (c == 4 and d == 5) or # d can only be equal to 5 if it is not a perfect 5th
+                      (c == 6 and d == 7) or
+                       (c == -8 and d == -7) or #these last four are for when the voices are crossed but the 'upper' voice has the neighbor note
+                        (c == -6 and d == -5) or
+                         (c == -5 and d == -4) or
+                          (c == -3 and d == -2)):
                     post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
       #(      #elif (c == d - 1) and ((z == d - y and y > 0) or (z == d - y - 2 and y < 0)):
                 ##post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
@@ -261,9 +260,11 @@ def neighbour_ind_func(obj):
                 if (((c == 1 and d == -2) or (c == 8 and d == 7) or
                     (c == 3 and d == 2) or
                      (c == 5 and d == 4) or
-                      (c == -8 and d == -2)) or #these last three are for when the voices are crossed but the 'upper' voice has the neighbor note
-                       (c == -6 and d == -7) or
-                        (c == -3 and d == -4)):
+                      (c == 6 and d == 5) or
+                       (c == -8 and d == -2)) or #these last three are for when the voices are crossed but the 'upper' voice has the neighbor note
+                        (c == -6 and d == -7) or
+                         (c == -4 and d == -5) or
+                          (c == -3 and d == -4)):
                     post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
 
             #(elif (c == d + 1) and ((z == d - y + 2 and y > 0) or (z == d - y and y < 0)):
@@ -279,9 +280,11 @@ def neighbour_ind_func(obj):
                 if (((c == 1 and d == -2) or (c == 8 and d == 7)) or
                     (c == 3 and d == 2) or
                      (c == 5 and d == 4) or
-                      (c == -8 and d == -2) or
-                       (c == -6 and d == -7) or
-                        (c == -3 and d == -4)):
+                      (c == 6 and d == 5) or
+                       (c == -8 and d == -2) or
+                        (c == -6 and d == -7) or
+                         (c == -4 and d == -5) or
+                          (c == -3 and d == -4)):
                     post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
 
             #(elif (c == d + 1) and (2 == x) and (-2 == y):
@@ -297,10 +300,12 @@ def neighbour_ind_func(obj):
             elif x == -2 and a == 1 and y == 2:
                 if (((c == 1 or c == 8) and d == 2) or
                     (c == 3 and d == 4) or
-                     (c == 6 and d == 7) or
-                      (c == -8 and d == -7) or
-                       (c == -5 and d == -4) or
-                        (c == -3 and d == -2)):
+                     (c == 4 and d == 5) or
+                      (c == 6 and d == 7) or
+                       (c == -8 and d == -7) or
+                        (c == -6 and d == -5) or
+                         (c == -5 and d == -4) or
+                          (c == -3 and d == -2)):
                     post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
             else:
                 post[post_i] = _NEIGH_OTHER_LABEL
@@ -473,7 +478,9 @@ def reconciliation_func(obj):
         combowise = []
         for ind in (susp_ind, neigh_ind, pass_ind):
             # compile dissonances specific to this combination
-            print(str(type(obj[ind][combo_i])))
+            g = (str(obj[ind][combo_i]))
+            if g != 'nan':
+                print g
             if (not isinstance(obj[ind][combo_i], basestring)) and isnan(obj[ind][combo_i]):
                 continue
             else:
