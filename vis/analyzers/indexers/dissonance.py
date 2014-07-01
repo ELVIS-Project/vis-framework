@@ -535,7 +535,7 @@ class DissonanceIndexer(indexer.Indexer):
     CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8',
                    u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
     _CONSONANCE_MAKERS = [u'm3', u'-m3', u'M3', u'-M3', u'P5', u'-P5']  # TODO: this should probably include 'd5'
-
+    _UPPER_VOICE_CONS_MAKERS = [u'P1', u'P8'] # DEBUG - P1 is necessary because of an unrelated bug in the simple intervals. Putting in sixths caused some suspensions to be missed.
     required_score_type = 'pandas.DataFrame'
     default_settings = {'special_P4': True, 'special_d5': True}
     possible_settings = ['special_P4', 'special_d5']
@@ -636,6 +636,16 @@ class DissonanceIndexer(indexer.Indexer):
                     if simul.loc[possibility] in DissonanceIndexer._CONSONANCE_MAKERS:
                         found_one = True
                         break
+                if found_one == False: # In some cases you have to look from the top voice down too.
+                    upper_voice = combo.split(u',')[0]
+                    investigate_also = []
+                    for possibility in simul.index:
+                        if possibility.split(u',')[0] == upper_voice:
+                            investigate_also.append(possibility)
+                    for possibility in investigate_also:
+                        if simul.loc[possibility] in DissonanceIndexer._UPPER_VOICE_CONS_MAKERS:
+                            found_one = True
+                            break
                 if found_one:
                     post.append(nan)
                 else:
