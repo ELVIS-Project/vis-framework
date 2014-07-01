@@ -381,11 +381,13 @@ def passing_ind_func(obj):
                 #post[post_i] = _PASS_OTHER_LABEL
             elif a == -2 and x == 1 and b == -2: # "upper" voice is descending
                 if ((p == 8 and d == 7) or
-                    (p == 5 and d == 4) or
-                     (p == 3 and d == 2) or
-                      ((p == 1 or p == 8) and d == -2) or
-                       (p == -3 and d == -4) or
-                        (p == -6 and d == -7)):
+                    (p == 6 and d == 5) or # NB: d can only equal 5 if the fifth is not perfect.
+                     (p == 5 and d == 4) or
+                      (p == 3 and d == 2) or
+                       ((p == 1 or p == 8) and d == -2) or
+                        (p == -3 and d == -4) or
+                         (p == -4 and d == -5) or
+                          (p == -6 and d == -7)):
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
             #elif 1 == x and d > 0: # upper voice is moving and voices are not crossed
                 #if ((p == d + 1) and
@@ -396,10 +398,12 @@ def passing_ind_func(obj):
             elif a == 2 and x == 1 and b == 2: # upper voice is rising
                 if (((p == 1 or p == 8) and d == 2) or
                     (p == 3 and d == 4) or
-                     (p == 6 and d == 7) or
-                      (p == -8 and d == -7) or
-                       (p == -5 and d == -4) or
-                        (p == -3 and d == -2)):
+                     (p == 4 and d == 5) or
+                      (p == 6 and d == 7) or
+                       (p == -8 and d == -7) or
+                        (p == -6 and d == -5) or
+                         (p == -5 and d == -4) or
+                          (p == -3 and d == -2)):
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
 
                 #elif ((p == d - 1 or p == d - 6) and
@@ -412,10 +416,12 @@ def passing_ind_func(obj):
             elif x == -2 and a == 1 and y == -2: # lower voice descending
                 if (((p == 1 or p == 8) and d == 2) or
                     (p == 3 and d == 4) or
-                     (p == 6 and d == 7) or
-                      (p == -8 and d == -7) or
-                       (p == -5 and d == -4) or
-                        (p == -3 and d == -2)):
+                     (p == 4 and d == 5) or # This scenario seems musically improbable.
+                      (p == 6 and d == 7) or
+                       (p == -8 and d == -7) or
+                        (p == -6 and d == -5) or
+                         (p == -5 and d == -4) or
+                          (p == -3 and d == -2)):
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
 
             #elif 1 == a:
@@ -429,9 +435,11 @@ def passing_ind_func(obj):
                 if (((p == 1 or p == -8) and d == -2) or
                     (p == 3 and d == 2) or
                      (p == 5 and d == 4) or
-                      (p == 8 and d == 7) or
-                       (p == -3 and d == -4) or
-                        (p == -6 and d == -7)):
+                      (p == 6 and d == 5) or
+                       (p == 8 and d == 7) or
+                        (p == -3 and d == -4) or
+                         (p == -4 and d == -5) or
+                          (p == -6 and d == -7)):
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
                 #elif ((p == d + 1) and
                       #((b > 0 and r == d + b - 2) or
