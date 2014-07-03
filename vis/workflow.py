@@ -733,7 +733,9 @@ class WorkflowManager(object):
             else:
                 combos = ast.literal_eval(self.settings(i, 'voice combinations'))
             #for j in xrange(len(self._result[i])):
-            for j in self._result[i]:  # UNTESTED
+            sorted_parts = self._result[i].columns
+            sorted_parts = sorted(sorted_parts, key=lambda x: x[1])
+            for j in sorted_parts:  # UNTESTED
                 setts = {'part_names': j}
                 ann_p.append(self._data[i].get_data([lilypond.AnnotationIndexer,
                                                      lilypond.AnnotateTheNoteIndexer,
