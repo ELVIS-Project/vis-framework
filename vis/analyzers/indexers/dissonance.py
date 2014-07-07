@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/dissonance.py
 # Purpose:                Indexers related to dissonance.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
+.. codeauthor:: Alexander Morgan
 
 Indexers related to dissonance:
 
@@ -57,6 +58,7 @@ from .interval import interval_to_int
 # so they can be changed, and possibly withstand multiprocessing... and so the unit tests can
 # modify them to more easily check the classification.
 _SUSP_SUSP_LABEL = 'SUSP'  # for suspensions (where the voice number is prefixed)
+_SUSP_FAKE_LABEL = 'FSUS'  # for 'fake' suspensions
 _SUSP_OTHER_LABEL = 'o'  # ReconciliationIndexer requires this is a string
 _SUSP_NODISS_LABEL = nan
 
@@ -113,7 +115,7 @@ def susp_ind_func(obj):
     row_one, row_two, row_three = obj
 
     # this avoids the list's reallocation penalty if we used append()
-    post = [None for _ in xrange(len(row_one[diss_ind].index))]
+    post = [nan for _ in xrange(len(row_one[diss_ind].index))]
     for post_i, combo in enumerate(row_one[diss_ind].index):
         lower_i = int(combo.split(u',')[1])
         upper_i = int(combo.split(u',')[0])
@@ -128,26 +130,33 @@ def susp_ind_func(obj):
             # set x (melodic of lower part into diss)
             x = interval_to_int(row_two[horiz_int_ind][lower_i])  # TODO: untested
             # set d (the dissonant vertical interval)
-            d = interval_to_int(row_two[diss_ind][combo][-1:])
+            d = interval_to_int(row_two[diss_ind][combo])
             # set y (lower part melodic out of diss)
             y = interval_to_int(row_three[horiz_int_ind][lower_i])  # TODO: untested
             # set z (vert int after diss)
             z = interval_to_int(row_three[int_ind][combo])
             # find the beatStrength of the dissonance and resolution
+            beat_strength_one = row_one[beat_ind][lower_i] if isnan(row_one[beat_ind][upper_i]) else row_one[beat_ind][upper_i]
             beat_strength_two = row_two[beat_ind][lower_i] if isnan(row_two[beat_ind][upper_i]) else row_two[beat_ind][upper_i]  # TODO: untested
             beat_strength_three = row_three[beat_ind][lower_i] if isnan(row_three[beat_ind][upper_i]) else row_three[beat_ind][upper_i]  # TODO: untested
             # ensure there aren't any rests  # TODO: untested
             #print('a: %s, b: %s, x: %s, d: %s, y: %s, z: %s' % (a, b, x, d, y, z))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, b, x, d, y, z):  # TODO: untested
+            if 'Rest' in (b, d, y, z):  # TODO: untested # NB: a and x are absent because the agent needn't be present in the preparation
                 post[post_i] = _SUSP_NODISS_LABEL  # TODO: untested
             # deal with z
             elif (1 == x and ((b >= 1 and d + b == z) or  # if the upper voice ascends out of d
                               (d + b + 2 == z))  # if the upper voice descends out of d
                   and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = ''.join((str(lower_i), ':', _SUSP_SUSP_LABEL))
-            elif (1 == a and ((y >= 1 and d - y == z) or  # if the lower voice ascends out of d
-                              (d - y - 2 == z))  # if the lower voice descends out of d
+            # for fake suspensions
+            elif (2 == a and (1 == x or 8 == x or -8 == x) and 4 == d and 4 == z and 1 == b and
+                    (1 == y or 8 == y or -8 == y) and
+                    beat_strength_one > beat_strength_two and beat_strength_three > beat_strength_two):
+                post[post_i] = ''.join((str(upper_i), ':', _SUSP_FAKE_LABEL))
+            elif (1 == a and ((y >= 1 and (d - y == z or (d == 2 and z == 8))) or  # if the lower voice ascends out of d, the last bit is for 9-8 suspensions.
+                              (d - y - 2 == z) or   # if the lower voice descends out of d
+                              ((y == 8 or y == -8) and d -1 == z)) # TODO: verify this logic, meant to apply to octave leaps in bass at moment of resolution.
                   and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = ''.join((str(upper_i), ':', _SUSP_SUSP_LABEL))
             else:
@@ -197,7 +206,7 @@ def neighbour_ind_func(obj):
     row_one, row_two, row_three = obj
 
     # this avoids the list's reallocation penalty if we used append()
-    post = [None for _ in xrange(len(row_one[diss_ind].index))]
+    post = [nan for _ in xrange(len(row_one[diss_ind].index))]
     for post_i, combo in enumerate(row_one[diss_ind].index):
         lower_i = int(combo.split(u',')[1])
         upper_i = int(combo.split(u',')[0])
@@ -212,7 +221,7 @@ def neighbour_ind_func(obj):
             # set c (harmonic interval preceding the dissonance)
             c = interval_to_int(row_one[int_ind][combo])
             # set d (the dissonant vertical interval)
-            d = interval_to_int(row_two[diss_ind][combo][-1:])
+            d = interval_to_int(row_two[diss_ind][combo])
             # set x (melodic of lower part into diss)
             x = interval_to_int(row_two[horiz_int_ind][lower_i])
             # set y (lower part melodic out of diss)
@@ -226,27 +235,82 @@ def neighbour_ind_func(obj):
             # ensure there aren't any rests
             #print('a: %s, b: %s, x: %s, y: %s' % (a, b, x, y))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, b, x, y):
+            if 'Rest' in (a, x):
                 post[post_i] = _NEIGH_NODISS_LABEL
             # filter out what would be accented neighbour tones
             elif (beat_strength_one < beat_strength_two) or (beat_strength_three < beat_strength_two):
                 post[post_i] = _NEIGH_NODISS_LABEL
             # see if it's an upper neighbour in the upper part
-            elif (c == d - 1) and ((z == d - y and y > 0) or (z == d - y - 2 and y < 0)):
-                post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
+            elif a == 2 and x == 1 and b == -2:
+                if (((c == 1 or c == 8) and d == 2) or
+                    (c == 3 and d == 4) or
+                     (c == 4 and d == 5) or # d can only be equal to 5 if it is not a perfect 5th
+                      (c == 6 and d == 7) or
+                       (c == -8 and d == -7) or #these last four are for when the voices are crossed but the 'upper' voice has the neighbor note
+                        (c == -6 and d == -5) or
+                         (c == -5 and d == -4) or
+                          (c == -3 and d == -2)):
+                    post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
+      #(      #elif (c == d - 1) and ((z == d - y and y > 0) or (z == d - y - 2 and y < 0)):
+                ##post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
+            #)
+
             # see if it's a lower neighbour in the upper part
-            elif (c == d + 1) and ((z == d - y + 2 and y > 0) or (z == d - y and y < 0)):
-                post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
+            elif a == -2 and x == 1 and b == 2:
+                if (((c == 1 and d == -2) or (c == 8 and d == 7) or
+                    (c == 3 and d == 2) or
+                     (c == 5 and d == 4) or
+                      (c == 6 and d == 5) or
+                       (c == -8 and d == -2)) or #these last three are for when the voices are crossed but the 'upper' voice has the neighbor note
+                        (c == -6 and d == -7) or
+                         (c == -4 and d == -5) or
+                          (c == -3 and d == -4)):
+                    post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
+
+            #(elif (c == d + 1) and ((z == d - y + 2 and y > 0) or (z == d - y and y < 0)):
+                #post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
+            #)
+
+            #(elif (((c == 1 or c == 8) and a == 2 and d == 2 and b == -2) or
+                  #(c == 3 and a == 2 and d == 4 and b == -2)):
+                #)
+
             # see if it's an upper neighbour in the lower part
-            elif (c == d + 1) and (2 == x) and (-2 == y):
-                post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
+            elif x == 2 and a == 1 and y == -2:
+                if (((c == 1 and d == -2) or (c == 8 and d == 7)) or
+                    (c == 3 and d == 2) or
+                     (c == 5 and d == 4) or
+                      (c == 6 and d == 5) or
+                       (c == -8 and d == -2) or
+                        (c == -6 and d == -7) or
+                         (c == -4 and d == -5) or
+                          (c == -3 and d == -4)):
+                    post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
+
+            #(elif (c == d + 1) and (2 == x) and (-2 == y):
+                #post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
+            #)
+
             # see if it's a lower neighbour in the lower part
-            elif (c == d - 1) and (-2 == x) and (2 == y):
-                post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
+            #(elif (c == d - 1) and (-2 == x) and (2 == y):
+                #post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
+            #)
+
+            # see if it's a lower neighbour in the lower part
+            elif x == -2 and a == 1 and y == 2:
+                if (((c == 1 or c == 8) and d == 2) or
+                    (c == 3 and d == 4) or
+                     (c == 4 and d == 5) or
+                      (c == 6 and d == 7) or
+                       (c == -8 and d == -7) or
+                        (c == -6 and d == -5) or
+                         (c == -5 and d == -4) or
+                          (c == -3 and d == -2)):
+                    post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
             else:
                 post[post_i] = _NEIGH_OTHER_LABEL
         else:
-            post[post_i] = _SUSP_NODISS_LABEL
+            post[post_i] = _NEIGH_NODISS_LABEL
     return pandas.Series(post, index=row_one[diss_ind].index)
 
 
@@ -300,7 +364,7 @@ def passing_ind_func(obj):
             # set p (harmonic interval preceding the dissonance)
             p = interval_to_int(row_one[int_ind][combo])
             # set d (the dissonant vertical interval)
-            d = interval_to_int(row_two[diss_ind][combo][-1:])
+            d = interval_to_int(row_two[diss_ind][combo])
             # set r (vert int after diss)
             r = interval_to_int(row_three[int_ind][combo])
             # set x (melodic of lower part into diss)
@@ -310,37 +374,80 @@ def passing_ind_func(obj):
             # ensure there aren't any rests
             #print('a: %s, b: %s, x: %s, d: %s, y: %s, z: %s' % (a, b, x, d, y, z))  # DEBUG
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
-            if 'Rest' in (a, b, p, d, r, x, y):
+            if 'Rest' in (a, p, d, x):
                 post[post_i] = _PASS_OTHER_LABEL
             # Classify!
-            elif d < 0:
-                post[post_i] = _PASS_OTHER_LABEL
-            elif 1 == x:
-                if ((p == d + 1) and
-                    ((y > 0 and r == d - y) or
-                     ((y < 0 or y > d - 1) and r == d - y - 2))):
-                    # upper-voice descending
+            #elif d < 0:       ## DEBUG, this seems undesirable and commenting it out seems to have no effect.
+                #post[post_i] = _PASS_OTHER_LABEL
+            elif a == -2 and x == 1 and b == -2: # "upper" voice is descending
+                if ((p == 8 and d == 7) or
+                    (p == 6 and d == 5) or # NB: d can only equal 5 if the fifth is not perfect.
+                     (p == 5 and d == 4) or
+                      (p == 3 and d == 2) or
+                       ((p == 1 or p == 8) and d == -2) or
+                        (p == -3 and d == -4) or
+                         (p == -4 and d == -5) or
+                          (p == -6 and d == -7)):
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
-                elif ((p == d - 1) and
-                      ((y > 0 and r == d - y + 2) or
-                       ((y < 0 or y > d - 1) and r == d - y))):
-                    # upper-voice rising
+            #elif 1 == x and d > 0: # upper voice is moving and voices are not crossed
+                #if ((p == d + 1) and
+                    #(y > 0 and (r == d - y or (p == 3 and d == 2 and r == 8)) or
+                     #((y < 0 or y > d - 1) and r == d - y - 2))):
+                    ## upper-voice descending
+                    #post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
+            elif a == 2 and x == 1 and b == 2: # upper voice is rising
+                if (((p == 1 or p == 8) and d == 2) or
+                    (p == 3 and d == 4) or
+                     (p == 4 and d == 5) or
+                      (p == 6 and d == 7) or
+                       (p == -8 and d == -7) or
+                        (p == -6 and d == -5) or
+                         (p == -5 and d == -4) or
+                          (p == -3 and d == -2)):
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
-                else:
-                    post[post_i] = _PASS_OTHER_LABEL
-            elif 1 == a:
-                if ((p == d - 1) and
-                    ((b > 0 and r == d + b) or
-                     ((b < 0 or b > d - 1) and r == d + b + 2))):
-                    # lower-voice descending
+
+                #elif ((p == d - 1 or p == d - 6) and
+                      #((y > 0 and r == d - y + 2) or (p == 8 and d == 2 and r == 3) or
+                       #((y < 0 or y > d - 1) and r == d - y))):
+                    ## upper-voice rising
+                    #post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
+                #else:
+                    #post[post_i] = _PASS_OTHER_LABEL
+            elif x == -2 and a == 1 and y == -2: # lower voice descending
+                if (((p == 1 or p == 8) and d == 2) or
+                    (p == 3 and d == 4) or
+                     (p == 4 and d == 5) or # This scenario seems musically improbable.
+                      (p == 6 and d == 7) or
+                       (p == -8 and d == -7) or
+                        (p == -6 and d == -5) or
+                         (p == -5 and d == -4) or
+                          (p == -3 and d == -2)):
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
-                elif ((p == d + 1) and
-                      ((b > 0 and r == d + b - 2) or
-                       ((b < 0 or b > d - 1) and r == d + b))):
-                    # lower-voice rising
+
+            #elif 1 == a:
+                #if ((p == d - 1 or p == d + 6) and     # +6 is used because of 8ve equivalence.
+                    #((b > 0 and r == d + b) or
+                     #((b < 0 or b > d - 1) and r == d + b + 2))):
+                    ## lower-voice descending
+                    #post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
+
+            elif x == 2 and a == 1 and y == 2: # lower voice rising
+                if (((p == 1 or p == -8) and d == -2) or
+                    (p == 3 and d == 2) or
+                     (p == 5 and d == 4) or
+                      (p == 6 and d == 5) or
+                       (p == 8 and d == 7) or
+                        (p == -3 and d == -4) or
+                         (p == -4 and d == -5) or
+                          (p == -6 and d == -7)):
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
-                else:
-                    post[post_i] = _PASS_OTHER_LABEL
+                #elif ((p == d + 1) and
+                      #((b > 0 and r == d + b - 2) or
+                       #((b < 0 or b > d - 1) and r == d + b))):
+                    ## lower-voice rising
+                    #post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
+                #else:
+                    #post[post_i] = _PASS_OTHER_LABEL
             else:
                 post[post_i] = _PASS_OTHER_LABEL
 
@@ -379,6 +486,9 @@ def reconciliation_func(obj):
         combowise = []
         for ind in (susp_ind, neigh_ind, pass_ind):
             # compile dissonances specific to this combination
+            g = (str(obj[ind][combo_i]))
+            if g != 'nan':
+                print g
             if (not isinstance(obj[ind][combo_i], basestring)) and isnan(obj[ind][combo_i]):
                 continue
             else:
@@ -424,16 +534,16 @@ class DissonanceIndexer(indexer.Indexer):
 
     CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8',
                    u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
-    _CONSONANCE_MAKERS = [u'm3', u'M3', u'P5']  # TODO: this should probably include 'd5'
-
+    _CONSONANCE_MAKERS = [u'm3', u'-m3', u'M3', u'-M3', u'P5', u'-P5']  # TODO: this should probably include 'd5'
+    _UPPER_VOICE_CONS_MAKERS = [u'P1', u'P8'] # DEBUG - P1 is necessary because of an unrelated bug in the simple intervals. Putting in sixths caused some suspensions to be missed.
     required_score_type = 'pandas.DataFrame'
     default_settings = {'special_P4': True, 'special_d5': True}
     possible_settings = ['special_P4', 'special_d5']
     """
     :keyword bool 'special_P4': Whether to account for the Perfect Fourth's "special"
-        characteristic of being a dissonance only when no major or minor third or sixth appears
+        characteristic of being a dissonance only when no major or minor third or fifth appears
         below it. If this is ``True``, an additional indexing process is run that removes all
-        fourths "under" which the following intervals appear: m3, M3, m6, M6.
+        fourths "under" which the following intervals appear: m3, M3, P5.
     :keyword bool 'special_d5': Whether to account for the Diminished Fifth's "special"
         characteristic of being consonant when a Major Sixth appears at any point below the
         lowest note.
@@ -485,8 +595,8 @@ class DissonanceIndexer(indexer.Indexer):
         Used internally by the :class:`DissonanceIndexer`.
 
         Replace all consonant fourths in a :class:`Series` with nan. The method checks each part
-        combination and, if it finds a ``'P4'``, checks all part combinations for a major or minor
-        third or sixth sounding below the lower note of the fourth.
+        combination and, if it finds a ``'P4'`` or a ``'-P4'``, checks all part combinations for a
+        major or minor third or perfect fifth sounding below the lower pitch of the fourth.
 
         For example, consider the following simultaneity:
 
@@ -507,7 +617,7 @@ class DissonanceIndexer(indexer.Indexer):
         +------------------+----------+
 
         On encountering ``'P4'`` in the ``'0,2'`` part combination, :meth:`_special_fourths` only
-        looks at the ``'2,3'`` combination for a third or sixth. Finding an octave, this fourth
+        looks at the ``'2,3'`` combination for a third or fifth. Finding an octave, this fourth
         is considered "dissonant," and therefore retained.
 
         For this reason, it's very important that the index has good part-combination labels that
@@ -517,6 +627,31 @@ class DissonanceIndexer(indexer.Indexer):
         for combo in simul.index:
             if u'P4' == simul.loc[combo]:
                 lower_voice = combo.split(u',')[1]
+                investigate_these = []
+                for possibility in simul.index:
+                    if possibility.split(u',')[0] == lower_voice:
+                        investigate_these.append(possibility)
+                found_one = False
+                for possibility in investigate_these:
+                    if simul.loc[possibility] in DissonanceIndexer._CONSONANCE_MAKERS:
+                        found_one = True
+                        break
+                if found_one == False: # In some cases you have to look from the top voice down too.
+                    upper_voice = combo.split(u',')[0]
+                    investigate_also = []
+                    for possibility in simul.index:
+                        if possibility.split(u',')[0] == upper_voice:
+                            investigate_also.append(possibility)
+                    for possibility in investigate_also:
+                        if simul.loc[possibility] in DissonanceIndexer._UPPER_VOICE_CONS_MAKERS:
+                            found_one = True
+                            break
+                if found_one:
+                    post.append(nan)
+                else:
+                    post.append(simul.loc[combo])
+            elif u'-P4' == simul.loc[combo]:
+                lower_voice = combo.split(u',')[0]
                 investigate_these = []
                 for possibility in simul.index:
                     if possibility.split(u',')[0] == lower_voice:
@@ -568,6 +703,7 @@ class DissonanceIndexer(indexer.Indexer):
         For this reason, it's very important that the index has good part-combination labels that
         follow the ``'int,int'`` format, as outputted by the :class:`IntervalIndexer`.
         """
+        ## TODO: figure this out for d5s that arise from a voice crossing.
         post = []
         for combo in simul.index:
             if u'd5' == simul.loc[combo]:
@@ -690,7 +826,7 @@ class SuspensionIndexer(indexer.Indexer):
         # NB: it's actually susp_ind_func() that raises the KeyError
 
         # this avoids the list's reallocation penalty if we used append()
-        post = [None for _ in xrange(len(self._score.index))]
+        post = [nan for _ in xrange(len(self._score.index))]
         for i in xrange(len(self._score.index) - 2):
             post[i + 1] = susp_ind_func((self._score.iloc[i],
                                          self._score.iloc[i + 1],
@@ -771,7 +907,7 @@ class NeighbourNoteIndexer(indexer.Indexer):
         # NB: it's actually susp_ind_func() that raises the KeyError
 
         # this avoids the list's reallocation penalty if we used append()
-        post = [None for _ in xrange(len(self._score.index))]
+        post = [nan for _ in xrange(len(self._score.index))]
         for i in xrange(len(self._score.index) - 2):
             post[i + 1] = neighbour_ind_func((self._score.iloc[i],
                                               self._score.iloc[i + 1],
@@ -851,7 +987,7 @@ class PassingNoteIndexer(indexer.Indexer):
         # NB: it's actually susp_ind_func() that raises the KeyError
 
         # this avoids the list's reallocation penalty if we used append()
-        post = [None for _ in xrange(len(self._score.index))]
+        post = [nan for _ in xrange(len(self._score.index))]
         for i in xrange(len(self._score.index) - 2):
             post[i + 1] = passing_ind_func((self._score.iloc[i],
                                             self._score.iloc[i + 1],
