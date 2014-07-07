@@ -4,6 +4,12 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
+* 1.2.5:
+    - Allow music21 1.9.x
+    - Held sonorities are now correctly labeled in interval n-grams (GitHub issue 305)
+    - By default, the WorkflowManager's "continuer" automatically adjusts to 'P1' or '1' depending
+      on the "interval quality" setting. (GitHub issue 309).
+    - Update OutputLilyPond to its commit 70d134013ed9846f8b5f60220d906c48261c8c08
 * 1.2.4:
     - Allow pandas 0.14.x
 * 1.2.3:
