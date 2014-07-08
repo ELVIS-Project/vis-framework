@@ -346,47 +346,48 @@ class WorkflowManager(object):
 
         These indexers and experimenters will run:
 
+        * :class:`~vis.analyzers.indexers.noterest.NoteRestIndexer`
+        * :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` (optional; via
+            :meth:`_run_off_rep`)
+        * :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer` (optional; via
+            :meth:`_run_off_rep`)
         * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
         * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
         * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
 
-        :param index: The index of the IndexedPiece on which to the experiment, as stored in
-            ``self._data``.
-        :type index: int
+        :param int index: The index of the :class:`IndexedPiece` on which to the experiment, as
+            stored in ``self._data``.
 
-        :returns: The result of :class:`NGramIndexer` for a single piece.
+        :returns: Result of :class:`NGramIndexer` for a single piece.
         :rtype: list of :class:`pandas.Series`
         """
-        piece = self._data[index]
-        # make settings for interval indexers
-        settings = {u'quality': self.settings(index, u'interval quality')}
-        settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
-                                          is True else u'compound'
-        # vert and horiz intervals are still together at the NoteRestIndexer stage
-        vost = []
-        vost = piece.get_data([noterest.NoteRestIndexer], settings)
-        # run the offset and repeat indexers, if required
-        # vert and horiz intervals are still together at the run_off_rep stage
-        vost = self._run_off_rep(index, vost)
-        # here vert and horiz intervals begin to get handled separately
-        vert_ints = piece.get_data([interval.IntervalIndexer], settings, vost)
-        horiz_ints = piece.get_data([interval.HorizontalIntervalIndexer], settings, vost)
-        # each key in vert_ints corresponds to a two-voice combination we should use
         post = []
+        piece = self._data[index]
+
+        # prepare and run the NoteRest then Interval and HorizontalInterval indexers
+        notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
+        settings = {'quality': self.settings(index, 'interval quality')}
+        settings['simple or compound'] = ('simple'
+                                          if self.settings(None, 'simple intervals') is True
+                                          else 'compound')
+        vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
+        horiz_ints = piece.get_data([interval.HorizontalIntervalIndexer], settings, notes)
+
+        # prepare and run the NGramIndexer
+        settings = {'vertical': [0], 'horizontal': [1]}
+        settings['mark singles'] = self.settings(None, 'mark singles')
+        settings['continuer'] = self.settings(None, 'continuer')
+        settings['n'] = self.settings(None, 'n')
+        if not self.settings(None, 'include rests'):
+            settings['terminator'] = 'Rest'
+        # each key in vert_ints corresponds to a two-voice combination; we're using all of them
         for combo in vert_ints.iterkeys():
             # which "horiz" part to use?
             horiz_i = interval.key_to_tuple(combo)[1]
             # make the list of parts
-            parts = [vert_ints[combo], horiz_ints[horiz_i]]
-            # assemble settings
-            setts = {u'vertical': [0], u'horizontal': [1]}
-            setts[u'mark singles'] = self.settings(None, u'mark singles')
-            setts[u'continuer'] = self.settings(None, u'continuer')
-            setts[u'n'] = self.settings(None, u'n')
-            if self.settings(None, u'include rests') is not True:
-                setts[u'terminator'] = u'Rest'
+            parts_list = [vert_ints[combo], horiz_ints[horiz_i]]
             # run NGramIndexer, then append the result to the corresponding index of the dict
-            post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
+            post.append(piece.get_data([ngram.NGramIndexer], settings, parts_list)[0])
         return post
 
     def _all_part_modules(self, index):
