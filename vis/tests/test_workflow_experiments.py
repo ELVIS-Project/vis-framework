@@ -443,30 +443,26 @@ class IntervalNGrams(TestCase):
         # set up fake part names
         for piece in test_pieces:
             piece.metadata.return_value = ['S', 'A', 'T', 'B']
-        # set up pseudo-IntervalIndexer results for mock_ror
         part_combos = ['0,3', '1,3', '2,3', '0,1', '0,2', '1,2']
-        ror_vert_ret = {x: MagicMock(name='piece2 part ' + x) for x in part_combos}
-        ror_horiz_ret = [MagicMock(name='piece2 horiz ' + str(x)) for x in xrange(4)]
-        ror_returns = [ror_vert_ret, ror_horiz_ret]
-        def ror_side_effect(*args, **kwargs):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return ror_returns.pop(0)
-        mock_ror.side_effect = ror_side_effect
-        # set up fake return values for IntervalIndexer
-        vert_ret = "IntervalIndexer's return"
-        horiz_ret = "HorizontalIntervalIndexer's return"
+
+        # set up pseudo-IntervalIndexer results for mock_ror
+        mock_ror.return_value = '_run_off_rep() return'
         # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, ['piece2 3rd get_data()'], ['piece2 4th get_data()'],
-                   ['piece2 5th get_data()'], ['piece2 6th get_data()'], ['piece2 7th get_data()'],
-                   ['piece2 8th get_data()']]
+        # NB: "horiz_return" being a string does mean that the mock NGramIndexer will be called
+        #     with single-letter strings. It works for the test!
+        noterest_return = 'noterest return'
+        intervals_return = {combo: 'intervals {}'.format(combo) for combo in part_combos}
+        horiz_return = 'horizontalInterval return'
+        ind_p_returns = [noterest_return, intervals_return, horiz_return,
+                         'ngram 1', 'ngram 2', 'ngram 3', 'ngram 4', 'ngram 5', 'ngram 6']
         def side_effect(*args):
             # NB: we need to accept "args" as a mock framework formality
             # pylint: disable=W0613
-            return returns.pop(0)
+            return ind_p_returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        expected = [x[0] for x in returns[2:]]
+        expected = [x[0] for x in ind_p_returns[3:]]
+
         # 2.) prepare WorkflowManager and run the test
         test_wc = WorkflowManager(test_pieces)
         test_index = 1
@@ -475,6 +471,7 @@ class IntervalNGrams(TestCase):
         test_wc.settings(test_index, 'filter repeats', False)
         test_wc.settings(test_index, 'offset interval', None)
         actual = test_wc._two_part_modules(test_index)
+
         # 3.) confirm everything was called in the right order
         # - that every IP is asked for its vertical and horizontal interval indexes
         #   (that "mark singles" and "continuer" weren't put in the settings)
@@ -482,22 +479,23 @@ class IntervalNGrams(TestCase):
         expected_ngram_settings = {'horizontal': [1], 'vertical': [0], 'n': 2,
                                    'continuer': 'dynamic quality', 'mark singles': False,
                                    'terminator': 'Rest'}
-        # four-part piece means 6 combinations for NGramIndexer, plus 2 calls to interval indexers
-        self.assertEqual(8, test_pieces[test_index].get_data.call_count)
-        exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
-                    mock.call([mock_nri, mock_horiz], expected_interv_setts)]
+        # four-part piece means 6 combinations for NGramIndexer, 2 calls to interval indexers, plus
+        # one to the NoteRestIndexer
+        self.assertEqual(9, test_pieces[test_index].get_data.call_count)
+        # these get_data() calls always happen in this order
+        exp_calls = [mock.call([mock_nri]),
+                     mock.call([mock_int], expected_interv_setts, mock_ror.return_value),
+                     mock.call([mock_horiz], expected_interv_setts, mock_ror.return_value)]
         for i in xrange(len(exp_calls)):
             self.assertEqual(test_pieces[test_index].get_data.mock_calls[i], exp_calls[i])
-        # - that _run_off_rep() is called once for horizontal and vertical
-        self.assertEqual(2, mock_ror.call_count)
-        mock_ror.assert_any_call(test_index, vert_ret)
-        mock_ror.assert_any_call(test_index, horiz_ret, is_horizontal=True)
-        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
-        for combo in ror_vert_ret.iterkeys():
+        # _run_off_rep() should be called once
+        mock_ror.assert_called_once_with(test_index, noterest_return)
+        # these get_data() calls may happen in an arbitrary order (due to dict iteration)
+        for combo in intervals_return.iterkeys():
             test_pieces[1].get_data.assert_any_call([mock_ng],
                                                     expected_ngram_settings,
-                                                    [ror_vert_ret[combo],
-                                                    ror_horiz_ret[interval.key_to_tuple(combo)[1]]])
+                                                    [intervals_return[combo],
+                                                     horiz_return[interval.key_to_tuple(combo)[1]]])
         self.assertSequenceEqual(expected, actual)
 
 
