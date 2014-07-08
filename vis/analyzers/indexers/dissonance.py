@@ -110,6 +110,10 @@ def cons_maker_ind_func(obj):
         if (isinstance(row_two[diss_ind][combo], basestring) or
             (not isnan(row_two[diss_ind][combo]))):
             # pylint: disable=invalid-name
+            # set a (melodic of upper part into diss)
+            a = interval_to_int(row_two[horiz_int_ind][upper_i])  # TODO: untested
+            # set b (upper part melodic out of diss)
+            b = interval_to_int(row_three[horiz_int_ind][upper_i])  # TODO: untested
             # set x (melodic of lower part into diss)
             x = interval_to_int(row_two[horiz_int_ind][lower_i])  # TODO: untested
             # set y (lower part melodic out of diss)
@@ -122,26 +126,23 @@ def cons_maker_ind_func(obj):
             f = interval_to_int(row_three[int_ind][combo])
             post = []
             for pair in row_two[diss_ind].index:
-                if 4 == d or -4 == d:
-                    if 4 == d:
+                print '********** This is row_two[diss_ind][pair]: ', row_two[diss_ind][pair]
+                # a list of voice pairs to check for consonance makers in the offset of d
+                check_d = row_two[int_ind].index
+                # a list of voice pairs to check for consonance makers in the offset of p
+                check_p = row_one[int_ind].index
+                # a list of voice pairs to check for consonance makers in the offset of f
+                check_f = row_three[int_ind].index
+                if 'P4' == row_two[diss_ind][pair] or '-P4' == row_two[diss_ind][pair]:
+                    if 'P4' == row_two[diss_ind][pair]:
                         lower_voice = pair.split(u',')[1]
                     else: # if the voices are crossed, for this module the "upper" voice will be considered the lower voice
                         lower_voice = pair.split(u',')[0]
-                    # a list of voice pairs to check for consonance makers in the offset of d
-                    check_d = row_two[int_ind].index
-                    # a list of voice pairs to check for consonance makers in the offset of p
-                    check_p = row_one[int_ind].index
-                    # a list of voice pairs to check for consonance makers in the offset of f
-                    check_f = row_three[int_ind].index
                     found_one = False
                     for poss in check_d:    # poss = possible consonance makers
-                        #print '(*(*(*(*(*' , row_two[diss_ind][poss]
-                        ##print '(*(*(*(*(*' , poss.split(',')[0]
-                        print lower_voice
                         if (row_two[int_ind][poss] in DissonanceIndexer._CONSONANCE_MAKERS and
                             poss.split(',')[0] == lower_voice):
                             found_one = True
-                            print found_one
                             break
                         # consonance maker could be in an "upper" voice if there is a voice crossing.
                         elif (row_two[int_ind][poss] in DissonanceIndexer._CROSSED_CONSONANCE_MAKERS
@@ -149,31 +150,124 @@ def cons_maker_ind_func(obj):
                             found_one = True
                             break
 
-                        # if there was no consonance maker in d's offset, look in p's if p is the same fourth as d
-                        elif p == d and x == 1:
-                            for poss in check_p:
-                                if (row_one[int_ind][poss] in DissonanceIndexer._CONSONANCE_MAKERS
-                                    and poss.split(',')[0] == lower_voice):
-                                    found_one = True
-                                    break
-                                # consonance maker could be in an "upper" if there is a voice crossing.
-                                elif (row_one.loc[int_ind][poss] in DissonanceIndexer._CROSSED_CONSONANCE_MAKERS
-                                    and poss.split(',')[1] == lower_voice):
-                                    found_one = True
-                                    break
-
-                        # if there was no consonance maker in d or p's offsets, look in f's if f is the same fourth as d
-                        elif f == d and y == 1:
-                            if (row_three[int_ind][poss] in DissonanceIndexer._CONSONANCE_MAKERS
+                    # if there was no consonance maker in d's offset, look in p's if p is the same fourth as d
+                    if found_one == False and p == d and a == 1 and x == 1:
+                        for poss in check_p:
+                            if (row_one[int_ind][poss] in DissonanceIndexer._CONSONANCE_MAKERS
                                 and poss.split(',')[0] == lower_voice):
                                 found_one = True
                                 break
-                            # consonance maker could be in an "upper" if there is a voice crossing.
-                            elif (row_three[int_ind][poss] in DissonanceIndexer._CROSSED_CONSONANCE_MAKERS
+                            # consonance maker could be in an "upper" voice if there is a voice crossing.
+                            elif (row_one[int_ind][poss] in DissonanceIndexer._CROSSED_CONSONANCE_MAKERS
                                 and poss.split(',')[1] == lower_voice):
                                 found_one = True
                                 break
+
+                    # if there was no consonance maker in d or p's offsets, look in f's if f is the same fourth as d
+                    elif found_one == False and f == d and b == 1 and y == 1:
+                        if (row_three[int_ind][poss] in DissonanceIndexer._CONSONANCE_MAKERS
+                            and poss.split(',')[0] == lower_voice):
+                            found_one = True
+                            break
+                        # consonance maker could be in an "upper" voice if there is a voice crossing.
+                        elif (row_three[int_ind][poss] in DissonanceIndexer._CROSSED_CONSONANCE_MAKERS
+                            and poss.split(',')[1] == lower_voice):
+                            found_one = True
+                            break
                     if found_one:
+                        post.append(nan)
+                    else:
+                        post.append(row_two[diss_ind][pair])
+
+                elif d in ['d5', 'A4', '-d5', '-A4']:
+                    if row_two[diss_ind][pair] == 'd5' or row_two[diss_ind][pair] == '-d5':
+                        if 'd5' == row_two[diss_ind][pair]:
+                            lower_voice = pair.split(u',')[1]
+                        else: # if the voices are crossed, for this module the "upper" voice will be considered the lower voice
+                            lower_voice = pair.split(u',')[0]
+                        is_cons_d5 = False
+                        for poss in check_d:    # poss = possible consonance makers
+                            if (row_two[int_ind][poss] == 'M6' and
+                                poss.split(',')[0] == lower_voice):
+                                is_cons_d5 = True
+                                break
+                            # consonance maker could be in an "upper" voice if there is a voice crossing.
+                            elif (row_two[int_ind][poss] == '-M6' and
+                                  poss.split(',')[1] == lower_voice):
+                                is_cons_d5 = True
+                                break
+
+                        # if there was no consonance maker in d's offset, look in p's if p is the same dim5 as d
+                        if is_cons_d5 == False and p == d and a == 1 and x == 1:
+                            for poss in check_p:
+                                if (row_one[int_ind][poss] == 'M6' and
+                                    poss.split(',')[0] == lower_voice):
+                                    is_cons_d5 = True
+                                    break
+                                # consonance maker could be in an "upper" voice if there is a voice crossing.
+                                elif (row_one.loc[int_ind][poss] == '-M6' and
+                                    poss.split(',')[1] == lower_voice):
+                                    is_cons_d5 = True
+                                    break
+
+                        # if there was no consonance maker in d or p's offsets, look in f's if f is the same dim5 as d
+                        elif is_cons_d5 == False and f == d and b == 1 and y == 1:
+                            if (row_three[int_ind][poss] == 'M6' and
+                                poss.split(',')[0] == lower_voice):
+                                is_cons_d5 = True
+                                break
+                            # consonance maker could be in an "upper" voice if there is a voice crossing.
+                            elif (row_three[int_ind][poss] == '-M6' and
+                                poss.split(',')[1] == lower_voice):
+                                is_cons_d5 = True
+                                break
+                        if is_cons_d5:
+                            post.append(nan)
+                        else:
+                            post.append(row_two[diss_ind][pair])
+
+                elif row_two[diss_ind][pair] == 'A4' or row_two[diss_ind][pair] == '-A4':
+                    if 'A4' == row_two[diss_ind][pair]:
+                        lower_voice = pair.split(u',')[1]
+                    else: # if the voices are crossed, for this module the "upper" voice will be considered the lower voice
+                        lower_voice = pair.split(u',')[0]
+                    is_cons_A4 = False
+                    for poss in check_d:    # poss = possible consonance makers
+                        if (row_two[int_ind][poss] == 'm3' and
+                            poss.split(',')[0] == lower_voice):
+                            is_cons_A4 = True
+                            break
+                        # consonance maker could be in an "upper" voice if there is a voice crossing.
+                        elif (row_two[int_ind][poss] == '-m3' and
+                                poss.split(',')[1] == lower_voice):
+                            is_cons_A4 = True
+                            break
+
+                    # if there was no consonance maker in d's offset, look in p's if p is the same aug4 as d
+                    if is_cons_A4 == False and p == d and a == 1 and x == 1:
+                        for poss in check_p:
+                            if (row_one[int_ind][poss] == 'm3' and
+                                poss.split(',')[0] == lower_voice):
+                                is_cons_A4 = True
+                                break
+                            # consonance maker could be in an "upper" voice if there is a voice crossing.
+                            elif (row_one[int_ind][poss] == '-m3' and
+                                poss.split(',')[1] == lower_voice):
+                                is_cons_A4 = True
+                                break
+
+                    # if there was no consonance maker in d or p's offsets, look in f's if f is the same dim5 as d
+                    elif is_cons_A4 == False and f == d and b == 1 and y == 1:
+                        if (row_three[int_ind][poss] == 'm6' and
+                            poss.split(',')[0] == lower_voice):
+                            is_cons_A4 = True
+                            break
+                        # consonance maker could be in an "upper" voice if there is a voice crossing.
+                        elif (row_three[int_ind][poss] == '-m6' and
+                            poss.split(',')[1] == lower_voice):
+                            is_cons_A4 = True
+                            break
+                    if is_cons_A4:
                         post.append(nan)
                     else:
                         post.append(row_two[diss_ind][pair])
