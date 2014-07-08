@@ -53,6 +53,7 @@ import pandas
 from vis.analyzers import indexer
 from .interval import interval_to_int
 
+_CONS_MAKER_NODISS_LABEL = nan
 
 # Used by susp_ind_func() as the labels for suspensions and other dissonances. They're module-level
 # so they can be changed, and possibly withstand multiprocessing... and so the unit tests can
@@ -81,6 +82,108 @@ _PASS_OTHER_LABEL = 'o'  # ReconciliationIndexer requires this is a string
 _PASS_NODISS_LABEL = nan
 
 
+def cons_maker_ind_func(obj):
+    """
+    Doc string
+    """
+    # Description of the variables:
+    # - a: melodic interval of upper part into suspension
+    # - b: melodic interval of upper part out of suspension
+    # - x: melodic interval of lower part into suspension
+    # - d: dissonant harmonic interval
+    # - y: melodic interval of lower part out of suspension (upper part is -2)
+    # - z: d-y if y >= 1 else d-y-2 (it's the resolution vert-int)
+
+    # for better legibility (i.e., shorter lines)
+    diss_ind = u'dissonance.DissonanceIndexer'
+    horiz_int_ind = u'interval.HorizontalIntervalIndexer'
+    int_ind = u'interval.IntervalIndexer'
+    beat_ind = 'metre.NoteBeatStrengthIndexer'
+
+    row_one, row_two, row_three = obj
+    # this avoids the list's reallocation penalty if we used append()
+    post = [nan for _ in xrange(len(row_one[diss_ind].index))]
+    for post_i, combo in enumerate(row_one[diss_ind].index):
+        lower_i = int(combo.split(u',')[1])
+        upper_i = int(combo.split(u',')[0])
+        # is there a dissonance?
+        if (isinstance(row_two[diss_ind][combo], basestring) or
+            (not isnan(row_two[diss_ind][combo]))):
+            # pylint: disable=invalid-name
+            # set x (melodic of lower part into diss)
+            x = interval_to_int(row_two[horiz_int_ind][lower_i])  # TODO: untested
+            # set y (lower part melodic out of diss)
+            y = interval_to_int(row_three[horiz_int_ind][lower_i])  # TODO: untested
+            # set p (vert int preceding the fourth or fifth in question in the same voice pair)
+            p = interval_to_int(row_one[int_ind][combo])
+            # set d (the dissonant vertical interval)
+            d = interval_to_int(row_two[diss_ind][combo])
+            # set f (vert int following the fourth or fifth in question in the same voice pair)
+            f = interval_to_int(row_three[int_ind][combo])
+            post = []
+            for pair in row_two[diss_ind].index:
+                if 4 == d or -4 == d:
+                    if 4 == d:
+                        lower_voice = pair.split(u',')[1]
+                    else: # if the voices are crossed, for this module the "upper" voice will be considered the lower voice
+                        lower_voice = pair.split(u',')[0]
+                    # a list of voice pairs to check for consonance makers in the offset of d
+                    check_d = row_two[int_ind].index
+                    # a list of voice pairs to check for consonance makers in the offset of p
+                    check_p = row_one[int_ind].index
+                    # a list of voice pairs to check for consonance makers in the offset of f
+                    check_f = row_three[int_ind].index
+                    found_one = False
+                    for poss in check_d:    # poss = possible consonance makers
+                        #print '(*(*(*(*(*' , row_two[diss_ind][poss]
+                        ##print '(*(*(*(*(*' , poss.split(',')[0]
+                        print lower_voice
+                        if (row_two[int_ind][poss] in DissonanceIndexer._CONSONANCE_MAKERS and
+                            poss.split(',')[0] == lower_voice):
+                            found_one = True
+                            print found_one
+                            break
+                        # consonance maker could be in an "upper" voice if there is a voice crossing.
+                        elif (row_two[int_ind][poss] in DissonanceIndexer._CROSSED_CONSONANCE_MAKERS
+                              and poss.split(',')[1] == lower_voice):
+                            found_one = True
+                            break
+
+                        # if there was no consonance maker in d's offset, look in p's if p is the same fourth as d
+                        elif p == d and x == 1:
+                            for poss in check_p:
+                                if (row_one[int_ind][poss] in DissonanceIndexer._CONSONANCE_MAKERS
+                                    and poss.split(',')[0] == lower_voice):
+                                    found_one = True
+                                    break
+                                # consonance maker could be in an "upper" if there is a voice crossing.
+                                elif (row_one.loc[int_ind][poss] in DissonanceIndexer._CROSSED_CONSONANCE_MAKERS
+                                    and poss.split(',')[1] == lower_voice):
+                                    found_one = True
+                                    break
+
+                        # if there was no consonance maker in d or p's offsets, look in f's if f is the same fourth as d
+                        elif f == d and y == 1:
+                            if (row_three[int_ind][poss] in DissonanceIndexer._CONSONANCE_MAKERS
+                                and poss.split(',')[0] == lower_voice):
+                                found_one = True
+                                break
+                            # consonance maker could be in an "upper" if there is a voice crossing.
+                            elif (row_three[int_ind][poss] in DissonanceIndexer._CROSSED_CONSONANCE_MAKERS
+                                and poss.split(',')[1] == lower_voice):
+                                found_one = True
+                                break
+                    if found_one:
+                        post.append(nan)
+                    else:
+                        post.append(row_two[diss_ind][pair])
+
+                else:
+                    post.append(row_two[diss_ind].loc[pair])
+    print '***************', post
+    return pandas.Series(post, index=row_two[diss_ind].index)
+
+
 def susp_ind_func(obj):
     """
     Indexer function for the :class:`SuspensionIndexer`. This function processes all parts, and
@@ -107,7 +210,7 @@ def susp_ind_func(obj):
     # - z: d-y if y >= 1 else d-y-2 (it's the resolution vert-int)
 
     # for better legibility (i.e., shorter lines)
-    diss_ind = u'dissonance.DissonanceIndexer'
+    diss_ind = u'dissonance.ConsMakerIndexer'
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
     int_ind = u'interval.IntervalIndexer'
     beat_ind = 'metre.NoteBeatStrengthIndexer'
@@ -134,7 +237,7 @@ def susp_ind_func(obj):
             # set y (lower part melodic out of diss)
             y = interval_to_int(row_three[horiz_int_ind][lower_i])  # TODO: untested
             # set z (vert int after diss)
-            z = interval_to_int(row_three[int_ind][combo])
+            z = interval_to_int(row_three[int_ind][combo])  # TODO: ditch z in definition of suspension
             # find the beatStrength of the dissonance and resolution
             beat_strength_one = row_one[beat_ind][lower_i] if isnan(row_one[beat_ind][upper_i]) else row_one[beat_ind][upper_i]
             beat_strength_two = row_two[beat_ind][lower_i] if isnan(row_two[beat_ind][upper_i]) else row_two[beat_ind][upper_i]  # TODO: untested
@@ -198,7 +301,7 @@ def neighbour_ind_func(obj):
     #Subcategories of the above: N1u and N1l (upper and lower neighbours).
 
     # for better legibility (i.e., shorter lines)
-    diss_ind = u'dissonance.DissonanceIndexer'
+    diss_ind = u'dissonance.ConsMakerIndexer'
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
     int_ind = u'interval.IntervalIndexer'
     beat_ind = 'metre.NoteBeatStrengthIndexer'
@@ -342,7 +445,7 @@ def passing_ind_func(obj):
     # - y: melodic interval of lower part out of dissonance
 
     # for better legibility (i.e., shorter lines)
-    diss_ind = u'dissonance.DissonanceIndexer'
+    diss_ind = u'dissonance.ConsMakerIndexer'
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
     int_ind = u'interval.IntervalIndexer'
 
@@ -534,7 +637,8 @@ class DissonanceIndexer(indexer.Indexer):
 
     CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8',
                    u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
-    _CONSONANCE_MAKERS = [u'm3', u'-m3', u'M3', u'-M3', u'P5', u'-P5']  # TODO: this should probably include 'd5'
+    _CONSONANCE_MAKERS = [u'm3', u'M3', u'P5']  # TODO: this should probably include 'd5' # APM- probably not since the original P4 would then be an A4
+    _CROSSED_CONSONANCE_MAKERS = [u'-m3', u'-M3', u'-P5']
     _UPPER_VOICE_CONS_MAKERS = [u'P1', u'P8'] # DEBUG - P1 is necessary because of an unrelated bug in the simple intervals. Putting in sixths caused some suspensions to be missed.
     required_score_type = 'pandas.DataFrame'
     default_settings = {'special_P4': True, 'special_d5': True}
@@ -622,6 +726,9 @@ class DissonanceIndexer(indexer.Indexer):
 
         For this reason, it's very important that the index has good part-combination labels that
         follow the ``'int,int'`` format, as outputted by the :class:`IntervalIndexer`.
+
+        :param simul: A row of the :class:`DataFrame` given to :class:`DissonanceIndexer`.
+        :type simul: :class:`pandas.Series`
         """
         post = []
         for combo in simul.index:
@@ -749,13 +856,87 @@ class DissonanceIndexer(indexer.Indexer):
         (Series with only the dissonant intervals between first and second clarinet)
         """
         post = self._score['interval.IntervalIndexer']
-        if self._settings[u'special_P4'] is True:
-            post = post.apply(DissonanceIndexer.special_fourths, axis=1)
+        #if self._settings[u'special_P4'] is True:
+            #post = post.apply(DissonanceIndexer.special_fourths, axis=1)
         if self._settings[u'special_d5'] is True:
             post = post.apply(DissonanceIndexer.special_fifths, axis=1)  # TODO: test this branch works
         post = post.apply(DissonanceIndexer.nan_consonance, axis=1)
         return self.make_return([x for x in post.columns],
                                 [post[x] for x in post.columns])
+
+
+class ConsMakerIndexer(indexer.Indexer):
+    """
+    Classify fourths (perfect and augmented) and diminished fifths as consonant or dissonant.
+
+    Inputted results from the :mod:`interval` module require the same settings as were given to
+    the :class:`DissonanceIndexer.
+    """
+
+    required_score_type = 'pandas.DataFrame'
+
+    # Text for the RuntimeError raised when a score has fewer than 3 event offsets.
+    _TOO_SHORT_ERROR = u'ConsMakerIndexer: input must have at least 3 events'
+
+    def __init__(self, score):
+        """
+        :param score: The input from which to produce a new index. You must provide a
+            :class:`DataFrame` with results from the
+            :class:`~vis.analyzers.indexers.interval.IntervalIndexer`, the
+            :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`,
+            :class:`~vis.analyzers.indexers.metre.NoteBeatStrengthIndexer`, and the
+            :class:`DissonanceIndexer. The :class:`DataFrame` may contain results from additional
+            indexers, which will be ignored.
+        :type score: :class:`pandas.DataFrame`
+
+        .. warning:: The :class:`ConsMakerIndexer` requires the results of the
+            :class:`IntervalIndexer` to have been "forward filled," or there will be errors. Do not
+            "forward fill" other indices.
+
+        .. note:: The :meth:`run` method will raise a :exc:`KeyError` if ``score`` does not contain
+            results from the required indices.
+
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
+        :raises: :exc:`RuntimeError` if the ``score`` argument has fewer than three event offsets,
+            which is the minimum required for a suspension (preparation, dissonance, resolution).
+            An exception here prevents an error later.
+        """
+        super(ConsMakerIndexer, self).__init__(score)
+        if len(score.index) < 3:
+            raise RuntimeError(ConsMakerIndexer._TOO_SHORT_ERROR)
+        self._indexer_func = cons_maker_ind_func
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        :returns: A :class:`DataFrame` with suspensions labeled *and* all inputted indices.
+        :rtype: :class:`pandas.DataFrame`
+
+        :raises: :exc:`KeyError` if the ``score`` given to the constructor was an
+            improperly-formatted :class:`DataFrame` (e.g., it does not contain results of the
+            required indexers, or the columns do not have a :class:`MultiIndex`).
+        """
+        # NB: it's actually cons_maker_ind_func() that raises the KeyError
+
+        # this avoids the list's reallocation penalty if we used append()
+        post = [nan for _ in xrange(len(self._score.index))]
+        for i in xrange(len(self._score.index) - 2):
+            post[i + 1] = cons_maker_ind_func((self._score.iloc[i],
+                                         self._score.iloc[i + 1],
+                                         self._score.iloc[i + 2]))
+
+        # This indexer should ultimately be able to handle single events but cannot yet.
+        for i in [0, -1]:
+            post[i] = pandas.Series([_CONS_MAKER_NODISS_LABEL for _ in xrange(len(post[1]))],
+                                    index=post[1].index)
+
+        # Convert from the list of Series into a DataFrame. Each inputted Series becomes a row.
+        post = pandas.DataFrame({j: post[i] for i, j in enumerate(self._score.index)}).T
+
+        # the part names are the column names
+        post = self.make_return(list(post.columns), [post[i] for i in post.columns])
+        return pandas.concat(objs=[self._score, post], axis=1, join='outer')
 
 
 class SuspensionIndexer(indexer.Indexer):
