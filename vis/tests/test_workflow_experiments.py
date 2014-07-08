@@ -37,6 +37,10 @@ from vis.analyzers.indexers import interval
 
 # pylint: disable=R0904
 # pylint: disable=C0111
+# pylint: disable=protected-access
+# NB: I turned off "too many arguments" because that's how we get mock objects in this module,
+#     so the "pass an object instead" idea doesn't really work
+# pylint: disable=too-many-arguments
 class Intervals(TestCase):
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch('vis.workflow.WorkflowManager._run_freq_agg')
@@ -122,15 +126,14 @@ class Intervals(TestCase):
             self.assertSequenceEqual(list(expected[i]), list(actual[i][0]))
             self.assertSequenceEqual(list(expected[i].index), list(actual[i][0].index))
 
-    @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
-    @mock.patch('vis.workflow.WorkflowManager._run_freq_agg')
+    # pylint: disable=unused-argument
     @mock.patch('vis.workflow.WorkflowManager._remove_extra_pairs')
     @mock.patch('vis.workflow.noterest.NoteRestIndexer')
     @mock.patch('vis.workflow.interval.IntervalIndexer')
-    def test_intervs_3(self, mock_int, mock_nri, mock_rep, mock_rfa, mock_ror):
+    def test_intervs_3(self, mock_int, mock_nri, mock_rep):
+        # NB: _run_off_rep() and _run_freq_agg() can't be reached in this test, so not mocked
         # --> test whether _intervs() when we specify an impossible voice pair ('[[0, 1, 2]]')
         # 1.) prepare the test and mocks
-        test_settings = {'simple or compound': 'compound', 'quality': False}
         test_pieces = [MagicMock(IndexedPiece, name=x) for x in ['test1', 'test2', 'test3']]
         the_dicts = [MagicMock(dict, name='get_data() piece' + str(i), return_value=[4]) \
                      for i in xrange(3)]
@@ -141,8 +144,6 @@ class Intervals(TestCase):
             return returns.pop(0)
         for piece in test_pieces:
             piece.get_data.side_effect = side_effect
-        mock_ror.return_value = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
-        expected = [pandas.Series(['Rest', 'P5', 'm3']) for _ in xrange(len(test_pieces))]
         expected_pairs = [[0, 1, 2]]
         expected_error_message = WorkflowManager._REQUIRE_PAIRS_ERROR % len(expected_pairs[0])
         # 2.) run the test
