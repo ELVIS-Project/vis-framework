@@ -54,6 +54,8 @@ from vis.analyzers import indexer
 from .interval import interval_to_int
 
 _CONS_MAKER_NODISS_LABEL = nan
+_CONS_MAKER_CONS_A4_LABEL = 'CA4'
+_CONS_MAKER_CONS_d5_LABEL = 'Cd5'
 
 # Used by susp_ind_func() as the labels for suspensions and other dissonances. They're module-level
 # so they can be changed, and possibly withstand multiprocessing... and so the unit tests can
@@ -126,7 +128,6 @@ def cons_maker_ind_func(obj):
             f = interval_to_int(row_three[int_ind][combo])
             post = []
             for pair in row_two[diss_ind].index:
-                print '********** This is row_two[diss_ind][pair]: ', row_two[diss_ind][pair]
                 # a list of voice pairs to check for consonance makers in the offset of d
                 check_d = row_two[int_ind].index
                 # a list of voice pairs to check for consonance makers in the offset of p
@@ -175,7 +176,7 @@ def cons_maker_ind_func(obj):
                             found_one = True
                             break
                     if found_one:
-                        post.append(nan)
+                        post.append(_CONS_MAKER_NODISS_LABEL)
                     else:
                         post.append(row_two[diss_ind][pair])
 
@@ -222,7 +223,7 @@ def cons_maker_ind_func(obj):
                                 is_cons_d5 = True
                                 break
                         if is_cons_d5:
-                            post.append(nan)
+                            post.append(_CONS_MAKER_CONS_d5_LABEL)
                         else:
                             post.append(row_two[diss_ind][pair])
 
@@ -268,13 +269,12 @@ def cons_maker_ind_func(obj):
                             is_cons_A4 = True
                             break
                     if is_cons_A4:
-                        post.append(nan)
+                        post.append(_CONS_MAKER_CONS_A4_LABEL)
                     else:
                         post.append(row_two[diss_ind][pair])
 
                 else:
                     post.append(row_two[diss_ind].loc[pair])
-    print '***************', post
     return pandas.Series(post, index=row_two[diss_ind].index)
 
 
