@@ -347,9 +347,9 @@ def susp_ind_func(obj):
                   and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = ''.join((str(lower_i), ':', _SUSP_SUSP_LABEL))
             # for fake suspensions
-            elif (2 == a and (1 == x or 8 == x or -8 == x) and 4 == d and 4 == z and 1 == b and
-                    (1 == y or 8 == y or -8 == y) and
-                    beat_strength_one > beat_strength_two and beat_strength_three > beat_strength_two):
+            elif ((2 == a or -2 == a) and (1 == x or 8 == x or -8 == x) and 4 == d and 4 == z and
+                  1 == b and (1 == y or 8 == y or -8 == y) and
+                  beat_strength_one > beat_strength_two and beat_strength_three > beat_strength_two):
                 post[post_i] = ''.join((str(upper_i), ':', _SUSP_FAKE_LABEL))
             elif (1 == a and ((y >= 1 and (d - y == z or (d == 2 and z == 8))) or  # if the lower voice ascends out of d, the last bit is for 9-8 suspensions.
                               (d - y - 2 == z) or   # if the lower voice descends out of d
