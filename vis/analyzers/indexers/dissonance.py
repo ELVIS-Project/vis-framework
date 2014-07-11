@@ -344,10 +344,11 @@ def susp_ind_func(obj):
                               (d + b + 2 == z))  # if the upper voice descends out of d
                   and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = ''.join((str(lower_i), ':', _SUSP_SUSP_LABEL))
-            # for fake suspensions
-            elif ((2 == a or -2 == a) and (1 == x or 8 == x or -8 == x) and 4 == d and 4 == z and
-                  1 == b and (1 == y or 8 == y or -8 == y) and
-                  beat_strength_one > beat_strength_two and beat_strength_three > beat_strength_two):
+           # for fake suspensions; z can == 3 because if the two fourths are one note, a new event may not be generated
+            elif ((2 == a or -2 == a) and (1 == x or 8 == x or -8 == x) and 4 == d and 1 == b and
+                  (1 == y or 8 == y or -8 == y) and
+                  ((4 == z and beat_strength_one > beat_strength_two and beat_strength_three > beat_strength_two)
+                   or (3 == z and beat_strength_one > beat_strength_two and beat_strength_three == beat_strength_two))):
                 post[post_i] = ''.join((str(upper_i), ':', _SUSP_FAKE_LABEL))
             elif (1 == a and ((y >= 1 and (d - y == z or (d == 2 and z == 8))) or  # if the lower voice ascends out of d, the last bit is for 9-8 suspensions.
                               (d - y - 2 == z) or   # if the lower voice descends out of d
@@ -761,11 +762,11 @@ class DissonanceIndexer(indexer.Indexer):
         """
         self._settings = {'special_P4': DissonanceIndexer.default_settings['special_P4'],
                           'special_d5': DissonanceIndexer.default_settings['special_d5']}
-        if settings is not None:  # TODO: test this stuff
-            if u'special_P4' in settings:
-                self._settings[u'special_P4'] = settings[u'special_P4']
-            if 'special_d5' in settings:
-                self._settings['special_d5'] = settings['special_d5']
+        #if settings is not None:  # TODO: test this stuff
+            #if u'special_P4' in settings:
+                #self._settings[u'special_P4'] = settings[u'special_P4']
+            #if 'special_d5' in settings:
+                #self._settings['special_d5'] = settings['special_d5']
         super(DissonanceIndexer, self).__init__(score, None)
 
     @staticmethod
