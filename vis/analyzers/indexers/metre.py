@@ -31,7 +31,7 @@ Indexers for metric concerns.
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
 # pylint: disable=W0105
 
-from music21 import note
+from music21 import note, meter
 from vis.analyzers import indexer
 
 
@@ -46,6 +46,9 @@ def beatstrength_ind_func(obj):
     :rtype: float
     """
     return obj[0].beatStrength
+
+def timeSignature_ind_func(obj):
+    return obj[0].ratioString
 
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
@@ -93,6 +96,24 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         >>> the_notes['metre.NoteBeatStrengthIndexer']['5']
         (the first clarinet Series of beatStrength float values)
         """
+
+        combinations = [[x] for x in xrange(len(self._score))]
+        results = self._do_multiprocessing(combinations)
+        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+
+class TimeSignatureIndexer(indexer.Indexer):
+
+    required_score_type = 'stream.Part'
+    possible_settings = []
+    default_settings = {}
+
+    def __init__(self, score, settings=None):
+
+        super(TimeSignatureIndexer, self).__init__(score, None)
+        self._types = [meter.TimeSignature]
+        self._indexer_func = timeSignature_ind_func
+
+    def run(self):
 
         combinations = [[x] for x in xrange(len(self._score))]
         results = self._do_multiprocessing(combinations)
