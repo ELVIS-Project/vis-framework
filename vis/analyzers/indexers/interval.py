@@ -345,3 +345,42 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         #results = [pandas.Series(x.values, index=beaches[i]) for i, x in enumerate(results)]
         # END DEBUG
         return  self.make_return(combination_labels, results)
+
+class VariableHorizontalIntervalIndexer(IntervalIndexer):
+
+    def __init__(self, score, settings=None):
+
+        super(VariableHorizontalIntervalIndexer, self).__init__(score, settings)
+
+        if settings is None or u'intervalDistance' not in settings:
+            raise RuntimeError(u'VariableHorizontalIntervalIndexer requires an intervalDistance setting.')
+        elif settings[u'intervalDistance'] < 0.001:
+            raise RuntimeError(u'VariableHorizontalIntervalIndexer requires an intervalDistance setting no smaller than 0.001.')
+        else:
+            self._settings[u'intervalDistance'] = settings[u'intervalDistance']
+
+    def run(self):
+
+        # Get the offsets output from previous score, assume equal distribution -- i.e. noterest or filterbyoffset filters
+        score_offsets = self._score[0].index.values
+        # The difference in offset of each event
+        increment_size = score_offsets[-1]/(len(score_offsets)-1)
+        #print score_offsets 
+        #print increment_size
+        # Factor by which intervalDistance is more than increments
+        distance_increment_factor = self._settings['intervalDistance']/increment_size
+        #print int(distance_increment_factor)
+
+
+        combination_labels = [unicode(x) for x in xrange(len(self._score))]
+        new_parts = [x.iloc[int(distance_increment_factor):] for x in self._score]
+        self._score = [pandas.Series(x.values[:-int(distance_increment_factor)], index=x.index.tolist()[int(distance_increment_factor):]) for x in self._score]
+
+        new_zero = len(self._score)
+        self._score.extend(new_parts)
+
+        combinations = [[new_zero + x, x] for x in xrange(new_zero)]
+
+        results = self._do_multiprocessing(combinations)
+
+        return  self.make_return(combination_labels, results)
