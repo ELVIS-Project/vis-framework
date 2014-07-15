@@ -180,7 +180,6 @@ def compare(fp1, fp2):
         else:
             sci[i] = np.nan
 
-
     print "Contour Comparison: " + str(matched_contour)
     print "Consecutive Contour Similarity Comparison: " + str(sci)
 
@@ -228,14 +227,13 @@ def build_weak_intervals(piece, interval_settings, strong_beat_offsets, total_of
     # Length of weak_intervals is 1 shorter than total_offsets/strong_beat_offsets because we start indexing intervals from the first strong beat.
     # See line 251
     weak_intervals = [[np.nan]]*int((total_offsets)/strong_beat_offsets)
-
     for this_offset, this_interval in all_intervals.iteritems():
         # Ignore if this is an interval ending on the strong beat
         if this_offset % strong_beat_offsets == 0.0:
             continue
         # Find index in list using the closest strong beat
         closest_strong_beat = this_offset - (this_offset % strong_beat_offsets)
-        this_index = int(closest_strong_beat)
+        this_index = int((closest_strong_beat)/strong_beat_offsets)
         # If no previous weak beat, set this interval
         if np.isnan(weak_intervals[this_index][-1]):
             weak_intervals[this_index] = [this_interval]
@@ -291,12 +289,13 @@ def build_fingerprint_matrices(pathnames, number_of_fingerprints = 10000):
         # 1. Prepare strong_intervals:
         strong_intervals = strong_intervals.T.iloc[:-1].T
         strong_intervals = shift_matrix(strong_intervals)
+        
         # 2. Prepare weak_intervals:
-        weak_intervals.index = range(1, len(weak_intervals)+1)
         weak_intervals = weak_intervals.iloc[:-1]
+        weak_intervals.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets)
         # 3. Append
         fingerprint_frame = pandas.concat([weak_intervals.T, strong_intervals])
-        
+
         #piece_stream.show('musicxml', 'MuseScore')
         results[os.path.basename(path)]=fingerprint_frame
             
@@ -316,7 +315,7 @@ test_set_path = "../risk_test_set/"
 pathnames = [ os.path.join(test_set_path, f) for f in os.listdir(test_set_path) if os.path.isfile(os.path.join(test_set_path, f)) and not f.startswith('.')]
 interval_settings = {'quality': True, 'simple or compound': 'simple', 'byTones':True}
 
-results = build_fingerprint_matrices(pathnames, 2)
+results = build_fingerprint_matrices(pathnames, 200)
 
 # LM: Run interpreter on command line
 import readline 
