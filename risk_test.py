@@ -65,7 +65,7 @@ def compare(fp1, fp2):
 
 
     ### Contour Comparison ###
-    #Consecutively misaligned indeces that need to be checked
+    # Consecutively misaligned indeces (cmi) that need to be checked
     cmi = []
     for i in range(len(matched_list)-1):
         if np.isnan(matched_list[i]) and np.isnan(matched_list[i+1]):
@@ -73,18 +73,41 @@ def compare(fp1, fp2):
 
     matched_contour = [np.nan]*len(matched_list)
 
+    # Similar-contour indeces (sci) where similarity, not identity, is observed 
+    sci = [np.nan]*len(matched_list)
+
+    # Extract Row 1: Intervals (0.0, 1.0), (1.0, 2.0), ..., (n-1.0, n.0)
     fp1r1 = fp1.iloc[0].tolist()
     fp2r1 = fp2.iloc[0].tolist()
 
+    # For each consecutively misaligned index (i.e. for each pair of misaligned intervals) in fingerprint 1, check in fingerprint 2
     for index in cmi:
         if fp1r1[index] == fp2r1[index]:
             matched_contour[index] = 1
-        elif fp1r1[index] == fp2r1[index] + 0.5 or fp1r1[index] == fp2r1[index] - 0.5:
-            matched_contour[index] = 0.5
+        elif abs(fp1r1[index] - fp2r1[index]) <= 0.5:
+            matched_contour[index] = fp1r1[index] - fp2r1[index]
+            # If we have a similarity, add that to the similar-contour indeces
+            sci[index] = fp1r1[index] - fp2r1[index]
         else:
             matched_contour[index] = 0
 
-    print "Contour Comparison: " + str(matched_contour) 
+    # For each index in the list of similar-contour indeces, set to nan if not consecutively similar with another index
+    for i, index in enumerate(sci):
+        # Have to check adjancency both forwards and backwards... also have to stop index out of range 
+        if i == 0 and (sci[i] == sci[i+1]):
+            continue
+        elif i == (len(sci)-1) and (sci[i] == sci[i-1]):
+            continue
+        elif i == 0 or i == (len(sci)-1):
+            sci[i] = np.nan
+        elif sci[i] == sci[i+1] or sci[i] == sci[i-1]:
+            continue
+        else:
+            sci[i] = np.nan
+
+
+    print "Contour Comparison: " + str(matched_contour)
+    print "Consecutive Contour Similarity Comparison: " + str(sci)
 
 # Translate diatonic intervals into intervals with tones... will be implemented in interval indexer later
 def intervals_to_tones(results):
@@ -127,7 +150,7 @@ def intervals_to_tones(results):
 
 
 # Convert indexer results to format Laura's algorithm expects
-def prepare_results(results, number_of_columns=8):
+def prepare_results(results):
     for name, result in results.iteritems():
         # Transpose, slice bottom row, transpose --- i.e. slice off last column
         result = result.T.iloc[:-1].T
@@ -142,7 +165,6 @@ def shift_matrix(df):
 
 # Anything that should be chained together is here temporarily
 def run():
-    intervals_to_tones(results)
     prepare_results(results)
 
 
@@ -160,6 +182,9 @@ fp2 = results['Boivin_YEAR_MoneyMusk_B.xml']
 fp3 = results['Potvin_198?_MoneyMusk_K.xml']
 fp4 = results['Soucy_1927_MoneyMusk_D.xml']
 fp5 = results['Boivin_YEAR_MoneyMusk_E.xml']
+
+fp1 = results['Allard_1928_MoneyMusk_A.xml']
+fp2 = results['Allard_1928_MoneyMusk_B.xml']
 
 ========= Old comparison =========
     match_count = 0
@@ -184,11 +209,11 @@ test_set_path = "../risk_test_set/"
 pathnames = [ os.path.join(test_set_path, f) for f in os.listdir(test_set_path) if os.path.isfile(os.path.join(test_set_path, f)) and not f.startswith('.')]
 #print("Test set: ",  pathnames)
 ind_ps = []
-interval_settings = {'quality': True, 'simple or compound': 'simple', 'quarterLength': 1.0, 'intervalDistance': 1.0, 'subsection': (0.0, 8.0)}
+interval_settings = {'quality': True, 'simple or compound': 'simple', 'byTones':True}
 results = {}
 
 excepted_paths = {}
-number_of_fingerprints = 1
+number_of_fingerprints = 2
 count = 0
 for path in pathnames:
     # Setup for each piece
@@ -213,8 +238,9 @@ for path in pathnames:
 
     # LM: Get total number of measures
     numer, denom = time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0].split('/')
-    # Two bars worth of offsets, ignoring anacrusis
-    total_offsets = int(numer) * measures*4.0/int(denom)
+    # Two bars worth of offsets, ignoring anacrusis...
+    # Add an extra strong beat at end 
+    total_offsets = int(numer) * measures*4.0/int(denom) + strong_beat_offsets
     interval_settings['subsection'] = (0.0, total_offsets)
 
     fingerprint_frame =[] 
@@ -222,10 +248,8 @@ for path in pathnames:
     # Do this for horizontal intervals over 1.0 offset increments, 2.0 offset increments....
     # For i = 1.0 to the total allowable distance between two notes, which is the total number of offsets
     # Change this to 1.5 for 6/8 or 9/8 sigs
-    print my_range(strong_beat_offsets, strong_beat_offsets, total_offsets)
     for i in my_range(strong_beat_offsets, strong_beat_offsets, total_offsets):
         interval_settings['intervalDistance'] = i
-        print i
         strong_intervals = piece.get_data([noterest.NoteRestIndexer, subsection.SubsectionIndexer, offset.FilterByOffsetIndexer, interval.VariableHorizontalIntervalIndexer], interval_settings)
         strong_intervals = strong_intervals['interval.VariableHorizontalIntervalIndexer']['0']
         fingerprint_frame.append(strong_intervals)
@@ -235,10 +259,6 @@ for path in pathnames:
 
     fingerprint_frame = DataFrame(fingerprint_frame)
     fingerprint_frame.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets)
-
-    #print os.path.basename(path)
-    #print type(fingerprint_frame)
-    #print fingerprint_frame
     
     #piece_stream.show('musicxml', 'MuseScore')
     results[os.path.basename(path)]=fingerprint_frame
