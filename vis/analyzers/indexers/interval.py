@@ -102,7 +102,7 @@ def interval_to_int(interv, nan_is=1):
         return int(interv[-1:])
 
 
-def real_indexer(simultaneity, simple, quality):
+def real_indexer(simultaneity, simple, quality, byTones):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
 
@@ -113,6 +113,8 @@ def real_indexer(simultaneity, simple, quality):
     :type simple: boolean
     :param quality: Whether the interval's quality should be prepended.
     :type quality: boolean
+    :param byTones: whether the interval should be calculated using distance by tones
+    :type byTones: boolean
 
     :returns: ``'Rest'`` if one or more of the parts is ``'Rest'``; otherwise, the interval
         between the parts.
@@ -135,23 +137,45 @@ def real_indexer(simultaneity, simple, quality):
                 if each in u'AMPmd':
                     q_str += each
             post += q_str
-        if simple:
+        elif byTones:
+            # Set post to the float of semitones/2 --> tones
+            tone_flt = float(interv.semitones)/2.0
+            post = tone_flt
+        if simple and quality:
             post += u'8' if 8 == interv.generic.undirected \
                 else unicode(interv.generic.simpleUndirected)
-        else:
+        elif quality:
             post += unicode(interv.generic.undirected)
+        elif simple and byTones:
+            post = post % 6.0 if post >= 0 else post % (-6.0)
         return post
 
 
 # We give these functions to the multiprocessor; they're pickle-able, they let us choose settings,
 # and the function still only requires one argument at run-time from the Indexer.mp_indexer().
+def indexer_tones_simple(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+
+    Call :func:`real_indexer` with settings to print simple intervals with quality.
+    """
+    return real_indexer(ecks, True, False, True)
+
+def indexer_tones_comp(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+
+    Call :func:`real_indexer` with settings to print simple intervals with quality.
+    """
+    return real_indexer(ecks, False, False, True)
+
 def indexer_qual_simple(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
 
     Call :func:`real_indexer` with settings to print simple intervals with quality.
     """
-    return real_indexer(ecks, True, True)
+    return real_indexer(ecks, True, True, False)
 
 
 def indexer_qual_comp(ecks):
@@ -160,7 +184,7 @@ def indexer_qual_comp(ecks):
 
     Call :func:`real_indexer` with settings to print compound intervals with quality.
     """
-    return real_indexer(ecks, False, True)
+    return real_indexer(ecks, False, True, False)
 
 
 def indexer_nq_simple(ecks):
@@ -169,7 +193,7 @@ def indexer_nq_simple(ecks):
 
     Call :func:`real_indexer` with settings to print simple intervals without quality.
     """
-    return real_indexer(ecks, True, False)
+    return real_indexer(ecks, True, False, False)
 
 
 def indexer_nq_comp(ecks):
@@ -178,7 +202,7 @@ def indexer_nq_comp(ecks):
 
     Call :func:`real_indexer` with settings to print compound intervals without quality.
     """
-    return real_indexer(ecks, False, False)
+    return real_indexer(ecks, False, False, False)
 
 
 class IntervalIndexer(indexer.Indexer):
@@ -193,16 +217,17 @@ class IntervalIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
-    possible_settings = [u'simple or compound', u'quality']
+    possible_settings = [u'simple or compound', u'quality', u'byTones']
     """
     A list of possible settings for the :class:`IntervalIndexer`.
 
     :keyword unicode u'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``u'simple'`` or ``u'compound'``).
     :keyword boolean u'quality': Whether to display an interval's quality.
+    :keyword boolean u'byTones': Whether to calculate intervals by distance in whole-tones. Overrides quality.
     """
 
-    default_settings = {u'simple or compound': u'compound', u'quality': False}
+    default_settings = {u'simple or compound': u'compound', u'quality': False, u'byTones': False}
     "A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
@@ -228,11 +253,20 @@ class IntervalIndexer(indexer.Indexer):
             self._settings['quality'] = settings['quality']
         else:
             self._settings['quality'] = IntervalIndexer.default_settings['quality']
+        if 'byTones' in settings:
+            self._settings['byTones'] = settings['byTones']
+        else:
+            self._settings['byTones'] = IntervalIndexer.default_settings['byTones']
 
         super(IntervalIndexer, self).__init__(score, None)
 
         # Which indexer function to set?
-        if self._settings['quality']:
+        if self._settings['byTones']:
+            if 'simple' == self._settings['simple or compound']:
+                self._indexer_func = indexer_tones_simple
+            else:
+                self._indexer_func = indexer_tones_comp
+        elif self._settings['quality']:
             if 'simple' == self._settings['simple or compound']:
                 self._indexer_func = indexer_qual_simple
             else:
@@ -363,14 +397,13 @@ class VariableHorizontalIntervalIndexer(IntervalIndexer):
 
         # Get the offsets output from previous score, assume equal distribution -- i.e. noterest or filterbyoffset filters
         score_offsets = self._score[0].index.values
-        # The difference in offset of each event
+        # The difference in offset of each event... == quarterlength if using FilterByOffset
         increment_size = score_offsets[-1]/(len(score_offsets)-1)
         #print score_offsets 
         #print increment_size
         # Factor by which intervalDistance is more than increments
         distance_increment_factor = self._settings['intervalDistance']/increment_size
         #print int(distance_increment_factor)
-
 
         combination_labels = [unicode(x) for x in xrange(len(self._score))]
         new_parts = [x.iloc[int(distance_increment_factor):] for x in self._score]
