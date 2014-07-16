@@ -271,23 +271,50 @@ def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
     fp2c1 = fp2.T.iloc[0].tolist()[1:]
     fp1r1 = fp1.iloc[0].tolist()
     fp2r1 = fp2.iloc[0].tolist()
+    fp1r2 = fp1.iloc[1].tolist()
+    fp2r2 = fp2.iloc[1].tolist()
 
     matched_weaks = [np.nan]*len(matched_intervals)
 
     if len(fp1c1) == len(fp2c1):
         for this_index, this_interval in enumerate(matched_intervals):
-            if (this_index != len(matched_intervals)) and np.isnan(this_interval):
-                if matched_intervals[this_index+1] == this_interval:
-                    pass
+            # If this is not the last interval and is mismatched
+            if (this_index != len(matched_intervals)) and np.isnan(this_interval[0]):
+                # If the following is a matched strong interval
+                if not np.isnan(matched_intervals[this_index+1][0]):
+                    diff_1 = fp1r1[this_index][0] - fp1r2[this_index]
+                    diff_2 = fp2r1[this_index][0] - fp2r2[this_index]
+                    if diff_1 == diff_2:
+                        matched_weaks[this_index] = 1
+                    else:
+                        matched_weaks[this_index] = 0
+                # If not
+                else:
+                    # Find the previous matched interval
+                    previous_intervals = matched_intervals[:this_index]
+                    previous_match_index = 0
+                    for j in reversed(range(this_index)):
+                        if not np.isnan(previous_intervals[j][0]):
+                            previous_match_index = j
+                            break
+                    # Sets i to what Laura calls it... but off by one since she starts at 1
+                    i = this_index - j
+                    # Calculate the results using her formula
+                    model_result = fp1.iloc[1+i].tolist()[j] + fp1r1[this_index][0]
+                    variant_result = fp2.iloc[1+i].tolist()[j] + fp2r1[this_index][0]
+                    if model_result == variant_result:
+                        matched_weaks[this_index] = 1
+                    else:
+                        matched_weaks[this_index] = 0
             # TODO handle multiple weaks
-            elif fp1r1[this_index][0] == fp2r1[this_index][0]:
-                matched_weaks[this_index] = 1
-            else:
-                matched_weaks[this_index] = 0
+            #elif fp1r1[this_index][0] == fp2r1[this_index][0]:
+            #    matched_weaks[this_index] = 1
+            #else:
+            #    matched_weaks[this_index] = 0
     else:
         # TODO handle unequal lengths
         pass
-    print "Weak for Matched Strongs Comparison: " + str(matched_weaks)
+    print "Weak for Mismatched Strongs Comparison: " + str(matched_weaks)
     return matched_weaks
 
 
@@ -319,6 +346,8 @@ def compare(fp1, fp2):
     # LM: Do Matched-Strong weak comparison
     compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2)
 
+    # LM: Do Mismatched-STrong weak comparison
+    compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2)
 
 
 # Convert indexer results to format Laura's algorithm expects
