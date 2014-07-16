@@ -66,6 +66,25 @@ fp2 = results['Allard_1928_MoneyMusk_B.xml']
     print matched_intervals
     print match_count
 
+
+    def compare_lists(list1, list2):
+    print "List 1: " + str(list1)
+    print "List 2: " + str(list2)
+    match_count = 0
+    matched_intervals = []
+    l1_index = 0
+    for l2_interval in list2:
+        if not l1_index < len(list1):
+            break 
+        if list1[l1_index] == l2_interval:
+            match_count += 1
+            matched_intervals.append(list1[l1_index])
+            l1_index +=1
+
+    print "Matched intervals: " + str(matched_intervals)
+    print "Count: " + str(match_count)
+
+
 ========== Old Diatonic to Tones converter ==========
 # Translate diatonic intervals into intervals with tones... deprecated since addition of byTones setting
 def intervals_to_tones(results):
@@ -106,6 +125,8 @@ def intervals_to_tones(results):
                     continue
                 df.loc[i].loc[j] = interval_dict[item]
 
+l1 = [1,2,3,4,5,6,7,9,4]
+l2 = [2,4,6,8,10,12,4]
 '''
 
 # LM: Non-int range
@@ -116,22 +137,29 @@ def my_range(start, step, stop):
         i += step    
 
 # See if one list exists with interpolation in another
-def compare_lists(list1, list2):
-    print "List 1: " + str(list1)
-    print "List 2: " + str(list2)
-    match_count = 0
-    matched_intervals = []
-    l1_index = 0
-    for l2_interval in list2:
-        if not l1_index < len(list1):
-            break 
-        if list1[l1_index] == l2_interval:
-            match_count += 1
-            matched_intervals.append(list1[l1_index])
-            l1_index +=1
+def compare_strong_unequal_lengths(fp1, fp2):
+    #https://docs.python.org/2/library/difflib.html
+    from difflib import SequenceMatcher
 
-    print "Matched intervals: " + str(matched_intervals)
-    print "Count: " + str(match_count)
+    fp1c1 = fp1.T.iloc[0].tolist()[1:]
+    fp2c1 = fp2.T.iloc[0].tolist()[1:]
+    
+    sm=SequenceMatcher(a=fp1c1,b=fp2c1)
+    matched_intervals = []
+
+    for (op, start1, end1, start2, end2) in sm.get_opcodes():
+        print (op, start1, end1, start2, end2)
+        if op == 'equal':
+
+            #This range appears in both sequences, or only in the first one.
+            for this_index, this_interval in enumerate(fp1c1[start1:end1]):
+                matched_intervals.append([this_interval, start1+this_index, start2+this_index])
+                print matched_intervals
+
+    print "Strong Beat Comparison (different lengths): " + str(matched_intervals)
+
+    return matched_intervals
+
 
 # Compare two lists by checking the same indeces iteratively... works only on equi-length lists
 def compare_strong_by_index(fp1, fp2):
@@ -288,7 +316,7 @@ def compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2):
     else:
         # TODO handle unequal lengths
         pass
-    print "Weak for Matched Strongs Comparison: " + str(matched_weaks)
+    print "Weak Beats for Matched Strongs Comparison: " + str(matched_weaks)
     return matched_weaks
 
 def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
@@ -339,9 +367,38 @@ def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
     else:
         # TODO handle unequal lengths
         pass
+    
     print "Weak for Mismatched Strongs Comparison: " + str(matched_weaks)
     return matched_weaks
 
+def compare_reversals(matched_intervals, fp1, fp2):
+    # Compare the strong beats for reversals
+    fp1c1 = fp1.T.iloc[0].tolist()[1:]
+    fp2c1 = fp2.T.iloc[0].tolist()[1:]
+
+    matched_strong_reversals = [np.nan]*len(matched_intervals)
+
+    for this_index, this_interval in enumerate(matched_intervals):
+        if this_index != len(matched_intervals) and np.isnan(this_interval[0]) and np.isnan(matched_intervals[this_index+1][0]):
+            if fp1c1[this_index] == fp2c1[this_index+1] and fp1c1[this_index+1] == fp2c1[this_index]:
+                matched_strong_reversals[this_index] = 1
+    
+    print "Strong Beat Reversal Comparison: " + str(matched_strong_reversals)
+
+    # Compare the weak beats for reversals
+    fp1r1 = fp1.iloc[0].tolist()
+    fp2r1 = fp2.iloc[0].tolist()
+
+    matched_weak_reversals = [np.nan]*len(matched_strong_reversals)
+
+    for this_index, this_reversal in enumerate(matched_strong_reversals):
+        if not np.isnan(this_reversal):
+            # Refer to workflow
+            first_result = 0.5 if fp1r1[this_index][0] == fp2r1[this_index+1][0] else 0
+            second_result = 0.5 if fp2r1[this_index][0] == fp1r1[this_index+1][0] else 0
+            matched_weak_reversals[this_index] = first_result + second_result
+
+    print "Weak Beat Reversal Comparison: " + str(matched_weak_reversals)
 
 # Parent comparison function
 def compare(fp1, fp2):
@@ -358,9 +415,9 @@ def compare(fp1, fp2):
     # LM: Do Strong-Strong comparison 
     if len(fp1c1) == len(fp2c1):
         matched_intervals = compare_strong_by_index(fp1, fp2)
+        compare_strong_unequal_lengths(fp1, fp2)
     else:
-        print "Mismatching lengths.... temporarily unavailable"
-        return False
+        matched_intervals = compare_strong_unequal_lengths(fp1, fp2)
 
     # LM: Do contour comparison 
     compare_contours(matched_intervals, fp1, fp2)
@@ -371,8 +428,11 @@ def compare(fp1, fp2):
     # LM: Do Matched-Strong weak comparison
     compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2)
 
-    # LM: Do Mismatched-STrong weak comparison
+    # LM: Do Mismatched-Strong weak comparison
     compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2)
+
+    # LM: Do Reversed-Strong comparison
+    compare_reversals(matched_intervals, fp1, fp2)
 
 
 # Convert indexer results to format Laura's algorithm expects
@@ -498,7 +558,7 @@ def build_fingerprint_matrices(pathnames, number_of_fingerprints = 10000):
 
 # Anything that should be chained together is here temporarily
 def run():
-    prepare_results(results)
+    compare(results['Allard_1928_MoneyMusk_A.xml'], results['Allard_1928_MoneyMusk_B.xml'])
 
 # Workflow for Risk project -- fingerprint horizontal interval indexer
 # Will be used as the init later on
@@ -506,7 +566,7 @@ test_set_path = "../risk_test_set/"
 pathnames = [ os.path.join(test_set_path, f) for f in os.listdir(test_set_path) if os.path.isfile(os.path.join(test_set_path, f)) and not f.startswith('.')]
 interval_settings = {'quality': True, 'simple or compound': 'simple', 'byTones':True}
 
-results = build_fingerprint_matrices(pathnames, 2)
+results = build_fingerprint_matrices(pathnames, 10000)
 
 # LM: Run interpreter on command line
 import readline 
