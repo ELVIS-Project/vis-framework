@@ -148,9 +148,9 @@ def compare_strong_by_index(fp1, fp2):
     matched_intervals = []
     for i, val in enumerate(fp1c1):
         if fp1c1[i] == fp2c1[i]:
-            matched_intervals.append(fp1c1[i])
+            matched_intervals.append([fp1c1[i], i, i])
         else:
-            matched_intervals.append(np.nan)
+            matched_intervals.append([np.nan, i, i])
 
     print "Strong Beat Comparison (equi-length): " + str(matched_intervals)
 
@@ -165,7 +165,7 @@ def compare_contours(matched_intervals, fp1, fp2):
     # Consecutively misaligned indeces (cmi) that need to be checked
     cmi = []
     for i in range(len(matched_intervals)-1):
-        if np.isnan(matched_intervals[i]) and np.isnan(matched_intervals[i+1]):
+        if np.isnan(matched_intervals[i][0]) and np.isnan(matched_intervals[i+1][0]):
             cmi.append(i+1)
 
     matched_contour = [np.nan]*len(matched_intervals)
@@ -217,7 +217,7 @@ def compare_strong_displaced_weak(matched_intervals, fp1, fp2):
 
     if len(fp1c1) == len(fp2c1):
         for this_index, this_interval in enumerate(matched_intervals):
-            if np.isnan(this_interval):
+            if np.isnan(this_interval[0]):
                 # Get the element (x) at this_index in each of col1, col2 of the fingerprint
                 fp1c1x = fp1c1[this_index]
                 fp2c1x = fp2c1[this_index]
@@ -253,7 +253,7 @@ def compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2):
 
     if len(fp1c1) == len(fp2c1):
         for this_index, this_interval in enumerate(matched_intervals):
-            if np.isnan(this_interval):
+            if np.isnan(this_interval[0]):
                 pass
             # TODO handle multiple weaks
             elif fp1r1[this_index][0] == fp2r1[this_index][0]:
