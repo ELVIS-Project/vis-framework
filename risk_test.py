@@ -158,6 +158,7 @@ def compare_strong_by_index(fp1, fp2):
 
 # Compare contours of two fingerprints -- return 1, 0.5, 0 depending on whether mismatched strong intervals have same/similar contours
 def compare_contours(matched_intervals, fp1, fp2):
+    ##### STRONG CONTOURS #####
     # Extract Row_2: Intervals (0.0, 1.0), (1.0, 2.0), ..., (n-1.0, n.0)
     fp1r2 = fp1.iloc[1].tolist()
     fp2r2 = fp2.iloc[1].tolist()
@@ -201,8 +202,32 @@ def compare_contours(matched_intervals, fp1, fp2):
         else:
             sci[i] = np.nan
 
-    print "Contour Comparison: " + str(matched_contour)
-    print "Consecutive Contour Similarity Comparison: " + str(sci)
+    print "Strong Beat Contour Comparison: " + str(matched_contour)
+    print "Consecutive Strong Beat Contour Similarity Comparison: " + str(sci)
+
+
+    ##### WEAK CONTOURS #####
+    # Extract Row_1
+    fp1r1 = fp1.iloc[0].tolist()
+    fp2r1 = fp2.iloc[0].tolist()
+
+    weak_matched_contours = [np.nan]*len(matched_intervals)
+
+    for this_index, this_contour in enumerate(matched_contour):
+        if np.isnan(this_contour):
+            continue
+        elif this_index != (len(matched_contour)-1):
+            # Refer to Laura's workflow
+            start_note_result = 0.5 if (abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5) else 0
+            end_note_result = 0.5 if (abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5) else 0
+            weak_matched_contours[this_index] = start_note_result + end_note_result
+
+    print "Weak Beat Contour Comparison: " + str(weak_matched_contours)
+    
+
+# Compare weak contours of two fingerprints
+def compare_contours_weak(matched_intervals, fp1, fp2):
+    pass
 
 # Compare mismatched strong intervals of two fingerprints to their associated weak intervals
 # Will return a list of any displacement of a note on a strong interval  
