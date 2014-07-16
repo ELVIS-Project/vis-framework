@@ -8,6 +8,32 @@ import music21
 import os
 ''' INFO/USEFULS
 
+========== Terminology ==========
+1.  Fingerprint
+    1.1     Def: Two or four measures of monophonic material that identifies a strain of a piece
+2.  Strain
+    2.1     Def: A subsection of a piece - e.g. the A section, the B section etc
+3.  Strong Beat
+    3.1     Def: Offsets n*1.5 for all int n in 6/8 or 9/8 pieces, offsets n*1.0 for all int n in other pieces
+    3.2     Notes on strong beats ('strong [beat] notes') are S1, S2... etc corresponding to offsets 0.0, 1.0, 2.0, ... or offsets 0.0, 1.5, 3.0, ... depending on above
+    3.3     'Strong [beat] intervals' are Sx=>Sy, where Sx and Sy correspond to 3.2
+4.  Weak Beat
+    4.1     Def: all other offsets not categorised as a strong beat
+    4.2     Notes on weak beats ('weak [beat] notes') are W1, W2 ... etc
+    4.3     'Weak [beat] intervals' are generally Sx=>Wx, where Wx is the weak note associated with the note on Sx. 
+            Technically, Sx is the offset == to Wx's offset %1.0 or %1.5, depending on 3.1.
+            Rarely, this will be used to refer to  Wx=>Wy, where Wx and Wy correspond to 4.2
+5.  Fingerprint Matrix
+    5.1     Def: Matrix representation of the fingerprint. 
+    5.2     Actual representation is contained in Laura's Workflow
+6. Match, Matched, Matching
+    6.1     Match: comparison between two lists (Match(X, Y))
+    6.2     Matched: list of positive results from Match(X, Y) 
+    6.3     Matching: Act of doing Match(X, Y)
+    Note this means that 'List of Matching Strong Beats' makes no sense, whereas List of Matched Strong Beats is syntactically valid
+7. Note
+    7.1     Def: Scale degree, not note name.
+
 ========== Pandas indexing =========
 print time_sigs['metre.TimeSignatureIndexer']['0'] # get 1st index: results of TimeSignatureIndexer, then 2nd index: part/voice 0
 print time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] # get 1st time sig...   
@@ -107,68 +133,63 @@ def compare_lists(list1, list2):
     print "Matched intervals: " + str(matched_intervals)
     print "Count: " + str(match_count)
 
-# Compare two lists by checking the same indeces iteratively
-def compare_by_index(list1, list2):
-    print "List 1: " + str(list1)
-    print "List 2: " + str(list2)
-    if not len(list1) == len(list2):
+# Compare two lists by checking the same indeces iteratively... works only on equi-length lists
+def compare_strong_by_index(fp1, fp2):
+    # LM: Extract Column_1 [1:end]: Intervals (0.0, 1.0), (0.0, 2.0), ..., (0.0, end of piece)
+    fp1c1 = fp1.T.iloc[0].tolist()[1:]
+    fp2c1 = fp2.T.iloc[0].tolist()[1:]
+
+    print "Fingerprint_1 Column_1: " + str(fp1c1)
+    print "Fingerprint_2 Column_1: " + str(fp2c1)
+
+    if not len(fp1c1) == len(fp2c1):
         print "List lengths not equal"
         return None
     matched_intervals = []
-    for i, val in enumerate(list1):
-        if list1[i] == list2[i]:
-            matched_intervals.append(list1[i])
+    for i, val in enumerate(fp1c1):
+        if fp1c1[i] == fp2c1[i]:
+            matched_intervals.append(fp1c1[i])
         else:
             matched_intervals.append(np.nan)
+
+    print "Strong Beat Comparison (equi-length): " + str(matched_intervals)
+
     return matched_intervals
 
-# Parent comparison function
-def compare(fp1, fp2):
-    print "Fingerprint 1: "
-    print fp1
-    print "Fingerprint 2: "
-    print fp2
+# Compare contours of two fingerprints -- return 1, 0.5, 0 depending on whether mismatched strong intervals have same/similar contours
+def compare_contours(matched_intervals, fp1, fp2):
+    # Extract Row_2: Intervals (0.0, 1.0), (1.0, 2.0), ..., (n-1.0, n.0)
+    fp1r2 = fp1.iloc[1].tolist()
+    fp2r2 = fp2.iloc[1].tolist()
 
-    # LM: Extract Column 1: Intervals (0.0, 1.0), (0.0, 2.0), ..., (0.0, end of piece)
-    # Recursive call: will be i to j of i < n-1, j < n where n = max offsets
-    fp1c1 = fp1.T.iloc[0].tolist()
-    fp2c1 = fp2.T.iloc[0].tolist()
-
-    matched_list = compare_by_index(fp1c1, fp2c1)
-
-    print "Strong Beat Comparison: " + str(matched_list)
-
-
-    ### Contour Comparison ###
     # Consecutively misaligned indeces (cmi) that need to be checked
     cmi = []
-    for i in range(len(matched_list)-1):
-        if np.isnan(matched_list[i]) and np.isnan(matched_list[i+1]):
+    for i in range(len(matched_intervals)-1):
+        if np.isnan(matched_intervals[i]) and np.isnan(matched_intervals[i+1]):
             cmi.append(i+1)
 
-    matched_contour = [np.nan]*len(matched_list)
+    matched_contour = [np.nan]*len(matched_intervals)
 
     # Similar-contour indeces (sci) where similarity, not identity, is observed 
-    sci = [np.nan]*len(matched_list)
-
-    # Extract Row 1: Intervals (0.0, 1.0), (1.0, 2.0), ..., (n-1.0, n.0)
-    fp1r1 = fp1.iloc[0].tolist()
-    fp2r1 = fp2.iloc[0].tolist()
+    sci = [np.nan]*len(matched_intervals)
 
     # For each consecutively misaligned index (i.e. for each pair of misaligned intervals) in fingerprint 1, check in fingerprint 2
     for index in cmi:
-        if fp1r1[index] == fp2r1[index]:
+        # Contour identity
+        if fp1r2[index] == fp2r2[index]:
             matched_contour[index] = 1
-        elif abs(fp1r1[index] - fp2r1[index]) <= 0.5:
-            matched_contour[index] = fp1r1[index] - fp2r1[index]
+        # Contour similarity
+        elif abs(fp1r2[index] - fp2r2[index]) <= 0.5:
+            matched_contour[index] = fp1r2[index] - fp2r2[index]
             # If we have a similarity, add that to the similar-contour indeces
-            sci[index] = fp1r1[index] - fp2r1[index]
+            sci[index] = fp1r2[index] - fp2r2[index]
+        # No contour matching
         else:
             matched_contour[index] = 0
 
     # For each index in the list of similar-contour indeces, set to nan if not consecutively similar with another index
     for i, index in enumerate(sci):
-        # Have to check adjancency both forwards and backwards... also have to stop index out of range 
+        # Have to check adjancency both forwards and backwards... TODO have to stop index out of range 
         if i == 0 and (sci[i] == sci[i+1]):
             continue
         elif i == (len(sci)-1) and (sci[i] == sci[i-1]):
@@ -182,6 +203,122 @@ def compare(fp1, fp2):
 
     print "Contour Comparison: " + str(matched_contour)
     print "Consecutive Contour Similarity Comparison: " + str(sci)
+
+# Compare mismatched strong intervals of two fingerprints to their associated weak intervals
+# Will return a list of any displacement of a note on a strong interval  
+def compare_strong_displaced_weak(matched_intervals, fp1, fp2):
+    # LM: Extract Column_1 [1:end]: Intervals (0.0, 1.0), (0.0, 2.0), ..., (0.0, end of piece)
+    fp1c1 = fp1.T.iloc[0].tolist()[1:]
+    fp2c1 = fp2.T.iloc[0].tolist()[1:]
+    fp1r1 = fp1.iloc[0].tolist()
+    fp2r1 = fp2.iloc[0].tolist()
+
+    displacement = [np.nan]*len(matched_intervals)
+
+    if len(fp1c1) == len(fp2c1):
+        for this_index, this_interval in enumerate(matched_intervals):
+            if np.isnan(this_interval):
+                # Get the element (x) at this_index in each of col1, col2 of the fingerprint
+                fp1c1x = fp1c1[this_index]
+                fp2c1x = fp2c1[this_index]
+                fp1r1x = fp1r1[this_index]
+                fp2r1x = fp2r1[this_index]
+                displacement[this_index] = compare_strong_displaced_weak_helper(fp1c1x, fp2c1x, fp1r1x, fp2r1x)
+            else:
+                pass
+    else:
+        # TODO handle unequal lengths
+        pass
+    print "Displaced Strong to Weak Comparison: " + str(displacement)
+    return displacement
+
+def compare_strong_displaced_weak_helper(fp1c1x, fp2c1x, fp1r1x, fp2r1x):
+    # TODO handle multiple weak intervals
+    # For now, take the first weak interval in each element of each row_1
+    fp1r1x = fp1r1x[0]
+    fp2r1x = fp2r1x[0]
+
+    if (fp2c1x == (fp1c1x+fp1r1x)) or (fp1c1x == (fp2c1x+fp2r1x)):
+        return 1
+    else:
+        return 0
+
+def compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2):
+    fp1c1 = fp1.T.iloc[0].tolist()[1:]
+    fp2c1 = fp2.T.iloc[0].tolist()[1:]
+    fp1r1 = fp1.iloc[0].tolist()
+    fp2r1 = fp2.iloc[0].tolist()
+
+    matched_weaks = [np.nan]*len(matched_intervals)
+
+    if len(fp1c1) == len(fp2c1):
+        for this_index, this_interval in enumerate(matched_intervals):
+            if np.isnan(this_interval):
+                pass
+            # TODO handle multiple weaks
+            elif fp1r1[this_index][0] == fp2r1[this_index][0]:
+                matched_weaks[this_index] = 1
+            else:
+                matched_weaks[this_index] = 0
+    else:
+        # TODO handle unequal lengths
+        pass
+    print "Weak for Matched Strongs Comparison: " + str(matched_weaks)
+    return matched_weaks
+
+def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
+    fp1c1 = fp1.T.iloc[0].tolist()[1:]
+    fp2c1 = fp2.T.iloc[0].tolist()[1:]
+    fp1r1 = fp1.iloc[0].tolist()
+    fp2r1 = fp2.iloc[0].tolist()
+
+    matched_weaks = [np.nan]*len(matched_intervals)
+
+    if len(fp1c1) == len(fp2c1):
+        for this_index, this_interval in enumerate(matched_intervals):
+            if (this_index != len(matched_intervals)) and np.isnan(this_interval):
+                if matched_intervals[this_index+1] == this_interval:
+                    pass
+            # TODO handle multiple weaks
+            elif fp1r1[this_index][0] == fp2r1[this_index][0]:
+                matched_weaks[this_index] = 1
+            else:
+                matched_weaks[this_index] = 0
+    else:
+        # TODO handle unequal lengths
+        pass
+    print "Weak for Matched Strongs Comparison: " + str(matched_weaks)
+    return matched_weaks
+
+
+# Parent comparison function
+def compare(fp1, fp2):
+    print "Fingerprint 1: "
+    print fp1
+    print "Fingerprint 2: "
+    print fp2
+
+    # LM: Extract Column_1 [1:end]: Intervals (0.0, 1.0), (0.0, 2.0), ..., (0.0, end of piece)
+    # Recursive call: will be i to j of i < n-1, j < n where n = max offsets
+    fp1c1 = fp1.T.iloc[0].tolist()[1:]
+    fp2c1 = fp2.T.iloc[0].tolist()[1:]
+
+    # LM: Do Strong-Strong comparison 
+    if len(fp1c1) == len(fp2c1):
+        matched_intervals = compare_strong_by_index(fp1, fp2)
+    else:
+        print "Mismatching lengths.... temporarily unavailable"
+        return False
+
+    # LM: Do contour comparison 
+    compare_contours(matched_intervals, fp1, fp2)
+
+    # LM: Do Strong-Weak displacement comparison 
+    compare_strong_displaced_weak(matched_intervals, fp1, fp2)
+
+    # LM: Do Matched-Strong weak comparison
+    compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2)
+
 
 
 # Convert indexer results to format Laura's algorithm expects
@@ -315,7 +452,7 @@ test_set_path = "../risk_test_set/"
 pathnames = [ os.path.join(test_set_path, f) for f in os.listdir(test_set_path) if os.path.isfile(os.path.join(test_set_path, f)) and not f.startswith('.')]
 interval_settings = {'quality': True, 'simple or compound': 'simple', 'byTones':True}
 
-results = build_fingerprint_matrices(pathnames, 200)
+results = build_fingerprint_matrices(pathnames, 2)
 
 # LM: Run interpreter on command line
 import readline 
