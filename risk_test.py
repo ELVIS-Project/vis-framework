@@ -454,44 +454,38 @@ def compare(fp1, fp2):
     # LM: Do Strong-Strong comparison 
     if len(fp1c1) == len(fp2c1):
         matched_intervals = compare_strong_by_index(fp1, fp2)
-        #compare_strong_unequal_lengths(fp1, fp2)
     else:
         matched_intervals = compare_strong_unequal_lengths(fp1, fp2)
-    comparison_result_indices.append('Strong Beats')
+    comparison_result_indices.append('Strong Beat Comparison')
+    comparison_results.append(matched_intervals)
 
-    # LM: Do contour comparison 
-    [matched_strong_contours, matched_weak_contours] = compare_contours(matched_intervals, fp1, fp2)
-    comparison_result_indices.append('Contours (Strongs)')
-    comparison_result_indices.append('Contours (Weaks)')
-    #for v in compare_contours(matched_intervals, fp1, fp2):
-    #    comparison_results.append((Series(v).T))
-
-    # LM: Do Strong-Weak displacement comparison 
-    matched_displaced = compare_strong_displaced_weak(matched_intervals, fp1, fp2)
-    comparison_result_indices.append('Displacement (Strong-Weak)')
-    #comparison_results.append((Series(compare_strong_displaced_weak(matched_intervals, fp1, fp2)).T))
-
-    # LM: Do Matched-Strong weak comparison
-    matched_weaks_1 = compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2)
-    comparison_result_indices.append('Weak Beats (Matched Strongs)')
-    #comparison_results.append((Series(compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2)).T))
+   # LM: Do Matched-Strong weak comparison
+    comparison_result_indices.append('Weak Beats Comparison (Matched Strongs)')
+    comparison_results.append(compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2))
 
     # LM: Do Mismatched-Strong weak comparison
-    matched_weaks_2 = compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2)
-    comparison_result_indices.append('Weak Beats (Mismatched Strongs)')
-    #comparison_results.append((Series(compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2)).T))
+    comparison_result_indices.append('Weak Beats Comparison (Mismatched Strongs)')
+    comparison_results.append(compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2))
+
+    # LM: Do contour comparison 
+    comparison_result_indices.append('Contour Comparison (Strongs)')
+    comparison_result_indices.append('Contour Comparison (Weaks)')
+    comparison_results.extend(compare_contours(matched_intervals, fp1, fp2))
+
+    # LM: Do Strong-Weak displacement comparison 
+    comparison_result_indices.append('Displacement Comparison (Strong-Weak)')
+    comparison_results.append(compare_strong_displaced_weak(matched_intervals, fp1, fp2))
 
     # LM: Do Reversed-Strong comparison
-    [matched_strong_reversal, matched_weak_reversal] = compare_reversals(matched_intervals, fp1, fp2)
-    comparison_result_indices.append('Reversal (Strongs)')
-    comparison_result_indices.append('Reversal (Weaks)')
-    #for v in compare_reversals(matched_intervals, fp1, fp2):
-    #    comparison_results.append((Series(v).T))
+    comparison_result_indices.append('Reversal Comparison (Strongs)')
+    comparison_result_indices.append('Reversal Comparison (Weaks)')
+    comparison_results.extend(compare_reversals(matched_intervals, fp1, fp2))
 
-    comparison_results = DataFrame([matched_intervals, matched_strong_contours, matched_weak_contours, matched_displaced, matched_weaks_1, matched_weaks_2, matched_strong_reversal, matched_weak_reversal])
+    # LM: Construct the results of the comparison
+    comparison_results = DataFrame(comparison_results)
     comparison_results.index = comparison_result_indices
-    #comparison_results = pandas.concat(comparison_results)
-
+    comparison_results.columns = range(1, len(matched_intervals)+1)
+    #comparison_results.T
 
     print comparison_results
 
