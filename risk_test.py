@@ -452,10 +452,12 @@ def compare(fp1, fp2):
     comparison_result_indices = []
 
     # LM: Do Strong-Strong comparison 
-    if len(fp1c1) == len(fp2c1):
+    if len(fp1.iloc[0]) == len(fp2.iloc[0]):
         matched_intervals = compare_strong_by_index(fp1, fp2)
     else:
         matched_intervals = compare_strong_unequal_lengths(fp1, fp2)
+        return None
+
     comparison_result_indices.append('Strong Beat Comparison')
     comparison_results.append(matched_intervals)
 
@@ -488,6 +490,7 @@ def compare(fp1, fp2):
     #comparison_results.T
 
     print comparison_results
+    return None
 
 # Used in the above to push results to the front of their Series object
 def shift_matrix(df):
