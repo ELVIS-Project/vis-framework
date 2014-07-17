@@ -138,6 +138,41 @@ def prepare_results(results):
         result = shift_matrix(result)
         results[name] = result
 
+
+=========== Old Mismatched-Strong weak comparison =========
+if (this_index != len(matched_intervals)-1) and np.isnan(this_interval[0]):
+    # If the following is a matched strong interval
+    if not np.isnan(matched_intervals[this_index+1][0]):
+        diff_1 = fp1r1[this_index][0] - fp1r3[this_index]
+        diff_2 = fp2r1[this_index][0] - fp2r3[this_index]
+        if diff_1 == diff_2:
+            matched_weaks[this_index] = 1
+        else:
+            matched_weaks[this_index] = 0
+    # If not
+    else:
+        # Find the previous matched interval
+        previous_intervals = matched_intervals[:this_index]
+        previous_match_index = 0
+        for j in reversed(range(this_index)):
+            if not np.isnan(previous_intervals[j][0]):
+                previous_match_index = j
+                break
+        # Sets i to what Laura calls it... but off by one since she starts at 1
+        j = previous_match_index
+        i = this_index - j
+        # Calculate the results using her formula
+        model_result = fp1.iloc[2+i].tolist()[j] + fp1r1[this_index][0]
+        print fp1.iloc[1+i].tolist()[j]
+        print fp1r1[this_index][0]
+        variant_result = fp2.iloc[2+i].tolist()[j] + fp2r1[this_index][0]
+        print fp2.iloc[1+i].tolist()[j]
+        print fp2r1[this_index][0]
+        if model_result == variant_result:
+            matched_weaks[this_index] = 1
+        else:
+            matched_weaks[this_index] = 0
+
 '''
 
 # LM: Non-int range
@@ -206,7 +241,7 @@ def compare_contours(matched_intervals, fp1, fp2):
     cmi = []
     for i in range(len(matched_intervals)-1):
         if np.isnan(matched_intervals[i][0]) and np.isnan(matched_intervals[i+1][0]):
-            cmi.append(i+1)
+            cmi.append(i)
 
     matched_contour = [np.nan]*len(matched_intervals)
 
@@ -214,18 +249,18 @@ def compare_contours(matched_intervals, fp1, fp2):
     sci = [np.nan]*len(matched_intervals)
 
     # For each consecutively misaligned index (i.e. for each pair of misaligned intervals) in fingerprint 1, check in fingerprint 2
-    for index in cmi:
+    for this_index in cmi:
         # Contour identity
-        if fp1r3[index] == fp2r3[index]:
-            matched_contour[index] = 1
+        if fp1r3[this_index] == fp2r3[this_index]:
+            matched_contour[this_index] = 1
         # Contour similarity
-        elif abs(fp1r3[index] - fp2r3[index]) <= 0.5:
-            matched_contour[index] = fp1r3[index] - fp2r3[index]
+        elif abs(fp1r3[this_index] - fp2r3[this_index]) <= 0.5:
+            matched_contour[this_index] = fp1r3[this_index] - fp2r3[this_index]
             # If we have a similarity, add that to the similar-contour indeces
-            sci[index] = fp1r3[index] - fp2r3[index]
+            sci[this_index] = fp1r3[this_index] - fp2r3[this_index]
         # No contour matching
         else:
-            matched_contour[index] = 0
+            matched_contour[this_index] = 0
 
     # For each index in the list of similar-contour indeces, set to nan if not consecutively similar with another index
     for i, index in enumerate(sci):
@@ -257,9 +292,16 @@ def compare_contours(matched_intervals, fp1, fp2):
             continue
         elif this_index != (len(matched_contour)-1):
             # Refer to Laura's workflow
-            start_note_result = 0.5 if (abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5) else 0
-            end_note_result = 0.5 if (abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5) else 0
-            weak_matched_contours[this_index] = start_note_result + end_note_result
+            if fp1r1[this_index][0] == fp2r1[this_index][0]:
+                weak_matched_contours[this_index] = 1.0
+            elif abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5:
+                weak_matched_contours[this_index] = 0.5
+            else:
+                weak_matched_contours[this_index] = 0.0
+            #start_note_result = 0.5 if (abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5) else 0
+            #end_note_result = 0.5 if (abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5) else 0
+            #weak_matched_contours[this_index] = start_note_result + end_note_result
+
 
     print "Weak Beat Contour Comparison: " + str(weak_matched_contours)
     
@@ -337,35 +379,19 @@ def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
     matched_weaks = [np.nan]*len(matched_intervals)
 
     if len(fp1c1) == len(fp2c1):
-        for this_index, this_interval in enumerate(matched_intervals[:-1]):
+        for this_index, this_interval in enumerate(matched_intervals):
             # If this is not the last interval and is mismatched
-            if (this_index != len(matched_intervals)) and np.isnan(this_interval[0]):
-                # If the following is a matched strong interval
-                if not np.isnan(matched_intervals[this_index+1][0]):
-                    diff_1 = fp1r1[this_index][0] - fp1r3[this_index]
-                    diff_2 = fp2r1[this_index][0] - fp2r3[this_index]
-                    if diff_1 == diff_2:
-                        matched_weaks[this_index] = 1
-                    else:
-                        matched_weaks[this_index] = 0
-                # If not
+            if np.isnan(this_interval[0]):
+                first_result = fp1r1[this_index][0] + fp1c1[this_index]
+                second_result = fp2r1[this_index][0] + fp2c1[this_index]
+                if first_result == second_result:
+                    matched_weaks[this_index] = 1
                 else:
-                    # Find the previous matched interval
-                    previous_intervals = matched_intervals[:this_index]
-                    previous_match_index = 0
-                    for j in reversed(range(this_index)):
-                        if not np.isnan(previous_intervals[j][0]):
-                            previous_match_index = j
-                            break
-                    # Sets i to what Laura calls it... but off by one since she starts at 1
-                    i = this_index - j
-                    # Calculate the results using her formula
-                    model_result = fp1.iloc[1+i].tolist()[j] + fp1r1[this_index][0]
-                    variant_result = fp2.iloc[1+i].tolist()[j] + fp2r1[this_index][0]
-                    if model_result == variant_result:
-                        matched_weaks[this_index] = 1
-                    else:
-                        matched_weaks[this_index] = 0
+                    matched_weaks[this_index] = 0
+            # TODO handle multiple weaks
+            else:
+                pass
+            
             # TODO handle multiple weaks
             #elif fp1r1[this_index][0] == fp2r1[this_index][0]:
             #    matched_weaks[this_index] = 1
@@ -385,8 +411,8 @@ def compare_reversals(matched_intervals, fp1, fp2):
 
     matched_strong_reversals = [np.nan]*len(matched_intervals)
 
-    for this_index, this_interval in enumerate(matched_intervals[:-1]):
-        if this_index != len(matched_intervals) and np.isnan(this_interval[0]) and np.isnan(matched_intervals[this_index+1][0]):
+    for this_index, this_interval in enumerate(matched_intervals):
+        if this_index != len(matched_intervals) - 1 and np.isnan(this_interval[0]) and np.isnan(matched_intervals[this_index+1][0]):
             if fp1c1[this_index] == fp2c1[this_index+1] and fp1c1[this_index+1] == fp2c1[this_index]:
                 matched_strong_reversals[this_index] = 1
     
@@ -398,7 +424,7 @@ def compare_reversals(matched_intervals, fp1, fp2):
 
     matched_weak_reversals = [np.nan]*len(matched_strong_reversals)
 
-    for this_index, this_reversal in enumerate(matched_strong_reversals[:-1]):
+    for this_index, this_reversal in enumerate(matched_strong_reversals):
         if not np.isnan(this_reversal):
             # Refer to workflow
             first_result = 0.5 if fp1r1[this_index][0] == fp2r1[this_index+1][0] else 0
@@ -449,10 +475,10 @@ def compare(fp1, fp2):
     [matched_strong_reversal, matched_weak_reversal] = compare_reversals(matched_intervals, fp1, fp2)
     #comparison_results.append(v for v in compare_reversals(matched_intervals, fp1, fp2))
 
-    #comparison_results = DataFrame([matched_intervals, matched_strong_contours, matched_weak_contours, matched_displaced, matched_weaks_1, matched_weaks_2, matched_strong_reversal, matched_weak_reversal])
+    comparison_results = DataFrame([matched_intervals, matched_strong_contours, matched_weak_contours, matched_displaced, matched_weaks_1, matched_weaks_2, matched_strong_reversal, matched_weak_reversal])
     #comparison_results = DataFrame(comparison_results)
 
-    #print comparison_results
+    print comparison_results
 
 # Used in the above to push results to the front of their Series object
 def shift_matrix(df):
@@ -550,14 +576,14 @@ def build_fingerprint_matrices(pathnames, number_of_fingerprints = 10000):
         # LM: Assemble results
         # 1. Prepare strong_intervals -- had to change this due to change in representation... take off final column (start of new bar)
         # Take off second last column (cross-over bar):
-        strong_intervals = strong_intervals.T.iloc[:-2].T
+        strong_intervals = strong_intervals.T.iloc[:-1].T
         strong_intervals = shift_matrix(strong_intervals)
         # Had to change this due to change in representation.... take off final row
-        strong_intervals = strong_intervals.iloc[:-1]
+        strong_intervals = strong_intervals.iloc[:]
         
         # 2. Prepare weak_intervals:
-        weak_intervals = weak_intervals.iloc[:-1]
-        weak_intervals.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets)
+        weak_intervals = weak_intervals.iloc[:]
+        weak_intervals.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets+strong_beat_offsets)
 
         # 3. Row of 0s --- added after discussion with Laura pertaining to fingerprint representation
         zeros = DataFrame(Series([0.0]*(len(weak_intervals)+1))).reindex(range(1, len(weak_intervals)+1)).T
