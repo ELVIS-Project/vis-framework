@@ -178,6 +178,8 @@ if (this_index != len(matched_intervals)-1) and np.isnan(this_interval[0]):
 
 '''
 
+##################### Strong Beat Compares #####################
+
 # LM: Non-int range
 def my_range(start, step, stop):
     i = start
@@ -227,6 +229,8 @@ def compare_strong_by_index(fp1, fp2):
         return None
     matched_intervals = []
     for i, val in enumerate(fp1c1):
+        #if fp1c1[i] == "Rest":
+        #    matched_intervals.append([, i, i])
         if fp1c1[i] == fp2c1[i]:
             matched_intervals.append([fp1c1[i], i, i])
         else:
@@ -235,6 +239,8 @@ def compare_strong_by_index(fp1, fp2):
     print "Strong Beat Comparison (equi-length): " + str(matched_intervals)
 
     return matched_intervals
+
+##################### Contour Compares #####################
 
 # Compare contours of two fingerprints -- return 1, 0.5, 0 depending on whether mismatched strong intervals have same/similar contours
 def compare_contours(matched_intervals, fp1, fp2):
@@ -297,13 +303,32 @@ def compare_contours(matched_intervals, fp1, fp2):
         if np.isnan(this_contour):
             continue
         elif this_index != (len(matched_contour)-1):
-            # Refer to Laura's workflow
-            if fp1r1[this_index][0] == fp2r1[this_index][0]:
-                weak_matched_contours[this_index] = 1.0
-            elif abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5:
-                weak_matched_contours[this_index] = 0.5
-            else:
-                weak_matched_contours[this_index] = 0.0
+            # Refer to Laura's workflow... old code
+            #if fp1r1[this_index][0] == fp2r1[this_index][0]:
+            #    weak_matched_contours[this_index] = 1.0
+            #elif abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5:
+            #    weak_matched_contours[this_index] = 0.5
+            first_weaks = fp1r1[this_index]
+            second_weaks = fp2r1[this_index]
+
+            # Swap depending on length
+            if len(first_weaks) > len(second_weaks):
+                temp = second_weaks
+                second_weaks = first_weaks
+                first_weaks = temp
+
+            sm=SequenceMatcher(a=first_weaks,b=second_weaks)
+            total_weak_overlaps_inorder = 0
+
+            for (op, start1, end1, start2, end2) in sm.get_opcodes():
+                #print (op, start1, end1, start2, end2)
+                if op == 'equal':
+                    #This range appears in both sequences... add the length of the range including length 0s (1 index)
+                    total_weak_overlaps_inorder += (end1 - start1)
+
+            total_weak_overlaps_inorder = float(total_weak_overlaps_inorder)/len(first_weaks)
+
+            weak_matched_contours[this_index] = total_weak_overlaps_inorder
             #start_note_result = 0.5 if (abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5) else 0
             #end_note_result = 0.5 if (abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5) else 0
             #weak_matched_contours[this_index] = start_note_result + end_note_result
@@ -312,6 +337,8 @@ def compare_contours(matched_intervals, fp1, fp2):
     print "Weak Beat Contour Comparison: " + str(weak_matched_contours)
     
     return[matched_contour, weak_matched_contours]
+
+##################### Displaced Compares #####################
 
 # Compare mismatched strong intervals of two fingerprints to their associated weak intervals
 # Will return a list of any displacement of a note on a strong interval  
@@ -352,6 +379,9 @@ def compare_strong_displaced_weak_helper(fp1c1x, fp2c1x, fp1r1x, fp2r1x):
     else:
         return 0
 
+
+##################### Weak Beat Compares #####################
+
 def compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2):
     fp1c1 = fp1.T.iloc[0].tolist()[1:]
     fp2c1 = fp2.T.iloc[0].tolist()[1:]
@@ -364,39 +394,6 @@ def compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2):
         for this_index, this_interval in enumerate(matched_intervals):
             if np.isnan(this_interval[0]):
                 continue
-            # TODO handle multiple weaks
-            '''
-            elif set(fp1r1[this_index]) & set(fp2r1[this_index]):
-                
-                # Choose shorter list... cannot be in-place
-                first_result = fp1r1[this_index]
-                second_result = fp2r1[this_index]
-                if len(fp1r1[this_index]) > len(fp2r1[this_index]):
-                    temp = second_result
-                    second_result = first_result
-                    first_result = temp
-
-                # Total weak beats that match
-                total_weak_overlaps =  float(len(list(Counter(first_result) & Counter(second_result))))/float(len(second_result))
-
-                # Total weak beatst that match in-order
-                # Match sequences   
-                sm=SequenceMatcher(a=first_result,b=second_result)
-                total_weak_overlaps_inorder = 0
-
-                for (op, start1, end1, start2, end2) in sm.get_opcodes():
-                    #print (op, start1, end1, start2, end2)
-                    if op == 'equal':
-                        #This range appears in both sequences... add the length of the range including length 0s (1 index)
-                        total_weak_overlaps_inorder += (end1 + 1 - start1)
-
-                total_weak_overlaps_inorder = float(total_weak_overlaps_inorder)/float(len(second_result))
-                # Build for return
-                #matched_weaks[this_index] = [total_weak_overlaps, total_weak_overlaps_inorder]
-                matched_weaks[this_index] = 0.5*total_weak_overlaps + 0.5*total_weak_overlaps_inorder
-            else:
-                #matched_weaks[this_index] = [0, 0]
-                '''
             first_weaks = fp1r1[this_index]
             second_weaks = fp2r1[this_index]
             matched_weaks[this_index] = weak_matching_helper(first_weaks, second_weaks)
@@ -422,38 +419,6 @@ def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
             if np.isnan(this_interval[0]):
                 first_weaks = [weak + fp1c1[this_index] for weak in fp1r1[this_index]]
                 second_weaks = [weak + fp2c1[this_index] for weak in fp2r1[this_index]]
-                '''
-                if set(first_result) & set(second_result):
-                    
-                    # Choose shorter list... 
-                    if len(first_result) > len(second_result):
-                        temp = second_result
-                        second_result = first_result
-                        first_result = temp
-
-                    # Total weak beats that match
-                    total_weak_overlaps =  len(list(Counter(first_result) & Counter(second_result)))
-
-
-                    # Total weak beatst that match in-order
-                    # 2. Match sequences   
-                    sm=SequenceMatcher(a=first_result,b=second_result)
-                    total_weak_overlaps_inorder = 0
-
-                    for (op, start1, end1, start2, end2) in sm.get_opcodes():
-                        #print (op, start1, end1, start2, end2)
-                        if op == 'equal':
-                            #This range appears in both sequences... add the length of the range including length 0s (1 index)
-                            total_weak_overlaps_inorder += (end1 + 1 - start1)
-
-                    total_weak_overlaps_inorder = float(total_weak_overlaps_inorder)/float(len(second_result))
-                    # Build for return
-                    #matched_weaks[this_index] = [total_weak_overlaps, total_weak_overlaps_inorder]
-                    matched_weaks[this_index] = 0.5*total_weak_overlaps + 0.5*total_weak_overlaps_inorder
-                else:
-                    #matched_weaks[this_index] = [0, 0]
-                    matched_weaks[this_index] = 0
-                    '''
                 matched_weaks[this_index] = weak_matching_helper(first_weaks, second_weaks)
             else:
                 pass
@@ -463,6 +428,37 @@ def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
     
     print "Weak Beats for Mismatched Strongs Comparison: " + str(matched_weaks)
     return matched_weaks
+
+def weak_matching_helper(first_weaks, second_weaks):
+    if set(first_weaks) & set(second_weaks):
+        # Choose shorter list... 
+        if len(first_weaks) > len(second_weaks):
+            temp = second_weaks
+            second_weaks = first_weaks
+            first_weaks = temp
+        # Total weak beats that match
+        total_weak_overlaps =  float(len(list(Counter(first_weaks) & Counter(second_weaks))))/float(len(first_weaks))
+        # Total weak beatst that match in-order
+        # Match sequences   
+        sm=SequenceMatcher(a=first_weaks,b=second_weaks)
+        total_weak_overlaps_inorder = 0
+
+        for (op, start1, end1, start2, end2) in sm.get_opcodes():
+            #print (op, start1, end1, start2, end2)
+            if op == 'equal':
+                #This range appears in both sequences... add the length of the range including length 0s (1 index)
+                total_weak_overlaps_inorder += (end1 - start1)
+
+        total_weak_overlaps_inorder = float(total_weak_overlaps_inorder)/float(len(first_weaks))
+        # Tuple representation:
+        return [0.5*total_weak_overlaps, 0.5*total_weak_overlaps_inorder]
+        #return 0.5*total_weak_overlaps + 0.5*total_weak_overlaps_inorder
+    # Tuple representation:
+    return [0, 0]
+    #return 0
+
+
+##################### Reversal Compare #####################
 
 def compare_reversals(matched_intervals, fp1, fp2):
     # Compare the strong beats for reversals
@@ -492,98 +488,27 @@ def compare_reversals(matched_intervals, fp1, fp2):
             #if set(fp1r1[this_index]) & set(fp2r1[this_index+1]):
             first_weaks1 = fp1r1[this_index]
             second_weaks1 = fp2r1[this_index+1]
-            '''   
-             # Choose shorter list... 
-                if len(first_weaks) > len(second_weaks):
-                    temp = second_weaks
-                    second_weaks = first_weaks
-                    first_weaks = temp
-                # Total weak beats that match
-                total_weak_overlaps =  len(list(Counter(first_weaks) & Counter(second_weaks)))
-                # Total weak beatst that match in-order
-                # Match sequences   
-                sm=SequenceMatcher(a=first_weaks,b=second_weaks)
-                total_weak_overlaps_inorder = 0
-
-                for (op, start1, end1, start2, end2) in sm.get_opcodes():
-                    #print (op, start1, end1, start2, end2)
-                    if op == 'equal':
-                        #This range appears in both sequences... add the length of the range including length 0s (1 index)
-                        total_weak_overlaps_inorder += (end1 + 1 - start1)
-
-                total_weak_overlaps_inorder = float(total_weak_overlaps_inorder)/float(len(second_weaks))
-
-                first_result = 0.5*total_weak_overlaps + 0.5*total_weak_overlaps_inorder
-            else:
-                first_result = 0'''
             first_result = weak_matching_helper(first_weaks1, second_weaks1)
 
             # Calculate overlaps (nonordered / ordered).... For fp1 strong 2 and fp2 strong 1
             #if set(fp2r1[this_index]) & set(fp1r1[this_index+1]):
             first_weaks2 = fp2r1[this_index]
             second_weaks2 = fp1r1[this_index+1]
-            '''
-                # Choose shorter list... 
-                if len(first_weaks) > len(second_weaks):
-                    temp = second_weaks
-                    second_weaks = first_weaks
-                    first_weaks = temp
-                # Total weak beats that match
-                total_weak_overlaps =  len(list(Counter(first_weaks) & Counter(second_weaks)))
-                # Total weak beatst that match in-order
-                # Match sequences   
-                sm=SequenceMatcher(a=first_weaks,b=second_weaks)
-                total_weak_overlaps_inorder = 0
 
-                for (op, start1, end1, start2, end2) in sm.get_opcodes():
-                    #print (op, start1, end1, start2, end2)
-                    if op == 'equal':
-                        #This range appears in both sequences... add the length of the range including length 0s (1 index)
-                        total_weak_overlaps_inorder += (end1 + 1 - start1)
-
-                total_weak_overlaps_inorder = float(total_weak_overlaps_inorder)/float(len(second_weaks))
-
-                second_result = 0.5*total_weak_overlaps + 0.5*total_weak_overlaps_inorder
-            else:
-                second_result = 0'''
             second_result = weak_matching_helper(first_weaks2, second_weaks2)
 
             #first_result = 0.5 if set(fp1r1[this_index]) & set(fp2r1[this_index+1]) else 0
             #second_result = 0.5 if set(fp2r1[this_index]) & set(fp1r1[this_index+1]) else 0
 
-            matched_weak_reversals[this_index] = first_result + second_result
+            matched_weak_reversals[this_index] = [first_result, second_result]
 
     print "Weak Beat Reversal Comparison: " + str(matched_weak_reversals)
 
     return [matched_strong_reversals, matched_weak_reversals]
 
-def weak_matching_helper(first_weaks, second_weaks):
-    if set(first_weaks) & set(second_weaks):
-        # Choose shorter list... 
-        if len(first_weaks) > len(second_weaks):
-            temp = second_weaks
-            second_weaks = first_weaks
-            first_weaks = temp
-        # Total weak beats that match
-        total_weak_overlaps =  float(len(list(Counter(first_weaks) & Counter(second_weaks))))/float(len(second_weaks))
-        # Total weak beatst that match in-order
-        # Match sequences   
-        sm=SequenceMatcher(a=first_weaks,b=second_weaks)
-        total_weak_overlaps_inorder = 0
 
-        for (op, start1, end1, start2, end2) in sm.get_opcodes():
-            #print (op, start1, end1, start2, end2)
-            if op == 'equal':
-                #This range appears in both sequences... add the length of the range including length 0s (1 index)
-                total_weak_overlaps_inorder += (end1 + 1 - start1)
 
-        total_weak_overlaps_inorder = float(total_weak_overlaps_inorder)/float(len(second_weaks))
-        # Tuple representation:
-        # return [total_weak_overlaps, total_weak_overlaps_inorder]
-        return 0.5*total_weak_overlaps + 0.5*total_weak_overlaps_inorder
-    # Tuple representation:
-    # return [0, 0]
-    return 0
+##################### Parent Compare #####################
 
 # Parent comparison function
 def compare(fp1, fp2):
@@ -697,6 +622,8 @@ def build_weak_intervals(piece, interval_settings, strong_beat_offsets, total_of
 
     return weak_intervals
 
+def remove_rests(fp):
+    pass
 
 def build_fingerprint_matrices(pathnames, number_of_fingerprints = 10000):
     # pathnames: List of paths to each piece for which a fingerprint matrix should be built
@@ -714,7 +641,7 @@ def build_fingerprint_matrices(pathnames, number_of_fingerprints = 10000):
         # Assuming no time signature change in whole piece, assign offsets to strong beats
         if time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '6/8' or time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '9/8':
             strong_beat_offsets = 1.5
-            measures = 4
+            measures = 2
         else:
             strong_beat_offsets = 1.0
             measures = 2
