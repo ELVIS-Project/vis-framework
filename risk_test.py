@@ -203,12 +203,15 @@ def compare_strong_unequal_lengths(fp1, fp2):
     matched_intervals = []
 
     for (op, start1, end1, start2, end2) in sm.get_opcodes():
-        #print (op, start1, end1, start2, end2)
+        print (op, start1, end1, start2, end2)
         if op == 'equal':
             #This range appears in both sequences.
             for this_index, this_interval in enumerate(fp1c1[start1:end1]):
                 matched_intervals.append([this_interval, start1+this_index, start2+this_index])
                 #print matched_intervals
+        if op == 'delete' and end1-start1 == end2-start2:
+            for this_index in range(end1-start1):
+                matched_intervals.append([np.nan, start1+this_index, start2+this_index])
 
     print "Strong Beat Comparison (different lengths): " + str(matched_intervals)
 
@@ -253,26 +256,30 @@ def compare_contours(matched_intervals, fp1, fp2):
     cmi = []
     for i in range(len(matched_intervals)-1):
         if np.isnan(matched_intervals[i][0]) and np.isnan(matched_intervals[i+1][0]):
-            cmi.append([matched_intervals[i][1], matched_intervals[i][2]])
+            cmi.append([i, matched_intervals[i][1], matched_intervals[i][2]])
 
     matched_contour = [np.nan]*len(matched_intervals)
+    matched_contour_extended = [[np.nan]*3]*len(matched_intervals)
 
     # Similar-contour indicies (sci) where similarity, not identity, is observed 
     sci = [np.nan]*len(matched_intervals)
 
     # For each consecutively misaligned index (i.e. for each pair of misaligned intervals) in fingerprint 1, check in fingerprint 2
-    for [this_index, that_index] in cmi:
+    for [this_index, this_index_1, this_index_2] in cmi:
         # Contour identity
-        if fp1r3[this_index] == fp2r3[this_index]:
+        if fp1r3[this_index_1] == fp2r3[this_index_2]:
             matched_contour[this_index] = 1
+            matched_contour_extended[this_index] = [1, this_index_1, this_index_2]
         # Contour similarity
-        elif abs(fp1r3[this_index] - fp2r3[this_index]) <= 0.5:
-            matched_contour[this_index] = fp1r3[this_index] - fp2r3[this_index]
+        elif abs(fp1r3[this_index_1] - fp2r3[this_index_2]) <= 0.5:
+            matched_contour[this_index] = fp1r3[this_index_1] - fp2r3[this_index_2]
+            matched_contour_extended[this_index] = [fp1r3[this_index_1] - fp2r3[this_index_2], this_index_1, this_index_2]
             # If we have a similarity, add that to the similar-contour indices
-            sci[this_index] = fp1r3[this_index] - fp2r3[this_index]
+            sci[this_index] = fp1r3[this_index_1] - fp2r3[this_index_2]
         # No contour matching
         else:
             matched_contour[this_index] = 0
+            matched_contour_extended[this_index] = [0, this_index_1, this_index_2]
 
     # For each index in the list of similar-contour indices, set to nan if not consecutively similar with another index
     for i, this_index in enumerate(sci):
@@ -299,7 +306,7 @@ def compare_contours(matched_intervals, fp1, fp2):
 
     weak_matched_contours = [np.nan]*len(matched_intervals)
 
-    for this_index, this_contour in enumerate(matched_contour):
+    for this_index, [this_contour, this_index_1, this_index_2] in enumerate(matched_contour_extended):
         if np.isnan(this_contour):
             continue
         elif this_index != (len(matched_contour)-1):
@@ -308,8 +315,8 @@ def compare_contours(matched_intervals, fp1, fp2):
             #    weak_matched_contours[this_index] = 1.0
             #elif abs(fp1r1[this_index][0]-fp2r1[this_index][0]) <= 0.5:
             #    weak_matched_contours[this_index] = 0.5
-            first_weaks = fp1r1[this_index]
-            second_weaks = fp2r1[this_index]
+            first_weaks = fp1r1[this_index_1]
+            second_weaks = fp2r1[this_index_2]
 
             # Swap depending on length
             if len(first_weaks) > len(second_weaks):
@@ -351,20 +358,17 @@ def compare_strong_displaced_weak(matched_intervals, fp1, fp2):
 
     displacement = [np.nan]*len(matched_intervals)
 
-    if len(fp1c1) == len(fp2c1):
-        for this_index, this_interval in enumerate(matched_intervals):
-            if np.isnan(this_interval[0]):
-                # Get the element (x) at this_index in each of col1, col2 of the fingerprint
-                fp1c1x = fp1c1[this_index]
-                fp2c1x = fp2c1[this_index]
-                fp1r1x = fp1r1[this_index]
-                fp2r1x = fp2r1[this_index]
-                displacement[this_index] = compare_strong_displaced_weak_helper(fp1c1x, fp2c1x, fp1r1x, fp2r1x)
-            else:
-                pass
-    else:
-        # TODO handle unequal lengths
-        pass
+    for this_index, [this_interval, this_index_1, this_index_2] in enumerate(matched_intervals):
+        if np.isnan(this_interval):
+            # Get the element (x) at this_index in each of col1, col2 of the fingerprint
+            fp1c1x = fp1c1[this_index_1]
+            fp2c1x = fp2c1[this_index_2]
+            fp1r1x = fp1r1[this_index_1]
+            fp2r1x = fp2r1[this_index_2]
+            displacement[this_index] = compare_strong_displaced_weak_helper(fp1c1x, fp2c1x, fp1r1x, fp2r1x)
+        else:
+            pass
+
     print "Displaced Strong to Weak Comparison: " + str(displacement)
     return displacement
 
@@ -390,16 +394,14 @@ def compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2):
 
     matched_weaks = [np.nan]*len(matched_intervals)
 
-    if len(fp1c1) == len(fp2c1):
-        for this_index, this_interval in enumerate(matched_intervals):
-            if np.isnan(this_interval[0]):
-                continue
-            first_weaks = fp1r1[this_index]
-            second_weaks = fp2r1[this_index]
-            matched_weaks[this_index] = weak_matching_helper(first_weaks, second_weaks)
-    else:
-        # TODO handle unequal lengths
-        pass
+
+    for this_index, [this_interval, this_index_1, this_index_2] in enumerate(matched_intervals):
+        if np.isnan(this_interval):
+            continue
+        first_weaks = fp1r1[this_index_1]
+        second_weaks = fp2r1[this_index_2]
+        matched_weaks[this_index] = weak_matching_helper(first_weaks, second_weaks)
+
     print "Weak Beats for Matched Strongs Comparison: " + str(matched_weaks)
     return matched_weaks
 
@@ -413,19 +415,16 @@ def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
 
     matched_weaks = [np.nan]*len(matched_intervals)
 
-    if len(fp1c1) == len(fp2c1):
-        for this_index, this_interval in enumerate(matched_intervals):
-            # If this is not the last interval and is mismatched
-            if np.isnan(this_interval[0]):
-                first_weaks = [weak + fp1c1[this_index] for weak in fp1r1[this_index]]
-                second_weaks = [weak + fp2c1[this_index] for weak in fp2r1[this_index]]
-                matched_weaks[this_index] = weak_matching_helper(first_weaks, second_weaks)
-            else:
-                pass
-    else:
-        # TODO handle unequal lengths
-        pass
-    
+
+    for this_index, [this_interval, this_index_1, this_index_2] in enumerate(matched_intervals):
+        # If this is not the last interval and is mismatched
+        if np.isnan(this_interval):
+            first_weaks = [weak + fp1c1[this_index_1] for weak in fp1r1[this_index_1]]
+            second_weaks = [weak + fp2c1[this_index_2] for weak in fp2r1[this_index_2]]
+            matched_weaks[this_index] = weak_matching_helper(first_weaks, second_weaks)
+        else:
+            pass
+
     print "Weak Beats for Mismatched Strongs Comparison: " + str(matched_weaks)
     return matched_weaks
 
@@ -466,11 +465,13 @@ def compare_reversals(matched_intervals, fp1, fp2):
     fp2c1 = fp2.T.iloc[0].tolist()[1:]
 
     matched_strong_reversals = [np.nan]*len(matched_intervals)
+    matched_strong_reversals_extended = [[np.nan]*3]*len(matched_intervals)
 
-    for this_index, this_interval in enumerate(matched_intervals):
-        if this_index != len(matched_intervals) - 1 and np.isnan(this_interval[0]) and np.isnan(matched_intervals[this_index+1][0]):
-            if fp1c1[this_index] == fp2c1[this_index+1] and fp1c1[this_index+1] == fp2c1[this_index]:
+    for this_index, [this_interval, this_index_1, this_index_2] in enumerate(matched_intervals):
+        if this_index != len(matched_intervals) - 1 and np.isnan(this_interval) and np.isnan(matched_intervals[this_index+1][0]):
+            if fp1c1[this_index_1] == fp2c1[this_index_2+1] and fp1c1[this_index_1+1] == fp2c1[this_index_2]:
                 matched_strong_reversals[this_index] = 1
+                matched_strong_reversals_extended[this_index] = [1, this_index_1, this_index_2]
     
     print "Strong Beat Reversal Comparison: " + str(matched_strong_reversals)
 
@@ -480,20 +481,20 @@ def compare_reversals(matched_intervals, fp1, fp2):
 
     matched_weak_reversals = [np.nan]*len(matched_strong_reversals)
 
-    for this_index, this_reversal in enumerate(matched_strong_reversals):
+    for this_index, [this_reversal, this_index_1, this_index_2] in enumerate(matched_strong_reversals_extended):
         if not np.isnan(this_reversal):
             # Refer to workflow
 
             # Calculate overlaps (nonordered / ordered).... For fp1 strong 1 and fp2 strong 2
             #if set(fp1r1[this_index]) & set(fp2r1[this_index+1]):
-            first_weaks1 = fp1r1[this_index]
-            second_weaks1 = fp2r1[this_index+1]
+            first_weaks1 = fp1r1[this_index_1]
+            second_weaks1 = fp2r1[this_index_2+1]
             first_result = weak_matching_helper(first_weaks1, second_weaks1)
 
             # Calculate overlaps (nonordered / ordered).... For fp1 strong 2 and fp2 strong 1
             #if set(fp2r1[this_index]) & set(fp1r1[this_index+1]):
-            first_weaks2 = fp2r1[this_index]
-            second_weaks2 = fp1r1[this_index+1]
+            first_weaks2 = fp2r1[this_index_2]
+            second_weaks2 = fp1r1[this_index_1+1]
 
             second_result = weak_matching_helper(first_weaks2, second_weaks2)
 
@@ -530,7 +531,6 @@ def compare(fp1, fp2):
         matched_intervals = compare_strong_by_index(fp1, fp2)
     else:
         matched_intervals = compare_strong_unequal_lengths(fp1, fp2)
-        return None
 
     comparison_result_indices.append('Strong Beat Comparison')
     comparison_results.append(matched_intervals)
