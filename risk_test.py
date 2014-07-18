@@ -230,7 +230,7 @@ def compare_strong_by_index(fp1, fp2):
     matched_intervals = []
     for i, val in enumerate(fp1c1):
         #if fp1c1[i] == "Rest":
-        #    matched_intervals.append([, i, i])
+        #    matched_intervals.append([np.nan, i, i])
         if fp1c1[i] == fp2c1[i]:
             matched_intervals.append([fp1c1[i], i, i])
         else:
@@ -674,7 +674,9 @@ def build_fingerprint_matrices(pathnames, number_of_fingerprints = 10000):
         weak_intervals.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets+strong_beat_offsets)
 
         # 3. Row of 0s --- added after discussion with Laura pertaining to fingerprint representation
-        zeros = DataFrame(Series([0.0]*(len(weak_intervals)+1))).reindex(range(1, len(weak_intervals)+1)).T
+        zeros = DataFrame(Series([0.0]*(len(weak_intervals))))
+        zeros.index = (my_range(strong_beat_offsets, strong_beat_offsets, total_offsets+strong_beat_offsets))
+        zeros = zeros.T
 
         # 4. Append 
         fingerprint_frame = pandas.concat([weak_intervals.T, zeros, strong_intervals])
