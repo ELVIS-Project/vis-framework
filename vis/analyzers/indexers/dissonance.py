@@ -541,7 +541,7 @@ def passing_ind_func(obj):
     diss_ind = u'dissonance.ConsMakerIndexer'
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
     int_ind = u'interval.IntervalIndexer'
-
+    cons_ints = [8, 6, 5, 3, 1, -3, -5, -6, -8]
     row_one, row_two, row_three = obj
 
     # this avoids the list's reallocation penalty if we used append()
@@ -572,78 +572,23 @@ def passing_ind_func(obj):
             #print('beat_strength_two: %s; beat_strength_three: %s' % (beat_strength_two, beat_strength_three))  # DEBUG
             if 'Rest' in (a, p, d, x):
                 post[post_i] = _PASS_OTHER_LABEL
-            # Classify!
-            #elif d < 0:       ## DEBUG, this seems undesirable and commenting it out seems to have no effect.
-                #post[post_i] = _PASS_OTHER_LABEL
-            elif a == -2 and x == 1 and b == -2: # "upper" voice is descending
-                if ((p == 8 and d == 7) or
-                    (p == 6 and d == 5) or # NB: d can only equal 5 if the fifth is not perfect.
-                     (p == 5 and d == 4) or
-                      (p == 3 and d == 2) or
-                       ((p == 1 or p == 8) and d == -2) or
-                        (p == -3 and d == -4) or
-                         (p == -4 and d == -5) or
-                          (p == -6 and d == -7)):
+
+            elif a == -2 and x == 1 and b == -2: # upper voice is descending
+                if p in cons_ints and (d == p - 1 or (p == -8 and d == -2) or (p == 1 and d == -2)):
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
-            #elif 1 == x and d > 0: # upper voice is moving and voices are not crossed
-                #if ((p == d + 1) and
-                    #(y > 0 and (r == d - y or (p == 3 and d == 2 and r == 8)) or
-                     #((y < 0 or y > d - 1) and r == d - y - 2))):
-                    ## upper-voice descending
-                    #post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
+
             elif a == 2 and x == 1 and b == 2: # upper voice is rising
-                if (((p == 1 or p == 8) and d == 2) or
-                    (p == 3 and d == 4) or
-                     (p == 4 and d == 5) or
-                      (p == 6 and d == 7) or
-                       (p == -8 and d == -7) or
-                        (p == -6 and d == -5) or
-                         (p == -5 and d == -4) or
-                          (p == -3 and d == -2)):
+                if p in cons_ints and (d == p + 1 or (p == 8 and d == 2)):
                     post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
 
-                #elif ((p == d - 1 or p == d - 6) and
-                      #((y > 0 and r == d - y + 2) or (p == 8 and d == 2 and r == 3) or
-                       #((y < 0 or y > d - 1) and r == d - y))):
-                    ## upper-voice rising
-                    #post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
-                #else:
-                    #post[post_i] = _PASS_OTHER_LABEL
             elif x == -2 and a == 1 and y == -2: # lower voice descending
-                if (((p == 1 or p == 8) and d == 2) or
-                    (p == 3 and d == 4) or
-                     (p == 4 and d == 5) or # This scenario seems musically improbable.
-                      (p == 6 and d == 7) or
-                       (p == -8 and d == -7) or
-                        (p == -6 and d == -5) or
-                         (p == -5 and d == -4) or
-                          (p == -3 and d == -2)):
+                if p in cons_ints and (d = p + 1 or (p == 8 and d == 2)):
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
 
-            #elif 1 == a:
-                #if ((p == d - 1 or p == d + 6) and     # +6 is used because of 8ve equivalence.
-                    #((b > 0 and r == d + b) or
-                     #((b < 0 or b > d - 1) and r == d + b + 2))):
-                    ## lower-voice descending
-                    #post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
-
             elif x == 2 and a == 1 and y == 2: # lower voice rising
-                if (((p == 1 or p == -8) and d == -2) or
-                    (p == 3 and d == 2) or
-                     (p == 5 and d == 4) or
-                      (p == 6 and d == 5) or
-                       (p == 8 and d == 7) or
-                        (p == -3 and d == -4) or
-                         (p == -4 and d == -5) or
-                          (p == -6 and d == -7)):
+                if p in cons_ints and (d = p - 1 or (p == -8 and d == -2) or (p == 1 and d == -2)):
                     post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
-                #elif ((p == d + 1) and
-                      #((b > 0 and r == d + b - 2) or
-                       #((b < 0 or b > d - 1) and r == d + b))):
-                    ## lower-voice rising
-                    #post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
-                #else:
-                    #post[post_i] = _PASS_OTHER_LABEL
+
             else:
                 post[post_i] = _PASS_OTHER_LABEL
 
