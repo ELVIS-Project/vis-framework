@@ -398,6 +398,7 @@ def neighbour_ind_func(obj):
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
     int_ind = u'interval.IntervalIndexer'
     beat_ind = 'metre.NoteBeatStrengthIndexer'
+    cons_ints = [8, 6, 5, 3, 1, -3, -5, -6, -8]
 
     row_one, row_two, row_three = obj
 
@@ -437,72 +438,20 @@ def neighbour_ind_func(obj):
             elif (beat_strength_one < beat_strength_two) or (beat_strength_three < beat_strength_two):
                 post[post_i] = _NEIGH_NODISS_LABEL
             # see if it's an upper neighbour in the upper part
-            elif a == 2 and x == 1 and b == -2:
-                if (((c == 1 or c == 8) and d == 2) or
-                    (c == 3 and d == 4) or
-                     (c == 4 and d == 5) or # d can only be equal to 5 if it is not a perfect 5th
-                      (c == 6 and d == 7) or
-                       (c == -8 and d == -7) or #these last four are for when the voices are crossed but the 'upper' voice has the neighbor note
-                        (c == -6 and d == -5) or
-                         (c == -5 and d == -4) or
-                          (c == -3 and d == -2)):
-                    post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
-      #(      #elif (c == d - 1) and ((z == d - y and y > 0) or (z == d - y - 2 and y < 0)):
-                ##post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
-            #)
+            elif a == 2 and x == 1 and b == -2 and c in cons_ints:
+                post[post_i] = ''.join((str(upper_i), ':', _NEIGH_UN_LABEL))
 
             # see if it's a lower neighbour in the upper part
-            elif a == -2 and x == 1 and b == 2:
-                if (((c == 1 and d == -2) or (c == 8 and d == 7) or
-                    (c == 3 and d == 2) or
-                     (c == 5 and d == 4) or
-                      (c == 6 and d == 5) or
-                       (c == -8 and d == -2)) or #these last three are for when the voices are crossed but the 'upper' voice has the neighbor note
-                        (c == -6 and d == -7) or
-                         (c == -4 and d == -5) or
-                          (c == -3 and d == -4)):
-                    post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
-
-            #(elif (c == d + 1) and ((z == d - y + 2 and y > 0) or (z == d - y and y < 0)):
-                #post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
-            #)
-
-            #(elif (((c == 1 or c == 8) and a == 2 and d == 2 and b == -2) or
-                  #(c == 3 and a == 2 and d == 4 and b == -2)):
-                #)
+            elif a == -2 and x == 1 and b == 2 and c in cons_ints:
+                post[post_i] = ''.join((str(upper_i), ':', _NEIGH_LN_LABEL))
 
             # see if it's an upper neighbour in the lower part
-            elif x == 2 and a == 1 and y == -2:
-                if (((c == 1 and d == -2) or (c == 8 and d == 7)) or
-                    (c == 3 and d == 2) or
-                     (c == 5 and d == 4) or
-                      (c == 6 and d == 5) or
-                       (c == -8 and d == -2) or
-                        (c == -6 and d == -7) or
-                         (c == -4 and d == -5) or
-                          (c == -3 and d == -4)):
-                    post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
-
-            #(elif (c == d + 1) and (2 == x) and (-2 == y):
-                #post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
-            #)
+            elif x == 2 and a == 1 and y == -2 and c in cons_ints:
+                post[post_i] = ''.join((str(lower_i), ':', _NEIGH_UN_LABEL))
 
             # see if it's a lower neighbour in the lower part
-            #(elif (c == d - 1) and (-2 == x) and (2 == y):
-                #post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
-            #)
-
-            # see if it's a lower neighbour in the lower part
-            elif x == -2 and a == 1 and y == 2:
-                if (((c == 1 or c == 8) and d == 2) or
-                    (c == 3 and d == 4) or
-                     (c == 4 and d == 5) or
-                      (c == 6 and d == 7) or
-                       (c == -8 and d == -7) or
-                        (c == -6 and d == -5) or
-                         (c == -5 and d == -4) or
-                          (c == -3 and d == -2)):
-                    post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
+            elif x == -2 and a == 1 and y == 2 and c in cons_ints:
+                post[post_i] = ''.join((str(lower_i), ':', _NEIGH_LN_LABEL))
             else:
                 post[post_i] = _NEIGH_OTHER_LABEL
         else:
