@@ -573,21 +573,17 @@ def passing_ind_func(obj):
             if 'Rest' in (a, p, d, x):
                 post[post_i] = _PASS_OTHER_LABEL
 
-            elif a == -2 and x == 1 and b == -2: # upper voice is descending
-                if p in cons_ints and (d == p - 1 or (p == -8 and d == -2) or (p == 1 and d == -2)):
-                    post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
+            elif a == -2 and x == 1 and b == -2 and p in cons_ints: # upper voice is descending
+                post[post_i] = ''.join((str(upper_i), ':', _PASS_DP_LABEL))
 
-            elif a == 2 and x == 1 and b == 2: # upper voice is rising
-                if p in cons_ints and (d == p + 1 or (p == 8 and d == 2)):
-                    post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
+            elif a == 2 and x == 1 and b == 2 and p in cons_ints: # upper voice is rising
+                post[post_i] = ''.join((str(upper_i), ':', _PASS_RP_LABEL))
 
-            elif x == -2 and a == 1 and y == -2: # lower voice descending
-                if p in cons_ints and (d = p + 1 or (p == 8 and d == 2)):
-                    post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
+            elif x == -2 and a == 1 and y == -2 and p in cons_ints: # lower voice descending
+                post[post_i] = ''.join((str(lower_i), ':', _PASS_DP_LABEL))
 
-            elif x == 2 and a == 1 and y == 2: # lower voice rising
-                if p in cons_ints and (d = p - 1 or (p == -8 and d == -2) or (p == 1 and d == -2)):
-                    post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
+            elif x == 2 and a == 1 and y == 2 and p in cons_ints: # lower voice rising
+                post[post_i] = ''.join((str(lower_i), ':', _PASS_RP_LABEL))
 
             else:
                 post[post_i] = _PASS_OTHER_LABEL
