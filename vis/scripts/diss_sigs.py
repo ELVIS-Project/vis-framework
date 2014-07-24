@@ -37,9 +37,9 @@ import pandas
 # the piece we'll analyze... currently Kyrie of Palestrina's Missa "Dies sanctificatus"
 print(u'\n\nLoading the piece and running the NoteRestIndexer...\n')
 #piece_path = u'vis/tests/corpus/Palestrina-Lhomme_arme_1582-Agnus_I.krn'
-#piece_path = u'vis/tests/corpus/Kyrie.krn'
+piece_path = u'vis/tests/corpus/Kyrie.krn'
 #piece_path = u'vis/tests/corpus/bwv2.xml'
-piece_path = u'/home/amor/Desktop/ELVIS_Meeting/J and P Lassus Files/Best duo score files/Lassus_3_Oculus.xml'
+#piece_path = u'/home/amor/Desktop/ELVIS_Meeting/J and P Lassus Files/Best duo score files/Lassus_3_Oculus.xml'
 the_piece = IndexedPiece(piece_path)
 
 # don't touch this (yet); it's settings required by DissonanceIndexer
