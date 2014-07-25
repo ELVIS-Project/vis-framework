@@ -92,7 +92,8 @@ print(u'\n\nRunning the dissonance-classification indexers...')
 susp_df = dissonance.SuspensionIndexer(new_df).run()
 neigh_df = dissonance.NeighbourNoteIndexer(new_df).run()
 pass_df = dissonance.PassingNoteIndexer(new_df).run()
-combined_df = dissonance.ReconciliationIndexer(pandas.concat([susp_df, neigh_df, pass_df], axis=1)).run()
+camb_df = dissonance.NotaCambiataIndexer(new_df).run()
+combined_df = dissonance.ReconciliationIndexer(pandas.concat([susp_df, neigh_df, pass_df, camb_df], axis=1)).run()
 
 # output the whole DataFrame to a CSV file, for easy viewing
 print('\nOutputting per-piece results to a spreadsheet\n')

@@ -54,6 +54,9 @@ from vis.analyzers import indexer
 from .interval import interval_to_int
 
 _CONS_MAKER_NODISS_LABEL = nan
+_CAMB_LABEL = 'NC'
+_CAMB_OTHER_LABEL = 'o'
+_CAMB_NODISS_LABEL = nan
 
 # Used by susp_ind_func() as the labels for suspensions and other dissonances. They're module-level
 # so they can be changed, and possibly withstand multiprocessing... and so the unit tests can
@@ -274,10 +277,10 @@ def susp_ind_func(obj):
                   and beat_strength_two > beat_strength_three):  # strong-beat diss  # TODO: untested
                 post[post_i] = ''.join((str(lower_i), ':', _SUSP_SUSP_LABEL))
            # for fake suspensions; z can == 3 because if the two fourths are one note, a new event may not be generated
-            elif ((2 == a or -2 == a) and (1 == x or 8 == x or -8 == x) and 4 == d and 1 == b and
+            elif ((2 == a or -2 == a) and (1 == x or 8 == x or -8 == x) and 4 == d and
                   (1 == y or 8 == y or -8 == y) and
-                  ((4 == z and beat_strength_one > beat_strength_two and beat_strength_three > beat_strength_two)
-                   or (3 == z and beat_strength_one > beat_strength_two and beat_strength_three == beat_strength_two))):
+                  ((1 == b and 4 == z and beat_strength_one > beat_strength_two and beat_strength_three > beat_strength_two) or
+                   (-2 == b and 3 == z and beat_strength_one > beat_strength_two and beat_strength_three == beat_strength_two))):
                 post[post_i] = ''.join((str(upper_i), ':', _SUSP_FAKE_LABEL))
             elif (1 == a and ((y >= 1 and (d - y == z or (d == 2 and z == 8))) or  # if the lower voice ascends out of d, the last bit is for 9-8 suspensions.
                               (d - y - 2 == z) or   # if the lower voice descends out of d
@@ -406,15 +409,6 @@ def passing_ind_func(obj):
         *second* :class:`Series` in the ``obj`` argument.
     :rtype: :class:`pandas.Series` of unicode string
     """
-    # Description of the variables:
-    # - a: melodic interval of upper part into dissonance
-    # - b: melodic interval of upper part out of dissonance
-    # - p: harmonic interval preceding the dissonance
-    # - d: dissonant harmonic interval
-    # - r: harmoinc interval following the dissonance
-    # - x: melodic interval of lower part into dissonance
-    # - y: melodic interval of lower part out of dissonance
-
     # for better legibility (i.e., shorter lines)
     diss_ind = u'dissonance.ConsMakerIndexer'
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
@@ -446,7 +440,7 @@ def passing_ind_func(obj):
             # set y (lower part melodic out of diss)
             y = interval_to_int(row_three[horiz_int_ind][lower_i])
 
-            if 'Rest' in (a, p, d, x):
+            if 'Rest' in (a, p, x):
                 post[post_i] = _PASS_OTHER_LABEL
 
             elif a == -2 and x == 1 and b == -2 and p in cons_ints: # upper voice is descending
@@ -463,28 +457,20 @@ def passing_ind_func(obj):
 
             else:
                 post[post_i] = _PASS_OTHER_LABEL
-
+        else:
+            post[post_i] = _PASS_NODISS_LABEL
     return pandas.Series(post, index=row_one[diss_ind].index)
 
 def cambiata_ind_func(obj):
     """
     Doc string.
     """
-    # Description of the variables:
-    # - a: melodic interval of upper part into dissonance
-    # - b: melodic interval of upper part out of dissonance
-    # - p: harmonic interval preceding the dissonance
-    # - d: dissonant harmonic interval
-    # - r: harmoinc interval following the dissonance
-    # - x: melodic interval of lower part into dissonance
-    # - y: melodic interval of lower part out of dissonance
-
     # for better legibility (i.e., shorter lines)
     diss_ind = u'dissonance.ConsMakerIndexer'
     horiz_int_ind = u'interval.HorizontalIntervalIndexer'
     int_ind = u'interval.IntervalIndexer'
-    cons_ints = [8, 6, 5, 3, 1, -3, -5, -6, -8]
-    row_one, row_two, row_three, row_four, row_five = obj
+    beat_ind = 'metre.NoteBeatStrengthIndexer'
+    row_one, row_two, row_three, row_four = obj
 
     # this avoids the list's reallocation penalty if we used append()
     post = [_PASS_NODISS_LABEL for _ in xrange(len(row_one[diss_ind].index))]
@@ -499,21 +485,31 @@ def cambiata_ind_func(obj):
             a = interval_to_int(row_two[horiz_int_ind][upper_i])
             # set b (melodic of upper part out of diss)
             b = interval_to_int(row_three[horiz_int_ind][upper_i])
+            # set c (melodic of upper part from third to fourth event)
+            c = interval_to_int(row_four[horiz_int_ind][upper_i])
             # set p (harmonic interval preceding the dissonance)
             p = interval_to_int(row_one[int_ind][combo])
             # set d (the dissonant vertical interval)
             d = interval_to_int(row_two[diss_ind][combo])
-            # set r (vert int after diss)
-            r = interval_to_int(row_three[int_ind][combo])
             # set x (melodic of lower part into diss)
             x = interval_to_int(row_two[horiz_int_ind][lower_i])
             # set y (lower part melodic out of diss)
             y = interval_to_int(row_three[horiz_int_ind][lower_i])
+            # set z (lower part melodic from third to fourth event)
+            z = interval_to_int(row_four[horiz_int_ind][lower_i])
+            # beat strength of dissonance (should be less than .5)
+            beat_strength_two = row_two[beat_ind][lower_i] if isnan(row_two[beat_ind][upper_i]) else row_two[beat_ind][upper_i]
 
 
-
-
-
+            if a == -2 and x == 1 and b == -3 and y == 1 and c == 2 and beat_strength_two < .5:
+                post[post_i] = ''.join((str(upper_i), ':', _CAMB_LABEL))
+            elif x == -2 and a == 1 and y == -3 and b ==1 and z == 2 and beat_strength_two < .5:
+                post[post_i] = ''.join((str(lower_i), ':', _CAMB_LABEL))
+            else:
+                post[post_i] = _CAMB_OTHER_LABEL
+        else:
+            post[post_i] = _CAMB_NODISS_LABEL
+    return pandas.Series(post, index=row_one[diss_ind].index)
 
 
 def reconciliation_func(obj):
@@ -534,6 +530,7 @@ def reconciliation_func(obj):
     susp_ind = 'dissonance.SuspensionIndexer'
     neigh_ind = 'dissonance.NeighbourNoteIndexer'
     pass_ind = 'dissonance.PassingNoteIndexer'
+    camb_ind = 'dissonance.NotaCambiataIndexer'
 
     # make "post" dict with one entry for each of the parts
     input_parts = []
@@ -546,7 +543,7 @@ def reconciliation_func(obj):
     for combo_i in obj[susp_ind].index:
         # for each combination
         combowise = []
-        for ind in (susp_ind, neigh_ind, pass_ind):
+        for ind in (susp_ind, neigh_ind, pass_ind, camb_ind):
             # compile dissonances specific to this combination
             g = (str(obj[ind][combo_i]))
             if g != 'nan':
@@ -561,7 +558,7 @@ def reconciliation_func(obj):
 
         # if we only have "other" categorizations, then we'll just use that
         for signature in combowise:
-            if signature not in (_SUSP_OTHER_LABEL, _NEIGH_OTHER_LABEL, _PASS_OTHER_LABEL):
+            if signature not in (_SUSP_OTHER_LABEL, _NEIGH_OTHER_LABEL, _PASS_OTHER_LABEL, _CAMB_OTHER_LABEL):
                 print('break (combowise is %s)' % combowise)  # DEBUG
                 break
         else:
@@ -570,14 +567,17 @@ def reconciliation_func(obj):
             post[combo_i.split(',')[1]] = 'o'
 
         # filter the "other" categorizations
-        signatures = filter(lambda x: x not in (_SUSP_OTHER_LABEL, _NEIGH_OTHER_LABEL, _PASS_OTHER_LABEL), combowise)
+        signatures = filter(lambda x: x not in (_SUSP_OTHER_LABEL, _NEIGH_OTHER_LABEL, _PASS_OTHER_LABEL, _CAMB_OTHER_LABEL), combowise)
         #signatures = combowise
 
         # add the classification
         for signature in signatures:
             # add a "good" classification to the relevant voice
             split_signature = signature.split(':')
-            if post[split_signature[0]] is None or post[split_signature[0]] in (_SUSP_OTHER_LABEL, _NEIGH_OTHER_LABEL, _PASS_OTHER_LABEL):
+            if (post[split_signature[0]] is None or post[split_signature[0]] in (_SUSP_OTHER_LABEL,
+                                                                                _NEIGH_OTHER_LABEL,
+                                                                                _PASS_OTHER_LABEL,
+                                                                                _CAMB_OTHER_LABEL)):
                 # if there's no existing classification, or it's "other," then overwrite it
                 post[split_signature[0]] = split_signature[1]
             elif post[split_signature[0]] != split_signature[1]:
@@ -1147,6 +1147,85 @@ class PassingNoteIndexer(indexer.Indexer):
         post = self.make_return(list(post.columns), [post[i] for i in post.columns])
         return pandas.concat(objs=[self._score, post], axis=1, join='outer')
 
+class NotaCambiataIndexer(indexer.Indexer):
+    # TODO: NOTE: TEST: this whole indexer is untested
+    """
+    Mark dissonant intervals as a nota cambiata or another dissonance.
+
+    Inputted results from the :mod:`interval` module require the same settings as were given to
+    the :class:`DissonanceIndexer.
+    """
+
+    required_score_type = 'pandas.DataFrame'
+    possible_settings = []
+    default_settings = {}
+
+    # Text for the RuntimeError raised when a score has fewer than 4 event offsets.
+    _TOO_SHORT_ERROR = u'NotaCambiataIndexer: input must have at least 4 events'
+
+    def __init__(self, score, settings=None):
+        """
+        :param score: The input from which to produce a new index. You must provide a
+            :class:`DataFrame` with results from the
+            :class:`~vis.analyzers.indexers.interval.IntervalIndexer`, the
+            :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`, and the
+            :class:`DissonanceIndexer. The :class:`DataFrame` may contain results from additional
+            indexers, which will be ignored.
+        :type score: :class:`pandas.DataFrame`
+        :param settings: This indexer has no settings, so this is ignored.
+        :type settings: NoneType
+
+        .. warning:: The :class:`NotaCambiataIndexer` requires the results of the
+            :class:`IntervalIndexer` to have been "forward filled," or there will be errors. Do not
+            "forward fill" other indices.
+
+        .. note:: The :meth:`run` method will raise a :exc:`KeyError` if ``score`` does not contain
+            results from the required indices.
+
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
+        :raises: :exc:`RuntimeError` if the ``score`` argument has fewer than four event offsets,
+            which is the minimum required for the completion of the nota cambiata figure.
+            An exception here prevents an error later.
+        """
+        super(NotaCambiataIndexer, self).__init__(score, None)
+        if len(score.index) < 4:
+            raise RuntimeError(NotaCambiataIndexer._TOO_SHORT_ERROR)
+        self._indexer_func = cambiata_ind_func
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        :returns: A :class:`DataFrame` with nota cambiatas labeled *and* all inputted indices.
+        :rtype: :class:`pandas.DataFrame`
+
+        :raises: :exc:`KeyError` if the ``score`` given to the constructor was an
+            improperly-formatted :class:`DataFrame` (e.g., it does not contain results of the
+            required indexers, or the columns do not have a :class:`MultiIndex`).
+        """
+        # NB: it's actually cambiata_ind_func() that raises the KeyError
+
+        # this avoids the list's reallocation penalty if we used append()
+        post = [nan for _ in xrange(len(self._score.index))]
+        for i in xrange(len(self._score.index) - 3):
+            post[i + 1] = cambiata_ind_func((self._score.iloc[i],
+                                            self._score.iloc[i + 1],
+                                            self._score.iloc[i + 2],
+                                            self._score.iloc[i + 3]))
+
+        # Add post for the final two offsets in the piece. They obviously can't be nota cambiatas,
+        # since they wouldn't  be prepared or resolved. (Make sure we use the same index as the
+        # other rows, or we'll have empty columns in the output).
+        for i in [0, -1, -2]:   # TODO: adjust to the four-event window size of nota cambiatas
+            post[i] = pandas.Series([_CAMB_NODISS_LABEL for _ in xrange(len(post[1]))],
+                                    index=post[1].index)
+
+        # Convert from the list of Series into a DataFrame. Each inputted Series becomes a row.
+        post = pandas.DataFrame({j: post[i] for i, j in enumerate(self._score.index)}).T
+
+        # the part names are the column names
+        post = self.make_return(list(post.columns), [post[i] for i in post.columns])
+        return pandas.concat(objs=[self._score, post], axis=1, join='outer')
 
 class ReconciliationIndexer(indexer.Indexer):
     # TODO: NOTE: TEST: this whole indexer is untested
