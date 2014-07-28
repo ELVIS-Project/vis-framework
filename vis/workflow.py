@@ -612,7 +612,8 @@ class WorkflowManager(object):
 
     def output(self, instruction, pathname=None, top_x=None, threshold=None):
         """
-        Create a visualization from the most recent result of :meth:`run` and save it to a file.
+        Output the results of the most recent call to :meth:`run`, saved in a file. This method
+        handles both visualizations and symbolic output formats.
 
         .. note:: For LiliyPond output, you must have called :meth:`run` with ``count frequency``
             set to ``False``.
@@ -644,11 +645,15 @@ class WorkflowManager(object):
 
         **Instructions:**
 
-        * ``u'histogram'``: a histogram. Currently equivalent to the ``'R histogram'`` instruction.
-        * ``u'LilyPond'``: each score with annotations for analyzed objects.
-        * ``u'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
+        * ``'histogram'``: a histogram. Currently equivalent to the ``'R histogram'`` instruction.
+        * ``'LilyPond'``: each score with annotations for analyzed objects.
+        * ``'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
             ``'histogram'`` instruction. In the future, this will be used to distinguish histograms
             produced with R from those produced with other libraries, like matplotlib or bokeh.
+                * ``u'CSV'``: output a Series or DataFrame to a CSV file.
+        * ``'Stata'``: output a Stata file for importing to R.
+        * ``'Excel'``: output an Excel file for Peter Schubert.
+        * ``'HTML'``: output an HTML table, as used by the VIS Counterpoint Web App.
 
         .. note :: We try to prevent you from requesting LilyPond output if you called :meth:`run`
             with ``count frequency`` set to ``True`` by raising a :exc:`RuntimeError` if ``count
@@ -664,7 +669,12 @@ class WorkflowManager(object):
         else:
             # properly set output paths
             pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
-        if instruction == u'LilyPond':
+
+        # handle instructions
+        if instruction in ('CSV', 'Stata', 'Excel', 'HTML'):
+            # these will be done by export()
+            return self.export(instruction, pathname, top_x, threshold)
+        elif instruction == u'LilyPond':
             return self._make_lilypond(pathname)
         elif instruction == u'histogram' or instruction == u'R histogram':
             return self._make_histogram(pathname, top_x, threshold)
@@ -756,6 +766,8 @@ class WorkflowManager(object):
 
     def export(self, form, pathname=None, top_x=None, threshold=None):
         """
+        .. warning:: This method is deprecated and will be removed in VIS 2. Please use :meth:`output`.
+
         Save data from the most recent result of :meth:`run` to a file.
 
         :parameter form: The output format you want.
@@ -782,7 +794,7 @@ class WorkflowManager(object):
         * ``u'Excel'``: output an Excel file for Peter Schubert.
         * ``u'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
         """
-        # TODO: merge export() functionality into output() (as a private method)
+        # TODO: in VIS 2, rename this as a private method; output() will call this as required
         # ensure we have some results
         if self._result is None:
             raise RuntimeError(u'Call run() before calling export()')
