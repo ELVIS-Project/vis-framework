@@ -4,6 +4,10 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
+* 2.0.0:
+    - Require pandas 0.14.1 at minimum.
+    - Require music21 1.9.3 at minimum.
+    - etc., ...
 * 1.2.5:
     - Allow music21 1.9.x
     - Held sonorities are now correctly labeled in interval n-grams (GitHub issue 305)
