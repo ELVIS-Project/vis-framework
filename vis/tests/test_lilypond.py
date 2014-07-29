@@ -54,12 +54,14 @@ class TestAnnotationIndexer(unittest.TestCase):
                   pandas.Series(['how', 'we']),
                   pandas.Series(['do', 'it']),
                   pandas.Series(['baby', 'yeah'])]
-        expected = [pandas.Series(['_\\markup{ "this" }', '_\\markup{ "is" }']),
-                    pandas.Series(['_\\markup{ "how" }', '_\\markup{ "we" }']),
-                    pandas.Series(['_\\markup{ "do" }', '_\\markup{ "it" }']),
-                    pandas.Series(['_\\markup{ "baby" }', '_\\markup{ "yeah" }'])]
+        expected = {'0': pandas.Series(['_\\markup{ "this" }', '_\\markup{ "is" }']),
+                    '1': pandas.Series(['_\\markup{ "how" }', '_\\markup{ "we" }']),
+                    '2': pandas.Series(['_\\markup{ "do" }', '_\\markup{ "it" }']),
+                    '3': pandas.Series(['_\\markup{ "baby" }', '_\\markup{ "yeah" }'])}
         actual = lilypond.AnnotationIndexer(in_val).run()
-        for i in xrange(len(expected)):
+        self.assertIsInstance(actual, pandas.DataFrame)
+        actual = actual['lilypond.AnnotationIndexer']
+        for i in expected:
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
             self.assertSequenceEqual(list(expected[i]), list(actual[i]))
 
