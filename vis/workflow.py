@@ -656,6 +656,10 @@ class WorkflowManager(object):
 
         * ``'histogram'``: a histogram. Currently equivalent to the ``'R histogram'`` instruction.
         * ``'LilyPond'``: each score with annotations for analyzed objects.
+        * ``'Continuous LilyPond'``: **testing** a different representation of interval n-grams
+            that aligns every vertical interval with its annotation, and interposes horizontal
+            intervals approximately half-way between them. The score will appear to portray the
+            entire piece as a single n-gram.
         * ``'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
             ``'histogram'`` instruction. In the future, this will be used to distinguish histograms
             produced with R from those produced with other libraries, like matplotlib or bokeh.
@@ -685,6 +689,8 @@ class WorkflowManager(object):
             return self.export(instruction, pathname, top_x, threshold)
         elif instruction == u'LilyPond':
             return self._make_lilypond(pathname)
+        elif instruction == 'Continuous LilyPond':
+            return self._make_cont_lily(pathname)
         elif instruction == u'histogram' or instruction == u'R histogram':
             return self._make_histogram(pathname, top_x, threshold)
         else:
@@ -772,6 +778,74 @@ class WorkflowManager(object):
             pathnames.append(setts[u'output_pathname'])
         return pathnames
 
+    def _make_cont_lily(self, pathname=None):
+        """
+        Make annotated scores with LilyPond. To be called by output().
+
+        Argument as per output().
+
+        This prepares a different representation of interval n-grams that aligns every vertical
+        interval with its annotation, and interposes horizontal intervals approximately half-way
+        between them. The score will appear to portray the entire piece as a single n-gram.
+        """
+        # try to determine whether they called run() properly (``count frequency`` should be False)
+        if self.settings(None, 'count frequency') is True or len(self._data) != len(self._result):
+            raise RuntimeError(WorkflowManager._COUNT_FREQUENCY_MESSAGE)
+
+        # to make this hack work, we need n==2
+        if 2 != self.settings(None, 'n'):
+            raise RuntimeError('please use an "n" value of 2')  # TODO: needs a better message
+
+        pathname = 'test_output/output_result' if pathname is None else unicode(pathname)
+        # the file extension for LilyPond
+        file_ext = '.ly'
+        # assume we have the result of a suitable Indexer
+        annotation_parts = []
+        # run additional indexers for annotation
+        for i in xrange(len(self._data)):
+            ann_p = []
+            combos = []
+            if 'all' == self.settings(i, 'voice combinations'):
+                lowest_part = len(self.metadata(i, 'parts')) - 1
+                combos = [[x, lowest_part] for x in xrange(lowest_part)]
+            elif 'all pairs' == self.settings(i, 'voice combinations'):
+                # Calculate all 2-part combinations. We must do this in the same order as the
+                # IntervalIndexer, or else the labels will be wrong.
+                for left in xrange(len(self.metadata(i, 'parts'))):
+                    for right in xrange(left + 1, len(self.metadata(i, 'parts'))):
+                        combos.append([left, right])
+            else:
+                combos = ast.literal_eval(self.settings(i, 'voice combinations'))
+
+            # remove the final vertical interval from the 2-gram, which will create a 1.5-gram
+            preannotation_parts = []
+            def asdf(soup):
+                a, b, c = soup.split(' ')
+                return '{};{}'.format(a, b)
+
+            for j in xrange(len(self._result[i])):
+                preannotation_parts.append(self._result[i][j].map(asdf))
+
+            for each_part in preannotation_parts:
+                ann_p.append(self._data[i].get_data([lilypond.AnnotationIndexer,
+                                                     lilypond.AnnotateTheNoteIndexer,
+                                                     lilypond.PartNotesIndexer],
+                                                    {'split': True},
+                                                    [each_part])[0])
+            annotation_parts.append(ann_p)
+        # run OutputLilyPond and LilyPond
+        enum = True if len(self._data) > 1 else False
+        pathnames = []
+        for i in xrange(len(self._data)):
+            setts = {'run_lilypond': True, 'annotation_part': annotation_parts[i]}
+            # append piece index to pathname, if there are many pieces
+            if enum:
+                setts['output_pathname'] = pathname + '-' + str(i) + file_ext
+            else:
+                setts['output_pathname'] = pathname + file_ext
+            self._data[i].get_data([lilypond.LilyPondIndexer], setts)
+            pathnames.append(setts['output_pathname'])
+        return pathnames
 
     def export(self, form, pathname=None, top_x=None, threshold=None):
         """
