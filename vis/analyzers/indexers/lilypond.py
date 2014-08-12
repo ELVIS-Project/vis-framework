@@ -44,7 +44,22 @@ def annotation_func(obj):
     :returns: The thing in a markup.
     :rtype: str
     """
-    return six.u(''.join(['_\\markup{ "', str(obj[0]), '" }']))
+    return ''.join(['_\\markup{ "', str(obj[0]), '" }'])
+
+
+def split_annotation_func(obj):
+    """
+    Used by :class:`AnnotationIndexer` to make a "markup" command for LilyPond scores, when the
+    "split" setting is ``True``.
+
+    :param obj: A single-element :class:`Series` with the string to wrap in a "markup" command.
+    :type obj: :class:`pandas.Series` of str
+
+    :returns: The thing in a markup.
+    :rtype: ``unicode``
+    """
+    upper, lower = obj[0].split(';')
+    return ''.join(('^\\markup{', upper, ' \\raise #-2.0 ', lower, '}'))
 
 
 class AnnotationIndexer(indexer.Indexer):
@@ -53,6 +68,15 @@ class AnnotationIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
+    possible_settings = ['split']
+    '''
+    The ``'split'`` setting produces a modified annotation, where the tokens are placed above and
+    below the score, respectively. In this case, each input string must have two parts, separated
+    by a semicolon (``;``) character. For example, ``'12;13'`` becomes
+    ``'^\\markup{"12"}_\\markup{"13"}'``.
+    '''
+
+    default_settings = {'split': False}
 
     def __init__(self, score, settings=None):
         """
@@ -65,7 +89,12 @@ class AnnotationIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
         super(AnnotationIndexer, self).__init__(score, None)
-        self._indexer_func = annotation_func
+        self._settings = ({'split': settings['split']} if 'split' in settings
+                                                       else AnnotationIndexer.default_settings['split'])
+        if self._settings['split']:
+            self._indexer_func = split_annotation_func
+        else:
+            self._indexer_func = annotation_func
 
     def run(self):
         """
