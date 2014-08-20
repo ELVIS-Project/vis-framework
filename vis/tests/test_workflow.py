@@ -313,6 +313,24 @@ class Output(TestCase):
         test_wc._result = None  # just in case
         self.assertRaises(RuntimeError, test_wc.output, u'R histogram')
 
+    @mock.patch('vis.workflow.WorkflowManager.export')
+    def test_output_5(self, mock_export):
+        '''ensure output() calls export() as required'''
+        # 1: prepare
+        export_path = 'the_path'
+        mock_export.return_value = export_path
+        test_wc = WorkflowManager([])
+        test_wc._previous_exp = 'intervals'
+        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._result = MagicMock(spec=pandas.DataFrame)
+        path = 'pathname!'
+        expected_args = ['Excel', path, None, None]
+        # 2: run
+        actual = test_wc.output('Excel', path)
+        # 3: check
+        self.assertEqual(export_path, actual)
+        mock_export.assert_called_once_with(*expected_args)
+
 
 @mock.patch('vis.workflow.path.join', return_value='hello')
 @mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')

@@ -189,7 +189,14 @@ class WorkflowManager(object):
         :type instruction: basestring
 
         :returns: The result of the experiment.
-        :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame`
+        :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame` or a list of lists of
+            :class:`pandas.Series`. If ``u'count frequency'`` is set to False, the return type will
+            be a list of lists of series wherein the containing list has each piece in the
+            experiment as its elements (even if there is only one piece in the experiment, this will
+            be a list of length one). The contained lists contain the results of the experiment for
+            each piece where each element in the list corresponds to a unique voice combination in
+            an unlabelled and unpredictable fashion. Finally each series corresponds the experiment
+            results for a given voice combination in a given piece.
 
         :raises: :exc:`RuntimeError` if the ``instruction`` is not valid for this
             :class:`WorkflowManager`.
@@ -200,7 +207,7 @@ class WorkflowManager(object):
 
         * ``u'intervals'``: find the frequency of vertical intervals in 2-part combinations. All \
             settings will affect analysis *except* ``'n'``. No settings are required; if you do \
-            not set ``'voice combionations'``, all two-part combinations are included.
+            not set ``'voice combinations'``, all two-part combinations are included.
         * ``u'interval n-grams'``: find the frequency of n-grams of vertical intervals connected \
             by the horizontal interval of the lowest voice. All settings will affect analysis. \
             You must set the ``'voice combinations'`` setting. The default value for ``'n'`` is \
@@ -612,7 +619,8 @@ class WorkflowManager(object):
 
     def output(self, instruction, pathname=None, top_x=None, threshold=None):
         """
-        Create a visualization from the most recent result of :meth:`run` and save it to a file.
+        Output the results of the most recent call to :meth:`run`, saved in a file. This method
+        handles both visualizations and symbolic output formats.
 
         .. note:: For LiliyPond output, you must have called :meth:`run` with ``count frequency``
             set to ``False``.
@@ -644,11 +652,15 @@ class WorkflowManager(object):
 
         **Instructions:**
 
-        * ``u'histogram'``: a histogram. Currently equivalent to the ``'R histogram'`` instruction.
-        * ``u'LilyPond'``: each score with annotations for analyzed objects.
-        * ``u'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
+        * ``'histogram'``: a histogram. Currently equivalent to the ``'R histogram'`` instruction.
+        * ``'LilyPond'``: each score with annotations for analyzed objects.
+        * ``'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
             ``'histogram'`` instruction. In the future, this will be used to distinguish histograms
             produced with R from those produced with other libraries, like matplotlib or bokeh.
+                * ``u'CSV'``: output a Series or DataFrame to a CSV file.
+        * ``'Stata'``: output a Stata file for importing to R.
+        * ``'Excel'``: output an Excel file for Peter Schubert.
+        * ``'HTML'``: output an HTML table, as used by the VIS Counterpoint Web App.
 
         .. note :: We try to prevent you from requesting LilyPond output if you called :meth:`run`
             with ``count frequency`` set to ``True`` by raising a :exc:`RuntimeError` if ``count
@@ -664,7 +676,12 @@ class WorkflowManager(object):
         else:
             # properly set output paths
             pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
-        if instruction == u'LilyPond':
+
+        # handle instructions
+        if instruction in ('CSV', 'Stata', 'Excel', 'HTML'):
+            # these will be done by export()
+            return self.export(instruction, pathname, top_x, threshold)
+        elif instruction == u'LilyPond':
             return self._make_lilypond(pathname)
         elif instruction == u'histogram' or instruction == u'R histogram':
             return self._make_histogram(pathname, top_x, threshold)
@@ -756,6 +773,8 @@ class WorkflowManager(object):
 
     def export(self, form, pathname=None, top_x=None, threshold=None):
         """
+        .. warning:: This method is deprecated and will be removed in VIS 2. Please use :meth:`output`.
+
         Save data from the most recent result of :meth:`run` to a file.
 
         :parameter form: The output format you want.
@@ -782,7 +801,7 @@ class WorkflowManager(object):
         * ``u'Excel'``: output an Excel file for Peter Schubert.
         * ``u'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
         """
-        # TODO: merge export() functionality into output() (as a private method)
+        # TODO: in VIS 2, rename this as a private method; output() will call this as required
         # ensure we have some results
         if self._result is None:
             raise RuntimeError(u'Call run() before calling export()')
