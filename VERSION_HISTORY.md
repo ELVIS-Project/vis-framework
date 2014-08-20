@@ -4,6 +4,10 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
+* 1.2.6:
+    - Deprecate WorkflowManager.export() in favour of output()
+    - Fix: for "simple intervals," compound octaves reduced to octaves, rather than to unison
+    - Minor documentation fixes
 * 1.2.5:
     - Allow music21 1.9.x
     - Held sonorities are now correctly labeled in interval n-grams (GitHub issue 305)
