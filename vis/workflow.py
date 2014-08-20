@@ -189,7 +189,14 @@ class WorkflowManager(object):
         :type instruction: basestring
 
         :returns: The result of the experiment.
-        :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame`
+        :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame` or a list of lists of
+            :class:`pandas.Series`. If ``u'count frequency'`` is set to False, the return type will
+            be a list of lists of series wherein the containing list has each piece in the
+            experiment as its elements (even if there is only one piece in the experiment, this will
+            be a list of length one). The contained lists contain the results of the experiment for
+            each piece where each element in the list corresponds to a unique voice combination in
+            an unlabelled and unpredictable fashion. Finally each series corresponds the experiment
+            results for a given voice combination in a given piece.
 
         :raises: :exc:`RuntimeError` if the ``instruction`` is not valid for this
             :class:`WorkflowManager`.
@@ -200,7 +207,7 @@ class WorkflowManager(object):
 
         * ``u'intervals'``: find the frequency of vertical intervals in 2-part combinations. All \
             settings will affect analysis *except* ``'n'``. No settings are required; if you do \
-            not set ``'voice combionations'``, all two-part combinations are included.
+            not set ``'voice combinations'``, all two-part combinations are included.
         * ``u'interval n-grams'``: find the frequency of n-grams of vertical intervals connected \
             by the horizontal interval of the lowest voice. All settings will affect analysis. \
             You must set the ``'voice combinations'`` setting. The default value for ``'n'`` is \

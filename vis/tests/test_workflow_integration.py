@@ -143,11 +143,11 @@ class NGramsTests(TestCase):
     # compound intervals portrayed as their single-octave equivalents; note that I didn't verify
     # by counting... this just ensures a valid value comes out
     # NB: just the first ten, because seriously.
-    EXPECTED_4 = pandas.Series({'[8 6 3] 2 [6 6 3]': 1, '[3 5 3] _ [3 6 4]': 1,
-                                '[4 2 6] -2 [6 3 8]': 1, '[3 8 5] _ [3 7 5]': 1,
-                                '[3 8 5] 5 [5 3 1]': 1, '[3 8 5] 2 [8 6 3]': 1,
-                                '[3 8 5] -2 [4 4 6]': 1, '[3 7 5] 2 [3 5 3]': 1,
-                                '[3 7 5] 2 [1 5 3]': 1, '[3 6 5] 2 [1 6 3]': 1})
+    EXPECTED_4 = pandas.Series({'[8 6 3] 2 [7 5 2]': 1, '[3 8 5] -2 [4 4 6]': 1,
+                                '[5 3 8] 4 [3 8 5]': 1, '[5 3 8] -4 [3 6 5]': 1,
+                                '[5 3 7] 2 [3 3 5]': 1, '[5 3 3] 2 [3 5 3]': 1,
+                                '[5 3 1] -2 [6 4 2]': 1, '[5 2 7] -2 [7 3 8]': 1,
+                                '[4 6 3] -4 [8 3 6]': 1, '[4 6 3] -2 [5 8 3]': 1})
     # EXPECTED_5 is the result of "interval n-grams" on madrigal51 with "all" as the voice pairs,
     # and no rests; note that I didn't verify by counting
     # NB: just the first ten
