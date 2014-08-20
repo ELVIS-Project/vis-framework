@@ -99,8 +99,7 @@ def real_indexer(simultaneity, simple, quality):
                     q_str += each
             post += q_str
         if simple:
-            post += u'8' if 8 == interv.generic.undirected \
-                else unicode(interv.generic.simpleUndirected)
+            post += unicode(interv.generic.semiSimpleUndirected)
         else:
             post += unicode(interv.generic.undirected)
         return post
