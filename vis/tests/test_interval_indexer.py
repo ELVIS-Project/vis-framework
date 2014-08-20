@@ -639,6 +639,20 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
         actual = real_indexer(notes, quality=True, simple=True)
         self.assertEqual(expected, actual)
 
+    def test_regression_1(self):
+        "indexer_qual_simple(): P15 --> P8"
+        notes = [u'C6', u'C4']
+        expected = u'P8'
+        actual = real_indexer(notes, quality=True, simple=True)
+        self.assertEqual(expected, actual)
+
+    def test_regression_2(self):
+        "indexer_nq_simple(): 15 --> 8"
+        notes = [u'C6', u'C4']
+        expected = u'8'
+        actual = real_indexer(notes, quality=False, simple=True)
+        self.assertEqual(expected, actual)
+
 
 class TestHorizIntervalIndexerLong(unittest.TestCase):
     # data_interval_indexer_1.csv
