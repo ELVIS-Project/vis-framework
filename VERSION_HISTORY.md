@@ -4,6 +4,13 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
+* 1.2.6-1:
+    - (Not released publicly).
+    - New order to the n-gram workflows that fixes lower-voice errors when run with the
+      FilterByOffsetIndexer.
+    - New "continuous lilypond" output() format that (in effect) prints an interval n-gram of the
+      entire score.
+    - Note: neither of those features are well tested, thus the non-public release.
 * 1.2.6:
     - Deprecate WorkflowManager.export() in favour of output()
     - Fix: for "simple intervals," compound octaves reduced to octaves, rather than to unison
