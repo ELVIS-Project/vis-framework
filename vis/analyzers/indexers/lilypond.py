@@ -65,6 +65,10 @@ def split_annotation_func(obj):
     :rtype: ``unicode``
     """
     upper, lower = obj[0].split(';')
+    if 'Rest' == upper:
+        upper = '"."'
+    if 'Rest' == lower:
+        lower = '"."'
     return ''.join(('^\\markup{', upper, ' \\raise #-2.0 ', lower, '}'))
 
 
