@@ -4,10 +4,10 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/experimenters/template.py
+# Filename:               vis/analyzers/experimenters/template.py
 # Purpose:                Template experimenter
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Template for writing a new experimenter. Use this class to help write a new :class`Experimenter` \
 subclass. The :class:`TemplateExperimenter` does nothing, and should only be used by programmers.
@@ -38,13 +38,13 @@ class TemplateExperimenter(experimenter.Experimenter):
     Template for an :class:`Experimenter` subclass.
     """
 
-    possible_settings = [u'fake_setting']
+    possible_settings = ['fake_setting']
     """
     This is a list of basestrings that are the names of the settings used in this experimenter.
     Specify the types and reasons for each setting as though it were an argument list, like this:
 
-    :keyword u'fake_setting': This is a fake setting.
-    :type u'fake_setting': boolean
+    :keyword 'fake_setting': This is a fake setting.
+    :type 'fake_setting': boolean
     """
 
     default_settings = {}
@@ -60,9 +60,9 @@ class TemplateExperimenter(experimenter.Experimenter):
         :type index: list, nested lists, or dict of pandas.Series or pandas.DataFrame, or simply
             the pandas object itself.
 
-        :param settings: A dict of all the settings required by this Experimenter. All required
-            settings should be listed in subclasses. Default is None.
-        :type settings: :obj:`dict` or :obj:`None`
+        :param settings: A dict of all the settings required by this Experimenter. You should list
+            all required settings. Default is ``None``.
+        :type settings: dict ``None``
 
         :raises: :exc:`RuntimeError` if required settings are not present in the ``settings`` \
             argument.
@@ -75,8 +75,8 @@ class TemplateExperimenter(experimenter.Experimenter):
             self._settings = {}
 
         # Change "TemplateExperimenter" to the current class name. The superclass will handle the
-        # "index" and "mpc" arguments, but you should have processed "settings" above, so it should
-        # not be sent to the superclass constructor.
+        # "index" argument, but you should have processed "settings" above, so it should not be
+        # sent to the superclass constructor.
         super(TemplateExperimenter, self).__init__(index, None)
 
     def run(self):
@@ -89,6 +89,4 @@ class TemplateExperimenter(experimenter.Experimenter):
 
         # NOTE: We recommend experimenting all possible combinations of anything, when feasible.
 
-        # You will need to write this yourself; we recommend you use self._do_multiprocessing()
-        # as an easy way to use the MPController for multiprocessing.
         pass
