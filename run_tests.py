@@ -34,9 +34,10 @@ from vis.tests import test_indexer
 from vis.tests import test_note_rest_indexer
 from vis.tests import test_ngram
 from vis.tests import test_repeat
-from vis.tests import test_aggregator
 from vis.tests import test_interval_indexer
 from vis.tests import test_frequency_experimenter
+from vis.tests import test_aggregator
+from vis.tests import test_barchart
 from vis.tests import test_offset
 from vis.tests import test_lilypond
 from vis.tests import test_indexed_piece
@@ -69,6 +70,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_frequency_experimenter.FREQUENCY_FUNC_SUITE,
              test_frequency_experimenter.FREQUENCY_RUN_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
+             test_barchart.R_BAR_CHART_SUITE,
              # IndexedPiece and AggregatedPieces
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_SUITE_B,
