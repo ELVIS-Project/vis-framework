@@ -7,7 +7,11 @@ the top of the file.
 * 2.0.0:
     - Require pandas 0.14.1 at minimum.
     - Require music21 1.9.3 at minimum.
-    - etc., ...
+    - The "R_bar_chart.r" script is now run by an experimenter (GH#283)
+* 1.2.6:
+    - Deprecate WorkflowManager.export() in favour of output()
+    - Fix: for "simple intervals," compound octaves reduced to octaves, rather than to unison
+    - Minor documentation fixes
 * 1.2.5:
     - Allow music21 1.9.x
     - Held sonorities are now correctly labeled in interval n-grams (GitHub issue 305)
