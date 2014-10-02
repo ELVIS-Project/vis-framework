@@ -118,6 +118,7 @@ class WorkflowManager(object):
         # whether the load() method has been called
         self._loaded = False
         # calculate the bar chart script's path
+        # TODO: this moves to barchart.py
         self._R_bar_chart_path = path.join(vis.__path__[0], 'scripts', 'R_bar_chart.r')
 
     def __len__(self):
@@ -591,31 +592,47 @@ class WorkflowManager(object):
                 del vert_ints[key]
             return vert_ints
 
-    def _get_dataframe(self, name=u'data', top_x=None, threshold=None):
+    def _get_dataframe(self, name='data', top_x=None, threshold=None):
         """
-        "Convert" ``self._result`` into a :class:`DataFrame`, including only the top ``X`` results
-        that are greater than ``threshold``. Note that the threshold filter is applied first.
+        "Convert" :attr:`_result` into a :class:`DataFrame`, including only the top ``X`` results
+        that are greater than ``threshold``. Note that the threshold filter is applied first. This
+        method is also safe to call if :attr:`_result` is already a :class:`DataFrame`, in which
+        case the column names are preserved and ``name`` is ignored.
 
         :param name: String to use for the column name of the Series currently held in self._result.
-            The default is u'data'.
-        :type name: ``basestring``
+            The default is u'data'. Ignored if self._data is already a :class:`DataFrame`.
+        :type name: basestring
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
-        :type top_x: ``int``
+        :type top_x: int
         :param threshold: If a result is strictly less than this number, it won't be included. The
             default is ``None``.
         :type threshold: number
+        :returns: A :class:`DataFrame` with self._result as the only column.
 
-        :returns: A DataFrame with self._result as the only column.
-        :rtype: :class:`DataFrame`
+        .. note:: This method does not assign its return value to :attr:`_result`.
+
+        .. note:: This method is untested, and probably performs undesired work, on a
+            :class:`DataFrame` with multiple columns.
         """
-        post = None
-        if threshold is not None:
-            post = self._result[self._result > threshold]
+
+        # NB: The filters don't work reliably if we run them on an entire DataFrame, so I've broken
+        #     it into a Series-by-Series strategy.
+
+        def series_filter(each_series):
+            """Apply the 'threshold' and 'top_x' filters to a single Series."""
+            if threshold is not None:
+                each_series = each_series[each_series > threshold]
+            if top_x is not None:
+                each_series = each_series[:top_x]
+            return each_series
+
+        if isinstance(self._result, pandas.DataFrame):
+            # NB: usually self._result is a list, in which case we couldn't call .columns... but
+            #     we're protected in this case by the isinstance() call
+            post = {col: series_filter(self._result[col]) for col in self._result.columns}  # pylint: disable=maybe-no-member
+            return pandas.DataFrame(post)
         else:
-            post = self._result
-        if top_x is not None:
-            post = post[:top_x]
-        return pandas.DataFrame({name: post})
+            return pandas.DataFrame({name: series_filter(self._result)})
 
     def output(self, instruction, pathname=None, top_x=None, threshold=None):
         """
@@ -690,19 +707,23 @@ class WorkflowManager(object):
 
     def _make_histogram(self, pathname=None, top_x=None, threshold=None):
         """
-        Make a histogram. To be called by output(). Currently uses ggplot2 in R.
+        Make a histogram. To be called by output(). Currently (always) uses ggplot2 in R via the
+        RBarChart experimenter.
 
         Arguments as per output().
         """
+        # ensure we have a DataFrame
+        if not isinstance(self._result, pandas.DataFrame):
+            out_me = self._get_dataframe('freq', top_x, threshold)
+        else:
+            out_me = self._result
+
+
         # properly set output paths
         pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
         stata_path = pathname + u'.dta'
         png_path = pathname + u'.png'
-        # ensure we have a DataFrame
-        if not isinstance(self._result, pandas.DataFrame):
-            out_me = self._get_dataframe(u'freq', top_x, threshold)
-        else:
-            out_me = self._result
+
         out_me.to_stata(stata_path)
         token = None
         if u'intervals' == self._previous_exp:
