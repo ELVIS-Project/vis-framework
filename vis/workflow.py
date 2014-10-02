@@ -32,13 +32,12 @@ new ``WorkflowManager`` classes.
 
 from os import path
 import ast
-import subprocess
 import pandas
 import vis
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat, lilypond
-from vis.analyzers.experimenters import frequency, aggregator
+from vis.analyzers.experimenters import frequency, aggregator, barchart
 
 
 class WorkflowManager(object):
@@ -712,33 +711,30 @@ class WorkflowManager(object):
 
         Arguments as per output().
         """
-        # ensure we have a DataFrame
-        if not isinstance(self._result, pandas.DataFrame):
-            out_me = self._get_dataframe('freq', top_x, threshold)
-        else:
-            out_me = self._result
 
+        # ensure we have a DataFrame; do the "top x" and "threshold" filters
+        chart_data = self._get_dataframe('freq', top_x, threshold)
 
         # properly set output paths
-        pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
-        stata_path = pathname + u'.dta'
-        png_path = pathname + u'.png'
+        setts = {'pathname': 'test_output/output_result' if pathname is None else unicode(pathname)}
 
-        out_me.to_stata(stata_path)
-        token = None
-        if u'intervals' == self._previous_exp:
-            token = u'int'
-        elif u'n-grams' == self._previous_exp:
-            token = unicode(self.settings(None, u'n'))
+        # choose the proper token
+        if 'intervals' == self._previous_exp:
+            setts['token'] = 'interval'
+        elif 'n-grams' == self._previous_exp:
+            setts['token'] = '{}-gram'.format(self.settings(None, 'n'))
         else:
-            token = u'things'
-        call_to_r = [u'Rscript', u'--vanilla', self._R_bar_chart_path,
-                     stata_path, png_path, token, str(len(self._data))]
-        try:
-            subprocess.check_output(call_to_r)
-        except subprocess.CalledProcessError as cpe:
-            raise RuntimeError(u'Error during call to R: ' + unicode(cpe.output) + \
-                                u' (return code: ' + unicode(cpe.returncode) + u')')
+            setts['token'] = 'objects'
+
+        # set the number of pieces
+        setts['nr_pieces'] = len(self)
+
+        # set the output file type
+        setts['type'] = 'png'
+
+        # run the experimenter
+        png_path = barchart.RBarChart(chart_data, setts).run()
+
         return png_path
 
     def _make_lilypond(self, pathname=None):

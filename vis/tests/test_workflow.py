@@ -334,79 +334,81 @@ class Output(TestCase):
         mock_export.assert_called_once_with(*expected_args)
 
 
-@mock.patch('vis.workflow.path.join', return_value='hello')
-@mock.patch(u'vis.workflow.WorkflowManager._get_dataframe')
-@mock.patch(u'subprocess.check_output')
+@mock.patch('vis.workflow.WorkflowManager._get_dataframe')
+@mock.patch('vis.workflow.barchart')
 class MakeHistogram(TestCase):
-    def test_histogram_1(self, mock_call, mock_gdf, mock_join):
-        # with specified pathname; last experiment was intervals with 20 pieces; self._result is DF
+    def test_histogram_1(self, mock_bar, mock_gdf):
+        """
+        That _make_histogram() works properly.
+        - pathname: None
+        - top_x: None
+        - threshold: None
+        - test_wc._previous_exp: 'intervals'
+        """
         test_wc = WorkflowManager([])
-        test_wc._previous_exp = u'intervals'
-        test_wc._data = [1 for _ in xrange(20)]
-        test_wc._result = MagicMock(spec=pandas.DataFrame)
-        path = u'pathname!'
-        actual = test_wc._make_histogram(path)
-        self.assertEqual(0, mock_gdf.call_count)
-        expected_args = [u'Rscript', u'--vanilla', mock_join.return_value,
-                         path + u'.dta', path + u'.png', u'int', u'20']
-        mock_call.assert_called_once_with(expected_args)
-        self.assertEqual(path + u'.png', actual)
-        self.assertEqual(1, mock_join.call_count)
+        test_wc._previous_exp = 'intervals'
+        mock_gdf.return_value = 'filtered DataFrame'
+        exp_setts = {'pathname': 'test_output/output_result', 'token': 'interval', 'type': 'png',
+                     'nr_pieces': 0}
+        exp_png_path = 'your png path'
+        mock_experimenter = mock.MagicMock()
+        mock_experimenter.run = mock.MagicMock(return_value=exp_png_path)
+        mock_bar.RBarChart = mock.MagicMock(return_value=mock_experimenter)
 
-    def test_histogram_2(self, mock_call, mock_gdf, mock_join):
-        # with unspecified pathname; last experiment was 14-grams with 1 piece; self._result is S
-        test_wc = WorkflowManager([])
-        test_wc._previous_exp = u'n-grams'
-        test_wc._data = [1]
-        test_wc._shared_settings[u'n'] = 14
-        test_wc._result = MagicMock(spec=pandas.Series)
-        path = u'test_output/output_result'
         actual = test_wc._make_histogram()
-        mock_gdf.assert_called_once_with(u'freq', None, None)
-        expected_args = [u'Rscript', u'--vanilla', mock_join.return_value,
-                         path + u'.dta', path + u'.png', u'14', u'1']
-        mock_call.assert_called_once_with(expected_args)
-        self.assertEqual(path + u'.png', actual)
-        self.assertEqual(1, mock_join.call_count)
 
-    def test_histogram_3(self, mock_call, mock_gdf, mock_join):
-        # test_ouput_6, plus top_x and threshold
-        test_wc = WorkflowManager([])
-        test_wc._previous_exp = u'n-grams'
-        test_wc._data = [1]
-        test_wc._shared_settings[u'n'] = 14
-        test_wc._result = MagicMock(spec=pandas.Series)
-        path = u'test_output/output_result'
-        actual = test_wc._make_histogram(top_x=420, threshold=1987)
-        mock_gdf.assert_called_once_with(u'freq', 420, 1987)
-        expected_args = [u'Rscript', u'--vanilla', mock_join.return_value,
-                         path + u'.dta', path + u'.png', u'14', u'1']
-        mock_call.assert_called_once_with(expected_args)
-        self.assertEqual(path + u'.png', actual)
-        self.assertEqual(1, mock_join.call_count)
+        self.assertEqual(exp_png_path, actual)
+        mock_gdf.assert_called_once_with('freq', None, None)
+        mock_bar.RBarChart.assert_called_once_with(mock_gdf.return_value, exp_setts)
 
-    def test_histogram_4(self, mock_call, mock_gdf, mock_join):
-        # test_output_4() but the subprocess thing fails
-        def raiser(*args):
-            raise CalledProcessError(u'Bach!', 42, u'CPE')
-        mock_call.side_effect = raiser
+    def test_histogram_2(self, mock_bar, mock_gdf):
+        """
+        That _make_histogram() works properly.
+        - pathname: given
+        - top_x: given
+        - threshold: given
+        - test_wc._previous_exp: 'n-grams'
+        """
         test_wc = WorkflowManager([])
-        test_wc._previous_exp = u'intervals'
-        test_wc._data = [1 for _ in xrange(20)]
-        test_wc._result = MagicMock(spec=pandas.DataFrame)
-        path = u'pathname!'
-        expected_msg = u'Error during call to R: CPE (return code: Bach!)'
-        actual = None
-        try:
-            test_wc._make_histogram(path)
-        except RuntimeError as run_e:
-            actual = run_e
-        self.assertEqual(expected_msg, actual.message)
-        self.assertEqual(0, mock_gdf.call_count)
-        expected_args = [u'Rscript', u'--vanilla', mock_join.return_value,
-                         path + u'.dta', path + u'.png', u'int', u'20']
-        mock_call.assert_called_once_with(expected_args)
-        self.assertEqual(1, mock_join.call_count)
+        test_wc._previous_exp = 'n-grams'
+        test_wc.settings(None, 'n', 42)
+        mock_gdf.return_value = 'filtered DataFrame'
+        exp_setts = {'pathname': 'some_path', 'token': '42-gram', 'type': 'png',
+                     'nr_pieces': 0}
+        exp_png_path = 'your png path'
+        mock_experimenter = mock.MagicMock()
+        mock_experimenter.run = mock.MagicMock(return_value=exp_png_path)
+        mock_bar.RBarChart = mock.MagicMock(return_value=mock_experimenter)
+
+        actual = test_wc._make_histogram('some_path', 10, 100)
+
+        self.assertEqual(exp_png_path, actual)
+        mock_gdf.assert_called_once_with('freq', 10, 100)
+        mock_bar.RBarChart.assert_called_once_with(mock_gdf.return_value, exp_setts)
+
+    def test_histogram_3(self, mock_bar, mock_gdf):
+        """
+        That _make_histogram() works properly.
+        - pathname: None
+        - top_x: None
+        - threshold: None
+        - test_wc._previous_exp: 'cheese'
+        """
+        test_wc = WorkflowManager([])
+        test_wc._previous_exp = 'cheese'
+        mock_gdf.return_value = 'filtered DataFrame'
+        exp_setts = {'pathname': 'test_output/output_result', 'token': 'objects', 'type': 'png',
+                     'nr_pieces': 0}
+        exp_png_path = 'your png path'
+        mock_experimenter = mock.MagicMock()
+        mock_experimenter.run = mock.MagicMock(return_value=exp_png_path)
+        mock_bar.RBarChart = mock.MagicMock(return_value=mock_experimenter)
+
+        actual = test_wc._make_histogram()
+
+        self.assertEqual(exp_png_path, actual)
+        mock_gdf.assert_called_once_with('freq', None, None)
+        mock_bar.RBarChart.assert_called_once_with(mock_gdf.return_value, exp_setts)
 
 
 class MakeLilyPond(TestCase):
