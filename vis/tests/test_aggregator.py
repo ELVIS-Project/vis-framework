@@ -43,44 +43,73 @@ class TestColumnAggregator(unittest.TestCase):
                                       index=['A', 'B', 'C', 'D', 'F', 'G', 'H'])
         self.column_d = pandas.Series([1, 1, 3, 4, 2, 13, 10],
                                       index=['B', 'C', 'D', 'E', 'F', 'G', 'H'])
+        # two-step preparation for the "expected" value
         self.expected = pandas.Series([20, 189, 168, 186, 81, 41, 139, 55],
                                       index=['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'])
+        self.expected = pandas.DataFrame({'aggregator.ColumnAggregator': self.expected})
+
+    def test_init_1(self):
+        """That the settings are initialized properly."""
+        # NB: it's not ideal I guess, but I'm going to test all three possibilities in one method
+        exp = ColumnAggregator('data')
+        self.assertEqual(ColumnAggregator.default_settings['column'], exp._settings['column'])
+
+        exp = ColumnAggregator('data', {'setting_for_another_indexer': False})
+        self.assertEqual(ColumnAggregator.default_settings['column'], exp._settings['column'])
+
+        exp = ColumnAggregator('data', {'column': 'awesome.AwesomeExperimenter'})
+        self.assertEqual('awesome.AwesomeExperimenter', exp._settings['column'])
 
     def test_column_agg_1(self):
-        # that a DataFrame will be aggregated
+        """ColumnAggregator: that a DataFrame will be aggregated"""
         deeframe = pandas.DataFrame({u'a': self.column_a, u'b': self.column_b,
                                      u'c': self.column_c, u'd': self.column_d})
-        actual = ColumnAggregator(deeframe).run()
-        self.assertSequenceEqual(list(self.expected.index), list(actual.index))
-        self.assertEqual(len(self.expected), len(actual))
-        self.assertSequenceEqual(list(self.expected), list(actual))
+        actual = ColumnAggregator(deeframe).run()['aggregator.ColumnAggregator']
+        expected = self.expected['aggregator.ColumnAggregator']
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertEqual(len(expected), len(actual))
+        self.assertSequenceEqual(list(expected), list(actual))
 
     def test_column_agg_2(self):
-        # that a DataFrame's u'all' column won't be aggregated
+        """ColumnAggregator: that a DataFrame's u'all' column won't be aggregated"""
         deeframe = pandas.DataFrame({u'a': self.column_a, u'b': self.column_b,
                                      u'c': self.column_c, u'd': self.column_d,
                                      u'all': pandas.Series([400, 400, 400],
                                                            index=['A', 'B', 'C'])})
-        actual = ColumnAggregator(deeframe).run()
-        self.assertSequenceEqual(list(self.expected.index), list(actual.index))
-        self.assertEqual(len(self.expected), len(actual))
-        self.assertSequenceEqual(list(self.expected), list(actual))
+        actual = ColumnAggregator(deeframe).run()['aggregator.ColumnAggregator']
+        expected = self.expected['aggregator.ColumnAggregator']
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertEqual(len(expected), len(actual))
+        self.assertSequenceEqual(list(expected), list(actual))
 
     def test_column_agg_3(self):
-        # that a list of Series will be aggregated
-        actual = ColumnAggregator([self.column_a, self.column_b, self.column_c, self.column_d]).run()
-        self.assertSequenceEqual(list(self.expected.index), list(actual.index))
-        self.assertEqual(len(self.expected), len(actual))
-        self.assertSequenceEqual(list(self.expected), list(actual))
+        """ColumnAggregator: that the 'column' setting works"""
+        # deeframe_1 will count only columns 'a' and 'b'; deeframe_2 will count only columns 'c'
+        # and 'd'; thus all columns will be counted once and we'll end up with self.expected
+        deeframe_1 = pandas.DataFrame([self.column_a, self.column_b, self.column_c, self.column_d],
+                                      index=[['count me', 'count me', 'no count', 'no count'],
+                                             ['a', 'b', 'c', 'd']]).T
+        deeframe_2 = pandas.DataFrame([self.column_a, self.column_b, self.column_c, self.column_d],
+                                      index=[['no count', 'no count', 'count me', 'count me'],
+                                             ['a', 'b', 'c', 'd']]).T
+
+        actual = ColumnAggregator([deeframe_1, deeframe_2], {'column': 'count me'}).run()
+
+        actual = actual['aggregator.ColumnAggregator']
+        expected = self.expected['aggregator.ColumnAggregator']
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertEqual(len(expected), len(actual))
+        self.assertSequenceEqual(list(expected), list(actual))
 
     def test_column_agg_4(self):
-        # that a list of DataFrames is aggregated
+        """ColumnAggregator: that a list of DataFrames is aggregated"""
         deeframe_1 = pandas.DataFrame({u'a': self.column_a, u'b': self.column_b})
         deeframe_2 = pandas.DataFrame({u'c': self.column_c, u'd': self.column_d})
-        actual = ColumnAggregator([deeframe_1, deeframe_2]).run()
-        self.assertSequenceEqual(list(self.expected.index), list(actual.index))
-        self.assertEqual(len(self.expected), len(actual))
-        self.assertSequenceEqual(list(self.expected), list(actual))
+        actual = ColumnAggregator([deeframe_1, deeframe_2]).run()['aggregator.ColumnAggregator']
+        expected = self.expected['aggregator.ColumnAggregator']
+        self.assertSequenceEqual(list(expected.index), list(actual.index))
+        self.assertEqual(len(expected), len(actual))
+        self.assertSequenceEqual(list(expected), list(actual))
 
 
 #--------------------------------------------------------------------------------------------------#

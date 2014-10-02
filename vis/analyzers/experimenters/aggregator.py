@@ -7,7 +7,7 @@
 # Filename:               controllers/experimenters/aggregator.py
 # Purpose:                Aggregating experimenters.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Aggregating experimenters.
 """
@@ -34,22 +34,132 @@ from vis.analyzers import experimenter
 
 class ColumnAggregator(experimenter.Experimenter):
     """
-    Experiment that aggregates data from all columns of a :class:`DataFrame`, a list of \
-    :class:`DataFrame` objects, or a list of :class:`Series`, into a single :class:`Series`. \
-    Aggregation is done through addition. If a :class:`DataFrame` has a column with the name \
-    :obj:`u'all'`, it will *not* be included in the aggregation.
+    (Arguments for the constructor are listed below).
+
+    Experiment that aggregates data from columns of a :class:`DataFrame`, or a list of
+    :class:`DataFrame` objects, by summing each row. Values from columns named ``'all'`` will not
+    be included in the aggregated results. You may provide a ``'column'`` setting to guide the
+    experimenter to include only certain results.
+
+    **Example 1**
+
+    Inputting single :class:`DataFrame` like this:
+
+    +-------+---------+---------+
+    | Index | piece_1 | piece_2 |
+    +=======+=========+=========+
+    | M3    | 12      | 24      |
+    +-------+---------+---------+
+    | m3    | NaN     | 36      |
+    +-------+---------+---------+
+    | P5    | 3       | 9       |
+    +-------+---------+---------+
+
+    Yields this :class:`DataFrame`:
+
+    +-------+-------------------------------+
+    | Index | 'aggregator.ColumnAggregator' |
+    +=======+===============================+
+    | M3    | 36                            |
+    +-------+-------------------------------+
+    | m3    | 36                            |
+    +-------+-------------------------------+
+    | P5    | 12                            |
+    +-------+-------------------------------+
+
+    **Example 2**
+
+    Inputting two :class:`DataFrame` objects is similar.
+
+    +-------+---------+
+    | Index | piece_1 |
+    +=======+=========+
+    | M3    | 12      |
+    +-------+---------+
+    | P5    | 3       |
+    +-------+---------+
+
+    +-------+---------+
+    | Index | piece_2 |
+    +=======+=========+
+    | M3    | 24      |
+    +-------+---------+
+    | m3    | 36      |
+    +-------+---------+
+    | P5    | 9       |
+    +-------+---------+
+
+    The result is the same :class:`DataFrame`:
+
+    +-------+-------------------------------+
+    | Index | 'aggregator.ColumnAggregator' |
+    +=======+===============================+
+    | M3    | 36                            |
+    +-------+-------------------------------+
+    | m3    | 36                            |
+    +-------+-------------------------------+
+    | P5    | 12                            |
+    +-------+-------------------------------+
+
+    **Example 3**
+
+    You may also give a :class:`DataFrame` (or a list of :class:`DataFrame` objects) that have a
+    :class:`pandas.MultiIndex` as produced by subclasses of :class:`~vis.analyzers.indexer.Indexer`.
+    In this case, use the ``'column'`` setting to indicate which indexer's results you wish to
+    aggregate.
+
+    +-------+-----------------------------------+---------------------------------+
+    |       | 'frequency.FrequencyExperimenter' | 'feelings.FeelingsExperimenter' |
+    +       +---------+-------------------------+---------------+-----------------+
+    | Index | '0,1'   | '1,2'                   | 'Christopher' | 'Alex'          |
+    +=======+=========+=========================+===============+=================+
+    | M3    | 12      | 24                      | 'delight'     | 'exuberance'    |
+    +-------+---------+-------------------------+---------------+-----------------+
+    | m3    | NaN     | 36                      | 'sheer joy'   | 'nonchalance'   |
+    +-------+---------+-------------------------+---------------+-----------------+
+    | P5    | 3       | 9                       | 'emptiness'   | 'serenity'      |
+    +-------+---------+-------------------------+---------------+-----------------+
+
+    If ``'column'`` is ``'frequency.FrequencyExperimenter'``, yet again you will have this
+    :class:`DataFrame`:
+
+    +-------+-------------------------------+
+    | Index | 'aggregator.ColumnAggregator' |
+    +=======+===============================+
+    | M3    | 36                            |
+    +-------+-------------------------------+
+    | m3    | 36                            |
+    +-------+-------------------------------+
+    | P5    | 12                            |
+    +-------+-------------------------------+
     """
+
+    possible_settings = ['column']
+    """
+    :keyword str 'column': The column name to use for aggregation. The default is ``None``, which
+        aggregates across all columns. If you set this to ``'all'``, it will override the default
+        behaviour of not including columns called ``'all'``.
+    """
+
+    default_settings = {'column': None}
 
     def __init__(self, index, settings=None):
         """
-        :param index: The data to aggregate. You should ensure the row index of each pandas object \
-            can be sensibly combined. The data should be numbers.
-        :type index: :class:`pandas.DataFrame` or :obj:`list` of :class:`pandas.DataFrame` or of \
-            :class:`pandas.Series`
+        **For the __init__() Method**
 
-        :param settings: This indexer uses no settings, so this is ignored.
-        :type settings: :obj:`dict` or :obj:`None`
+        :param index: The data to aggregate. The values should be numbers.
+        :type index: :class:`pandas.DataFrame` or list of :class:`pandas.DataFrame`
+
+        :param settings: Optional dictionary with the settings described above in
+            :const:`possible_settings`.
+        :type settings: dict or NoneType
         """
+
+        if settings is None or 'column' not in settings:
+            self._settings = {'column': ColumnAggregator.default_settings['column']}
+        else:
+            self._settings = {'column': settings['column']}
+
         super(ColumnAggregator, self).__init__(index, None)
 
     def run(self):
@@ -60,11 +170,35 @@ class ColumnAggregator(experimenter.Experimenter):
             provided pandas objects, and the value is the sum of all values in the pandas objects.
         :rtype: :class:`pandas.Series`
         """
-        # make sure we have a single DataFrame
-        if isinstance(self._index, list):
-            if isinstance(self._index[0], pandas.DataFrame):
-                self._index = [ColumnAggregator(x).run() for x in self._index]
-            # combine the list-of-Series into a DataFrame
-            self._index = pandas.DataFrame(dict([(i, x) for i, x in enumerate(self._index)]))
-        # make the sum aggregation
-        return self._index.select(lambda x: x != u'all', axis=1).sum(axis=1, skipna=True)
+
+        # ensure we have a list of DatFrame
+        if isinstance(self._index, pandas.DataFrame):
+            aggregated = [self._index]
+        else:
+            aggregated = self._index
+
+        # if there's a 'column', select it from every DataFrame
+        if self._settings['column'] is not None:
+            def select_func(column_label):
+                """
+                Used to select columns; automatically adjusts to select through the column label or
+                the upper-most level of a MultiIndex, as required.
+                """
+                if isinstance(column_label, basestring):
+                    return column_label == self._settings['column']
+                else:
+                    return column_label[0] == self._settings['column']
+
+            aggregated = [df.select(select_func, axis=1) for df in aggregated]
+
+        # unless the 'column' is 'all', de-select all the 'all' columns
+        if self._settings['column'] != 'all':
+            aggregated = [df.select(lambda x: x != 'all', axis=1) for df in aggregated]
+
+        # concatenate the DataFrame together
+        aggregated = pandas.concat(aggregated, axis=1)
+
+        # calculate the sum
+        aggregated = aggregated.sum(axis=1, skipna=True)
+
+        return pandas.DataFrame({'aggregator.ColumnAggregator': aggregated})
