@@ -67,8 +67,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_lilypond.PART_NOTES_SUITE,
              test_lilypond.LILYPOND_SUITE,
              # Experimenter and Subclasses
-             test_frequency_experimenter.FREQUENCY_FUNC_SUITE,
-             test_frequency_experimenter.FREQUENCY_RUN_SUITE,
+             test_frequency_experimenter.FREQUENCY_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
              test_barchart.R_BAR_CHART_SUITE,
              # IndexedPiece and AggregatedPieces

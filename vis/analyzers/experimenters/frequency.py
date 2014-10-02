@@ -7,7 +7,7 @@
 # Filename:               controllers/experimenters/frequency.py
 # Purpose:                Frequency experimenter
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Experimenters that deal with the frequencies (number of occurrences) of events.
 """
@@ -32,43 +32,39 @@ import pandas
 from vis.analyzers import experimenter
 
 
-def experimenter_func(obj):
-    """
-    Used by the :class:`FrequencyExperimenter` to calculate the frequencies of things in an index.
-
-    :param obj: An identifier plus the results of an indexer.
-    :type obj: :obj:`tuple` of (anything, :class:`pandas.Series`)
-
-    :returns: An identifier plus the result of this indexation. In the series, the index is the \
-        names of objects found in the inputted series, and the value is the number of occurrences. \
-        The first element is the first element given here, used for identification purposes.
-    :rtype: :obj:`tuple` of (anything, :class:`pandas.Series`)
-    """
-    thing_dict = {}
-    for each in obj[1]:
-        if each not in thing_dict:
-            thing_dict[each] = sum(obj[1] == each)
-    return obj[0], pandas.Series(thing_dict)
-
-
 class FrequencyExperimenter(experimenter.Experimenter):
     """
-    Calculate the number of occurrences of things found in an index.
+    Calculate the number of occurrences of objects in an index.
+
+    Use the ``'column'`` setting to choose only the results of one previous analyzer. For example,
+    if you wanted to calculate the frequency of vertical intervals, you would specify
+    ``'interval.IntervalIndexer'``. This would avoid counting, for example, the horizontal intervals
+    if they were also present.
     """
 
-    possible_settings = []
-    default_settings = {}
+    possible_settings = ['column']
+    """
+    :keyword str 'column': The column name to use for counting frequency. The default is ``None``,
+        which counts all columns. Use this to count only the frequency of one previous analyzer.
+    """
+
+    default_settings = {'column': None}
 
     def __init__(self, index, settings=None):
         """
-        .. note:: It is the caller's responsibility to provide indices with the proper settings.
+        :param index: The data in which to count frequencies.
+        :type index: :class:`pandas.DataFrame` or list of :class:`pandas.DataFrame`
 
-        :param index: A list of :class:`Series`, where each one is the result of an indexer for \
-            one of the parts in this score.
-        :type index: :obj:`list` or :obj:`dict` of :class:`pandas.Series`
-        :param settings: This indexer uses no settings, so this is ignored.
-        :type settings: :obj:`dict` or :obj:`None`
+        :param settings: Optional dictionary with the settings described above in
+            :const:`possible_settings`.
+        :type settings: dict or NoneType
         """
+
+        if settings is None or 'column' not in settings:
+            self._settings = {'column': FrequencyExperimenter.default_settings['column']}
+        else:
+            self._settings = {'column': settings['column']}
+
         super(FrequencyExperimenter, self).__init__(index, None)
 
     def run(self):
@@ -80,25 +76,46 @@ class FrequencyExperimenter(experimenter.Experimenter):
             of the kind of objects found in the given index. Note that all columns are totalled in \
             the "all" column, and that not every part combination will have every interval; in \
             case an interval does not appear in a part combination, the value is :obj:`numpy.NaN`.
-        :rtype: :class:`pandas.DataFrame`
+        :rtype: list of :class:`pandas.DataFrame`
         """
-        # assemble results per-part
-        results = None
-        if isinstance(self._index, dict):
-            results = [[(x, self._index[x])] for x in self._index.iterkeys()]
+
+        # ensure we have a list of DatFrame
+        if isinstance(self._index, pandas.DataFrame):
+            uncounted = [self._index]
         else:
-            results = [[(i, x)] for i, x in enumerate(self._index)]
-        results = self._do_multiprocessing(experimenter_func, results)
-        post = {}
-        for result in results:
-            post[result[0]] = result[1]
-        # assemble all-part results
-        tokens = []
-        for part_i in post.iterkeys():
-            tokens.extend(list(post[part_i].index))
-        tokens = set(tokens)
-        for i in post.iterkeys():
-            post[i].reindex(index=tokens)
-        post = pandas.DataFrame(post)
-        post[u'all'] = post.sum(axis=1, skipna=True)
-        return post
+            uncounted = self._index
+
+        # if there's a 'column', select it from every DataFrame
+        if self._settings['column'] is not None:
+            def select_func(column_label):
+                """
+                Used to select columns; automatically adjusts to select through the column label or
+                the upper-most level of a MultiIndex, as required.
+                """
+                if isinstance(column_label, basestring):
+                    return column_label == self._settings['column']
+                else:
+                    return column_label[0] == self._settings['column']
+
+            uncounted = [df.select(select_func, axis=1) for df in uncounted]
+
+        # get the value_counts() on every Series
+        # NOTE: in the future, if _do_multiprocessing() uses multiprocessing, use that instead
+        counted = []
+        for each_df in uncounted:
+            each_df_results = {}
+            for col_name in each_df:
+                each_df_results[col_name] = each_df[col_name].value_counts()
+            each_df = pandas.DataFrame(each_df_results)
+            # make the MultiIndex and its labels
+            if isinstance(each_df.columns[0], tuple):
+                tuples = [('frequency.FrequencyExperimenter', label[1]) for label in each_df.columns]
+            else:
+                tuples = [('frequency.FrequencyExperimenter', label) for label in each_df.columns]
+            multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Experimenter', 'Parts'])
+            # foist our MultiIndex onto the new results
+            each_df.columns = multiindex
+            #return pandas.DataFrame(indices, index=multiindex).T
+            counted.append(each_df)
+
+        return counted
