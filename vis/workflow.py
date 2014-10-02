@@ -161,7 +161,6 @@ class WorkflowManager(object):
         * ``u'stata'`` to load data from a previous :meth:`export`.
         * ``u'pickle'`` to load data from a previous :meth:`export`.
         """
-        # TODO: remove requirement to provide "instruction"; should default to 'pieces'
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
         #       and run the NoteRestIndexer, then pickle it and send that to a callback method
