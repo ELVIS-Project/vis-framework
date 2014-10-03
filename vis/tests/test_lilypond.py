@@ -34,6 +34,7 @@ import mock
 import pandas
 from music21 import note, stream
 from vis.analyzers.indexers import lilypond
+from vis.analyzers.experimenters.lilypond import PartNotesExperimenter
 
 
 class TestAnnotationIndexer(unittest.TestCase):
@@ -92,16 +93,16 @@ class TestAnnotateTheNoteIndexer(unittest.TestCase):
                 self.assertEqual(annotes[i][j], each_note.lily_markup)
 
 
-class TestPartNotesIndexer(unittest.TestCase):
+class TestPartNotesExperimenter(unittest.TestCase):
     # NB: this is to help mock this method later
-    FSBO_PATH = u'vis.analyzers.indexers.lilypond.PartNotesIndexer._fill_space_between_offsets'
+    FSBO_PATH = 'vis.analyzers.experimenters.lilypond.PartNotesExperimenter._fill_space_between_offsets'
     # the fill_space_between_offsets() tests were taken from vis7
     def test_fsbo_1(self):
         # pylint: disable=W0212
         in_1 = 0.0
         in_2 = 1.0
         expected = [1.0]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -110,7 +111,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_1 = 0.0
         in_2 = 4.0
         expected = [4.0]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -119,7 +120,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_1 = 0.0
         in_2 = 5.0
         expected = [4.0, 1.0]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -128,7 +129,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_1 = 0.0
         in_2 = 8.0
         expected = [4.0, 4.0]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -137,7 +138,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_1 = 0.0
         in_2 = 9.0
         expected = [4.0, 4.0, 1.0]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -146,7 +147,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_1 = 4.5
         in_2 = 5.0
         expected = [0.5]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -155,7 +156,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_1 = 7693.5
         in_2 = 7703.0
         expected = [4.0, 4.0, 1.0, 0.5]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -164,7 +165,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_1 = 0.0
         in_2 = 3.96875
         expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -173,7 +174,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_1 = 3.96875
         in_2 = 7.9375
         expected = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]
-        actual = lilypond.PartNotesIndexer._fill_space_between_offsets(in_1, in_2)
+        actual = PartNotesExperimenter._fill_space_between_offsets(in_1, in_2)
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(expected, actual)
 
@@ -186,9 +187,9 @@ class TestPartNotesIndexer(unittest.TestCase):
             in_val[i].offset = in_offsets[i]
         in_val.lily_analysis_voice = 42
         expected = [(0.0, 4.0), (4.0, 1.0)]
-        with mock.patch(TestPartNotesIndexer.FSBO_PATH) as mock_fsbo:
+        with mock.patch(TestPartNotesExperimenter.FSBO_PATH) as mock_fsbo:
             mock_fsbo.side_effect = [[4.0]]
-            actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+            actual = PartNotesExperimenter._set_durations(in_val)  # pylint: disable=W0212
             self.assertEqual(len(in_offsets) - 1, mock_fsbo.call_count)
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
@@ -206,9 +207,9 @@ class TestPartNotesIndexer(unittest.TestCase):
             in_val[i].offset = in_offsets[i]
         in_val.lily_instruction = 66
         expected = [(0.0, 2.0), (2.0, 1.0), (3.0, 1.0)]
-        with mock.patch(TestPartNotesIndexer.FSBO_PATH) as mock_fsbo:
+        with mock.patch(TestPartNotesExperimenter.FSBO_PATH) as mock_fsbo:
             mock_fsbo.side_effect = [[2.0, 1.0]]
-            actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+            actual = PartNotesExperimenter._set_durations(in_val)  # pylint: disable=W0212
             self.assertEqual(len(in_offsets) - 1, mock_fsbo.call_count)
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
@@ -227,9 +228,9 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_val.lily_analysis_voice = 42
         in_val.lily_instruction = 66
         expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
-        with mock.patch(TestPartNotesIndexer.FSBO_PATH) as mock_fsbo:
+        with mock.patch(TestPartNotesExperimenter.FSBO_PATH) as mock_fsbo:
             mock_fsbo.side_effect = [[2.0, 0.5, 0.25]]
-            actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+            actual = PartNotesExperimenter._set_durations(in_val)  # pylint: disable=W0212
             self.assertEqual(len(in_offsets) - 1, mock_fsbo.call_count)
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
@@ -247,9 +248,9 @@ class TestPartNotesIndexer(unittest.TestCase):
             in_val[i].offset = in_offsets[i]
         expected = [(3.96875, 2.0), (5.96875, 1.0), (6.96875, 0.5), (7.46875, 0.25),
                     (7.71875, 0.125), (7.84375, 0.0625), (7.90625, 0.03125), (7.9375, 1.0)]
-        with mock.patch(TestPartNotesIndexer.FSBO_PATH) as mock_fsbo:
+        with mock.patch(TestPartNotesExperimenter.FSBO_PATH) as mock_fsbo:
             mock_fsbo.side_effect = [[2.0, 1.0, 0.5, 0.25, 0.125, 0.0625, 0.03125]]
-            actual = lilypond.PartNotesIndexer._set_durations(in_val)  # pylint: disable=W0212
+            actual = PartNotesExperimenter._set_durations(in_val)  # pylint: disable=W0212
             self.assertEqual(len(in_offsets) - 1, mock_fsbo.call_count)
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
@@ -269,7 +270,7 @@ class TestPartNotesIndexer(unittest.TestCase):
             in_val.append(obj)
         in_val = [pandas.Series(in_val, index=[0.0, 2.75])]
         expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
-        actual = lilypond.PartNotesIndexer(in_val).run()[0]
+        actual = PartNotesExperimenter(in_val).run()[0]
         # Verify...
         # ... that the result is a Part with the proper LilyPond attributes
         self.assertTrue(isinstance(actual, stream.Part))
@@ -301,7 +302,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_val = [pandas.Series(in_val, index=[0.0, 2.75])]
         setts = {'part_names': ['the name']}
         expected = [(0.0, 2.0), (2.0, 0.5), (2.5, 0.25), (2.75, 1.0)]
-        actual = lilypond.PartNotesIndexer(in_val, setts).run()[0]
+        actual = PartNotesExperimenter(in_val, setts).run()[0]
         # Verify...
         # ... that the result is a Part with the proper LilyPond attributes
         self.assertTrue(isinstance(actual, stream.Part))
@@ -326,7 +327,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         # simple: add one thing in front of one other thing
         in_val = pandas.Series(['first'], index=[2.0])
         expected = pandas.Series([note.Rest(quarterLength=2.0), 'first'], index=[0.0, 2.0])
-        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        actual = PartNotesExperimenter._prepend_rests(in_val)  # pylint: disable=protected-access
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
@@ -334,7 +335,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         # simple: everything's already right
         in_val = pandas.Series(['first'], index=[0.0])
         expected = pandas.Series(['first'], index=[0.0])
-        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        actual = PartNotesExperimenter._prepend_rests(in_val)  # pylint: disable=protected-access
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
@@ -344,7 +345,7 @@ class TestPartNotesIndexer(unittest.TestCase):
                                index=[0.0, 0.25, 400.369, 1024.1024])
         expected = pandas.Series(['first', 'second', 'third', 'fourth'],
                                  index=[0.0, 0.25, 400.369, 1024.1024])
-        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        actual = PartNotesExperimenter._prepend_rests(in_val)  # pylint: disable=protected-access
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
@@ -353,7 +354,7 @@ class TestPartNotesIndexer(unittest.TestCase):
         in_val = pandas.Series(['first'], index=[6.0])
         expected = pandas.Series([note.Rest(quarterLength=4.0), note.Rest(quarterLength=2.0), 'first'],
                                  index=[0.0, 4.0, 6.0])
-        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        actual = PartNotesExperimenter._prepend_rests(in_val)  # pylint: disable=protected-access
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
@@ -365,7 +366,7 @@ class TestPartNotesIndexer(unittest.TestCase):
                                   note.Rest(quarterLength=1.0),
                                   'first'],
                                  index=[0.0, 4.0, 6.0, 7.0])
-        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        actual = PartNotesExperimenter._prepend_rests(in_val)  # pylint: disable=protected-access
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
@@ -381,7 +382,7 @@ class TestPartNotesIndexer(unittest.TestCase):
                                   'third',
                                   'fourth'],
                                  index=[0.0, 4.0, 6.0, 7.0, 7.25, 400.369, 1024.1024])
-        actual = lilypond.PartNotesIndexer._prepend_rests(in_val)  # pylint: disable=protected-access
+        actual = PartNotesExperimenter._prepend_rests(in_val)  # pylint: disable=protected-access
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.values), list(actual.values))
 
@@ -506,5 +507,5 @@ class TestLilyPondIndexer(unittest.TestCase):
 #--------------------------------------------------------------------------------------------------#
 ANNOTATION_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestAnnotationIndexer)
 ANNOTATE_NOTE_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestAnnotateTheNoteIndexer)
-PART_NOTES_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestPartNotesIndexer)
+PART_NOTES_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestPartNotesExperimenter)
 LILYPOND_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestLilyPondIndexer)
