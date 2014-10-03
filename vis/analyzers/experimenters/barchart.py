@@ -33,6 +33,7 @@ The experimenters in this module all generate bar charts. Currently the only cla
 
 from os import path
 import subprocess
+import pandas
 import vis
 from vis.analyzers import experimenter
 
@@ -55,12 +56,15 @@ class RBarChart(experimenter.Experimenter):
     do not allow ``'wmf'`` in this experimenter.
     """
 
-    possible_settings = ('pathname', 'type', 'token', 'nr_pieces')
+    possible_settings = ('pathname', 'column', 'type', 'token', 'nr_pieces')
     """
     Only the ``'pathname'`` setting is required. For default values, refer to the descriptions below
     and the values in :const:`default_settings`.
 
     :keyword str 'pathname': The pathname to use for the outputted file.
+    :keyword str 'column': The column of the :class:`DataFrame to choose for outputting. If the
+        data you wish to include in the chart is not in the ``'freq'`` column, use this setting to
+        determine which column is used instead.
     :keyword str 'type': The output type, chosen from :const:`OUTPUT_TYPES`.
     :keyword str 'token': The "token" to pass onto the bar chart script, telling it what type of
         object is being displayed. This should either be a string ending with ``'-gram'``, the
@@ -80,7 +84,7 @@ class RBarChart(experimenter.Experimenter):
         displayed.
     """
 
-    default_settings = {'type': 'png', 'token': 'objects', 'nr_pieces': None}
+    default_settings = {'column': 'freq', 'type': 'png', 'token': 'objects', 'nr_pieces': None}
     """
     Deafult values for the optional settings.
     """
@@ -91,8 +95,8 @@ class RBarChart(experimenter.Experimenter):
 
     def __init__(self, index, settings=None):
         """
-        :param index: The experimental results with which to make a bar chart. This must be a
-            :class:`DataFrame` with a single column called ``'freq'``.
+        :param index: The experimental results with which to make a bar chart. Either you must
+            provide the ``'column'`` setting or the results must be in the ``'freq'`` column.
         :type index: :class:`pandas.DataFrame`
 
         :param dict settings: A dictionary with settings. You must include the ``'pathname'`` and
@@ -118,6 +122,11 @@ class RBarChart(experimenter.Experimenter):
             self._settings['type'] = RBarChart.default_settings['type']
 
         # set the other settings
+        if 'column' in settings:
+            self._settings['column'] = settings['column']
+        else:
+            self._settings['column'] = RBarChart.default_settings['column']
+
         if 'token' in settings:
             self._settings['token'] = settings['token']
         else:
@@ -154,6 +163,10 @@ class RBarChart(experimenter.Experimenter):
             token = 'int'
         else:
             token = 'things'
+
+        # if a column was given, we have to (effectively) change the column name for the R script
+        if self._settings['column'] != RBarChart.default_settings['column']:
+            self._index = pandas.DataFrame({'freq': self._index[self._settings['column']]})
 
         # run relevant filters then save the DataFrame
         self._index.to_stata(stata_path)

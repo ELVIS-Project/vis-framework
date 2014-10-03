@@ -79,17 +79,22 @@ class TestRBarChart(unittest.TestCase):
         except RuntimeError as runerr:
             self.assertEqual(barchart.RBarChart._INVALID_TYPE.format(setts['type']), runerr.message)
 
+    @mock.patch('vis.analyzers.experimenters.barchart.pandas.DataFrame')
     @mock.patch('vis.analyzers.experimenters.barchart.subprocess.check_output')
-    def test_run_1(self, mock_subpro):
+    def test_run_1(self, mock_subpro, mock_df):
         """
         That run() works properly.
         - token: '4-gram'
         - nr_pieces: '12'
+        - column: 'the Brahms column'
         """
         # NB: this test temporarily changes vis.__path__ to a predictable result, so we can ensure
         #     __init__() uses it correctly
-        setts = {'pathname': 'so_path', 'type': 'svg', 'token': '4-gram', 'nr_pieces': 12}
-        some_df = mock.MagicMock(auto_spec=pandas.DataFrame())
+        setts = {'pathname': 'so_path', 'type': 'svg', 'token': '4-gram', 'nr_pieces': 12,
+                 'column': 'the Brahms column'}
+        some_df = {'the Brahms column': 'some FAF Series', 'the Raisin column': 'some bread Series'}
+        new_df = mock.MagicMock()
+        mock_df.return_value = new_df
         actual_vis_path = vis.__path__  # save the actual __path__
         vis.__path__ = ['directory']  # replace with our __path__
         expected = '{}.{}'.format(setts['pathname'], setts['type'])
@@ -102,6 +107,7 @@ class TestRBarChart(unittest.TestCase):
         vis.__path__ = actual_vis_path  # restore vis.__path__
         self.assertEqual(expected, actual)
         mock_subpro.assert_called_once_with(expected_call)
+        new_df.to_stata.assert_called_once_with('{}.{}'.format(setts['pathname'], 'dta'))
 
     @mock.patch('vis.analyzers.experimenters.barchart.subprocess.check_output')
     def test_run_2(self, mock_subpro):
