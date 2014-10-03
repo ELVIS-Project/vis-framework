@@ -28,6 +28,8 @@
 Aggregating experimenters.
 """
 
+# pylint: disable=pointless-string-statement
+
 import pandas
 from vis.analyzers import experimenter
 

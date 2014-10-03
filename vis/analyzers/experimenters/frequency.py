@@ -28,6 +28,8 @@
 Experimenters that deal with the frequencies (number of occurrences) of events.
 """
 
+# pylint: disable=pointless-string-statement
+
 import pandas
 from vis.analyzers import experimenter
 

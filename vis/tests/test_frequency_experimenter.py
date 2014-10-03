@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers_tests/test_frequency.py
+# Filename:               vis/tests/test_frequency.py
 # Purpose:                Tests for the frequency experimenters.
 #
 # Copyright (C) 2013, 2014 Christopher Antila
@@ -22,18 +22,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
+"""Tests for the 'frequency' module."""
 
 # pylint: disable=too-many-public-methods
+# pylint: disable=too-many-instance-attributes
 
 
 import unittest
-import mock
 import numpy
 import pandas
 from vis.analyzers.experimenters.frequency import FrequencyExperimenter
 
 
 class TestFrequency(unittest.TestCase):
+    """Tests for the FrequencyExperimenter."""
     def setUp(self):
         """prepare base Series used in every test"""
         self.in_a = pandas.Series([4, 3, 1, 5, 5, 4, 2, 0, 0, 4, 2, 4, 5, 6, 2, 2, 1, 5, 0, 5])
@@ -43,7 +45,7 @@ class TestFrequency(unittest.TestCase):
         self.freq_a = pandas.Series({5: 5, 4: 4, 2: 4, 0: 3, 1: 2, 6: 1, 3: 1})
         self.freq_b = pandas.Series({4: 5, 3: 5, 5: 3, 2: 3, 0: 2, 6: 1, 1: 1})
         self.freq_c = pandas.Series({5: 4, 1: 4, 4: 3, 3: 3, 0: 3, 2: 2, 6: 1})
-        self.freq_d = pandas.Series({1: 7, 5: 5, 2: 5, 0: 2, 3: 1, 4: numpy.NaN, 6: numpy.NaN})
+        self.freq_d = pandas.Series({1: 7, 5: 5, 2: 5, 0: 2, 3: 1, 4: numpy.NaN, 6: numpy.NaN})  # pylint: disable=no-member
 
     def test_run_1(self):
         """single DataFrame, no 'column' setting"""
@@ -97,8 +99,8 @@ class TestFrequency(unittest.TestCase):
         # right, column 'd'  (the only column with NaN)
         self.assertItemsEqual(list(self.freq_d.index), list(right_df['d'].index))
         for each in self.freq_a.index:
-            if numpy.isnan(self.freq_d[each]):
-                self.assertTrue(numpy.isnan(right_df['d'][each]))
+            if numpy.isnan(self.freq_d[each]):  # pylint: disable=no-member
+                self.assertTrue(numpy.isnan(right_df['d'][each]))  # pylint: disable=no-member
             else:
                 self.assertEqual(self.freq_d[each], right_df['d'][each])
 
