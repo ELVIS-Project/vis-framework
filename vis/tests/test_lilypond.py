@@ -22,19 +22,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
+"""
+Tests for the 'indexers.lilypond' and 'experimenters.lilypond' modules.
+"""
 
-# allow "no docstring" for everything
-# pylint: disable=C0111
 # allow "too many public methods" for TestCase
-# pylint: disable=R0904
-
+# pylint: disable=too-many-public-methods
 
 import unittest
 import mock
+from numpy import isnan, NaN  # pylint: disable=no-name-in-module
 import pandas
 from music21 import note, stream
 from vis.analyzers.indexers import lilypond
-from vis.analyzers.experimenters.lilypond import PartNotesExperimenter
+from vis.analyzers.experimenters.lilypond import PartNotesExperimenter, AnnotateTheNoteExperimenter, \
+    annotate_the_note
 
 
 class TestAnnotationIndexer(unittest.TestCase):
@@ -67,23 +69,51 @@ class TestAnnotationIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected[i]), list(actual[i]))
 
 
-class TestAnnotateTheNoteIndexer(unittest.TestCase):
+class TestAnnotateTheNoteExperimenter(unittest.TestCase):
+    """Tests for AnnotateTheNoteExperimenter."""
+
     def test_ind_func_1(self):
-        in_val = pandas.Series([u'_\\markup{ "my shirt" }'])
-        actual = lilypond.annotate_the_note(in_val)
+        """That the indexing function, annotate_the_note(), works properly."""
+        in_val = u'_\\markup{ "my shirt" }'
+        actual = annotate_the_note(in_val)
         self.assertTrue(isinstance(actual, note.Note))
         self.assertTrue(hasattr(actual, u'lily_invisible'))
         self.assertTrue(hasattr(actual, u'lily_markup'))
         self.assertEqual(True, actual.lily_invisible)
         self.assertEqual(u'_\\markup{ "my shirt" }', actual.lily_markup)
 
-    def test_class_1(self):
+    def test_ind_func_2(self):
+        """That the indexing function, annotate_the_note(), works properly with NaN input."""
+        in_val = NaN
+        actual = annotate_the_note(in_val)
+        self.assertTrue(isnan(actual))
+
+    def test_init_1(self):
+        """That __init__() works properly."""
+        actual = AnnotateTheNoteExperimenter('some DF', {'column': 'Muhly'})
+        self.assertEqual('Muhly', actual._settings['column'])
+
+    def test_init_2(self):
+        """That __init__() raises a RuntimeError when the 'column' setting isn't given."""
+        self.assertRaises(RuntimeError, AnnotateTheNoteExperimenter, 'some DF', {'row': 'the zoo'})
+        try:
+            AnnotateTheNoteExperimenter('some DF', {'row': 'the zoo'})
+        except RuntimeError as run_err:
+            self.assertEqual(AnnotateTheNoteExperimenter._MISSING_SETTING, run_err.message)
+
+    def test_run_1(self):
+        """That run() works properly when all the annotations are at the same index/offset."""
         annotes = [['_\\markup{ "this" }', '_\\markup{ "is" }'],
                    ['_\\markup{ "how" }', '_\\markup{ "we" }'],
                    ['_\\markup{ "do" }', '_\\markup{ "it" }'],
                    ['_\\markup{ "baby" }', '_\\markup{ "yeah" }']]
-        in_val = [pandas.Series(l) for l in annotes]
-        actual = lilypond.AnnotateTheNoteIndexer(in_val).run()
+        in_val = pandas.DataFrame([pandas.Series(x) for x in annotes],
+                                  index=[['this', 'this', 'this', 'this'],
+                                         ['1', '2', '3', '4']]).T
+
+        actual = AnnotateTheNoteExperimenter(in_val, {'column': 'this'}).run()
+
+        self.assertEqual(len(annotes), len(actual))
         for i, each_part in enumerate(actual):
             for j, each_note in enumerate(each_part):
                 self.assertTrue(isinstance(each_note, note.Note))
@@ -91,6 +121,33 @@ class TestAnnotateTheNoteIndexer(unittest.TestCase):
                 self.assertTrue(hasattr(each_note, u'lily_markup'))
                 self.assertEqual(True, each_note.lily_invisible)
                 self.assertEqual(annotes[i][j], each_note.lily_markup)
+
+    def test_run_2(self):
+        """That run() works properly when the annotations have a different index/offset."""
+        annotes = [['_\\markup{ "this" }', '_\\markup{ "is" }'],
+                   ['_\\markup{ "how" }', '_\\markup{ "we" }'],
+                   ['_\\markup{ "do" }', '_\\markup{ "it" }'],
+                   ['_\\markup{ "baby" }', '_\\markup{ "yeah" }']]
+        in_series = [pandas.Series(annotes[0], index=[0.0, 1.0]),
+                     pandas.Series(annotes[1], index=[0.0, 0.5]),
+                     pandas.Series(annotes[2], index=[0.5, 1.0]),
+                     pandas.Series(annotes[3], index=[0.25, 1.25])]
+        in_val = pandas.DataFrame(in_series,
+                                  index=[['this', 'this', 'this', 'this'],
+                                         ['1', '2', '3', '4']]).T
+
+        actual = AnnotateTheNoteExperimenter(in_val, {'column': 'this'}).run()
+
+        self.assertEqual(len(annotes), len(actual))
+        for i, each_part in enumerate(actual):
+            for j, each_note in enumerate(each_part):
+                self.assertTrue(isinstance(each_note, note.Note))
+                self.assertTrue(hasattr(each_note, u'lily_invisible'))
+                self.assertTrue(hasattr(each_note, u'lily_markup'))
+                self.assertEqual(True, each_note.lily_invisible)
+                self.assertEqual(annotes[i][j], each_note.lily_markup)
+                 # check the offsets are still right
+                self.assertEqual(in_series[i].index[j], each_part.index[j])
 
 
 class TestPartNotesExperimenter(unittest.TestCase):
@@ -506,6 +563,6 @@ class TestLilyPondIndexer(unittest.TestCase):
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 ANNOTATION_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestAnnotationIndexer)
-ANNOTATE_NOTE_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestAnnotateTheNoteIndexer)
+ANNOTATE_NOTE_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestAnnotateTheNoteExperimenter)
 PART_NOTES_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestPartNotesExperimenter)
 LILYPOND_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestLilyPondIndexer)

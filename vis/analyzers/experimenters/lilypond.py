@@ -32,15 +32,82 @@ The :class:`LilyPondIndexer` uses the :mod:`outputlilypond` module to produce a 
 corresponding to the score.
 """
 
-# Disable "string statement has no effect"
-# pylint: disable=W0105
+# pylint: disable=pointless-string-statement
 
 from math import fsum
+from numpy import isnan, NaN  # pylint: disable=no-name-in-module
 import pandas
 from music21 import stream, note, duration
-import outputlilypond
-from outputlilypond import settings as oly_settings
+#import outputlilypond
+#from outputlilypond import settings as oly_settings
 from vis.analyzers import experimenter
+
+
+def annotate_the_note(obj):
+    """
+    Used by :class:`AnnotateTheNoteExperimenter` to make a :class:`~music21.note.Note` object with
+    the annotation passed in. Take note (hahaha): the ``lily_invisible`` property is set to ``True``!
+
+    :param obj: A string to put as the ``lily_markup`` property of a new :class:`Note`.
+    :type obj: basestring
+
+    :returns: An annotated note.
+    :rtype: :class:`music21.note.Note`
+    """
+    if isinstance(obj, float) and isnan(obj):
+        return NaN
+    else:
+        post = note.Note()
+        post.lily_invisible = True
+        post.lily_markup = obj
+        return post
+
+
+class AnnotateTheNoteExperimenter(experimenter.Experimenter):
+    """
+    Make a new :class:`~music21.note.Note` object with the input set to the ``lily_markup``
+    property, the ``lily_invisible`` property set to ``True``, and everything else as a default
+    :class:`Note`.
+    """
+
+    possible_settings = ['column']
+    """
+    Use the ``'column'`` setting to determine which column of the :class:`DataFrame` will be used
+    as the annotations for the notes in the outputted list of :class:`Series`.
+    """
+
+    _MISSING_SETTING = 'AnnotateTheNoteExperimenter is missing the "column" setting.'
+
+    def __init__(self, index, settings=None):
+        """
+        :param index: The input from which to produce a new index---the output of the
+            :class:`vis.analyzers.indexers.lilypond.AnnotationIndexer`.
+        :type index: :class:`pandas.DataFrame`
+
+        :param settings: A dictionary with the required setting.
+
+        :raises: :exc:`RuntimeError` if the ``'column'`` setting is not in ``settings``.
+        """
+        super(AnnotateTheNoteExperimenter, self).__init__(index, None)
+        if 'column' not in settings:
+            raise RuntimeError(AnnotateTheNoteExperimenter._MISSING_SETTING)
+        else:
+            self._settings['column'] = settings['column']
+        self._indexer_func = annotate_the_note
+
+    def run(self):
+        """
+        Make a new index of the piece.
+
+        :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
+            index of the :class:`Part` used to generate it, in the order specified to the
+            constructor. Each element in the :class:`Series` is a ``basestring``.
+        :rtype: list of :class:`pandas.Series`
+        """
+        self._index = self._index[self._settings['column']]
+        results = [self._index[s].map(self._indexer_func) for s in self._index]
+        results = [x.dropna() for x in results]
+        return results
 
 
 class PartNotesExperimenter(experimenter.Experimenter):
