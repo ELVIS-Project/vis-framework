@@ -28,11 +28,15 @@
 # allow "too many public methods" for TestCase
 # pylint: disable=R0904
 
-
+import os
 import unittest
 import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers.indexers import noterest
+
+# find the pathname of the 'vis' directory
+import vis
+VIS_PATH = vis.__path__[0]
 
 class TestNoteRestIndexer(unittest.TestCase):
     bwv77_soprano = [(0.0, "E4"), (0.5, "F#4"), (1.0, "G4"), (2.0, "A4"), (3.0, "B4"), (4.0, "A4"),
@@ -139,7 +143,7 @@ class TestNoteRestIndexer(unittest.TestCase):
     def test_note_rest_indexer_4(self):
         # Soprano part of bwv77.mxl
         expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)}
-        test_part = [converter.parse('vis/tests/corpus/bwv77.mxl').parts[0]]
+        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertEqual(len(expected), len(actual.columns))
@@ -151,7 +155,7 @@ class TestNoteRestIndexer(unittest.TestCase):
     def test_note_rest_indexer_5(self):
         # Bass part of bwv77.mxl
         expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)}
-        test_part = [converter.parse('vis/tests/corpus/bwv77.mxl').parts[3]]
+        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[3]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertEqual(len(expected), len(actual.columns))
@@ -165,7 +169,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         # We won't verify all the part, but we'll submit them all for analysis.
         expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano),
                     '3': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)}
-        bwv77 = converter.parse('vis/tests/corpus/bwv77.mxl')
+        bwv77 = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
         test_part = [bwv77.parts[0], bwv77.parts[1], bwv77.parts[2], bwv77.parts[3]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']

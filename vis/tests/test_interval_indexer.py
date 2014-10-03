@@ -29,12 +29,17 @@
 # pylint: disable=R0904
 
 
+import os
 import unittest
 import pandas
 from music21 import interval, note
 from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, \
     real_indexer, key_to_tuple
 from vis.tests.test_note_rest_indexer import TestNoteRestIndexer
+
+# find the pathname of the 'vis' directory
+import vis
+VIS_PATH = vis.__path__[0]
 
 
 def make_series(lotuples):
@@ -656,19 +661,19 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
 
 class TestHorizIntervalIndexerLong(unittest.TestCase):
     # data_interval_indexer_1.csv
-    bwv77_S_B_short = pandas.read_csv('vis/tests/data_interval_indexer_1.csv',
+    bwv77_S_B_short = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'data_interval_indexer_1.csv'),
                                       index_col=0,
                                       names=['a'],
                                       dtype={'a': str})
 
     # data_interval_indexer_2.csv
-    bwv77_S_B_short_noqual = pandas.read_csv('vis/tests/data_interval_indexer_2.csv',
+    bwv77_S_B_short_noqual = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'data_interval_indexer_2.csv'),
                                              index_col=0,
                                              names=['a'],
                                              dtype={'a': str})
 
     # data_interval_indexer_3.csv
-    bwv77_S_B_basis = pandas.read_csv('vis/tests/data_interval_indexer_3.csv',
+    bwv77_S_B_basis = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'data_interval_indexer_3.csv'),
                                       index_col=0,
                                       names=['a'],
                                       dtype={'a': str})

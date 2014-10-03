@@ -26,10 +26,14 @@
 Integration tests for the WorkflowManager
 """
 
+import os
 from unittest import TestCase, TestLoader
 import pandas
 from vis.workflow import WorkflowManager
 
+# find pathname of the 'vis' directory
+import vis
+VIS_PATH = vis.__path__[0]
 
 # pylint: disable=R0904
 # pylint: disable=C0111
@@ -61,7 +65,7 @@ class IntervalsTests(TestCase):
 
     def test_intervals_1(self):
         # test the two highest voices of bwv77
-        test_wm = WorkflowManager(['vis/tests/corpus/bwv77.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0, 1]]')
         actual = test_wm.run('intervals')
@@ -74,7 +78,7 @@ class IntervalsTests(TestCase):
 
     def test_intervals_2(self):
         # test all combinations of bwv77
-        test_wm = WorkflowManager(['vis/tests/corpus/bwv77.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         actual = test_wm.run('intervals')
@@ -87,7 +91,7 @@ class IntervalsTests(TestCase):
 
     def test_intervals_3(self):
         # test all combinations of madrigal51 without rests
-        test_wm = WorkflowManager(['vis/tests/corpus/madrigal51.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(None, 'include rests', False)
@@ -101,7 +105,7 @@ class IntervalsTests(TestCase):
 
     def test_intervals_4(self):
         # test all combinations of madrigal51 with rests
-        test_wm = WorkflowManager(['vis/tests/corpus/madrigal51.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(None, 'include rests', True)
@@ -191,7 +195,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_1(self):
         # test the two highest voices of bwv77; 2-grams
-        test_wm = WorkflowManager(['vis/tests/corpus/bwv77.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0, 1]]')
         test_wm.settings(0, 'n', 2)
@@ -206,7 +210,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_2(self):
         # test all two-part combinations of bwv77; 5-grams
-        test_wm = WorkflowManager(['vis/tests/corpus/bwv77.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(0, 'n', 5)
@@ -221,7 +225,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_3(self):
         # test all voices of bwv77; 1-grams
-        test_wm = WorkflowManager(['vis/tests/corpus/bwv77.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(0, 'n', 1)
@@ -235,7 +239,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_4(self):
         # test all voices of bwv2; 3-grams; simple intervals
-        test_wm = WorkflowManager(['vis/tests/corpus/bwv2.xml'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(0, 'n', 2)
@@ -251,7 +255,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_5(self):
         # test madrigal51 with all-voice 2-grams and no rests (the default setting)
-        test_wm = WorkflowManager(['vis/tests/corpus/madrigal51.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')])
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(None, 'include rests', False)
         test_wm.load('pieces')
@@ -266,7 +270,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_6(self):
         # test madrigal51 with all-voice 2-grams and rests
-        test_wm = WorkflowManager(['vis/tests/corpus/madrigal51.mxl'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')])
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(None, 'include rests', True)
         test_wm.load('pieces')
@@ -281,7 +285,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_7(self):
         # test all two-part combinations of the test piece; 2-grams
-        test_wm = WorkflowManager(['vis/tests/corpus/vis_Test_Piece.xml'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(0, 'n', 2)
@@ -295,7 +299,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_8(self):
         # test_ngrams_7 *but* with part combinations specified rather than 'all pairs'
-        test_wm = WorkflowManager(['vis/tests/corpus/vis_Test_Piece.xml'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]')
         test_wm.settings(0, 'n', 2)
@@ -312,7 +316,7 @@ class NGramsTests(TestCase):
         # longer than the offset interval. A custom string is passed for horizontal
         # unisons resulting from a sustained lower voice. Regression test for:
         # https://github.com/ELVIS-Project/vis/issues/305
-        test_wm = WorkflowManager(['vis/tests/corpus/Kyrie_short.krn'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[1,3]]')
         test_wm.settings(0, 'n', 2)
@@ -329,7 +333,7 @@ class NGramsTests(TestCase):
     def test_ngrams_9b(self):
         # same as 9a but tests functionality of 'dynamic quality setting of continuer
         # when 'interval quality' is set to True.
-        test_wm = WorkflowManager(['vis/tests/corpus/Kyrie_short.krn'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[1,3]]')
         test_wm.settings(0, 'n', 2)
@@ -345,7 +349,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_9c(self):
         # same as 9b but 'interval quality' is set to False (by default).
-        test_wm = WorkflowManager(['vis/tests/corpus/Kyrie_short.krn'])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[1,3]]')
         test_wm.settings(0, 'n', 2)

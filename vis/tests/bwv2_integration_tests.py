@@ -7,7 +7,7 @@
 # Filename:               controllers_tests/test_indexed_piece.py
 # Purpose:                Integration tests with the "bwv2.xml" file.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -26,11 +26,16 @@
 Integration tests with the "bwv2.xml" file.
 """
 
+import os
 from unittest import TestCase, TestLoader
 import pandas
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import noterest, interval, ngram
 from vis.analyzers.experimenters import frequency
+
+# get the path to the 'vis' directory
+import vis
+VIS_PATH = vis.__path__[0]
 
 
 # pylint: disable=R0904
@@ -117,7 +122,7 @@ class AllVoiceIntervalNGrams(TestCase):
 
     def test_ngrams_1(self):
         # test that all-voice interval 2-grams work
-        ind_piece = IndexedPiece(u'vis/tests/corpus/bwv2.xml')
+        ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
         setts = {u'quality': False, u'simple': False}
         horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                          interval.HorizontalIntervalIndexer],
@@ -144,7 +149,7 @@ class AllVoiceIntervalNGrams(TestCase):
 
     #def test_ngrams_2(self):
         ## test frequency of bass-voice motion
-        #ind_piece = IndexedPiece(u'vis/tests/corpus/bwv2.xml')
+        #ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
         #setts = {u'quality': True, u'simple': False}
         #actual = ind_piece.get_data([noterest.NoteRestIndexer,
                                          #interval.HorizontalIntervalIndexer,
@@ -159,7 +164,7 @@ class AllVoiceIntervalNGrams(TestCase):
 
     #def test_ngrams_3(self):
         ## test frequency of all-voice interval 1-grams
-        #ind_piece = IndexedPiece(u'vis/tests/corpus/bwv2.xml')
+        #ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
         #setts = {u'quality': False, u'simple': False}
         #horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                          #interval.HorizontalIntervalIndexer],

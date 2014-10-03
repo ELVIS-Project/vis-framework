@@ -41,6 +41,9 @@ from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import noterest, lilypond
 
+# find the path to the 'vis' directory
+import vis
+VIS_PATH = vis.__path__[0]
 
 # pylint: disable=R0904
 # pylint: disable=C0111
@@ -153,7 +156,7 @@ class WorkflowTests(TestCase):
 
     def test_load_3(self):
         # NB: this is more of an integration test
-        test_wc = WorkflowManager([u'vis/tests/corpus/try_opus.krn'])
+        test_wc = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'try_opus.krn')])
         test_wc.load('pieces')
         self.assertEqual(3, len(test_wc))
         # NOTE: we have to do this by digging until music21 imports metadata from **kern files, at

@@ -7,7 +7,7 @@
 # Filename:               models_tests/test_indexed_piece.py
 # Purpose:                Tests for models/indexed_piece.py.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -26,6 +26,7 @@
 Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
 """
 
+import os
 from unittest import TestCase, TestLoader
 from mock import call, patch, MagicMock, Mock
 import pandas
@@ -35,6 +36,9 @@ from vis.analyzers.indexers import noterest
 from vis.analyzers.experimenter import Experimenter
 from vis.models.indexed_piece import IndexedPiece, _find_piece_title, _find_part_names, OpusWarning
 
+# find pathname to the 'vis' directory
+import vis
+VIS_PATH = vis.__path__[0]
 
 # pylint: disable=R0904
 # pylint: disable=C0111
@@ -382,7 +386,7 @@ class TestPartsAndTitles(TestCase):
    # _find_part_names() and _find_piece_title() methods.
    # NOTE: not testing "Sanctus.krn" because it's an Opus, and we can't deal with them yet.
     def test_bwv77(self):
-        path = u'vis/tests/corpus/bwv77.mxl'
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')
         expected_title = u'bwv77'
         expected_parts = [u'Soprano', u'Alto', u'Tenor', u'Bass']
         the_score = music21.converter.parse(path)
@@ -392,7 +396,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_jos2308_krn(self):
-        path = u'vis/tests/corpus/Jos2308.krn'
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'Jos2308.krn')
         expected_title = u'Jos2308'
         expected_parts = [u'spine_3', u'spine_2', u'spine_1', u'spine_0']
         the_score = music21.converter.parse(path)
@@ -402,7 +406,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_kyrie(self):
-        path = u'vis/tests/corpus/Kyrie.krn'
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn')
         expected_title = u'Kyrie'
         expected_parts = [u'spine_4', u'spine_3', u'spine_2', u'spine_1', u'spine_0']
         the_score = music21.converter.parse(path)
@@ -412,7 +416,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_madrigal51(self):
-        path = u'vis/tests/corpus/madrigal51.mxl'
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')
         expected_title = u'madrigal51'
         expected_parts = [u'Canto', u'Alto', u'Tenor', u'Quinto', u'Basso', u'Continuo']
         the_score = music21.converter.parse(path)
@@ -422,7 +426,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_sinfony(self):
-        path = u'vis/tests/corpus/sinfony.md'
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'sinfony.md')
         expected_title = u'Messiah'
         expected_parts = [u'Violino I', u'Violino II', u'Viola', u'Bassi']
         the_score = music21.converter.parse(path)
@@ -432,7 +436,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_opus76(self):
-        path = u'vis/tests/corpus/sqOp76-4-i.midi'
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'sqOp76-4-i.midi')
         expected_title = u'sqOp76-4-i'
         expected_parts = [u'Part 1', u'Part 2', u'Part 3', u'Part 4']
         the_score = music21.converter.parse(path)
@@ -442,7 +446,7 @@ class TestPartsAndTitles(TestCase):
         self.assertSequenceEqual(expected_parts, actual_parts)
 
     def test_bwv2(self):
-        path = u'vis/tests/corpus/bwv2.xml'
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')
         expected_title = u'bwv2'
         expected_parts = [u'Soprano', u'Alto', u'Tenor', u'Bass']
         the_score = music21.converter.parse(path)
