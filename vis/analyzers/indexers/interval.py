@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/interval.py
 # Purpose:                Index vertical intervals.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -36,28 +36,6 @@ same part.
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
-
-
-def key_to_tuple(key):
-    """
-    Transforms a key in the results of :meth:`IntervalIndexer.run` into a 2-tuple with the indices
-    of the parts held therein.
-
-    :param key: The key from :class:`IntervalIndexer`.
-    :type key: unicode string
-    :returns: The indices of parts referred to by the key.
-    :rtype: tuple of int
-
-    >>> key_to_tuple(u'5,6')
-    (5, 6)
-    >>> key_to_tuple(u'234522,98100')
-    (234522, 98100)
-    >>> var = key_to_tuple(u'1,2')
-    >>> key_to_tuple(str(var[0]) + u',' + str(var[1]))
-    (1, 2)
-    """
-    post = key.split(u',')
-    return int(post[0]), int(post[1])
 
 
 def real_indexer(simultaneity, simple, quality):

@@ -33,8 +33,7 @@ import os
 import unittest
 import pandas
 from music21 import interval, note
-from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, \
-    real_indexer, key_to_tuple
+from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, real_indexer
 from vis.tests.test_note_rest_indexer import TestNoteRestIndexer
 
 # find the pathname of the 'vis' directory
@@ -371,18 +370,6 @@ class TestIntervalIndexerShort(unittest.TestCase):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
-
-    def test_key_to_tuple_1(self):
-        in_val = u'5,6'
-        expected = (5, 6)
-        actual = key_to_tuple(in_val)
-        self.assertSequenceEqual(expected, actual)
-
-    def test_key_to_tuple_2(self):
-        in_val = u'234522,98100'
-        expected = (234522, 98100)
-        actual = key_to_tuple(in_val)
-        self.assertSequenceEqual(expected, actual)
 
 
 class TestIntervalIndexerLong(unittest.TestCase):

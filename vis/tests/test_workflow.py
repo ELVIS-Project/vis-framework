@@ -37,7 +37,7 @@ import mock
 from mock import MagicMock
 import pandas
 from music21.humdrum.spineParser import GlobalReference
-from vis.workflow import WorkflowManager
+from vis.workflow import WorkflowManager, split_part_combo
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import noterest, lilypond
 
@@ -48,7 +48,7 @@ VIS_PATH = vis.__path__[0]
 # pylint: disable=R0904
 # pylint: disable=C0111
 class WorkflowTests(TestCase):
-    # NB: this class is just for __init__(), load(), and run() (without the run() helper methods)
+    """This class is for __init__(), load(), and run() (without helper methods) and split_part_combo()"""
     @mock.patch('vis.workflow.path.join', return_value='/some/vis/path.r')
     def test_init_1(self, mock_join):
         # with a list of basestrings
@@ -246,6 +246,18 @@ class WorkflowTests(TestCase):
         test_wc = WorkflowManager([])
         test_wc._loaded = False
         self.assertRaises(RuntimeError, test_wc.run, u'intervals')
+
+    def test_split_part_combo_1(self):
+        in_val = u'5,6'
+        expected = (5, 6)
+        actual = split_part_combo(in_val)
+        self.assertSequenceEqual(expected, actual)
+
+    def test_split_part_combo_2(self):
+        in_val = u'234522,98100'
+        expected = (234522, 98100)
+        actual = split_part_combo(in_val)
+        self.assertSequenceEqual(expected, actual)
 
 
 class Output(TestCase):

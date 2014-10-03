@@ -39,6 +39,26 @@ from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat, lilypond
 from vis.analyzers.experimenters import frequency, aggregator, barchart
 
+def split_part_combo(key):
+    """
+    Split a comma-separated list of two integer part names into a tuple of the integers.
+
+    :param key: String with the part names.
+    :type key: basestring
+    :returns: The indices of parts referred to by the key.
+    :rtype: tuple of int
+
+    >>> split_part_combo(u'5,6')
+    (5, 6)
+    >>> split_part_combo(u'234522,98100')
+    (234522, 98100)
+    >>> var = split_part_combo(u'1,2')
+    >>> split_part_combo(str(var[0]) + u',' + str(var[1]))
+    (1, 2)
+    """
+    post = key.split(u',')
+    return int(post[0]), int(post[1])
+
 
 class WorkflowManager(object):
     """
@@ -375,7 +395,7 @@ class WorkflowManager(object):
         post = []
         for combo in vert_ints.iterkeys():
             # which "horiz" part to use?
-            horiz_i = interval.key_to_tuple(combo)[1]
+            horiz_i = split_part_combo(combo)[1]
             # make the list of parts
             parts = [vert_ints[combo], horiz_ints[horiz_i]]
             # assemble settings
@@ -479,7 +499,7 @@ class WorkflowManager(object):
                         raise RuntimeError(WorkflowManager._REQUIRE_PAIRS_ERROR % len(pair))
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
             # we no longer need to know the combinations' names, so we can make a list
-            vert_ints = list(vert_ints.itervalues())
+            vert_ints = list(vert_ints.itervalues())  # TODO: this is where we get a failure because "vert_ints" is a DataFrame now
             # run the offset and repeat indexers, if required
             post = self._run_off_rep(i, vert_ints)
             # remove the "Rest" entries, if required
