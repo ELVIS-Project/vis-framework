@@ -30,7 +30,7 @@ from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
 import pandas
-from vis.workflow import WorkflowManager
+from vis.workflow import WorkflowManager, split_part_combo
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import interval
 
@@ -497,7 +497,7 @@ class IntervalNGrams(TestCase):
             test_pieces[1].get_data.assert_any_call([mock_ng],
                                                     expected_ngram_settings,
                                                     [ror_vert_ret[combo],
-                                                    ror_horiz_ret[interval.key_to_tuple(combo)[1]]])
+                                                    ror_horiz_ret[split_part_combo(combo)[1]]])
         self.assertSequenceEqual(expected, actual)
 
 
