@@ -28,7 +28,7 @@
 Experimenters related to producing LilyPond-format output from the VIS Framework. Also refer to the
 :mod:`vis.analyzers.indexers.lilypond` module.
 
-The :class:`LilyPondIndexer` uses the :mod:`outputlilypond` module to produce a LilyPond file
+The :class:`LilyPondExperimenter` uses the :mod:`outputlilypond` module to produce a LilyPond file
 corresponding to the score.
 """
 
@@ -38,8 +38,8 @@ from math import fsum
 from numpy import isnan, NaN  # pylint: disable=no-name-in-module
 import pandas
 from music21 import stream, note, duration
-#import outputlilypond
-#from outputlilypond import settings as oly_settings
+import outputlilypond
+from outputlilypond import settings as oly_settings
 from vis.analyzers import experimenter
 
 
@@ -61,6 +61,107 @@ def annotate_the_note(obj):
         post.lily_invisible = True
         post.lily_markup = obj
         return post
+
+
+class LilyPondExperimenter(experimenter.Experimenter):
+    """
+    Use the :mod:`outputlilypond` module to produce the LilyPond file that should produce a score
+    of the input.
+
+    .. note:: Perhaps contrary to expectation, you must provide a :class:`music21.stream.Score` to
+        the :class:`LilyPondExperimenter`, and any part with annotations belong in the settings.
+    """
+
+    possible_settings = ['run_lilypond', 'output_pathname', 'annotation part']
+    """
+    Possible settings for the :class:`LilyPondExperimenter` include:
+
+    :keyword boolean 'run_lilypond': Whether to run LilyPond; if ``False`` or omitted, simply
+        produce the input file LilyPond requires.
+    :keyword basestring 'output_pathname': Pathname for the resulting LilyPond output file. If
+        ``'run_lilypond'`` is ``True``, you must include this setting. If ``'run_lilypond'`` is
+        ``False`` and you do not provide ``'output_pathname'`` then the output file is returned
+        by :meth:`run` as a ``unicode``.
+    :keyword 'annotation_part': A :class:`Part` or list of :class:`Part` objects with annotation
+        instructions for :mod:`outputlilypond`. This :class:`Part` will be appended as last in
+        the :class:`Score`.
+    :type 'annotation_part': :class:`music21.stream.Part` or list of :class:`Part`
+    """
+
+    default_settings = {'run_lilypond': False, 'output_pathname': None, 'annotation_part': None}
+
+    # error message for when settings say to run LilyPond, but we have no pathname
+    _MISSING_PATHNAME = u'LilyPondExperimenter missing required "output_pathname" setting'
+
+    def __init__(self, index, settings=None):
+        """
+        :param index: The :class:`Score` object to output to LilyPond.
+        :type index: singleton list of :class:`music21.stream.Score`
+        :param settings: Your settings. There are no required settings.
+        :type settings: dict or NoneType
+
+        :raises: :exc:`RuntimeError` if ``index`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``'run_lilypond'`` is ``True`` but ``'output_pathname'``
+            is unspecified.
+        """
+        settings = {} if settings is None else settings
+        self._settings = {}
+
+        # dealing with output_pathname is a little complicated...
+        if u'output_pathname' in settings:
+            self._settings[u'output_pathname'] = settings[u'output_pathname']
+            if u'run_lilypond' in settings:
+                self._settings[u'run_lilypond'] = settings[u'run_lilypond']
+        else:
+            self._settings[u'output_pathname'] = LilyPondExperimenter.default_settings[u'output_pathname']
+            if u'run_lilypond' in settings and settings[u'run_lilypond'] is True:
+                raise RuntimeError(LilyPondExperimenter._MISSING_PATHNAME)
+
+        # if they didn't specify whether to run LilyPond
+        if u'run_lilypond' not in self._settings:
+            self._settings[u'run_lilypond'] = LilyPondExperimenter.default_settings[u'run_lilypond']
+
+        # deal with the annotation_part
+        if u'annotation_part' in settings:
+            self._settings[u'annotation_part'] = settings[u'annotation_part']
+            if not isinstance(self._settings[u'annotation_part'], list):
+                self._settings[u'annotation_part'] = [self._settings[u'annotation_part']]
+        else:
+            self._settings[u'annotation_part'] = LilyPondExperimenter.default_settings[u'annotation_part']
+
+        super(LilyPondExperimenter, self).__init__(index, None)
+
+        self._indexer_func = None
+
+    def run(self):
+        """
+        Make a string with the LilyPond representation of each score. Run LilyPond, if we're
+        supposed to.
+
+        :returns: A string holding the LilyPond-format representation of the score and its
+            annotation parts.
+        :rtype: basestring
+        """
+        lily_setts = oly_settings.LilyPondSettings()
+
+        # append analysis part, if present
+        if self._settings[u'annotation_part'] is not None:
+            for part in self._settings[u'annotation_part']:
+                self._index[0].insert(0, part)
+
+        # because outputlilypond uses multiprocessing by itself, we'll just call it in series
+        the_score = outputlilypond.process_score(self._index[0], lily_setts)
+
+        # output the score, if given a pathname
+        if self._settings[u'output_pathname'] is not None:
+            with open(self._settings[u'output_pathname'], 'w') as handle:
+                handle.write(the_score)
+
+        # call LilyPond on each file, if required
+        if self._settings[u'run_lilypond'] is True:
+            outputlilypond.run_lilypond(self._settings[u'output_pathname'], lily_setts)
+
+        return the_score
 
 
 class AnnotateTheNoteExperimenter(experimenter.Experimenter):
