@@ -36,6 +36,7 @@ from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
 import pandas
+from pandas import Series, DataFrame
 from music21.humdrum.spineParser import GlobalReference
 from vis.workflow import WorkflowManager, split_part_combo
 from vis.models.indexed_piece import IndexedPiece
@@ -657,49 +658,57 @@ class Settings(TestCase):
 
 
 class ExtraPairs(TestCase):
+    """Tests for WorkflowManager._remove_extra_pairs()"""
+
     def test_extra_pairs_1(self):
-        # testing WorkflowManager._remove_extra_pairs()
-        # --> when only desired pairs are present
-        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
-        combos = [[0, 1], [0, 2], [1, 2]]
-        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
+        """when only desired pairs are present"""
+        vert_ints = DataFrame([Series([1]), Series([2]), Series([3])],
+                              index=[['intervals', 'intervals', 'intervals'], ['0,1', '0,2', '1,2']]).T
+        combos = ('0,1', '0,2', '1,2')
+        expected = DataFrame([Series([1]), Series([2]), Series([3])],
+                             index=[['intervals', 'intervals', 'intervals'], ['0,1', '0,2', '1,2']]).T
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos, 'intervals')
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
 
     def test_extra_pairs_2(self):
-        # testing WorkflowManager._remove_extra_pairs()
-        # --> when no pairs are desired
-        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
+        """when no pairs are desired"""
+        vert_ints = DataFrame([Series([1]), Series([2]), Series([3])],
+                              index=[['intervals', 'intervals', 'intervals'], ['0,1', '0,2', '1,2']]).T
         combos = []
-        expected = {}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
+        expected = DataFrame()
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos, 'intervals')
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
 
     def test_extra_pairs_3(self):
-        # testing WorkflowManager._remove_extra_pairs()
-        # --> when there are desired pairs, but they are not present
-        vert_ints = {'0,1': 1, '0,2': 2, '1,2': 3}
-        combos = [[4, 20], [11, 12]]
-        expected = {}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
+        """when there are desired pairs, but they are not present"""
+        vert_ints = DataFrame([Series([1]), Series([2]), Series([3])],
+                              index=[['intervals', 'intervals', 'intervals'], ['0,1', '0,2', '1,2']]).T
+        combos = ('4,20', '11,12')
+        expected = DataFrame()
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos, 'intervals')
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
 
     def test_extra_pairs_4(self):
-        # testing WorkflowManager._remove_extra_pairs()
-        # --> when there are lots of pairs, only some of which are desired
-        vert_ints = {'4,20': 0, '0,1': 1, '11,12': 4, '0,2': 2, '1,2': 3, '256,128': 12}
-        combos = [[0, 1], [0, 2], [1, 2]]
-        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
+        """when there are lots of pairs, only some of which are desired"""
+        vert_ints = DataFrame([Series([1]), Series([2]), Series([3]), Series([4]), Series([5]), Series([6])],
+                              index=[['intervals' for _ in xrange(6)],
+                                     ['0,1', '0,2', '1,2', '256,128', '11,12', '4,20']]).T
+        combos = ('0,1', '0,2', '1,2')
+        expected = DataFrame([Series([1]), Series([2]), Series([3])],
+                             index=[['intervals', 'intervals', 'intervals'], ['0,1', '0,2', '1,2']]).T
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos, 'intervals')
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
 
     def test_extra_pairs_5(self):
-        # --> when there are lots of pairs, only some of which are desired, and there are invalid
-        vert_ints = {'4,20': 0, '0,1': 1, '11,12': 4, '0,2': 2, '1,2': 3, '256,128': 12}
-        combos = [[0, 1], [1, 2, 3, 4, 5], [0, 2], [1, 2], [9, 11, 43], [4]]
-        expected = {'0,1': 1, '0,2': 2, '1,2': 3}
-        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-        self.assertSequenceEqual(expected, actual)
+        """when there are lots of pairs, only some of which are desired, and there are invalid"""
+        vert_ints = DataFrame([Series([1]), Series([2]), Series([3]), Series([4]), Series([5]), Series([6])],
+                              index=[['intervals' for _ in xrange(6)],
+                                     ['0,1', '0,2', '1,2', '256,128', '11,12', '4,20']]).T
+        combos = ('0,1', '1,2,3,4,5', '0,2', '9,11,43', '1,2')
+        expected = DataFrame([Series([1]), Series([2]), Series([3])],
+                             index=[['intervals', 'intervals', 'intervals'], ['0,1', '0,2', '1,2']]).T
+        actual = WorkflowManager._remove_extra_pairs(vert_ints, combos, 'intervals')
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
 
 
 class Export(TestCase):

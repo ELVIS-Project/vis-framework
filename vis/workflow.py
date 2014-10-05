@@ -579,36 +579,34 @@ class WorkflowManager(object):
         return self._result
 
     @staticmethod
-    def _remove_extra_pairs(vert_ints, combos):
+    def _remove_extra_pairs(vert_ints, combos, which_ind='interval.IntervalIndexer'):
         """
         From the result of IntervalIndexer, remove those voice pairs that aren't required. This is
         a separate function to improve test-ability.
 
-        **Parameters:**
-        :param vert_ints: The results of IntervalIndexer.
-        :type vert_ints: dict of any
-        :param combos: The voice pairs to keep. Note that any element in this list longer than 2
-            will be silently ignored.
-        :type combos: list of list of int
+        Note that ``combos`` should be a sequence of strings specifying the lower level of the
+        DataFrame's MultiIndex.
 
-        **Returns:**
+        Note also that this method uses ``del`` to remove the specified indices; it will therefore
+        not affect the results of any other indexer that may be present in ``vert_ints``.
+
+        :param vert_ints: The results of IntervalIndexer.
+        :type vert_ints: :class:`pandas.DataFrame`
+        :param combos: The voice pairs to keep.
+        :type combos: sequence of basestring
+        :param basestring which_ind: The name of the indexer in which to remove results. The default
+            is ``'interval.IntervalIndexer'``.
+
         :returns: Only the voice pairs you want.
-        :rtype: dict of any
+        :rtype: :class:`pandas.DataFrame`
         """
-        these_pairs = []
-        for pair in combos:
-            if 2 == len(pair):
-                these_pairs.append(unicode(pair[0]) + ',' + unicode(pair[1]))
-        if 0 == len(these_pairs):
-            return {}
-        else:
-            delete_these = []
-            for key in vert_ints.iterkeys():
-                if key not in these_pairs:
-                    delete_these.append(key)
-            for key in delete_these:
-                del vert_ints[key]
-            return vert_ints
+        delete_these = []
+        for each_present in vert_ints[which_ind]:
+            if each_present not in combos:
+                delete_these.append(each_present)
+        for key in delete_these:
+            del vert_ints[(which_ind, key)]
+        return vert_ints
 
     def _get_dataframe(self, name='data', top_x=None, threshold=None):
         """
