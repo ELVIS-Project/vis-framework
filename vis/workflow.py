@@ -555,7 +555,7 @@ class WorkflowManager(object):
             so_far = {dict_keys[i]: so_far[i] for i in xrange(len(dict_keys))}
         return so_far
 
-    def _run_freq_agg(self):
+    def _run_freq_agg(self, which_ind):
         """
         Run the frequency and aggregation experimenters:
 
@@ -566,14 +566,23 @@ class WorkflowManager(object):
 
         .. note:: This method runs on, then overwrites, values stored in :attr:`self._result`.
 
-        :returns: Aggregated frequency counts for everything stored in :attr:`self._result`.
+        :param str which_ind: The name of the indexer whose results should be passed through the
+            frequency and aggregation experimenters, as it appears in the DataFrame's MultiIndex
+            (for example, ``'interval.IntervalIndexer'``).
+
+        :returns: Aggregated frequency counts for everything stored in :attr:`self._result`. The
+            output of the :class:`ColumnAggregator`.
         :rtype: :class:`pandas.Series`
         """
         # NB: there's no "logic" here, so I didn't bother testing the method
         agg_p = AggregatedPieces(self._data)
-        self._result = agg_p.get_data([aggregator.ColumnAggregator],
+        self._result = agg_p.get_data([],
                                       [frequency.FrequencyExperimenter],
-                                      {},
+                                      {'column': which_ind},
+                                      self._result)[0]  # TODO: do I really want get_data() returning this double-embedded list?
+        self._result = agg_p.get_data([aggregator.ColumnAggregator],
+                                      None,
+                                      {'column': 'frequency.FrequencyExperimenter'},
                                       self._result)
         self._result.sort(ascending=False)
         return self._result
