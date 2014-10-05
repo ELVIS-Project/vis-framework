@@ -219,7 +219,7 @@ class NGramIndexer(indexer.Indexer):
 
         :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
-        return NGramIndexer._format_thing(verts, m_singles, (u'[', u']'), terminator)
+        return NGramIndexer._format_thing(verts, m_singles, ('[', ']'), terminator)
 
     @staticmethod
     def _format_horiz(horizs, m_singles, terminator=None):
@@ -243,7 +243,31 @@ class NGramIndexer(indexer.Indexer):
 
         :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
-        return NGramIndexer._format_thing(horizs, m_singles, (u'(', u')'), terminator)
+        return NGramIndexer._format_thing(horizs, m_singles, ('(', ')'), terminator)
+
+    def _make_column_label(self):
+        """
+        Make the part-combination column label for the returned DataFrame's MultiIndex. This
+        involves a rather complex coordination between the "vertical," "horizontal," and
+        "mark_singles" settings.
+
+        Refer to the automated tests for examples of what happens.
+        """
+        verts = ['{}'.format(x[1]) for x in self._settings['vertical']]
+        if len(verts) > 1 or self._settings['mark_singles']:
+            verts = '[{}]'.format(' '.join(verts))
+        else:
+            verts = ' '.join(verts)
+
+        if 'horizontal' in self._settings and len(self._settings['horizontal']) > 0:
+            horizs = ['{}'.format(x[1]) for x in self._settings['horizontal']]
+            if len(horizs) > 1 or self._settings['mark_singles']:
+                horizs = '({})'.format(' '.join(horizs))
+            else:
+                horizs = ' '.join(horizs)
+            return ['{} {}'.format(verts, horizs)]
+        else:
+            return [verts]
 
     def run(self):
         """

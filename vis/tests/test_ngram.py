@@ -500,6 +500,85 @@ class TestNGramIndexer(unittest.TestCase):
         self.assertTrue(isinstance(actual, unicode))
         self.assertEqual(expected, actual)
 
+    def test_make_column_label_1(self):
+        """
+        - single vertical thing
+        - no horizontal things
+        - mark_singles = False
+        """
+        setts = {'vertical': [('vert', 'A')],
+                 'mark_singles': False, 'n': 2}
+        ngind = ngram.NGramIndexer(42, setts)
+        expected = 'A'
+        actual = ngind._make_column_label()[0]
+        self.assertEqual(expected, actual)
+
+    def test_make_column_label_2(self):
+        """
+        - single vertical thing
+        - no horizontal things
+        - mark_singles = True
+        """
+        setts = {'vertical': [('vert', 'A')],
+                 'mark_singles': True, 'n': 2}
+        ngind = ngram.NGramIndexer(42, setts)
+        expected = '[A]'
+        actual = ngind._make_column_label()[0]
+        self.assertEqual(expected, actual)
+
+    def test_make_column_label_3(self):
+        """
+        - 3x vertical things
+        - no horizontal things
+        - (mark_singles = True)
+        """
+        setts = {'vertical': [('vert', 'A'), ('vert', 'B'), ('vert', 'C')], 'n': 2}
+        ngind = ngram.NGramIndexer(42, setts)
+        expected = '[A B C]'
+        actual = ngind._make_column_label()[0]
+        self.assertEqual(expected, actual)
+
+    def test_make_column_label_4(self):
+        """
+        - single vertical thing
+        - single horizontal thing
+        - mark_singles = False
+        """
+        setts = {'vertical': [('vert', '0,1')],
+                 'horizontal': [('horiz', '1')],
+                 'mark_singles': False, 'n': 2}
+        ngind = ngram.NGramIndexer(42, setts)
+        expected = '0,1 1'
+        actual = ngind._make_column_label()[0]
+        self.assertEqual(expected, actual)
+
+    def test_make_column_label_5(self):
+        """
+        - single vertical thing
+        - single horizontal thing
+        - mark_singles = True
+        """
+        setts = {'vertical': [('vert', '0,1')],
+                 'horizontal': [('horiz', '1')],
+                 'mark_singles': True, 'n': 2}
+        ngind = ngram.NGramIndexer(42, setts)
+        expected = '[0,1] (1)'
+        actual = ngind._make_column_label()[0]
+        self.assertEqual(expected, actual)
+
+    def test_make_column_label_6(self):
+        """
+        - 3x vertical things
+        - 3x horizontal things
+        - (mark_singles = True)
+        """
+        setts = {'vertical': [('vert', '0,1'), ('vert', '0,2'), ('vert', '0,3')],
+                 'horizontal': [('horiz', '1'), ('horiz', '2'), ('horiz', '3')], 'n': 2}
+        ngind = ngram.NGramIndexer(42, setts)
+        expected = '[0,1 0,2 0,3] (1 2 3)'
+        actual = ngind._make_column_label()[0]
+        self.assertEqual(expected, actual)
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
