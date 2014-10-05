@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers_tests/test_workflow.py
+# Filename:               vis/tests/test_workflow.py
 # Purpose:                Tests for the WorkflowManager
 #
 # Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan

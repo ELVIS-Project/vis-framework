@@ -4,8 +4,8 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/workflow.py
-# Purpose:                Workflow Controller
+# Filename:               vis/workflow.py
+# Purpose:                WorkflowManager
 #
 # Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
 #
