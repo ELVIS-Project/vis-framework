@@ -267,66 +267,70 @@ class NGramIndexer(indexer.Indexer):
         """
         Make an index of k-part n-grams of anything.
 
-        :returns: A single-item list with the new index.
-        :rtype: ``list`` of :class:`pandas.Series`
+        :returns: A single-column :class:`~pandas.DataFrame` with the new index.
         """
-        # TODO: pylint says there are too many branches; it's right
+        # NOTE: in an incredible stroke of luck, the VIS 1 run() algorithm works without change
+        #       for the VIS 2.0 release...
+        # - So in a future 2.x-series point release, we can add "true" multidimensional functionality
+        #   while retaining the existing 'horizontal' and 'vertical' method of naming the dimensions.
+        #   In other words, we'll break the API at release 2.0 while retaining the algorithm, and
+        #   add new features along with a new algorithm later, without breaking the API.
 
         post = []
         post_offsets = []
 
         # for the formatting methods
-        m_singles = self._settings[u'mark_singles']
-        term = self._settings[u'terminator']
+        m_singles = self._settings['mark_singles']
+        term = self._settings['terminator']
 
         # Order the parts as specified. We have to track "i" and "name" separately so we have a new
         # order for the dict but can keep self._score straight. We'll use these tuples to keep
         # vertical and horizontal events separated in the DataFrame with a MultiIndex
         events = {}
-        for i, name in enumerate(self._settings[u'vertical']):
-            events[(u'v', i)] = self._score[name]
-        for i, name in enumerate(self._settings[u'horizontal']):
-            events[(u'h', i)] = self._score[name]
+        for i, name in enumerate(self._settings['vertical']):
+            events[('v', i)] = self._score[name]
+        for i, name in enumerate(self._settings['horizontal']):
+            events[('h', i)] = self._score[name]
 
         # Make the MultiIndex and DataFrame with all events
         events = pandas.DataFrame(events, columns=pandas.MultiIndex.from_tuples(events.keys()))
 
         # Fill in all "vertical" NaN values with the previous value
-        for i in events[u'v'].columns:
+        for i in events['v'].columns:
             # NB: still have to test the fix, as stated in issue 261
-            events.update(events.loc[:,(u'v', i)].fillna(method=u'ffill'))
+            events.update(events.loc[:, ('v', i)].fillna(method='ffill'))
 
         # Fill in all "horizontal" NaN values with the continuer
-        if u'h' in events:
-            for i in events[u'h'].columns:
+        if 'h' in events:
+            for i in events['h'].columns:
                 # NB: still have to test the fix, as stated in issue 261
-                events.update(events.loc[:,(u'h', i)].fillna(value=self._settings[u'continuer']))
+                events.update(events.loc[:, ('h', i)].fillna(value=self._settings['continuer']))
 
         # Iterate the offsets
         for i in xrange(len(events)):
             loop_post = None
             try:
                 # first vertical event
-                loop_post = [NGramIndexer._format_vert(list(events[u'v'].iloc[i].sort_index()),
-                                                            m_singles,
-                                                            term)]
+                loop_post = [NGramIndexer._format_vert(list(events['v'].iloc[i].sort_index()),
+                                                       m_singles,
+                                                       term)]
             except RuntimeWarning:  # we hit a terminator
                 continue
             try:
-                for j in xrange(self._settings[u'n'] - 1):  # iterate to the end of 'n'
+                for j in xrange(self._settings['n'] - 1):  # iterate to the end of 'n'
                     k = i + j + 1  # the index we need
                     ilp = None  # it means "Inner Loop Post"
-                    if u'h' in events:  # are there "horizontal" events?
-                        ilp = [u' ',
-                               NGramIndexer._format_horiz(list(events[u'h'].iloc[k].sort_index()),
+                    if 'h' in events:  # are there "horizontal" events?
+                        ilp = [' ',
+                               NGramIndexer._format_horiz(list(events['h'].iloc[k].sort_index()),
                                                           m_singles),
-                               u' ',
-                               NGramIndexer._format_vert(list(events[u'v'].iloc[k].sort_index()),
+                               ' ',
+                               NGramIndexer._format_vert(list(events['v'].iloc[k].sort_index()),
                                                          m_singles,
                                                          term)]
                     else:
-                        ilp = [u' ',
-                               NGramIndexer._format_vert(list(events[u'v'].iloc[k].sort_index()),
+                        ilp = [' ',
+                               NGramIndexer._format_vert(list(events['v'].iloc[k].sort_index()),
                                                          m_singles,
                                                          term)]
                     loop_post.extend(ilp)
@@ -335,7 +339,9 @@ class NGramIndexer(indexer.Indexer):
                     break
                 else:  # we hit a terminator
                     continue
-            post.append(u''.join(loop_post))
+            post.append(''.join(loop_post))
             post_offsets.append(events.index[i])
 
-        return [pandas.Series(post, post_offsets)]
+        # prepare the part-combination labels
+        combos = self._make_column_label()
+        return self.make_return(combos, [pandas.Series(post, post_offsets)])

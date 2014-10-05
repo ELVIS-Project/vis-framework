@@ -28,51 +28,50 @@
 
 
 import unittest
-import mock
 import pandas
 from vis.analyzers.indexers import ngram
 
-VERTICAL_TUPLES = [(0.0, u'P4'),
-                   (4.0, u'M3'),
-                   (8.0, u'M6'),
-                   (12.0, u'P8'),
-                   (14.0, u'm6'),
-                   (16.0, u'm7'),
-                   (18.0, u'M6'),
-                   (20.0, u'M6'),
-                   (22.0, u'P5'),
-                   (26.0, u'P8'),
-                   (28.0, u'P4'),
-                   (30.0, u'M3'),
-                   (31.0, u'A4'),
-                   (32.0, u'P4'),
-                   (34.0, u'm3'),
-                   (36.0, u'Rest'),
-                   (38.0, u'Rest')]
+VERTICAL_TUPLES = [(0.0, 'P4'),
+                   (4.0, 'M3'),
+                   (8.0, 'M6'),
+                   (12.0, 'P8'),
+                   (14.0, 'm6'),
+                   (16.0, 'm7'),
+                   (18.0, 'M6'),
+                   (20.0, 'M6'),
+                   (22.0, 'P5'),
+                   (26.0, 'P8'),
+                   (28.0, 'P4'),
+                   (30.0, 'M3'),
+                   (31.0, 'A4'),
+                   (32.0, 'P4'),
+                   (34.0, 'm3'),
+                   (36.0, 'Rest'),
+                   (38.0, 'Rest')]
 
-HORIZONTAL_TUPLES = [(4.0, u'P4'),
-                     (8.0, u'-m3'),
-                     (12.0, u'-M2'),
-                     (14.0, u'M3'),
-                     (16.0, u'-M2'),
-                     (20.0, u'-M2'),
-                     (28.0, u'P5'),
-                     (31.0, u'-M2'),
-                     (32.0, u'-m2'),
-                     (36.0, u'Rest')]
+HORIZONTAL_TUPLES = [(4.0, 'P4'),
+                     (8.0, '-m3'),
+                     (12.0, '-M2'),
+                     (14.0, 'M3'),
+                     (16.0, '-M2'),
+                     (20.0, '-M2'),
+                     (28.0, 'P5'),
+                     (31.0, '-M2'),
+                     (32.0, '-m2'),
+                     (36.0, 'Rest')]
 
-EXPECTED = [(0.0, u'[P4] (P4) [M3] (-m3) [M6] (-M2) [P8]'),
-            (4.0, u'[M3] (-m3) [M6] (-M2) [P8] (M3) [m6]'),
-            (8.0, u'[M6] (-M2) [P8] (M3) [m6] (-M2) [m7]'),
-            (12.0, u'[P8] (M3) [m6] (-M2) [m7] (P1) [M6]'),
-            (14.0, u'[m6] (-M2) [m7] (P1) [M6] (-M2) [M6]'),
-            (16.0, u'[m7] (P1) [M6] (-M2) [M6] (P1) [P5]'),
-            (18.0, u'[M6] (-M2) [M6] (P1) [P5] (P1) [P8]'),
-            (20.0, u'[M6] (P1) [P5] (P1) [P8] (P5) [P4]'),
-            (22.0, u'[P5] (P1) [P8] (P5) [P4] (P1) [M3]'),
-            (26.0, u'[P8] (P5) [P4] (P1) [M3] (-M2) [A4]'),
-            (28.0, u'[P4] (P1) [M3] (-M2) [A4] (-m2) [P4]'),
-            (30.0, u'[M3] (-M2) [A4] (-m2) [P4] (P1) [m3]')]
+EXPECTED = [(0.0, '[P4] (P4) [M3] (-m3) [M6] (-M2) [P8]'),
+            (4.0, '[M3] (-m3) [M6] (-M2) [P8] (M3) [m6]'),
+            (8.0, '[M6] (-M2) [P8] (M3) [m6] (-M2) [m7]'),
+            (12.0, '[P8] (M3) [m6] (-M2) [m7] (P1) [M6]'),
+            (14.0, '[m6] (-M2) [m7] (P1) [M6] (-M2) [M6]'),
+            (16.0, '[m7] (P1) [M6] (-M2) [M6] (P1) [P5]'),
+            (18.0, '[M6] (-M2) [M6] (P1) [P5] (P1) [P8]'),
+            (20.0, '[M6] (P1) [P5] (P1) [P8] (P5) [P4]'),
+            (22.0, '[P5] (P1) [P8] (P5) [P4] (P1) [M3]'),
+            (26.0, '[P8] (P5) [P4] (P1) [M3] (-M2) [A4]'),
+            (28.0, '[P4] (P1) [M3] (-M2) [A4] (-m2) [P4]'),
+            (30.0, '[M3] (-M2) [A4] (-m2) [P4] (P1) [m3]')]
 
 def series_maker(lotuples):
     """Turn a List Of TUPLES (offset, 'value') into a Series."""
@@ -84,6 +83,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_init_1(self):
         """that __init__() works properly (only required settings given)"""
+        # pylint: disable=protected-access
         setts = {'n': 1, 'vertical': [0]}
         actual = ngram.NGramIndexer('a DataFrame', setts)
         for setting in ('n', 'vertical'):
@@ -93,6 +93,7 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_init_2(self):
         """that __init__() works properly (all settings given)"""
+        # pylint: disable=protected-access
         setts = {'n': 1, 'vertical': [0], 'horizontal': 'banana', 'mark_singles': False,
                  'terminator': 'RoboCop', 'continuer': 'Alex Murphy'}
         actual = ngram.NGramIndexer('a DataFrame', setts)
@@ -101,7 +102,8 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_init_3(self):
         """that __init__() fails when 'n' is too short"""
-        setts = {u'n': 0, u'vertical': [0]}  # n is too short
+        # pylint: disable=protected-access
+        setts = {'n': 0, 'vertical': [0]}  # n is too short
         self.assertRaises(RuntimeError, ngram.NGramIndexer, 'a DataFrame', setts)
         try:
             ngram.NGramIndexer('a DataFrame', setts)
@@ -110,7 +112,8 @@ class TestNGramIndexer(unittest.TestCase):
 
     def test_init_4(self):
         """that __init__() fails with there are no 'vertical' events"""
-        setts = {u'n': 14, u'horizontal': [0]}  # no "vertical" parts
+        # pylint: disable=protected-access
+        setts = {'n': 14, 'horizontal': [0]}  # no "vertical" parts
         self.assertRaises(RuntimeError, ngram.NGramIndexer, 'a DataFrame', setts)
         try:
             ngram.NGramIndexer('a DataFrame', setts)
@@ -121,337 +124,408 @@ class TestNGramIndexer(unittest.TestCase):
         """most basic test"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A a B', u'B b C', u'C c D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
-        self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A a B', 'B b C', 'C c D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
 
-    def test_ngram_0a(self):
-        # like test _0 but with an extra element in "scores" and no "horizontal" assignment
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
+
+    def test_ngram_1b(self):
+        """like test _1a but with an extra element in "scores" and no "horizontal" assignment"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A B', u'B C', u'C D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
-        self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'vertical': [('vert', '0,1')], 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A B', 'B C', 'C D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1']]).T
 
-    def test_ngram_0b(self):
-        # like test _0 but with u'mark singles' instead of u'mark_singles'
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
+
+    def test_ngram_1c(self):
+        """like test _1a but with 'mark singles' instead of 'mark_singles'"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark singles': False}
-        expected = [pandas.Series([u'A a B', u'B b C', u'C c D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
-        self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A a B', 'B b C', 'C c D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
 
-    def test_ngram_1(self):
-        # adds the brackets and parentheses
-        vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': True}
-        expected = [pandas.Series([u'[A] (a) [B]', u'[B] (b) [C]', u'[C] (c) [D]'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_2(self):
-        # test _0 but n=3
+        """adds the grouping characters"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 3, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A a B b C', u'B b C c D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': True}
+        expected = pandas.DataFrame([pandas.Series(['[A] (a) [B]', '[B] (b) [C]', '[C] (c) [D]'])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1] (1)']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_3(self):
-        # test _0 but with two verticals
-        vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
-        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
+        """test _1 but n=3"""
+        vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [2], u'vertical': [0, 1], u'mark_singles': False}
-        expected = [pandas.Series([u'[A Z] a [B X]', u'[B X] b [C Y]', u'[C Y] c [D W]'])]
-        ng_ind = ngram.NGramIndexer([vertical_a, vertical_b, horizontal], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 3, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A a B b C', 'B b C c D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_4(self):
-        # test _0 but with two horizontals, and the order of u'horizontal' setting is important
-        vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
-        horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A (a z) B', u'B (b x) C', u'C (c y) D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal_b, horizontal_a], setts)
-        actual = ng_ind.run()
+        """test _1 but with two verticals"""
+        vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
+        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
+        in_val = pandas.DataFrame([vertical_a, vertical_b, horizontal],
+                                  index=[['vert', 'vert', 'horiz'], ['0,1', '0,2', '2']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '2')], 'vertical': [('vert', '0,1'), ('vert', '0,2')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['[A Z] a [B X]', '[B X] b [C Y]', '[C Y] c [D W]'])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1 0,2] 2']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_5(self):
-        # combination of tests _3 and _4
-        vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
-        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
+        """test _0 but with two horizontals, and the order of 'horizontal' setting is important"""
+        vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
         horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0], u'mark_singles': False}
-        expected = [pandas.Series([u'[A Z] (a z) [B X]',
-                                   u'[B X] (b x) [C Y]', u'[C Y] (c y) [D W]'])]
-        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a, vertical_a], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical, horizontal_b, horizontal_a],
+                                  index=[['vert', 'horiz', 'horiz'], ['0,1', '2', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1'), ('horiz', '2')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A (a z) B', 'B (b x) C', 'C (c y) D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 (1 2)']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_6(self):
-        # test constructor fails when it should
-        vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        setts = {u'n':0, u'vertical': [0]}  # n is too short
-        self.assertRaises(RuntimeError, ngram.NGramIndexer, [vertical], setts)
-        setts = {u'n':14, u'horizontal': [0]}  # no "vertical" parts
-        self.assertRaises(RuntimeError, ngram.NGramIndexer, [vertical], setts)
-
-    def test_ngram_7(self):
-        # test _0 with a terminator; nothing should be picked up after terminator
-        vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'terminator': [u'C']}
-        expected = [pandas.Series([u'[A] (a) [B]'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
-        self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
-
-    def test_ngram_8(self):
-        # test _5 with a terminator; nothing should be picked up before terminator
+        """combination of tests _3 and _4"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
-        horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
         horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0], u'terminator': [u'X']}
-        expected = [pandas.Series([u'[C Y] (c y) [D W]'], index=[2])]
-        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a, vertical_a], setts)
-        actual = ng_ind.run()
+        horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
+        in_val = pandas.DataFrame([vertical_a, vertical_b, horizontal_a, horizontal_b],
+                                  index=[['vert', 'vert', 'horiz', 'horiz'],
+                                         ['0,1', '0,2', '1', '2']]).T
+        setts = {'n': 2, 'mark_singles': False,
+                 'horizontal': [('horiz', '1'), ('horiz', '2')],
+                 'vertical': [('vert', '0,1'), ('vert', '0,2')]}
+        expected = pandas.DataFrame([pandas.Series(['[A Z] (a z) [B X]',
+                                                    '[B X] (b x) [C Y]',
+                                                    '[C Y] (c y) [D W]'])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1 0,2] (1 2)']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
+
+    def test_ngram_7(self):
+        """test _1 with a terminator; nothing should be picked up after terminator"""
+        vertical = pandas.Series(['A', 'B', 'C', 'D'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'terminator': ['C']}
+        expected = pandas.DataFrame([pandas.Series(['[A] (a) [B]'])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1] (1)']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
+
+    def test_ngram_8(self):
+        """test _6 with a terminator; nothing should be picked up before terminator"""
+        vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
+        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
+        horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
+        horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
+        in_val = pandas.DataFrame([vertical_a, vertical_b, horizontal_a, horizontal_b],
+                                  index=[['vert', 'vert', 'horiz', 'horiz'],
+                                         ['0,1', '0,2', '1', '2']]).T
+        setts = {'n': 2, 'terminator': ['X'],
+                 'horizontal': [('horiz', '1'), ('horiz', '2')],
+                 'vertical': [('vert', '0,1'), ('vert', '0,2')]}
+        expected = pandas.DataFrame([pandas.Series(['[C Y] (c y) [D W]'], index=[2])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1 0,2] (1 2)']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_9(self):
-        # test _9 but longer; things happen before and after terminator
+        """test _8 but longer; things happen before and after terminator"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
         horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
         horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0], u'terminator': [u'C']}
-        expected = [pandas.Series([u'[A Z] (a z) [B X]', u'[D W] (d w) [E V]'], index=[0, 3])]
-        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a, vertical_a], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical_a, vertical_b, horizontal_a, horizontal_b],
+                                  index=[['vert', 'vert', 'horiz', 'horiz'],
+                                         ['0,1', '0,2', '1', '2']]).T
+        setts = {'n': 2, 'terminator': ['C'],
+                 'horizontal': [('horiz', '1'), ('horiz', '2')],
+                 'vertical': [('vert', '0,1'), ('vert', '0,2')]}
+        expected = pandas.DataFrame([pandas.Series(['[A Z] (a z) [B X]', '[D W] (d w) [E V]'],
+                                                   index=[0, 3])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1 0,2] (1 2)']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_10(self):
-        # test _0 with too few "horizontal" things (should use "continuer" character in settings)
+        """test _1 with too few "horizontal" things (should use "continuer" character)"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b'], index=[1, 2])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A a B', u'B b C', u'C _ D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A a B', 'B b C', 'C _ D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_11(self):
-        # test _10 with one "horizontal" thing at the end
+        """test _10 with one "horizontal" thing at the end"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['z'], index=[3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A _ B', u'B _ C', u'C z D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A _ B', 'B _ C', 'C z D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_12(self):
-        # test _11 with one missing "horizontal" thing in the middle
+        """test _11 with one missing "horizontal" thing in the middle"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'z'], index=[1, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A a B', u'B _ C', u'C z D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A a B', 'B _ C', 'C z D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_13(self):
-        # test _0 with too few "vertical" things (last should be repeated)
+        """test _1 with too few "vertical" things (last should be repeated)"""
         vertical = pandas.Series(['A', 'B', 'C'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A a B', u'B b C', u'C c C'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A a B', 'B b C', 'C c C'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_14(self):
-        # test _13 with one missing "vertical" thing in the middle
+        """test _13 with one missing "vertical" thing in the middle"""
         vertical = pandas.Series(['A', 'C', 'D'], index=[0, 2, 3])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
-        setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
-        expected = [pandas.Series([u'A a A', u'A b C', u'C c D'])]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'mark_singles': False}
+        expected = pandas.DataFrame([pandas.Series(['A a A', 'A b C', 'C c D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_15(self):
-        # longer test, inspired by the first five measures of "Kyrie.krn" parts 1 and 3
+        """longer test, inspired by the first five measures of "Kyrie.krn" parts 1 and 3"""
         vertical = series_maker(VERTICAL_TUPLES)
         horizontal = series_maker(HORIZONTAL_TUPLES)
-        setts = {u'n': 4, u'horizontal': [1], u'vertical': [0], u'continuer': u'P1',
-                 u'terminator': u'Rest', u'mark_singles': True}
-        expected = [series_maker(EXPECTED)]
-        ng_ind = ngram.NGramIndexer([vertical, horizontal], setts)
-        actual = ng_ind.run()
-        self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 4, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
+                 'continuer': 'P1', 'terminator': 'Rest', 'mark_singles': True}
+        expected = pandas.DataFrame([series_maker(EXPECTED)],
+                                    index=[['ngram.NGramIndexer'], ['[0,1] (1)']]).T
 
-    def test_ngram_16a(self):
-        # test _9 but with three "vertical" parts and no terminator
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
+
+    def test_ngram_16(self):
+        """test _9 but with three "vertical" parts and no terminator"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
         vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
         horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
         horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0, 4]}
-        expected = [pandas.Series([u'[A Z Q] (a z) [B X R]', u'[B X R] (b x) [C Y S]',
-                                   u'[C Y S] (c y) [D W T]', u'[D W T] (d w) [E V U]'],
-                                   index=[0, 1, 2, 3])]
-        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a,
-                                     vertical_a, vertical_c], setts)
-        actual = ng_ind.run()
-        self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        in_val = pandas.DataFrame([vertical_a, vertical_b, vertical_c, horizontal_a, horizontal_b],
+                                  index=[['vert', 'vert', 'vert', 'horiz', 'horiz'],
+                                         ['0,1', '0,2', '0,3', '2', '3']]).T
+        setts = {'n': 2,
+                 'horizontal': [('horiz', '2'), ('horiz', '3')],
+                 'vertical': [('vert', '0,1'), ('vert', '0,2'), ('vert', '0,3')]}
+        expected = pandas.DataFrame([pandas.Series(['[A Z Q] (a z) [B X R]', '[B X R] (b x) [C Y S]',
+                                                    '[C Y S] (c y) [D W T]', '[D W T] (d w) [E V U]'],
+                                                   index=[0, 1, 2, 3])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1 0,2 0,3] (2 3)']]).T
 
-    def test_ngram_16b(self):
-        # test _16a but with a MagicMock for the formatter
-        vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
-        vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
-        vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
-        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
-        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0, 4]}
-        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a,
-                                     vertical_a, vertical_c], setts)
-        with mock.patch(u'vis.analyzers.indexers.ngram.NGramIndexer._format_thing') as mock_f:
-            mock_f.return_value = u''
-            ng_ind.run()
-            calls = mock_f.call_args_list
-            # 13 calls because there's one at the end when we run off the end of the list
-            self.assertEqual(13, len(calls))
-            expected_calls = [['A', 'Z', 'Q'],
-                              ['a', 'z'],
-                              ['B', 'X', 'R'],
-                              ['B', 'X', 'R'],
-                              ['b', 'x'],
-                              ['C', 'Y', 'S'],
-                              ['C', 'Y', 'S'],
-                              ['c', 'y'],
-                              ['D', 'W', 'T'],
-                              ['D', 'W', 'T'],
-                              ['d', 'w'],
-                              ['E', 'V', 'U'],
-                              ['E', 'V', 'U']]
-            actual_calls = [x[0][0] for x in calls]  # just the "things" argument
-            self.assertSequenceEqual(expected_calls, actual_calls)
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_17(self):
-        # test _16a but with four "vertical" parts
+        """test _16 but with four "vertical" parts"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
         vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
         vertical_d = pandas.Series(['J', 'K', 'L', 'M', 'N'])
         horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
         horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
-        setts = {u'n': 2, u'horizontal': [2, 1], u'vertical': [3, 0, 4, 5]}
-        expected = [pandas.Series([u'[A Z Q J] (a z) [B X R K]', u'[B X R K] (b x) [C Y S L]',
-                                   u'[C Y S L] (c y) [D W T M]', u'[D W T M] (d w) [E V U N]'],
-                                   index=[0, 1, 2, 3])]
-        ng_ind = ngram.NGramIndexer([vertical_b, horizontal_b, horizontal_a,
-                                     vertical_a, vertical_c, vertical_d],
-                                     setts)
-        actual = ng_ind.run()
+        in_val = pandas.DataFrame([vertical_a, vertical_b, vertical_c, vertical_d,
+                                   horizontal_a, horizontal_b],
+                                  index=[['vert', 'vert', 'vert', 'vert', 'horiz', 'horiz'],
+                                         ['0,1', '0,2', '0,3', '0,4', '3', '4']]).T
+        setts = {'n': 2,
+                 'horizontal': [('horiz', '3'), ('horiz', '4')],
+                 'vertical': [('vert', '0,1'), ('vert', '0,2'), ('vert', '0,3'), ('vert', '0,4')]}
+        expected = pandas.DataFrame([pandas.Series(['[A Z Q J] (a z) [B X R K]',
+                                                    '[B X R K] (b x) [C Y S L]',
+                                                    '[C Y S L] (c y) [D W T M]',
+                                                    '[D W T M] (d w) [E V U N]'],
+                                                   index=[0, 1, 2, 3])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1 0,2 0,3 0,4] (3 4)']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_18(self):
-        # n=1
+        """test _17 but with n=1"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
         vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
         vertical_d = pandas.Series(['J', 'K', 'L', 'M', 'N'])
-        setts_many = {u'n': 1, u'vertical': [0, 1, 2, 3]}
-        setts_one = {u'n': 1, u'vertical': [0], u'mark_singles': False}
-        expected_many = [pandas.Series([u'[A Z Q J]', u'[B X R K]', u'[C Y S L]', u'[D W T M]',
-                                   u'[E V U N]'],
-                                  index=[0, 1, 2, 3, 4])]
-        expected_one = [pandas.Series([u'A', u'B', u'C', u'D', u'E'], index=[0, 1, 2, 3, 4])]
-        ng_many = ngram.NGramIndexer([vertical_a, vertical_b, vertical_c, vertical_d], setts_many)
-        ng_one = ngram.NGramIndexer([vertical_a, vertical_b, vertical_c, vertical_d], setts_one)
-        actual_many = ng_many.run()
-        actual_one = ng_one.run()
-        self.assertEqual(len(expected_one), len(actual_one))
-        for i in xrange(len(expected_one)):
-            self.assertSequenceEqual(list(expected_one[i].index), list(actual_one[i].index))
-            self.assertSequenceEqual(list(expected_one[i].values), list(actual_one[i].values))
-        self.assertEqual(len(expected_many), len(actual_many))
-        for i in xrange(len(expected_many)):
-            self.assertSequenceEqual(list(expected_many[i].index), list(actual_many[i].index))
-            self.assertSequenceEqual(list(expected_many[i].values), list(actual_many[i].values))
+        in_val = pandas.DataFrame([vertical_a, vertical_b, vertical_c, vertical_d],
+                                  index=[['vert', 'vert', 'vert', 'vert'],
+                                         ['0,1', '0,2', '0,3', '0,4']]).T
+        setts = {'n': 1,
+                 'vertical': [('vert', '0,1'), ('vert', '0,2'), ('vert', '0,3'), ('vert', '0,4')]}
+        expected = pandas.DataFrame([pandas.Series(['[A Z Q J]', '[B X R K]', '[C Y S L]',
+                                                    '[D W T M]', '[E V U N]'],
+                                                   index=[0, 1, 2, 3, 4])],
+                                    index=[['ngram.NGramIndexer'], ['[0,1 0,2 0,3 0,4]']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngram_format_1(self):
         """one thing, it's a terminator (don't mark singles)"""
@@ -466,7 +540,7 @@ class TestNGramIndexer(unittest.TestCase):
         # pylint: disable=protected-access
         things = ['A']
         m_singles = False
-        expected = u'A'
+        expected = 'A'
         actual = ngram.NGramIndexer._format_thing(things, m_singles)
         self.assertEqual(expected, actual)
 
@@ -475,7 +549,7 @@ class TestNGramIndexer(unittest.TestCase):
         # pylint: disable=protected-access
         things = ['A']
         m_singles = True
-        expected = u'[A]'
+        expected = '[A]'
         actual = ngram.NGramIndexer._format_thing(things, m_singles)
         self.assertEqual(expected, actual)
 
@@ -508,7 +582,7 @@ class TestNGramIndexer(unittest.TestCase):
         # pylint: disable=protected-access
         things = ['A', 'B', 'C']
         m_singles = False
-        expected = u'[A B C]'
+        expected = '[A B C]'
         actual = ngram.NGramIndexer._format_thing(things, m_singles)
         self.assertEqual(expected, actual)
 
@@ -517,7 +591,7 @@ class TestNGramIndexer(unittest.TestCase):
         # pylint: disable=protected-access
         things = ['A', 'B', 'C']
         m_singles = True
-        expected = u'[A B C]'
+        expected = '[A B C]'
         actual = ngram.NGramIndexer._format_thing(things, m_singles)
         self.assertEqual(expected, actual)
 
@@ -526,7 +600,7 @@ class TestNGramIndexer(unittest.TestCase):
         # pylint: disable=protected-access
         things = ['A', 'B', 'C']
         m_singles = False
-        expected = u'$A B C&'
+        expected = '$A B C&'
         actual = ngram.NGramIndexer._format_thing(things, m_singles, ('$', '&'))
         self.assertEqual(expected, actual)
 
@@ -536,6 +610,7 @@ class TestNGramIndexer(unittest.TestCase):
         - no horizontal things
         - mark_singles = False
         """
+        # pylint: disable=protected-access
         setts = {'vertical': [('vert', 'A')],
                  'mark_singles': False, 'n': 2}
         ngind = ngram.NGramIndexer(42, setts)
@@ -549,6 +624,7 @@ class TestNGramIndexer(unittest.TestCase):
         - no horizontal things
         - mark_singles = True
         """
+        # pylint: disable=protected-access
         setts = {'vertical': [('vert', 'A')],
                  'mark_singles': True, 'n': 2}
         ngind = ngram.NGramIndexer(42, setts)
@@ -562,6 +638,7 @@ class TestNGramIndexer(unittest.TestCase):
         - no horizontal things
         - (mark_singles = True)
         """
+        # pylint: disable=protected-access
         setts = {'vertical': [('vert', 'A'), ('vert', 'B'), ('vert', 'C')], 'n': 2}
         ngind = ngram.NGramIndexer(42, setts)
         expected = '[A B C]'
@@ -574,6 +651,7 @@ class TestNGramIndexer(unittest.TestCase):
         - single horizontal thing
         - mark_singles = False
         """
+        # pylint: disable=protected-access
         setts = {'vertical': [('vert', '0,1')],
                  'horizontal': [('horiz', '1')],
                  'mark_singles': False, 'n': 2}
@@ -588,6 +666,7 @@ class TestNGramIndexer(unittest.TestCase):
         - single horizontal thing
         - mark_singles = True
         """
+        # pylint: disable=protected-access
         setts = {'vertical': [('vert', '0,1')],
                  'horizontal': [('horiz', '1')],
                  'mark_singles': True, 'n': 2}
@@ -602,6 +681,7 @@ class TestNGramIndexer(unittest.TestCase):
         - 3x horizontal things
         - (mark_singles = True)
         """
+        # pylint: disable=protected-access
         setts = {'vertical': [('vert', '0,1'), ('vert', '0,2'), ('vert', '0,3')],
                  'horizontal': [('horiz', '1'), ('horiz', '2'), ('horiz', '3')], 'n': 2}
         ngind = ngram.NGramIndexer(42, setts)
