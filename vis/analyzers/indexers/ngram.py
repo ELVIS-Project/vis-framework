@@ -147,7 +147,7 @@ class NGramIndexer(indexer.Indexer):
         super(NGramIndexer, self).__init__(score, None)
 
     @staticmethod
-    def _format_thing(things, m_singles, markers=(u'[', u']'), terminator=None):
+    def _format_thing(things, m_singles, markers=('[', ']'), terminator=None):
         """
         Format unicode objects by concatenating them with a space between and the appropriate
         grouping symbol, if relevant. This method is used by _format_vert() and _format_horiz().
@@ -177,19 +177,19 @@ class NGramIndexer(indexer.Indexer):
             post.append(markers[0])
             for obj in things:
                 if obj in terminator:
-                    raise RuntimeWarning(u'hit a terminator')
+                    raise RuntimeWarning('hit a terminator')
                 else:
                     post.append(unicode(obj))
-                    post.append(u' ')
-            post = post[:-1] # remove last space
+                    post.append(' ')
+            post = post[:-1]  # remove last space
             post.append(markers[1])
         elif things[0] in terminator:
-            raise RuntimeWarning(u'hit a terminator')
+            raise RuntimeWarning('hit a terminator')
         elif m_singles:
             post.extend([markers[0], unicode(things[0]), markers[1]])
         else:
             post.append(things[0])
-        return u''.join(post)
+        return ''.join(post)
 
     @staticmethod
     def _format_vert(verts, m_singles, terminator=None):
