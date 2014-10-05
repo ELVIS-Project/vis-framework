@@ -80,8 +80,45 @@ def series_maker(lotuples):
 
 
 class TestNGramIndexer(unittest.TestCase):
-    def test_ngram_0(self):
-        # most basic test
+    """Tests for the NGramIndexer and its helper functions."""
+
+    def test_init_1(self):
+        """that __init__() works properly (only required settings given)"""
+        setts = {'n': 1, 'vertical': [0]}
+        actual = ngram.NGramIndexer('a DataFrame', setts)
+        for setting in ('n', 'vertical'):
+            self.assertEqual(setts[setting], actual._settings[setting])
+        for setting in ('horizontal', 'mark_singles', 'terminator', 'continuer'):
+            self.assertEqual(ngram.NGramIndexer.default_settings[setting], actual._settings[setting])
+
+    def test_init_2(self):
+        """that __init__() works properly (all settings given)"""
+        setts = {'n': 1, 'vertical': [0], 'horizontal': 'banana', 'mark_singles': False,
+                 'terminator': 'RoboCop', 'continuer': 'Alex Murphy'}
+        actual = ngram.NGramIndexer('a DataFrame', setts)
+        for setting in ('n', 'vertical', 'horizontal', 'mark_singles', 'terminator', 'continuer'):
+            self.assertEqual(setts[setting], actual._settings[setting])
+
+    def test_init_3(self):
+        """that __init__() fails when 'n' is too short"""
+        setts = {u'n': 0, u'vertical': [0]}  # n is too short
+        self.assertRaises(RuntimeError, ngram.NGramIndexer, 'a DataFrame', setts)
+        try:
+            ngram.NGramIndexer('a DataFrame', setts)
+        except RuntimeError as run_err:
+            self.assertEqual(ngram.NGramIndexer._N_VALUE_TOO_LOW, run_err.message)
+
+    def test_init_4(self):
+        """that __init__() fails with there are no 'vertical' events"""
+        setts = {u'n': 14, u'horizontal': [0]}  # no "vertical" parts
+        self.assertRaises(RuntimeError, ngram.NGramIndexer, 'a DataFrame', setts)
+        try:
+            ngram.NGramIndexer('a DataFrame', setts)
+        except RuntimeError as run_err:
+            self.assertEqual(ngram.NGramIndexer._MISSING_SETTINGS, run_err.message)
+
+    def test_ngram_1a(self):
+        """most basic test"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
         horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         setts = {u'n': 2, u'horizontal': [1], u'vertical': [0], u'mark_singles': False}
