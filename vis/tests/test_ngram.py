@@ -22,11 +22,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
+"""Tests for the NGramIndexer and its helper functions."""
 
-# allow "no docstring" for everything
-# pylint: disable=C0111
-# allow "too many public methods" for TestCase
-# pylint: disable=R0904
+# pylint: disable=too-many-public-methods
 
 
 import unittest
@@ -77,7 +75,7 @@ EXPECTED = [(0.0, u'[P4] (P4) [M3] (-m3) [M6] (-M2) [P8]'),
             (30.0, u'[M3] (-M2) [A4] (-m2) [P4] (P1) [m3]')]
 
 def series_maker(lotuples):
-    "Turn a List Of TUPLES (offset, 'value') into a Series"
+    """Turn a List Of TUPLES (offset, 'value') into a Series."""
     return pandas.Series([x[1] for x in lotuples], index=[x[0] for x in lotuples])
 
 
@@ -419,16 +417,16 @@ class TestNGramIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected_many[i].values), list(actual_many[i].values))
 
     def test_ngram_format_1(self):
-        # one thing, it's a terminator (don't mark singles)
-        # pylint: disable=W0212
+        """one thing, it's a terminator (don't mark singles)"""
+        # pylint: disable=protected-access
         things = [u'A']
         m_singles = False
         self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles, None,
                           terminator=[u'A'])
 
     def test_ngram_format_2(self):
-        # one thing, don't mark singles
-        # pylint: disable=W0212
+        """one thing, don't mark singles"""
+        # pylint: disable=protected-access
         things = [u'A']
         m_singles = False
         expected = u'A'
@@ -437,8 +435,8 @@ class TestNGramIndexer(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_ngram_format_3(self):
-        # one thing, mark singles
-        # pylint: disable=W0212
+        """one thing, mark singles"""
+        # pylint: disable=protected-access
         things = [u'A']
         m_singles = True
         expected = u'[A]'
@@ -447,32 +445,32 @@ class TestNGramIndexer(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_ngram_format_4(self):
-        # many things, terminator first
-        # pylint: disable=W0212
+        """many things, terminator first"""
+        # pylint: disable=protected-access
         things = [u'A', u'B', u'C']
         m_singles = False
         self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
                           (u'[', u']'), terminator=[u'A'])
 
     def test_ngram_format_5(self):
-        # many things, terminator middle
-        # pylint: disable=W0212
+        """many things, terminator middle"""
+        # pylint: disable=protected-access
         things = [u'A', u'B', u'C']
         m_singles = False
         self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
                           (u'[', u']'), terminator=[u'B'])
 
     def test_ngram_format_6(self):
-        # many things, terminator last
-        # pylint: disable=W0212
+        """many things, terminator last"""
+        # pylint: disable=protected-access
         things = [u'A', u'B', u'C']
         m_singles = False
         self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
                           (u'[', u']'), terminator=[u'C'])
 
     def test_ngram_format_7(self):
-        # many things, don't mark singles
-        # pylint: disable=W0212
+        """many things, don't mark singles"""
+        # pylint: disable=protected-access
         things = [u'A', u'B', u'C']
         m_singles = False
         expected = u'[A B C]'
@@ -481,8 +479,8 @@ class TestNGramIndexer(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_ngram_format_8(self):
-        # many things, mark singles
-        # pylint: disable=W0212
+        """many things, mark singles"""
+        # pylint: disable=protected-access
         things = [u'A', u'B', u'C']
         m_singles = True
         expected = u'[A B C]'
@@ -491,8 +489,8 @@ class TestNGramIndexer(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_ngram_format_9(self):
-        # many things, change the markers
-        # pylint: disable=W0212
+        """many things, change the markers"""
+        # pylint: disable=protected-access
         things = [u'A', u'B', u'C']
         m_singles = False
         expected = u'$A B C&'
