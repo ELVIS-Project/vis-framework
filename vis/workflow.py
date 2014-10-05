@@ -48,15 +48,15 @@ def split_part_combo(key):
     :returns: The indices of parts referred to by the key.
     :rtype: tuple of int
 
-    >>> split_part_combo(u'5,6')
+    >>> split_part_combo('5,6')
     (5, 6)
-    >>> split_part_combo(u'234522,98100')
+    >>> split_part_combo('234522,98100')
     (234522, 98100)
-    >>> var = split_part_combo(u'1,2')
-    >>> split_part_combo(str(var[0]) + u',' + str(var[1]))
+    >>> var = split_part_combo('1,2')
+    >>> split_part_combo(str(var[0]) + ',' + str(var[1]))
     (1, 2)
     """
-    post = key.split(u',')
+    post = key.split(',')
     return int(post[0]), int(post[1])
 
 
@@ -101,15 +101,15 @@ class WorkflowManager(object):
 
     # names of the experiments available through run()
     # NOTE: do not re-order these, or run() will break
-    _experiments_list = [u'intervals', u'interval n-grams']
+    _experiments_list = ['intervals', 'interval n-grams']
 
     # Error message when users call output() with LilyPond, but they probably called run() with
     # ``count frequency`` set to True.
-    _COUNT_FREQUENCY_MESSAGE = u'LilyPond output is not possible after you call run() with ' + \
+    _COUNT_FREQUENCY_MESSAGE = 'LilyPond output is not possible after you call run() with ' + \
         '"count frequency" set to True.'
 
     # The error when we required two-voice pairs, but one of the combinations wasn't a pair.
-    _REQUIRE_PAIRS_ERROR = u'All voice combinations must have two parts (found %s).'
+    _REQUIRE_PAIRS_ERROR = 'All voice combinations must have two parts (found %s).'
 
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
@@ -124,14 +124,14 @@ class WorkflowManager(object):
         # hold the IndexedPiece-specific settings
         self._settings = [{} for _ in xrange(len(self._data))]
         for piece_sett in self._settings:
-            for sett in [u'offset interval', u'voice combinations']:
+            for sett in ['offset interval', 'voice combinations']:
                 piece_sett[sett] = None
-            for sett in [u'filter repeats']:
+            for sett in ['filter repeats']:
                 piece_sett[sett] = False
         # hold settings common to all IndexedPieces
-        self._shared_settings = {u'n': 2, u'continuer': 'dynamic quality', u'mark singles': False,
-                                 u'interval quality': False, u'simple intervals': False,
-                                 u'include rests': False, u'count frequency': True}
+        self._shared_settings = {'n': 2, 'continuer': 'dynamic quality', 'mark singles': False,
+                                 'interval quality': False, 'simple intervals': False,
+                                 'include rests': False, 'count frequency': True}
         # which was the most recent experiment run? Either 'intervals' or 'n-grams'
         self._previous_exp = None
         # whether the load() method has been called
@@ -155,10 +155,10 @@ class WorkflowManager(object):
     def load(self, instruction='pieces', pathname=None):
         """
         Import analysis data from long-term storage on a filesystem. This should primarily be \
-        used for the ``u'pieces'`` instruction, to control when the initial music21 import \
+        used for the ``'pieces'`` instruction, to control when the initial music21 import \
         happens.
 
-        Use :meth:`load` with an instruction other than ``u'pieces'`` to load results from a
+        Use :meth:`load` with an instruction other than ``'pieces'`` to load results from a
         previous analysis run by :meth:`run`.
 
         .. note:: If one of the files imports as a :class:`music21.stream.Opus`, the number of
@@ -167,19 +167,19 @@ class WorkflowManager(object):
         :parameter instruction: The type of data to load. Defaults to ``'pieces'``.
         :type instruction: basestring
         :parameter pathname: The pathname of the data to import; not required for the \
-            ``u'pieces'`` instruction.
+            ``'pieces'`` instruction.
         :type pathname: basestring
 
         :raises: :exc:`RuntimeError` if the ``instruction`` is not recognized.
 
         **Instructions**
 
-        .. note:: only ``u'pieces'`` is implemented at this time.
+        .. note:: only ``'pieces'`` is implemented at this time.
 
-        * ``u'pieces'``, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
-        * ``u'hdf5'`` to load data from a previous :meth:`export`.
-        * ``u'stata'`` to load data from a previous :meth:`export`.
-        * ``u'pickle'`` to load data from a previous :meth:`export`.
+        * ``'pieces'``, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
+        * ``'hdf5'`` to load data from a previous :meth:`export`.
+        * ``'stata'`` to load data from a previous :meth:`export`.
+        * ``'pickle'`` to load data from a previous :meth:`export`.
         """
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
@@ -187,17 +187,17 @@ class WorkflowManager(object):
         #       that will somehow unpickle it and replace the *data in* the IndexedPieces here, but
         #       not actually replace the IndexedPieces, since that would inadvertently cancel the
         #       client's pointer to the IndexedPieces, if they have one
-        if u'pieces' == instruction:
+        if 'pieces' == instruction:
             for i, piece in enumerate(self._data):
                 try:
                     piece.get_data([noterest.NoteRestIndexer])
                 except indexed_piece.OpusWarning:
                     new_ips = piece.get_data([noterest.NoteRestIndexer], known_opus=True)
                     self._data = self._data[:i] + self._data[i + 1:] + new_ips
-        elif u'hdf5' == instruction or u'stata' == instruction or u'pickle' == instruction:
-            raise NotImplementedError(u'The ' + instruction + u' instruction does\'t work yet!')
+        elif 'hdf5' == instruction or 'stata' == instruction or 'pickle' == instruction:
+            raise NotImplementedError('The ' + instruction + ' instruction does\'t work yet!')
         else:
-            raise RuntimeError(u'Unrecognized load() instruction: "' + unicode(instruction) + '"')
+            raise RuntimeError('Unrecognized load() instruction: "' + unicode(instruction) + '"')
         self._loaded = True
 
     def run(self, instruction):
@@ -209,7 +209,7 @@ class WorkflowManager(object):
 
         :returns: The result of the experiment.
         :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame` or a list of lists of
-            :class:`pandas.Series`. If ``u'count frequency'`` is set to False, the return type will
+            :class:`pandas.Series`. If ``'count frequency'`` is set to False, the return type will
             be a list of lists of series wherein the containing list has each piece in the
             experiment as its elements (even if there is only one piece in the experiment, this will
             be a list of length one). The contained lists contain the results of the experiment for
@@ -224,10 +224,10 @@ class WorkflowManager(object):
 
         **List of Experiments**
 
-        * ``u'intervals'``: find the frequency of vertical intervals in 2-part combinations. All \
+        * ``'intervals'``: find the frequency of vertical intervals in 2-part combinations. All \
             settings will affect analysis *except* ``'n'``. No settings are required; if you do \
             not set ``'voice combinations'``, all two-part combinations are included.
-        * ``u'interval n-grams'``: find the frequency of n-grams of vertical intervals connected \
+        * ``'interval n-grams'``: find the frequency of n-grams of vertical intervals connected \
             by the horizontal interval of the lowest voice. All settings will affect analysis. \
             You must set the ``'voice combinations'`` setting. The default value for ``'n'`` is \
             ``2``.
@@ -242,8 +242,8 @@ class WorkflowManager(object):
             was_dynamic_quality = False
 
         if self._loaded is not True:
-            raise RuntimeError(u'Please call load() before you call run()')
-        error_msg = u'WorkflowManager.run() could not parse the instruction'
+            raise RuntimeError('Please call load() before you call run()')
+        error_msg = 'WorkflowManager.run() could not parse the instruction'
         post = None
         # run the experiment
         if len(instruction) < min([len(x) for x in WorkflowManager._experiments_list]):
@@ -295,18 +295,18 @@ class WorkflowManager(object):
         for i in xrange(len(self._data)):
             # figure out which combinations we need... this might raise a ValueError, but there's
             # not much we can do to save the situation, so we might as well let it go up
-            combos = unicode(self.settings(i, u'voice combinations'))
-            if combos != u'all' and combos != u'all pairs':
+            combos = unicode(self.settings(i, 'voice combinations'))
+            if combos != 'all' and combos != 'all pairs':
                 combos = ast.literal_eval(combos)
 
-            if u'all' == self.settings(i, u'voice combinations'):
+            if 'all' == self.settings(i, 'voice combinations'):
                 self._result.append(self._all_part_modules(i))
-            elif u'all pairs' == self.settings(i, u'voice combinations'):
+            elif 'all pairs' == self.settings(i, 'voice combinations'):
                 self._result.append(self._two_part_modules(i))
             else:
                 self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
-        if self.settings(None, u'count frequency') is True:
+        if self.settings(None, 'count frequency') is True:
             self._run_freq_agg()
         return self._result
 
@@ -333,9 +333,9 @@ class WorkflowManager(object):
         """
         piece = self._data[index]
         # make settings for interval indexers
-        settings = {u'quality': self.settings(index, u'interval quality')}
-        settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
-                                          is True else u'compound'
+        settings = {'quality': self.settings(index, 'interval quality')}
+        settings['simple or compound'] = 'simple' if self.settings(None, 'simple intervals') \
+                                          is True else 'compound'
         vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
         horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
@@ -344,20 +344,20 @@ class WorkflowManager(object):
         horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
         # figure out which combinations we need... this might raise a ValueError, but there's not
         # much we can do to save the situation, so we might as well let it go up
-        needed_combos = ast.literal_eval(unicode(self.settings(index, u'voice combinations')))
+        needed_combos = ast.literal_eval(unicode(self.settings(index, 'voice combinations')))
         # each key in vert_ints corresponds to a two-voice combination we should use
         post = []
         for combo in needed_combos:
             # make the list of parts
-            parts = [vert_ints[str(i) + u',' + str(combo[-1])] for i in combo[:-1]]
+            parts = [vert_ints[str(i) + ',' + str(combo[-1])] for i in combo[:-1]]
             parts.append(horiz_ints[combo[-1]])
             # assemble settings
-            setts = {u'vertical': range(len(combo[:-1])), u'horizontal': [len(combo[:-1])]}
-            setts[u'mark singles'] = self.settings(None, u'mark singles')
-            setts[u'continuer'] = self.settings(None, u'continuer')
-            setts[u'n'] = self.settings(None, u'n')
-            if self.settings(None, u'include rests') is not True:
-                setts[u'terminator'] = u'Rest'
+            setts = {'vertical': range(len(combo[:-1])), 'horizontal': [len(combo[:-1])]}
+            setts['mark singles'] = self.settings(None, 'mark singles')
+            setts['continuer'] = self.settings(None, 'continuer')
+            setts['n'] = self.settings(None, 'n')
+            if self.settings(None, 'include rests') is not True:
+                setts['terminator'] = 'Rest'
             # run NGramIndexer, then append the result to the corresponding index of the dict
             post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
         return post
@@ -382,9 +382,9 @@ class WorkflowManager(object):
         """
         piece = self._data[index]
         # make settings for interval indexers
-        settings = {u'quality': self.settings(index, u'interval quality')}
-        settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
-                                          is True else u'compound'
+        settings = {'quality': self.settings(index, 'interval quality')}
+        settings['simple or compound'] = 'simple' if self.settings(None, 'simple intervals') \
+                                          is True else 'compound'
         vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
         horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
@@ -399,12 +399,12 @@ class WorkflowManager(object):
             # make the list of parts
             parts = [vert_ints[combo], horiz_ints[horiz_i]]
             # assemble settings
-            setts = {u'vertical': [0], u'horizontal': [1]}
-            setts[u'mark singles'] = self.settings(None, u'mark singles')
-            setts[u'continuer'] = self.settings(None, u'continuer')
-            setts[u'n'] = self.settings(None, u'n')
-            if self.settings(None, u'include rests') is not True:
-                setts[u'terminator'] = u'Rest'
+            setts = {'vertical': [0], 'horizontal': [1]}
+            setts['mark singles'] = self.settings(None, 'mark singles')
+            setts['continuer'] = self.settings(None, 'continuer')
+            setts['n'] = self.settings(None, 'n')
+            if self.settings(None, 'include rests') is not True:
+                setts['terminator'] = 'Rest'
             # run NGramIndexer, then append the result to the corresponding index of the dict
             post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
         return post
@@ -430,9 +430,9 @@ class WorkflowManager(object):
         """
         piece = self._data[index]
         # make settings for interval indexers
-        settings = {u'quality': self.settings(index, u'interval quality')}
-        settings[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
-                                          is True else u'compound'
+        settings = {'quality': self.settings(index, 'interval quality')}
+        settings['simple or compound'] = 'simple' if self.settings(None, 'simple intervals') \
+                                          is True else 'compound'
         vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
                                    settings)
         horiz_ints = piece.get_data([noterest.NoteRestIndexer,
@@ -442,18 +442,18 @@ class WorkflowManager(object):
         vert_ints = self._run_off_rep(index, vert_ints)
         horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
         # figure out the weird string-index things for the vertical part combos
-        lowest_part = len(piece.metadata(u'parts')) - 1
-        vert_combos = [str(x) + u',' + str(lowest_part) for x in xrange(lowest_part)]
+        lowest_part = len(piece.metadata('parts')) - 1
+        vert_combos = [str(x) + ',' + str(lowest_part) for x in xrange(lowest_part)]
         # make the list of parts
         parts = [vert_ints[x] for x in vert_combos]
         parts.append(horiz_ints[-1])  # always the lowest voice
         # assemble settings
-        setts = {u'vertical': range(len(parts) - 1), u'horizontal': [len(parts) - 1]}
-        setts[u'mark singles'] = self.settings(None, u'mark singles')
-        setts[u'continuer'] = self.settings(None, u'continuer')
-        setts[u'n'] = self.settings(None, u'n')
-        if self.settings(None, u'include rests') is not True:
-            setts[u'terminator'] = u'Rest'
+        setts = {'vertical': range(len(parts) - 1), 'horizontal': [len(parts) - 1]}
+        setts['mark singles'] = self.settings(None, 'mark singles')
+        setts['continuer'] = self.settings(None, 'continuer')
+        setts['n'] = self.settings(None, 'n')
+        if self.settings(None, 'include rests') is not True:
+            setts['terminator'] = 'Rest'
         # run NGramIndexer, then append the result to the corresponding index of the dict
         result = [piece.get_data([ngram.NGramIndexer], setts, parts)[0]]
         return result
@@ -483,15 +483,15 @@ class WorkflowManager(object):
         """
         self._result = []
         # shared settings for the IntervalIndexer
-        setts = {u'quality': self.settings(None, u'interval quality')}
-        setts[u'simple or compound'] = u'simple' if self.settings(None, u'simple intervals') \
-                                       is True else u'compound'
+        setts = {'quality': self.settings(None, 'interval quality')}
+        setts['simple or compound'] = 'simple' if self.settings(None, 'simple intervals') \
+                                       is True else 'compound'
         for i, piece in enumerate(self._data):
             vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
             # figure out which combinations we need... this might raise a ValueError, but there's
             # not much we can do to save the situation, so we might as well let it go up
-            combos = unicode(self.settings(i, u'voice combinations'))
-            if combos != u'all' and combos != u'all pairs' and combos != u'None':
+            combos = unicode(self.settings(i, 'voice combinations'))
+            if combos != 'all' and combos != 'all pairs' and combos != 'None':
                 combos = ast.literal_eval(combos)
                 # ensure each combination is a two-voice pair
                 for pair in combos:
@@ -503,10 +503,10 @@ class WorkflowManager(object):
             # run the offset and repeat indexers, if required
             post = self._run_off_rep(i, vert_ints)
             # remove the "Rest" entries, if required
-            if self.settings(None, u'include rests') is not True:
+            if self.settings(None, 'include rests') is not True:
                 # we'll just get a view that omits the "Rest" entries in the Series
                 for i, pair in enumerate(post):
-                    post[i] = pair[pair != u'Rest']
+                    post[i] = pair[pair != 'Rest']
             self._result.append(post)
         if self.settings(None, 'count frequency') is True:
             self._run_freq_agg()
@@ -544,12 +544,12 @@ class WorkflowManager(object):
         dict_keys = so_far.keys() if isinstance(so_far, dict) else None
         if dict_keys is not None:  # dict-to-list in a known order
             so_far = [so_far[key] for key in dict_keys]
-        if self.settings(index, u'offset interval') is not None:
+        if self.settings(index, 'offset interval') is not None:
             off_sets = {'quarterLength': self.settings(index, 'offset interval')}
             if is_horizontal:
                 off_sets['method'] = None
             so_far = self._data[index].get_data([offset.FilterByOffsetIndexer], off_sets, so_far)
-        if self.settings(index, u'filter repeats') is True:
+        if self.settings(index, 'filter repeats') is True:
             so_far = self._data[index].get_data([repeat.FilterByRepeatIndexer], {}, so_far)
         if dict_keys is not None:  # known-order-list-to-dict
             so_far = {dict_keys[i]: so_far[i] for i in xrange(len(dict_keys))}
@@ -598,7 +598,7 @@ class WorkflowManager(object):
         these_pairs = []
         for pair in combos:
             if 2 == len(pair):
-                these_pairs.append(unicode(pair[0]) + u',' + unicode(pair[1]))
+                these_pairs.append(unicode(pair[0]) + ',' + unicode(pair[1]))
         if 0 == len(these_pairs):
             return {}
         else:
@@ -618,7 +618,7 @@ class WorkflowManager(object):
         case the column names are preserved and ``name`` is ignored.
 
         :param name: String to use for the column name of the Series currently held in self._result.
-            The default is u'data'. Ignored if self._data is already a :class:`DataFrame`.
+            The default is 'data'. Ignored if self._data is already a :class:`DataFrame`.
         :type name: basestring
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
         :type top_x: int
@@ -671,7 +671,7 @@ class WorkflowManager(object):
             Does not apply to the LilyPond experiment.
         :type top_x: integer
         :param threshold: If a result is strictly less than this number, it will be left out. The
-            default is ``None``. This is ignored for the ``u'LilyPond'`` instruction. Does not
+            default is ``None``. This is ignored for the ``'LilyPond'`` instruction. Does not
             apply to the LilyPond experiment.
         :type threshold: integer
 
@@ -692,7 +692,7 @@ class WorkflowManager(object):
         * ``'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
             ``'histogram'`` instruction. In the future, this will be used to distinguish histograms
             produced with R from those produced with other libraries, like matplotlib or bokeh.
-                * ``u'CSV'``: output a Series or DataFrame to a CSV file.
+                * ``'CSV'``: output a Series or DataFrame to a CSV file.
         * ``'Stata'``: output a Stata file for importing to R.
         * ``'Excel'``: output an Excel file for Peter Schubert.
         * ``'HTML'``: output an HTML table, as used by the VIS Counterpoint Web App.
@@ -707,21 +707,21 @@ class WorkflowManager(object):
         """
         # ensure we have some results
         if self._result is None:
-            raise RuntimeError(u'Please call run() before you call output().')
+            raise RuntimeError('Please call run() before you call output().')
         else:
             # properly set output paths
-            pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
+            pathname = 'test_output/output_result' if pathname is None else unicode(pathname)
 
         # handle instructions
         if instruction in ('CSV', 'Stata', 'Excel', 'HTML'):
             # these will be done by export()
             return self.export(instruction, pathname, top_x, threshold)
-        elif instruction == u'LilyPond':
+        elif instruction == 'LilyPond':
             return self._make_lilypond(pathname)
-        elif instruction == u'histogram' or instruction == u'R histogram':
+        elif instruction == 'histogram' or instruction == 'R histogram':
             return self._make_histogram(pathname, top_x, threshold)
         else:
-            raise RuntimeError(u'Unrecognized instruction: ' + unicode(instruction))
+            raise RuntimeError('Unrecognized instruction: ' + unicode(instruction))
 
     def _make_histogram(self, pathname=None, top_x=None, threshold=None):
         """
@@ -765,9 +765,9 @@ class WorkflowManager(object):
         # try to determine whether they called run() properly (``count frequency`` should be False)
         if self.settings(None, 'count frequency') is True or len(self._data) != len(self._result):
             raise RuntimeError(WorkflowManager._COUNT_FREQUENCY_MESSAGE)
-        pathname = u'test_output/output_result' if pathname is None else unicode(pathname)
+        pathname = 'test_output/output_result' if pathname is None else unicode(pathname)
         # the file extension for LilyPond
-        file_ext = u'.ly'
+        file_ext = '.ly'
         # assume we have the result of a suitable Indexer
         annotation_parts = []
         # run additional indexers for annotation
@@ -796,14 +796,14 @@ class WorkflowManager(object):
         enum = True if len(self._data) > 1 else False
         pathnames = []
         for i in xrange(len(self._data)):
-            setts = {u'run_lilypond': True, u'annotation_part': annotation_parts[i]}
+            setts = {'run_lilypond': True, 'annotation_part': annotation_parts[i]}
             # append piece index to pathname, if there are many pieces
             if enum:
-                setts[u'output_pathname'] = pathname + u'-' + str(i) + file_ext
+                setts['output_pathname'] = pathname + '-' + str(i) + file_ext
             else:
-                setts[u'output_pathname'] = pathname + file_ext
+                setts['output_pathname'] = pathname + file_ext
             self._data[i].get_data([lilypond.LilyPondIndexer], setts)
-            pathnames.append(setts[u'output_pathname'])
+            pathnames.append(setts['output_pathname'])
         return pathnames
 
 
@@ -832,30 +832,30 @@ class WorkflowManager(object):
 
         Formats:
 
-        * ``u'CSV'``: output a Series or DataFrame to a CSV file.
-        * ``u'Stata'``: output a Stata file for importing to R.
-        * ``u'Excel'``: output an Excel file for Peter Schubert.
-        * ``u'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
+        * ``'CSV'``: output a Series or DataFrame to a CSV file.
+        * ``'Stata'``: output a Stata file for importing to R.
+        * ``'Excel'``: output an Excel file for Peter Schubert.
+        * ``'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
         """
         # TODO: in VIS 2, rename this as a private method; output() will call this as required
         # ensure we have some results
         if self._result is None:
-            raise RuntimeError(u'Call run() before calling export()')
+            raise RuntimeError('Call run() before calling export()')
         # ensure we have a DataFrame
         if not isinstance(self._result, pandas.DataFrame):
-            export_me = self._get_dataframe(u'data', top_x, threshold)
+            export_me = self._get_dataframe('data', top_x, threshold)
         else:
             export_me = self._result
         # key is the instruction; value is (extension, export_method)
-        directory = {u'CSV': (u'.csv', export_me.to_csv),
-                     u'Stata': (u'.dta', export_me.to_stata),
-                     u'Excel': (u'.xlsx', export_me.to_excel),
-                     u'HTML': (u'.html', export_me.to_html)}
+        directory = {'CSV': ('.csv', export_me.to_csv),
+                     'Stata': ('.dta', export_me.to_stata),
+                     'Excel': ('.xlsx', export_me.to_excel),
+                     'HTML': ('.html', export_me.to_html)}
         # ensure we have a valid output format
         if form not in directory:
-            raise RuntimeError(u'Unrecognized output format: ' + unicode(form))
+            raise RuntimeError('Unrecognized output format: ' + unicode(form))
         # ensure we have an output path
-        pathname = u'test_output/no_path' if pathname is None else unicode(pathname)
+        pathname = 'test_output/no_path' if pathname is None else unicode(pathname)
         # ensure there's a file extension
         if directory[form][0] != pathname[-1 * len(directory[form][0]):]:
             pathname += directory[form][0]
@@ -948,7 +948,7 @@ class WorkflowManager(object):
             ``True``.
         * ``simple intervals``: If you want to display all intervals as their single-octave \
             equivalents, set this setting to ``True``.
-        * ``include rests``: If you want to include ``u'Rest'`` tokens as vertical intervals, \
+        * ``include rests``: If you want to include ``'Rest'`` tokens as vertical intervals, \
             change this setting to ``True``. The default is ``False``.
         * ``count frequency``: When set to ``True`` (the default), experiments will return the \
             number of occurrences of each token (i.e., "each interval" or "each interval n-gram").\
@@ -963,17 +963,17 @@ class WorkflowManager(object):
                 self._shared_settings[field] = value
         elif index is None:
             if value is None:
-                raise ValueError(u'If "index" is None, "value" must not be None.')
+                raise ValueError('If "index" is None, "value" must not be None.')
             else:
                 for i in xrange(len(self._settings)):
                     self.settings(i, field, value)
         elif not 0 <= index < len(self._settings):
-            raise IndexError(u'Invalid piece index :' + unicode(index))
+            raise IndexError('Invalid piece index :' + unicode(index))
         elif field not in self._settings[index]:
-            raise AttributeError(u'Invalid setting: ' + unicode(field))
+            raise AttributeError('Invalid setting: ' + unicode(field))
         elif value is None:
             return self._settings[index][field]
-        elif field == u'offset interval' and value == 0:  # can't set directly to None :(
+        elif field == 'offset interval' and value == 0:  # can't set directly to None :(
             self._settings[index][field] = None
         else:
             self._settings[index][field] = value

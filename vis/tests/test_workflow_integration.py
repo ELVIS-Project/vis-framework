@@ -40,12 +40,12 @@ VIS_PATH = vis.__path__[0]
 class IntervalsTests(TestCase):
     # EXPECTED_1 is the result of the "intervals" experiment on bwv77 with "[[0, 1]]" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
-    EXPECTED_1 = pandas.Series({u'3': 32, u'4': 22, u'5': 18, u'6': 16, u'7': 4, u'2': 3, u'8': 2})
+    EXPECTED_1 = pandas.Series({'3': 32, '4': 22, '5': 18, '6': 16, '7': 4, '2': 3, '8': 2})
     # EXPECTED_2 is the result of the "intervals" experiment on bwv77 with "all pairs" as the voice
     # pairs; note that I didn't verify by counting
-    EXPECTED_2 = pandas.Series({u'3': 91, u'6': 90, u'5': 86, u'10': 81, u'4': 62, u'8': 53,
-                                u'12': 37, u'7': 26, u'11': 17, u'13': 16, u'15': 12, u'9': 8,
-                                u'1': 8, u'2': 8, u'14': 7, u'17': 5, u'-2': 3, u'-3': 2, u'16': 1})
+    EXPECTED_2 = pandas.Series({'3': 91, '6': 90, '5': 86, '10': 81, '4': 62, '8': 53,
+                                '12': 37, '7': 26, '11': 17, '13': 16, '15': 12, '9': 8,
+                                '1': 8, '2': 8, '14': 7, '17': 5, '-2': 3, '-3': 2, '16': 1})
     # EXPECTED_3 is the result of "intervals" experiment on madrigal51 with "all pairs" as the
     # voice pairs and not including rests; note that I didn't verify this by counting
     EXPECTED_3 = pandas.Series({'3': 219, '8': 208, '10': 193, '5': 192, '6': 155, '1': 153,
@@ -180,9 +180,9 @@ class NGramsTests(TestCase):
                                 '[15 11 Rest 4 Rest] _ [14 10 5 4 Rest]': 1})
     # EXPECTED_7 is the result of "interval n-grams" on vis_Test_Piece.xml with all two-part
     # combinations of 2-grams. I counted it by hand!
-    EXPECTED_7 = pandas.Series({u'4 1 5': 1, u'5 1 4': 1, u'6 2 6': 1, u'6 -2 6': 1, u'8 -2 10': 1,
-                                u'10 2 8': 1, u'3 2 2': 1, u'2 -2 3': 1, u'5 -2 6': 1, u'6 2 5': 1,
-                                u'3 -2 5': 1, u'5 2 3': 1})
+    EXPECTED_7 = pandas.Series({'4 1 5': 1, '5 1 4': 1, '6 2 6': 1, '6 -2 6': 1, '8 -2 10': 1,
+                                '10 2 8': 1, '3 2 2': 1, '2 -2 3': 1, '5 -2 6': 1, '6 2 5': 1,
+                                '3 -2 5': 1, '5 2 3': 1})
     # EXPECTED_9 is the result of "interval n-grams" on Kyrie_short.krn with voices 1 and 3, and
     # I counted it by hand!
     EXPECTED_9a = pandas.Series({'8 3 6': 1, '6 zamboni 6': 1, '6 -2 8': 1, '5 zamboni 5': 1,
