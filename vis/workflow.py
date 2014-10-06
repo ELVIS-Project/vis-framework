@@ -553,13 +553,12 @@ class WorkflowManager(object):
         :returns: The filtered results.
         :rtype: As specified in :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` or
             :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`.
+
+        .. note:: In VIS 1, this method had an undocumented feature, where a dictionary given as
+            the ``so_far`` argument would be returned as a dictionary, with a guarantee that the
+            dictionary's keys corresponded to the same object on output as on input. This doesn't
+            happen anymore.
         """
-        # If we're given a dictionary (the output from IntervalIndexer), we must return one, and
-        # we have to preserve the indexing. Thankfully, indexers preserve sequential ordering, so
-        # all we need is to remember the dict keys in the same order.
-        dict_keys = so_far.keys() if isinstance(so_far, dict) else None
-        if dict_keys is not None:  # dict-to-list in a known order
-            so_far = [so_far[key] for key in dict_keys]
         if self.settings(index, 'offset interval') is not None:
             off_sets = {'quarterLength': self.settings(index, 'offset interval')}
             if is_horizontal:
@@ -567,8 +566,6 @@ class WorkflowManager(object):
             so_far = self._data[index].get_data([offset.FilterByOffsetIndexer], off_sets, so_far)
         if self.settings(index, 'filter repeats') is True:
             so_far = self._data[index].get_data([repeat.FilterByRepeatIndexer], {}, so_far)
-        if dict_keys is not None:  # known-order-list-to-dict
-            so_far = {dict_keys[i]: so_far[i] for i in xrange(len(dict_keys))}
         return so_far
 
     def _run_freq_agg(self, which_ind):

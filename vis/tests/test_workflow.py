@@ -879,10 +879,12 @@ class GetDataFrame(TestCase):
 
 
 class AuxiliaryExperimentMethods(TestCase):
+    """Tests for auxiliary methods used by some experiments."""
+
     @mock.patch('vis.workflow.repeat.FilterByRepeatIndexer')
     @mock.patch('vis.workflow.offset.FilterByOffsetIndexer')
     def test_run_off_rep_1(self, mock_off, mock_rep):
-        # run neither indexer
+        """run neither indexer"""
         # setup
         workm = WorkflowManager(['', '', ''])
         workm._data = [None, MagicMock(spec=IndexedPiece), None]
@@ -898,7 +900,7 @@ class AuxiliaryExperimentMethods(TestCase):
     @mock.patch('vis.workflow.repeat.FilterByRepeatIndexer')
     @mock.patch('vis.workflow.offset.FilterByOffsetIndexer')
     def test_run_off_rep_2(self, mock_off, mock_rep):
-        # run offset indexer
+        """run offset indexer"""
         # setup
         workm = WorkflowManager(['', '', ''])
         workm._data = [None, MagicMock(spec=IndexedPiece), None]
@@ -915,7 +917,7 @@ class AuxiliaryExperimentMethods(TestCase):
     @mock.patch('vis.workflow.repeat.FilterByRepeatIndexer')
     @mock.patch('vis.workflow.offset.FilterByOffsetIndexer')
     def test_run_off_rep_3(self, mock_off, mock_rep):
-        # run repeat indexer
+        """run repeat indexer"""
         # setup
         workm = WorkflowManager(['', '', ''])
         workm._data = [None, MagicMock(spec=IndexedPiece), None]
@@ -932,7 +934,7 @@ class AuxiliaryExperimentMethods(TestCase):
     @mock.patch('vis.workflow.repeat.FilterByRepeatIndexer')
     @mock.patch('vis.workflow.offset.FilterByOffsetIndexer')
     def test_run_off_rep_4(self, mock_off, mock_rep):
-        # run offset and repeat indexer
+        """run offset and repeat indexer"""
         # setup
         workm = WorkflowManager(['', '', ''])
         workm._data = [None, MagicMock(spec=IndexedPiece), None]
@@ -951,23 +953,7 @@ class AuxiliaryExperimentMethods(TestCase):
     @mock.patch('vis.workflow.repeat.FilterByRepeatIndexer')
     @mock.patch('vis.workflow.offset.FilterByOffsetIndexer')
     def test_run_off_rep_5(self, mock_off, mock_rep):
-        # run neither indexer; input a dict
-        # setup
-        workm = WorkflowManager(['', '', ''])
-        workm._data = [None, MagicMock(spec=IndexedPiece), None]
-        workm.settings(1, 'offset interval', 0)
-        workm.settings(1, 'filter repeats', False)
-        in_val = {'b': 43, 'a': 42, 'c': 44}
-        # run
-        actual = workm._run_off_rep(1, in_val)
-        # test
-        self.assertSequenceEqual(in_val, actual)
-        self.assertEqual(0, workm._data[1].get_data.call_count)
-
-    @mock.patch('vis.workflow.repeat.FilterByRepeatIndexer')
-    @mock.patch('vis.workflow.offset.FilterByOffsetIndexer')
-    def test_run_off_rep_6(self, mock_off, mock_rep):
-        # run offset indexer with is_horizontal set to True
+        """run offset indexer with is_horizontal set to True"""
         # setup
         workm = WorkflowManager(['', '', ''])
         workm._data = [None, MagicMock(spec=IndexedPiece), None]
