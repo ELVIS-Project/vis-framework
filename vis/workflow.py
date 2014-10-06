@@ -109,7 +109,7 @@ class WorkflowManager(object):
         '"count frequency" set to True.'
 
     # The error when we required two-voice pairs, but one of the combinations wasn't a pair.
-    _REQUIRE_PAIRS_ERROR = 'All voice combinations must have two parts (found %s).'
+    _REQUIRE_PAIRS_ERROR = 'All voice combinations must have two parts (found {}).'
 
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
@@ -481,35 +481,56 @@ class WorkflowManager(object):
             than two parts are ignored, which may result in one or more pieces being omitted from
             the results if you aren't careful with settings.
         """
+
+        # clear any previous results
         self._result = []
-        # shared settings for the IntervalIndexer
-        setts = {'quality': self.settings(None, 'interval quality')}
-        setts['simple or compound'] = 'simple' if self.settings(None, 'simple intervals') \
-                                       is True else 'compound'
+
+        # piece-by-piece analysis
         for i, piece in enumerate(self._data):
-            vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], setts)
-            # figure out which combinations we need... this might raise a ValueError, but there's
-            # not much we can do to save the situation, so we might as well let it go up
-            combos = unicode(self.settings(i, 'voice combinations'))
-            if combos != 'all' and combos != 'all pairs' and combos != 'None':
+            # 1.) prepare shared settings for the IntervalIndexer
+            setts = {'quality': self.settings(None, 'interval quality')}
+            setts['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
+                                            is True else 'compound')
+
+            # 2.) prepare the list of analyzers to run, adding settings if relevant
+            analyzer_list = [noterest.NoteRestIndexer, interval.IntervalIndexer]
+            if self.settings(i, 'offset interval') is not None:
+                analyzer_list.append(offset.FilterByOffsetIndexer)
+                setts['quarterLength'] = self.settings(i, 'offset interval')
+            if self.settings(i, 'filter repeats'):
+                analyzer_list.append()
+
+            # 3.) run the analyzers
+            vert_ints = piece.get_data(analyzer_list, setts)
+
+            # 4.) remove the voice-pair combinations we don't want
+            combos = str(self.settings(i, 'voice combinations'))
+            if combos != 'all' and combos != 'all pairs' and combos != 'None':  # "if we remove pairs"
+                # NB: this next line may raise a ValueError, but we can't do anything to save it
                 combos = ast.literal_eval(combos)
                 # ensure each combination is a two-voice pair
                 for pair in combos:
                     if 2 != len(pair):
-                        raise RuntimeError(WorkflowManager._REQUIRE_PAIRS_ERROR % len(pair))
+                        raise RuntimeError(WorkflowManager._REQUIRE_PAIRS_ERROR.format(len(pair)))
+                # convert to what we'll find in the DataFrame
+                combos = [str(x).replace(' ', '')[1:-1] for x in combos]
                 vert_ints = WorkflowManager._remove_extra_pairs(vert_ints, combos)
-            # we no longer need to know the combinations' names, so we can make a list
-            vert_ints = list(vert_ints.itervalues())  # TODO: this is where we get a failure because "vert_ints" is a DataFrame now
-            # run the offset and repeat indexers, if required
-            post = self._run_off_rep(i, vert_ints)
-            # remove the "Rest" entries, if required
-            if self.settings(None, 'include rests') is not True:
-                # we'll just get a view that omits the "Rest" entries in the Series
-                for i, pair in enumerate(post):
-                    post[i] = pair[pair != 'Rest']
-            self._result.append(post)
-        if self.settings(None, 'count frequency') is True:
-            self._run_freq_agg()
+
+            # 6.) remove "Rest" entries, if required
+            if not self.settings(None, 'include rests'):
+                new_df = {}
+                for col_ind in vert_ints:
+                    # TODO: what happens when there are indices that aren't IntervalIndexer?
+                    this_col = vert_ints[col_ind]
+                    new_df[col_ind] = this_col[this_col != 'Rest']
+                vert_ints = pandas.DataFrame(new_df)
+
+            self._result.append(vert_ints)
+
+        # if we're making an aggregated count of interval frequencies
+        if self.settings(None, 'count frequency'):
+            self._run_freq_agg('interval.IntervalIndexer')
+
         return self._result
 
     def _run_off_rep(self, index, so_far, is_horizontal=False):
