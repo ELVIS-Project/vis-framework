@@ -267,8 +267,8 @@ class WorkflowManager(object):
         """
         Prepare a list of frequencies of interval n-grams in all pieces.
 
-        This method automatically uses :met:`_two_part_modules` and :meth:`_all_part_modules`
-        when relevant.
+        This method automatically uses :meth:`_two_part_modules`, :meth:`_all_part_modules`, and
+        :meth:`_variable_part_modules` when relevant.
 
         These indexers and experimenters will be run:
 
@@ -288,17 +288,12 @@ class WorkflowManager(object):
             or a list of outputs from :class:`~vis.analyzers.indexers.ngram.NGramIndexer`,
             depending on the ``count frequency`` setting.
 
-        .. note:: To compute more than one value of ``n``, call :meth:`_interval_ngrams` many times.
+        .. note:: To compute more than one value of ``n``, call :meth:`_interval_ngrams` once for
+            each value of ``n``.
         """
         self._result = []
-        # user helpers to fetch results for each piece
+        # use helpers to fetch results for each piece
         for i in xrange(len(self._data)):
-            # figure out which combinations we need... this might raise a ValueError, but there's
-            # not much we can do to save the situation, so we might as well let it go up
-            combos = unicode(self.settings(i, 'voice combinations'))
-            if combos != 'all' and combos != 'all pairs':
-                combos = ast.literal_eval(combos)
-
             if 'all' == self.settings(i, 'voice combinations'):
                 self._result.append(self._all_part_modules(i))
             elif 'all pairs' == self.settings(i, 'voice combinations'):
@@ -307,7 +302,7 @@ class WorkflowManager(object):
                 self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
         if self.settings(None, 'count frequency') is True:
-            self._run_freq_agg()
+            self._run_freq_agg('ngram.NGramIndexer')  # TODO: write this into the tests
         return self._result
 
     def _variable_part_modules(self, index):

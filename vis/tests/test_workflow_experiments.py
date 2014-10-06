@@ -154,14 +154,16 @@ class Intervals(TestCase):
 
 
 class IntervalNGrams(TestCase):
+
+    """Tests for helper functions related to the "interval n-grams" experiments."""
     @mock.patch('vis.workflow.WorkflowManager._run_freq_agg')
     @mock.patch('vis.workflow.WorkflowManager._variable_part_modules')
     @mock.patch('vis.workflow.WorkflowManager._all_part_modules')
     @mock.patch('vis.workflow.WorkflowManager._two_part_modules')
     def test_interval_ngrams_1(self, mock_two, mock_all, mock_var, mock_rfa):
-        # --> test with three pieces, each of which requires a different helper
+        """test _interval_ngrams() with three pieces, each of which requires a different helper"""
         # 1.) prepare mocks
-        ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
+        ind_pieces = [MagicMock(atuospec=IndexedPiece) for _ in xrange(3)]
         mock_rfa.return_value = 'mock_rfa() return value'
         mock_two.return_value = ['mock_two() return value']
         mock_all.return_value = ['mock_all() return value']
@@ -180,7 +182,7 @@ class IntervalNGrams(TestCase):
         mock_two.assert_called_once_with(1)
         mock_all.assert_called_once_with(0)
         mock_var.assert_called_once_with(2)
-        mock_rfa.assert_called_once_with()
+        mock_rfa.assert_called_once_with('ngram.NGramIndexer')
         self.assertSequenceEqual(expected, actual)
         self.assertSequenceEqual(expected, test_wm._result)
 
@@ -189,9 +191,9 @@ class IntervalNGrams(TestCase):
     @mock.patch('vis.workflow.WorkflowManager._all_part_modules')
     @mock.patch('vis.workflow.WorkflowManager._two_part_modules')
     def test_interval_ngrams_2(self, mock_two, mock_all, mock_var, mock_rfa):
-        # --> same as test_interval_ngrams_1(), but with "count frequency" set to False
+        """same as test_interval_ngrams_1(), but with "count frequency" set to False"""
         # 1.) prepare mocks
-        ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(3)]
+        ind_pieces = [MagicMock(autospec=IndexedPiece) for _ in xrange(3)]
         mock_rfa.return_value = 'mock_rfa() return value'
         mock_two.return_value = ['mock_two() return value']
         mock_all.return_value = ['mock_all() return value']
