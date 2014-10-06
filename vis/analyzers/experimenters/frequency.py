@@ -56,7 +56,6 @@ class FrequencyExperimenter(experimenter.Experimenter):
         """
         :param index: The data in which to count frequencies.
         :type index: :class:`pandas.DataFrame` or list of :class:`pandas.DataFrame`
-
         :param settings: Optional dictionary with the settings described above in
             :const:`possible_settings`.
         :type settings: dict or NoneType
@@ -117,7 +116,6 @@ class FrequencyExperimenter(experimenter.Experimenter):
             multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Experimenter', 'Parts'])
             # foist our MultiIndex onto the new results
             each_df.columns = multiindex
-            #return pandas.DataFrame(indices, index=multiindex).T
             counted.append(each_df)
 
         return counted
