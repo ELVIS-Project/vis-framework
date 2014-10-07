@@ -36,8 +36,10 @@ import pandas
 import vis
 from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
-from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat, lilypond
+from vis.analyzers.indexers import noterest, interval, ngram, offset, repeat
 from vis.analyzers.experimenters import frequency, aggregator, barchart
+from vis.analyzers.indexers import lilypond as lilypond_ind
+from vis.analyzers.experimenters import lilypond as lilypond_exp
 
 def split_part_combo(key):
     """
@@ -829,36 +831,39 @@ class WorkflowManager(object):
 
         Argument as per output().
         """
+
+        file_ext = 'ly'
+        pathname = 'test_output/output_result' if pathname is None else unicode(pathname)
+
         # try to determine whether they called run() properly (``count frequency`` should be False)
         if self.settings(None, 'count frequency') is True or len(self._data) != len(self._result):
             raise RuntimeError(WorkflowManager._COUNT_FREQUENCY_MESSAGE)
-        pathname = 'test_output/output_result' if pathname is None else unicode(pathname)
-        # the file extension for LilyPond
-        file_ext = '.ly'
+
         # assume we have the result of a suitable Indexer
         annotation_parts = []
         # run additional indexers for annotation
         for i in xrange(len(self._data)):
             ann_p = []
-            combos = []
-            if 'all' == self.settings(i, 'voice combinations'):
-                lowest_part = len(self.metadata(i, 'parts')) - 1
-                combos = [[x, lowest_part] for x in xrange(lowest_part)]
-            elif 'all pairs' == self.settings(i, 'voice combinations'):
-                # Calculate all 2-part combinations. We must do this in the same order as the
-                # IntervalIndexer, or else the labels will be wrong.
-                for left in xrange(len(self.metadata(i, 'parts'))):
-                    for right in xrange(left + 1, len(self.metadata(i, 'parts'))):
-                        combos.append([left, right])
-            else:
-                combos = ast.literal_eval(self.settings(i, 'voice combinations'))
+            #combos = []
+            #if 'all' == self.settings(i, 'voice combinations'):
+                #lowest_part = len(self.metadata(i, 'parts')) - 1
+                #combos = [[x, lowest_part] for x in xrange(lowest_part)]
+            #elif 'all pairs' == self.settings(i, 'voice combinations'):
+                ## Calculate all 2-part combinations. We must do this in the same order as the
+                ## IntervalIndexer, or else the labels will be wrong.
+                #for left in xrange(len(self.metadata(i, 'parts'))):
+                    #for right in xrange(left + 1, len(self.metadata(i, 'parts'))):
+                        #combos.append([left, right])
+            #else:
+                #combos = ast.literal_eval(self.settings(i, 'voice combinations'))
             for j in xrange(len(self._result[i])):
-                ann_p.append(self._data[i].get_data([lilypond.AnnotationIndexer,
-                                                     lilypond.AnnotateTheNoteIndexer,
-                                                     lilypond.PartNotesIndexer],
+                ann_p.append(self._data[i].get_data([lilypond_ind.AnnotationIndexer,
+                                                     lilypond_exp.AnnotateTheNoteExperimenter,
+                                                     lilypond_exp.PartNotesExperimenter],
                                                     None,
                                                     [self._result[i][j]])[0])
             annotation_parts.append(ann_p)
+
         # run OutputLilyPond and LilyPond
         enum = True if len(self._data) > 1 else False
         pathnames = []
@@ -866,11 +871,12 @@ class WorkflowManager(object):
             setts = {'run_lilypond': True, 'annotation_part': annotation_parts[i]}
             # append piece index to pathname, if there are many pieces
             if enum:
-                setts['output_pathname'] = pathname + '-' + str(i) + file_ext
+                setts['output_pathname'] = '{}-{}.{}'.format(pathname, i, file_ext)
             else:
-                setts['output_pathname'] = pathname + file_ext
-            self._data[i].get_data([lilypond.LilyPondIndexer], setts)
+                setts['output_pathname'] = '{}.{}'.format(pathname, file_ext)
+            self._data[i].get_data([lilypond_exp.LilyPondExperimenter], setts)
             pathnames.append(setts['output_pathname'])
+
         return pathnames
 
 

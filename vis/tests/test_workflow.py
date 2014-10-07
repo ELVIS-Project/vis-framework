@@ -41,6 +41,8 @@ from music21.humdrum.spineParser import GlobalReference
 from vis.workflow import WorkflowManager, split_part_combo
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import noterest, lilypond
+from vis.analyzers.indexers import lilypond as lilypond_ind
+from vis.analyzers.experimenters import lilypond as lilypond_exp
 
 # find the path to the 'vis' directory
 import vis
@@ -441,8 +443,10 @@ class MakeHistogram(TestCase):
 
 
 class MakeLilyPond(TestCase):
+    """Tests for WorkflowManager._make_lilypond()"""
+
     def test_lilypond_1a(self):
-        # error conditions: if 'count frequency' is True (but the lengths are okay)
+        """error conditions: if 'count frequency' is True (but the lengths are okay)"""
         test_wm = WorkflowManager(['fake piece'])
         test_wm._data = ['fake IndexedPiece']
         test_wm._result = ['fake results']
@@ -455,7 +459,7 @@ class MakeLilyPond(TestCase):
             self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, the_err.message)
 
     def test_lilypond_1b(self):
-        # error conditions: if the lengths are different, (but 'count frequency' is okay)
+        """error conditions: if the lengths are different, (but 'count frequency' is okay)"""
         test_wm = WorkflowManager(['fake piece'])
         test_wm._data = ['fake IndexedPiece']
         test_wm._result = ['fake results', 'more fake results', 'so many fake results']
@@ -468,8 +472,8 @@ class MakeLilyPond(TestCase):
 
     @mock.patch('vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
     def test_lilypond_2(self, test_ip):
-        # make sure it works correctly with one piece that has one part
-        # ("voice combinations" with literal_eval())
+        """make sure it works correctly with one piece that has one part
+           ("voice combinations" with literal_eval())"""
         # 1: prepare
         input_path = 'carpathia'
         get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
@@ -491,9 +495,9 @@ class MakeLilyPond(TestCase):
         test_wm._make_lilypond(input_path)
         # 3: check
         self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
-        lily_ind_list = [lilypond.AnnotationIndexer,
-                         lilypond.AnnotateTheNoteIndexer,
-                         lilypond.PartNotesIndexer]
+        lily_ind_list = [lilypond_ind.AnnotationIndexer,
+                         lilypond_exp.AnnotateTheNoteExperimenter,
+                         lilypond_exp.PartNotesExperimenter]
         for i, piece in enumerate(test_wm._data):
             self.assertEqual(num_parts + 1, piece.get_data.call_count)
             for j in xrange(num_parts):
@@ -503,13 +507,13 @@ class MakeLilyPond(TestCase):
             sett_dict = {'run_lilypond': True,
                          'output_pathname': input_path + '.ly',
                          'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
-            piece.get_data.assert_any_call([lilypond.LilyPondIndexer], sett_dict)
+            piece.get_data.assert_any_call([lilypond_exp.LilyPondExperimenter], sett_dict)
 
     @mock.patch('vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
     @mock.patch('vis.workflow.WorkflowManager.metadata')
     def test_lilypond_3(self, mock_metadata, test_ip):
-        # make sure it works correctly with one piece that has three parts
-        # ("voice combinations" is "all pairs")
+        """make sure it works correctly with one piece that has three parts
+           ("voice combinations" is "all pairs")"""
         # 1: prepare
         input_path = 'carpathia'
         get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
@@ -532,9 +536,9 @@ class MakeLilyPond(TestCase):
         test_wm._make_lilypond(input_path)
         # 3: check
         self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
-        lily_ind_list = [lilypond.AnnotationIndexer,
-                         lilypond.AnnotateTheNoteIndexer,
-                         lilypond.PartNotesIndexer]
+        lily_ind_list = [lilypond_ind.AnnotationIndexer,
+                         lilypond_exp.AnnotateTheNoteExperimenter,
+                         lilypond_exp.PartNotesExperimenter]
         for i, piece in enumerate(test_wm._data):
             self.assertEqual(num_parts + 1, piece.get_data.call_count)
             for j in xrange(num_parts):
@@ -544,13 +548,13 @@ class MakeLilyPond(TestCase):
             sett_dict = {'run_lilypond': True,
                          'output_pathname': input_path + '.ly',
                          'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
-            piece.get_data.assert_any_call([lilypond.LilyPondIndexer], sett_dict)
+            piece.get_data.assert_any_call([lilypond_exp.LilyPondExperimenter], sett_dict)
 
     @mock.patch('vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
     @mock.patch('vis.workflow.WorkflowManager.metadata')
     def test_lilypond_4(self, mock_metadata, test_ip):
-        # make sure it works correctly with three pieces that have three parts
-        # ("voice combinations" is "all")
+        """make sure it works correctly with three pieces that have three parts
+           ("voice combinations" is "all")"""
         # 1: prepare
         input_path = 'carpathia'
         get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
@@ -575,9 +579,9 @@ class MakeLilyPond(TestCase):
         test_wm._make_lilypond(input_path)
         # 3: check
         self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
-        lily_ind_list = [lilypond.AnnotationIndexer,
-                         lilypond.AnnotateTheNoteIndexer,
-                         lilypond.PartNotesIndexer]
+        lily_ind_list = [lilypond_ind.AnnotationIndexer,
+                         lilypond_exp.AnnotateTheNoteExperimenter,
+                         lilypond_exp.PartNotesExperimenter]
         for i, piece in enumerate(test_wm._data):
             self.assertEqual(num_parts + 1, piece.get_data.call_count)
             for j in xrange(num_parts):
@@ -588,7 +592,7 @@ class MakeLilyPond(TestCase):
             sett_dict = {'run_lilypond': True,
                         'output_pathname': input_path + '-' + str(i) + '.ly',
                         'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
-            piece.get_data.assert_any_call([lilypond.LilyPondIndexer], sett_dict)
+            piece.get_data.assert_any_call([lilypond_exp.LilyPondExperimenter], sett_dict)
 
 
 class Settings(TestCase):
