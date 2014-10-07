@@ -661,22 +661,29 @@ class WorkflowManager(object):
             del vert_ints[(which_ind, key)]
         return vert_ints
 
-    def _get_dataframe(self, name='data', top_x=None, threshold=None):
+    def _filter_dataframe(self, top_x=None, threshold=None, name=None):
         """
-        "Convert" :attr:`_result` into a :class:`DataFrame`, including only the top ``X`` results
-        that are greater than ``threshold``. Note that the threshold filter is applied first. This
-        method is also safe to call if :attr:`_result` is already a :class:`DataFrame`, in which
-        case the column names are preserved and ``name`` is ignored.
+        Filter :attr:`_result` to include on the top *x* results that are strictly greater than
+        ``threshold``. Note that the threshold filter is applied first, so you may end up with
+        fewer than ``top_x`` results.
 
-        :param name: String to use for the column name of the Series currently held in self._result.
-            The default is 'data'. Ignored if self._data is already a :class:`DataFrame`.
-        :type name: basestring
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
         :type top_x: int
         :param threshold: If a result is strictly less than this number, it won't be included. The
             default is ``None``.
         :type threshold: number
+        :param name: String to use for the column name of the Series currently held in self._result.
+            The default is 'data'. Ignored if self._data is already a :class:`DataFrame`.
+        :type name: basestring
         :returns: A :class:`DataFrame` with self._result as the only column.
+
+        **About the "name" Parameter**
+
+        If provided, the ``name`` parameter significantly changes the inputted DataFrame. Without
+        the ``name`` parameter, :meth:`_filter_dataframe` applies its filters to all columns of
+        the DataFrame. With the ``name`` parameter, :meth:`_filter_dataframe` chooses the first
+        column in the first level of the index, filters that Series, and creates a new
+        DataFrame with ``name`` as the column name.
 
         .. note:: This method does not assign its return value to :attr:`_result`.
 
@@ -691,17 +698,26 @@ class WorkflowManager(object):
             """Apply the 'threshold' and 'top_x' filters to a single Series."""
             if threshold is not None:
                 each_series = each_series[each_series > threshold]
-            if top_x is not None:
+            if top_x is not None and top_x < len(each_series):
                 each_series = each_series[:top_x]
             return each_series
 
-        if isinstance(self._result, pandas.DataFrame):
-            # NB: usually self._result is a list, in which case we couldn't call .columns... but
-            #     we're protected in this case by the isinstance() call
-            post = {col: series_filter(self._result[col]) for col in self._result.columns}  # pylint: disable=maybe-no-member
-            return pandas.DataFrame(post)
+        # if relevant, select the leftmost column and rename it as per ``name``
+        if name is not None:
+            starting = pandas.DataFrame({name: self._result[self._result.columns[0]]})
         else:
-            return pandas.DataFrame({name: series_filter(self._result)})
+            starting = self._result
+
+        return pandas.DataFrame({x: series_filter(starting[x]) for x in list(starting.columns)})
+
+
+        #if isinstance(self._result, pandas.DataFrame):
+            ## NB: usually self._result is a list, in which case we couldn't call .columns... but
+            ##     we're protected in this case by the isinstance() call
+            #post =
+            #return pandas.DataFrame(post)
+        #else:
+            #return pandas.DataFrame({name: series_filter(self._result)})
 
     def output(self, instruction, pathname=None, top_x=None, threshold=None):
         """

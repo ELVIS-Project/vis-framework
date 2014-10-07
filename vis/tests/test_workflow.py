@@ -801,94 +801,80 @@ class Export(TestCase):
         pass
 
 
-class GetDataFrame(TestCase):
-    def test_get_dataframe_1a(self):
-        # test with name=auto, top_x=auto, threshold=auto
-        test_wc = WorkflowManager([])
-        test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
-        expected = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
-        actual = test_wc._get_dataframe()
-        self.assertEqual(len(expected.columns), len(actual.columns))
-        for i in expected.columns:
-            self.assertSequenceEqual(list(expected.index), list(actual.index))
-            self.assertSequenceEqual(list(expected.values), list(actual.values))
+class FilterDataFrame(TestCase):
+    """Tests for WorkflowManager._filter_dataframe()"""
 
-    def test_get_dataframe_1b(self):
-        """same as test_get_dataframe_1a() but the test_wc._result is already a DataFrame"""
+    def test_filter_dataframe_1(self):
+        """test with top_x=auto, threshold=auto, name=auto"""
         test_wc = WorkflowManager([])
         test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
         expected = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
-        actual = test_wc._get_dataframe()
+        actual = test_wc._filter_dataframe()
         self.assertEqual(len(expected.columns), len(actual.columns))
         for i in expected.columns:
-            self.assertSequenceEqual(list(expected.index), list(actual.index))
-            self.assertSequenceEqual(list(expected.values), list(actual.values))
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
-    def test_get_dataframe_2a(self):
-        # test with name='asdf', top_x=3, threshold=auto
-        test_wc = WorkflowManager([])
-        test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
-        expected = pandas.DataFrame({'asdf': pandas.Series([10, 9, 8])})
-        actual = test_wc._get_dataframe('asdf', 3)
-        self.assertEqual(len(expected.columns), len(actual.columns))
-        for i in expected.columns:
-            self.assertSequenceEqual(list(expected.index), list(actual.index))
-            self.assertSequenceEqual(list(expected.values), list(actual.values))
-
-    def test_get_dataframe_2b(self):
-        """same as test_get_dataframe_2a() but the test_wc._result is already a DataFrame"""
+    def test_filter_dataframe_2(self):
+        """test with top_x=3, threshold=auto, name='asdf'"""
         test_wc = WorkflowManager([])
         test_wc._result = pandas.DataFrame({'asdf': pandas.Series([i for i in xrange(10, 0, -1)])})
         expected = pandas.DataFrame({'asdf': pandas.Series([10, 9, 8])})
-        actual = test_wc._get_dataframe('asdf', 3)
+        actual = test_wc._filter_dataframe(top_x=3, name='asdf')
         self.assertEqual(len(expected.columns), len(actual.columns))
         for i in expected.columns:
-            self.assertSequenceEqual(list(expected.index), list(actual.index))
-            self.assertSequenceEqual(list(expected.values), list(actual.values))
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
-    def test_get_dataframe_3a(self):
-        # test with name=auto, top_x=3, threshold=5 (so the top_x still removes after threshold)
-        test_wc = WorkflowManager([])
-        test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
-        expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
-        actual = test_wc._get_dataframe(top_x=3, threshold=5)
-        self.assertEqual(len(expected.columns), len(actual.columns))
-        for i in expected.columns:
-            self.assertSequenceEqual(list(expected.index), list(actual.index))
-            self.assertSequenceEqual(list(expected.values), list(actual.values))
-
-    def test_get_dataframe_3b(self):
-        """same as test_get_dataframe_3a() but the test_wc._result is already a DataFrame"""
+    def test_filter_dataframe_3(self):
+        """test with top_x=3, threshold=5 (so the top_x still removes after threshold), name=auto"""
         test_wc = WorkflowManager([])
         test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
         expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
-        actual = test_wc._get_dataframe(top_x=3, threshold=5)
+        actual = test_wc._filter_dataframe(top_x=3, threshold=5)
         self.assertEqual(len(expected.columns), len(actual.columns))
         for i in expected.columns:
-            self.assertSequenceEqual(list(expected.index), list(actual.index))
-            self.assertSequenceEqual(list(expected.values), list(actual.values))
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
-    def test_get_dataframe_4a(self):
-        # test with name=auto, top_x=5, threshold=7 (so threshold leaves fewer than 5 results)
-        test_wc = WorkflowManager([])
-        test_wc._result = pandas.Series([i for i in xrange(10, 0, -1)])
-        expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
-        actual = test_wc._get_dataframe(top_x=5, threshold=7)
-        self.assertEqual(len(expected.columns), len(actual.columns))
-        for i in expected.columns:
-            self.assertSequenceEqual(list(expected.index), list(actual.index))
-            self.assertSequenceEqual(list(expected.values), list(actual.values))
-
-    def test_get_dataframe_4b(self):
-        """same as test_get_dataframe_4a() but the test_wc._result is already a DataFrame"""
+    def test_filter_dataframe_4(self):
+        """test with top_x=5, threshold=7 (so threshold leaves fewer than 5 results), name=auto"""
         test_wc = WorkflowManager([])
         test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
         expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
-        actual = test_wc._get_dataframe(top_x=5, threshold=7)
+        actual = test_wc._filter_dataframe(top_x=5, threshold=7)
         self.assertEqual(len(expected.columns), len(actual.columns))
         for i in expected.columns:
-            self.assertSequenceEqual(list(expected.index), list(actual.index))
-            self.assertSequenceEqual(list(expected.values), list(actual.values))
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+
+    def test_filter_dataframe_5(self):
+        """test with top_x=3, threshold=auto, name='asdf'; many input columns"""
+        test_wc = WorkflowManager([])
+        test_wc._result = pandas.DataFrame({('1', 'b'): pandas.Series([i for i in xrange(10, 0, -1)]),
+                                            ('1', 'z'): pandas.Series([i for i in xrange(10, 20)]),
+                                            ('2', 'e'): pandas.Series([i for i in xrange(40, 900)])})
+        expected = pandas.DataFrame({'asdf': pandas.Series([10, 9, 8])})
+        actual = test_wc._filter_dataframe(top_x=3, name='asdf')
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
+
+    def test_filter_dataframe_6(self):
+        """test with top_x=3, threshold=auto, name=auto; many input columns"""
+        test_wc = WorkflowManager([])
+        test_wc._result = pandas.DataFrame({('1', 'b'): pandas.Series([i for i in xrange(10, 0, -1)]),
+                                            ('1', 'z'): pandas.Series([i for i in xrange(10, 20)]),
+                                            ('2', 'e'): pandas.Series([i for i in xrange(40, 900)])})
+        expected = pandas.DataFrame({('1', 'b'): pandas.Series([10, 9, 8]),
+                                     ('1', 'z'): pandas.Series([10, 11, 12]),
+                                     ('2', 'e'): pandas.Series([40, 41, 42])})
+        actual = test_wc._filter_dataframe(top_x=3)
+        self.assertEqual(len(expected.columns), len(actual.columns))
+        for i in expected.columns:
+            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
+            self.assertSequenceEqual(list(expected[i].values), list(actual[i].values))
 
 
 class AuxiliaryExperimentMethods(TestCase):
@@ -986,7 +972,7 @@ class AuxiliaryExperimentMethods(TestCase):
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
 WORKFLOW_TESTS = TestLoader().loadTestsFromTestCase(WorkflowTests)
-GET_DATA_FRAME = TestLoader().loadTestsFromTestCase(GetDataFrame)
+FILTER_DATA_FRAME = TestLoader().loadTestsFromTestCase(FilterDataFrame)
 EXPORT = TestLoader().loadTestsFromTestCase(Export)
 EXTRA_PAIRS = TestLoader().loadTestsFromTestCase(ExtraPairs)
 SETTINGS = TestLoader().loadTestsFromTestCase(Settings)

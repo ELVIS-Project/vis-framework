@@ -77,7 +77,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
              # WorkflowManager
              test_workflow.WORKFLOW_TESTS,
-             test_workflow.GET_DATA_FRAME,
+             test_workflow.FILTER_DATA_FRAME,
              test_workflow.EXPORT,
              test_workflow.EXTRA_PAIRS,
              test_workflow.SETTINGS,
