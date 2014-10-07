@@ -527,6 +527,36 @@ class TestNGramIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
             self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
+    def test_ngram_19(self):
+        # test _0 with a "missing" vertical and horizontal thing
+        # Input:
+        #    0  1  2  3  4
+        # v: A  B  C     D
+        # h:    a     b  c
+        #
+        # Expected:
+        # 0: 'A a B'
+        # 1: 'B _ C'
+        # 2: 'C b C'
+        # 3: 'C c D'
+        # NB: this started as a regression test for issue 261, where missing values weren't filled
+        vertical = pandas.Series(['A', 'B', 'C', 'D'], index=[0, 1, 2, 4])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 3, 4])
+        in_val = pandas.DataFrame([vertical, horizontal],
+                                  index=[['vert', 'horiz'], ['0,1', '1']]).T
+        setts = {'n': 2, 'mark singles': False, 'horizontal': [('horiz', '1')],
+                 'vertical': [('vert', '0,1')]}
+        expected = pandas.DataFrame([pandas.Series(['A a B', 'B _ C', 'C b C', 'C c D'])],
+                                    index=[['ngram.NGramIndexer'], ['0,1 1']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
+
     def test_ngram_format_1(self):
         """one thing, it's a terminator (don't mark singles)"""
         # pylint: disable=protected-access
