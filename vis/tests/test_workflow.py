@@ -262,9 +262,11 @@ class WorkflowTests(TestCase):
 
 
 class Output(TestCase):
+    """Tests for WorkflowManager.output()"""
+
     @mock.patch('vis.workflow.WorkflowManager._make_histogram')
     def test_output_1a(self, mock_histo):
-        # ensure output() calls _make_histogram() as required (with 'histogram' instruction)
+        """ensure output() calls _make_histogram() as required (with 'histogram' instruction)"""
         # 1: prepare
         histo_path = 'the_path.svg'
         mock_histo.return_value = histo_path
@@ -284,7 +286,7 @@ class Output(TestCase):
 
     @mock.patch('vis.workflow.WorkflowManager._make_histogram')
     def test_output_1b(self, mock_histo):
-        # ensure output() calls _make_histogram() as required (with 'R histogram' instruction)
+        """ensure output() calls _make_histogram() as required (with 'R histogram' instruction)"""
         # 1: prepare
         histo_path = 'the_path.svg'
         mock_histo.return_value = histo_path
@@ -304,7 +306,7 @@ class Output(TestCase):
 
     @mock.patch('vis.workflow.WorkflowManager._make_lilypond')
     def test_output_2(self, mock_lily):
-        # ensure output() calls _make_lilypond() as required
+        """ensure output() calls _make_lilypond() as required"""
         # 1: prepare
         lily_path = 'the_path'
         mock_lily.return_value = lily_path
@@ -321,19 +323,30 @@ class Output(TestCase):
         mock_lily.assert_called_once_with(*expected_args)
 
     def test_output_3(self):
+        """ensure RuntimeError if there's an invalid instruction"""
         test_wc = WorkflowManager([])
         test_wc._result = [5]  # make sure that's not what causes it
-        self.assertRaises(RuntimeError, test_wc.output, 'LJKDSFLAESFLKJ')
+        bad_instruction = 'eat dirt'
+        self.assertRaises(RuntimeError, test_wc.output, bad_instruction)
+        try:
+            test_wc.output(bad_instruction)
+        except RuntimeError as run_err:
+            self.assertEqual(WorkflowManager._UNRECOGNIZED_INSTRUCTION.format(bad_instruction),
+                             run_err.message)
 
     def test_output_4(self):
-        # ensure RuntimeError if self._result is None
+        """ensure RuntimeError if self._result is None"""
         test_wc = WorkflowManager([])
         test_wc._result = None  # just in case
         self.assertRaises(RuntimeError, test_wc.output, 'R histogram')
+        try:
+            test_wc.output('R histogram')
+        except RuntimeError as run_err:
+            self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.message)
 
     @mock.patch('vis.workflow.WorkflowManager.export')
     def test_output_5(self, mock_export):
-        '''ensure output() calls export() as required'''
+        """ensure output() calls export() as required"""
         # 1: prepare
         export_path = 'the_path'
         mock_export.return_value = export_path

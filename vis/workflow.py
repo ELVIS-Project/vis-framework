@@ -111,6 +111,12 @@ class WorkflowManager(object):
     # The error when we required two-voice pairs, but one of the combinations wasn't a pair.
     _REQUIRE_PAIRS_ERROR = 'All voice combinations must have two parts (found {}).'
 
+    # The error when someone calls output() but there are no results to output.
+    _NO_RESULTS_ERROR = 'Please call run() before you call output().'
+
+    # The error when an ``instruction`` arg is invalid
+    _UNRECOGNIZED_INSTRUCTION = 'Unrecognized instruction: "{}"'
+
     def __init__(self, pathnames):
         # create the list of IndexedPiece objects
         self._data = []
@@ -752,10 +758,10 @@ class WorkflowManager(object):
         """
         # ensure we have some results
         if self._result is None:
-            raise RuntimeError('Please call run() before you call output().')
+            raise RuntimeError(WorkflowManager._NO_RESULTS_ERROR)
         else:
             # properly set output paths
-            pathname = 'test_output/output_result' if pathname is None else unicode(pathname)
+            pathname = 'test_output/output_result' if pathname is None else str(pathname)
 
         # handle instructions
         if instruction in ('CSV', 'Stata', 'Excel', 'HTML'):
@@ -766,7 +772,7 @@ class WorkflowManager(object):
         elif instruction == 'histogram' or instruction == 'R histogram':
             return self._make_histogram(pathname, top_x, threshold)
         else:
-            raise RuntimeError('Unrecognized instruction: ' + unicode(instruction))
+            raise RuntimeError(WorkflowManager._UNRECOGNIZED_INSTRUCTION.format(instruction))
 
     def _make_histogram(self, pathname=None, top_x=None, threshold=None):
         """
