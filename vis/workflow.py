@@ -379,41 +379,50 @@ class WorkflowManager(object):
         * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
         * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
 
-        :param index: The index of the IndexedPiece on which to the experiment, as stored in
+        :param int index: The index of the IndexedPiece on which to the experiment, as stored in
             ``self._data``.
-        :type index: int
 
         :returns: The result of :class:`NGramIndexer` for a single piece.
-        :rtype: list of :class:`pandas.Series`
+        :rtype: :class:`pandas.DataFrame`
         """
+
         piece = self._data[index]
+
         # make settings for interval indexers
         settings = {'quality': self.settings(index, 'interval quality')}
-        settings['simple or compound'] = 'simple' if self.settings(None, 'simple intervals') \
-                                          is True else 'compound'
+        settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
+                                          is True else 'compound')
         vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
         horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
+
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
         horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
+
+        # concatenate the vertical and horizontal DataFrames
+        all_ints = pandas.concat((vert_ints, horiz_ints), axis=1)
+
         # each key in vert_ints corresponds to a two-voice combination we should use
         post = []
-        for combo in vert_ints.iterkeys():
-            # which "horiz" part to use?
-            horiz_i = split_part_combo(combo)[1]
-            # make the list of parts
-            parts = [vert_ints[combo], horiz_ints[horiz_i]]
+        for combo in all_ints['interval.IntervalIndexer'].columns:
+            # make the list of part cominations
+            vert = [('interval.IntervalIndexer', combo)]
+            horiz = [('interval.HorizontalIntervalIndexer', combo.split(',')[1])]
+
             # assemble settings
-            setts = {'vertical': [0], 'horizontal': [1]}
-            setts['mark singles'] = self.settings(None, 'mark singles')
-            setts['continuer'] = self.settings(None, 'continuer')
-            setts['n'] = self.settings(None, 'n')
-            if self.settings(None, 'include rests') is not True:
+            setts = {'vertical': vert,
+                     'horizontal': horiz,
+                     'mark singles': self.settings(None, 'mark singles'),
+                     'continuer': self.settings(None, 'continuer'),
+                     'n': self.settings(None, 'n')}
+            if not self.settings(None, 'include rests'):
                 setts['terminator'] = 'Rest'
+
             # run NGramIndexer, then append the result to the corresponding index of the dict
-            post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
-        return post
+            post.append(piece.get_data([ngram.NGramIndexer], setts, all_ints))
+
+        return pandas.concat(post, axis=1)
 
     def _all_part_modules(self, index):
         """
