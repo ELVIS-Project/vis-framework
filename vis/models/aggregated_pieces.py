@@ -40,6 +40,9 @@ class AggregatedPieces(object):
     # When one of the "aggregated_experiments" classes in get_data() isn't an Experimenter subclass
     _NOT_EXPERIMENTER = 'AggregatedPieces requires Experimenters (received {})'
 
+    # When metadata() gets a 'field' argument that isn't a string
+    _FIELD_STRING = "parameter 'field' must be of type 'string'"
+
     class Metadata(object):
         """
         Used internally by :class:`AggregatedPieces` ... at least for now.
@@ -54,7 +57,7 @@ class AggregatedPieces(object):
         - locales: list of all the locales in the IndexedPieces
         - pathnames: list of all the pathnames in the IndexedPieces
         """
-        __slots__ = (u'composers', u'dates', u'date_range', u'titles', u'locales', u'pathnames')
+        __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
     def __init__(self, pieces=None):
         """
@@ -65,8 +68,8 @@ class AggregatedPieces(object):
             """
             Initialize valid metadata fields with a zero-length unicode.
             """
-            field_list = [u'composers', u'dates', u'date_range', u'titles', u'locales',
-                          u'pathnames']
+            field_list = ['composers', 'dates', 'date_range', 'titles', 'locales',
+                          'pathnames']
             for field in field_list:
                 self._metadata[field] = None
 
@@ -75,16 +78,7 @@ class AggregatedPieces(object):
         self._metadata = {}
         init_metadata()
         # set our "pathnames" metadata
-        self._metadata[u'pathnames'] = [p.metadata(u'pathname') for p in self._pieces]
-
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass
-
-    def __unicode__(self):
-        pass
+        self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
 
     @staticmethod
     def _make_date_range(dates):
@@ -103,13 +97,13 @@ class AggregatedPieces(object):
         :rtype: 2-tuple of unicode
 
         **Examples**
-        >>> ranges = [u'1987/09/09', u'1865/12/08', u'1993/08/08']
+        >>> ranges = ['1987/09/09', '1865/12/08', '1993/08/08']
         >>> AggregatedPieces._make_date_range(ranges)
-        (u'1865', u'1993')
+        ('1865', '1993')
         """
         post = []
         for poss_date in dates:
-            if len(poss_date) > len(u'----/--/--'):
+            if len(poss_date) > len('----/--/--'):
                 # it's a date range, so we have "----/--/-- to ----/--/--"
                 try:
                     post.append(int(poss_date[:4]))
@@ -138,20 +132,20 @@ class AggregatedPieces(object):
         """
         post = None
         # composers: list of all the composers in the IndexedPieces
-        if u'composers' == field:
-            post = [p.metadata(u'composer') for p in self._pieces]
+        if 'composers' == field:
+            post = [p.metadata('composer') for p in self._pieces]
         # dates: list of all the dates in the IndexedPieces
-        elif u'dates' == field:
-            post = [p.metadata(u'date') for p in self._pieces]
+        elif 'dates' == field:
+            post = [p.metadata('date') for p in self._pieces]
         # date_range: 2-tuple with the earliest and latest dates in the IndexedPieces
-        elif u'date_range' == field:
-            post = AggregatedPieces._make_date_range([p.metadata(u'date') for p in self._pieces])
+        elif 'date_range' == field:
+            post = AggregatedPieces._make_date_range([p.metadata('date') for p in self._pieces])
         # titles: list of all the titles in the IndexedPieces
-        elif u'titles' == field:
-            post = [p.metadata(u'title') for p in self._pieces]
+        elif 'titles' == field:
+            post = [p.metadata('title') for p in self._pieces]
         # locales: list of all the locales in the IndexedPieces
-        elif u'locales' == field:
-            post = [p.metadata(u'locale_of_composition') for p in self._pieces]
+        elif 'locales' == field:
+            post = [p.metadata('locale_of_composition') for p in self._pieces]
 
         if post is not None:
             self._metadata[field] = post
@@ -169,12 +163,12 @@ class AggregatedPieces(object):
 
         Valid fields are:
 
-        * ``u'composers``: list of all the composers in the IndexedPieces
-        * ``u'dates``: list of all the dates in the IndexedPieces
-        * ``u'date_range``: 2-tuple with the earliest and latest dates in the IndexedPieces
-        * ``u'titles``: list of all the titles in the IndexedPieces
-        * ``u'locales``: list of all the locales in the IndexedPieces
-        * ``u'pathnames``: list of all the pathnames in the IndexedPieces
+        * ``'composers``: list of all the composers in the IndexedPieces
+        * ``'dates``: list of all the dates in the IndexedPieces
+        * ``'date_range``: 2-tuple with the earliest and latest dates in the IndexedPieces
+        * ``'titles``: list of all the titles in the IndexedPieces
+        * ``'locales``: list of all the locales in the IndexedPieces
+        * ``'pathnames``: list of all the pathnames in the IndexedPieces
 
         :param field: The name of the field to be accessed or modified.
         :type field: :obj:`basestring`
@@ -186,7 +180,7 @@ class AggregatedPieces(object):
         :raises: :exc:`TypeError` if ``field`` is not a basestring.
         """
         if not isinstance(field, basestring):
-            raise TypeError(u"parameter 'field' must be of type 'basestring'")
+            raise TypeError(AggregatedPieces._FIELD_STRING)
         elif field in self._metadata:
             if self._metadata[field] is None:
                 return self._fetch_metadata(field)
