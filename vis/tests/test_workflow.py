@@ -729,37 +729,51 @@ class ExtraPairs(TestCase):
 
 
 class Export(TestCase):
+    """Tests for WorkflowManager.export()"""
+
     def test_export_1(self):
-        # --> raise RuntimeError with unrecognized output format
+        """raise RuntimeError with unrecognized output format"""
         test_wm = WorkflowManager([])
-        test_wm._result = pandas.Series(xrange(100))
+        test_wm._result = pandas.DataFrame({'whatever': pandas.Series(xrange(100))})
         self.assertRaises(RuntimeError, test_wm.export, 'PowerPoint')
+        try:
+            test_wm.export('PowerPoint')
+        except RuntimeError as run_err:
+            self.assertEqual(WorkflowManager._UNRECOGNIZED_INSTRUCTION.format('PowerPoint'),
+                             run_err.message)
 
     def test_export_2(self):
-        # --> raise RuntimeError if run() hasn't been called (i.e., self._result is None)
+        """raise RuntimeError if run() hasn't been called (i.e., self._result is None)"""
         test_wm = WorkflowManager([])
-        self.assertRaises(RuntimeError, test_wm.export, 'Excel', 'C:\autoexec.bat')
+        self.assertRaises(RuntimeError, test_wm.export, 'Excel', 'C:\\autoexec.bat')
+        try:
+            test_wm.export('Excel', 'C:\\autoexec.bat')
+        except RuntimeError as run_err:
+            self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.message)
 
-    @mock.patch('vis.workflow.WorkflowManager._get_dataframe')
-    def test_export_3(self, mock_gdf):
-        # --> the method works as expected for CSV, Excel, and Stata when _result is a DataFrame
+    @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
+    def test_export_3(self, mock_fdf):
+        """the method works as expected for CSV, Excel, and Stata when _result is a DataFrame"""
         test_wm = WorkflowManager([])
-        test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
+        mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
+        test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
         test_wm.export('CSV', 'test_path')
         test_wm.export('Excel', 'test_path')
         test_wm.export('Stata', 'test_path')
         test_wm.export('HTML', 'test_path')
-        test_wm._result.to_csv.assert_called_once_with('test_path.csv')
-        test_wm._result.to_stata.assert_called_once_with('test_path.dta')
-        test_wm._result.to_excel.assert_called_once_with('test_path.xlsx')
-        test_wm._result.to_html.assert_called_once_with('test_path.html')
-        self.assertEqual(0, mock_gdf.call_count)
+        mock_fdf.return_value.to_csv.assert_called_once_with('test_path.csv')
+        mock_fdf.return_value.to_stata.assert_called_once_with('test_path.dta')
+        mock_fdf.return_value.to_excel.assert_called_once_with('test_path.xlsx')
+        mock_fdf.return_value.to_html.assert_called_once_with('test_path.html')
+        self.assertSequenceEqual([mock.call(top_x=None, threshold=None) for _ in xrange(4)],
+                                 mock_fdf.call_args_list)
 
-    @mock.patch('vis.workflow.WorkflowManager._get_dataframe')
-    def test_export_4(self, mock_gdf):
-        # --> test_export_3() with a valid extension already on
+    @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
+    def test_export_4(self, mock_fdf):
+        """test_export_3() with a valid extension already on"""
         test_wm = WorkflowManager([])
-        test_wm._result = mock.MagicMock(spec=pandas.DataFrame)
+        mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
+        test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
         test_wm.export('CSV', 'test_path.csv')
         test_wm.export('Excel', 'test_path.xlsx')
         test_wm.export('Stata', 'test_path.dta')
@@ -768,41 +782,8 @@ class Export(TestCase):
         test_wm._result.to_stata.assert_called_once_with('test_path.dta')
         test_wm._result.to_excel.assert_called_once_with('test_path.xlsx')
         test_wm._result.to_html.assert_called_once_with('test_path.html')
-        self.assertEqual(0, mock_gdf.call_count)
-
-    @mock.patch('vis.workflow.WorkflowManager._get_dataframe')
-    def test_export_5(self, mock_gdf):
-        # --> test_export_3() with a Series that requires calling _get_dataframe()
-        test_wm = WorkflowManager([])
-        test_wm._result = mock.MagicMock(spec=pandas.Series)
-        # CSV
-        mock_gdf.return_value = MagicMock(spec=pandas.DataFrame)
-        test_wm.export('CSV', 'test_path')
-        mock_gdf.assert_called_once_with('data', None, None)
-        mock_gdf.return_value.to_csv.assert_called_once_with('test_path.csv')
-        mock_gdf.reset_mock()
-        # Excel
-        test_wm.export('Excel', 'test_path', 5)
-        mock_gdf.assert_called_once_with('data', 5, None)
-        mock_gdf.return_value.to_excel.assert_called_once_with('test_path.xlsx')
-        mock_gdf.reset_mock()
-        # Stata
-        test_wm.export('Stata', 'test_path', 5, 10)
-        mock_gdf.assert_called_once_with('data', 5, 10)
-        mock_gdf.return_value.to_stata.assert_called_once_with('test_path.dta')
-        mock_gdf.reset_mock()
-        # HTML
-        test_wm.export('HTML', 'test_path', threshold=10)
-        mock_gdf.assert_called_once_with('data', None, 10)
-        mock_gdf.return_value.to_html.assert_called_once_with('test_path.html')
-
-    def test_export_6(self):
-        # --> the method always outputs a DataFrame, even if self._result isn't a DF yet
-        # TODO: I don't know how to test this. I want to mock DataFrame, but it also needs to pass
-        #       the isinstance() test, so it can't be a MagicMock unless it's a MagicMock instance
-        #       of DataFrame, which is impossible(?) because I have to patch it at
-        #       vis.workflow.pandas.DataFrame
-        pass
+        self.assertSequenceEqual([mock.call(top_x=None, threshold=None) for _ in xrange(4)],
+                                 mock_fdf.call_args_list)
 
 
 class FilterDataFrame(TestCase):

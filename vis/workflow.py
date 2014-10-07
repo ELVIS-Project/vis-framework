@@ -910,15 +910,15 @@ class WorkflowManager(object):
         * ``'Excel'``: output an Excel file for Peter Schubert.
         * ``'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
         """
+
         # TODO: in VIS 2, rename this as a private method; output() will call this as required
         # ensure we have some results
         if self._result is None:
-            raise RuntimeError('Call run() before calling export()')
-        # ensure we have a DataFrame
-        if not isinstance(self._result, pandas.DataFrame):
-            export_me = self._get_dataframe('data', top_x, threshold)
-        else:
-            export_me = self._result
+            raise RuntimeError(WorkflowManager._NO_RESULTS_ERROR)
+
+        # filter the results
+        export_me = self._filter_dataframe(top_x=top_x, threshold=threshold)
+
         # key is the instruction; value is (extension, export_method)
         directory = {'CSV': ('.csv', export_me.to_csv),
                      'Stata': ('.dta', export_me.to_stata),
@@ -926,14 +926,17 @@ class WorkflowManager(object):
                      'HTML': ('.html', export_me.to_html)}
         # ensure we have a valid output format
         if form not in directory:
-            raise RuntimeError('Unrecognized output format: ' + unicode(form))
+            raise RuntimeError(WorkflowManager._UNRECOGNIZED_INSTRUCTION.format(form))
+
         # ensure we have an output path
         pathname = 'test_output/no_path' if pathname is None else unicode(pathname)
         # ensure there's a file extension
         if directory[form][0] != pathname[-1 * len(directory[form][0]):]:
             pathname += directory[form][0]
+
         # call the to_whatever() method
         directory[form][1](pathname)
+
         return pathname
 
     def metadata(self, index, field, value=None):
