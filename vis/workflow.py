@@ -621,13 +621,13 @@ class WorkflowManager(object):
         """
         # NB: there's no "logic" here, so I didn't bother testing the method
         agg_p = AggregatedPieces(self._data)
-        self._result = agg_p.get_data([],
-                                      [frequency.FrequencyExperimenter],
+        self._result = agg_p.get_data([frequency.FrequencyExperimenter],
+                                      None,
                                       {'column': which_ind},
                                       # TODO: should get_data() really return this embedded list?
                                       self._result)[0]
-        self._result = agg_p.get_data([aggregator.ColumnAggregator],
-                                      None,
+        self._result = agg_p.get_data(None,
+                                      [aggregator.ColumnAggregator],
                                       {'column': 'frequency.FrequencyExperimenter'},
                                       self._result)
         self._result.sort(ascending=False)

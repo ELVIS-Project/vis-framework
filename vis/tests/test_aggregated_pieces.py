@@ -35,9 +35,9 @@ from vis.models.aggregated_pieces import AggregatedPieces
 from vis.models.indexed_piece import IndexedPiece
 
 
-# pylint: disable=C0111
-# pylint: disable=R0904
 class TestAggregatedPieces(TestCase):
+    """Tests for AggregatedPieces"""
+
     def setUp(self):
         self.pathnames = [u'test_path_1', u'test_path_2', u'test_path_3']
         self.ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(len(self.pathnames))]
@@ -138,40 +138,46 @@ class TestAggregatedPieces(TestCase):
             piece.metadata.assert_called_once_with(u'locale_of_composition')
 
     def test_get_data_1(self):
-        # try getting data for a non-Indexer, non-Experimenter class
-        non_analyzer = Mock()
-        self.assertRaises(TypeError, self.agg_p.get_data, non_analyzer)
+        """try getting data for a non-Indexer, non-Experimenter class"""
+        non_analyzer = Mock
+        self.assertRaises(TypeError, self.agg_p.get_data, [], [non_analyzer])
+        try:
+            self.agg_p.get_data([], [non_analyzer])
+        except TypeError as t_err:
+            # pylint: disable=protected-access
+            self.assertEqual(AggregatedPieces._NOT_EXPERIMENTER.format(non_analyzer),
+                             t_err.message)
 
     def test_get_data_2(self):
-        # try get_data() on an AggregatedPieces with no pieces (no aggregated analyzers)
+        """try get_data() on an AggregatedPieces with no pieces (no aggregated analyzers)"""
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
         expected = [pandas.DataFrame()]
         aps = AggregatedPieces()
-        actual = aps.get_data([], [mock_indexer_cls])
+        actual = aps.get_data([mock_indexer_cls], [])
         self.assertEqual(len(expected), len(actual))
         self.assertSequenceEqual(list(expected[0].index), list(actual[0].index))
         self.assertSequenceEqual(list(expected[0].columns), list(actual[0].columns))
         self.assertSequenceEqual(list(expected[0]), list(actual[0]))
 
     def test_get_data_3(self):
-        # try get_data() on an AggregatedPieces with no pieces (with aggregated analyzers)
+        """try get_data() on an AggregatedPieces with no pieces (with aggregated analyzers)"""
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
         mock_experimenter_cls = type('MockExperimenter', (Experimenter,), {})
         expected = pandas.DataFrame()
         aps = AggregatedPieces()
-        actual = aps.get_data([mock_experimenter_cls], [mock_indexer_cls])
+        actual = aps.get_data([mock_indexer_cls], [mock_experimenter_cls])
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertSequenceEqual(list(expected), list(actual))
 
     def test_get_data_4(self):
-        # chained independent indexers, no aggregated results
+        """chained independent indexers, no aggregated results"""
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
         an_indexer = type('AMockIndexer', (Indexer,), {})
         other_indexer = type('OtherMockIndexer', (Indexer,), {})
         expected = [pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0]) for _ in xrange(3)]
-        actual = self.agg_p.get_data([], [an_indexer, other_indexer])
+        actual = self.agg_p.get_data([an_indexer, other_indexer], [])
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
@@ -180,15 +186,15 @@ class TestAggregatedPieces(TestCase):
             piece.get_data.assert_called_once_with([an_indexer, other_indexer], None)
 
     def test_get_data_5(self):
-        # chained independent indexers, one aggregated experimenter
+        """chained independent indexers, one aggregated experimenter"""
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
         an_indexer = type('AMockIndexer', (Indexer,), {})
         other_indexer = type('OtherMockIndexer', (Indexer,), {})
         an_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        an_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
+        an_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
         expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        actual = self.agg_p.get_data([an_experimenter], [an_indexer, other_indexer])
+        actual = self.agg_p.get_data([an_indexer, other_indexer], [an_experimenter])
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertSequenceEqual(list(expected), list(actual))
@@ -197,7 +203,7 @@ class TestAggregatedPieces(TestCase):
         an_experimenter.run.assert_called_once_with()
 
     def test_get_data_6(self):
-        # chained independent indexers, chained aggregated experimenters
+        """chained independent indexers, chained aggregated experimenters"""
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
         an_indexer = type('AMockIndexer', (Indexer,), {})
@@ -205,10 +211,10 @@ class TestAggregatedPieces(TestCase):
         an_experimenter = type('AMockExperimenter', (Experimenter,), {})
         an_experimenter.run = MagicMock()
         other_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        other_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
+        other_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
         expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        actual = self.agg_p.get_data([an_experimenter, other_experimenter],
-                                     [an_indexer, other_indexer])
+        actual = self.agg_p.get_data([an_indexer, other_indexer],
+                                     [an_experimenter, other_experimenter])
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertSequenceEqual(list(expected), list(actual))
@@ -218,12 +224,12 @@ class TestAggregatedPieces(TestCase):
         other_experimenter.run.assert_called_once_with()
 
     def test_get_data_7(self):
-        # one independent indexer, no aggregated results... checking settings get sent
+        """one independent indexer, no aggregated results... checking settings get sent"""
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
         an_indexer = type('AMockIndexer', (Indexer,), {})
         expected = [pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0]) for _ in xrange(3)]
-        actual = self.agg_p.get_data([], [an_indexer], {u'awesome': True})
+        actual = self.agg_p.get_data([an_indexer], [], {u'awesome': True})
         self.assertEqual(len(expected), len(actual))
         for i in xrange(len(expected)):
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
@@ -231,16 +237,8 @@ class TestAggregatedPieces(TestCase):
         for piece in self.ind_pieces:
             piece.get_data.assert_called_once_with([an_indexer], {u'awesome': True})
 
-    def test_get_data_8(self):
-        # if a class in "aggregated_experiments" isn't an experimenter
-        for piece in self.ind_pieces:
-            piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
-        an_indexer = type('AMockIndexer', (Indexer,), {})
-        self.assertRaises(TypeError, self.agg_p.get_data, [TestAggregatedPieces], [an_indexer],
-                          {u'awesome': True})
-
     def test_get_data_9(self):
-        # no independent indexers (given as None), chained aggregated experimenters
+        """no independent indexers (given as None), chained aggregated experimenters"""
         # NB: based on test 6
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
@@ -250,9 +248,9 @@ class TestAggregatedPieces(TestCase):
         an_experimenter.run.return_value = 41
         other_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
         other_experimenter.__init__ = MagicMock(return_value=None)
-        other_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
+        other_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
         expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        actual = self.agg_p.get_data([an_experimenter, other_experimenter], None, {}, 14)
+        actual = self.agg_p.get_data(None, [an_experimenter, other_experimenter], {}, 14)
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertSequenceEqual(list(expected), list(actual))
@@ -264,7 +262,7 @@ class TestAggregatedPieces(TestCase):
         other_experimenter.run.assert_called_once_with()
 
     def test_get_data_10(self):
-        # no independent indexers (given as []), chained aggregated experimenters
+        """no independent indexers (given as []), chained aggregated experimenters"""
         # NB: based on test 9
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
@@ -274,10 +272,10 @@ class TestAggregatedPieces(TestCase):
         an_experimenter.run.return_value = 41
         other_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
         other_experimenter.__init__ = MagicMock(return_value=None)
-        other_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
+        other_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
         expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
         prev_data = [u'data from', u'previous get_data()', u'call']
-        actual = self.agg_p.get_data([an_experimenter, other_experimenter], [], {}, prev_data)
+        actual = self.agg_p.get_data([], [an_experimenter, other_experimenter], {}, prev_data)
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertSequenceEqual(list(expected), list(actual))
@@ -289,14 +287,14 @@ class TestAggregatedPieces(TestCase):
         other_experimenter.run.assert_called_once_with()
 
     def test_get_data_11(self):
-        # (based on test 5): one independent experimenter, one aggregated experimenter; provides
+        """(based on test 5): one independent experimenter, one aggregated experimenter; provides"""
         # data from a (false) previous call to get_data()
         ind_experimenter = type('AMockExperimenter', (Experimenter,), {})
         agg_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        agg_experimenter.run = MagicMock(return_value = pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
+        agg_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
         expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
         prev_data = [u'data from', u'previous get_data()', u'call']
-        actual = self.agg_p.get_data([agg_experimenter], [ind_experimenter], {}, prev_data)
+        actual = self.agg_p.get_data([ind_experimenter], [agg_experimenter], {}, prev_data)
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertSequenceEqual(list(expected), list(actual))
