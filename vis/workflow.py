@@ -706,7 +706,7 @@ class WorkflowManager(object):
 
         # if relevant, select the leftmost column and rename it as per ``name``
         if name is not None:
-            starting = pandas.DataFrame({name: self._result[self._result.columns[0]]})
+            starting = pandas.DataFrame({name: self._result[self._result.columns[0]]})  # pylint: disable=maybe-no-member
         else:
             starting = self._result
 

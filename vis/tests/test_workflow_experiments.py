@@ -30,7 +30,7 @@ from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
 import pandas
-from vis.workflow import WorkflowManager, split_part_combo
+from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import interval, noterest, ngram
 
@@ -174,7 +174,7 @@ class IntervalNGrams(TestCase):
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(1, 'voice combinations', 'all pairs')
         test_wm.settings(2, 'voice combinations', '[[0, 1]]')
-        actual = test_wm._interval_ngrams()
+        actual = test_wm._interval_ngrams()  # pylint: disable=protected-access
         # 3.) verify the mocks
         # NB: in actual use, _run_freq_agg() would have the final say on the value of
         #     test_wm._result... but it's mocked out, which means we can test whether
@@ -184,7 +184,7 @@ class IntervalNGrams(TestCase):
         mock_var.assert_called_once_with(2)
         mock_rfa.assert_called_once_with('ngram.NGramIndexer')
         self.assertSequenceEqual(expected, actual)
-        self.assertSequenceEqual(expected, test_wm._result)
+        self.assertSequenceEqual(expected, test_wm._result)  # pylint: disable=protected-access
 
     @mock.patch('vis.workflow.WorkflowManager._run_freq_agg')
     @mock.patch('vis.workflow.WorkflowManager._variable_part_modules')
@@ -205,26 +205,26 @@ class IntervalNGrams(TestCase):
         test_wm.settings(1, 'voice combinations', 'all pairs')
         test_wm.settings(2, 'voice combinations', '[[0, 1]]')
         test_wm.settings(None, 'count frequency', False)
-        actual = test_wm._interval_ngrams()
+        actual = test_wm._interval_ngrams()  # pylint: disable=protected-access
         # 3.) verify the mocks
         # NB: in actual use, _run_freq_agg() would have the final say on the value of
         #     test_wm._result... but it's mocked out, which means we can test whether
         #     _interval_ngrams() puts the right stuff there
-        self.assertEqual(3, len(test_wm._result))
+        self.assertEqual(3, len(test_wm._result))  # pylint: disable=protected-access
         for ret_val in expected:
-            self.assertTrue(ret_val in test_wm._result)
+            self.assertTrue(ret_val in test_wm._result)  # pylint: disable=protected-access
         mock_two.assert_called_once_with(1)
         mock_all.assert_called_once_with(0)
         mock_var.assert_called_once_with(2)
         self.assertEqual(0, mock_rfa.call_count)
         self.assertEqual(expected, actual)
-        self.assertSequenceEqual(expected, test_wm._result)
+        self.assertSequenceEqual(expected, test_wm._result)  # pylint: disable=protected-access
 
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch('pandas.concat')
     def test_var_part_modules_1(self, mock_concat, mock_ror):
         """uses two two-part combinations"""
-        # pylint: ignore=line-too-long
+        # pylint: disable=line-too-long
         # inputs
         test_pieces = [MagicMock(spec_set=IndexedPiece)]
         test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
@@ -267,7 +267,7 @@ class IntervalNGrams(TestCase):
         test_wc.settings(test_index, 'filter repeats', False)
         test_wc.settings(test_index, 'offset interval', None)
         test_wc.settings(test_index, 'voice combinations', str(selected_part_combos))
-        actual = test_wc._variable_part_modules(test_index)
+        actual = test_wc._variable_part_modules(test_index)  # pylint: disable=protected-access
 
         self.assertEqual(expected, actual)
         self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
@@ -278,7 +278,7 @@ class IntervalNGrams(TestCase):
     @mock.patch('pandas.concat')
     def test_var_part_modules_2(self, mock_concat, mock_ror):
         """uses two three-part combinations; do include rests"""
-        # pylint: ignore=line-too-long
+        # pylint: disable=line-too-long
         # inputs
         test_pieces = [MagicMock(spec_set=IndexedPiece)]
         test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
@@ -322,7 +322,7 @@ class IntervalNGrams(TestCase):
         test_wc.settings(test_index, 'filter repeats', False)
         test_wc.settings(test_index, 'offset interval', None)
         test_wc.settings(test_index, 'voice combinations', str(selected_part_combos))
-        actual = test_wc._variable_part_modules(test_index)
+        actual = test_wc._variable_part_modules(test_index)  # pylint: disable=protected-access
 
         self.assertEqual(expected, actual)
         self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
@@ -333,7 +333,7 @@ class IntervalNGrams(TestCase):
     @mock.patch('pandas.concat')
     def test_all_part_modules_1(self, mock_concat, mock_ror):
         """uses one all-part combination"""
-        # pylint: ignore=line-too-long
+        # pylint: disable=line-too-long
         # inputs
         test_pieces = [MagicMock(spec_set=IndexedPiece)]
         test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
@@ -369,7 +369,7 @@ class IntervalNGrams(TestCase):
         test_wc.settings(test_index, 'simple intervals', True)
         test_wc.settings(test_index, 'filter repeats', False)
         test_wc.settings(test_index, 'offset interval', None)
-        actual = test_wc._all_part_modules(test_index)
+        actual = test_wc._all_part_modules(test_index)  # pylint: disable=protected-access
 
         self.assertEqual(expected, actual)
         self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
@@ -380,7 +380,7 @@ class IntervalNGrams(TestCase):
     @mock.patch('pandas.concat')
     def test_two_part_modules_1(self, mock_concat, mock_ror):
         """uses all two-part combinations"""
-        # pylint: ignore=line-too-long
+        # pylint: disable=line-too-long
         # inputs
         test_pieces = [MagicMock(spec_set=IndexedPiece)]
         test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
@@ -459,7 +459,7 @@ class IntervalNGrams(TestCase):
         test_wc.settings(test_index, 'simple intervals', True)
         test_wc.settings(test_index, 'filter repeats', False)
         test_wc.settings(test_index, 'offset interval', None)
-        actual = test_wc._two_part_modules(test_index)
+        actual = test_wc._two_part_modules(test_index)  # pylint: disable=protected-access
 
         self.assertEqual(expected, actual)
         self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
