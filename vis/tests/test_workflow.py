@@ -345,7 +345,7 @@ class Output(TestCase):
         except RuntimeError as run_err:
             self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.message)
 
-    @mock.patch('vis.workflow.WorkflowManager.export')
+    @mock.patch('vis.workflow.WorkflowManager._export')
     def test_output_5(self, mock_export):
         """ensure output() calls export() as required"""
         # 1: prepare
@@ -728,38 +728,18 @@ class ExtraPairs(TestCase):
 
 
 class Export(TestCase):
-    """Tests for WorkflowManager.export()"""
-
-    def test_export_1(self):
-        """raise RuntimeError with unrecognized output format"""
-        test_wm = WorkflowManager([])
-        test_wm._result = pandas.DataFrame({'whatever': pandas.Series(xrange(100))})
-        self.assertRaises(RuntimeError, test_wm.export, 'PowerPoint')
-        try:
-            test_wm.export('PowerPoint')
-        except RuntimeError as run_err:
-            self.assertEqual(WorkflowManager._UNRECOGNIZED_INSTRUCTION.format('PowerPoint'),
-                             run_err.message)
-
-    def test_export_2(self):
-        """raise RuntimeError if run() hasn't been called (i.e., self._result is None)"""
-        test_wm = WorkflowManager([])
-        self.assertRaises(RuntimeError, test_wm.export, 'Excel', 'C:\\autoexec.bat')
-        try:
-            test_wm.export('Excel', 'C:\\autoexec.bat')
-        except RuntimeError as run_err:
-            self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.message)
+    """Tests for WorkflowManager._export()"""
 
     @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
-    def test_export_3(self, mock_fdf):
+    def test_export_1(self, mock_fdf):
         """the method works as expected for CSV, Excel, and Stata when _result is a DataFrame"""
         test_wm = WorkflowManager([])
         mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
         test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
-        test_wm.export('CSV', 'test_path')
-        test_wm.export('Excel', 'test_path')
-        test_wm.export('Stata', 'test_path')
-        test_wm.export('HTML', 'test_path')
+        test_wm._export('CSV', 'test_path')  # pylint: disable=protected-access
+        test_wm._export('Excel', 'test_path')  # pylint: disable=protected-access
+        test_wm._export('Stata', 'test_path')  # pylint: disable=protected-access
+        test_wm._export('HTML', 'test_path')  # pylint: disable=protected-access
         mock_fdf.return_value.to_csv.assert_called_once_with('test_path.csv')
         mock_fdf.return_value.to_stata.assert_called_once_with('test_path.dta')
         mock_fdf.return_value.to_excel.assert_called_once_with('test_path.xlsx')
@@ -768,15 +748,15 @@ class Export(TestCase):
                                  mock_fdf.call_args_list)
 
     @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
-    def test_export_4(self, mock_fdf):
-        """test_export_3() with a valid extension already on"""
+    def test_export_2(self, mock_fdf):
+        """test_export_1() with a valid extension already on"""
         test_wm = WorkflowManager([])
         mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
         test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
-        test_wm.export('CSV', 'test_path.csv')
-        test_wm.export('Excel', 'test_path.xlsx')
-        test_wm.export('Stata', 'test_path.dta')
-        test_wm.export('HTML', 'test_path.html')
+        test_wm._export('CSV', 'test_path.csv')  # pylint: disable=protected-access
+        test_wm._export('Excel', 'test_path.xlsx')  # pylint: disable=protected-access
+        test_wm._export('Stata', 'test_path.dta')  # pylint: disable=protected-access
+        test_wm._export('HTML', 'test_path.html')  # pylint: disable=protected-access
         test_wm._result.to_csv.assert_called_once_with('test_path.csv')
         test_wm._result.to_stata.assert_called_once_with('test_path.dta')
         test_wm._result.to_excel.assert_called_once_with('test_path.xlsx')

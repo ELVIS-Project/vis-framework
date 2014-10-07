@@ -784,7 +784,7 @@ class WorkflowManager(object):
         # handle instructions
         if instruction in ('CSV', 'Stata', 'Excel', 'HTML'):
             # these will be done by export()
-            return self.export(instruction, pathname, top_x, threshold)
+            return self._export(instruction, pathname, top_x, threshold)
         elif instruction == 'LilyPond':
             return self._make_lilypond(pathname)
         elif instruction == 'histogram' or instruction == 'R histogram':
@@ -879,42 +879,10 @@ class WorkflowManager(object):
 
         return pathnames
 
-
-    def export(self, form, pathname=None, top_x=None, threshold=None):
+    def _export(self, form, pathname=None, top_x=None, threshold=None):
         """
-        .. warning:: This method is deprecated and will be removed in VIS 2. Please use :meth:`output`.
-
-        Save data from the most recent result of :meth:`run` to a file.
-
-        :parameter form: The output format you want.
-        :type form: :obj:`basestring`
-        :parameter pathname: The pathname for the output. The default is
-            ``test_output/output_result``. File extensions are applied automatically.
-        :type pathname: :obj:`basestring`
-        :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
-        :type top_x: :obj:`int`
-        :param threshold: If a result is strictly less than this number, it won't be included. The
-            default is :obj:`None`.
-        :type threshold: :obj:`int` or :obj:`float`
-
-        :returns: The pathname of the outputted file.
-        :rtype: :obj:`unicode`
-
-        :raises: :exc:`RuntimeError` for unrecognized instructions.
-        :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
-
-        Formats:
-
-        * ``'CSV'``: output a Series or DataFrame to a CSV file.
-        * ``'Stata'``: output a Stata file for importing to R.
-        * ``'Excel'``: output an Excel file for Peter Schubert.
-        * ``'HTML'``: output an HTML table, as used by the vis PyQt4 GUI.
+        Arguments as per :meth:`output`. You should always use :meth:`output`.
         """
-
-        # TODO: in VIS 2, rename this as a private method; output() will call this as required
-        # ensure we have some results
-        if self._result is None:
-            raise RuntimeError(WorkflowManager._NO_RESULTS_ERROR)
 
         # filter the results
         export_me = self._filter_dataframe(top_x=top_x, threshold=threshold)
@@ -924,9 +892,6 @@ class WorkflowManager(object):
                      'Stata': ('.dta', export_me.to_stata),
                      'Excel': ('.xlsx', export_me.to_excel),
                      'HTML': ('.html', export_me.to_html)}
-        # ensure we have a valid output format
-        if form not in directory:
-            raise RuntimeError(WorkflowManager._UNRECOGNIZED_INSTRUCTION.format(form))
 
         # ensure we have an output path
         pathname = 'test_output/no_path' if pathname is None else unicode(pathname)
