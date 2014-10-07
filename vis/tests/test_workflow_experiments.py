@@ -330,71 +330,51 @@ class IntervalNGrams(TestCase):
         self.assertSequenceEqual(exp_concat_calls, mock_concat.call_args_list)
 
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
-    @mock.patch('vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch('vis.workflow.ngram.NGramIndexer')
-    @mock.patch('vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch('vis.workflow.interval.IntervalIndexer')
-    def test_all_part_modules_1(self, mock_int, mock_nri, mock_ng, mock_horiz, mock_ror):
-        # - we'll only use self._data[1]; excluding "Rest"
-        # 1.) prepare the test and mocks
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in ['test1', 'test2', 'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = ['S', 'A', 'T', 'B']
-        # set up pseudo-IntervalIndexer results for mock_ror
-        ror_vert_ret = {x: MagicMock(name='piece2 part ' + x) for x in ['0,3', '1,3', '2,3']}
-        ror_horiz_ret = [None, None, None, MagicMock(name='piece1 horiz')]
-        ror_returns = [ror_vert_ret, ror_horiz_ret]
-        def ror_side_effect(*args, **kwargs):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return ror_returns.pop(0)
-        mock_ror.side_effect = ror_side_effect
-        # set up fake return values for IntervalIndexer
-        vert_ret = u"IntervalIndexer's return"
-        horiz_ret = u"HorizontalIntervalIndexer's return"
-        # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, [3]]
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        expected = [x[0] for x in returns[2:]]
-        # 2.) prepare WorkflowManager and run the test
+    @mock.patch('pandas.concat')
+    def test_all_part_modules_1(self, mock_concat, mock_ror):
+        """uses one all-part combination"""
+        # pylint: ignore=line-too-long
+        # inputs
+        test_pieces = [MagicMock(autospec=IndexedPiece)]
+        test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
+        # this allows _all_part_modules() to know the part combinations we'll need
+        test_pieces[0].metadata.return_value = ['Vl. I', 'Vl. II', 'Vla.', 'Vc.']
+        mock_ror.return_value = 'mock_ror return'
+        test_index = 0
+        mock_concat.return_value = 'pandas.concat() return'
+        # expecteds
+        expected = "get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])"
+        # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
+        #     mock_ror, and mock_concat, in the order they should happen
+        exp_calls = [mock.call([noterest.NoteRestIndexer, interval.IntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True}),
+                     mock.call([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True}),
+                     mock.call([ngram.NGramIndexer],
+                               {'vertical': [('interval.IntervalIndexer', '0,3'),
+                                             ('interval.IntervalIndexer', '1,3'),
+                                             ('interval.IntervalIndexer', '2,3')],
+                                'horizontal': [('interval.HorizontalIntervalIndexer', '3')],
+                                'continuer': 'dynamic quality',
+                                'n': 2,
+                                'mark singles': False,
+                                'terminator': 'Rest'},
+                               mock_concat.return_value)]
+        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.IntervalIndexer'>])"),
+                         mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])", is_horizontal=True)]
+        exp_concat_calls = [mock.call(('mock_ror return', 'mock_ror return'), axis=1)]
+
         test_wc = WorkflowManager(test_pieces)
-        test_index = 1
         test_wc.settings(test_index, 'interval quality', True)
         test_wc.settings(test_index, 'simple intervals', True)
         test_wc.settings(test_index, 'filter repeats', False)
         test_wc.settings(test_index, 'offset interval', None)
         actual = test_wc._all_part_modules(test_index)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_interv_setts = {'quality': True, 'simple or compound': 'simple'}
-        expected_ngram_settings = {'horizontal': [3], 'vertical': [0, 1, 2], 'n': 2,
-                                   'continuer': 'dynamic quality', 'mark singles': False,
-                                   'terminator': 'Rest'}
-        # all parts at once for NGramIndexer, plus 2 calls to interval indexers
-        self.assertEqual(3, test_pieces[test_index].get_data.call_count)
-        # - that _run_off_rep() is called once for horizontal and vertical
-        self.assertEqual(2, mock_ror.call_count)
-        mock_ror.assert_any_call(test_index, vert_ret)
-        mock_ror.assert_any_call(test_index, horiz_ret, is_horizontal=True)
-        # confirm the calls to interval indexers an NGramIndexer all together
-        exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
-                    mock.call([mock_nri, mock_horiz], expected_interv_setts),
-                    mock.call([mock_ng],
-                              expected_ngram_settings,
-                              [ror_vert_ret['0,3'],
-                               ror_vert_ret['1,3'],
-                               ror_vert_ret['2,3'],
-                               ror_horiz_ret[3]])]
-        for i in xrange(len(exp_calls)):
-            self.assertEqual(test_pieces[test_index].get_data.mock_calls[i], exp_calls[i])
+
         self.assertEqual(expected, actual)
+        self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
+        self.assertSequenceEqual(exp_ror_calls, mock_ror.call_args_list)
+        self.assertSequenceEqual(exp_concat_calls, mock_concat.call_args_list)
 
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch('pandas.concat')

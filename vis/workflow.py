@@ -435,43 +435,47 @@ class WorkflowManager(object):
         * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
         * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
 
-        :param index: The index of the IndexedPiece on which to the experiment, as stored in
+        :param int index: The index of the IndexedPiece on which to the experiment, as stored in
             ``self._data``.
-        :type index: int
 
-        :returns: The result of :class:`NGramIndexer` for a single piece (for this method, always
-            a single-element list).
-        :rtype: list of :class:`pandas.Series`
+        :returns: The result of :class:`NGramIndexer` for a single piece.
+        :rtype: :class:`pandas.DataFrame`
         """
         piece = self._data[index]
+
         # make settings for interval indexers
         settings = {'quality': self.settings(index, 'interval quality')}
-        settings['simple or compound'] = 'simple' if self.settings(None, 'simple intervals') \
-                                          is True else 'compound'
-        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                                   settings)
-        horiz_ints = piece.get_data([noterest.NoteRestIndexer,
-                                     interval.HorizontalIntervalIndexer],
+        settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
+                                          is True else 'compound')
+        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
+        horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
+
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
         horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
-        # figure out the weird string-index things for the vertical part combos
+
+        # concatenate the vertical and horizontal DataFrames
+        all_ints = pandas.concat((vert_ints, horiz_ints), axis=1)
+
+        # find the index of the lowest part in the score
         lowest_part = len(piece.metadata('parts')) - 1
-        vert_combos = [str(x) + ',' + str(lowest_part) for x in xrange(lowest_part)]
-        # make the list of parts
-        parts = [vert_ints[x] for x in vert_combos]
-        parts.append(horiz_ints[-1])  # always the lowest voice
+
+        # make the list of part cominations
+        vert = [('interval.IntervalIndexer', '{},{}'.format(x, lowest_part)) for x in xrange(lowest_part)]
+        horiz = [('interval.HorizontalIntervalIndexer', str(lowest_part))]
+
         # assemble settings
-        setts = {'vertical': range(len(parts) - 1), 'horizontal': [len(parts) - 1]}
-        setts['mark singles'] = self.settings(None, 'mark singles')
-        setts['continuer'] = self.settings(None, 'continuer')
-        setts['n'] = self.settings(None, 'n')
-        if self.settings(None, 'include rests') is not True:
+        setts = {'vertical': vert,
+                 'horizontal': horiz,
+                 'mark singles': self.settings(None, 'mark singles'),
+                 'continuer': self.settings(None, 'continuer'),
+                 'n': self.settings(None, 'n')}
+        if not self.settings(None, 'include rests'):
             setts['terminator'] = 'Rest'
+
         # run NGramIndexer, then append the result to the corresponding index of the dict
-        result = [piece.get_data([ngram.NGramIndexer], setts, parts)[0]]
-        return result
+        return piece.get_data([ngram.NGramIndexer], setts, all_ints)
 
     def _intervs(self):
         """
