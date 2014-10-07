@@ -799,7 +799,7 @@ class WorkflowManager(object):
         """
 
         # ensure we have a DataFrame; do the "top x" and "threshold" filters
-        chart_data = self._get_dataframe('freq', top_x, threshold)
+        chart_data = self._filter_dataframe(top_x=top_x, threshold=threshold, name='freq')
 
         # properly set output paths
         setts = {'pathname': 'test_output/output_result' if pathname is None else unicode(pathname)}

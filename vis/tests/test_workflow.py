@@ -363,10 +363,10 @@ class Output(TestCase):
         mock_export.assert_called_once_with(*expected_args)
 
 
-@mock.patch('vis.workflow.WorkflowManager._get_dataframe')
+@mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
 @mock.patch('vis.workflow.barchart')
 class MakeHistogram(TestCase):
-    def test_histogram_1(self, mock_bar, mock_gdf):
+    def test_histogram_1(self, mock_bar, mock_fdf):
         """
         That _make_histogram() works properly.
         - pathname: None
@@ -376,7 +376,7 @@ class MakeHistogram(TestCase):
         """
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'intervals'
-        mock_gdf.return_value = 'filtered DataFrame'
+        mock_fdf.return_value = 'filtered DataFrame'
         exp_setts = {'pathname': 'test_output/output_result', 'token': 'interval', 'type': 'png',
                      'nr_pieces': 0}
         exp_png_path = 'your png path'
@@ -387,10 +387,10 @@ class MakeHistogram(TestCase):
         actual = test_wc._make_histogram()
 
         self.assertEqual(exp_png_path, actual)
-        mock_gdf.assert_called_once_with('freq', None, None)
-        mock_bar.RBarChart.assert_called_once_with(mock_gdf.return_value, exp_setts)
+        mock_fdf.assert_called_once_with(top_x=None, threshold=None, name='freq')
+        mock_bar.RBarChart.assert_called_once_with(mock_fdf.return_value, exp_setts)
 
-    def test_histogram_2(self, mock_bar, mock_gdf):
+    def test_histogram_2(self, mock_bar, mock_fdf):
         """
         That _make_histogram() works properly.
         - pathname: given
@@ -401,7 +401,7 @@ class MakeHistogram(TestCase):
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'n-grams'
         test_wc.settings(None, 'n', 42)
-        mock_gdf.return_value = 'filtered DataFrame'
+        mock_fdf.return_value = 'filtered DataFrame'
         exp_setts = {'pathname': 'some_path', 'token': '42-gram', 'type': 'png',
                      'nr_pieces': 0}
         exp_png_path = 'your png path'
@@ -412,10 +412,10 @@ class MakeHistogram(TestCase):
         actual = test_wc._make_histogram('some_path', 10, 100)
 
         self.assertEqual(exp_png_path, actual)
-        mock_gdf.assert_called_once_with('freq', 10, 100)
-        mock_bar.RBarChart.assert_called_once_with(mock_gdf.return_value, exp_setts)
+        mock_fdf.assert_called_once_with(top_x=10, threshold=100, name='freq')
+        mock_bar.RBarChart.assert_called_once_with(mock_fdf.return_value, exp_setts)
 
-    def test_histogram_3(self, mock_bar, mock_gdf):
+    def test_histogram_3(self, mock_bar, mock_fdf):
         """
         That _make_histogram() works properly.
         - pathname: None
@@ -425,7 +425,7 @@ class MakeHistogram(TestCase):
         """
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'cheese'
-        mock_gdf.return_value = 'filtered DataFrame'
+        mock_fdf.return_value = 'filtered DataFrame'
         exp_setts = {'pathname': 'test_output/output_result', 'token': 'objects', 'type': 'png',
                      'nr_pieces': 0}
         exp_png_path = 'your png path'
@@ -436,8 +436,8 @@ class MakeHistogram(TestCase):
         actual = test_wc._make_histogram()
 
         self.assertEqual(exp_png_path, actual)
-        mock_gdf.assert_called_once_with('freq', None, None)
-        mock_bar.RBarChart.assert_called_once_with(mock_gdf.return_value, exp_setts)
+        mock_fdf.assert_called_once_with(top_x=None, threshold=None, name='freq')
+        mock_bar.RBarChart.assert_called_once_with(mock_fdf.return_value, exp_setts)
 
 
 class MakeLilyPond(TestCase):
