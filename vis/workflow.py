@@ -592,7 +592,8 @@ class WorkflowManager(object):
         self._result = agg_p.get_data([],
                                       [frequency.FrequencyExperimenter],
                                       {'column': which_ind},
-                                      self._result)[0]  # TODO: do I really want get_data() returning this double-embedded list?
+                                      # TODO: should get_data() really return this embedded list?
+                                      self._result)[0]
         self._result = agg_p.get_data([aggregator.ColumnAggregator],
                                       None,
                                       {'column': 'frequency.FrequencyExperimenter'},
