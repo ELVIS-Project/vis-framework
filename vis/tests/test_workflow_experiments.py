@@ -32,7 +32,7 @@ from mock import MagicMock
 import pandas
 from vis.workflow import WorkflowManager, split_part_combo
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import interval, noterest
+from vis.analyzers.indexers import interval, noterest, ngram
 
 
 class Intervals(TestCase):
@@ -221,145 +221,113 @@ class IntervalNGrams(TestCase):
         self.assertSequenceEqual(expected, test_wm._result)
 
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
-    @mock.patch('vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch('vis.workflow.ngram.NGramIndexer')
-    @mock.patch('vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch('vis.workflow.interval.IntervalIndexer')
-    def test_var_part_modules_1(self, mock_int, mock_nri, mock_ng, mock_horiz, mock_ror):
-        # - we'll only use self._data[1]; excluding "Rest"
-        # 1.) prepare the test and mocks
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in ['test1', 'test2', 'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = ['S', 'A', 'T', 'B']
-        # set up the mock_ror return values (i.e., what came out of the IntervalIndexer)
-        all_part_combos = ['0,3', '1,3', '2,3', '0,1', '0,2', '1,2']
+    @mock.patch('pandas.concat')
+    def test_var_part_modules_1(self, mock_concat, mock_ror):
+        """uses two two-part combinations"""
+        # pylint: ignore=line-too-long
+        # inputs
+        test_pieces = [MagicMock(autospec=IndexedPiece)]
+        test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
         selected_part_combos = [[0, 3], [2, 3]]
-        ror_vert_ret = {x: MagicMock(name='piece2 part ' + x) for x in all_part_combos}
-        ror_horiz_ret = [MagicMock(name='piece2 horiz ' + str(x)) for x in xrange(4)]
-        ror_returns = [ror_vert_ret, ror_horiz_ret]
-        def ror_side_effect(*args, **kwargs):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return ror_returns.pop(0)
-        mock_ror.side_effect = ror_side_effect
-        # set up fake return values for IntervalIndexer
-        vert_ret = u"IntervalIndexer's return"
-        horiz_ret = u"HorizontalIntervalIndexer's return"
-        # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, ['piece2 3rd get_data()'], ['piece2 4th get_data()']]
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        expected = [x[0] for x in returns[2:]]
-        # 2.) prepare WorkflowManager and run the test
+        mock_ror.return_value = 'mock_ror return'
+        mock_concat.return_value = 'pandas.concat() return'
+        test_index = 0
+        # expecteds
+        expected = mock_concat.return_value
+        # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
+        #     mock_ror, and mock_concat, in the order they should happen
+        exp_calls = [mock.call([noterest.NoteRestIndexer, interval.IntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True}),
+                     mock.call([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True}),
+                     mock.call([ngram.NGramIndexer],
+                               {'vertical': [('interval.IntervalIndexer', '0,3')],
+                                'horizontal': [('interval.HorizontalIntervalIndexer', '3')],
+                                'continuer': 'dynamic quality',
+                                'n': 2,
+                                'mark singles': False,
+                                'terminator': 'Rest'},
+                               'pandas.concat() return'),
+                     mock.call([ngram.NGramIndexer],
+                               {'vertical': [('interval.IntervalIndexer', '2,3')],
+                                'horizontal': [('interval.HorizontalIntervalIndexer', '3')],
+                                'continuer': 'dynamic quality',
+                                'n': 2,
+                                'mark singles': False,
+                                'terminator': 'Rest'},
+                               'pandas.concat() return')]
+        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.IntervalIndexer'>])"),
+                         mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])", is_horizontal=True)]
+        exp_concat_calls = [mock.call(('mock_ror return', 'mock_ror return'), axis=1),
+                            mock.call(["get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])", "get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])"], axis=1)]
+
         test_wc = WorkflowManager(test_pieces)
-        test_index = 1
         test_wc.settings(test_index, 'interval quality', True)
         test_wc.settings(test_index, 'simple intervals', True)
         test_wc.settings(test_index, 'filter repeats', False)
         test_wc.settings(test_index, 'offset interval', None)
-        test_wc.settings(test_index, 'voice combinations', unicode(selected_part_combos))
+        test_wc.settings(test_index, 'voice combinations', str(selected_part_combos))
         actual = test_wc._variable_part_modules(test_index)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_interv_setts = {'quality': True, 'simple or compound': 'simple'}
-        expected_ngram_settings = {'horizontal': [1], 'vertical': [0], 'n': 2,
-                                   'continuer': 'dynamic quality', 'mark singles': False,
-                                   'terminator': 'Rest'}
-        # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
-        self.assertEqual(4, test_pieces[1].get_data.call_count)
-        exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
-                    mock.call([mock_nri, mock_horiz], expected_interv_setts)]
-        for i in xrange(len(exp_calls)):
-            self.assertEqual(test_pieces[1].get_data.mock_calls[i], exp_calls[i])
-        # - that _run_off_rep() is called once for horizontal and vertical
-        self.assertEqual(2, mock_ror.call_count)
-        mock_ror.assert_any_call(test_index, vert_ret)
-        mock_ror.assert_any_call(test_index, horiz_ret, is_horizontal=True)
-        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
-        for combo in selected_part_combos:
-            zombo = str(combo[0]) + ',' + str(combo[1])
-            test_pieces[1].get_data.assert_any_call([mock_ng],
-                                                    expected_ngram_settings,
-                                                    [ror_vert_ret[zombo],
-                                                    ror_horiz_ret[combo[1]]])
+
         self.assertEqual(expected, actual)
+        self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
+        self.assertSequenceEqual(exp_ror_calls, mock_ror.call_args_list)
+        self.assertSequenceEqual(exp_concat_calls, mock_concat.call_args_list)
 
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
-    @mock.patch('vis.workflow.interval.HorizontalIntervalIndexer')
-    @mock.patch('vis.workflow.ngram.NGramIndexer')
-    @mock.patch('vis.workflow.noterest.NoteRestIndexer')
-    @mock.patch('vis.workflow.interval.IntervalIndexer')
-    def test_var_part_modules_2(self, mock_int, mock_nri, mock_ng, mock_horiz, mock_ror):
-        # - we'll only use self._data[1]; including "Rest"
-        # 1.) prepare the test and mocks
-        test_pieces = [MagicMock(IndexedPiece, name=x) for x in ['test1', 'test2', 'test3']]
-        # set up fake part names
-        for piece in test_pieces:
-            piece.metadata.return_value = ['S', 'A', 'T', 'B']
-        # set up fake return values for IntervalIndexer
-        all_part_combos = ['0,3', '1,3', '2,3', '0,1', '0,2', '1,2']
-        selected_part_combos = [[0, 1, 2], [1, 2, 3]]
-        ror_vert_ret = {x: MagicMock(name='piece2 part ' + x) for x in all_part_combos}
-        ror_horiz_ret = [MagicMock(name='piece2 horiz ' + str(x)) for x in xrange(4)]
-        ror_returns = [ror_vert_ret, ror_horiz_ret]
-        def ror_side_effect(*args, **kwargs):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return ror_returns.pop(0)
-        mock_ror.side_effect = ror_side_effect
-        # set up fake return values for IntervalIndexer
-        vert_ret = u"IntervalIndexer's return"
-        horiz_ret = u"HorizontalIntervalIndexer's return"
-        # set up return values for IndexedPiece.get_data()
-        returns = [vert_ret, horiz_ret, ['piece2 3rd get_data()'], ['piece2 4th get_data()']]
-        def side_effect(*args):
-            # NB: we need to accept "args" as a mock framework formality
-            # pylint: disable=W0613
-            return returns.pop(0)
-        for piece in test_pieces:
-            piece.get_data.side_effect = side_effect
-        expected = [x[0] for x in returns[2:]]
-        # 2.) prepare WorkflowManager and run the test
+    @mock.patch('pandas.concat')
+    def test_var_part_modules_2(self, mock_concat, mock_ror):
+        """uses two three-part combinations; do include rests"""
+        # pylint: ignore=line-too-long
+        # inputs
+        test_pieces = [MagicMock(autospec=IndexedPiece)]
+        test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
+        selected_part_combos = [[0, 1, 2], [1, 2, 3]]  # different from test _1
+        mock_ror.return_value = 'mock_ror return'
+        mock_concat.return_value = 'pandas.concat() return'
+        test_index = 0
+        # expecteds
+        expected = mock_concat.return_value
+        # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
+        #     mock_ror, and mock_concat, in the order they should happen
+        exp_calls = [mock.call([noterest.NoteRestIndexer, interval.IntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True}),
+                     mock.call([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True}),
+                     mock.call([ngram.NGramIndexer],
+                               {'vertical': [('interval.IntervalIndexer', '0,2'),  # different from test _1
+                                             ('interval.IntervalIndexer', '1,2')],  # different from test _1
+                                'horizontal': [('interval.HorizontalIntervalIndexer', '2')],
+                                'continuer': 'dynamic quality',
+                                'n': 2,
+                                'mark singles': False},
+                               'pandas.concat() return'),
+                     mock.call([ngram.NGramIndexer],
+                               {'vertical': [('interval.IntervalIndexer', '1,3'),  # different from test _1
+                                             ('interval.IntervalIndexer', '2,3')],  # different from test _1
+                                'horizontal': [('interval.HorizontalIntervalIndexer', '3')],
+                                'continuer': 'dynamic quality',
+                                'n': 2,
+                                'mark singles': False},
+                               'pandas.concat() return')]
+        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.IntervalIndexer'>])"),
+                         mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])", is_horizontal=True)]
+        exp_concat_calls = [mock.call(('mock_ror return', 'mock_ror return'), axis=1),
+                            mock.call(["get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])", "get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])"], axis=1)]
+
         test_wc = WorkflowManager(test_pieces)
-        test_index = 1
+        test_wc.settings(None, 'include rests', True)
         test_wc.settings(test_index, 'interval quality', True)
         test_wc.settings(test_index, 'simple intervals', True)
         test_wc.settings(test_index, 'filter repeats', False)
         test_wc.settings(test_index, 'offset interval', None)
-        test_wc.settings(test_index, 'voice combinations', unicode(selected_part_combos))
-        test_wc.settings(None, 'include rests', True)
+        test_wc.settings(test_index, 'voice combinations', str(selected_part_combos))
         actual = test_wc._variable_part_modules(test_index)
-        # 3.) confirm everything was called in the right order
-        # - that every IP is asked for its vertical and horizontal interval indexes
-        #   (that "mark singles" and "continuer" weren't put in the settings)
-        expected_interv_setts = {'quality': True, 'simple or compound': 'simple'}
-        expected_ngram_settings = {'horizontal': [2], 'vertical': [0, 1], 'n': 2, \
-                                   'continuer': 'dynamic quality', 'mark singles': False}
-        # 2 combinations for NGramIndexer, plus 2 calls to interval indexers
-        self.assertEqual(4, test_pieces[1].get_data.call_count)
-        exp_calls = [mock.call([mock_nri, mock_int], expected_interv_setts),
-                     mock.call([mock_nri, mock_horiz], expected_interv_setts)]
-        for i in xrange(len(exp_calls)):
-            self.assertEqual(test_pieces[1].get_data.mock_calls[i], exp_calls[i])
-        # - that _run_off_rep() is called once for horizontal and vertical
-        self.assertEqual(2, mock_ror.call_count)
-        mock_ror.assert_any_call(test_index, vert_ret)
-        mock_ror.assert_any_call(test_index, horiz_ret, is_horizontal=True)
-        # - that each IndP.get_data() called NGramIndexer with the right settings at some point
-        selected_part_combos = [[0, 1, 2], [1, 2, 3]]
-        for combo in selected_part_combos:
-            parts = [ror_vert_ret[str(i) + ',' + str(combo[-1])] for i in combo[:-1]]
-            parts.append(ror_horiz_ret[combo[-1]])
-            test_pieces[1].get_data.assert_any_call([mock_ng],
-                                                    expected_ngram_settings,
-                                                    parts)
+
         self.assertEqual(expected, actual)
+        self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
+        self.assertSequenceEqual(exp_ror_calls, mock_ror.call_args_list)
+        self.assertSequenceEqual(exp_concat_calls, mock_concat.call_args_list)
 
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch('vis.workflow.interval.HorizontalIntervalIndexer')

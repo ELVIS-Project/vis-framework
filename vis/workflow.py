@@ -317,45 +317,56 @@ class WorkflowManager(object):
         * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
         * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
 
-        :param index: The index of the IndexedPiece on which to the experiment, as stored in
+        :param int index: The index of the IndexedPiece on which to the experiment, as stored in
             ``self._data``.
-        :type index: int
 
         :returns: The result of :class:`NGramIndexer` for a single piece.
-        :rtype: list of :class:`pandas.Series`
+        :rtype: :class:`pandas.DataFrame`
 
         .. note:: If the piece has an invalid part-combination list, the method returns ``None``.
         """
+
+        # figure out which combinations we need. Because this might raise a ValueError, but we can't
+        # save the situation, we might as well do this before we bother wasting time computing
+        needed_combos = ast.literal_eval(str(self.settings(index, 'voice combinations')))
+
         piece = self._data[index]
+
         # make settings for interval indexers
         settings = {'quality': self.settings(index, 'interval quality')}
-        settings['simple or compound'] = 'simple' if self.settings(None, 'simple intervals') \
-                                          is True else 'compound'
+        settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
+                                          is True else 'compound')
         vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
         horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
                                     settings)
+
         # run the offset and repeat indexers, if required
         vert_ints = self._run_off_rep(index, vert_ints)
         horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
-        # figure out which combinations we need... this might raise a ValueError, but there's not
-        # much we can do to save the situation, so we might as well let it go up
-        needed_combos = ast.literal_eval(unicode(self.settings(index, 'voice combinations')))
+
+        # concatenate the vertical and horizontal DataFrames
+        all_ints = pandas.concat((vert_ints, horiz_ints), axis=1)
+
         # each key in vert_ints corresponds to a two-voice combination we should use
         post = []
         for combo in needed_combos:
-            # make the list of parts
-            parts = [vert_ints[str(i) + ',' + str(combo[-1])] for i in combo[:-1]]
-            parts.append(horiz_ints[combo[-1]])
+            # make the list of part combinations
+            vert = [('interval.IntervalIndexer', '{},{}'.format(i, combo[-1])) for i in combo[:-1]]
+            horiz = [('interval.HorizontalIntervalIndexer', str(combo[-1]))]
+
             # assemble settings
-            setts = {'vertical': range(len(combo[:-1])), 'horizontal': [len(combo[:-1])]}
-            setts['mark singles'] = self.settings(None, 'mark singles')
-            setts['continuer'] = self.settings(None, 'continuer')
-            setts['n'] = self.settings(None, 'n')
-            if self.settings(None, 'include rests') is not True:
+            setts = {'vertical': vert,
+                     'horizontal': horiz,
+                     'mark singles': self.settings(None, 'mark singles'),
+                     'continuer': self.settings(None, 'continuer'),
+                     'n': self.settings(None, 'n')}
+            if not self.settings(None, 'include rests'):
                 setts['terminator'] = 'Rest'
+
             # run NGramIndexer, then append the result to the corresponding index of the dict
-            post.append(piece.get_data([ngram.NGramIndexer], setts, parts)[0])
-        return post
+            post.append(piece.get_data([ngram.NGramIndexer], setts, all_ints))
+
+        return pandas.concat(post, axis=1)
 
     def _two_part_modules(self, index):
         """
