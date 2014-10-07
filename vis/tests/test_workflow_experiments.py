@@ -44,7 +44,7 @@ class Intervals(TestCase):
         """Ensure _intervs() calls everything in the right order, with the right args & settings.
            This test uses all the default settings."""
         test_settings = {'simple or compound': 'compound', 'quality': False}
-        test_pieces = [MagicMock(autospec=IndexedPiece) for _ in xrange(3)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
         returns = ['get_data() {}'.format(i) for i in xrange(len(test_pieces))]
         for piece in test_pieces:
             piece.get_data.side_effect = lambda *x: returns.pop(0)
@@ -76,7 +76,7 @@ class Intervals(TestCase):
         voice_combos = '[[0, 1]]'
         exp_voice_combos = ['0,1']
         test_settings = {'simple or compound': 'compound', 'quality': False}
-        test_pieces = [MagicMock(autospec=IndexedPiece) for _ in xrange(3)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
         returns = ['get_data() {}'.format(i) for i in xrange(len(test_pieces))]
         for piece in test_pieces:
             piece.get_data.side_effect = lambda *x: returns.pop(0)
@@ -108,7 +108,7 @@ class Intervals(TestCase):
         """Ensure _intervs() calls everything in the right order, with the right args & settings.
            This uses the default *except* requires removing rests, so it's more complex."""
         test_settings = {'simple or compound': 'compound', 'quality': False}
-        test_pieces = [MagicMock(autospec=IndexedPiece) for _ in xrange(3)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
         returns = [pandas.DataFrame([pandas.Series(['3', 'Rest', '5'])],
                                     index=[['interval.IntervalIndexer'], ['0,1']]).T
                    for i in xrange(len(test_pieces))]
@@ -136,7 +136,7 @@ class Intervals(TestCase):
 
     def test_intervs_4(self):
         """Ensure _intervs() fails when given an impossible 'voice pair'."""
-        test_pieces = [MagicMock(autospec=IndexedPiece) for _ in xrange(3)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
         returns = ['get_data() {}'.format(i) for i in xrange(len(test_pieces))]
         for piece in test_pieces:
             piece.get_data.side_effect = lambda *x: returns.pop(0)
@@ -163,7 +163,7 @@ class IntervalNGrams(TestCase):
     def test_interval_ngrams_1(self, mock_two, mock_all, mock_var, mock_rfa):
         """test _interval_ngrams() with three pieces, each of which requires a different helper"""
         # 1.) prepare mocks
-        ind_pieces = [MagicMock(atuospec=IndexedPiece) for _ in xrange(3)]
+        ind_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
         mock_rfa.return_value = 'mock_rfa() return value'
         mock_two.return_value = ['mock_two() return value']
         mock_all.return_value = ['mock_all() return value']
@@ -193,7 +193,7 @@ class IntervalNGrams(TestCase):
     def test_interval_ngrams_2(self, mock_two, mock_all, mock_var, mock_rfa):
         """same as test_interval_ngrams_1(), but with "count frequency" set to False"""
         # 1.) prepare mocks
-        ind_pieces = [MagicMock(autospec=IndexedPiece) for _ in xrange(3)]
+        ind_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
         mock_rfa.return_value = 'mock_rfa() return value'
         mock_two.return_value = ['mock_two() return value']
         mock_all.return_value = ['mock_all() return value']
@@ -226,7 +226,7 @@ class IntervalNGrams(TestCase):
         """uses two two-part combinations"""
         # pylint: ignore=line-too-long
         # inputs
-        test_pieces = [MagicMock(autospec=IndexedPiece)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece)]
         test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
         selected_part_combos = [[0, 3], [2, 3]]
         mock_ror.return_value = 'mock_ror return'
@@ -280,7 +280,7 @@ class IntervalNGrams(TestCase):
         """uses two three-part combinations; do include rests"""
         # pylint: ignore=line-too-long
         # inputs
-        test_pieces = [MagicMock(autospec=IndexedPiece)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece)]
         test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
         selected_part_combos = [[0, 1, 2], [1, 2, 3]]  # different from test _1
         mock_ror.return_value = 'mock_ror return'
@@ -335,7 +335,7 @@ class IntervalNGrams(TestCase):
         """uses one all-part combination"""
         # pylint: ignore=line-too-long
         # inputs
-        test_pieces = [MagicMock(autospec=IndexedPiece)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece)]
         test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
         # this allows _all_part_modules() to know the part combinations we'll need
         test_pieces[0].metadata.return_value = ['Vl. I', 'Vl. II', 'Vla.', 'Vc.']
@@ -382,7 +382,7 @@ class IntervalNGrams(TestCase):
         """uses all two-part combinations"""
         # pylint: ignore=line-too-long
         # inputs
-        test_pieces = [MagicMock(autospec=IndexedPiece)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece)]
         test_pieces[0].get_data.side_effect = lambda *x: 'get_data({})'.format(x[0])
         mock_ror.return_value = 'mock_ror return'
         test_index = 0
