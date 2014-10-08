@@ -154,8 +154,8 @@ class Intervals(TestCase):
 
 
 class IntervalNGrams(TestCase):
-
     """Tests for helper functions related to the "interval n-grams" experiments."""
+
     @mock.patch('vis.workflow.WorkflowManager._run_freq_agg')
     @mock.patch('vis.workflow.WorkflowManager._variable_part_modules')
     @mock.patch('vis.workflow.WorkflowManager._all_part_modules')
@@ -236,10 +236,13 @@ class IntervalNGrams(TestCase):
         expected = mock_concat.return_value
         # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
         #     mock_ror, and mock_concat, in the order they should happen
-        exp_calls = [mock.call([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                               {'simple or compound': 'simple', 'quality': True}),
-                     mock.call([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                               {'simple or compound': 'simple', 'quality': True}),
+        exp_calls = [mock.call([noterest.NoteRestIndexer]),
+                     mock.call([interval.IntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True},
+                               mock_ror.return_value),
+                     mock.call([interval.HorizontalIntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True},
+                               mock_ror.return_value),
                      mock.call([ngram.NGramIndexer],
                                {'vertical': [('interval.IntervalIndexer', '0,3')],
                                 'horizontal': [('interval.HorizontalIntervalIndexer', '3')],
@@ -247,7 +250,7 @@ class IntervalNGrams(TestCase):
                                 'n': 2,
                                 'mark singles': False,
                                 'terminator': 'Rest'},
-                               'pandas.concat() return'),
+                               mock_concat.return_value),
                      mock.call([ngram.NGramIndexer],
                                {'vertical': [('interval.IntervalIndexer', '2,3')],
                                 'horizontal': [('interval.HorizontalIntervalIndexer', '3')],
@@ -255,10 +258,10 @@ class IntervalNGrams(TestCase):
                                 'n': 2,
                                 'mark singles': False,
                                 'terminator': 'Rest'},
-                               'pandas.concat() return')]
-        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.IntervalIndexer'>])"),
-                         mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])", is_horizontal=True)]
-        exp_concat_calls = [mock.call(('mock_ror return', 'mock_ror return'), axis=1),
+                               mock_concat.return_value)]
+        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>])")]
+        exp_concat_calls = [mock.call(("get_data([<class 'vis.analyzers.indexers.interval.IntervalIndexer'>])",
+                                       "get_data([<class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])"), axis=1),
                             mock.call(["get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])", "get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])"], axis=1)]
 
         test_wc = WorkflowManager(test_pieces)
@@ -290,33 +293,37 @@ class IntervalNGrams(TestCase):
         expected = mock_concat.return_value
         # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
         #     mock_ror, and mock_concat, in the order they should happen
-        exp_calls = [mock.call([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                               {'simple or compound': 'simple', 'quality': True}),
-                     mock.call([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                               {'simple or compound': 'simple', 'quality': True}),
+        exp_calls = [mock.call([noterest.NoteRestIndexer]),
+                     mock.call([interval.IntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True},
+                               mock_ror.return_value),
+                     mock.call([interval.HorizontalIntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True},
+                               mock_ror.return_value),
                      mock.call([ngram.NGramIndexer],
                                {'vertical': [('interval.IntervalIndexer', '0,2'),  # different from test _1
                                              ('interval.IntervalIndexer', '1,2')],  # different from test _1
                                 'horizontal': [('interval.HorizontalIntervalIndexer', '2')],
                                 'continuer': 'dynamic quality',
                                 'n': 2,
-                                'mark singles': False},
-                               'pandas.concat() return'),
+                                'mark singles': False,
+                                'terminator': 'Rest'},
+                               mock_concat.return_value),
                      mock.call([ngram.NGramIndexer],
                                {'vertical': [('interval.IntervalIndexer', '1,3'),  # different from test _1
                                              ('interval.IntervalIndexer', '2,3')],  # different from test _1
                                 'horizontal': [('interval.HorizontalIntervalIndexer', '3')],
                                 'continuer': 'dynamic quality',
                                 'n': 2,
-                                'mark singles': False},
-                               'pandas.concat() return')]
-        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.IntervalIndexer'>])"),
-                         mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])", is_horizontal=True)]
-        exp_concat_calls = [mock.call(('mock_ror return', 'mock_ror return'), axis=1),
+                                'mark singles': False,
+                                'terminator': 'Rest'},
+                               mock_concat.return_value)]
+        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>])")]
+        exp_concat_calls = [mock.call(("get_data([<class 'vis.analyzers.indexers.interval.IntervalIndexer'>])",
+                                       "get_data([<class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])"), axis=1),
                             mock.call(["get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])", "get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])"], axis=1)]
 
         test_wc = WorkflowManager(test_pieces)
-        test_wc.settings(None, 'include rests', True)
         test_wc.settings(test_index, 'interval quality', True)
         test_wc.settings(test_index, 'simple intervals', True)
         test_wc.settings(test_index, 'filter repeats', False)
@@ -346,10 +353,13 @@ class IntervalNGrams(TestCase):
         expected = "get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])"
         # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
         #     mock_ror, and mock_concat, in the order they should happen
-        exp_calls = [mock.call([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                               {'simple or compound': 'simple', 'quality': True}),
-                     mock.call([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                               {'simple or compound': 'simple', 'quality': True}),
+        exp_calls = [mock.call([noterest.NoteRestIndexer]),
+                     mock.call([interval.IntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True},
+                               mock_ror.return_value),
+                     mock.call([interval.HorizontalIntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True},
+                               mock_ror.return_value),
                      mock.call([ngram.NGramIndexer],
                                {'vertical': [('interval.IntervalIndexer', '0,3'),
                                              ('interval.IntervalIndexer', '1,3'),
@@ -360,9 +370,9 @@ class IntervalNGrams(TestCase):
                                 'mark singles': False,
                                 'terminator': 'Rest'},
                                mock_concat.return_value)]
-        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.IntervalIndexer'>])"),
-                         mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])", is_horizontal=True)]
-        exp_concat_calls = [mock.call(('mock_ror return', 'mock_ror return'), axis=1)]
+        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>])")]
+        exp_concat_calls = [mock.call(("get_data([<class 'vis.analyzers.indexers.interval.IntervalIndexer'>])",
+                                       "get_data([<class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])"), axis=1)]
 
         test_wc = WorkflowManager(test_pieces)
         test_wc.settings(test_index, 'interval quality', True)
@@ -397,10 +407,13 @@ class IntervalNGrams(TestCase):
         expected = 'pandas.concat() return'
         # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
         #     mock_ror, and mock_concat, in the order they should happen
-        exp_calls = [mock.call([noterest.NoteRestIndexer, interval.IntervalIndexer],
-                               {'simple or compound': 'simple', 'quality': True}),
-                     mock.call([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                               {'simple or compound': 'simple', 'quality': True}),
+        exp_calls = [mock.call([noterest.NoteRestIndexer]),
+                     mock.call([interval.IntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True},
+                               mock_ror.return_value),
+                     mock.call([interval.HorizontalIntervalIndexer],
+                               {'simple or compound': 'simple', 'quality': True},
+                               mock_ror.return_value),
                      mock.call([ngram.NGramIndexer],
                                {'vertical': [('interval.IntervalIndexer', '0,1')],
                                 'horizontal': [('interval.HorizontalIntervalIndexer', '1')],
@@ -449,9 +462,9 @@ class IntervalNGrams(TestCase):
                                 'mark singles': False,
                                 'terminator': 'Rest'},
                                piece_df)]
-        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.IntervalIndexer'>])"),
-                         mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>, <class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])", is_horizontal=True)]
-        exp_concat_calls = [mock.call(('mock_ror return', 'mock_ror return'), axis=1),
+        exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>])")]
+        exp_concat_calls = [mock.call(("get_data([<class 'vis.analyzers.indexers.interval.IntervalIndexer'>])",
+                                       "get_data([<class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])"), axis=1),
                             mock.call(["get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])" for _ in xrange(6)], axis=1)]
 
         test_wc = WorkflowManager(test_pieces)

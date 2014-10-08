@@ -341,16 +341,13 @@ class WorkflowManager(object):
         piece = self._data[index]
 
         # make settings for interval indexers
+        # NB: we have to run the offset and repeat indexers on the notes/rests
+        notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
         settings = {'quality': self.settings(index, 'interval quality')}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
-        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
-        horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                                    settings)
-
-        # run the offset and repeat indexers, if required
-        vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
+        vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
+        horiz_ints = piece.get_data([interval.HorizontalIntervalIndexer], settings, notes)
 
         # concatenate the vertical and horizontal DataFrames
         all_ints = pandas.concat((vert_ints, horiz_ints), axis=1)
@@ -383,6 +380,11 @@ class WorkflowManager(object):
 
         These indexers and experimenters will run:
 
+        * :class:`~vis.analyzers.indexers.noterest.NoteRestIndexer`
+        * :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` (optional; via
+            :meth:`_run_off_rep`)
+        * :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer` (optional; via
+            :meth:`_run_off_rep`)
         * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
         * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
         * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
@@ -397,16 +399,13 @@ class WorkflowManager(object):
         piece = self._data[index]
 
         # make settings for interval indexers
+        # NB: we have to run the offset and repeat indexers on the notes/rests
+        notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
         settings = {'quality': self.settings(index, 'interval quality')}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
-        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
-        horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                                    settings)
-
-        # run the offset and repeat indexers, if required
-        vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
+        vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
+        horiz_ints = piece.get_data([interval.HorizontalIntervalIndexer], settings, notes)
 
         # concatenate the vertical and horizontal DataFrames
         all_ints = pandas.concat((vert_ints, horiz_ints), axis=1)
@@ -452,16 +451,13 @@ class WorkflowManager(object):
         piece = self._data[index]
 
         # make settings for interval indexers
+        # NB: we have to run the offset and repeat indexers on the notes/rests
+        notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
         settings = {'quality': self.settings(index, 'interval quality')}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
-        vert_ints = piece.get_data([noterest.NoteRestIndexer, interval.IntervalIndexer], settings)
-        horiz_ints = piece.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
-                                    settings)
-
-        # run the offset and repeat indexers, if required
-        vert_ints = self._run_off_rep(index, vert_ints)
-        horiz_ints = self._run_off_rep(index, horiz_ints, is_horizontal=True)
+        vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
+        horiz_ints = piece.get_data([interval.HorizontalIntervalIndexer], settings, notes)
 
         # concatenate the vertical and horizontal DataFrames
         all_ints = pandas.concat((vert_ints, horiz_ints), axis=1)
@@ -571,7 +567,8 @@ class WorkflowManager(object):
         offset and repetition.
 
         .. note:: If the relevant settings (``'offset interval'`` and ``'filter repeats'``) do not
-            require running either indexer, ``so_far`` will be returned unchanged.
+            require running either indexer, ``so_far`` will be returned unchanged. Also if the
+            offset filter is used the continuer will not be used no matter what it is set to.
 
         :param index: Index of the piece to run.
         :type index: :``int``
@@ -981,8 +978,9 @@ class WorkflowManager(object):
 
         * ``n``: As specified in :attr:`vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`.
         * ``continuer``: Determines the way unisons that arise from sustained notes in the lowest \
-            voice are represented. The default is 'dynamic quality' which sets to 'P1' if interval \
-            quality is set to True, and '1' if it is set to False. This is given directly to the \
+            voice are represented. Note that if the FilterByOffsetIndexer is used, the continuer \
+            won't get used. The default is 'dynamic quality' which sets to 'P1' if interval quality \
+            is set to True, and '1' if it is set to False. This is given directly to the \
             :class:`NGramIndexer`. Refer to \
             :attr:`~vis.analyzers.indexers.ngram.NGramIndexer.possible_settings`.
         * ``interval quality``: If you want to display interval quality, set this setting to \
