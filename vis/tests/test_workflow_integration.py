@@ -38,6 +38,8 @@ VIS_PATH = vis.__path__[0]
 # pylint: disable=R0904
 # pylint: disable=C0111
 class IntervalsTests(TestCase):
+    """Integration tests for the 'intervals' experiment."""
+
     # EXPECTED_1 is the result of the "intervals" experiment on bwv77 with "[[0, 1]]" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
     EXPECTED_1 = pandas.Series({'3': 32, '4': 22, '5': 18, '6': 16, '7': 4, '2': 3, '8': 2})
@@ -64,11 +66,13 @@ class IntervalsTests(TestCase):
                                 '-10': 1, '-1': 1})
 
     def test_intervals_1(self):
-        # test the two highest voices of bwv77
+        """test the two highest voices of bwv77"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0, 1]]')
         actual = test_wm.run('intervals')
+        self.assertEqual(1, len(actual.columns))
+        actual = actual['aggregator.ColumnAggregator']
         exp_ind = list(IntervalsTests.EXPECTED_1.index)
         act_ind = list(actual.index)
         for ind_item in exp_ind:
@@ -77,11 +81,13 @@ class IntervalsTests(TestCase):
             self.assertEqual(IntervalsTests.EXPECTED_1[ind_item], actual[ind_item])
 
     def test_intervals_2(self):
-        # test all combinations of bwv77
+        """test all combinations of bwv77"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         actual = test_wm.run('intervals')
+        self.assertEqual(1, len(actual.columns))
+        actual = actual['aggregator.ColumnAggregator']
         exp_ind = list(IntervalsTests.EXPECTED_2.index)
         act_ind = list(actual.index)
         for ind_item in exp_ind:
@@ -90,12 +96,14 @@ class IntervalsTests(TestCase):
             self.assertEqual(IntervalsTests.EXPECTED_2[ind_item], actual[ind_item])
 
     def test_intervals_3(self):
-        # test all combinations of madrigal51 without rests
+        """test all combinations of madrigal51 without rests"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(None, 'include rests', False)
         actual = test_wm.run('intervals')
+        self.assertEqual(1, len(actual.columns))
+        actual = actual['aggregator.ColumnAggregator']
         exp_ind = list(IntervalsTests.EXPECTED_3.index)
         act_ind = list(actual.index)
         for ind_item in exp_ind:
@@ -104,12 +112,14 @@ class IntervalsTests(TestCase):
             self.assertEqual(IntervalsTests.EXPECTED_3[ind_item], actual[ind_item])
 
     def test_intervals_4(self):
-        # test all combinations of madrigal51 with rests
+        """test all combinations of madrigal51 with rests"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(None, 'include rests', True)
         actual = test_wm.run('intervals')
+        self.assertEqual(1, len(actual.columns))
+        actual = actual['aggregator.ColumnAggregator']
         exp_ind = list(IntervalsTests.EXPECTED_4.index)
         act_ind = list(actual.index)
         for ind_item in exp_ind:
@@ -119,254 +129,204 @@ class IntervalsTests(TestCase):
 
 
 class NGramsTests(TestCase):
+    """Integration tests or the 'interval n-grams' experiment."""
+
     # EXPECTED_1 is the result of the "interval n-grams" experiment with "[[0, 1]]" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
-    EXPECTED_1 = pandas.Series({'3 -2 3': 9, '3 -3 4': 7, '4 -2 5': 7, '5 1 4': 6, '6 -2 6': 6,
-                                '3 2 3': 5, '6 2 5': 5, '5 2 3': 4, '4 _ 5': 3, '3 1 6': 3,
-                                '3 _ 2': 3, '5 4 3': 3, '4 1 3': 2, '4 1 4': 2, '4 _ 3': 2,
-                                '3 1 4': 2, '3 4 3': 2, '2 -2 3': 2, '6 -2 7': 2, '7 4 3': 2,
-                                '5 1 6': 2, '6 -2 8': 1, '2 -2 4': 1, '3 -2 4': 1, '7 2 6': 1,
-                                '7 1 6': 1, '6 3 5': 1, '6 2 6': 1, '5 1 5': 1, '8 2 7': 1,
-                                '5 2 4': 1, '4 -2 6': 1, '4 -3 5': 1, '5 1 8': 1, '4 2 3': 1,
-                                '4 4 4': 1, '4 6 6': 1, '8 _ 7': 1})
+
     # EXPECTED_2 is the result of the "interval n-grams" experiment with "all pairs" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
-    # NB: just the first ten, because seriously.
-    EXPECTED_2 = pandas.Series({'6 -2 7 _ 6 -2 7 _ 6': 4, '5 1 4 -2 5 1 4 -2 5': 4,
-                                '6 -2 7 _ 6 -2 8 -4 10': 2, '6 -2 8 -2 5 -4 8 _ 7': 2,
-                                '4 _ 3 -2 4 -2 3 1 3': 2, '6 -2 8 -4 10 4 5 1 5': 2,
-                                '2 2 4 3 3 1 4 1 3': 2, '3 -2 3 -3 3 -2 4 -2 5': 2,
-                                '4 1 5 -2 8 4 5 -4 8': 2, '6 -3 8 4 4 -2 5 -3 6': 2})
+
     # EXPECTED_3 is the result of the "interval n-grams" experiment with "all" as the voice
     # pairs; note that I didn't verify by counting... this just ensures a valid value comes out
-    # NB: just the first ten, because seriously.
-    EXPECTED_3 = pandas.Series({'[12 10 8]': 11, '[10 8 5]': 10, '[8 5 3]': 9, '[10 5 1]': 5,
-                                '[15 10 5]': 5, '[12 7 3]': 3, '[17 15 12]': 3, '[12 10 7]': 3,
-                                '[12 8 3]': 3, '[13 10 6]': 3})
+
     # EXPECTED_4 is the result of "interval n-grams" on BWV2 with "all" as the voice pairs, and
     # compound intervals portrayed as their single-octave equivalents; note that I didn't verify
     # by counting... this just ensures a valid value comes out
-    # NB: just the first ten, because seriously.
-    EXPECTED_4 = pandas.Series({'[8 6 3] 2 [7 5 2]': 1, '[3 8 5] -2 [4 4 6]': 1,
-                                '[5 3 8] 4 [3 8 5]': 1, '[5 3 8] -4 [3 6 5]': 1,
-                                '[5 3 7] 2 [3 3 5]': 1, '[5 3 3] 2 [3 5 3]': 1,
-                                '[5 3 1] -2 [6 4 2]': 1, '[5 2 7] -2 [7 3 8]': 1,
-                                '[4 6 3] -4 [8 3 6]': 1, '[4 6 3] -2 [5 8 3]': 1})
+
     # EXPECTED_5 is the result of "interval n-grams" on madrigal51 with "all" as the voice pairs,
     # and no rests; note that I didn't verify by counting
-    # NB: just the first ten
-    EXPECTED_5 = pandas.Series({'[15 13 6 10 1] 3 [12 10 5 8 1]': 2,
-                                '[9 8 5 1 -4] _ [9 7 5 1 -4]': 1,
-                                '[13 10 3 8 1] 1 [12 10 3 8 1]': 1,
-                                '[15 15 10 12 1] 8 [8 5 1 3 1]': 1,
-                                '[15 11 5 1 4] _ [15 11 5 1 4]': 1,
-                                '[15 11 5 1 4] _ [14 10 5 1 4]': 1,
-                                '[15 10 5 1 4] _ [15 11 5 1 4]': 1,
-                                '[14 5 7 6 1] -2 [15 6 8 7 1]': 1,
-                                '[14 5 4 5 1] _ [14 5 3 5 1]': 1,
-                                '[14 5 3 5 1] -5 [17 12 8 8 1]': 1})
+
     # EXPECTED_6 is the result of "interval n-grams" on madrigal51 with "all" as the voice pairs,
     # including rests; note that I didn't verify by counting
-    # NB: just the first ten
-    EXPECTED_6 = pandas.Series({'[Rest Rest Rest Rest Rest] _ [Rest Rest Rest Rest Rest]': 4,
-                                '[Rest Rest 1 3 Rest] 1 [Rest Rest 1 3 Rest]': 3,
-                                '[Rest Rest 1 8 Rest] 4 [Rest Rest 1 5 Rest]': 2,
-                                '[Rest Rest 1 5 Rest] -3 [Rest Rest 1 6 Rest]': 2,
-                                '[Rest Rest 1 5 Rest] 1 [Rest Rest 1 5 Rest]': 2,
-                                '[15 13 6 10 1] 3 [12 10 5 8 1]': 2,
-                                '[10 10 5 Rest Rest] _ [10 11 8 2 Rest]': 1,
-                                '[15 11 5 1 4] _ [15 11 5 1 4]': 1,
-                                '[15 11 5 8 Rest] _ [14 11 5 8 Rest]': 1,
-                                '[15 11 Rest 4 Rest] _ [14 10 5 4 Rest]': 1})
+
     # EXPECTED_7 is the result of "interval n-grams" on vis_Test_Piece.xml with all two-part
     # combinations of 2-grams. I counted it by hand!
-    EXPECTED_7 = pandas.Series({u'4 1 5': 1, u'5 1 4': 1, u'6 2 6': 1, u'6 -2 6': 1, u'8 -2 10': 1,
-                                u'10 2 8': 1, u'3 2 2': 1, u'2 -2 3': 1, u'5 -2 6': 1, u'6 2 5': 1,
-                                u'3 -2 5': 1, u'5 2 3': 1})
+    EXPECTED_7 = pandas.Series({'4 1 5': 1, '5 1 4': 1, '6 2 6': 1, '6 -2 6': 1, '8 -2 10': 1,
+                                '10 2 8': 1, '3 2 2': 1, '2 -2 3': 1, '5 -2 6': 1, '6 2 5': 1,
+                                '3 -2 5': 1, '5 2 3': 1})
+    EXPECTED_7 = pandas.DataFrame({'aggregator.ColumnAggregator': EXPECTED_7})
+
     # The expected values for tests 9a-c consist of 2-gram analyses of the soprano and alto in
     # bwv77 with the settings as described in each test. These results are stored in csv files in
     # ~/vis/tests/corpus/
 
     def test_ngrams_1(self):
-        # test the two highest voices of bwv77; 2-grams
+        """test the two highest voices of bwv77; 2-grams"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0, 1]]')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(0, 'continuer', '_')
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_1.csv'),
+                                   index_col=0)
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(NGramsTests.EXPECTED_1.index)
-        act_ind = list(actual.index)
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-        for ind_item in exp_ind:
-            self.assertEqual(NGramsTests.EXPECTED_1[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_2(self):
-        # test all two-part combinations of bwv77; 5-grams
+        """test all two-part combinations of bwv77; 5-grams"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(0, 'n', 5)
         test_wm.settings(0, 'continuer', '_')
-        actual = test_wm.run('interval n-grams')[:10]
-        exp_ind = list(NGramsTests.EXPECTED_2.index)
-        act_ind = list(actual.index)
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-        for ind_item in exp_ind:
-            self.assertEqual(NGramsTests.EXPECTED_2[ind_item], actual[ind_item])
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_2.csv'),
+                                   index_col=0)
+        actual = test_wm.run('interval n-grams')
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_3(self):
-        # test all voices of bwv77; 1-grams
+        """test all voices of bwv77; 1-grams"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(0, 'n', 1)
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_3.csv'),
+                                   index_col=0)
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(NGramsTests.EXPECTED_3.index)
-        act_ind = list(actual.index)
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-        for ind_item in exp_ind:
-            self.assertEqual(NGramsTests.EXPECTED_3[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_4(self):
-        # test all voices of bwv2; 3-grams; simple intervals
+        """test all voices of bwv2; 3-grams; simple intervals"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(None, 'simple intervals', True)
         test_wm.settings(0, 'continuer', '_')
-        actual = test_wm.run('interval n-grams')[:10]
-        exp_ind = list(NGramsTests.EXPECTED_4.index)
-        act_ind = list(actual.index)
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-        for ind_item in exp_ind:
-            self.assertEqual(NGramsTests.EXPECTED_4[ind_item], actual[ind_item])
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_4.csv'),
+                                   index_col=0)
+        actual = test_wm.run('interval n-grams')
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_5(self):
-        # test madrigal51 with all-voice 2-grams and no rests (the default setting)
+        """test madrigal51 with all-voice 2-grams and no rests (the default setting)"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')])
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(None, 'include rests', False)
         test_wm.load('pieces')
         test_wm.settings(0, 'continuer', '_')
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_5.csv'),
+                                   index_col=0)
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(NGramsTests.EXPECTED_5.index)
-        act_ind = list(actual.index)
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-        for ind_item in exp_ind:
-            self.assertEqual(NGramsTests.EXPECTED_5[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_6(self):
-        # test madrigal51 with all-voice 2-grams and rests
+        """test madrigal51 with all-voice 2-grams and rests"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'madrigal51.mxl')])
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(None, 'include rests', True)
         test_wm.load('pieces')
         test_wm.settings(0, 'continuer', '_')
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_6.csv'),
+                                   index_col=0)
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(NGramsTests.EXPECTED_6.index)
-        act_ind = list(actual.index)
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-        for ind_item in exp_ind:
-            self.assertEqual(NGramsTests.EXPECTED_6[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_7(self):
-        # test all two-part combinations of the test piece; 2-grams
+        """test all two-part combinations of the test piece; 2-grams"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(0, 'n', 2)
+        expected = NGramsTests.EXPECTED_7
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(NGramsTests.EXPECTED_7.index)
-        act_ind = list(actual.index)
-        self.assertEqual(len(exp_ind), len(act_ind))
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-            self.assertEqual(NGramsTests.EXPECTED_7[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_8(self):
-        # test_ngrams_7 *but* with part combinations specified rather than 'all pairs'
+        """test_ngrams_7 *but* with part combinations specified rather than 'all pairs'"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]')
         test_wm.settings(0, 'n', 2)
+        expected = NGramsTests.EXPECTED_7
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(NGramsTests.EXPECTED_7.index)  # yes, this *should* be EXPECTED_7
-        act_ind = list(actual.index)
-        self.assertEqual(len(exp_ind), len(act_ind))
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-            self.assertEqual(NGramsTests.EXPECTED_7[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_9a(self):
-        # test the calculation of horizontal intervals when the lower voice is sustained
-        # longer than the offset interval. A custom string, 'zamboni', is passed for horizontal
-        # unisons resulting from a sustained lower voice. Regression test for:
-        # https://github.com/ELVIS-Project/vis/issues/305
+        """test the calculation of horizontal intervals when the lower voice is sustained
+           longer than the offset interval. A custom string, 'zamboni', is passed for horizontal
+           unisons resulting from a sustained lower voice. Regression test for:
+           https://github.com/ELVIS-Project/vis/issues/305"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[0,1]]')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(0, 'count frequency', True)
         test_wm.settings(0, 'continuer', 'zamboni')
-        expected = pandas.read_csv('vis/tests/corpus/bwv77_sop_alt_2grams_9a.csv',
-                                    index_col=0,
-                                    names=['a'],
-                                    dtype={'a': int})['a']
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9a.csv'),
+                                    index_col=0)
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(expected.index)
-        act_ind = list(actual.index)
-        self.assertEqual(len(exp_ind), len(act_ind))
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-            self.assertEqual(expected[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_9b(self):
-        # same as 9a but tests functionality of 'dynamic quality' setting of continuer
-        # when 'interval quality' is set to True.
+        """same as 9a but tests functionality of 'dynamic quality' setting of continuer
+           when 'interval quality' is set to True."""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[0,1]]')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(0, 'count frequency', True)
         test_wm.settings(0, 'interval quality', True)
-        expected = pandas.read_csv('vis/tests/corpus/bwv77_sop_alt_2grams_9b.csv',
-                                    index_col=0,
-                                    names=['a'],
-                                    dtype={'a': int})['a']
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9b.csv'),
+                                    index_col=0)
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(expected.index)
-        act_ind = list(actual.index)
-        self.assertEqual(len(exp_ind), len(act_ind))
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-            self.assertEqual(expected[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
     def test_ngrams_9c(self):
-        # same as 9b but 'interval quality' is set to False (by default).
+        """same as 9b but 'interval quality' is set to False (by default)."""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[0,1]]')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(0, 'count frequency', True)
-        expected = pandas.read_csv('vis/tests/corpus/bwv77_sop_alt_2grams_9c.csv',
-                                    index_col=0,
-                                    names=['a'],
-                                    dtype={'a': int})['a']
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9c.csv'),
+                                    index_col=0)
         actual = test_wm.run('interval n-grams')
-        exp_ind = list(expected.index)
-        act_ind = list(actual.index)
-        self.assertEqual(len(exp_ind), len(act_ind))
-        for ind_item in exp_ind:
-            self.assertTrue(ind_item in act_ind)
-            self.assertEqual(expected[ind_item], actual[ind_item])
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
