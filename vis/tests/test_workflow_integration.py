@@ -127,6 +127,26 @@ class IntervalsTests(TestCase):
         for ind_item in exp_ind:
             self.assertEqual(IntervalsTests.EXPECTED_4[ind_item], actual[ind_item])
 
+    def test_intervals_5(self):
+        """test all combinations of vis_Test_Piece"""
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', 'all pairs')
+        test_wm.settings(None, 'include rests', True)
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_intervals_5.csv'),
+                                   index_col=0)
+        actual = test_wm.run('intervals')
+        self.assertEqual(1, len(actual.columns))
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(len(expected[col_name]), len(actual[col_name]))
+            for each_interval in expected[col_name].index:
+                # NOTE: for whatever reason, the "expected" file always imports with an Int64Index,
+                #       so .loc() won't find things properly unless we give the int64 index to the
+                #       expected and the str index to the actual
+                self.assertEqual(expected[col_name].loc[each_interval],
+                                 actual[col_name].loc[str(each_interval)])
+
 
 class NGramsTests(TestCase):
     """Integration tests or the 'interval n-grams' experiment."""
