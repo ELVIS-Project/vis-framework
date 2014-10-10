@@ -302,7 +302,7 @@ class NGramsTests(TestCase):
            longer than the offset interval. A custom string, 'zamboni', is passed for horizontal
            unisons resulting from a sustained lower voice. Regression test for:
            https://github.com/ELVIS-Project/vis/issues/305"""
-        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[0,1]]')
         test_wm.settings(0, 'n', 2)
@@ -319,7 +319,7 @@ class NGramsTests(TestCase):
     def test_ngrams_9b(self):
         """same as 9a but tests functionality of 'dynamic quality' setting of continuer
            when 'interval quality' is set to True."""
-        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[0,1]]')
         test_wm.settings(0, 'n', 2)
@@ -335,7 +335,7 @@ class NGramsTests(TestCase):
 
     def test_ngrams_9c(self):
         """same as 9b but 'interval quality' is set to False (by default)."""
-        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie_short.krn')])
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
         test_wm.load()
         test_wm.settings(0, 'voice combinations', '[[0,1]]')
         test_wm.settings(0, 'n', 2)
