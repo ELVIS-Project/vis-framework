@@ -630,7 +630,9 @@ class WorkflowManager(object):
                                       [aggregator.ColumnAggregator],
                                       {'column': 'frequency.FrequencyExperimenter'},
                                       self._result)
-        self._result.sort(ascending=False)
+        # "ascending" means highest values near the top; "columns" indicates which column to sort
+        # with; otherwise sometimes pandas sorts by the index...
+        self._result = self._result.sort(ascending=False, columns='aggregator.ColumnAggregator')
         return self._result
 
     @staticmethod
