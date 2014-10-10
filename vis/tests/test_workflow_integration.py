@@ -188,8 +188,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'voice combinations', '[[0, 1]]')
         test_wm.settings(0, 'n', 2)
         test_wm.settings(0, 'continuer', '_')
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_1.csv'),
-                                   index_col=0)
+        expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_1.pickle'))
         actual = test_wm.run('interval n-grams')
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         for col_name in expected.columns:
@@ -203,8 +202,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(0, 'n', 5)
         test_wm.settings(0, 'continuer', '_')
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_2.csv'),
-                                   index_col=0)
+        expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_2.pickle'))
         actual = test_wm.run('interval n-grams')
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         for col_name in expected.columns:
@@ -217,8 +215,7 @@ class NGramsTests(TestCase):
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all')
         test_wm.settings(0, 'n', 1)
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_3.csv'),
-                                   index_col=0)
+        expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_3.pickle'))
         actual = test_wm.run('interval n-grams')
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         for col_name in expected.columns:
@@ -230,11 +227,10 @@ class NGramsTests(TestCase):
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all')
-        test_wm.settings(0, 'n', 2)
+        test_wm.settings(0, 'n', 3)
         test_wm.settings(None, 'simple intervals', True)
         test_wm.settings(0, 'continuer', '_')
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_4.csv'),
-                                   index_col=0)
+        expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_4.pickle'))
         actual = test_wm.run('interval n-grams')
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         for col_name in expected.columns:
@@ -248,8 +244,7 @@ class NGramsTests(TestCase):
         test_wm.settings(None, 'include rests', False)
         test_wm.load('pieces')
         test_wm.settings(0, 'continuer', '_')
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_5.csv'),
-                                   index_col=0)
+        expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_5.pickle'))
         actual = test_wm.run('interval n-grams')
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         for col_name in expected.columns:
@@ -263,8 +258,7 @@ class NGramsTests(TestCase):
         test_wm.settings(None, 'include rests', True)
         test_wm.load('pieces')
         test_wm.settings(0, 'continuer', '_')
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_ngrams_6.csv'),
-                                   index_col=0)
+        expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_6.pickle'))
         actual = test_wm.run('interval n-grams')
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         for col_name in expected.columns:
