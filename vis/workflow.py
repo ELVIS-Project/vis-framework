@@ -310,7 +310,7 @@ class WorkflowManager(object):
                 self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
         if self.settings(None, 'count frequency') is True:
-            self._run_freq_agg('ngram.NGramIndexer')  # TODO: write this into the tests
+            self._run_freq_agg('ngram.NGramIndexer')
         return self._result
 
     def _variable_part_modules(self, index):
