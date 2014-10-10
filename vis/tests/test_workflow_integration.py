@@ -181,6 +181,18 @@ class NGramsTests(TestCase):
     # bwv77 with the settings as described in each test. These results are stored in csv files in
     # ~/vis/tests/corpus/
 
+    def assertDataFramesEqual(self, exp, act):
+        """Ensure that two DataFrame objects, ``exp`` and ``act``, are equal."""
+        self.assertSequenceEqual(list(exp.columns), list(act.columns))
+        for col_name in exp.columns:
+            for loc_val in exp[col_name].index:
+                self.assertTrue(loc_val in act.index)
+                if exp[col_name].loc[loc_val] != act[col_name].loc[loc_val]:
+                    msg = '"{}" is {} but we expected {}'
+                    raise AssertionError(msg.format(loc_val,
+                                                    exp[col_name].loc[loc_val],
+                                                    act[col_name].loc[loc_val]))
+
     def test_ngrams_1(self):
         """test the two highest voices of bwv77; 2-grams"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
@@ -190,10 +202,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'continuer', '_')
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_1.pickle'))
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_2(self):
         """test all two-part combinations of bwv77; 5-grams"""
@@ -204,10 +213,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'continuer', '_')
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_2.pickle'))
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_3(self):
         """test all voices of bwv77; 1-grams"""
@@ -217,10 +223,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'n', 1)
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_3.pickle'))
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_4(self):
         """test all voices of bwv2; 3-grams; simple intervals"""
@@ -232,10 +235,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'continuer', '_')
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_4.pickle'))
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_5(self):
         """test madrigal51 with all-voice 2-grams and no rests (the default setting)"""
@@ -246,10 +246,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'continuer', '_')
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_5.pickle'))
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_6(self):
         """test madrigal51 with all-voice 2-grams and rests"""
@@ -260,10 +257,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'continuer', '_')
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_6.pickle'))
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_7(self):
         """test all two-part combinations of the test piece; 2-grams"""
@@ -273,10 +267,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'n', 2)
         expected = NGramsTests.EXPECTED_7
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_8(self):
         """test_ngrams_7 *but* with part combinations specified rather than 'all pairs'"""
@@ -286,10 +277,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'n', 2)
         expected = NGramsTests.EXPECTED_7
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_9a(self):
         """test the calculation of horizontal intervals when the lower voice is sustained
@@ -305,10 +293,7 @@ class NGramsTests(TestCase):
         expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9a.csv'),
                                     index_col=0)
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_9b(self):
         """same as 9a but tests functionality of 'dynamic quality' setting of continuer
@@ -322,10 +307,7 @@ class NGramsTests(TestCase):
         expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9b.csv'),
                                     index_col=0)
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_9c(self):
         """same as 9b but 'interval quality' is set to False (by default)."""
@@ -337,10 +319,7 @@ class NGramsTests(TestCase):
         expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9c.csv'),
                                     index_col=0)
         actual = test_wm.run('interval n-grams')
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertDataFramesEqual(expected, actual)
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
