@@ -343,7 +343,8 @@ class WorkflowManager(object):
         # make settings for interval indexers
         # NB: we have to run the offset and repeat indexers on the notes/rests
         notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
-        settings = {'quality': self.settings(index, 'interval quality')}
+        settings = {'quality': self.settings(index, 'interval quality'),
+                    'horiz_attach_later': True}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
         vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
@@ -401,7 +402,8 @@ class WorkflowManager(object):
         # make settings for interval indexers
         # NB: we have to run the offset and repeat indexers on the notes/rests
         notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
-        settings = {'quality': self.settings(index, 'interval quality')}
+        settings = {'quality': self.settings(index, 'interval quality'),
+                    'horiz_attach_later': True}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
         vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
@@ -409,6 +411,7 @@ class WorkflowManager(object):
 
         # concatenate the vertical and horizontal DataFrames
         all_ints = pandas.concat((vert_ints, horiz_ints), axis=1)
+        all_ints.to_csv('test_output/asdfasdfasdf.csv')
 
         # each key in vert_ints corresponds to a two-voice combination we should use
         post = []
@@ -453,7 +456,8 @@ class WorkflowManager(object):
         # make settings for interval indexers
         # NB: we have to run the offset and repeat indexers on the notes/rests
         notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
-        settings = {'quality': self.settings(index, 'interval quality')}
+        settings = {'quality': self.settings(index, 'interval quality'),
+                    'horiz_attach_later': True}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
         vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
