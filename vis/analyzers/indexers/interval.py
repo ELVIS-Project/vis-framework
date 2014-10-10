@@ -222,6 +222,18 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     You should provide the result of :class:`~vis.analyzers.noterest.NoteRestIndexer`.
     """
 
+    possible_settings = ['horiz_attach_later']
+    """
+    This setting applies to the :class:`HorizontalIntervalIndexer` *in addition to* the settings
+    available from the :class:`IntervalIndexer`.
+
+    :keyword boolean 'horiz_attach_later': If ``True``, the offset for a horizontal interval is
+        the offset of the later note in the interval. The default is ``False``, which gives
+        horizontal intervals the offset of the first note in the interval.
+    """
+
+    default_settings = {'horiz_attach_later': False}
+
     def __init__(self, score, settings=None):
         """
         The output format is described in :meth:`run`.
@@ -231,7 +243,15 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         :param dict settings: Required and optional settings. See descriptions in \
             :const:`IntervalIndexer.possible_settings`.
         """
+        if settings is None:
+            settings = {}
+
         super(HorizontalIntervalIndexer, self).__init__(score, settings)
+
+        if 'horiz_attach_later' in settings:
+            self._settings['horiz_attach_later'] = settings['horiz_attach_later']
+        else:
+            self._settings['horiz_attach_later'] = HorizontalIntervalIndexer.default_settings['horiz_attach_later']  # pylint: disable=line-too-long
 
     def run(self):
         """
@@ -260,8 +280,12 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
         combination_labels = [unicode(x) for x in xrange(len(self._score))]
-        new_parts = [pandas.Series(x.values[1:], index=x.index[:-1]) for x in self._score]
-        self._score = [pandas.Series(x.values[:-1], index=x.index[:-1]) for x in self._score]
+        if self._settings['horiz_attach_later']:
+            new_parts = [x.iloc[1:] for x in self._score]
+            self._score = [pandas.Series(x.values[:-1], index=x.index[1:]) for x in self._score]
+        else:
+            new_parts = [pandas.Series(x.values[1:], index=x.index[:-1]) for x in self._score]
+            self._score = [pandas.Series(x.values[:-1], index=x.index[:-1]) for x in self._score]
 
         new_zero = len(self._score)
         self._score.extend(new_parts)

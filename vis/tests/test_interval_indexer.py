@@ -723,6 +723,17 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
+    def test_interval_indexer_3(self):
+        """BWV7.7: whole bass part; 'horiz_attach_later' is True"""
+        test_parts = [self.bwv77_bass]
+        setts = {'simple or compound': 'compound', 'quality': True, 'horiz_attach_later': True}
+        expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'corpus', 'data_horiz_int_ind_3.pickle'))
+        actual = HorizontalIntervalIndexer(test_parts, setts).run()
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        for col_name in expected.columns:
+            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
