@@ -51,9 +51,10 @@ VIS_PATH = vis.__path__[0]
 # pylint: disable=C0111
 class WorkflowTests(TestCase):
     """This class is for __init__(), load(), and run() (without helper methods) and split_part_combo()"""
+
     @mock.patch('vis.workflow.path.join', return_value='/some/vis/path.r')
     def test_init_1(self, mock_join):
-        # with a list of basestrings
+        """__init__() with a list of basestrings"""
         # NB: mocked out os.path.join()
         with mock.patch('vis.models.indexed_piece.IndexedPiece') as mock_ip:
             in_val = ['help.txt', 'path.xml', 'why_you_do_this.rtf']
@@ -79,7 +80,7 @@ class WorkflowTests(TestCase):
 
     @mock.patch('vis.workflow.vis')
     def test_init_2(self, mock_vis):
-        # with a list of IndexedPieces
+        """__init__() with a list of IndexedPiece"""
         # NB: mocked out vis
         mock_vis.__path__ = ['/some/path/']
         exp_chart_path = '/some/path/scripts/R_bar_chart.r'
@@ -102,7 +103,7 @@ class WorkflowTests(TestCase):
         self.assertEqual(exp_chart_path, test_wc._R_bar_chart_path)
 
     def test_init_3(self):
-        # with a mixed list of valid things
+        """__init__() with a mixed list of valid things"""
         # NB: ensure the _R_bar_chart_path actually exists
         in_val = [IndexedPiece('help.txt'), 'path.xml', 'why_you_do_this.rtf']
         test_wc = WorkflowManager(in_val)
@@ -123,22 +124,21 @@ class WorkflowTests(TestCase):
         self.assertTrue(os.path.exists(test_wc._R_bar_chart_path))
 
     def test_init_4(self):
-        # with mostly basestrings but a few ints
-        in_val = ['help.txt', 'path.xml', 4, 'why_you_do_this.rtf']
-        test_wc = WorkflowManager(in_val)
-        self.assertEqual(3, len(test_wc._data))
-        for each in test_wc._data:
-            self.assertTrue(isinstance(each, IndexedPiece))
-        for piece_sett in test_wc._settings:
-            self.assertEqual(3, len(piece_sett))
-            for sett in ['offset interval', 'voice combinations']:
-                self.assertEqual(None, piece_sett[sett])
-            for sett in ['filter repeats']:
-                self.assertEqual(False, piece_sett[sett])
-        exp_sh_setts = {'n': 2, 'continuer': 'dynamic quality', 'mark singles': False,
-                        'interval quality': False, 'simple intervals': False,
-                        'include rests': False, 'count frequency': True}
-        self.assertEqual(exp_sh_setts, test_wc._shared_settings)
+        """__init__() with invalid data"""
+        # first, with a list with invalid data
+        in_val = ['help.txt', mock.MagicMock(spec_set=IndexedPiece), 4, 'why_you_do_this.rtf']
+        self.assertRaises(TypeError, WorkflowManager, in_val)
+        try:
+            WorkflowManager(in_val)
+        except TypeError as type_err:
+            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.message)
+        # next, with a single string
+        in_val = 'best piece ever.mei'
+        self.assertRaises(TypeError, WorkflowManager, in_val)
+        try:
+            WorkflowManager(in_val)
+        except TypeError as type_err:
+            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.message)
 
     def test_load_1(self):
         # that "get_data" is called correctly on each thing

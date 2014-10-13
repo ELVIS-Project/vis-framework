@@ -65,7 +65,7 @@ def split_part_combo(key):
 class WorkflowManager(object):
     """
     :parameter pathnames: A list of pathnames.
-    :type pathnames: ``list`` of ``basestring``
+    :type pathnames: list or tuple of basestring or :class:`~vis.models.indexed_piece.IndexedPiece`
 
     The :class:`WorkflowManager` automates several common music analysis patterns for counterpoint.
     Use the ``WorkflowManager`` with these four tasks:
@@ -84,7 +84,7 @@ class WorkflowManager(object):
 
     You may also treat a ``WorkflowManager`` as a container:
 
-    >>> wm = WorkflowManager('piece1.mxl', 'piece2.krn')
+    >>> wm = WorkflowManager(['piece1.mxl', 'piece2.krn'])
     >>> len(wm)
     2
     >>> ip = wm[1]
@@ -119,7 +119,20 @@ class WorkflowManager(object):
     # The error when an ``instruction`` arg is invalid
     _UNRECOGNIZED_INSTRUCTION = 'Unrecognized instruction: "{}"'
 
+    # The error when the argument to __init__() isn't a list/tuple of basestring
+    _BAD_INIT_ARG = 'WorkflowManager() requires a list/tuple of strings.'
+
     def __init__(self, pathnames):
+        """
+        :raises: :exce:`TypeError` if ``pathnames`` is not a list or tuple of basestring or
+            :class:`IndexedPiece`
+        """
+        # ensure ``pathnames`` is a list or tuple of basestring...
+        # this may have security repercussions, as noted in GH#332
+        if not (isinstance(pathnames, (list, tuple)) and
+                all(map(lambda x: isinstance(x, (basestring, indexed_piece.IndexedPiece)), pathnames))):
+            raise TypeError(WorkflowManager._BAD_INIT_ARG)
+
         # create the list of IndexedPiece objects
         self._data = []
         for each_val in pathnames:
@@ -127,8 +140,7 @@ class WorkflowManager(object):
                 self._data.append(indexed_piece.IndexedPiece(each_val))
             elif isinstance(each_val, indexed_piece.IndexedPiece):
                 self._data.append(each_val)
-        # hold the result of the most recent call to run()
-        self._result = None
+
         # hold the IndexedPiece-specific settings
         self._settings = [{} for _ in xrange(len(self._data))]
         for piece_sett in self._settings:
@@ -136,10 +148,14 @@ class WorkflowManager(object):
                 piece_sett[sett] = None
             for sett in ['filter repeats']:
                 piece_sett[sett] = False
+
         # hold settings common to all IndexedPieces
         self._shared_settings = {'n': 2, 'continuer': 'dynamic quality', 'mark singles': False,
                                  'interval quality': False, 'simple intervals': False,
                                  'include rests': False, 'count frequency': True}
+
+        # hold the result of the most recent call to run()
+        self._result = None
         # which was the most recent experiment run? Either 'intervals' or 'n-grams'
         self._previous_exp = None
         # whether the load() method has been called
