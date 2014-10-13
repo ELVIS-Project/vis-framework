@@ -927,6 +927,34 @@ class AuxiliaryExperimentMethods(TestCase):
                                                         {'quarterLength': 0.5, 'method': None},
                                                         in_val)
 
+    def test_unique_combos_1(self):
+        """_get_unique_combos() with all proper data"""
+        workm = WorkflowManager([mock.MagicMock(spec_set=IndexedPiece) for _ in xrange(3)])
+        workm.settings(0, 'voice combinations', '[[0, 1], [0, 2]]')
+        workm.settings(1, 'voice combinations', '[[0, 1], [0, 2], [0, 3]]')
+        workm.settings(2, 'voice combinations', '[[0, 1], [1, 2], [2, 3, 4]]')
+        expected_0 = [[0, 1], [0, 2]]
+        expected_1 = [[0, 1], [0, 2], [0, 3]]
+        expected_2 = [[0, 1], [1, 2], [2, 3, 4]]
+
+        self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+        self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+        self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+
+    def test_unique_combos_2(self):
+        """_get_unique_combos() with all some duplicates"""
+        workm = WorkflowManager([mock.MagicMock(spec_set=IndexedPiece) for _ in xrange(3)])
+        workm.settings(0, 'voice combinations', '[[0, 1], [0, 2], [0, 1]]')
+        workm.settings(1, 'voice combinations', '[[0, 1], [0, 2], [0, 3], [0, 1], [0, 2], [0, 3]]')
+        workm.settings(2, 'voice combinations', '[[0, 1], [1, 2], [2, 3, 4], [2, 3, 4], [2, 3, 4]]')
+        expected_0 = [[0, 1], [0, 2]]
+        expected_1 = [[0, 1], [0, 2], [0, 3]]
+        expected_2 = [[0, 1], [1, 2], [2, 3, 4]]
+
+        self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+        self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+        self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#

@@ -32,6 +32,7 @@ new ``WorkflowManager`` classes.
 
 from os import path
 import ast
+from ast import literal_eval
 import pandas
 import vis
 from vis.models import indexed_piece
@@ -223,6 +224,24 @@ class WorkflowManager(object):
         else:
             raise RuntimeError('Unrecognized load() instruction: "' + unicode(instruction) + '"')
         self._loaded = True
+
+    def _get_unique_combos(self, index):
+        """
+        Given the index to a piece held in this WorkflowManager, get a list of all the requested
+        voice combinations, ensuring each combination appears only once.
+
+        :raises: :exc:`ValueError` when the user-given voice combination is not valid Python
+        """
+        # TODO: can this method do more sanitization?
+        # The Algorithm (in case you don't want to read it)
+        # 1.) get the setting,
+        # 2.) turn it into a string,
+        # 3.) run literal_eval() to get a list of lists
+        # 4.) use map() to convert the sub-lists back into strings (so set() will work)
+        # 5.) use set() to remove duplicate sub-lists
+        # 6.) use map() to run literal_eval() again to turn the sub-lists back into lists
+        VOX_COM = 'voice combinations'
+        return map(literal_eval, list(set(map(str, literal_eval(str(self.settings(index, VOX_COM)))))))
 
     def run(self, instruction):
         """
