@@ -65,6 +65,18 @@ class IntervalsTests(TestCase):
                                 '19': 9, '-7': 8, '18': 4, '-9': 3, '20': 3, '-12': 3, '22': 1,
                                 '-10': 1, '-1': 1})
 
+    def assertDataFramesEqual(self, exp, act):
+        """Ensure that two DataFrame objects, ``exp`` and ``act``, are equal."""
+        self.assertSequenceEqual(list(exp.columns), list(act.columns))
+        for col_name in exp.columns:
+            for loc_val in exp[col_name].index:
+                self.assertTrue(loc_val in act.index)
+                if exp[col_name].loc[loc_val] != act[col_name].loc[loc_val]:
+                    msg = '"{}" is "{}" but we expected "{}"'
+                    raise AssertionError(msg.format(loc_val,
+                                                    act[col_name].loc[loc_val],
+                                                    exp[col_name].loc[loc_val]))
+
     def test_intervals_1(self):
         """test the two highest voices of bwv77"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
@@ -146,6 +158,40 @@ class IntervalsTests(TestCase):
                 #       expected and the str index to the actual
                 self.assertEqual(expected[col_name].loc[each_interval],
                                  actual[col_name].loc[str(each_interval)])
+
+    def test_intervals_6(self):
+        """test Soprano and Alto of bwv77; with quality; not counting frequency"""
+        # NB: the "expected" was hand-counted
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_intervals.csv'),
+                                   comment='#', index_col=0, header=[0, 1], quotechar="'")
+
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0, 1]]')
+        test_wm.settings(None, 'count frequency', False)
+        test_wm.settings(None, 'interval quality', True)
+        actual = test_wm.run('intervals')
+
+        self.assertEqual(1, len(actual))
+        actual = actual[0].dropna()
+        self.assertDataFramesEqual(expected, actual)
+
+    def test_intervals_7(self):
+        """same as test_7 *but* no quality"""
+        # NB: the "expected" was hand-counted
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_intervals_nq.csv'),
+                                   comment='#', index_col=0, header=[0, 1], quotechar="'", dtype='object')
+
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0, 1]]')
+        test_wm.settings(None, 'count frequency', False)
+        test_wm.settings(None, 'interval quality', False)
+        actual = test_wm.run('intervals')
+
+        self.assertEqual(1, len(actual))
+        actual = actual[0].dropna()
+        self.assertDataFramesEqual(expected, actual)
 
 
 class NGramsTests(TestCase):
