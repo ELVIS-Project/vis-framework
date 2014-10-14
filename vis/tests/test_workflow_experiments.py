@@ -40,7 +40,8 @@ class Intervals(TestCase):
 
     @mock.patch('vis.workflow.WorkflowManager._remove_extra_pairs')
     @mock.patch('vis.workflow.WorkflowManager._run_freq_agg')
-    def test_intervs_1(self, mock_rfa, mock_rep):
+    @mock.patch('vis.workflow.WorkflowManager._get_unique_combos')
+    def test_intervs_1(self, mock_guc, mock_rfa, mock_rep):
         """Ensure _intervs() calls everything in the right order, with the right args & settings.
            This test uses all the default settings."""
         test_settings = {'simple or compound': 'compound', 'quality': False}
@@ -55,6 +56,7 @@ class Intervals(TestCase):
         test_wc.settings(None, 'include rests', True)
         actual = test_wc._intervs()  # pylint: disable=protected-access
 
+        self.assertEqual(0, mock_guc.call_count)
         self.assertEqual(len(test_pieces), len(expected), len(actual))
         self.assertEqual(0, mock_rep.call_count)
         mock_rfa.assert_called_once_with('interval.IntervalIndexer')
@@ -68,12 +70,14 @@ class Intervals(TestCase):
 
     @mock.patch('vis.workflow.WorkflowManager._remove_extra_pairs')
     @mock.patch('vis.workflow.WorkflowManager._run_freq_agg')
-    def test_intervs_2(self, mock_rfa, mock_rep):
+    @mock.patch('vis.workflow.WorkflowManager._get_unique_combos')
+    def test_intervs_2(self, mock_guc, mock_rfa, mock_rep):
         """Ensure _intervs() calls everything in the right order, with the right args & settings.
            Same as test_intervs_1() but:
               - calls _remove_extra_pairs(), and
               - doesn't call _run_freq_agg()."""
-        voice_combos = '[[0, 1]]'
+        mock_guc.return_value = [[0, 1]]
+        voice_combos = str(mock_guc.return_value)
         exp_voice_combos = ['0,1']
         test_settings = {'simple or compound': 'compound', 'quality': False}
         test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
@@ -85,6 +89,7 @@ class Intervals(TestCase):
         mock_rep.side_effect = lambda *x: mock_rep_returns.pop(0)
         expected = ['IndP-{} no pairs'.format(i) for i in xrange(len(test_pieces))]
         exp_analyzers = [noterest.NoteRestIndexer, interval.IntervalIndexer]
+        exp_mock_guc = [mock.call(i) for i in xrange(len(test_pieces))]
 
         test_wc = WorkflowManager(test_pieces)
         test_wc.settings(None, 'include rests', True)
@@ -92,6 +97,7 @@ class Intervals(TestCase):
         test_wc.settings(None, 'voice combinations', voice_combos)
         actual = test_wc._intervs()  # pylint: disable=protected-access
 
+        self.assertSequenceEqual(exp_mock_guc, mock_guc.call_args_list)
         self.assertEqual(len(test_pieces), len(expected), len(actual))
         self.assertEqual(0, mock_rfa.call_count)
         self.assertEqual(len(test_pieces), mock_rep.call_count)
@@ -104,7 +110,8 @@ class Intervals(TestCase):
 
     @mock.patch('vis.workflow.WorkflowManager._remove_extra_pairs')
     @mock.patch('vis.workflow.WorkflowManager._run_freq_agg')
-    def test_intervs_3(self, mock_rfa, mock_rep):
+    @mock.patch('vis.workflow.WorkflowManager._get_unique_combos')
+    def test_intervs_3(self, mock_guc, mock_rfa, mock_rep):
         """Ensure _intervs() calls everything in the right order, with the right args & settings.
            This uses the default *except* requires removing rests, so it's more complex."""
         test_settings = {'simple or compound': 'compound', 'quality': False}
@@ -122,6 +129,7 @@ class Intervals(TestCase):
         test_wc.settings(None, 'count frequency', False)
         actual = test_wc._intervs()  # pylint: disable=protected-access
 
+        self.assertEqual(0, mock_guc.call_count)
         self.assertEqual(len(test_pieces), len(actual))
         self.assertEqual(0, mock_rfa.call_count)
         self.assertEqual(0, mock_rep.call_count)

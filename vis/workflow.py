@@ -568,7 +568,7 @@ class WorkflowManager(object):
             combos = str(self.settings(i, 'voice combinations'))
             if combos != 'all' and combos != 'all pairs' and combos != 'None':  # "if we remove pairs"
                 # NB: this next line may raise a ValueError, but we can't do anything to save it
-                combos = ast.literal_eval(combos)
+                combos = self._get_unique_combos(i)
                 # ensure each combination is a two-voice pair
                 for pair in combos:
                     if 2 != len(pair):
