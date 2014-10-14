@@ -1,0 +1,112 @@
+# Note: this is the alto part of "bwv77.mxl" counted by hand.
+# Every attack, yes quality, yes compound (though non-compound is the same).
+# To import the file properly as a DataFrame, use this:
+# pd.read_csv('A_horiz_intervals.csv', comment='#', index_col=0, header=[0, 1], quotechar="'")
+,interval.HorizontalIntervalIndexer
+,'1'
+,
+# measure 1
+1.0,P4
+2.0,M2
+3.0,m2
+4.0,-m2
+# m.2
+5.0,P4
+6.5,-m2
+7.0,-M3
+8.0,P1
+# m.3
+9.0,P1
+9.5,m2
+10.0,P1
+10.5,-m2
+11.0,P1
+11.5,-M2
+12.0,P1
+12.5,-m2
+# m.4
+13.0,m2
+14.0,-m2
+15.0,-M3
+16.0,P1
+# m.5
+17.0,P4
+18.0,M2
+19.0,m2
+20.0,-m2
+# m.6
+21.0,P4
+22.5,-m2
+23.0,-M3
+24.0,P1
+# m.7
+25.0,P1
+25.5,m2
+26.0,P1
+26.5,-m2
+27.0,P1
+27.5,-M2
+28.0,P1
+28.5,-m2
+# m.8
+29.0,m2
+30.0,-m2
+31.0,-M3
+32.0,P1
+# m.9
+33.0,P4
+33.5,-M2
+34.0,M2
+34.5,-m3
+35.0,m2
+36.0,P1
+# m.10
+37.0,-m2
+38.0,P1
+39.0,M2
+40.0,m2
+# m.11
+41.0,P1
+41.5,M2
+42.0,m2
+43.0,-m2
+44.0,P4
+44.5,-M2
+# m.12
+45.0,-M2
+45.5,-m2
+46.0,-M2
+47.0,-M2
+48.0,M3
+# m.13
+49.0,P1
+50.0,-M2
+51.0,-M2
+51.5,M2
+52.0,M2
+# m.14
+53.0,P1
+54.0,-M2
+55.0,-m2
+56.0,-M3
+# m.15
+57.0,P4
+58.0,P1
+58.5,M2
+59.0,m2
+60.0,-m2
+# m.16
+61.0,-M2
+62.0,-m2
+63.0,-M3
+64.0,M6
+# m.17
+65.0,m2
+66.0,P1
+67.0,P1
+68.0,-M2
+68.5,-m2
+# m.18
+69.0,P4
+70.0,-m2
+71.0,-M3

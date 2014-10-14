@@ -30,6 +30,8 @@ import os
 from unittest import TestCase, TestLoader
 import pandas
 from vis.workflow import WorkflowManager
+from vis.models.indexed_piece import IndexedPiece
+from vis.analyzers.indexers import noterest, interval
 
 # find pathname of the 'vis' directory
 import vis
@@ -177,7 +179,7 @@ class IntervalsTests(TestCase):
         self.assertDataFramesEqual(expected, actual)
 
     def test_intervals_7(self):
-        """same as test_7 *but* no quality"""
+        """same as test_6 *but* no quality"""
         # NB: the "expected" was hand-counted
         expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_intervals_nq.csv'),
                                    comment='#', index_col=0, header=[0, 1], quotechar="'", dtype='object')
@@ -191,6 +193,40 @@ class IntervalsTests(TestCase):
 
         self.assertEqual(1, len(actual))
         actual = actual[0].dropna()
+        self.assertDataFramesEqual(expected, actual)
+
+    def test_intervals_8(self):
+        """test horizontal of Alto of bwv77; with quality; not counting frequency"""
+        # NB: the "expected" was hand-counted
+        # TODO: change this into a WorkflowManager-using test when the "horizontal intervals" experiment is ready
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'A_horiz_ints.csv'),
+                                   comment='#', index_col=0, header=[0, 1], quotechar="'")
+        setts = {'quality': True, 'simple or compound': 'compound', 'horiz_attach_later': True}
+
+        test_ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl'))
+        actual = test_ip.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
+                                  setts)
+
+        actual = actual['interval.HorizontalIntervalIndexer']
+        self.assertEqual(4, len(actual.columns))
+        actual = pandas.DataFrame({('interval.HorizontalIntervalIndexer', '1'): actual['1'].dropna()})
+        self.assertDataFramesEqual(expected, actual)
+
+    def test_intervals_9(self):
+        """same as test_8 *but* no quality"""
+        # NB: the "expected" was hand-counted
+        # TODO: change this into a WorkflowManager-using test when the "horizontal intervals" experiment is ready
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'A_horiz_ints_nq.csv'),
+                                   comment='#', index_col=0, header=[0, 1], quotechar="'", dtype='object')
+        setts = {'quality': False, 'simple or compound': 'compound', 'horiz_attach_later': True}
+
+        test_ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl'))
+        actual = test_ip.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
+                                  setts)
+
+        actual = actual['interval.HorizontalIntervalIndexer']
+        self.assertEqual(4, len(actual.columns))
+        actual = pandas.DataFrame({('interval.HorizontalIntervalIndexer', '1'): actual['1'].dropna()})
         self.assertDataFramesEqual(expected, actual)
 
 
