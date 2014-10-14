@@ -31,7 +31,6 @@ new ``WorkflowManager`` classes.
 """
 
 from os import path
-import ast
 from ast import literal_eval
 import pandas
 import vis
@@ -371,7 +370,7 @@ class WorkflowManager(object):
 
         # figure out which combinations we need. Because this might raise a ValueError, but we can't
         # save the situation, we might as well do this before we bother wasting time computing
-        needed_combos = ast.literal_eval(str(self.settings(index, 'voice combinations')))
+        needed_combos = self._get_unique_combos(index)
 
         piece = self._data[index]
 

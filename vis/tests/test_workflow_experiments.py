@@ -230,7 +230,8 @@ class IntervalNGrams(TestCase):
 
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch('pandas.concat')
-    def test_var_part_modules_1(self, mock_concat, mock_ror):
+    @mock.patch('vis.workflow.WorkflowManager._get_unique_combos')
+    def test_var_part_modules_1(self, mock_guc, mock_concat, mock_ror):
         """uses two two-part combinations"""
         # pylint: disable=line-too-long
         # inputs
@@ -240,6 +241,7 @@ class IntervalNGrams(TestCase):
         mock_ror.return_value = 'mock_ror return'
         mock_concat.return_value = 'pandas.concat() return'
         test_index = 0
+        mock_guc.return_value = selected_part_combos
         # expecteds
         expected = mock_concat.return_value
         # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
@@ -282,6 +284,7 @@ class IntervalNGrams(TestCase):
         test_wc.settings(test_index, 'voice combinations', str(selected_part_combos))
         actual = test_wc._variable_part_modules(test_index)  # pylint: disable=protected-access
 
+        mock_guc.assert_called_once_with(test_index)
         self.assertEqual(expected, actual)
         self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
         self.assertSequenceEqual(exp_ror_calls, mock_ror.call_args_list)
@@ -289,7 +292,8 @@ class IntervalNGrams(TestCase):
 
     @mock.patch('vis.workflow.WorkflowManager._run_off_rep')
     @mock.patch('pandas.concat')
-    def test_var_part_modules_2(self, mock_concat, mock_ror):
+    @mock.patch('vis.workflow.WorkflowManager._get_unique_combos')
+    def test_var_part_modules_2(self, mock_guc, mock_concat, mock_ror):
         """uses two three-part combinations; do include rests"""
         # pylint: disable=line-too-long
         # inputs
@@ -299,6 +303,7 @@ class IntervalNGrams(TestCase):
         mock_ror.return_value = 'mock_ror return'
         mock_concat.return_value = 'pandas.concat() return'
         test_index = 0
+        mock_guc.return_value = selected_part_combos
         # expecteds
         expected = mock_concat.return_value
         # NB: this looks more complicated than it is; it's simply the calls we expect to get_data(),
@@ -343,6 +348,7 @@ class IntervalNGrams(TestCase):
         test_wc.settings(test_index, 'voice combinations', str(selected_part_combos))
         actual = test_wc._variable_part_modules(test_index)  # pylint: disable=protected-access
 
+        mock_guc.assert_called_once_with(test_index)
         self.assertEqual(expected, actual)
         self.assertSequenceEqual(exp_calls, test_pieces[0].get_data.call_args_list)
         self.assertSequenceEqual(exp_ror_calls, mock_ror.call_args_list)
