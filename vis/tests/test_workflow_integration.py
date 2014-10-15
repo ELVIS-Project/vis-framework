@@ -272,8 +272,8 @@ class NGramsTests(TestCase):
                 if exp[col_name].loc[loc_val] != act[col_name].loc[loc_val]:
                     msg = '"{}" is {} but we expected {}'
                     raise AssertionError(msg.format(loc_val,
-                                                    exp[col_name].loc[loc_val],
-                                                    act[col_name].loc[loc_val]))
+                                                    act[col_name].loc[loc_val],
+                                                    exp[col_name].loc[loc_val]))
 
     def test_ngrams_1(self):
         """test the two highest voices of bwv77; 2-grams"""
