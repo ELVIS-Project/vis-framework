@@ -361,47 +361,36 @@ class NGramsTests(TestCase):
         actual = test_wm.run('interval n-grams')
         self.assertDataFramesEqual(expected, actual)
 
+    # TODO: write the following three tests
     def test_ngrams_9a(self):
-        """test the calculation of horizontal intervals when the lower voice is sustained
-           longer than the offset interval. A custom string, 'zamboni', is passed for horizontal
-           unisons resulting from a sustained lower voice. Regression test for:
-           https://github.com/ELVIS-Project/vis/issues/305"""
-        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
-        test_wm.load()
-        test_wm.settings(0, 'voice combinations', '[[0,1]]')
-        test_wm.settings(0, 'n', 2)
-        test_wm.settings(0, 'count frequency', True)
-        test_wm.settings(0, 'continuer', 'zamboni')
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9a.csv'),
-                                    index_col=0)
-        actual = test_wm.run('interval n-grams')
-        self.assertDataFramesEqual(expected, actual)
+        """
+        2-grams between S&A in bwv77. Not counting frequency. Use custom "continuer" string. Quality.
+
+        Regression test for: https://github.com/ELVIS-Project/vis/issues/305 which means we *must*
+        use an offset interval.
+        """
+        pass
 
     def test_ngrams_9b(self):
-        """same as 9a but tests functionality of 'dynamic quality' setting of continuer
-           when 'interval quality' is set to True."""
-        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
-        test_wm.load()
-        test_wm.settings(0, 'voice combinations', '[[0,1]]')
-        test_wm.settings(0, 'n', 2)
-        test_wm.settings(0, 'count frequency', True)
-        test_wm.settings(0, 'interval quality', True)
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9b.csv'),
-                                    index_col=0)
-        actual = test_wm.run('interval n-grams')
-        self.assertDataFramesEqual(expected, actual)
+        """
+        test_ngrams_9a() but counting frequency.
+
+        Regression test for: https://github.com/ELVIS-Project/vis/issues/305 which means we *must*
+        use an offset interval.
+        """
+        pass
 
     def test_ngrams_9c(self):
-        """same as 9b but 'interval quality' is set to False (by default)."""
-        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
-        test_wm.load()
-        test_wm.settings(0, 'voice combinations', '[[0,1]]')
-        test_wm.settings(0, 'n', 2)
-        test_wm.settings(0, 'count frequency', True)
-        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77_sop_alt_2grams_9c.csv'),
-                                    index_col=0)
-        actual = test_wm.run('interval n-grams')
-        self.assertDataFramesEqual(expected, actual)
+        """
+        2-grams between S&A in bwv77. Not counting frequency. No quality. No offset interval.
+        """
+        pass
+
+    def test_ngrams_9d(self):
+        """
+        test_ngrams_9c() but counting frequency.
+        """
+        pass
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
