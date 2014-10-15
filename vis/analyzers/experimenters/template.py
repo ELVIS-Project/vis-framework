@@ -38,6 +38,12 @@ class TemplateExperimenter(experimenter.Experimenter):
     Template for an :class:`Experimenter` subclass.
     """
 
+    # required_score_type = None
+    """
+    You may set a "required_score_type" if you require the Score, as the LilyPondExperimenter does,
+    for example. Otherwise this attribute is not *required* of an Experimenter.
+    """
+
     possible_settings = ['fake_setting']
     """
     This is a list of basestrings that are the names of the settings used in this experimenter.

@@ -44,6 +44,8 @@ class Experimenter(object):
     # just the standard instance variables
     possible_settings = []
     default_settings = None
+    # required_score_type = None  <-- this may be set by an Experimenter if they require the Score,
+    #                                 as the LilyPondExperimenter does, for example
     # self._index
 
     # pylint: disable=W0613

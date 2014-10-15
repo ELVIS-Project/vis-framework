@@ -72,6 +72,12 @@ class LilyPondExperimenter(experimenter.Experimenter):
         the :class:`LilyPondExperimenter`, and any part with annotations belong in the settings.
     """
 
+    required_score_type = 'stream.Score'
+    """
+    This attribute allows :class:`IndexedPiece` to automatically import and provide the
+    :class:`Score` for :class:`LilyPondExperimenter`. Otherwise you would have to do this manually.
+    """
+
     possible_settings = ['run_lilypond', 'output_pathname', 'annotation part']
     """
     Possible settings for the :class:`LilyPondExperimenter` include:
