@@ -71,13 +71,37 @@ class TestIndexedPieceA(TestCase):
         non_analyzer = Mock()
         self.assertRaises(TypeError, self.ind_piece.get_data, non_analyzer)
 
-    def test_get_data_1(self):
-        # get data for an Indexer requiring a Score
+    @patch('vis.models.indexed_piece.IndexedPiece._import_score')
+    def test_get_data_1a(self, mock_is):
+        """get data for an Indexer requiring a [Part]"""
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
         mock_indexer_cls.required_score_type = 'stream.Part'
         mock_indexer_cls.run = MagicMock()
-        mock_indexer_cls.run.return_value = u'ahhh!'
-        self.assertEquals(u'ahhh!', self.ind_piece.get_data([mock_indexer_cls]))
+        mock_indexer_cls.run.return_value = 'ahhh!'
+        expected = 'ahhh!'
+        mock_is.return_value = MagicMock(spec_set=music21.stream.Score)
+        mock_is.return_value.parts = [MagicMock(spec_set=music21.stream.Part)]
+
+        actual = self.ind_piece.get_data([mock_indexer_cls])
+
+        self.assertEquals(expected, actual)
+        mock_is.assert_called_once_with(known_opus=False)
+        mock_indexer_cls.run.assert_called_once_with()
+
+    @patch('vis.models.indexed_piece.IndexedPiece._import_score')
+    def test_get_data_1a(self, mock_is):
+        """get data for an Indexer requiring a [Part]"""
+        mock_indexer_cls = type('MockIndexer', (Indexer,), {})
+        mock_indexer_cls.required_score_type = 'stream.Score'
+        mock_indexer_cls.run = MagicMock()
+        mock_indexer_cls.run.return_value = 'ahhh!'
+        expected = 'ahhh!'
+        mock_is.return_value = MagicMock(spec_set=music21.stream.Score)
+
+        actual = self.ind_piece.get_data([mock_indexer_cls])
+
+        self.assertEquals(expected, actual)
+        mock_is.assert_called_once_with(known_opus=False)
         mock_indexer_cls.run.assert_called_once_with()
 
     def test_get_data_2(self):

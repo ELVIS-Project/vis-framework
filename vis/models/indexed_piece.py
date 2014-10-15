@@ -395,8 +395,8 @@ class IndexedPiece(object):
                 data = self._import_score(known_opus=known_opus)
                 data = [x for x in data.parts]  # Indexers require a list of Parts
             elif (hasattr(analyzer_cls[0], 'required_score_type') and
-                  analyzer_cls[0].required_score_type == 'stream.Score'):  # TODO: test this
-                data = [self._import_score()]  # TODO: test this
+                  analyzer_cls[0].required_score_type == 'stream.Score'):
+                data = [self._import_score(known_opus=known_opus)]
             else:
                 raise RuntimeError(IndexedPiece._MISSING_DATA.format(analyzer_cls[0]))
         if len(analyzer_cls) > 1:
