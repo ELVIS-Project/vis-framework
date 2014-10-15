@@ -34,6 +34,7 @@ import os
 from unittest import TestCase, TestLoader
 import mock
 from mock import MagicMock
+from numpy import NaN
 import pandas
 from pandas import Series, DataFrame
 from music21.humdrum.spineParser import GlobalReference
@@ -451,11 +452,9 @@ class MakeLilyPond(TestCase):
         test_wm._result = ['fake results']
         # test twice like this to make sure (1) the try/except will definitely catch something, and
         # (2) we're not getting hit by another RuntimeError, of which there could be many
-        self.assertRaises(RuntimeError, test_wm._make_lilypond, ['paths'])
-        try:
+        with self.assertRaises(RuntimeError) as run_err:
             test_wm._make_lilypond(['paths'])
-        except RuntimeError as the_err:
-            self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, the_err.message)
+        self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, run_err.exception.args[0])
 
     def test_lilypond_1b(self):
         """error conditions: if the lengths are different, (but 'count frequency' is okay)"""
@@ -463,135 +462,105 @@ class MakeLilyPond(TestCase):
         test_wm._data = ['fake IndexedPiece']
         test_wm._result = ['fake results', 'more fake results', 'so many fake results']
         test_wm.settings(None, 'count frequency', False)
-        self.assertRaises(RuntimeError, test_wm._make_lilypond, ['paths'])
-        try:
+        with self.assertRaises(RuntimeError) as run_err:
             test_wm._make_lilypond(['paths'])
-        except RuntimeError as the_err:
-            self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, the_err.message)
+        self.assertEqual(WorkflowManager._COUNT_FREQUENCY_MESSAGE, run_err.exception.args[0])
 
-    @mock.patch('vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
-    def test_lilypond_2(self, test_ip):
-        """make sure it works correctly with one piece that has one part
-           ("voice combinations" with literal_eval())"""
-        # 1: prepare
-        input_path = 'carpathia'
-        get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
-        num_parts = 1  # how many parts per piece?
-        piece_list = ['test_piece.mei']
-        test_wm = WorkflowManager(piece_list)
-        for i in xrange(len(piece_list)):
-            test_wm._data[i] = mock.MagicMock(spec_set=IndexedPiece)
-            test_wm._data[i].get_data.side_effect = get_data_ret
-        # the results will be like this: [['fake result 0-0', 'fake result 0-1'],
-        #                                 ['fake result 1-0', 'fake result 1-1']]
-        exp_results = [['fake result ' + str(i) + '-' + str(j) for j in xrange(num_parts)] \
-                       for i in xrange(len(piece_list))]
-        test_wm._result = exp_results
-        test_wm.settings(None, 'count frequency', False)
-        test_wm.settings(0, 'voice combinations', '[[0]]')
-        #exp_part_labels = [{'part_names': [[0]]}]
-        # 2: run
-        test_wm._make_lilypond(input_path)
-        # 3: check
-        self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
-        lily_ind_list = [lilypond_ind.AnnotationIndexer,
-                         lilypond_exp.AnnotateTheNoteExperimenter,
-                         lilypond_exp.PartNotesExperimenter]
-        for i, piece in enumerate(test_wm._data):
-            self.assertEqual(num_parts + 1, piece.get_data.call_count)
-            for j in xrange(num_parts):
-                piece.get_data.assert_any_call(lily_ind_list,
-                                               None,  # {'part_names': exp_part_labels[i]},
-                                               [exp_results[i][j]])
-            sett_dict = {'run_lilypond': True,
-                         'output_pathname': input_path + '.ly',
-                         'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
-            piece.get_data.assert_any_call([lilypond_exp.LilyPondExperimenter], sett_dict)
+    def test_lilypond_2(self):
+        """one piece with one part; specified pathname; and there's a NaN in the Series!"""
+        mock_ips = [MagicMock(spec_set=IndexedPiece)]
+        mock_ips[0].get_data.return_value = ['ready for LilyPond']
+        result = [pandas.DataFrame({('analyzer', 'clarinet'): pandas.Series(xrange(10))})]
+        result[0][('analyzer', 'clarinet')].iloc[0] = NaN
+        exp_series = pandas.Series(xrange(1, 10), index=xrange(1, 10))  # to test dropna() was run
+        pathname = 'this_path'
+        expected = ['this_path.ly']
+        exp_get_data_calls = [mock.call([lilypond_ind.AnnotationIndexer,
+                                         lilypond_exp.AnnotateTheNoteExperimenter,
+                                         lilypond_exp.PartNotesExperimenter],
+                                        {'part_names': ['analyzer: clarinet'],
+                                         'column': 'lilypond.AnnotationIndexer'},
+                                        [mock.ANY]),
+                              mock.call([lilypond_exp.LilyPondExperimenter],
+                                        {'run_lilypond': True,
+                                         'annotation_part': ['ready for LilyPond'],
+                                         'output_pathname': expected[0]})]
 
-    @mock.patch('vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
-    @mock.patch('vis.workflow.WorkflowManager.metadata')
-    def test_lilypond_3(self, mock_metadata, test_ip):
-        """make sure it works correctly with one piece that has three parts
-           ("voice combinations" is "all pairs")"""
-        # 1: prepare
-        input_path = 'carpathia'
-        get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
-        num_parts = 3  # how many parts per piece? -- NB: different from previous test
-        piece_list = ['test_piece.mei']
-        test_wm = WorkflowManager(piece_list)
-        for i in xrange(len(piece_list)):
-            test_wm._data[i] = mock.MagicMock(spec_set=IndexedPiece)
-            test_wm._data[i].get_data.side_effect = get_data_ret
-        mock_metadata.return_value = ['part %i' % x for x in xrange(num_parts)]
-        # the results will be like this: [['fake result 0-0', 'fake result 0-1'],
-        #                                 ['fake result 1-0', 'fake result 1-1']]
-        exp_results = [['fake result ' + str(i) + '-' + str(j) for j in xrange(num_parts)] \
-                       for i in xrange(len(piece_list))]
-        test_wm._result = exp_results
+        test_wm = WorkflowManager(mock_ips)
+        test_wm._result = result
         test_wm.settings(None, 'count frequency', False)
-        test_wm.settings(0, 'voice combinations', 'all pairs')
-        #exp_part_labels = [[[0, 1], [0, 2], [1, 2]]]
-        # 2: run
-        test_wm._make_lilypond(input_path)
-        # 3: check
-        self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
-        lily_ind_list = [lilypond_ind.AnnotationIndexer,
-                         lilypond_exp.AnnotateTheNoteExperimenter,
-                         lilypond_exp.PartNotesExperimenter]
-        for i, piece in enumerate(test_wm._data):
-            self.assertEqual(num_parts + 1, piece.get_data.call_count)
-            for j in xrange(num_parts):
-                piece.get_data.assert_any_call(lily_ind_list,
-                                               None,  # {'part_names': exp_part_labels[i]},
-                                               [exp_results[i][j]])
-            sett_dict = {'run_lilypond': True,
-                         'output_pathname': input_path + '.ly',
-                         'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
-            piece.get_data.assert_any_call([lilypond_exp.LilyPondExperimenter], sett_dict)
+        test_wm._make_lilypond(pathname)
 
-    @mock.patch('vis.models.indexed_piece.IndexedPiece', spec_set=IndexedPiece)
-    @mock.patch('vis.workflow.WorkflowManager.metadata')
-    def test_lilypond_4(self, mock_metadata, test_ip):
-        """make sure it works correctly with three pieces that have three parts
-           ("voice combinations" is "all")"""
-        # 1: prepare
-        input_path = 'carpathia'
-        get_data_ret = lambda *x: ['** ' + str(x[1]) if len(x) == 2 else '** ' + str(x[2][0][-3:])]
-        num_parts = 3  # how many parts per piece? -- NB: diffferent from first test
-        piece_list = ['test_piece_1.mei', 'test_piece_2.mei', 'test_piece_3.mei']
-        test_wm = WorkflowManager(piece_list)
-        for i in xrange(len(piece_list)):
-            test_wm._data[i] = mock.MagicMock(spec_set=IndexedPiece)
-            test_wm._data[i].get_data.side_effect = get_data_ret
-        mock_metadata.return_value = ['part %i' % x for x in xrange(num_parts)]
-        # the results will be like this: [['fake result 0-0', 'fake result 0-1'],
-        #                                 ['fake result 1-0', 'fake result 1-1']]
-        exp_results = [['fake result ' + str(i) + '-' + str(j) for j in xrange(num_parts)] \
-                       for i in xrange(len(piece_list))]
-        test_wm._result = exp_results
+        self.assertEqual(2, mock_ips[0].get_data.call_count)
+        self.assertSequenceEqual(exp_get_data_calls, mock_ips[0].get_data.call_args_list)
+        # check that dropna() was run
+        actual_series = mock_ips[0].get_data.call_args_list[0][0][2][0]
+        self.assertSequenceEqual(list(exp_series.index), list(actual_series.index))
+        self.assertSequenceEqual(list(exp_series.values), list(actual_series.values))
+
+    def test_lilypond_3(self):
+        """two pieces with two parts; unspecified pathname"""
+        mock_ips = [MagicMock(spec_set=IndexedPiece), MagicMock(spec_set=IndexedPiece)]
+        mock_ips[0].get_data.return_value = ['0 ready for LilyPond']
+        mock_ips[1].get_data.return_value = ['1 ready for LilyPond']
+        result = [pandas.DataFrame({('analyzer', 'clarinet'): pandas.Series(xrange(10)),
+                                    ('analyzer', 'tuba'): pandas.Series(xrange(10))}),
+                  pandas.DataFrame({('analyzer', 'flute'): pandas.Series(xrange(10)),
+                                    ('analyzer', 'horn'): pandas.Series(xrange(10))})]
+        expected = ['test_output/output_result-0.ly', 'test_output/output_result-1.ly']
+        exp_get_data_calls_0 = [mock.call([lilypond_ind.AnnotationIndexer,
+                                           lilypond_exp.AnnotateTheNoteExperimenter,
+                                           lilypond_exp.PartNotesExperimenter],
+                                          {'part_names': ['analyzer: clarinet'],
+                                           'column': 'lilypond.AnnotationIndexer'},
+                                          [mock.ANY]),
+                                mock.call([lilypond_ind.AnnotationIndexer,
+                                           lilypond_exp.AnnotateTheNoteExperimenter,
+                                           lilypond_exp.PartNotesExperimenter],
+                                          {'part_names': ['analyzer: tuba'],
+                                           'column': 'lilypond.AnnotationIndexer'},
+                                          [mock.ANY]),
+                                mock.call([lilypond_exp.LilyPondExperimenter],
+                                          {'run_lilypond': True,
+                                           'annotation_part': ['0 ready for LilyPond',
+                                                               '0 ready for LilyPond'],
+                                           'output_pathname': expected[0]})]
+        exp_get_data_calls_1 = [mock.call([lilypond_ind.AnnotationIndexer,
+                                           lilypond_exp.AnnotateTheNoteExperimenter,
+                                           lilypond_exp.PartNotesExperimenter],
+                                          {'part_names': ['analyzer: flute'],
+                                           'column': 'lilypond.AnnotationIndexer'},
+                                          [mock.ANY]),
+                                mock.call([lilypond_ind.AnnotationIndexer,
+                                           lilypond_exp.AnnotateTheNoteExperimenter,
+                                           lilypond_exp.PartNotesExperimenter],
+                                          {'part_names': ['analyzer: horn'],
+                                           'column': 'lilypond.AnnotationIndexer'},
+                                          [mock.ANY]),
+                                mock.call([lilypond_exp.LilyPondExperimenter],
+                                          {'run_lilypond': True,
+                                           'annotation_part': ['1 ready for LilyPond',
+                                                               '1 ready for LilyPond'],
+                                           'output_pathname': expected[1]})]
+
+        test_wm = WorkflowManager(mock_ips)
+        test_wm._result = result
         test_wm.settings(None, 'count frequency', False)
-        test_wm.settings(0, 'voice combinations', 'all')
-        test_wm.settings(1, 'voice combinations', 'all')
-        test_wm.settings(2, 'voice combinations', 'all')
-        #exp_part_labels = [[[0, 2], [1, 2]] for _ in xrange(len(piece_list))]
-        # 2: run
-        test_wm._make_lilypond(input_path)
-        # 3: check
-        self.assertEqual(len(piece_list), test_ip.call_count)  # even though we don't use them
-        lily_ind_list = [lilypond_ind.AnnotationIndexer,
-                         lilypond_exp.AnnotateTheNoteExperimenter,
-                         lilypond_exp.PartNotesExperimenter]
-        for i, piece in enumerate(test_wm._data):
-            self.assertEqual(num_parts + 1, piece.get_data.call_count)
-            for j in xrange(num_parts):
-                piece.get_data.assert_any_call(lily_ind_list,
-                                               None,  # {'part_names': exp_part_labels[j]},
-                                               [exp_results[i][j]])
-            # NB: the output_pathname is different from the previous two tests
-            sett_dict = {'run_lilypond': True,
-                        'output_pathname': input_path + '-' + str(i) + '.ly',
-                        'annotation_part': [get_data_ret(0, 0, [z])[0] for z in exp_results[i]]}
-            piece.get_data.assert_any_call([lilypond_exp.LilyPondExperimenter], sett_dict)
+        test_wm._make_lilypond()
+
+        self.assertEqual(3, mock_ips[0].get_data.call_count)
+        self.assertSequenceEqual(exp_get_data_calls_0, mock_ips[0].get_data.call_args_list)
+        self.assertEqual(3, mock_ips[1].get_data.call_count)
+        self.assertSequenceEqual(exp_get_data_calls_1, mock_ips[1].get_data.call_args_list)
+        # check the Series are the ones we expected---this is pretty weird and I'm sorry
+        self.assertEqual(result[0][('analyzer', 'clarinet')].name,
+                         mock_ips[0].get_data.call_args_list[0][0][2][0].name)
+        self.assertEqual(result[0][('analyzer', 'tuba')].name,
+                         mock_ips[0].get_data.call_args_list[1][0][2][0].name)
+        self.assertEqual(result[1][('analyzer', 'flute')].name,
+                         mock_ips[1].get_data.call_args_list[0][0][2][0].name)
+        self.assertEqual(result[1][('analyzer', 'horn')].name,
+                         mock_ips[1].get_data.call_args_list[1][0][2][0].name)
 
 
 class Settings(TestCase):

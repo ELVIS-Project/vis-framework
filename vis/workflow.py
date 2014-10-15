@@ -880,24 +880,17 @@ class WorkflowManager(object):
         # run additional indexers for annotation
         for i in xrange(len(self._data)):
             ann_p = []
-            #combos = []
-            #if 'all' == self.settings(i, 'voice combinations'):
-                #lowest_part = len(self.metadata(i, 'parts')) - 1
-                #combos = [[x, lowest_part] for x in xrange(lowest_part)]
-            #elif 'all pairs' == self.settings(i, 'voice combinations'):
-                ## Calculate all 2-part combinations. We must do this in the same order as the
-                ## IntervalIndexer, or else the labels will be wrong.
-                #for left in xrange(len(self.metadata(i, 'parts'))):
-                    #for right in xrange(left + 1, len(self.metadata(i, 'parts'))):
-                        #combos.append([left, right])
-            #else:
-                #combos = ast.literal_eval(self.settings(i, 'voice combinations'))
-            for j in xrange(len(self._result[i])):
+            combos = list(self._result[i].columns)  # this is (Indexer, part_combo) tuples
+
+            # run the LilyPond analyzers
+            for j in combos:
+                this_part = self._result[i][j].dropna()
                 ann_p.append(self._data[i].get_data([lilypond_ind.AnnotationIndexer,
                                                      lilypond_exp.AnnotateTheNoteExperimenter,
                                                      lilypond_exp.PartNotesExperimenter],
-                                                    None,
-                                                    [self._result[i][j]])[0])
+                                                    {'part_names': ['{}: {}'.format(j[0], j[1])],
+                                                     'column': 'lilypond.AnnotationIndexer'},
+                                                    [this_part])[0])
             annotation_parts.append(ann_p)
 
         # run OutputLilyPond and LilyPond
