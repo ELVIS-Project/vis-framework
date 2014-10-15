@@ -25,6 +25,14 @@ experimenters Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`lilypond` Module
+-----------------------
+
+.. automodule:: vis.analyzers.experimenters.lilypond
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`template` Module
 ----------------------
 
