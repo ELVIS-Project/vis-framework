@@ -7,7 +7,7 @@
 # Filename:               models/indexed_piece.py
 # Purpose:                Hold the model representing an indexed and analyzed piece of music.
 #
-# Copyright (C) 2013 Christopher Antila, Jamie Klassen
+# Copyright (C) 2013, 2014 Christopher Antila, Jamie Klassen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -54,7 +54,7 @@ def _find_piece_title(the_score):
     elif hasattr(the_score, 'filePath'):
         post = os.path.basename(the_score.filePath)
     else:  # if the Score was part of an Opus
-        post = u'Unknown Piece'
+        post = 'Unknown Piece'
 
     # Now check that there is no file extension. This could happen either if
     # we used the filename or if music21 did a less-than-great job at the
@@ -81,23 +81,23 @@ def _find_part_names(the_score):
     # First try to find Instrument objects. If that doesn't work, use the "id"
     for each_part in the_score.parts:
         instr = each_part.getInstrument()
-        if instr is not None and instr.partName != u'' and instr.partName is not None:
+        if instr is not None and instr.partName != '' and instr.partName is not None:
             post.append(unicode(instr.partName))
         elif each_part.id is not None:
             try:
                 int(each_part.id)  # if it worked, the part name is an integer, so use "Part X"
-                post.append(u'rename')
+                post.append('rename')
             except ValueError:
                 # this is actually where we prefer to end up
                 post.append(unicode(each_part.id))
         else:
-            post.append(u'rename')
+            post.append('rename')
 
     # Make sure none of the part names are just numbers; if they are, use
     # a part name like "Part 1" instead.
     for i, part_name in enumerate(post):
-        if u'rename' == part_name:
-            post[i] = u''.join([u'Part ', unicode(i + 1)])
+        if 'rename' == part_name:
+            post[i] = 'Part {}'.format(i + 1)
 
     return post
 
@@ -117,6 +117,26 @@ class IndexedPiece(object):
     """
     Hold indexed data from a musical score.
     """
+
+    # When get_data() is missing the "data" argument.
+    _MISSING_DATA = '{} is missing required data from another analyzer.'
+
+    # When get_data() gets something that isn't an Indexer or Experimenter
+    _NOT_AN_ANALYZER = 'IndexedPiece requires an Indexer or Experimenter (received {})'
+
+    # When metadata() gets an invalid field name
+    _INVALID_FIELD = 'metadata(): invalid field ({})'
+
+    # When metadata()'s "field" is not a string
+    _META_INVALID_TYPE = "metadata(): parameter 'field' must be of type 'string'"
+
+    # When _import_score() gets an unexpected Opus
+    _UNEXP_OPUS = '{} is a music21.stream.Opus (refer to the IndexedPiece.get_data() documentation)'
+
+    # When _import_score() gets an unexpected Opus
+    _UNEXP_NONOPUS = ('You expected a music21.stream.Opus but {} is not an Opus (refer to the '
+                      'IndexedPiece.get_data() documentation)')
+
     def __init__(self, pathname, opus_id=None):
         """
         :param pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
@@ -131,12 +151,12 @@ class IndexedPiece(object):
             """
             Initialize valid metadata fields with a zero-length unicode.
             """
-            field_list = [u'opusNumber', u'movementName', u'composer', u'number', u'anacrusis',
-                u'movementNumber', u'date', u'composers', u'alternativeTitle', u'title',
-                u'localeOfComposition', u'parts']
+            field_list = ['opusNumber', 'movementName', 'composer', 'number', 'anacrusis',
+                'movementNumber', 'date', 'composers', 'alternativeTitle', 'title',
+                'localeOfComposition', 'parts']
             for field in field_list:
-                self._metadata[field] = u''
-            self._metadata[u'pathname'] = pathname
+                self._metadata[field] = ''
+            self._metadata['pathname'] = pathname
 
         super(IndexedPiece, self).__init__()
         self._imported = False
@@ -146,23 +166,17 @@ class IndexedPiece(object):
         init_metadata()
 
     def __repr__(self):
-        return u''.join([u'vis.models.indexed_piece.IndexedPiece(u\'',
-                         self.metadata(u'pathname'),
-                         u'\')'])
+        return "vis.models.indexed_piece.IndexedPiece('{}')".format(self.metadata('pathname'))
 
     def __str__(self):
         return str(unicode(self))
 
     def __unicode__(self):
-        post = [u'<IndexedPiece (']
+        post = []
         if self._imported:
-            post.append(self.metadata(u'title'))
-            post.append(u' by ')
-            post.append(self.metadata(u'composer'))
+            return '<IndexedPiece ({} by {})>'.format(self.metadata('title'), self.metadata('composer'))
         else:
-            post.append(self.metadata(u'pathname'))
-        post.append(u')>')
-        return u''.join(post)
+            return '<IndexedPiece ({})>'.format(self.metadata('pathname'))
 
     def _import_score(self, known_opus=False):
         """
@@ -182,8 +196,7 @@ class IndexedPiece(object):
         if isinstance(score, stream.Opus):
             if known_opus is False and self._opus_id is None:
                 # unexpected Opus---can't continue
-                raise OpusWarning(self.metadata('pathname') + u' is a music21.stream.Opus '
-                                  u'(refer to the IndexedPiece.get_data() documentation)')
+                raise OpusWarning(IndexedPiece._UNEXP_OPUS.format(self.metadata('pathname')))
             elif self._opus_id is None:
                 # we'll make new IndexedPiece objects
                 score = [IndexedPiece(self.metadata('pathname'), i) for i in xrange(len(score))]
@@ -191,17 +204,15 @@ class IndexedPiece(object):
                 # we'll return the appropriate Score
                 score = score.scores[self._opus_id]
         elif known_opus is True:
-            raise OpusWarning(u'You expected a music21.stream.Opus but ' + \
-                              self.metadata('pathname') + u' is not an Opus '
-                                  u'(refer to the IndexedPiece.get_data() documentation)')
+            raise OpusWarning(IndexedPiece._UNEXP_NONOPUS.format(self.metadata('pathname')))
         elif not self._imported:
             for field in self._metadata:
                 if hasattr(score.metadata, field):
                     self._metadata[field] = getattr(score.metadata, field)
                     if self._metadata[field] is None:
-                        self._metadata[field] = u'???'
-            self._metadata[u'parts'] = _find_part_names(score)
-            self._metadata[u'title'] = _find_piece_title(score)
+                        self._metadata[field] = '???'
+            self._metadata['parts'] = _find_part_names(score)
+            self._metadata['title'] = _find_piece_title(score)
             self._imported = True
         return score
 
@@ -270,17 +281,17 @@ class IndexedPiece(object):
 
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
-        u'Jean Sibelius'
+        'Jean Sibelius'
         >>> piece.metadata('date', 1919)
         >>> piece.metadata('date')
         1919
         >>> piece.metadata('parts')
-        [u'Flute 1', u'Flute 2', u'Oboe 1', u'Oboe 2', u'Clarinet 1', u'Clarinet 2', ... ]
+        ['Flute 1'{'Flute 2'{'Oboe 1'{'Oboe 2'{'Clarinet 1'{'Clarinet 2', ... ]
         """
         if not isinstance(field, basestring):
-            raise TypeError(u"metadata(): parameter 'field' must be of type 'basestring'")
+            raise TypeError(IndexedPiece._META_INVALID_TYPE)
         elif field not in self._metadata:
-            raise AttributeError(u'metadata(): invalid field')
+            raise AttributeError(IndexedPiece._INVALID_FIELD.format(field))
         if value is None:
             return self._metadata[field]
         else:
@@ -327,8 +338,7 @@ class IndexedPiece(object):
         """
         for each_cls in cls_list:
             if not issubclass(each_cls, (Indexer, Experimenter)):
-                raise TypeError(u'IndexedPiece requires an Indexer or Experimenter '
-                                u'(received {})'.format(cls_list))
+                raise TypeError(IndexedPiece._NOT_AN_ANALYZER.format(cls_list))
 
     def get_data(self, analyzer_cls, settings=None, data=None, known_opus=False):
         """
@@ -380,15 +390,15 @@ class IndexedPiece(object):
             if analyzer_cls[0] is noterest.NoteRestIndexer:
                 data = self._get_note_rest_index(known_opus=known_opus)
             # NB: Experimenter subclasses don't have "required_score_type"
-            elif hasattr(analyzer_cls[0], 'required_score_type') and \
-            analyzer_cls[0].required_score_type == 'stream.Part':
+            elif (hasattr(analyzer_cls[0], 'required_score_type') and
+                  analyzer_cls[0].required_score_type == 'stream.Part'):
                 data = self._import_score(known_opus=known_opus)
                 data = [x for x in data.parts]  # Indexers require a list of Parts
-            elif analyzer_cls[0].required_score_type == 'stream.Score':  # TODO: test this
+            elif (hasattr(analyzer_cls[0], 'required_score_type') and
+                  analyzer_cls[0].required_score_type == 'stream.Score'):  # TODO: test this
                 data = [self._import_score()]  # TODO: test this
             else:
-                msg = u'{} is missing required data from another analyzer.'.format(analyzer_cls[0])
-                raise RuntimeError(msg)
+                raise RuntimeError(IndexedPiece._MISSING_DATA.format(analyzer_cls[0]))
         if len(analyzer_cls) > 1:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
                 return self.get_data(analyzer_cls[1:], settings, data)
