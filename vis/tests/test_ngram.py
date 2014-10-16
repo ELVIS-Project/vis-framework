@@ -557,6 +557,40 @@ class TestNGramIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
             self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
+    def test_ngram_20(self):
+        """
+        Ensure that events in other voices don't erroneously cause events in the voices-under-study.
+
+        Regression test for GH#334.
+        """
+        # NB: it looks like this:
+        #
+        #    0 | .5 | 1 | .5 | 2 | .5 | 3  <-- offset/index
+        # A: A |    | B |    | C |    | D  <-- included voice
+        # B: Q | W  |   |    | E | R  |    <-- included voice
+        # C:   | Z  |   | X  | V | N  |    <-- not included
+        #
+        # NOTE: for this to be a sufficient test, there must be an offset like 0.5, where one part
+        #       has an event but the other has NaN, *and* an offset like 1.5, where both included
+        #       parts do not have events, but the not-included part does.
+        vertical_a = pandas.Series(['A', 'B', 'C', 'D'], index=[0.0, 1.0, 2.0, 3.0])
+        vertical_b = pandas.Series(['Q', 'W', 'E', 'R'], index=[0.0, 0.5, 2.0, 2.5])
+        vertical_c = pandas.Series(['Z', 'X', 'V', 'N'], index=[0.5, 1.5, 2.0, 2.5])
+        in_val = pandas.DataFrame([vertical_a, vertical_b, vertical_c],
+                                  index=[['vert', 'vert', 'vert'], ['0', '1', '2']]).T
+        setts = {'n': 2, 'vertical': [('vert', '0'), ('vert', '1')]}
+        expected = ['[A Q] [A W]', '[A W] [B W]', '[B W] [C E]', '[C E] [C R]', '[C R] [D R]']
+        expected = pandas.DataFrame([pandas.Series(expected, index=[0.0, 0.5, 1.0, 2.0, 2.5])],
+                                    index=[['ngram.NGramIndexer'], ['[0 1]']]).T
+
+        actual = ngram.NGramIndexer(in_val, setts).run()
+
+        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
+        self.assertEqual(len(expected), len(actual))
+        for col_name in expected.columns:
+            self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
+            self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
+
     def test_ngram_format_1(self):
         """one thing, it's a terminator (don't mark singles)"""
         # pylint: disable=protected-access

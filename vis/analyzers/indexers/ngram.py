@@ -288,9 +288,9 @@ class NGramIndexer(indexer.Indexer):
         # vertical and horizontal events separated in the DataFrame with a MultiIndex
         events = {}
         for i, name in enumerate(self._settings['vertical']):
-            events[('v', i)] = self._score[name]
+            events[('v', i)] = self._score[name].dropna()
         for i, name in enumerate(self._settings['horizontal']):
-            events[('h', i)] = self._score[name]
+            events[('h', i)] = self._score[name].dropna()
 
         # Make the MultiIndex and DataFrame with all events
         events = pandas.DataFrame(events, columns=pandas.MultiIndex.from_tuples(events.keys()))
