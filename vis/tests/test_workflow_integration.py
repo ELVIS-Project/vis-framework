@@ -161,7 +161,7 @@ class IntervalsTests(TestCase):
                 self.assertEqual(expected[col_name].loc[each_interval],
                                  actual[col_name].loc[str(each_interval)])
 
-    def test_intervals_6(self):
+    def test_intervals_6(self):  # TODO: add a frequency-counted test
         """test Soprano and Alto of bwv77; with quality; not counting frequency"""
         # NB: the "expected" was hand-counted
         expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_intervals.csv'),
@@ -178,7 +178,7 @@ class IntervalsTests(TestCase):
         actual = actual[0].dropna()
         self.assertDataFramesEqual(expected, actual)
 
-    def test_intervals_7(self):
+    def test_intervals_7(self):  # TODO: add a frequency-counted test
         """same as test_6 *but* no quality"""
         # NB: the "expected" was hand-counted
         expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_intervals_nq.csv'),
@@ -275,16 +275,7 @@ class NGramsTests(TestCase):
                                                     act[col_name].loc[loc_val],
                                                     exp[col_name].loc[loc_val]))
 
-    def test_ngrams_1(self):
-        """test the two highest voices of bwv77; 2-grams"""
-        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
-        test_wm.load('pieces')
-        test_wm.settings(0, 'voice combinations', '[[0, 1]]')
-        test_wm.settings(0, 'n', 2)
-        test_wm.settings(0, 'continuer', '_')
-        expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_1.pickle'))
-        actual = test_wm.run('interval n-grams')
-        self.assertDataFramesEqual(expected, actual)
+    # NB: test_ngrams_1() was replaced by the hand-counted suite of "bwv77.mxl" tests
 
     def test_ngrams_2(self):
         """test all two-part combinations of bwv77; 5-grams"""
@@ -295,6 +286,7 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'continuer', '_')
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_2.pickle'))
         actual = test_wm.run('interval n-grams')
+        actual.to_pickle('actual.pickle')  # DEBUG
         self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_3(self):
@@ -369,6 +361,7 @@ class NGramsTests(TestCase):
         Regression test for: https://github.com/ELVIS-Project/vis/issues/305 which means we *must*
         use an offset interval.
         """
+        # NB: these results were counted by hand
         pass
 
     def test_ngrams_9b(self):
@@ -378,19 +371,74 @@ class NGramsTests(TestCase):
         Regression test for: https://github.com/ELVIS-Project/vis/issues/305 which means we *must*
         use an offset interval.
         """
+        # NB: these results were counted by hand
         pass
 
     def test_ngrams_9c(self):
         """
-        2-grams between S&A in bwv77. Not counting frequency. No quality. No offset interval.
+        2-grams between S&A in bwv77. Not counting frequency. Quality. No offset interval.
         """
-        pass
+        # NB: these results were counted by hand
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_2grams.csv'),
+                                   comment='#', index_col=0, header=[0, 1], quotechar="'")
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0,1]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(None, 'count frequency', False)
+        test_wm.settings(None, 'interval quality', True)
+        actual = test_wm.run('interval n-grams')
+        self.assertEqual(1, len(actual))
+        self.assertDataFramesEqual(expected, actual[0])
 
     def test_ngrams_9d(self):
         """
         test_ngrams_9c() but counting frequency.
         """
-        pass
+        # NB: these results were counted by hand
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_2grams_freq.csv'),
+                                   comment='#', index_col=0, quotechar="'")
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0,1]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(None, 'count frequency', True)
+        test_wm.settings(None, 'interval quality', True)
+        actual = test_wm.run('interval n-grams')
+        self.assertDataFramesEqual(expected, actual)
+
+    def test_ngrams_9e(self):
+        """
+        2-grams between S&A in bwv77. Not counting frequency. No quality. No offset interval.
+        """
+        # NB: these results were counted by hand
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_2grams_nq.csv'),
+                                   comment='#', index_col=0, header=[0, 1], quotechar="'")
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0,1]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(None, 'count frequency', False)
+        test_wm.settings(None, 'interval quality', False)
+        actual = test_wm.run('interval n-grams')
+        self.assertEqual(1, len(actual))
+        self.assertDataFramesEqual(expected, actual[0])
+
+    def test_ngrams_9f(self):
+        """
+        test_ngrams_9e() but counting frequency.
+        """
+        # NB: these results were counted by hand
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_2grams_nq_freq.csv'),
+                                   comment='#', index_col=0, quotechar="'")
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0,1]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(None, 'count frequency', True)
+        test_wm.settings(None, 'interval quality', False)
+        actual = test_wm.run('interval n-grams')
+        self.assertDataFramesEqual(expected, actual)
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
