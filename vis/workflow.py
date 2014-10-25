@@ -653,13 +653,18 @@ class WorkflowManager(object):
             output of the :class:`ColumnAggregator`.
         :rtype: :class:`pandas.Series`
         """
+        # TODO: write tests for this method---to heck with the following, antiquated comment
         # NB: there's no "logic" here, so I didn't bother testing the method
         agg_p = AggregatedPieces(self._data)
         self._result = agg_p.get_data([frequency.FrequencyExperimenter],
                                       None,
                                       {'column': which_ind},
                                       # TODO: should get_data() really return this embedded list?
-                                      self._result)[0]
+                                      # TODO: answer is "no." IndexedPiece.get_data() should never
+                                      #       return a list of anything; AggregatedPiece can, but
+                                      #       only when the last thing in its workflow was an indxer
+                                      self._result)
+        self._result = [x[0] for x in self._result]  # TODO: this is a hack until the models are fixed
         self._result = agg_p.get_data(None,
                                       [aggregator.ColumnAggregator],
                                       {'column': 'frequency.FrequencyExperimenter'},

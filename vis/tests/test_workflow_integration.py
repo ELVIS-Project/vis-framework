@@ -252,12 +252,18 @@ class NGramsTests(TestCase):
     # EXPECTED_6 is the result of "interval n-grams" on madrigal51 with "all" as the voice pairs,
     # including rests; note that I didn't verify by counting
 
-    # EXPECTED_7 is the result of "interval n-grams" on vis_Test_Piece.xml with all two-part
+    # EXPECTED_7a is the result of "interval n-grams" on vis_Test_Piece.xml with all two-part
     # combinations of 2-grams. I counted it by hand!
-    EXPECTED_7 = pandas.Series({'4 1 5': 1, '5 1 4': 1, '6 2 6': 1, '6 -2 6': 1, '8 -2 10': 1,
+    EXPECTED_7a = pandas.Series({'4 1 5': 1, '5 1 4': 1, '6 2 6': 1, '6 -2 6': 1, '8 -2 10': 1,
                                 '10 2 8': 1, '3 2 2': 1, '2 -2 3': 1, '5 -2 6': 1, '6 2 5': 1,
                                 '3 -2 5': 1, '5 2 3': 1})
-    EXPECTED_7 = pandas.DataFrame({'aggregator.ColumnAggregator': EXPECTED_7})
+    EXPECTED_7a = pandas.DataFrame({'aggregator.ColumnAggregator': EXPECTED_7a})
+
+    # EXPECTED_7b is simply the "expected" for 7a, but doubled
+    EXPECTED_7b = pandas.Series({'4 1 5': 2, '5 1 4': 2, '6 2 6': 2, '6 -2 6': 2, '8 -2 10': 2,
+                                '10 2 8': 2, '3 2 2': 2, '2 -2 3': 2, '5 -2 6': 2, '6 2 5': 2,
+                                '3 -2 5': 2, '5 2 3': 2})
+    EXPECTED_7b = pandas.DataFrame({'aggregator.ColumnAggregator': EXPECTED_7b})
 
     # The expected values for tests 9a-c consist of 2-gram analyses of the soprano and alto in
     # bwv77 with the settings as described in each test. These results are stored in csv files in
@@ -333,23 +339,38 @@ class NGramsTests(TestCase):
         actual = test_wm.run('interval n-grams')
         self.assertDataFramesEqual(expected, actual)
 
-    def test_ngrams_7(self):
+    def test_ngrams_7a(self):
         """test all two-part combinations of the test piece; 2-grams"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', 'all pairs')
         test_wm.settings(0, 'n', 2)
-        expected = NGramsTests.EXPECTED_7
+        expected = NGramsTests.EXPECTED_7a
         actual = test_wm.run('interval n-grams')
         self.assertDataFramesEqual(expected, actual)
 
+    def test_ngrams_7b(self):
+        """test_ngrams_7a() but with two pieces (both 'vis_Test_Piece.xml')"""
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml'),
+                                   os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', 'all pairs')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(1, 'voice combinations', 'all pairs')
+        test_wm.settings(1, 'n', 2)
+        expected = NGramsTests.EXPECTED_7b
+        #test_wm.settings(None, 'count frequency', False)  # DEBUG
+        actual = test_wm.run('interval n-grams')
+        #print(actual)  # DEBUG
+        self.assertDataFramesEqual(expected, actual)
+
     def test_ngrams_8(self):
-        """test_ngrams_7 *but* with part combinations specified rather than 'all pairs'"""
+        """test_ngrams_7a *but* with part combinations specified rather than 'all pairs'"""
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
         test_wm.load('pieces')
         test_wm.settings(0, 'voice combinations', '[[0,1], [0,2], [0,3], [1,2], [1,3], [2,3]]')
         test_wm.settings(0, 'n', 2)
-        expected = NGramsTests.EXPECTED_7
+        expected = NGramsTests.EXPECTED_7a
         actual = test_wm.run('interval n-grams')
         self.assertDataFramesEqual(expected, actual)
 
