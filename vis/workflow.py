@@ -124,7 +124,7 @@ class WorkflowManager(object):
 
     def __init__(self, pathnames):
         """
-        :raises: :exce:`TypeError` if ``pathnames`` is not a list or tuple of basestring or
+        :raises: :exc:`TypeError` if ``pathnames`` is not a list or tuple of basestring or
             :class:`IndexedPiece`
         """
         # ensure ``pathnames`` is a list or tuple of basestring...
@@ -343,7 +343,7 @@ class WorkflowManager(object):
             else:
                 self._result.append(self._variable_part_modules(i))
         # aggregate results across all pieces
-        if self.settings(None, 'count frequency') is True:
+        if self.settings(None, 'count frequency'):
             self._run_freq_agg('ngram.NGramIndexer')
         return self._result
 
@@ -797,7 +797,7 @@ class WorkflowManager(object):
         * ``'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
             ``'histogram'`` instruction. In the future, this will be used to distinguish histograms
             produced with R from those produced with other libraries, like matplotlib or bokeh.
-                * ``'CSV'``: output a Series or DataFrame to a CSV file.
+        * ``'CSV'``: output a Series or DataFrame to a CSV file.
         * ``'Stata'``: output a Stata file for importing to R.
         * ``'Excel'``: output an Excel file for Peter Schubert.
         * ``'HTML'``: output an HTML table, as used by the VIS Counterpoint Web App.
