@@ -67,7 +67,7 @@ class IntervalsTests(TestCase):
                                 '19': 9, '-7': 8, '18': 4, '-9': 3, '20': 3, '-12': 3, '22': 1,
                                 '-10': 1, '-1': 1})
 
-    def assertDataFramesEqual(self, exp, act):
+    def assertDataFramesEqual(self, exp, act):  # pylint: disable=invalid-name
         """Ensure that two DataFrame objects, ``exp`` and ``act``, are equal."""
         self.assertSequenceEqual(list(exp.columns), list(act.columns))
         for col_name in exp.columns:
@@ -269,7 +269,7 @@ class NGramsTests(TestCase):
     # bwv77 with the settings as described in each test. These results are stored in csv files in
     # ~/vis/tests/corpus/
 
-    def assertDataFramesEqual(self, exp, act):
+    def assertDataFramesEqual(self, exp, act):  # pylint: disable=invalid-name
         """Ensure that two DataFrame objects, ``exp`` and ``act``, are equal."""
         self.assertSequenceEqual(list(exp.columns), list(act.columns))
         for col_name in exp.columns:
@@ -292,7 +292,6 @@ class NGramsTests(TestCase):
         test_wm.settings(0, 'continuer', '_')
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_ngrams_2.pickle'))
         actual = test_wm.run('interval n-grams')
-        actual.to_pickle('actual.pickle')  # DEBUG
         self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_3(self):
@@ -350,7 +349,11 @@ class NGramsTests(TestCase):
         self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_7b(self):
-        """test_ngrams_7a() but with two pieces (both 'vis_Test_Piece.xml')"""
+        """
+        test_ngrams_7a() but with two pieces (both 'vis_Test_Piece.xml')
+
+        This is a regression test for issue #335
+        """
         test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml'),
                                    os.path.join(VIS_PATH, 'tests', 'corpus', 'vis_Test_Piece.xml')])
         test_wm.load('pieces')
@@ -359,9 +362,7 @@ class NGramsTests(TestCase):
         test_wm.settings(1, 'voice combinations', 'all pairs')
         test_wm.settings(1, 'n', 2)
         expected = NGramsTests.EXPECTED_7b
-        #test_wm.settings(None, 'count frequency', False)  # DEBUG
         actual = test_wm.run('interval n-grams')
-        #print(actual)  # DEBUG
         self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_8(self):
