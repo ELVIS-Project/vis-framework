@@ -375,16 +375,26 @@ class NGramsTests(TestCase):
         actual = test_wm.run('interval n-grams')
         self.assertDataFramesEqual(expected, actual)
 
-    # TODO: write the following three tests
     def test_ngrams_9a(self):
         """
-        2-grams between S&A in bwv77. Not counting frequency. Use custom "continuer" string. Quality.
+        2-grams between S&A in bwv77. Not counting frequency. Quality.
 
         Regression test for: https://github.com/ELVIS-Project/vis/issues/305 which means we *must*
         use an offset interval.
         """
         # NB: these results were counted by hand
-        pass
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_2grams_offset.csv'),
+                                   comment='#', index_col=0, header=[0, 1], quotechar="'")
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0,1]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(None, 'count frequency', False)
+        test_wm.settings(None, 'interval quality', True)
+        test_wm.settings(None, 'offset interval', 1.0)
+        actual = test_wm.run('interval n-grams')
+        self.assertEqual(1, len(actual))
+        self.assertDataFramesEqual(expected, actual[0])
 
     def test_ngrams_9b(self):
         """
@@ -394,7 +404,17 @@ class NGramsTests(TestCase):
         use an offset interval.
         """
         # NB: these results were counted by hand
-        pass
+        expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'SA_2grams_offset_freq.csv'),
+                                   comment='#', index_col=0, quotechar="'")
+        test_wm = WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')])
+        test_wm.load('pieces')
+        test_wm.settings(0, 'voice combinations', '[[0,1]]')
+        test_wm.settings(0, 'n', 2)
+        test_wm.settings(None, 'count frequency', True)
+        test_wm.settings(None, 'interval quality', True)
+        test_wm.settings(None, 'offset interval', 1.0)
+        actual = test_wm.run('interval n-grams')
+        self.assertDataFramesEqual(expected, actual)
 
     def test_ngrams_9c(self):
         """

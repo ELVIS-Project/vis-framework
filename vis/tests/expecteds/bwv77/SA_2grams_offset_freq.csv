@@ -1,0 +1,46 @@
+# Note: this is the upper two voices of "bwv77.mxl" counted by hand.
+# 1.0 offset interval, yes quality, yes compound (though non-compound is the same). Frequency counted.
+# To import the file properly as a DataFrame, use this:
+# pd.read_csv('SA_2grams_offset_freq.csv', comment='#', index_col=0, quotechar="'")
+,aggregator.ColumnAggregator
+m3 -M3 P4,5
+P4 P1 m3,4
+m3 -m2 m3,4
+P4 P4 m3,3
+P4 P1 P4,3
+M6 -M2 M6,3
+M3 -m2 m3,3
+m3 m2 M3,2
+A4 -m2 P4,2
+m3 P1 M2,2
+m3 P4 m3,2
+M6 M3 m3,2
+M2 -P4 P4,2
+m3 P1 P4,2
+P4 -M2 P4,2
+m3 P1 m6,2
+m6 m2 A4,2
+m3 M2 m3,2
+m6 m2 P5,2
+P8 P4 m3,1
+P5 P1 P8,1
+m3 -M3 M6,1
+M6 -m3 M6,1
+M6 M2 m6,1
+M3 P1 M6,1
+P4 -M2 M3,1
+m3 -M2 P4,1
+P4 -m2 m3,1
+P4 -M2 m3,1
+P8 m3 M6,1
+P4 M6 m6,1
+m6 -M2 M6,1
+M6 -m2 P8,1
+P5 P1 m6,1
+M6 -m2 m7,1
+P5 P1 P5,1
+P5 P1 M6,1
+m7 P1 M6,1
+M6 M3 P5,1
+P4 m3 M3,1
+P4 P4 P4,1
