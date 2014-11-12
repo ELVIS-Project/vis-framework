@@ -1,4 +1,4 @@
-_MAJOR = 1
-_MINOR = 99
-_PATCH = 0
+_MAJOR = 2
+_MINOR = 0
+_PATCH = '0-rc1'
 __version__ = '{}.{}.{}'.format(_MAJOR, _MINOR, _PATCH)
