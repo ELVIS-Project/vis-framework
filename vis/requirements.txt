@@ -5,3 +5,4 @@ pandas>=0.14.1,<0.15
 mock>=1.0.1
 coverage
 python-coveralls
+six
