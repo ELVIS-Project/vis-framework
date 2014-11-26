@@ -32,12 +32,21 @@ How to Use This Documentation
 
 .. important:: Remember to have a lot of fun.
 
-Use the ``vis`` Framework
--------------------------
+Learn about and Install the VIS Framework
+-------------------------------------------
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     about
+    install_and_test
+
+Programming Tutorials for VIS
+--------------------------------
+.. toctree::
+    :maxdepth: 1
+
+    tutorial-new_workflow
+    tutorial-workflowmanager
 
 
 API Specification
