@@ -31,10 +31,16 @@ This model represents an indexed and analyzed piece of music.
 
 # Imports
 import os
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
+
+
+# the title given to a piece when we cannot determine its title
+_UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 
 
 def _find_piece_title(the_score):
@@ -45,7 +51,7 @@ def _find_piece_title(the_score):
     :type the_score: :class:`music21.stream.Score`
 
     :returns: The title of the score.
-    :rtype: :obj:`unicode`
+    :rtype: str
     """
     # First try to get the title from a Metadata object, but if it doesn't
     # exist, use the filename without directory.
@@ -54,11 +60,17 @@ def _find_piece_title(the_score):
     elif hasattr(the_score, 'filePath'):
         post = os.path.basename(the_score.filePath)
     else:  # if the Score was part of an Opus
-        post = 'Unknown Piece'
+        post = _UNKNOWN_PIECE_TITLE
 
     # Now check that there is no file extension. This could happen either if
     # we used the filename or if music21 did a less-than-great job at the
     # Metadata object.
+    # TODO: test this "if" stuff
+    if not isinstance(post, six.string_types):  # uh-oh
+        try:
+            post = str(post)
+        except UnicodeEncodeError:
+            post = unicode(post) if six.PY2 else _UNKNOWN_PIECE_TITLE
     post = os.path.splitext(post)[0]
 
     return post
@@ -73,7 +85,7 @@ def _find_part_names(the_score):
     :type the_score: :class:`music21.stream.Score`
 
     :returns: The title of the score.
-    :rtype: :obj:`list` of :obj:`unicode`
+    :rtype: :obj:`list` of str
     """
     # hold the list of part names
     post = []
@@ -82,14 +94,14 @@ def _find_part_names(the_score):
     for each_part in the_score.parts:
         instr = each_part.getInstrument()
         if instr is not None and instr.partName != '' and instr.partName is not None:
-            post.append(unicode(instr.partName))
+            post.append(instr.partName)
         elif each_part.id is not None:
-            try:
-                int(each_part.id)  # if it worked, the part name is an integer, so use "Part X"
+            if isinstance(each_part.id, six.string_types):
+                # part ID is a string, so that's what we were hoping for
+                post.append(each_part.id)
+            else:
+                # the part name is probably an integer, so we'll try to rename it
                 post.append('rename')
-            except ValueError:
-                # this is actually where we prefer to end up
-                post.append(unicode(each_part.id))
         else:
             post.append('rename')
 
@@ -139,8 +151,7 @@ class IndexedPiece(object):
 
     def __init__(self, pathname, opus_id=None):
         """
-        :param pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
-        :type pathname: basestring
+        :param str pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
             imports as a :class:`music21.stream.Opus`.
 
@@ -149,7 +160,7 @@ class IndexedPiece(object):
         """
         def init_metadata():
             """
-            Initialize valid metadata fields with a zero-length unicode.
+            Initialize valid metadata fields with a zero-length string.
             """
             field_list = ['opusNumber', 'movementName', 'composer', 'number', 'anacrusis',
                 'movementNumber', 'date', 'composers', 'alternativeTitle', 'title',
@@ -169,14 +180,14 @@ class IndexedPiece(object):
         return "vis.models.indexed_piece.IndexedPiece('{}')".format(self.metadata('pathname'))
 
     def __str__(self):
-        return str(unicode(self))
-
-    def __unicode__(self):
         post = []
         if self._imported:
             return '<IndexedPiece ({} by {})>'.format(self.metadata('title'), self.metadata('composer'))
         else:
             return '<IndexedPiece ({})>'.format(self.metadata('pathname'))
+
+    def __unicode__(self):
+        return six.u(str(self))
 
     def _import_score(self, known_opus=False):
         """
@@ -221,19 +232,18 @@ class IndexedPiece(object):
         Get or set metadata about the piece.
 
         .. note:: Some metadata fields may not be available for all pieces. The available metadata
-            fields depend on the specific file imported. Unavailable fields return :const:`None`.
+            fields depend on the specific file imported. Unavailable fields return ``None``.
             We guarantee real values for ``pathname``, ``title``, and ``parts``.
 
-        :param field: The name of the field to be accessed or modified.
-        :type field: basestring
-        :param value: If not :const:`None`, the value to be assigned to ``field``.
-        :type value: object or :const:`None`
+        :param str field: The name of the field to be accessed or modified.
+        :param value: If not ``None``, the value to be assigned to ``field``.
+        :type value: object or ``None``
 
-        :returns: The value of the requested field or :const:`None`, if assigning, or if accessing
+        :returns: The value of the requested field or ``None``, if assigning, or if accessing
             a non-existant field or a field that has not yet been initialized.
-        :rtype: object or :const:`None` (usually a basestring)
+        :rtype: object or ``None`` (usually a string)
 
-        :raises: :exc:`TypeError` if ``field`` is not a :class:`basestring`.
+        :raises: :exc:`TypeError` if ``field`` is not a string.
         :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
 
         **Metadata Field Descriptions**
@@ -288,7 +298,7 @@ class IndexedPiece(object):
         >>> piece.metadata('parts')
         ['Flute 1'{'Flute 2'{'Oboe 1'{'Oboe 2'{'Clarinet 1'{'Clarinet 2', ... ]
         """
-        if not isinstance(field, basestring):
+        if not isinstance(field, six.string_types):
             raise TypeError(IndexedPiece._META_INVALID_TYPE)
         elif field not in self._metadata:
             raise AttributeError(IndexedPiece._INVALID_FIELD.format(field))
@@ -328,7 +338,7 @@ class IndexedPiece(object):
 
         :param cls_list: A list of the classes to check.
         :type cls_list: list of class
-        :returns: :const:`None`.
+        :returns: ``None``.
         :rtype: None
         :raises: :exc:`TypeError` if a class is not a subclass of :class:`Indexer` or
             :class:`Experimenter`.
@@ -349,7 +359,7 @@ class IndexedPiece(object):
         :param settings: Settings to be used with the analyzers.
         :type settings: dict
         :param data: Input data for the first analyzer to run. If the first indexer uses a
-            :class:`~music21.stream.Score`, you should leave this as :const:`None`.
+            :class:`~music21.stream.Score`, you should leave this as ``None``.
         :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
         :param known_opus: Whether the caller knows this file will be imported as a
             :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" below.
@@ -360,7 +370,7 @@ class IndexedPiece(object):
 
         :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
         :raises: :exc:`RuntimeError` if the first analyzer class in ``analyzer_cls`` does not use
-            :class:`~music21.stream.Score` objects, and ``data`` is :const:`None`.
+            :class:`~music21.stream.Score` objects, and ``data`` is ``None``.
         :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if the file imports as a
             :class:`music21.stream.Opus` object and ``known_opus`` is ``False``.
         :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if ``known_opus`` is ``True`` but the
