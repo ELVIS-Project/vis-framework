@@ -30,6 +30,8 @@ Indexer to find k-part any-object n-grams.
 
 # pylint: disable=pointless-string-statement
 
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from vis.analyzers import indexer
 
@@ -86,9 +88,9 @@ class NGramIndexer(indexer.Indexer):
     A list of possible settings for the :class:`NGramIndexer`.
 
     :keyword 'horizontal': Selectors for the parts to consider as "horizontal."
-    :type 'horizontal': list of (basestring, basestring) tuples
+    :type 'horizontal': list of (str, str) tuples
     :keyword 'vertical': Selectors for the parts to consider as "vertical."
-    :type 'vertical': list of (basestring, basestring) tuples
+    :type 'vertical': list of (str, str) tuples
     :keyword 'n': The number of "vertical" events per n-gram.
     :type 'n': int
     :keyword 'mark_singles': Whether to use delimiters around a direction's events when
@@ -97,10 +99,10 @@ class NGramIndexer(indexer.Indexer):
     :type 'mark_singles': bool
     :keyword 'terminator': Do not find an n-gram with a vertical item that contains any of these
         values.
-    :type 'terminator': list of basestring
+    :type 'terminator': list of str
     :keyword 'continuer': When there is no "horizontal" event that corresponds to a vertical
         event, this is printed instead, to show that the previous "horizontal" event continues.
-    :type 'continuer': basestring
+    :type 'continuer': str
     """
 
     default_settings = {'mark_singles': True, 'horizontal': [], 'terminator': [], 'continuer': '_'}
@@ -149,25 +151,25 @@ class NGramIndexer(indexer.Indexer):
     @staticmethod
     def _format_thing(things, m_singles, markers=('[', ']'), terminator=None):
         """
-        Format unicode objects by concatenating them with a space between and the appropriate
+        Format str objects by concatenating them with a space between and the appropriate
         grouping symbol, if relevant. This method is used by _format_vert() and _format_horiz().
 
         :param things: All the events for this moment.
-        :type things: iterable of basestring
+        :type things: iterable of str
 
         :param m_singles: Whether to put marker characters around single-item iterables.
         :type m_singles: boolean
 
         :param markers: The "marker" strings to put around the output, if desired. Defualt is [].
-        :type markers: 2-tuple of unicode
+        :type markers: 2-tuple of str
 
         :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
             is [None].
-        :type terminator: list of unicode or None
+        :type terminator: list of str or None
 
-        :returns: A unicode with a space between every event and marker characters if there is more
+        :returns: A str with a space between every event and marker characters if there is more
             than one event or m_singles is True.
-        :rtype: unicode
+        :rtype: str
 
         :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
@@ -179,14 +181,14 @@ class NGramIndexer(indexer.Indexer):
                 if obj in terminator:
                     raise RuntimeWarning('hit a terminator')
                 else:
-                    post.append(unicode(obj))
+                    post.append('{}'.format(obj))
                     post.append(' ')
             post = post[:-1]  # remove last space
             post.append(markers[1])
         elif things[0] in terminator:
             raise RuntimeWarning('hit a terminator')
         elif m_singles:
-            post.extend([markers[0], unicode(things[0]), markers[1]])
+            post.extend([markers[0], six.u(things[0]), markers[1]])
         else:
             post.append(things[0])
         return ''.join(post)
@@ -194,22 +196,22 @@ class NGramIndexer(indexer.Indexer):
     @staticmethod
     def _format_vert(verts, m_singles, terminator=None):
         """
-        Format "vertical" unicode objects by concatenating them with a space between and the
+        Format "vertical" str objects by concatenating them with a space between and the
         appropriate grouping symbol, if relevant.
 
         :param verts: All the "vertical" events for this moment.
-        :type verts: iterable of basestring
+        :type verts: iterable of str
 
         :param m_singles: Whether to put marker characters around single-item iterables.
         :type m_singles: boolean
 
         :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
             is [None].
-        :type terminator: list of unicode or None
+        :type terminator: list of str or None
 
-        :returns: A unicode with a space between every event and marker characters if there is more
+        :returns: A str with a space between every event and marker characters if there is more
             than one event or m_singles is True.
-        :rtype: unicode
+        :rtype: str
 
         :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
@@ -218,22 +220,22 @@ class NGramIndexer(indexer.Indexer):
     @staticmethod
     def _format_horiz(horizs, m_singles, terminator=None):
         """
-        Format "horizontal" unicode objects by concatenating them with a space between and the
+        Format "horizontal" str objects by concatenating them with a space between and the
         appropriate grouping symbol, if relevant.
 
         :param verts: All the "horizontal" events for this moment.
-        :type verts: iterable of basestring
+        :type verts: iterable of str
 
         :param m_singles: Whether to put marker characters around single-item iterables.
         :type m_singles: boolean
 
         :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
             is [None].
-        :type terminator: list of unicode or None
+        :type terminator: list of str or None
 
-        :returns: A unicode with a space between every event and marker characters if there is more
+        :returns: A str with a space between every event and marker characters if there is more
             than one event or m_singles is True.
-        :rtype: unicode
+        :rtype: str
 
         :raises: RuntimeWarning, if the one of the events is a "terminator."
         """
