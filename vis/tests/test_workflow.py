@@ -32,7 +32,12 @@ Tests for the WorkflowManager
 
 import os
 from unittest import TestCase, TestLoader
-import mock
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+if six.PY3:
+    from unittest import mock
+else:
+    import mock
 from mock import MagicMock
 from numpy import NaN
 import pandas
@@ -55,7 +60,7 @@ class WorkflowTests(TestCase):
 
     @mock.patch('vis.workflow.path.join', return_value='/some/vis/path.r')
     def test_init_1(self, mock_join):
-        """__init__() with a list of basestrings"""
+        """__init__() with a list of strings"""
         # NB: mocked out os.path.join()
         with mock.patch('vis.models.indexed_piece.IndexedPiece') as mock_ip:
             in_val = ['help.txt', 'path.xml', 'why_you_do_this.rtf']
@@ -132,14 +137,14 @@ class WorkflowTests(TestCase):
         try:
             WorkflowManager(in_val)
         except TypeError as type_err:
-            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.message)
+            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.args[0])
         # next, with a single string
         in_val = 'best piece ever.mei'
         self.assertRaises(TypeError, WorkflowManager, in_val)
         try:
             WorkflowManager(in_val)
         except TypeError as type_err:
-            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.message)
+            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.args[0])
 
     def test_load_1(self):
         # that "get_data" is called correctly on each thing
@@ -334,7 +339,7 @@ class Output(TestCase):
             test_wc.output(bad_instruction)
         except RuntimeError as run_err:
             self.assertEqual(WorkflowManager._UNRECOGNIZED_INSTRUCTION.format(bad_instruction),
-                             run_err.message)
+                             run_err.args[0])
 
     def test_output_4(self):
         """ensure RuntimeError if self._result is None"""
@@ -344,7 +349,7 @@ class Output(TestCase):
         try:
             test_wc.output('R histogram')
         except RuntimeError as run_err:
-            self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.message)
+            self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.args[0])
 
     @mock.patch('vis.workflow.WorkflowManager._export')
     def test_output_5(self, mock_export):
@@ -906,9 +911,16 @@ class AuxiliaryExperimentMethods(TestCase):
         expected_1 = [[0, 1], [0, 2], [0, 3]]
         expected_2 = [[0, 1], [1, 2], [2, 3, 4]]
 
-        self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
-        self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
-        self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+        # in py3, map() returns a map() instance, which doesn't end up working, somehow
+        self.assertIsInstance(workm._get_unique_combos(0), list)
+        if six.PY2:
+            self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+            self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+            self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+        else:
+            self.assertCountEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+            self.assertCountEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+            self.assertCountEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
 
     def test_unique_combos_2(self):
         """_get_unique_combos() with all some duplicates"""
@@ -920,9 +932,14 @@ class AuxiliaryExperimentMethods(TestCase):
         expected_1 = [[0, 1], [0, 2], [0, 3]]
         expected_2 = [[0, 1], [1, 2], [2, 3, 4]]
 
-        self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
-        self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
-        self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+        if six.PY2:
+            self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+            self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+            self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+        else:
+            self.assertCountEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+            self.assertCountEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+            self.assertCountEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
