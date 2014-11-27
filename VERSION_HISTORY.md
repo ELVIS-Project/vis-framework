@@ -4,6 +4,8 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
+* 2.1.0:
+    - Python 3 compatibility.
 * 2.0.0:
     - Analyzers must now accept and return DataFrame objects.
     - Require pandas 0.14.1 at minimum.
