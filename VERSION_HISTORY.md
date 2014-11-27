@@ -5,9 +5,11 @@ the top of the file.
 
 
 * 2.0.0:
+    - Analyzers must now accept and return DataFrame objects.
     - Require pandas 0.14.1 at minimum.
     - Require music21 1.9.3 at minimum.
     - The "R_bar_chart.r" script is now run by an experimenter (GH#283)
+    - Documentation upgrades.
 * 1.2.6:
     - Deprecate WorkflowManager.export() in favour of output()
     - Fix: for "simple intervals," compound octaves reduced to octaves, rather than to unison
