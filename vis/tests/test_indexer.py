@@ -7,7 +7,7 @@
 # Filename:               analyzers_tests/test_indexer.py
 # Purpose:                Tests for the Indexer superclass.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -30,8 +30,13 @@
 
 
 import unittest
-import mock
 import copy
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+if six.PY3:
+    from unittest import mock
+else:
+    import mock
 from numpy import NaN
 import pandas
 from music21 import base, stream, duration, note, converter, clef
@@ -40,7 +45,7 @@ from vis.tests.corpus import int_indexer_short
 
 
 def fake_indexer_func(ecks):
-    return unicode(ecks)
+    return six.u(str(ecks))
 
 
 class TestIndexerInit(unittest.TestCase):
@@ -126,7 +131,7 @@ class TestIndexerInit(unittest.TestCase):
         try:
             TestIndexer(test_score)
         except IndexError as inderr:
-            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
+            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.args[0])
 
     def test_indexer_init_5c(self):
         # The first six tests ensure __init__() accepts the six valid types of "score" argument.
@@ -139,7 +144,7 @@ class TestIndexerInit(unittest.TestCase):
         try:
             TestIndexer(test_score)
         except IndexError as inderr:
-            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
+            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.args[0])
 
     def test_indexer_init_5d(self):
         # The first six tests ensure __init__() accepts the six valid types of "score" argument.
@@ -151,7 +156,7 @@ class TestIndexerInit(unittest.TestCase):
         try:
             TestIndexer(test_score)
         except IndexError as inderr:
-            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.message)
+            self.assertEqual(indexer.Indexer._INIT_INDEX_ERR, inderr.args[0])
 
     def test_indexer_init_5e(self):
         # The first six tests ensure __init__() accepts the six valid types of "score" argument.
@@ -198,12 +203,16 @@ class TestIndexerInit(unittest.TestCase):
         test_parts = [pandas.Series()]
         settings = {}
         self.assertRaises(TypeError, TestIndexer, test_parts, settings)
-        error_msg = indexer.Indexer._INIT_TYPE_ERR.format(u"<class 'vis.tests.test_indexer.TestIndexer'>",
-                                                          u"stream.Part")
+        if six.PY2:
+            exp_err = "<class 'vis.tests.test_indexer.TestIndexer'>"
+            exp_err = indexer.Indexer._INIT_TYPE_ERR.format(exp_err, "stream.Part")
+        else:
+            exp_err = "<class 'vis.tests.test_indexer.TestIndexerInit.test_indexer_init_7.<locals>.TestIndexer'>"
+            exp_err = indexer.Indexer._INIT_TYPE_ERR.format(exp_err, "stream.Part")
         try:
             TestIndexer(test_parts, settings)
         except TypeError as err:
-            self.assertEqual(err.args[0], error_msg)
+            self.assertEqual(exp_err, err.args[0])
 
     def test_indexer_init_8(self):
         # That _do_multiprocessing() passes the correct arguments to stream_indexer()
@@ -216,7 +225,7 @@ class TestIndexerInit(unittest.TestCase):
         test_parts = [stream.Part()]
         settings = {}
         # prepare mocks
-        with mock.patch(u'vis.analyzers.indexer.stream_indexer') as mpi_mock:
+        with mock.patch('vis.analyzers.indexer.stream_indexer') as mpi_mock:
             # run test
             t_ind = TestIndexer(test_parts, settings)
             t_ind._indexer_func = fake_indexer_func
@@ -234,22 +243,26 @@ class TestIndexerInit(unittest.TestCase):
         test_parts = [pandas.Series()]
         settings = {}
         self.assertRaises(TypeError, TestIndexer, test_parts, settings)
-        error_msg = unicode('<class \'vis.tests.test_indexer.TestIndexer\'> has an incorrectly-set '
-                            '"required_score_type"')
+        if six.PY2:
+            exp_err = "<class 'vis.tests.test_indexer.TestIndexer'>"
+            exp_err = indexer.Indexer._INIT_KEY_ERR.format(exp_err, "stream.Part")
+        else:
+            exp_err = "<class 'vis.tests.test_indexer.TestIndexerInit.test_indexer_init_9.<locals>.TestIndexer'>"
+            exp_err = indexer.Indexer._INIT_KEY_ERR.format(exp_err, "stream.Part")
         try:
             TestIndexer(test_parts, settings)
         except TypeError as err:
-            self.assertEqual(err.args[0], error_msg)
+            self.assertEqual(exp_err, err.args[0])
 
     def test_indexer_init_10(self):
         # when no "types" is specified, make sure it returns everything in the Stream
         # setup the input stream
         the_stream = stream.Stream()
-        the_stream.append(note.Note(u'D#2', quarterLength=0.5))
+        the_stream.append(note.Note('D#2', quarterLength=0.5))
         the_stream.append(note.Rest(quarterLength=0.5))
         the_stream.append(clef.TrebleClef())
         # setup the expected Series
-        expected = pandas.Series({0.0: note.Note(u'D#2', quarterLength=0.5),
+        expected = pandas.Series({0.0: note.Note('D#2', quarterLength=0.5),
                                   0.5: note.Rest(quarterLength=0.5),
                                   1.0: clef.TrebleClef()})
         # run the test; verify results
@@ -282,11 +295,11 @@ def verbatim_ser(iterable):
 
 
 def verbatim_rests(arg):
-    return u'Rest' if isinstance(arg[0], note.Rest) else unicode(arg[0].obj)
+    return 'Rest' if isinstance(arg[0], note.Rest) else six.u(str(arg[0].obj))
 
 
 def verbatim_variable(iterable):
-    return unicode(tuple(item.obj for item in iterable))
+    return six.u(str(tuple(item.obj for item in iterable)))
 
 
 # Jamie: pylint says we have 8 instance attributes on this bad boy, which is just too many.
@@ -315,16 +328,16 @@ class IndexerTestBase(unittest.TestCase):
             app_me.offset = i * 0.5
             mixed_series_offsets.append(app_me.offset)
             mixed_series_rests_offsets.append(app_me.offset)
-            mixed_series_rests.append(u'Rest')
-            mixed_series_data.append(u'Rest')
+            mixed_series_rests.append('Rest')
+            mixed_series_data.append('Rest')
             self.mixed_list.append(app_me)
-            app_me = base.ElementWrapper(unicode(i))
+            app_me = base.ElementWrapper(str(i))
             app_me.offset = i * 0.5 + 0.25
             app_me.duration = duration.Duration(0.25)
             mixed_series_offsets.append(app_me.offset)
             mixed_series_notes_offsets.append(app_me.offset)
-            mixed_series_data.append(unicode(i))
-            mixed_series_notes.append(unicode(i))
+            mixed_series_data.append(str(i))
+            mixed_series_notes.append(str(i))
             self.mixed_list.append(app_me)
         self.mixed_series = pandas.Series(mixed_series_data, index=mixed_series_offsets)
         self.mixed_series_notes = pandas.Series(mixed_series_notes,
@@ -341,15 +354,15 @@ class IndexerTestBase(unittest.TestCase):
             app_me = note.Rest(quarterLength=0.25)
             app_me.offset = i * 0.25
             s_m_series_offsets.append(app_me.offset)
-            s_m_series.append(u'Rest')
-            s_m_rests_series.append(u'Rest')
+            s_m_series.append('Rest')
+            s_m_rests_series.append('Rest')
             s_m_rests_series_offsets.append(app_me.offset)
             self.shared_mixed_list.append(app_me)
             app_me = base.ElementWrapper(i)
             app_me.offset = i * 0.25
             app_me.duration = duration.Duration(0.25)
             s_m_series_offsets.append(app_me.offset)
-            s_m_series.append(unicode(i))
+            s_m_series.append(str(i))
             self.shared_mixed_list.append(app_me)
         self.shared_mixed_list = stream.Stream(self.shared_mixed_list)
         self.shared_mixed_series = pandas.Series(s_m_series, index=s_m_series_offsets)
@@ -368,7 +381,7 @@ class TestIndexerSinglePart(IndexerTestBase):
         result_mixed = indexer.series_indexer(0, [self.mixed_series], verbatim_ser)[1]
         # that a list with two types is not filtered when it's given as a Series
         self.assertEqual(len(self.mixed_series), len(result_mixed))
-        expect_mixed = [u'Rest' if isinstance(elt, note.Rest) else elt.obj
+        expect_mixed = ['Rest' if isinstance(elt, note.Rest) else elt.obj
                         for elt in self.mixed_list]
         self.assertSequenceEqual(list(expect_mixed), list(result_mixed))
 
@@ -402,7 +415,7 @@ class TestIndexerSinglePart(IndexerTestBase):
         # ** inputted Streams are pickled
         # --> test values
         # --> one event at each offset
-        input_stream = converter.freeze(stream.Stream(self.mixed_list), u'pickle')
+        input_stream = converter.freeze(stream.Stream(self.mixed_list), 'pickle')
         actual = indexer.stream_indexer(0, [input_stream], verbatim, [base.ElementWrapper])[1]
         self.assertSequenceEqual(list(self.mixed_series_notes.index), list(actual.index))
         self.assertSequenceEqual(list(self.mixed_series_notes.values), list(actual.values))
@@ -452,7 +465,7 @@ class TestIndexerSinglePart(IndexerTestBase):
     #                                      verbatim_rests,
     #                                      [base.ElementWrapper, note.Rest])[1]
     #     for i in self.shared_mixed_series.index:
-    #         self.assertEqual(result[i], pandas.Series([u'Rest', unicode(i)], index=[i, i]))
+    #         self.assertEqual(result[i], pandas.Series(['Rest', str(i)], index=[i, i]))
 
     # def test_mp_indexer_9(self):
     #     # that a list with two types is not filtered when it's given as a Series,
@@ -461,7 +474,7 @@ class TestIndexerSinglePart(IndexerTestBase):
     #     # --> two events at each offset
     #     result = indexer.series_indexer(0, [self.shared_mixed_series], verbatim_rests)[1]
     #     for i in self.shared_mixed_series.index:
-    #         self.assertEqual(result[i], pandas.Series([u'Rest', unicode(i)], index=[i, i]))
+    #         self.assertEqual(result[i], pandas.Series(['Rest', str(i)], index=[i, i]))
 
 
 class TestIndexerMultiEvent(IndexerTestBase):
@@ -492,8 +505,8 @@ class TestIndexerMultiEvent(IndexerTestBase):
             obj.offset = 0.5 * i
             obj.duration = duration.Duration(0.5)
             part_2.append(obj)
-        expected = pandas.Series({0.0: u'(0, 0)', 0.5: u'(1, 1)', 1.0: u'(2, 2)',
-                                  1.5: u'(3, 3)', 2.0: u'(4, 4)'})
+        expected = pandas.Series({0.0: '(0, 0)', 0.5: '(1, 1)', 1.0: '(2, 2)',
+                                  1.5: '(3, 3)', 2.0: '(4, 4)'})
         actual = indexer.stream_indexer(0, [part_1, part_2], verbatim_variable)[1]
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected), list(actual))
@@ -521,8 +534,8 @@ class TestIndexerMultiEvent(IndexerTestBase):
             zed = base.ElementWrapper(number)
             zed.duration = duration.Duration(0.5)
             part.insert(offset, zed)
-        expected = pandas.Series({0.0: u'(0, 0)', 0.5: u'(1, 1)', 1.0: u'(2, 2)',
-                                  1.5: u'(3, 3)', 2.0: u'(4, 4)'})
+        expected = pandas.Series({0.0: '(0, 0)', 0.5: '(1, 1)', 1.0: '(2, 2)',
+                                  1.5: '(3, 3)', 2.0: '(4, 4)'})
         actual = indexer.stream_indexer(0, [part_1, part_2], verbatim_variable)[1]
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected), list(actual))
@@ -558,8 +571,8 @@ class TestIndexerMultiEvent(IndexerTestBase):
             zed = base.ElementWrapper(number)
             zed.duration = duration.Duration(0.5)
             part.insert(offset, zed)
-        expected = pandas.Series({0.0: u'(0, 0)', 0.5: u'(1, 1)', 1.0: u'(2, 2)',
-                                  1.5: u'(3, 3)', 2.0: u'(4, 4)'})
+        expected = pandas.Series({0.0: '(0, 0)', 0.5: '(1, 1)', 1.0: '(2, 2)',
+                                  1.5: '(3, 3)', 2.0: '(4, 4)'})
         actual = indexer.stream_indexer(0, [part_1, part_2], verbatim_variable)[1]
         self.assertSequenceEqual(list(expected.index), list(actual.index))
         self.assertSequenceEqual(list(expected), list(actual))
@@ -671,7 +684,7 @@ class TestMakeReturn(unittest.TestCase):
         violinii = pandas.Series([x + 10 for x in xrange(10)])
         viola = pandas.Series([x + 20 for x in xrange(10)])
         cello = pandas.Series([x + 30 for x in xrange(10)])
-        names = [u'Violin I', u'Violin II', u'Viola', u'Violoncello']
+        names = ['Violin I', 'Violin II', 'Viola', 'Violoncello']
         parts = [violini, violinii, viola, cello]
         class QuartetIndexer(indexer.Indexer):
             required_score_type = 'pandas.Series'
@@ -679,14 +692,14 @@ class TestMakeReturn(unittest.TestCase):
         test_ind = QuartetIndexer(parts)
         actual = test_ind.make_return(names, parts)
         # check
-        self.assertEqual(u'test_indexer.QuartetIndexer', actual.columns.levels[0][0])
+        self.assertEqual('test_indexer.QuartetIndexer', actual.columns.levels[0][0])
 
     def test_make_return_2(self):
         # 2: more parts than names
         # prepare
         clarinet = pandas.Series([x for x in xrange(10)])
         tuba = pandas.Series([x + 10 for x in xrange(10)])
-        names = [u'Clarinet']
+        names = ['Clarinet']
         parts = [clarinet, tuba]
         class SadIndexer(indexer.Indexer):
             required_score_type = 'pandas.Series'
@@ -704,7 +717,7 @@ class TestMakeReturn(unittest.TestCase):
         # prepare
         clarinet = pandas.Series([x for x in xrange(10)])
         #tuba = pandas.Series([x + 10 for x in xrange(10)])
-        names = [u'Clarinet', u'Tuba']
+        names = ['Clarinet', 'Tuba']
         parts = [clarinet]
         class SadIndexer(indexer.Indexer):
             required_score_type = 'pandas.Series'
