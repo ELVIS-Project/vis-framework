@@ -46,7 +46,7 @@ class TemplateExperimenter(experimenter.Experimenter):
 
     possible_settings = ['fake_setting']
     """
-    This is a list of basestrings that are the names of the settings used in this experimenter.
+    This is a list of strings that are the names of the settings used in this experimenter.
     Specify the types and reasons for each setting as though it were an argument list, like this:
 
     :keyword 'fake_setting': This is a fake setting.
