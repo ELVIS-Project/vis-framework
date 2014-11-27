@@ -3,6 +3,8 @@
 language: python
 python:
   - "2.7"
+  - "3.3"
+  - "3.4"
 
 install: pip install -r vis/requirements.txt --allow-external music21 --allow-unverified music21
 
