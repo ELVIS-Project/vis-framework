@@ -203,7 +203,9 @@ class IndexedPiece(object):
             ``known_opus`` if ``False``, or if ``known_opus`` is ``True`` but the file does not
             import as an :class:`Opus`.
         """
-        score = converter.parse(self.metadata('pathname'))
+        score = converter.Converter()
+        score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
+        score = score.stream
         if isinstance(score, stream.Opus):
             if known_opus is False and self._opus_id is None:
                 # unexpected Opus---can't continue

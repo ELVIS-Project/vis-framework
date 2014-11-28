@@ -31,11 +31,14 @@ from unittest import TestCase, TestLoader
 import six
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
+    from unittest import mock
     from unittest.mock import call, patch, MagicMock, Mock
 else:
+    import mock
     from mock import call, patch, MagicMock, Mock
 import pandas
 import music21
+from music21 import converter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
 from vis.analyzers.experimenter import Experimenter
@@ -47,8 +50,8 @@ VIS_PATH = vis.__path__[0]
 
 # pylint: disable=R0904
 # pylint: disable=C0111
-@patch('music21.converter.parse', new=lambda path: MagicMock(name='ScoreMock: ' + path,
-                                                             spec=music21.stream.Score))
+#@patch('music21.converter.Converter', new=lambda: MagicMock(spec_set=music21.converter.Converter,
+                                                            #parseFile=MagicMock(return_value=lambda *x: MagicMock(name='MockScore {}'.format(x[0]), spec_set=music21.stream.Score))))
 class TestIndexedPieceA(TestCase):
     """The 'A' part of tests for IndexedPiece."""
 
@@ -125,8 +128,14 @@ class TestIndexedPieceA(TestCase):
         mock_indexer_cls.run.assert_called_once_with()
         mock_init.assert_called_once_with([14], None)
 
-    def test_get_data_3(self):
+    @mock.patch('vis.models.indexed_piece.converter')
+    def test_get_data_3(self, mock_conv):
         """get data from a chained Indexer"""
+        # set up the mock converter
+        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
+        mock_con_class.parseFile = mock.MagicMock(return_value=None)
+        mock_conv.Converter.return_value = mock_con_class
+        # the rest
         first_indexer_cls = type('MockIndexer', (Indexer,), {})
         first_init = MagicMock(spec_set=Indexer)
         first_init.return_value = None
@@ -147,8 +156,14 @@ class TestIndexedPieceA(TestCase):
         first_indexer_cls.run.assert_called_once_with()
         second_indexer_cls.run.assert_called_once_with()
 
-    def test_get_data_4(self):
+    @mock.patch('vis.models.indexed_piece.converter')
+    def test_get_data_4(self, mock_conv):
         """chained Indexer plus settings"""
+        # set up the mock converter
+        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
+        mock_con_class.parseFile = mock.MagicMock(return_value=None)
+        mock_conv.Converter.return_value = mock_con_class
+        # the rest
         first_indexer_cls = type('MockIndexer', (Indexer,), {})
         first_init = MagicMock()
         first_init.return_value = None
@@ -171,11 +186,17 @@ class TestIndexedPieceA(TestCase):
         first_indexer_cls.run.assert_called_once_with()
         second_indexer_cls.run.assert_called_once_with()
 
-    def test_get_data_5(self):
+    @mock.patch('vis.models.indexed_piece.converter')
+    def test_get_data_5(self, mock_conv):
         """
         get data from an Experimenter that requires an Indexer
         (same as test 3, but second_indexer_cls is an Experimenter subclass)
         """
+        # set up the mock converter
+        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
+        mock_con_class.parseFile = mock.MagicMock(return_value=None)
+        mock_conv.Converter.return_value = mock_con_class
+        # the rest
         mock_indexer_cls = type('MockIndexer', (Indexer,), {})
         mock_init = MagicMock()
         mock_init.return_value = None
@@ -325,9 +346,15 @@ class TestIndexedPieceA(TestCase):
         self.ind_piece._noterest_results = 42
         self.assertEqual(42, self.ind_piece._get_note_rest_index())
 
-    def test_get_nrindex_2(self):
+    @mock.patch('vis.models.indexed_piece.converter')
+    def test_get_nrindex_2(self, mock_conv):
         """That we run the NoteRestIndexer and store results in self._note_rest_results if is None."""
         # pylint: disable=W0212
+        # set up the mock converter
+        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
+        mock_con_class.parseFile = mock.MagicMock(return_value=None)
+        mock_conv.Converter.return_value = mock_con_class
+        # the rest
         with patch('vis.models.indexed_piece.noterest.NoteRestIndexer') as mock_nri_cls:
             mock_nri = MagicMock(return_value=[14])
             mock_nri.run = MagicMock()
@@ -379,48 +406,75 @@ class TestIndexedPieceA(TestCase):
 
 
 class TestIndexedPieceB(TestCase):
+    """The 'A' part of tests for IndexedPiece."""
+
     def setUp(self):
+        """Set up some stuff."""
         self._pathname = 'test_path'
         self.ind_piece = IndexedPiece(self._pathname)
 
-    def test_import_score_1(self):
-        # That _import_score() raises an OpusWarning when it imports an Opus but "expect_opus" is
-        # False
-        with patch('vis.models.indexed_piece.converter.parse') as mock_parse:
-            mock_parse.return_value = music21.stream.Opus()
-            self.assertRaises(OpusWarning, self.ind_piece._import_score, known_opus=False)
+    @mock.patch('vis.models.indexed_piece.converter')
+    def test_import_score_1(self, mock_conv):
+        """
+        That _import_score() raises an OpusWarning when it imports an Opus but "expect_opus" is
+        False
+        """
+        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
+        mock_con_class.parseFile = mock.MagicMock(return_value=None)
+        mock_con_class.stream = music21.stream.Opus()
+        mock_conv.Converter.return_value = mock_con_class
 
-    def test_import_score_2(self):
-        # That _import_score() returns multiple IndexedPiece objects when it imports an Opus and
-        # "expect_opus" is True
-        with patch('vis.models.indexed_piece.converter.parse') as mock_parse:
-            mock_parse.return_value = music21.stream.Opus()
-            for _ in xrange(5):
-                mock_parse.return_value.insert(music21.stream.Score())
-            actual = self.ind_piece._import_score(known_opus=True)
-            self.assertEqual(5, len(actual))
-            for i, piece in enumerate(actual):
-                self.assertTrue(isinstance(piece, IndexedPiece))
-                self.assertEqual(i, piece._opus_id)
+        self.assertRaises(OpusWarning, self.ind_piece._import_score, known_opus=False)
 
-    def test_import_score_3(self):
-        # That _import_score() raises an OpusWarning when "expect_opus" is True, but it doesn't
-        # import an Opus
-        with patch('vis.models.indexed_piece.converter.parse') as mock_parse:
-            mock_parse.return_value = music21.stream.Score()
-            self.assertRaises(OpusWarning, self.ind_piece._import_score, known_opus=True)
+    @mock.patch('vis.models.indexed_piece.converter')
+    def test_import_score_2(self, mock_conv):
+        """
+        That _import_score() returns multiple IndexedPiece objects when it imports an Opus and
+        "expect_opus" is True
+        """
+        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
+        mock_con_class.parseFile = mock.MagicMock(return_value=None)
+        mock_con_class.stream = music21.stream.Opus()
+        for _ in xrange(5):
+            mock_con_class.stream.insert(music21.stream.Score())
+        mock_conv.Converter.return_value = mock_con_class
 
-    def test_import_score_4(self):
-        # That _import_score() returns the right Score object when it imports an Opus
-        with patch('vis.models.indexed_piece.converter.parse') as mock_parse:
-            mock_parse.return_value = music21.stream.Opus()
-            for i in xrange(5):
-                mock_parse.return_value.insert(music21.stream.Score())
-                mock_parse.return_value[i].priority = 42 + i
-            actual = self.ind_piece._import_score(known_opus=True)
-            self.assertEqual(5, len(actual))
-            for i, piece in enumerate(actual):
-                self.assertEqual(42 + i, piece._import_score().priority)
+        actual = self.ind_piece._import_score(known_opus=True)
+
+        self.assertEqual(5, len(actual))
+        for i, piece in enumerate(actual):
+            self.assertTrue(isinstance(piece, IndexedPiece))
+            self.assertEqual(i, piece._opus_id)
+
+    @mock.patch('vis.models.indexed_piece.converter')
+    def test_import_score_3(self, mock_conv):
+        """
+        That _import_score() raises an OpusWarning when "expect_opus" is True, but it doesn't
+        import an Opus.
+        """
+        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
+        mock_con_class.parseFile = mock.MagicMock(return_value=None)
+        mock_con_class.stream = music21.stream.Score()
+        mock_conv.Converter.return_value = mock_con_class
+
+        self.assertRaises(OpusWarning, self.ind_piece._import_score, known_opus=True)
+
+    @mock.patch('vis.models.indexed_piece.converter')
+    def test_import_score_4(self, mock_conv):
+        """That _import_score() returns the right Score object when it imports an Opus."""
+        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
+        mock_con_class.parseFile = mock.MagicMock(return_value=None)
+        mock_con_class.stream = music21.stream.Opus()
+        for i in xrange(5):
+            mock_con_class.stream.insert(music21.stream.Score())
+            mock_con_class.stream[i].priority = 42 + i
+        mock_conv.Converter.return_value = mock_con_class
+
+        actual = self.ind_piece._import_score(known_opus=True)
+
+        self.assertEqual(5, len(actual))
+        for i, piece in enumerate(actual):
+            self.assertEqual(42 + i, piece._import_score().priority)
 
     # TODO: write more tests here, bro
 
