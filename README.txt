@@ -37,7 +37,24 @@ These are recommended dependencies:
 Citation
 ========
 
-To cite the VIS Framework in publications use:
+If you wish to cite the VIS Framework, please use this ISMIR 2014 article:
+
+Antila, Christopher and Julie Cumming. "The VIS Framework: Analyzing Counterpoint in Large Datasets."
+    In Proceedings of the International Society for Music Information Retrieval, 2014.
+
+A BibTeX entry for LaTeX users is
+
+```
+@inproceedings{,
+    title = {The VIS Framework: Analyzing Counterpoint in Large Datasets},
+    author = {Antila, Christopher and Cumming, Julie},
+    booktitle = {Proceedings of the International Society for Music Information Retrieval},
+    location = {Taipei, Taiwan},
+    year = {2014},
+}
+```
+
+You may also wish to cite the software itself:
 
 Antila, Christopher and Jamie Klassen. The VIS Framework for Music Analysis. Montréal: The ELVIS Project, 2014. URL https://github.com/ELVIS-Project/vis.
 
