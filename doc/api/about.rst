@@ -2,23 +2,85 @@
 
 Design Principles
 =================
-The vis framework has a simple design: write an ``analyzer`` to make an analytic judgment about a piece, then use the built-in ``models`` to ensure analyzers are run in the right order, with the right inputs and settings. Since music analysis is a complex task (really, a complicated complex of tasks), and the vis framework is highly abstracted, our simple design requires much explanation.
 
-Write an Analyzer
------------------
-There are two types of analyzers: indexers and experimenters. Indexers take a :class:`music21.stream.Score` or the result of another indexer, perform a calculation, then produce output that can sensibly be attached to a specific moment of a piece. Indexers may be relatively simple, like the :class:`~vis.analyzers.indexers.interval.IntervalIndexer`, which accepts an index of the notes and rests in a piece and outputs an index of the intervals between all possible part pairs. Indexers may be complicated, like the :class:`~vis.analyzers.indexers.ngram.NGramIndexer`, which accepts at least one index of anything, and outputs an index of successions found therein. An indexer might tell you the scale degrees in a part, or the harmonic function of chords in a score.
+Three Simple Components
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Experimenters always accept the result of an indexer or another experimenter, perform a culculation, then produce results that cannot be sensibly attached to a specific moment of a piece. Experimenters may be relatively simple, like the :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`, which accepts any index and counts the number of occurrences of unique objects found within. Experimenters may be complicated, like one that accepts the result of the :class:`FrequencyExperimenter`, then outputs a Markov transition model.
+In essence, the VIS Framework is built on three simple components: *analyzers* make music analysis decisions; *models* run analyzers on a score; the *WorkflowManager* determines the order analyzers are run.
+In other words, the three components are about analysis decisions, making the decisions happen, and ordering the decision-happening.
 
-The vis framework ships analyzers for various tasks, but we think most users will extend the framework with their own analyzers.
+Consider this example.
+A common task for VIS is to count the number of vertical intervals in a piece of music.
+You ask the *WorkflowManager* to run this query.
+The WorkflowManager knows the steps involved: (1) name the notes in a score, (2) find the vertical intervals between simultaneous notes,and (3) count the number of occurrences of every interval.
+For each step, the WorkflowManager asks a *model* for results.
+The model represents a piece, and it knows, for example, how to find simultaneous events, and how to meaningfully organize the results of an analyzer.
+Finally, an *analyzer* makes a single type of music analysis decision, for a single moment.
+For example, the analyzer called "IntervalIndexer" takes two note names and determines the interval between them.
 
-Use a Model
------------
-The vis framework has two data models. Use :class:`~vis.models.indexed_piece.IndexedPiece` for a single piece and :class:`~vis.models.aggregated_pieces.AggregatedPieces` for pieces as a group. In a typical application, you will write analyzers but never use them directly, and never modify but always use the models. The models know how to run analyzers on the piece or pieces they hold, how to import pieces safely and efficiently, and how to find and access metadata. In the future, the models may support storing results from analyzers in a database so they need not be recalculated for future analyses, use multiprocessing to speed up analyses on multi-core computers, or facilitate transit to and from analyzers in other languages like Haskell. We recommend you use the models to benefit from new features without modifying your programs, since they (should not) change the API.
+For a relatively simple music analysis task like counting the number of vertical intervals, these three components may seem anything *but* simple.
+For more complicated music analysis tasks, the Framework's architecture begins to pay off.
+Whether finding contrapuntal modules, analyzing harmonic function, or anything else, these components will be enough to get the job done.
+To design a new query (say, if you want to label chordal dissonances) you only need to add one analyzer for every analysis decision, then tell the WorkflowManager the order the analyzers should run.
+Complicated analysis tasks will always be complicated, but VIS provides a solid, predictable Framework for any task, allowing you to focus on what's special about your query, rather than on making sure you remember how to load pieces properly.
 
-How to Start
-------------
-After you install the framework, we recommend you begin with the two tutorials below (refer to :ref:`make_a_new_workflow` and :ref:`use_the_workflowmanager`). When you wish to write a new analyzer, refer to the documentation and source code for the :class:`~vis.analyzers.indexers.template.TemplateIndexer` and :class:`~vis.analyzers.experimenters.template.TemplateExperimenter`.
+Three Levels of Interaction
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Because of its flexibility, you may choose to interact with the VIS Framework on one of three levels, depending on the flexibility required for the task you want to do.
+
+If you simply want to use VIS for one of its built-in queries, like finding vertical intervals or contrapuntal modules, you can use VIS **as a program**.
+You may do this through a graphical interface like the `Counterpoint Web App <https://counterpoint.elvisproject.ca>`_ or through the Python shell directly, as described in :ref:`use_as_a_program`.
+
+If the built-in :class:`WorkflowManager` does not provide the workflow you need, but you can still accomplish your query with the built-in analyzers, you can use VIS **as a library**.
+For example, you may wish to analyze melodic patterns with *n*-grams, as described in :ref:`make_a_new_workflow`.
+
+Finally, if your query cannot be implemented using the built-in analyzers, you can use VIS **as a framework**, adding analyzer modules and modifying the :class:`WorkflowManager` as necessary.
+For example, you may wish to DO WHATEVER WILL BE DESCRIBED IN THIS CROSS-REF.
+
+A More Detailed Look
+=========================
+
+Two Types of Analyzers
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+VIS uses two types of analyzers: indexers and experimenters.
+
+**Indexers** either start with a :class:`music21.stream.Score` or a :class:`pandas.DataFrame` from another indexer and perform some calculation.
+The output of any indexer can be sensibly attached to a specific moment of a piece.
+That is, indexers are for events that "happen" at an identifiable time.
+Indexers may be relatively simple, like the :class:`~vis.analyzers.indexers.interval.IntervalIndexer`, which accepts an index of the notes and rests in a piece, transforming it into an index of the vertical intervals between all the pairs of parts.
+Indexers may also be complicated, like the :class:`~vis.analyzers.indexers.ngram.NGramIndexer`, which accepts at least one index of anything, and outputs an index of successions found therein.
+An indexer might tell you scale degrees, the harmonic function of a chord, the figured bass signature of a simultaneity, or the moment of a modulation.
+
+**Experimenters** always start with a :class:`~pandas.DataFrame` produced by another analyzer, producing results that cannot be sensibly attached to a specific moment of a piece.
+That is, experimenters are for characteristics of a piece (or movement) as a whole.
+Experiments may be relatively simple, like the :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`, which counts the number of occurrences of the objects in a :class:`DataFrame`.
+Experimenters may also be complicated, like one that produces a Markov transition model of figured bass signatures.
+
+The distinction between indexers and experimenters helps to organize valid workflows.
+Analyses may flow from indexer to indexer, from indexer to experimenter, and from experimenter to experimenter.
+However, an analysis may never move from an experimenter to an indexer; once moment-specific information is lost, it cannot be recovered.
+(I would like to draw your attention to a technicality: *an* experimenter may not be followed by *an* indexer---but it is possible for an indexer to use results from an experimenter if it also uses results from an indexer).
+
+When designing your own analyzers, we encourage you to avoid the temptation to include many analysis steps in the same analyzer, and instead to follow the design pattern set out with our own analyzers and our :class:`~vis.analyzers.indexers.TemplateIndexer` and :class:`~vis.analyzers.experimenters.TemplateExperimenter`.
+Following this design pattern helps ensure your program is easy to test, and therefore more trustworthy.
+In addition, you may be able to contribute valuable new analyzer modules that will help other scholars get started with VIS more easily.
+
+If required, you may also use an analyzer to run external programs, possibly written in another programming language.
+For example, the :class:`~vis.analyzers.experimenters.barchart.RBarChart` Experimenter runs a program in the R language to use the "ggplot2" library to produce a bar chart.
+Another example is the :class:`~vis.analyzers.experimenters.lilypond.LilyPondExperimenter`, which uses the external :mod:`outputlilypond` Python module to produce a file for `LilyPond <https://lilypond.org>`_, a C program, which that module calls directly.
+
+Two Types of Models
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+VIS uses two types of models: :class:`~vis.models.indexed_piece.IndexedPiece` and :class:`~vis.models.aggregated_pieces.AggregatedPieces`.
+These models represent a single piece (or movement), and a group of pieces (and movements), respectively.
+In a typical application, you will write analyzers but never call their methods directly.
+On the other hand, you will almost never modify the models, but always call their methods.
+Models know how to run analyzers on the piece or pieces they represent, how to import music21 :class:`Score` objects safely and efficiently, and how to find and access metadata.
+The models also perform some level of automated error-handling and data-coordination.
+In the future, the models may also help coordinate multiprocessing or results-caching, and they should be able to do this without breaking the API.
 
 .. _known_issues_and_limitations:
 
