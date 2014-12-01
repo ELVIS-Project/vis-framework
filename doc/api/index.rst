@@ -42,7 +42,7 @@ Programming Tutorials for VIS
 .. toctree::
     :maxdepth: 1
 
-    tutorial-new_workflow
+    tutorial-melodic_ngrams
     tutorial-workflowmanager
 
 

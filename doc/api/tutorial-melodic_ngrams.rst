@@ -1,8 +1,8 @@
 
-.. _make_a_new_workflow:
+.. _tutorial-melodic_ngrams:
 
-Tutorial: Make a new Workflow
-=============================
+Tutorial: Use *N*-Grams to Find Melodic Patterns
+=====================================================
 Once you understand our framework's architecture (explained in :ref:`design_principles`), you can start to design a new workflow to ask your own queries.
 
 Develop a Question

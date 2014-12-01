@@ -33,7 +33,7 @@ If you simply want to use VIS for one of its built-in queries, like finding vert
 You may do this through a graphical interface like the `Counterpoint Web App <https://counterpoint.elvisproject.ca>`_ or through the Python shell directly, as described in :ref:`use_as_a_program`.
 
 If the built-in :class:`WorkflowManager` does not provide the workflow you need, but you can still accomplish your query with the built-in analyzers, you can use VIS **as a library**.
-For example, you may wish to analyze melodic patterns with *n*-grams, as described in :ref:`make_a_new_workflow`.
+For example, you may wish to analyze melodic patterns with *n*-grams, as described in :ref:`tutorial-melodic_ngrams`.
 
 Finally, if your query cannot be implemented using the built-in analyzers, you can use VIS **as a framework**, adding analyzer modules and modifying the :class:`WorkflowManager` as necessary.
 For example, you may wish to DO WHATEVER WILL BE DESCRIBED IN THIS CROSS-REF.
