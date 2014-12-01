@@ -50,7 +50,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'VIS'
+project = 'VIS Framework'
 copyright = '2013 to 2014 Christopher Antila, CC-BY-SA 4.0'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -116,10 +116,10 @@ html_theme = 'sphinxdoc'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = '{} Documentation (Version {})'.format(project, release)
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = "VIS API (v%s)" % release
+html_short_title = 'VIS API ({})'.format(release)
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
@@ -196,8 +196,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'vis.tex', u'VIS Framework Documentation',
-   u'Christopher Antila', 'manual'),
+  ('index', 'vis-framework.tex', 'VIS Framework Documentation',
+   'Christopher Antila', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
