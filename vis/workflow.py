@@ -750,15 +750,6 @@ class WorkflowManager(object):
 
         return pandas.DataFrame({x: series_filter(starting[x]) for x in list(starting.columns)})
 
-
-        #if isinstance(self._result, pandas.DataFrame):
-            ## NB: usually self._result is a list, in which case we couldn't call .columns... but
-            ##     we're protected in this case by the isinstance() call
-            #post =
-            #return pandas.DataFrame(post)
-        #else:
-            #return pandas.DataFrame({name: series_filter(self._result)})
-
     def output(self, instruction, pathname=None, top_x=None, threshold=None):
         """
         Output the results of the most recent call to :meth:`run`, saved in a file. This method
