@@ -43,6 +43,7 @@ from vis.tests import test_lilypond
 from vis.tests import test_indexed_piece
 from vis.tests import test_aggregated_pieces
 from vis.tests import bwv2_integration_tests as bwv2
+from vis.tests import bwv603_integration_tests as bwv603
 from vis.tests import test_workflow
 from vis.tests import test_workflow_integration
 from vis.tests import test_workflow_experiments
@@ -89,6 +90,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_workflow_experiments.INTERVALS,
              # Integration Tests
              bwv2.ALL_VOICE_INTERVAL_NGRAMS,
+             bwv603.ALL_VOICE_INTERVAL_NGRAMS,
              test_workflow_integration.INTERVALS_TESTS,
              test_workflow_integration.NGRAMS_TESTS,
         )
