@@ -7,6 +7,7 @@ the top of the file.
 * 2.1.0:
     - Python 3 compatibility.
     - Importing no longer uses/stores cached pickle files.
+    - WorkflowManager.output() produces many table-format results if "count frequency" is False
 * 2.0.0:
     - Analyzers must now accept and return DataFrame objects.
     - Require pandas 0.14.1 at minimum.

@@ -79,7 +79,7 @@ THE_TESTS = (# Indexer and Subclasses
              # WorkflowManager
              test_workflow.WORKFLOW_TESTS,
              test_workflow.FILTER_DATA_FRAME,
-             test_workflow.EXPORT,
+             test_workflow.MAKE_TABLE,
              test_workflow.EXTRA_PAIRS,
              test_workflow.SETTINGS,
              test_workflow.OUTPUT,

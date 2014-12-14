@@ -351,12 +351,12 @@ class Output(TestCase):
         except RuntimeError as run_err:
             self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.args[0])
 
-    @mock.patch('vis.workflow.WorkflowManager._export')
-    def test_output_5(self, mock_export):
+    @mock.patch('vis.workflow.WorkflowManager._make_table')
+    def test_output_5(self, mock_table):
         """ensure output() calls export() as required"""
         # 1: prepare
         export_path = 'the_path'
-        mock_export.return_value = export_path
+        mock_table.return_value = export_path
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'intervals'
         test_wc._data = [1 for _ in xrange(20)]
@@ -367,7 +367,7 @@ class Output(TestCase):
         actual = test_wc.output('Excel', path)
         # 3: check
         self.assertEqual(export_path, actual)
-        mock_export.assert_called_once_with(*expected_args)
+        mock_table.assert_called_once_with(*expected_args)
 
 
 @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
@@ -701,19 +701,30 @@ class ExtraPairs(TestCase):
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
 
 
-class Export(TestCase):
-    """Tests for WorkflowManager._export()"""
+class MakeTable(TestCase):
+    """Tests for WorkflowManager._make_table()"""
 
     @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
-    def test_export_1(self, mock_fdf):
-        """the method works as expected for CSV, Excel, and Stata when _result is a DataFrame"""
+    def test_table_1(self, mock_fdf):
+        '''
+        _make_table():
+
+        - "count frequency" is True
+        - file extension on "pathname" with period
+        '''
         test_wm = WorkflowManager([])
+        test_wm.settings(None, 'count frequency', True)  # just to be 100% clear
         mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
         test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
-        test_wm._export('CSV', 'test_path')  # pylint: disable=protected-access
-        test_wm._export('Excel', 'test_path')  # pylint: disable=protected-access
-        test_wm._export('Stata', 'test_path')  # pylint: disable=protected-access
-        test_wm._export('HTML', 'test_path')  # pylint: disable=protected-access
+        top_x = None
+        threshold = None
+        pathname = 'test_path'
+
+        test_wm._make_table('CSV', pathname + '.csv', top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Excel', pathname + '.xlsx', top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Stata', pathname + '.dta', top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('HTML', pathname + '.html', top_x, threshold)  # pylint: disable=protected-access
+
         mock_fdf.return_value.to_csv.assert_called_once_with('test_path.csv')
         mock_fdf.return_value.to_stata.assert_called_once_with('test_path.dta')
         mock_fdf.return_value.to_excel.assert_called_once_with('test_path.xlsx')
@@ -721,22 +732,59 @@ class Export(TestCase):
         self.assertSequenceEqual([mock.call(top_x=None, threshold=None) for _ in xrange(4)],
                                  mock_fdf.call_args_list)
 
-    @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
-    def test_export_2(self, mock_fdf):
-        """test_export_1() with a valid extension already on"""
+    def test_table_2(self):
+        '''
+        _make_table():
+
+        - "count frequency" is False
+        - file extension not on "pathname"
+        - there is only one IndexedPiece
+        '''
         test_wm = WorkflowManager([])
-        mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
-        test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
-        test_wm._export('CSV', 'test_path.csv')  # pylint: disable=protected-access
-        test_wm._export('Excel', 'test_path.xlsx')  # pylint: disable=protected-access
-        test_wm._export('Stata', 'test_path.dta')  # pylint: disable=protected-access
-        test_wm._export('HTML', 'test_path.html')  # pylint: disable=protected-access
-        test_wm._result.to_csv.assert_called_once_with('test_path.csv')
-        test_wm._result.to_stata.assert_called_once_with('test_path.dta')
-        test_wm._result.to_excel.assert_called_once_with('test_path.xlsx')
-        test_wm._result.to_html.assert_called_once_with('test_path.html')
-        self.assertSequenceEqual([mock.call(top_x=None, threshold=None) for _ in xrange(4)],
-                                 mock_fdf.call_args_list)
+        test_wm.settings(None, 'count frequency', False)
+        test_wm._result = [mock.MagicMock(spec_set=pandas.DataFrame)]
+        test_wm._data = ['boop' for _ in xrange(len(test_wm._result))]
+        top_x = None
+        threshold = None
+        pathname = 'test_path'
+
+        test_wm._make_table('CSV', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Excel', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Stata', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('HTML', pathname, top_x, threshold)  # pylint: disable=protected-access
+
+        for i in xrange(len(test_wm._result)):
+            test_wm._result[i].to_csv.assert_called_once_with(pathname + '.csv')
+            test_wm._result[i].to_excel.assert_called_once_with(pathname + '.xlsx')
+            test_wm._result[i].to_stata.assert_called_once_with(pathname + '.dta')
+            test_wm._result[i].to_html.assert_called_once_with(pathname + '.html')
+
+    def test_table_3(self):
+        '''
+        _make_table():
+
+        - "count frequency" is False
+        - file extension not on "pathname"
+        - there are several IndexedPiece objects
+        '''
+        test_wm = WorkflowManager([])
+        test_wm.settings(None, 'count frequency', False)
+        test_wm._result = [mock.MagicMock(spec_set=pandas.DataFrame) for _ in xrange(5)]
+        test_wm._data = ['boop' for _ in xrange(len(test_wm._result))]
+        top_x = None
+        threshold = None
+        pathname = 'test_path'
+
+        test_wm._make_table('CSV', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Excel', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Stata', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('HTML', pathname, top_x, threshold)  # pylint: disable=protected-access
+
+        for i in xrange(len(test_wm._result)):
+            test_wm._result[i].to_csv.assert_called_once_with('{}-{}{}'.format(pathname, i, '.csv'))
+            test_wm._result[i].to_excel.assert_called_once_with('{}-{}{}'.format(pathname, i, '.xlsx'))
+            test_wm._result[i].to_stata.assert_called_once_with('{}-{}{}'.format(pathname, i, '.dta'))
+            test_wm._result[i].to_html.assert_called_once_with('{}-{}{}'.format(pathname, i, '.html'))
 
 
 class FilterDataFrame(TestCase):
@@ -946,7 +994,7 @@ class AuxiliaryExperimentMethods(TestCase):
 #-------------------------------------------------------------------------------------------------#
 WORKFLOW_TESTS = TestLoader().loadTestsFromTestCase(WorkflowTests)
 FILTER_DATA_FRAME = TestLoader().loadTestsFromTestCase(FilterDataFrame)
-EXPORT = TestLoader().loadTestsFromTestCase(Export)
+MAKE_TABLE = TestLoader().loadTestsFromTestCase(MakeTable)
 EXTRA_PAIRS = TestLoader().loadTestsFromTestCase(ExtraPairs)
 SETTINGS = TestLoader().loadTestsFromTestCase(Settings)
 OUTPUT = TestLoader().loadTestsFromTestCase(Output)

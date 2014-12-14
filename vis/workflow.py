@@ -755,6 +755,9 @@ class WorkflowManager(object):
         .. note:: For LiliyPond output, you must have called :meth:`run` with ``count frequency``
             set to ``False``.
 
+        .. note:: If ``count frequency`` is set to ``False`` for CSV, Stata, Excel, or HTML output,
+            the ``top_x`` and ``threshold`` parameters are ignored.
+
         :parameter str instruction: The type of visualization to output.
         :parameter str pathname: The pathname for the output. The default is
             ``'test_output/output_result``. Do not include a file-type "extension," since we add
@@ -770,6 +773,7 @@ class WorkflowManager(object):
 
         :returns: The pathname(s) of the outputted visualization(s). Requesting a histogram always
             returns a single string; requesting a score (or some scores) always returns a list.
+            The other formats will return a list if the ``count frequency`` setting is ``False``.
         :rtype: str or [str]
 
         :raises: :exc:`RuntimeError` for unrecognized instructions.
@@ -807,8 +811,11 @@ class WorkflowManager(object):
 
         # handle instructions
         if instruction in ('CSV', 'Stata', 'Excel', 'HTML'):
-            # these will be done by export()
-            return self._export(instruction, pathname, top_x, threshold)
+            pathnames = self._make_table(instruction, pathname, top_x, threshold)
+            if 1 == len(pathnames):
+                return pathnames[0]
+            else:
+                return pathnames  # TODO: test this
         elif instruction == 'LilyPond':
             return self._make_lilypond(pathname)
         elif instruction == 'histogram' or instruction == 'R histogram':
@@ -897,30 +904,57 @@ class WorkflowManager(object):
 
         return pathnames
 
-    def _export(self, form, pathname=None, top_x=None, threshold=None):
+    def _make_table(self, form, pathname, top_x, threshold):
         """
-        Arguments as per :meth:`output`. You should always use :meth:`output`.
-        """
+        Output a table-style result. Called by :meth:`output`.
 
-        # filter the results
-        export_me = self._filter_dataframe(top_x=top_x, threshold=threshold)
+        :param st form: Either 'CSV', 'Stata', 'Excel', or 'HTML', depending on the desired output
+            format.
+        :param str pathname: As in :meth:`output`.
+        :param int top_x: As in :meth:`output`.
+        :param int threshold: As in :meth:`output`.
+
+        :returns: The pathname(s) of the outputted files.
+        :rtype: list of str
+
+        .. note:: If ``count frequency`` is ``False``, the ``top_x`` and ``threshold`` parameters
+            are ignored.
+        """
 
         # key is the instruction; value is (extension, export_method)
-        directory = {'CSV': ('.csv', export_me.to_csv),
-                     'Stata': ('.dta', export_me.to_stata),
-                     'Excel': ('.xlsx', export_me.to_excel),
-                     'HTML': ('.html', export_me.to_html)}
+        directory = {'CSV': ('.csv', 'to_csv'),
+                     'Stata': ('.dta', 'to_stata'),
+                     'Excel': ('.xlsx', 'to_excel'),
+                     'HTML': ('.html', 'to_html')}
 
-        # ensure we have an output path
-        pathname = 'test_output/no_path' if pathname is None else six.u(pathname)
-        # ensure there's a file extension
-        if directory[form][0] != pathname[-1 * len(directory[form][0]):]:
-            pathname += directory[form][0]
+        # set file extension and the method to call for output
+        file_ext, output_meth = directory[form]
 
-        # call the to_whatever() method
-        directory[form][1](pathname)
+        # ensure the pathname doesn't have a file extension
+        if pathname.endswith(file_ext):
+            pathname = pathname[:(-1 * len(file_ext))]
 
-        return pathname
+        pathnames = []
+
+        if self.settings(None, 'count frequency'):
+            # filter the results
+            export_me = self._filter_dataframe(top_x=top_x, threshold=threshold)
+            pathnames.append('{}{}'.format(pathname, file_ext))
+            getattr(export_me, output_meth)(pathnames[-1])
+        else:
+            enum = True if (len(self._data) > 1 and not self.settings(None, 'count frequency')) else False
+            for i in xrange(len(self._data)):
+                # append piece index to pathname, if there are many pieces
+                if enum:
+                    pathnames.append('{}-{}{}'.format(pathname, i, file_ext))
+                    # call the method that actually outputs the result
+                    getattr(self._result[i], output_meth)(pathnames[-1])
+                else:
+                    pathnames.append('{}{}'.format(pathname, file_ext))
+                    # call the method that actually outputs the result
+                    getattr(self._result[i], output_meth)(pathnames[-1])
+
+        return pathnames
 
     def metadata(self, index, field, value=None):
         """
