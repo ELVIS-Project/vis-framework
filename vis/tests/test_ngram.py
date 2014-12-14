@@ -108,7 +108,7 @@ class TestNGramIndexer(unittest.TestCase):
         try:
             ngram.NGramIndexer('a DataFrame', setts)
         except RuntimeError as run_err:
-            self.assertEqual(ngram.NGramIndexer._N_VALUE_TOO_LOW, run_err.message)
+            self.assertEqual(ngram.NGramIndexer._N_VALUE_TOO_LOW, run_err.args[0])
 
     def test_init_4(self):
         """that __init__() fails with there are no 'vertical' events"""
@@ -118,7 +118,7 @@ class TestNGramIndexer(unittest.TestCase):
         try:
             ngram.NGramIndexer('a DataFrame', setts)
         except RuntimeError as run_err:
-            self.assertEqual(ngram.NGramIndexer._MISSING_SETTINGS, run_err.message)
+            self.assertEqual(ngram.NGramIndexer._MISSING_SETTINGS, run_err.args[0])
 
     def test_ngram_1a(self):
         """most basic test"""

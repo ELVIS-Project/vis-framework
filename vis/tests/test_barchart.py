@@ -31,7 +31,11 @@
 import os
 import subprocess
 import unittest
-import mock
+import six
+if six.PY3:
+    from unittest import mock
+else:
+    import mock
 import pandas
 import vis
 from vis.analyzers.experimenters import barchart
@@ -67,7 +71,7 @@ class TestRBarChart(unittest.TestCase):
         try:
             barchart.RBarChart(some_df, setts)
         except RuntimeError as runerr:
-            self.assertEqual(barchart.RBarChart._MISSING_SETTINGS, runerr.message)
+            self.assertEqual(barchart.RBarChart._MISSING_SETTINGS, runerr.args[0])
 
     def test_init_3(self):
         """That __init__() raises RuntimeError when 'type' is invalid."""
@@ -77,7 +81,7 @@ class TestRBarChart(unittest.TestCase):
         try:
             barchart.RBarChart(some_df, setts)
         except RuntimeError as runerr:
-            self.assertEqual(barchart.RBarChart._INVALID_TYPE.format(setts['type']), runerr.message)
+            self.assertEqual(barchart.RBarChart._INVALID_TYPE.format(setts['type']), runerr.args[0])
 
     @mock.patch('vis.analyzers.experimenters.barchart.pandas.DataFrame')
     @mock.patch('vis.analyzers.experimenters.barchart.subprocess.check_output')
@@ -143,7 +147,7 @@ class TestRBarChart(unittest.TestCase):
         try:
             barchart.RBarChart(some_df, setts).run()
         except RuntimeError as err:
-            self.assertEqual(exp_err_msg, err.message)
+            self.assertEqual(exp_err_msg, err.args[0])
 
     @mock.patch('vis.analyzers.experimenters.barchart.subprocess.check_output')
     def test_run_3(self, mock_subpro):

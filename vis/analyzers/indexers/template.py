@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/template.py
 # Purpose:                Template indexer
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -49,6 +49,8 @@ The :class:`TemplateIndexer` does nothing, and should only be used by programmer
     #. Finally, run ``pylint`` with the VIS style rules.
 """
 
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import stream
 from vis.analyzers import indexer
 
@@ -66,10 +68,10 @@ def indexer_func(obj):
 
     :param obj: The simultaneous event(s) to use when creating this index. (For indexers using a
         :class:`Series`).
-    :type obj: :class:`pandas.Series` of unicode strings
+    :type obj: :class:`pandas.Series` of strings
 
     :returns: The value to store for this index at this offset.
-    :rtype: :obj:`unicode`
+    :rtype: str
     """
     return None
 
@@ -90,9 +92,9 @@ class TemplateIndexer(indexer.Indexer):
     no combinations---it will be each part independently).
     """
 
-    possible_settings = [u'fake_setting']
+    possible_settings = ['fake_setting']
     """
-    This is a list of basestrings that are the names of the settings used in this indexer. Specify
+    This is a list of string that are the names of the settings used in this indexer. Specify
     the types and reasons for each setting as though it were an argument list, like this:
 
     :keyword 'fake_setting': This is the description of a fake setting.
@@ -180,4 +182,4 @@ class TemplateIndexer(indexer.Indexer):
         # as written for nearly all cases, but refer to the documentation for make_return() for
         # more information. The string-slicing simply removes the ``'['`` and ``']'`` characters
         # that appear because each combination is a list.
-        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+        return self.make_return([six.u(x)[1:-1] for x in combinations], results)

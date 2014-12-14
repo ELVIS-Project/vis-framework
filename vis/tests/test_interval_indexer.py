@@ -31,6 +31,7 @@
 
 import os
 import unittest
+import six
 import pandas
 from music21 import interval, note
 from vis.analyzers.indexers.interval import IntervalIndexer, HorizontalIntervalIndexer, real_indexer
@@ -75,7 +76,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -91,7 +92,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -106,7 +107,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -121,7 +122,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -137,7 +138,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -152,7 +153,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -171,7 +172,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -188,7 +189,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -206,7 +207,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -221,7 +222,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -236,7 +237,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -253,7 +254,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -273,7 +274,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -301,7 +302,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -322,7 +323,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -343,7 +344,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -366,7 +367,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                                       {'quality': True, 'simple or compound': 'compound'})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -426,7 +427,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         int_indexer = IntervalIndexer(test_parts, setts)
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -439,7 +440,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         int_indexer = IntervalIndexer(test_parts, setts)
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -453,7 +454,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         int_indexer = IntervalIndexer(test_parts)
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -466,7 +467,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
         int_indexer = IntervalIndexer(test_parts, setts)
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -718,7 +719,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
         actual = int_indexer.run()['interval.HorizontalIntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))

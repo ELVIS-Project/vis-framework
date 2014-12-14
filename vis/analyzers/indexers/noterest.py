@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/noterest.py
 # Purpose:                Index note and rest objects.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -28,13 +28,15 @@
 Index note and rest objects.
 """
 
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import stream, note
 from vis.analyzers import indexer
 
 def indexer_func(obj):
     """
     Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
-    :class:`~music21.note.Rest` objects into a ``unicode`` string.
+    :class:`~music21.note.Rest` objects into a string.
 
     :param obj: An iterable (nominally a :class:`~pandas.Series`) with an object to convert. Only
         the first object in the iterable is processed.
@@ -43,7 +45,7 @@ def indexer_func(obj):
     :returns: If the first object in the list is a :class:`music21.note.Rest`, the string
         ``u'Rest'``; otherwise the :attr:`~music21.note.Note.nameWithOctave` attribute, which is
         the pitch class and octave of the :class:`Note`.
-    :rtype: unicode
+    :rtype: str
 
     **Examples:**
 
@@ -53,7 +55,7 @@ def indexer_func(obj):
     >>> indexer_func([note.Rest()])
     u'Rest'
     """
-    return u'Rest' if isinstance(obj[0], note.Rest) else unicode(obj[0].nameWithOctave)
+    return 'Rest' if isinstance(obj[0], note.Rest) else six.u(str(obj[0].nameWithOctave))
 
 
 class NoteRestIndexer(indexer.Indexer):
@@ -61,7 +63,7 @@ class NoteRestIndexer(indexer.Indexer):
     Index :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects in a
     :class:`~music21.stream.Part`.
 
-    :class:`Rest` objects become ``'Rest'``, and :class:`Note objects become the unicode-format
+    :class:`Rest` objects become ``'Rest'``, and :class:`Note objects become the string-format
     version of their :attr:`~music21.note.Note.nameWithOctave` attribute.
     """
 
@@ -99,4 +101,4 @@ class NoteRestIndexer(indexer.Indexer):
         """
         combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately
         results = self._do_multiprocessing(combinations)
-        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+        return self.make_return([six.u(str(x))[1:-1] for x in combinations], results)

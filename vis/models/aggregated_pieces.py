@@ -28,6 +28,7 @@
 The model representing data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
 """
 
+import six
 import pandas
 from vis.analyzers import experimenter
 
@@ -66,7 +67,7 @@ class AggregatedPieces(object):
         """
         def init_metadata():
             """
-            Initialize valid metadata fields with a zero-length unicode.
+            Initialize valid metadata fields with a zero-length string.
             """
             field_list = ['composers', 'dates', 'date_range', 'titles', 'locales',
                           'pathnames']
@@ -94,7 +95,7 @@ class AggregatedPieces(object):
         :type dates: list of basesetring
 
         :returns: The earliest and latest years in the list of dates.
-        :rtype: 2-tuple of unicode
+        :rtype: 2-tuple of string
 
         **Examples**
         >>> ranges = ['1987/09/09', '1865/12/08', '1993/08/08']
@@ -110,13 +111,13 @@ class AggregatedPieces(object):
                     post.append(int(poss_date[14:18]))
                 except ValueError:
                     pass
-            elif isinstance(poss_date, basestring):
+            elif isinstance(poss_date, six.string_types):
                 try:
                     post.append(int(poss_date[:4]))
                 except ValueError:
                     pass
         if [] != post:
-            return unicode(min(post)), unicode(max(post))
+            return six.u(str(min(post))), six.u(str(max(post)))
         else:
             return None
 
@@ -125,10 +126,10 @@ class AggregatedPieces(object):
         Collect metadata from the IndexedPieces and store it in our own Metadata object.
 
         :param field: The metadata field to return
-        :type field: basestring
+        :type field: str
 
         :returns: The requested metadata field.
-        :rtype: list of basestring or tuple of basestring
+        :rtype: list of str or tuple of str
         """
         post = None
         # composers: list of all the composers in the IndexedPieces
@@ -156,7 +157,7 @@ class AggregatedPieces(object):
         Get a metadatum about the IndexedPieces stored in this AggregatedPieces.
 
         If only some of the stored IndexedPieces have had their metadata initialized, this method
-        returns incompelete metadata. Missing data will be represented as :obj:`None` in the list,
+        returns incompelete metadata. Missing data will be represented as ``None`` in the list,
         but it will not appear in ``date_range`` unless there are no dates. If you need full
         metadata, we recommend running an Indexer that requires a :class:`Score` object on all the
         IndexedPieces (like :class:`vis.analyzers.indexers.noterest.NoteRestIndexer`).
@@ -171,15 +172,15 @@ class AggregatedPieces(object):
         * ``'pathnames``: list of all the pathnames in the IndexedPieces
 
         :param field: The name of the field to be accessed or modified.
-        :type field: :obj:`basestring`
+        :type field: str
 
         :returns: The value of the requested field or None, if accessing a non-existant field or a
             field that has not yet been initialized in the IndexedPieces.
         :rtype: object or None
 
-        :raises: :exc:`TypeError` if ``field`` is not a basestring.
+        :raises: :exc:`TypeError` if ``field`` is not a str.
         """
-        if not isinstance(field, basestring):
+        if not isinstance(field, str):
             raise TypeError(AggregatedPieces._FIELD_STRING)
         elif field in self._metadata:
             if self._metadata[field] is None:

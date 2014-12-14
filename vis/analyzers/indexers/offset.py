@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/offset.py
 # Purpose:                Indexer to regularize the observed offsets.
 #
-# Copyright (C) 2013 to 2014, Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -30,6 +30,8 @@ potentially adding repetitions of or removing pre-existing events, without modif
 themselves.
 """
 
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from vis.analyzers import indexer
 
@@ -245,5 +247,5 @@ class FilterByOffsetIndexer(indexer.Indexer):
                     step = int(self._settings[u'quarterLength'] * 1000)
                     off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
                     post.append(part.reindex(index=off_list, method=self._settings['method']))
-        post = self.make_return([unicode(x) for x in xrange(len(post))], [x for x in post])
+        post = self.make_return([six.u(str(x)) for x in xrange(len(post))], [x for x in post])
         return post

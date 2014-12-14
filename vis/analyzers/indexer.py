@@ -29,6 +29,8 @@
 The controllers that deal with indexing data from music21 Score objects.
 """
 
+import six
+from six.moves import range, xrange
 import pandas
 from music21 import stream, converter
 
@@ -67,13 +69,13 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
         simlutaneity will appear in the outputted index. Therefore, the new index will contain at
         least as many events as the inputted :class:`Part` with the most events.
     :type parts: list of :class:`music21.stream.Stream`
-    :param function indexer_func: This function transforms found events into a unicode object.
+    :param function indexer_func: This function transforms found events into some other string.
     :param types: Only objects of a type in this list will be passed to the
         :func:`~vis.analyzers.indexers.template.indexer_func` for inclusion in the resulting index.
     :type types: list of type
 
     :returns: The ``pipe_index`` argument and the new index. The new index is a :class:`pandas.Series`
-        where every element is a unicode string. The :class:`~pandas.core.index.Index` of the
+        where every element is a string. The :class:`~pandas.core.index.Index` of the
         :class:`Series` corresponds to the ``quarterLength`` offset of the event in the inputted
         :class:`Stream`.
     :rtype: 2-tuple of object and :class:`pandas.Series`
@@ -86,7 +88,7 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
         getter = lambda thing: thing.getElementsByClass(types)
 
     # Convert "frozen" Streams, if needed; flatten the streams and filter classes
-    if isinstance(parts[0], basestring):
+    if isinstance(parts[0], six.string_types):
         all_parts = [getter(converter.thaw(each).flat) for each in parts]
     else:
         all_parts = [getter(part.flat) for part in parts]
@@ -131,10 +133,10 @@ def series_indexer(pipe_index, parts, indexer_func):
         least as many events as the inputted :class:`Series` with the most events. This is not a
         :class:`DataFrame`, since each part will likely have different offsets.
     :type parts: list of :class:`pandas.Series`
-    :param function indexer_func: This function transforms found events into a unicode object.
+    :param function indexer_func: This function transforms found events into some other string.
 
     :returns: The ``pipe_index`` argument and the new index. The new index is a :class:`pandas.Series`
-        where every element is a unicode string. The :class:`~pandas.core.index.Index` of the
+        where every element is a string. The :class:`~pandas.core.index.Index` of the
         :class:`Series` corresponds to the ``quarterLength`` offset of the event in the inputted
         :class:`Stream`.
     :rtype: 2-tuple of object and :class:`pandas.Series`
@@ -190,16 +192,16 @@ class Indexer(object):
 
     # In subclasses, we might get these values for required_score_type. The superclass here will
     # "convert" them into the actual type.
-    _TYPE_CONVERTER = {u'stream.Part': stream.Part,
-                       u'stream.Score': stream.Score,
-                       u'pandas.Series': pandas.Series,
-                       u'pandas.DataFrame': pandas.DataFrame}
+    _TYPE_CONVERTER = {'stream.Part': stream.Part,
+                       'stream.Score': stream.Score,
+                       'pandas.Series': pandas.Series,
+                       'pandas.DataFrame': pandas.DataFrame}
 
     # Error messages
-    _MAKE_RETURN_INDEX_ERR = u'Indexer.make_return(): arguments must have the same legnth.'
-    _INIT_KEY_ERR = u'{} has an incorrectly-set "required_score_type"'
-    _INIT_INDEX_ERR = u'Indexer: got a DataFrame but expected a Series; problem with the MultiIndex'
-    _INIT_TYPE_ERR = u'{} requires "{}" objects'
+    _MAKE_RETURN_INDEX_ERR = 'Indexer.make_return(): arguments must have the same legnth.'
+    _INIT_KEY_ERR = '{} has an incorrectly-set "required_score_type"'
+    _INIT_INDEX_ERR = 'Indexer: got a DataFrame but expected a Series; problem with the MultiIndex'
+    _INIT_TYPE_ERR = '{} requires "{}" objects'
 
     # Ignore that we don't use the "settings" argument in this method. Subclasses handle it.
     # pylint: disable=W0613
@@ -247,7 +249,7 @@ class Indexer(object):
         try:
             req_s_type = Indexer._TYPE_CONVERTER[self.required_score_type]
         except KeyError:
-            raise TypeError(Indexer._INIT_KEY_ERR.format(unicode(self.__class__)))
+            raise TypeError(Indexer._INIT_KEY_ERR.format(self.__class__))
         # if "score" is a list, check it's of the right type
         if isinstance(score, list) and (req_s_type is pandas.Series or req_s_type is stream.Part):
             if not all([isinstance(e, req_s_type) for e in score]):
@@ -268,7 +270,7 @@ class Indexer(object):
         self._score = score
         self._indexer_func = None
         self._types = None
-        if hasattr(self, u'_settings'):
+        if hasattr(self, '_settings'):
             if self._settings is None:
                 self._settings = {}
         else:
@@ -370,7 +372,7 @@ class Indexer(object):
 
         :param labels: Indices of the parts or the part combinations, or another descriptive label
             as described in the indexer subclass documentation.
-        :type labels: list of basestring
+        :type labels: list of six.string_types
         :param indices: The results of the indexer.
         :type indices: list of :class:`pandas.Series`.
 
@@ -383,8 +385,8 @@ class Indexer(object):
         if len(labels) != len(indices):
             raise IndexError(Indexer._MAKE_RETURN_INDEX_ERR)
         # make the indexer's name using filename and classname (but not full class name)
-        my_mod = unicode(self.__module__)[unicode(self.__module__).rfind(u'.') + 1:]
-        my_class = unicode(self.__class__)[unicode(self.__class__).rfind(u'.'):-2]
+        my_mod = six.u(str(self.__module__))[six.u(str(self.__module__)).rfind('.') + 1:]
+        my_class = six.u(str(self.__class__))[six.u(str(self.__class__)).rfind('.'):-2]
         my_name = my_mod + my_class
         # make the MultiIndex and its labels
         tuples = [(my_name, labels[i]) for i in xrange(len(labels))]
