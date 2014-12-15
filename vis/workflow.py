@@ -835,12 +835,12 @@ class WorkflowManager(object):
         chart_data = self._filter_dataframe(top_x=top_x, threshold=threshold, name='freq')
 
         # properly set output paths
-        setts = {'pathname': 'test_output/output_result' if pathname is None else six.u(pathname)}
+        setts = {'pathname': 'test_output/output_result' if pathname is None else str(pathname)}
 
         # choose the proper token
         if 'intervals' == self._previous_exp:
             setts['token'] = 'interval'
-        elif 'n-grams' == self._previous_exp:
+        elif 'interval n-grams' == self._previous_exp:  # TEST
             setts['token'] = '{}-gram'.format(self.settings(None, 'n'))
         else:
             setts['token'] = 'objects'
