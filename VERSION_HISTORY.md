@@ -8,6 +8,8 @@ the top of the file.
     - Python 3 compatibility.
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False
+* 2.0.1:
+    - WorkflowManager didn't output histograms with proper labels, for "interval n-grams."
 * 2.0.0:
     - Analyzers must now accept and return DataFrame objects.
     - Require pandas 0.14.1 at minimum.
