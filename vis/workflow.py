@@ -838,7 +838,7 @@ class WorkflowManager(object):
         # choose the proper token
         if 'intervals' == self._previous_exp:
             setts['token'] = 'interval'
-        elif 'n-grams' == self._previous_exp:
+        elif 'interval n-grams' == self._previous_exp:
             setts['token'] = '{}-gram'.format(self.settings(None, 'n'))
         else:
             setts['token'] = 'objects'

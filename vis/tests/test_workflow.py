@@ -398,10 +398,10 @@ class MakeHistogram(TestCase):
         - pathname: given
         - top_x: given
         - threshold: given
-        - test_wc._previous_exp: 'n-grams'
+        - test_wc._previous_exp: 'interval n-grams'
         """
         test_wc = WorkflowManager([])
-        test_wc._previous_exp = 'n-grams'
+        test_wc._previous_exp = 'interval n-grams'
         test_wc.settings(None, 'n', 42)
         mock_fdf.return_value = 'filtered DataFrame'
         exp_setts = {'pathname': 'some_path', 'token': '42-gram', 'type': 'png',
