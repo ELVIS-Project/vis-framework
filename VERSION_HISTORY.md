@@ -7,7 +7,8 @@ the top of the file.
 * 2.1.0:
     - Python 3 compatibility.
     - Importing no longer uses/stores cached pickle files.
-    - WorkflowManager.output() produces many table-format results if "count frequency" is False
+    - WorkflowManager.output() produces many table-format results if "count frequency" is False.
+    - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
 * 2.0.1:
     - WorkflowManager didn't output histograms with proper labels, for "interval n-grams."
 * 2.0.0:

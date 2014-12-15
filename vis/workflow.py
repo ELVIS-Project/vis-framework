@@ -938,7 +938,8 @@ class WorkflowManager(object):
 
         if self.settings(None, 'count frequency'):
             # filter the results
-            export_me = self._filter_dataframe(top_x=top_x, threshold=threshold)
+            name = 'Interval Frequency' if self._previous_exp == 'intervals' else 'Interval N-Gram Frequency'
+            export_me = self._filter_dataframe(top_x=top_x, threshold=threshold, name=name)
             pathnames.append('{}{}'.format(pathname, file_ext))
             getattr(export_me, output_meth)(pathnames[-1])
         else:

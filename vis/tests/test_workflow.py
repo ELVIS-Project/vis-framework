@@ -716,8 +716,10 @@ class MakeTable(TestCase):
         test_wm.settings(None, 'count frequency', True)  # just to be 100% clear
         mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
         test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
+        test_wm._previous_exp = 'intervals'  # to get the proper "exp_name"
         top_x = None
         threshold = None
+        exp_name = 'Interval Frequency'
         pathname = 'test_path'
 
         test_wm._make_table('CSV', pathname + '.csv', top_x, threshold)  # pylint: disable=protected-access
@@ -729,7 +731,7 @@ class MakeTable(TestCase):
         mock_fdf.return_value.to_stata.assert_called_once_with('test_path.dta')
         mock_fdf.return_value.to_excel.assert_called_once_with('test_path.xlsx')
         mock_fdf.return_value.to_html.assert_called_once_with('test_path.html')
-        self.assertSequenceEqual([mock.call(top_x=None, threshold=None) for _ in xrange(4)],
+        self.assertSequenceEqual([mock.call(top_x=top_x, threshold=threshold, name=exp_name) for _ in xrange(4)],
                                  mock_fdf.call_args_list)
 
     def test_table_2(self):
