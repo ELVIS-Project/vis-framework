@@ -58,7 +58,9 @@ def split_annotation_func(obj):
     :returns: The thing in a markup.
     :rtype: ``unicode``
     """
-    upper, lower = obj[0].split(';')
+    splitted = obj[0].split(' ')
+    upper = splitted[0]
+    lower = splitted[1]
     if 'Rest' == upper:
         upper = '"."'
     if 'Rest' == lower:
@@ -76,7 +78,7 @@ class AnnotationIndexer(indexer.Indexer):
     '''
     The ``'split'`` setting produces a modified annotation, where the tokens are placed above and
     below the score, respectively. In this case, each input string must have two parts, separated
-    by a semicolon (``;``) character. For example, ``'12;13'`` becomes
+    by a space (``' '``) character. For example, ``'12 13'`` becomes
     ``'^\\markup{"12"}_\\markup{"13"}'``.
     '''
 
