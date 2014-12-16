@@ -7,7 +7,7 @@
 # Filename:               controllers_tests/test_indexed_piece.py
 # Purpose:                Integration tests with the "bwv2.xml" file.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Ryan Bannon
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

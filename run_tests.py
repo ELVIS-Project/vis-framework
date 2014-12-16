@@ -7,7 +7,7 @@
 # Filename: run_tests.py
 # Purpose: Run automated tests for the VIS Framework.
 #
-# Copyright (C) 2012, 2013, 2014 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013, 2014 Jamie Klassen, Christopher Antila, Ryan Bannon
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
