@@ -85,12 +85,11 @@ class FermataIndexer(indexer.Indexer):
 
         **Example:**
 
-        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-        >>> the_score.parts[5]
-        (the first clarinet Part)
-        >>> the_fermatas = FermataIndexer(the_score).run()
-        >>> the_fermatas['noterest.FermataIndexer']['5']
-        (the first clarinet Series)
+        >>> import vis
+        >>> VIS_PATH = vis.__path__[0]
+        >>> ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
+        >>> fermatas = ind_piece.get_data([fermata.FermataIndexer])
+        >>> print fermatas
         """
         combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately
         results = self._do_multiprocessing(combinations)
