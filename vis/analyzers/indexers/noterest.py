@@ -63,7 +63,7 @@ class NoteRestIndexer(indexer.Indexer):
     Index :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects in a
     :class:`~music21.stream.Part`.
 
-    :class:`Rest` objects become ``'Rest'``, and :class:`Note objects become the string-format
+    :class:`Rest` objects become ``'Rest'``, and :class:`Note` objects become the string-format
     version of their :attr:`~music21.note.Note.nameWithOctave` attribute.
     """
 
