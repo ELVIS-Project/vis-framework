@@ -4,8 +4,8 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers_tests/test_indexed_piece.py
-# Purpose:                Integration tests with the "bwv2.xml" file.
+# Filename:               controllers_tests/bwv603_integration_tests.py
+# Purpose:                Integration tests with the "bwv603.xml" file.
 #
 # Copyright (C) 2013, 2014 Christopher Antila, Ryan Bannon
 #
