@@ -213,7 +213,7 @@ def compare_strong_unequal_lengths(fp1, fp2):
             for this_index in range(end1-start1):
                 matched_intervals.append([np.nan, start1+this_index, start2+this_index])
 
-    print "Strong Beat Comparison (different lengths): " + str(matched_intervals)
+    #print "Strong Beat Comparison (different lengths): " + str(matched_intervals)
 
     return matched_intervals
 
@@ -239,7 +239,7 @@ def compare_strong_by_index(fp1, fp2):
         else:
             matched_intervals.append([np.nan, i, i])
 
-    print "Strong Beat Comparison (equi-length): " + str(matched_intervals)
+    #print "Strong Beat Comparison (equi-length): " + str(matched_intervals)
 
     return matched_intervals
 
@@ -254,7 +254,7 @@ def compare_contours(matched_intervals, fp1, fp2):
 
     # Consecutively misaligned indices (cmi) that need to be checked
     cmi = []
-    for i in range(len(matched_intervals)-1):
+    for i in range(len(matched_intervals)):
         if np.isnan(matched_intervals[i][0]) and np.isnan(matched_intervals[i+1][0]):
             cmi.append([i, matched_intervals[i][1], matched_intervals[i][2]])
 
@@ -295,8 +295,8 @@ def compare_contours(matched_intervals, fp1, fp2):
         else:
             sci[i] = np.nan
 
-    print "Strong Beat Contour Comparison: " + str(matched_contour)
-    print "Consecutive Strong Beat Contour Similarity Comparison: " + str(sci)
+    #print "Strong Beat Contour Comparison: " + str(matched_contour)
+    #print "Consecutive Strong Beat Contour Similarity Comparison: " + str(sci)
 
 
     ##### WEAK CONTOURS #####
@@ -341,7 +341,7 @@ def compare_contours(matched_intervals, fp1, fp2):
             #weak_matched_contours[this_index] = start_note_result + end_note_result
 
 
-    print "Weak Beat Contour Comparison: " + str(weak_matched_contours)
+    #print "Weak Beat Contour Comparison: " + str(weak_matched_contours)
     
     return[matched_contour, weak_matched_contours]
 
@@ -369,7 +369,7 @@ def compare_strong_displaced_weak(matched_intervals, fp1, fp2):
         else:
             pass
 
-    print "Displaced Strong to Weak Comparison: " + str(displacement)
+    #print "Displaced Strong to Weak Comparison: " + str(displacement)
     return displacement
 
 def compare_strong_displaced_weak_helper(fp1c1x, fp2c1x, fp1r1x, fp2r1x):
@@ -402,7 +402,7 @@ def compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2):
         second_weaks = fp2r1[this_index_2]
         matched_weaks[this_index] = weak_matching_helper(first_weaks, second_weaks)
 
-    print "Weak Beats for Matched Strongs Comparison: " + str(matched_weaks)
+    #print "Weak Beats for Matched Strongs Comparison: " + str(matched_weaks)
     return matched_weaks
 
 def compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2):
@@ -503,7 +503,7 @@ def compare_reversals(matched_intervals, fp1, fp2):
 
             matched_weak_reversals[this_index] = [first_result, second_result]
 
-    print "Weak Beat Reversal Comparison: " + str(matched_weak_reversals)
+    #print "Weak Beat Reversal Comparison: " + str(matched_weak_reversals)
 
     return [matched_strong_reversals, matched_weak_reversals]
 
@@ -513,6 +513,10 @@ def compare_reversals(matched_intervals, fp1, fp2):
 
 # Parent comparison function
 def compare(fp1, fp2):
+    return compare_recursive(fp1, fp2, 0)
+
+# Wrap recursion
+def compare_recursive(fp1, fp2, call_number):
     print "Fingerprint 1: "
     print fp1
     print "Fingerprint 2: "
@@ -531,6 +535,19 @@ def compare(fp1, fp2):
         matched_intervals = compare_strong_by_index(fp1, fp2)
     else:
         matched_intervals = compare_strong_unequal_lengths(fp1, fp2)
+
+    total_mismatch = 0
+    for [this_interval, fp1_index, fp2_index] in matched_intervals:
+        total_mismatch = total_mismatch + 1 if np.isnan(this_interval) else total_mismatch
+
+    if total_mismatch > 3:
+        #fp1_truncated = fp1.ix[:-1, 2:]
+        fp1_truncated = fp1.iloc[:-1].T.iloc[1:].T
+        #fp2_truncated = fp2.ix[:-1, 2:]
+        fp2_truncated = fp2.iloc[:-1].T.iloc[1:].T
+        print("Strong Interval Comparison: " + str(matched_intervals))
+        print("Recursive Call -- Truncation")
+        return compare_recursive(fp1_truncated, fp2_truncated, call_number+1)
 
     comparison_result_indices.append('Strong Beat Comparison')
     comparison_results.append(matched_intervals)
@@ -556,6 +573,10 @@ def compare(fp1, fp2):
     comparison_result_indices.append('Reversal Comparison (Strongs)')
     comparison_result_indices.append('Reversal Comparison (Weaks)')
     comparison_results.extend(compare_reversals(matched_intervals, fp1, fp2))
+
+    # LM: Append recursive call number
+    comparison_result_indices.append('Number of Recursive Calls (Truncations)')
+    comparison_results.append([call_number]*len(matched_intervals))
 
     # LM: Construct the results of the comparison
     comparison_results = DataFrame(comparison_results)
@@ -638,6 +659,41 @@ def build_fingerprint_matrices(pathnames, number_of_fingerprints = 10000):
 
         # LM: Get time signature and determine strong beats
         time_sigs = piece.get_data([metre.TimeSignatureIndexer])
+        '''
+        # Allowing for changes in time signature
+        offset_boundaries = []
+        offset_increments = []
+        time_sig_measures = []
+        print time_sigs
+        for i in range(0, len(time_sigs)):
+            print i
+            time_sig_offset = time_sigs.index[i]
+            print time_sig_offset
+            this_time_sig = time_sigs['metre.TimeSignatureIndexer']['0'].loc[time_sig_offset]
+            print this_time_sig
+            if this_time_sig == '6/8' or this_time_sig == '9/8':
+                offset_increments.append(1.5)
+            else:
+                offset_increments.append(1.0)
+            offset_boundaries.append(float(time_sig_offset))
+            print offset_increments
+            print offset_boundaries
+            numer, denom = this_time_sig.split('/')
+            offsets_per_measure = float(numer) * 4.0/float(denom)
+
+            if i == len(time_sigs)-1:
+                time_sig_measures.append(None)
+            else:
+                time_sig_measures.append(float(time_sigs.index[i+1] - time_sigs.index[i])/offsets_per_measure)
+
+        print offset_increments
+        print offset_boundaries
+        print time_sig_measures
+
+        return None
+        '''
+
+
         # Assuming no time signature change in whole piece, assign offsets to strong beats
         if time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '6/8' or time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '9/8':
             strong_beat_offsets = 1.5
@@ -717,6 +773,3 @@ vars = globals().copy()
 vars.update(locals())
 shell = code.InteractiveConsole(vars)
 shell.interact()
-
-
-
