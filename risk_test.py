@@ -11,6 +11,13 @@ import os
 
 ''' INFO/USEFULS
 
+Winter 2015 TODOS:
+Database -- see list
+Ensure recursive comparison works
+Unequal lengths -- add special case for doubled number of strong beats. Compare every other strong beat in longer fingerprint. Compare remaining 
+    strong beats to weak beats in shorter fingerprint.
+    1. Make new strong beat comparison method, align according to above description
+
 ========== Terminology ==========
 1.  Fingerprint
     1.1     Def: Two or four measures of monophonic material that identifies a strain of a piece
@@ -28,11 +35,12 @@ import os
             Rarely, this will be used to refer to  Wx=>Wy, where Wx and Wy correspond to 4.2
 5.  Fingerprint Matrix
     5.1     Def: Matrix representation of the fingerprint. 
-    5.2     Actual representation is contained in Laura's Workflow
-6. Match, Matched, Matching
-    6.1     Match: comparison between two lists (Match(X, Y))
-    6.2     Matched: list of positive results from Match(X, Y) 
-    6.3     Matching: Act of doing Match(X, Y)
+    5.2     Details are in Laura's Workflow
+6. Corresponding, Match, Matched, Matching
+    6.1     Corresponding: The elements in two lists that are thought to musically 'align' with each other. Notes may correspond and be matched/mismatched.
+    6.2     Match: comparison between two lists (Match(X, Y))
+    6.3     Matched: list of positive results from Match(X, Y) 
+    6.4     Matching: Act of doing Match(X, Y)
     Note this means that 'List of Matching Strong Beats' makes no sense, whereas List of Matched Strong Beats is syntactically valid
 7. Note
     7.1     Def: Scale degree, not note name.
@@ -42,6 +50,7 @@ print time_sigs['metre.TimeSignatureIndexer']['0'] # get 1st index: results of T
 print time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] # get 1st time sig...   
 print time_sigs['metre.TimeSignatureIndexer']['0'].index[0] # get offset of 1st time sig... 
 print time_sigs['metre.TimeSignatureIndexer'].index.values # get the names of the index for each row for TimeSignatureIndexer
+print time_sigs['metre.TimeSignatureIndexer'].columns.values # get the names of the column for each column from TimeSignatureIndexer
 
 ========== Contour test set ==========
 fp1 = results['Allard_1928_MoneyMusk_B.xml']
@@ -199,11 +208,12 @@ def compare_strong_unequal_lengths(fp1, fp2):
         fp1c1 = fp2c1
         fp2c1 = temp
     
+    # Want first fingerprint to be longer
     sm=SequenceMatcher(a=fp1c1,b=fp2c1)
     matched_intervals = []
 
     for (op, start1, end1, start2, end2) in sm.get_opcodes():
-        print (op, start1, end1, start2, end2)
+        #print (op, start1, end1, start2, end2)
         if op == 'equal':
             #This range appears in both sequences.
             for this_index, this_interval in enumerate(fp1c1[start1:end1]):
@@ -450,7 +460,7 @@ def weak_matching_helper(first_weaks, second_weaks):
 
         total_weak_overlaps_inorder = float(total_weak_overlaps_inorder)/float(len(first_weaks))
         # Tuple representation:
-        return [0.5*total_weak_overlaps, 0.5*total_weak_overlaps_inorder]
+        return [total_weak_overlaps, total_weak_overlaps_inorder]
         #return 0.5*total_weak_overlaps + 0.5*total_weak_overlaps_inorder
     # Tuple representation:
     return [0, 0]
@@ -511,16 +521,39 @@ def compare_reversals(matched_intervals, fp1, fp2):
 
 ##################### Parent Compare #####################
 
+def similarity_parameter(comparison_results, length):
+    # Note: dependent on index labelling in comparison function... see __compare_recursive()
+
+    # Strong Beat Percentage
+    matching_strongs = 0
+    for [this_interval, fp1_index, fp2_index] in comparison_results.loc['Strong Beat Comparison'].tolist():
+        matching_strongs = matching_strongs if np.isnan(this_interval) else matching_strongs + 1
+
+    displaced_strongs = 0
+    for result in comparison_results.loc['Displacement Comparison (Strong-Weak)'].tolist():
+        displaced_strongs = displaced_strongs + 1 if (result == 1) else displaced_strongs
+    
+    # Weak Beat Percentage
+    matching_weaks = 0
+    for result in comparison_results.loc['Weak Beats Comparison (Matched Strongs)'].tolist():
+        matching_weaks = matching_weaks if np.isnan(this_interval) else matching_weaks + 1
+
+    for resul
+
 # Parent comparison function
 def compare(fp1, fp2):
-    return compare_recursive(fp1, fp2, 0)
+    return __compare_recursive(fp1, fp2, 0)
 
 # Wrap recursion
-def compare_recursive(fp1, fp2, call_number):
+def __compare_recursive(fp1, fp2, call_number):
+    print ""
+    print "----------- Comparing: ------------"
     print "Fingerprint 1: "
     print fp1
     print "Fingerprint 2: "
     print fp2
+    print "Recursive Call Number:"
+    print call_number
 
     # LM: Extract Column_1 [1:end]: Intervals (0.0, 1.0), (0.0, 2.0), ..., (0.0, end of piece)
     # Recursive call: will be i to j of i < n-1, j < n where n = max offsets
@@ -531,15 +564,18 @@ def compare_recursive(fp1, fp2, call_number):
     comparison_result_indices = []
 
     # LM: Do Strong-Strong comparison 
+    # TODO: Add special case of doubled number of strong beats
     if len(fp1.iloc[0]) == len(fp2.iloc[0]):
         matched_intervals = compare_strong_by_index(fp1, fp2)
     else:
         matched_intervals = compare_strong_unequal_lengths(fp1, fp2)
 
     total_mismatch = 0
+
     for [this_interval, fp1_index, fp2_index] in matched_intervals:
         total_mismatch = total_mismatch + 1 if np.isnan(this_interval) else total_mismatch
 
+    # TODO implement different truncation methods (truncate fps 1, 2, or both)
     if total_mismatch > 3:
         #fp1_truncated = fp1.ix[:-1, 2:]
         fp1_truncated = fp1.iloc[:-1].T.iloc[1:].T
@@ -547,210 +583,239 @@ def compare_recursive(fp1, fp2, call_number):
         fp2_truncated = fp2.iloc[:-1].T.iloc[1:].T
         print("Strong Interval Comparison: " + str(matched_intervals))
         print("Recursive Call -- Truncation")
-        return compare_recursive(fp1_truncated, fp2_truncated, call_number+1)
+        return __compare_recursive(fp1_truncated, fp2_truncated, call_number+1)
+
 
     comparison_result_indices.append('Strong Beat Comparison')
     comparison_results.append(matched_intervals)
 
-   # LM: Do Matched-Strong weak comparison
+    # Do Strong-Weak displacement comparison 
+    comparison_result_indices.append('Displacement Comparison (Strong-Weak)')
+    comparison_results.append(compare_strong_displaced_weak(matched_intervals, fp1, fp2))
+
+    # Do Matched-Strong weak comparison
     comparison_result_indices.append('Weak Beats Comparison (Matched Strongs)')
     comparison_results.append(compare_matched_strong_associated_weaks(matched_intervals, fp1, fp2))
 
-    # LM: Do Mismatched-Strong weak comparison
+    # Do Mismatched-Strong weak comparison
     comparison_result_indices.append('Weak Beats Comparison (Mismatched Strongs)')
     comparison_results.append(compare_mismatched_strong_associated_weaks(matched_intervals, fp1, fp2))
 
-    # LM: Do contour comparison 
+    # Do contour comparison 
     comparison_result_indices.append('Contour Comparison (Strongs)')
     comparison_result_indices.append('Contour Comparison (Weaks)')
     comparison_results.extend(compare_contours(matched_intervals, fp1, fp2))
 
-    # LM: Do Strong-Weak displacement comparison 
-    comparison_result_indices.append('Displacement Comparison (Strong-Weak)')
-    comparison_results.append(compare_strong_displaced_weak(matched_intervals, fp1, fp2))
-
-    # LM: Do Reversed-Strong comparison
+    # Do Reversed-Strong comparison
     comparison_result_indices.append('Reversal Comparison (Strongs)')
     comparison_result_indices.append('Reversal Comparison (Weaks)')
     comparison_results.extend(compare_reversals(matched_intervals, fp1, fp2))
 
-    # LM: Append recursive call number
+    # Append recursive call number
     comparison_result_indices.append('Number of Recursive Calls (Truncations)')
     comparison_results.append([call_number]*len(matched_intervals))
 
-    # LM: Construct the results of the comparison
+    # Construct the results of the comparison
     comparison_results = DataFrame(comparison_results)
     comparison_results.index = comparison_result_indices
     comparison_results.columns = range(1, len(matched_intervals)+1)
     #comparison_results.T
 
-    print comparison_results
-    return None
 
-# Used in the above to push results to the front of their Series object
-def shift_matrix(df):
-    for i in range(0, len(df.columns)):
-        df.iloc[i] = df.iloc[i].shift(-i)
-    return df
+    #print ""
+    #print "----------- Comparison Results: ------------"
+    #print comparison_results
 
-# Build dataframe of strong-beat intervals here:
-def build_strong_intervals(piece, interval_settings, strong_beat_offsets, total_offsets):
-    # LM: Build all intervals between all combinations of strong beats 
-    # LM: Workflow - get notes & rests, take the fingerprint subsection, filter for strong beats, get horizontal intervals for each distance
-    # Do this for horizontal intervals over 1.0 offset increments, 2.0 offset increments....
-    # For i = 1.0 to the total allowable distance between two notes, which is the total number of offsets
-    # Change this to 1.5 for 6/8 or 9/8 sigs
-    strong_intervals_frame =[] 
-    for i in my_range(strong_beat_offsets, strong_beat_offsets, total_offsets):
-        interval_settings['intervalDistance'] = i
-        strong_intervals = piece.get_data([noterest.NoteRestIndexer, subsection.SubsectionIndexer, offset.FilterByOffsetIndexer, interval.VariableHorizontalIntervalIndexer], interval_settings)
-        strong_intervals = strong_intervals['interval.VariableHorizontalIntervalIndexer']['0']
-        strong_intervals_frame.append(strong_intervals)
+    return comparison_results
 
-    # Build strong-beat frame
-    strong_intervals_frame = DataFrame(strong_intervals_frame)
-    strong_intervals_frame.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets)
 
-    return strong_intervals_frame
+##################### Fingerprint Matrix Builder #####################
+class FingerprintBuilder:
+    '''
+    Builds fingerprints into their pandas DataFrame representations. Goes through music21, then vis, then some further pandas
+    '''
+    
+    # Path to files containing pieces in xml format
+    pathnames = ""
+    # Max allowed number of fingerprints
+    number_of_fingerprints = 0
+    # Interval settings, typically will not allow this to be changed.
+    interval_settings = {'quality': True, 'simple or compound': 'simple', 'byTones':True}
+    # Built fingerprint matrices
+    fingerprint_matrices = None
+    
+    def __init__ (self, test_set_path, number_of_fingerprints=10000):
+        self.pathnames = [ os.path.join(test_set_path, f) for f in os.listdir(test_set_path) if os.path.isfile(os.path.join(test_set_path, f)) and not f.startswith('.')]
+        self.number_of_fingerprints = number_of_fingerprints
+        self.fingerprint_matrices = self.build_fingerprint_matrices()
 
-def build_weak_intervals(piece, interval_settings, strong_beat_offsets, total_offsets):
-    # LM: Now build the weak intervals
-    # LM: Workflow - get notes & rests, take the fingerprint subsection, get horizontal intervals for all consecutive notes
-    all_intervals = piece.get_data([noterest.NoteRestIndexer, subsection.SubsectionIndexer, interval.HorizontalIntervalIndexer], interval_settings)
-    # Have to ignore the last result because we start indexing intervals from the first strong beat.
-    all_intervals = all_intervals['interval.HorizontalIntervalIndexer']['0'].iloc[:]
-    # Length of weak_intervals is 1 shorter than total_offsets/strong_beat_offsets because we start indexing intervals from the first strong beat.
-    # See line 251
-    weak_intervals = [[np.nan]]*int((total_offsets)/strong_beat_offsets)
-    for this_offset, this_interval in all_intervals.iteritems():
-        # Ignore if this is an interval ending on the strong beat
-        if this_offset % strong_beat_offsets == 0.0:
-            continue
-        # Find index in list using the closest strong beat
-        closest_strong_beat = this_offset - (this_offset % strong_beat_offsets)
-        this_index = int((closest_strong_beat)/strong_beat_offsets)
-        # If no previous weak beat, set this interval
-        if np.isnan(weak_intervals[this_index][-1]):
-            weak_intervals[this_index] = [this_interval]
-        # If there was a previous weak beat, add intervals accordingly
-        elif weak_intervals[this_index][-1] >= 0:
-            weak_intervals[this_index].append((weak_intervals[this_index][-1] + this_interval) % 6.0)
-        else:
-            weak_intervals[this_index].append((weak_intervals[this_index][-1] + this_interval) % -6.0)
+    # Used below to push results to the front of their Series object
+    def __shift_matrix(self, df):
+        for i in range(0, len(df.columns)):
+            df.iloc[i] = df.iloc[i].shift(-i)
+        return df
 
-    # Add weak intervals to the strong-beat frame
-    weak_intervals = DataFrame(Series(weak_intervals))
+    # Build dataframe of strong-beat intervals here:
+    def __build_strong_intervals(self, piece, interval_settings, strong_beat_offsets, total_offsets):
+        # LM: Build all intervals between all combinations of strong beats 
+        # LM: Workflow - get notes & rests, take the fingerprint subsection, filter for strong beats, get horizontal intervals for each distance
+        # Do this for horizontal intervals over 1.0 offset increments, 2.0 offset increments....
+        # For i = 1.0 to the total allowable distance between two notes, which is the total number of offsets
+        # Change this to 1.5 for 6/8 or 9/8 sigs
+        strong_intervals_frame =[] 
+        for i in my_range(strong_beat_offsets, strong_beat_offsets, total_offsets):
+            interval_settings['intervalDistance'] = i
+            strong_intervals = piece.get_data([noterest.NoteRestIndexer, subsection.SubsectionIndexer, offset.FilterByOffsetIndexer, interval.VariableHorizontalIntervalIndexer], interval_settings)
+            strong_intervals = strong_intervals['interval.VariableHorizontalIntervalIndexer']['0']
+            strong_intervals_frame.append(strong_intervals)
 
-    return weak_intervals
+        # Build strong-beat frame
+        strong_intervals_frame = DataFrame(strong_intervals_frame)
+        strong_intervals_frame.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets)
 
-def remove_rests(fp):
-    pass
+        return strong_intervals_frame
 
-def build_fingerprint_matrices(pathnames, number_of_fingerprints = 10000):
-    # pathnames: List of paths to each piece for which a fingerprint matrix should be built
-    # number_of_fingerprints: however many fingerprints you need
-    results = {}
-
-    for path in pathnames:
-        # Setup for each piece
-        print("Indexing " + path)
-        piece = IndexedPiece(path)
-        piece_stream = music21.converter.parseFile(path)
-
-        # LM: Get time signature and determine strong beats
-        time_sigs = piece.get_data([metre.TimeSignatureIndexer])
-        '''
-        # Allowing for changes in time signature
-        offset_boundaries = []
-        offset_increments = []
-        time_sig_measures = []
-        print time_sigs
-        for i in range(0, len(time_sigs)):
-            print i
-            time_sig_offset = time_sigs.index[i]
-            print time_sig_offset
-            this_time_sig = time_sigs['metre.TimeSignatureIndexer']['0'].loc[time_sig_offset]
-            print this_time_sig
-            if this_time_sig == '6/8' or this_time_sig == '9/8':
-                offset_increments.append(1.5)
+    def __build_weak_intervals(self, piece, interval_settings, strong_beat_offsets, total_offsets):
+        # LM: Now build the weak intervals
+        # LM: Workflow - get notes & rests, take the fingerprint subsection, get horizontal intervals for all consecutive notes
+        all_intervals = piece.get_data([noterest.NoteRestIndexer, subsection.SubsectionIndexer, interval.HorizontalIntervalIndexer], interval_settings)
+        # Have to ignore the last result because we start indexing intervals from the first strong beat.
+        all_intervals = all_intervals['interval.HorizontalIntervalIndexer']['0'].iloc[:]
+        # Length of weak_intervals is 1 shorter than total_offsets/strong_beat_offsets because we start indexing intervals from the first strong beat.
+        # See line 251
+        weak_intervals = [[np.nan]]*int((total_offsets)/strong_beat_offsets)
+        for this_offset, this_interval in all_intervals.iteritems():
+            # Ignore if this is an interval ending on the strong beat
+            if this_offset % strong_beat_offsets == 0.0:
+                continue
+            # Find index in list using the closest strong beat
+            closest_strong_beat = this_offset - (this_offset % strong_beat_offsets)
+            this_index = int((closest_strong_beat)/strong_beat_offsets)
+            # If no previous weak beat, set this interval
+            if np.isnan(weak_intervals[this_index][-1]):
+                weak_intervals[this_index] = [this_interval]
+            # If there was a previous weak beat, add intervals accordingly
+            elif weak_intervals[this_index][-1] >= 0:
+                weak_intervals[this_index].append((weak_intervals[this_index][-1] + this_interval) % 6.0)
             else:
-                offset_increments.append(1.0)
-            offset_boundaries.append(float(time_sig_offset))
+                weak_intervals[this_index].append((weak_intervals[this_index][-1] + this_interval) % -6.0)
+
+        # Add weak intervals to the strong-beat frame
+        weak_intervals = DataFrame(Series(weak_intervals))
+
+        return weak_intervals
+
+    def remove_rests(self, fp):
+        pass
+
+    def build_fingerprint_matrices(self):
+        # pathnames: List of paths to each piece for which a fingerprint matrix should be built
+        # number_of_fingerprints: however many fingerprints you need
+        interval_settings = self.interval_settings
+
+        fingerprint_matrices = {}
+        number_of_fingerprints = self.number_of_fingerprints
+
+        for path in self.pathnames:
+            # Setup for each piece
+            print("Indexing " + path)
+            piece = IndexedPiece(path)
+            piece_stream = music21.converter.parseFile(path)
+
+            # LM: Get time signature and determine strong beats
+            time_sigs = piece.get_data([metre.TimeSignatureIndexer])
+            '''
+            # Allowing for changes in time signature
+            offset_boundaries = []
+            offset_increments = []
+            time_sig_measures = []
+            print time_sigs
+            for i in range(0, len(time_sigs)):
+                print i
+                time_sig_offset = time_sigs.index[i]
+                print time_sig_offset
+                this_time_sig = time_sigs['metre.TimeSignatureIndexer']['0'].loc[time_sig_offset]
+                print this_time_sig
+                if this_time_sig == '6/8' or this_time_sig == '9/8':
+                    offset_increments.append(1.5)
+                else:
+                    offset_increments.append(1.0)
+                offset_boundaries.append(float(time_sig_offset))
+                print offset_increments
+                print offset_boundaries
+                numer, denom = this_time_sig.split('/')
+                offsets_per_measure = float(numer) * 4.0/float(denom)
+
+                if i == len(time_sigs)-1:
+                    time_sig_measures.append(None)
+                else:
+                    time_sig_measures.append(float(time_sigs.index[i+1] - time_sigs.index[i])/offsets_per_measure)
+
             print offset_increments
             print offset_boundaries
-            numer, denom = this_time_sig.split('/')
-            offsets_per_measure = float(numer) * 4.0/float(denom)
+            print time_sig_measures
 
-            if i == len(time_sigs)-1:
-                time_sig_measures.append(None)
+            return None
+            '''
+
+
+            # Assuming no time signature change in whole piece, assign offsets to strong beats
+            if time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '6/8' or time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '9/8':
+                strong_beat_offsets = 1.5
+                measures = 2
             else:
-                time_sig_measures.append(float(time_sigs.index[i+1] - time_sigs.index[i])/offsets_per_measure)
+                strong_beat_offsets = 1.0
+                measures = 2
+            # LM: Get total number of offsets
+            numer, denom = time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0].split('/')
+            # Two bars worth of offsets, ignoring anacrusis...
+            # Add an extra strong beat at end 
+            total_offsets = int(numer) * measures*4.0/int(denom) + strong_beat_offsets
 
-        print offset_increments
-        print offset_boundaries
-        print time_sig_measures
+            interval_settings['quarterLength'] = strong_beat_offsets
+            interval_settings['intervalDistance'] = strong_beat_offsets
+            interval_settings['subsection'] = (0.0, total_offsets)
 
-        return None
-        '''
+            # LM: Build strong-interval frame
+            strong_intervals = self.__build_strong_intervals(piece, interval_settings, strong_beat_offsets, total_offsets)
 
+            # LM: Build weak-interval frame
+            weak_intervals = self.__build_weak_intervals(piece, interval_settings, strong_beat_offsets, total_offsets)
 
-        # Assuming no time signature change in whole piece, assign offsets to strong beats
-        if time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '6/8' or time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '9/8':
-            strong_beat_offsets = 1.5
-            measures = 2
-        else:
-            strong_beat_offsets = 1.0
-            measures = 2
-        # LM: Get total number of offsets
-        numer, denom = time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0].split('/')
-        # Two bars worth of offsets, ignoring anacrusis...
-        # Add an extra strong beat at end 
-        total_offsets = int(numer) * measures*4.0/int(denom) + strong_beat_offsets
-
-        interval_settings['quarterLength'] = strong_beat_offsets
-        interval_settings['intervalDistance'] = strong_beat_offsets
-        interval_settings['subsection'] = (0.0, total_offsets)
-
-        # LM: Build strong-interval frame
-        strong_intervals = build_strong_intervals(piece, interval_settings, strong_beat_offsets, total_offsets)
-
-        # LM: Build weak-interval frame
-        weak_intervals = build_weak_intervals(piece, interval_settings, strong_beat_offsets, total_offsets)
-
-        # LM: Assemble results
-        # 1. Prepare strong_intervals -- had to change this due to change in representation... take off final column (start of new bar)
-        # Take off second last column (cross-over bar):
-        strong_intervals = strong_intervals.T.iloc[:-1].T
-        strong_intervals = shift_matrix(strong_intervals)
-        # Had to change this due to change in representation.... take off final row
-        # strong_intervals = strong_intervals.iloc[:]
-        
-        # 2. Prepare weak_intervals:
-        weak_intervals = weak_intervals.iloc[:]
-        weak_intervals.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets+strong_beat_offsets)
-
-        # 3. Row of 0s --- added after discussion with Laura pertaining to fingerprint representation
-        zeros = DataFrame(Series([0.0]*(len(weak_intervals))))
-        zeros.index = (my_range(strong_beat_offsets, strong_beat_offsets, total_offsets+strong_beat_offsets))
-        zeros = zeros.T
-
-        # 4. Append 
-        fingerprint_frame = pandas.concat([weak_intervals.T, zeros, strong_intervals])
-        fingerprint_frame.index = (['w'] + fingerprint_frame.index.tolist()[1:])
-
-        #piece_stream.show('musicxml', 'MuseScore')   
-        #  DataFrame(Series([0.0]*(len(weak_intervals)+1))).reindex(range(1, len(weak_intervals)+1)).T
-        results[os.path.basename(path)]=fingerprint_frame
+            # LM: Assemble results
+            # 1. Prepare strong_intervals -- had to change this due to change in representation... take off final column (start of new bar)
+            strong_intervals = strong_intervals.T.iloc[:-1].T
+            strong_intervals = self.__shift_matrix(strong_intervals)
+            # Had to change this due to change in representation.... take off final row
+            # strong_intervals = strong_intervals.iloc[:]
             
-        number_of_fingerprints -= 1
-        if 0 == number_of_fingerprints:
-            break
+            # 2. Prepare weak_intervals:
+            weak_intervals = weak_intervals.iloc[:]
+            weak_intervals.index = my_range(strong_beat_offsets, strong_beat_offsets, total_offsets+strong_beat_offsets)
 
-    return results
+            # 3. Row of 0s --- added after discussion with Laura pertaining to fingerprint representation
+            zeros = DataFrame(Series([0.0]*(len(weak_intervals))))
+            zeros.index = (my_range(strong_beat_offsets, strong_beat_offsets, total_offsets+strong_beat_offsets))
+            zeros = zeros.T
+
+            # 4. Append 
+            fingerprint_frame = pandas.concat([weak_intervals.T, zeros, strong_intervals])
+            fingerprint_frame.index = (['w'] + fingerprint_frame.index.tolist()[1:])
+
+            #piece_stream.show('musicxml', 'MuseScore')   
+            #  DataFrame(Series([0.0]*(len(weak_intervals)+1))).reindex(range(1, len(weak_intervals)+1)).T
+            fingerprint_matrices[os.path.basename(path)]=fingerprint_frame
+                
+            number_of_fingerprints -= 1
+            if 0 == number_of_fingerprints:
+                break
+
+        return fingerprint_matrices
+
 
 # Anything that should be chained together is here temporarily
 def run():
-    compare(results['Allard_1928_MoneyMusk_A.xml'], results['Allard_1928_MoneyMusk_B.xml'])
+    return compare(fingerprint_matrices['Allard_1928_MoneyMusk_A.xml'], fingerprint_matrices['Allard_1928_MoneyMusk_B.xml'])
 
 # Settings:
 pandas.set_option('display.height', 1000)
@@ -761,10 +826,9 @@ pandas.set_option('display.width', 1000)
 # Workflow for Risk project -- fingerprint horizontal interval indexer
 # Will be used as the init later on
 test_set_path = "../risk_test_set/"
-pathnames = [ os.path.join(test_set_path, f) for f in os.listdir(test_set_path) if os.path.isfile(os.path.join(test_set_path, f)) and not f.startswith('.')]
-interval_settings = {'quality': True, 'simple or compound': 'simple', 'byTones':True}
+fpbuilder = FingerprintBuilder(test_set_path)
+fingerprint_matrices = fpbuilder.fingerprint_matrices
 
-results = build_fingerprint_matrices(pathnames, 10000)
 
 # LM: Run interpreter on command line
 import readline 
