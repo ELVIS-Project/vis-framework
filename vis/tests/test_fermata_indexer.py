@@ -42,24 +42,12 @@ class AllVoiceFermatas(TestCase):
 
     def createExpectedFermataIndexerResult(self, number_of_parts, number_of_indices):
         """
-        Returns expected data-frame (in the fermata.FermataIndexer 'style') with correct
-        Fermata placement.
+        Returns blank data-frame (in the fermata.FermataIndexer 'style').
         """
         expected_data = [[NaN] * number_of_indices] * number_of_parts
         tuples = [(u'fermata.FermataIndexer', str(i)) for i in xrange(number_of_parts)]
         multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Indexer', 'Parts'])
-        expected = pandas.DataFrame(data = expected_data, index = multiindex, dtype = object)
-        expected.set_value(('fermata.FermataIndexer', '0'), 10, 'Fermata')
-        expected.set_value(('fermata.FermataIndexer', '3'), 10, 'Fermata')
-        expected.set_value(('fermata.FermataIndexer', '0'), 19, 'Fermata')
-        expected.set_value(('fermata.FermataIndexer', '3'), 19, 'Fermata')
-        expected.set_value(('fermata.FermataIndexer', '0'), 31, 'Fermata')
-        expected.set_value(('fermata.FermataIndexer', '3'), 31, 'Fermata')
-        expected.set_value(('fermata.FermataIndexer', '0'), 46, 'Fermata')
-        expected.set_value(('fermata.FermataIndexer', '3'), 46, 'Fermata')
-        expected = expected.T
-        expected = expected.drop(expected.index[[11, 12, 20, 32]])
-        return expected
+        return pandas.DataFrame(data = expected_data, index = multiindex, dtype = object).T
 
     def assertDataFramesEqual(self, exp, act):
         """Ensure that two DataFrame objects, ``exp`` and ``act``, are equal."""
@@ -82,10 +70,37 @@ class AllVoiceFermatas(TestCase):
 
     def test_fermata_indexer_1(self):
         """all-voice fermatas; no WorkflowManager"""
+
+        # Create expected.
         expected = self.createExpectedFermataIndexerResult(4, 47)
+        expected.set_value(10, ('fermata.FermataIndexer', '0'), 'Fermata')
+        expected.set_value(10, ('fermata.FermataIndexer', '3'), 'Fermata')
+        expected.set_value(19, ('fermata.FermataIndexer', '0'), 'Fermata')
+        expected.set_value(19, ('fermata.FermataIndexer', '3'), 'Fermata')
+        expected.set_value(31, ('fermata.FermataIndexer', '0'), 'Fermata')
+        expected.set_value(31, ('fermata.FermataIndexer', '3'), 'Fermata')
+        expected.set_value(46, ('fermata.FermataIndexer', '0'), 'Fermata')
+        expected.set_value(46, ('fermata.FermataIndexer', '3'), 'Fermata')
+        expected = expected.drop(expected.index[[11, 12, 20, 32]])
+
+        # Test.
         ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
         actual = ind_piece.get_data([fermata.FermataIndexer])
         self.assertDataFramesEqual(expected, actual)
+
+    def test_fermata_indexer_2(self):
+        """rest fermatas; no WorkflowManager"""
+
+        # Create expected.
+        #expected = self.createExpectedFermataIndexerResult(2, 8)
+        #expected.set_value(6, ('fermata.FermataIndexer', '0'), 'Fermata')
+        #expected.set_value(6, ('fermata.FermataIndexer', '1'), 'Fermata')
+        #expected = expected.drop(expected.index[[5, 7]])
+
+        # Test.
+        #ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_fermata_rest.xml'))
+        #actual = ind_piece.get_data([fermata.FermataIndexer])
+        #self.assertDataFramesEqual(expected, actual)
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
