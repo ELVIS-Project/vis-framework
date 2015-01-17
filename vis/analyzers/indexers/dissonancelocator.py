@@ -24,13 +24,21 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Alexander Morgan
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Template for writing a new indexer. Use this class to help write a new :class`Indexer` subclass. \
 The :class:`TemplateIndexer` does nothing, and should only be used by programmers.
 
 .. note:: Follow these instructions to write a new :class:`Indexer` subclass:
 
-    #. Rewrite the documentation for :meth:`__init__`.
+    . Replace my name with yours in the "codeauthor" directive above.
+    . Change the "Filename" and "Purpose" on lines 7 and 8.
+    . Modify the "Copyright" on line 10 *or* add an additional copyright line immediately below.
+    . Remove the ``# pylint: disable=W0613`` comment just before :func:`indexer_func`.
+    . Rename the class.
+    . Adjust :attr:`required_score_type`.
+    . Add settings to :attr:`possible_settings` and :attr:`default_settings`, as required.
+    . Rewrite the documentation for :meth:`__init__`.
     #. Rewrite the documentation for :meth:`~TemplateIndexer.run`.
     #. Rewrite the documentation for :func:`indexer_func`.
     #. Write all relevant tests for :meth:`__init__`, :meth:`~TemplateIndexer.run`, and \
@@ -43,26 +51,24 @@ The :class:`TemplateIndexer` does nothing, and should only be used by programmer
 """
 
 import six
+import pandas
+from numpy import nan, isnan  # pylint: disable=no-name-in-module
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import stream
 from vis.analyzers import indexer
 
 
-def indexer_func(obj):
+def indexer_func(obj):      ##TODO: Revise this with Ryan, should it be a DataFrame with the voice
+                            ##pair names in the multi-index? Probably.
     """
     The function that indexes.
-
-    :param obj: The simultaneous event(s) to use when creating this index. (For indexers using a
-        :class:`Score`).
-    :type obj: list of objects of the types stored in :attr:`TemplateIndexer._types`
-
-    **or**
 
     :param obj: The simultaneous event(s) to use when creating this index. (For indexers using a
         :class:`Series`).
     :type obj: :class:`pandas.Series` of strings
 
-    :returns: The value to store for this index at this offset.
+    :returns: "-" if the interval in question is regular a consonance, "C4" if a consonant fourth,
+        "Cd5" if a consonant diminished fifth, or "D" if any other dissonance.
     :rtype: str
     """
     return None
@@ -72,7 +78,7 @@ class DissonanceLocatorIndexer(indexer.Indexer):
     """
     Indexer that locates vertical dissonances between pairs of voices in a piece. Used internally by
     :class:`DissonanceClassifier`. Categorizes intervals as consonant or dissonant and in the case
-    of fourths (of any kind) and diminished fifths it examines the other parts sounding with that
+    of fourths (perfect or augmented) and diminished fifths it examines the other parts sounding with that
     fourth or fifth (if there are any) to see if the interval can be considered consonant.
     """
 
@@ -80,67 +86,127 @@ class DissonanceLocatorIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        :param score: The input from which to produce a new index. Refer to the superclass
-            :class:`~vis.analyzers.indexer.Indexer` for more information about what to require here.
-        :type score: :class:`pandas.DataFrame`, :class:`music21.stream.Score`, or list of \
-            :class:`pandas.Series` or :class:`music21.stream.Part`
-        :param settings: All the settings required by this Indexer. All required settings should be
-            listed in subclasses. Default is ``None``.
-        :type settings: dict or None
+        :param score: The output from :class:`~vis.analyzers.indexers.interval.IntervalIndexer`.
+            You *must* include interval quality and *must* use simple intervals.
+        :type score:  :class:`pandas.DataFrame`.
+        :param settings: This indexer uses no settings, so this is ignored.
+        :type settings: NoneType
 
-        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
-        :raises: :exc:`RuntimeError` if the required settings are not present in the ``settings``
-            argument.
-        :raises: :exc:`IndexError` if ``required_score_type`` is ``'pandas.Series'`` and the
-            ``score`` argument is an improperly-formatted :class:`DataFrame` (e.g., it contains the
-            results of more than one indexer, does not contain results of the required indexers,
-            or the columns do not have a :class:`MultiIndex`).
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
-        # NOTE: you should make the exceptions more specific, if possible
+        super(DissonanceLocatorIndexer, self).__init__(score, None)
 
-        # Check all required settings are present in the "settings" argument. You must ignore
-        # extra settings.
-        # If there are no settings, you may safely remove this.
-        if settings is None:
-            self._settings = {}
-
-        # Change "TemplateIndexer" to the current class name.
-        # You must provide "score" here---do not modify it.
-        # You must handle the settings by yourself.
-        super(TemplateIndexer, self).__init__(score, None)
-
-        # If self._score is a Stream (subclass), change to a list of types you want to process
-        self._types = []
-
-        # You probably do not want to change this
-        # NB: The lambda function receives events in a list of all voices in the current voice
-        #     combination; if this Indexer processes one voice at a time, it's a one-element list.
-        #     The function receives the unmodified object, the type of which is either in
-        #     self._types object or music21.base.ElementWrapper.
-        # NB: For an example of how to use settings, see vis.analyzers.indexers.interval.py
         self._indexer_func = indexer_func
+
+    def cons_check(voice_pair_name, interval_index, suspect_diss):       # TODO: Complete this function with Ryan
+        """
+        This function evaluates whether P4's, A4's, and d5's should be considered consonant based
+        whether or not the lower voice of the suspect_diss forms an interval that causes us to deem
+        the fourth or fifth consonant, as determined by the cons_makers list below. The function
+        should be called once for each potentially consonant fourth or fifth.
+
+        :param voice_pair_name: Name of pair that has the potentially consonant fourth or fifth.
+        :type voice_pair_name: String in the format '0,2' if the pair in question is S and T in an
+            SATB texture.
+        :param interval_index: Index of 4th or 5th being analyzed taken from the index of its voice
+            pair.
+        :type interval_index: Integer.
+        :param suspect_diss: Interval name with quality and direction (i.e. nothing or '-') that
+            corresponds to the fourth or fifth to be examined.
+        :type suspect_diss: String.
+        """
+        cons_makers = [('P4', [u'm3', u'M3', u'P5']), ('d5', [u'M6']), ('A4', [u'm3'])]
+        diss_dura = interval.IntervalIndexer[voice_pair_index][interval_index].duration.quarterLength
+        interval_end_index = interval_index + diss_dura
+        cons_made = False   
+
+        if '-' in suspect_diss:     # TODO: should .index go before .split? The result of the split
+                                    # should be a string like '0,2' meaning soprano and tenor of an
+                                    # SATB texture.
+            lower_i = interval.IntervalIndexer[voice_pair_index].index.split(',')[0]
+        else:
+            lower_i = interval.IntervalIndexer[voice_pair_index].index.split(',')[1]
+
+        for voice_combo in interval.IntervalIndexer
+            if cons_made == True:
+                break
+            if voice_combo.index != voice_pair_name and lower_i in voice_comb.index.split(','):     # look at other pairs that have lower_i as one of their voices.
+                for each_int in interval.IntervalIndexer[voice_combo]:      # look at each interval in qualifying voice pairs
+                    e_ind = interval.IntervalIndexer[voice_combo][each_int].index   # e_ind = start offset of potential consonance maker
+                    if e_ind >= interval_end_index:     # if the interval you're looking at begins at or after the end of the suspect_diss you've gone to far so move on to the next pair.
+                        break
+                    e_end_ind == e_ind + interval.IntervalIndexer[voice_combo].iloc[e_ind].duration.quarterLength   # find the end offset of the potential cons_maker you're looking at.
+                    if e_end_ind <= interval_index:     # if it's before the the onset of the suspect_diss then move on to the next interval in the same voice pair.
+                        continue
+                    if ((e_ind >= interval_index and e_ind < interval_end_index) or     # if either the onset or end of the interval being examined is within the offset span of the suspect_diss, check this interval.
+                        (e_end_ind > interval_index and e_end_ind <= interval_end_index)):
+                        for x in cons_makers:       # depending on what suspect_diss is, check if this each_int is the corresponding list of consonance makers.
+                            if x[0] in suspect_diss:
+                                if '-' in suspect_diss:     # NB: Voice crossing in salvaging interval.
+                                    if each_int[1:] in x[1]:
+                                        cons_made = True
+                                        break
+                                else:                       # NB: No voice crossing in salvaging interval.
+                                    if each_int in x[1]:
+                                        cons_made = True
+                                        break
+                        if cons_made == True:       # as soon as you've found one consonance-making interval, stop looking for others.
+                            break
+
+        if cons_made == True:
+            return NaN
+        else:
+            return ('D' + suspect_diss)     # This 'D' will let us know that the fourth or fifth analyzed turned out to be truly dissonant.
 
     def run(self):
         """
         Make a new index of the piece.
 
-        :returns: The new indices. Refer to the note below.
-        :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
+        :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`;
+            refer to the example below for more details.
+        :rtype: :class:`pandas.DataFrame`
 
-        .. important:: Please be sure you read and understand the rules about return values in the
-            full documentation for :meth:`~vis.analyzers.indexer.Indexer.run` and
-            :func:`~vis.analyzers.indexer.Indexer.make_return`.
+        **Example:**
+
+        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
+        >>> the_score.parts[5]
+        (the first clarinet Part)
+        >>> the_notes = NoteRestIndexer(the_score).run()
+        >>> the_notes['noterest.NoteRestIndexer']['5']
+        (the first clarinet Series)
+        >>> the_intervals = IntervalIndexer(the_notes).run()
+        >>> the_intervals['interval.IntervalIndexer']['5,6']
+        (Series with vertical intervals between first and second clarinet)
         """
 
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
 
-        # To calculate each part separately:
-        combinations = [[x] for x in xrange(len(self._score))]
-
         # To calculate all 2-part combinations:
-        #for left in xrange(len(self._score)):
-        #    for right in xrange(left + 1, len(self._score)):
-        #        combinations.append([left, right])
+        combinations = self._score['interval.IntervalIndexer']      # TODO: Check with Ryan. Should I pass the required settings here?
+
+        ## The three lines below aren't needed since we're starting with the interval indexer results.
+        # for left in xrange(len(self._score)):
+        #     for right in xrange(left + 1, len(self._score)):
+        #         combinations.append([left, right])
+
+
+        CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8',
+                       u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
+        POTENTIAL_CONSONANCES = [u'P4', u'-P4', u'A4', u'-A4', u'd5', u'-d5']
+
+        for j, voice_pair in enumerate(combinations):
+            for k, interval in enumerate(voice_pair):
+                if interval in CONSONANCES:
+                    voice_pair[k] = NaN
+                elif interval in POTENTIAL_CONSONANCES:
+                    voice_pair[k] = cons_check(j, k, interval)
+                # if the interval is a definite dissonance, just pass.
+
+
+
+
+
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
