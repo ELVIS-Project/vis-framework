@@ -41,7 +41,7 @@ The :class:`TemplateIndexer` does nothing, and should only be used by programmer
     . Rewrite the documentation for :meth:`__init__`.
     #. Rewrite the documentation for :meth:`~TemplateIndexer.run`.
     #. Rewrite the documentation for :func:`indexer_func`.
-    #. Write all relevant tests for :meth:`__init__`, :meth:`~TemplateIndexer.run`, and \
+    . Write all relevant tests for :meth:`__init__`, :meth:`~TemplateIndexer.run`, and \
         :func:`indexer_func`.
     #. Follow the instructions in :meth:`__init__` to write that method.
     #. Follow the instructions in :meth:`~TemplateIndexer.run` to write that method.
@@ -58,8 +58,7 @@ from music21 import stream
 from vis.analyzers import indexer
 
 
-def indexer_func(obj):      ##TODO: Revise this with Ryan, should it be a DataFrame with the voice
-                            ##pair names in the multi-index? Probably.
+def indexer_func(obj):      ##TODO: Ryan, should this function now be deleted?
     """
     The function that indexes.
 
@@ -78,13 +77,13 @@ class DissonanceLocatorIndexer(indexer.Indexer):
     """
     Indexer that locates vertical dissonances between pairs of voices in a piece. Used internally by
     :class:`DissonanceClassifier`. Categorizes intervals as consonant or dissonant and in the case
-    of fourths (perfect or augmented) and diminished fifths it examines the other parts sounding with that
-    fourth or fifth (if there are any) to see if the interval can be considered consonant.
+    of fourths (perfect or augmented) and diminished fifths it examines the other parts sounding
+    with that fourth or fifth (if there are any) to see if the interval can be considered consonant.
     """
 
     required_score_type = 'pandas.DataFrame'
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score, settings=None):       # TODO: Ryan, should I pass the required settings here? Since there's only one possibility, they're not really settings.
         """
         :param score: The output from :class:`~vis.analyzers.indexers.interval.IntervalIndexer`.
             You *must* include interval quality and *must* use simple intervals.
@@ -99,7 +98,7 @@ class DissonanceLocatorIndexer(indexer.Indexer):
 
         self._indexer_func = indexer_func
 
-    def cons_check(voice_pair_name, interval_index, suspect_diss):       # TODO: Complete this function with Ryan
+    def check_4s_5s(voice_pair_name, interval_index, suspect_diss):       # TODO: Complete this function with Ryan
         """
         This function evaluates whether P4's, A4's, and d5's should be considered consonant based
         whether or not the lower voice of the suspect_diss forms an interval that causes us to deem
@@ -129,18 +128,16 @@ class DissonanceLocatorIndexer(indexer.Indexer):
             lower_i = interval.IntervalIndexer[voice_pair_index].index.split(',')[1]
 
         for voice_combo in interval.IntervalIndexer
-            if cons_made == True:
+            if cons_made:
                 break
-            if voice_combo.index != voice_pair_name and lower_i in voice_comb.index.split(','):     # look at other pairs that have lower_i as one of their voices.
+            if voice_combo.index != voice_pair_name and lower_i in voice_comb.index.split(','):     # look at other pairs that have lower_i as one of their voices. Could be optimized.
                 for each_int in interval.IntervalIndexer[voice_combo]:      # look at each interval in qualifying voice pairs
                     e_ind = interval.IntervalIndexer[voice_combo][each_int].index   # e_ind = start offset of potential consonance maker
                     if e_ind >= interval_end_index:     # if the interval you're looking at begins at or after the end of the suspect_diss you've gone to far so move on to the next pair.
                         break
-                    e_end_ind == e_ind + interval.IntervalIndexer[voice_combo].iloc[e_ind].duration.quarterLength   # find the end offset of the potential cons_maker you're looking at.
+                    e_end_ind = e_ind + interval.IntervalIndexer[voice_combo].iloc[e_ind].duration.quarterLength   # find the end offset of the potential cons_maker you're looking at.
                     if e_end_ind <= interval_index:     # if it's before the the onset of the suspect_diss then move on to the next interval in the same voice pair.
                         continue
-                    if ((e_ind >= interval_index and e_ind < interval_end_index) or     # if either the onset or end of the interval being examined is within the offset span of the suspect_diss, check this interval.
-                        (e_end_ind > interval_index and e_end_ind <= interval_end_index)):
                         for x in cons_makers:       # depending on what suspect_diss is, check if this each_int is the corresponding list of consonance makers.
                             if x[0] in suspect_diss:
                                 if '-' in suspect_diss:     # NB: Voice crossing in salvaging interval.
@@ -151,17 +148,21 @@ class DissonanceLocatorIndexer(indexer.Indexer):
                                     if each_int in x[1]:
                                         cons_made = True
                                         break
-                        if cons_made == True:       # as soon as you've found one consonance-making interval, stop looking for others.
+                        if cons_made:       # as soon as you've found one consonance-making interval, stop looking for others.
                             break
 
-        if cons_made == True:
-            return NaN
+        if cons_made:
+            return ('C' + suspect_diss)
         else:
-            return ('D' + suspect_diss)     # This 'D' will let us know that the fourth or fifth analyzed turned out to be truly dissonant.
+            return ('D' + suspect_diss)     # This 'D' shows that the fourth or fifth analyzed turned out to be truly dissonant.
 
     def run(self):
         """
-        Make a new index of the piece.
+        Make a new index of the piece in the same format as the :class:`IntervalIndexer` (i.e. a
+        DataFrame of Series where each series corresponds to the intervals in a given voice pair).
+        The difference between this and the interval indexer is that this one figures out whether
+        fourths or diminished fifths should be considered consonant for the purposes of dissonance
+        classification.
 
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`;
             refer to the example below for more details.
@@ -190,7 +191,6 @@ class DissonanceLocatorIndexer(indexer.Indexer):
         #     for right in xrange(left + 1, len(self._score)):
         #         combinations.append([left, right])
 
-
         CONSONANCES = [u'Rest', u'P1', u'm3', u'M3', u'P5', u'm6', u'M6', u'P8',
                        u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
         POTENTIAL_CONSONANCES = [u'P4', u'-P4', u'A4', u'-A4', u'd5', u'-d5']
@@ -200,19 +200,13 @@ class DissonanceLocatorIndexer(indexer.Indexer):
                 if interval in CONSONANCES:
                     voice_pair[k] = NaN
                 elif interval in POTENTIAL_CONSONANCES:
-                    voice_pair[k] = cons_check(j, k, interval)
-                # if the interval is a definite dissonance, just pass.
-
-
-
-
-
+                    voice_pair[k] = check_4s_5s(j, k, interval)
+                else    # All other intervals are necessarily dissonant.
+                    voice_pair[k] = interval
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
         results = self._do_multiprocessing(combinations)
-
-        # Do applicable post-processing.
 
         # Convert results to a DataFrame in the appropriate format, then return it. This will work
         # as written for nearly all cases, but refer to the documentation for make_return() for
