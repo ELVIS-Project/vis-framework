@@ -343,7 +343,6 @@ class FingerprintComparer:
 
         matched_weaks = [np.nan]*len(matched_intervals)
 
-
         for this_index, [this_interval, this_index_1, this_index_2] in enumerate(matched_intervals):
             if np.isnan(this_interval):
                 continue
@@ -415,8 +414,12 @@ class FingerprintComparer:
         fp1r3 = fp1.iloc[2].tolist()
         fp2r3 = fp2.iloc[2].tolist()
 
-        # Consecutively misaligned indices (cmi) that need to be checked
+        # Consecutively mismatched indices (cmi) that need to be checked
         cmi = []
+
+        # Similar-contour indicies (sci) where similarity, not identity, is observed 
+        sci = [np.nan]*len(matched_intervals)
+
         # Compare up to the last matched interval... there is no interval after the last, so do not compute contour comparison
         for i in range(len(matched_intervals)-1):
             if np.isnan(matched_intervals[i][0]) and np.isnan(matched_intervals[i+1][0]):
@@ -424,9 +427,6 @@ class FingerprintComparer:
 
         matched_contour = [np.nan]*len(matched_intervals)
         matched_contour_extended = [[np.nan]*3]*len(matched_intervals)
-
-        # Similar-contour indicies (sci) where similarity, not identity, is observed 
-        sci = [np.nan]*len(matched_intervals)
 
         # For each consecutively misaligned index (i.e. for each pair of misaligned intervals) in fingerprint 1, check in fingerprint 2
         for [this_index, this_index_1, this_index_2] in cmi:
@@ -444,13 +444,14 @@ class FingerprintComparer:
             else:
                 matched_contour[this_index] = 0
                 matched_contour_extended[this_index] = [0, this_index_1, this_index_2]
-
+        
         # For each index in the list of similar-contour indices, set to nan if not consecutively similar with another index
+        # If sci is only length 1, then there can be no consecutively similar contours
         for i, this_index in enumerate(sci):
             # Have to check adjancency both forwards and backwards... TODO have to stop index out of range 
-            if i == 0 and (sci[i] == sci[i+1]):
+            if i == 0 and (len(sci) != 1) and (sci[i] == sci[i+1]):
                 continue
-            elif i == (len(sci)-1) and (sci[i] == sci[i-1]):
+            elif i == (len(sci)-1) and (len(sci) != 1) and (sci[i] == sci[i-1]):
                 continue
             elif i == 0 or i == (len(sci)-1):
                 sci[i] = np.nan  
@@ -553,6 +554,11 @@ class FingerprintComparer:
 
         length = len(comparison_results.columns)
 
+        # No results
+
+        if length == 0:
+            return 0.0
+
         # Strong Beat Percentage
         matching_strongs = 0.0
         for [this_interval, fp1_index, fp2_index] in comparison_results.loc['Strong Beat Comparison'].tolist():
@@ -606,6 +612,11 @@ class FingerprintComparer:
 
         comparison_results = []
         comparison_result_indices = []
+
+        if len(fp1c1) > len(fp2c1):
+            temp = fp1
+            fp1 = fp2
+            fp2 = temp
 
         # LM: Do Strong-Strong comparison 
         # TODO: Add special case of doubled number of strong beats
@@ -674,11 +685,18 @@ class FingerprintComparer:
         for i in range(int((max_calls+1)/2)):
             fp1_truncated = fp1.iloc[:-i].T.iloc[i:].T if i != 0 else fp1
             fp2_truncated = fp2.iloc[:-i].T.iloc[i:].T if i != 0 else fp2
+            
+            if verbose:
+                print "=============== Truncation: " + str(i) + " ==============="
+                print "Fingerprint 1: "
+                print fp1_truncated
+                print "Fingerprint 2: "
+                print fp2_truncated
+            
             comparison_result = self.__compare(fp1_truncated, fp2_truncated)
             similarity_measure = self.similarity_measure(comparison_result)
             
             if verbose:
-                print "=============== Truncation: " + str(i) + " ==============="
                 print "------------ Comparison Results: -------------"
                 print comparison_result
                 print "------------ Similarity Measure: " + str(similarity_measure) + " -------------"
@@ -692,7 +710,7 @@ class FingerprintComparer:
         if verbose:
             print "======================================================= Best Result: ======================================================="
             print best_comparison_result
-            print "Similarity Measure: " + str(similarity_measure)
+            print "Best Similarity Measure: " + str(best_similarity_measure)
             print "============================================================================================================================"
             print ""
 
@@ -706,7 +724,7 @@ class FingerprintComparer:
         similarity_matrix = DataFrame(index=names, columns=names)
         for name1, fp1 in fingerprint_matrices.iteritems():
             for name2, fp2 in fingerprint_matrices.iteritems():
-                print "Comparing: " + name1 + " and " + name2
+                #print "Comparing: " + name1 + " and " + name2
                 if name1 == name2:
                     similarity_matrix.loc[name1, name2] = -1
                 elif np.isnan(similarity_matrix.loc[name1, name2]):      
@@ -805,7 +823,7 @@ class FingerprintBuilder:
 
         for path in self.pathnames:
             # Setup for each piece
-            print("Indexing " + path)
+            #print("Indexing " + path)
             piece = IndexedPiece(path)
             piece_stream = music21.converter.parseFile(path)
 
@@ -882,9 +900,31 @@ class FingerprintDatabase:
     comparer = None
 
     def __init__(self, test_set_path):
+        self.build(test_set_path)
+
+    def build(self, test_set_path):
+        print "------------ Building Database... ------------"
+        print "Building Fingerprint Matrices"
         self.builder = FingerprintBuilder(test_set_path)
-        fingerprint_matrices = self.builder.fingerprint_matrices
-        self.comparer = FingerprintComparer()
+        self.fingerprint_matrices = self.builder.fingerprint_matrices
+        print "Building Similarity Matrix"
+        self.comparer = FingerprintComparer(self.fingerprint_matrices)
+        self.similarity_matrix = self.comparer.similarity_matrix
+        print "Done."
+        print ""
+
+    def fingerprints(self):
+        print self.fingerprint_matrices.keys()
+
+    def fingerprint_matrices(self):
+        for name, fp in self.fingerprint_matrices.iteritems():
+            print "------------ Fingerprint: " + name + " ------------"
+            print fp
+            print ""
+
+    def rankings_for(self, name, number):
+        #self.similarity_matrix.sort(columns=name)
+        print self.similarity_matrix.sort(columns=name, ascending=False)[name]
 
 
 # Anything that should be chained together is here temporarily
@@ -898,7 +938,7 @@ def run():
     # Recursion tests
     #return comparer.compare(fingerprint_matrices['King_George_A_1.xml'], fingerprint_matrices['King_George_A_2.xml'])
     #return comparer.compare(fingerprint_matrices['Little_Jacks_A_7.xml'], fingerprint_matrices['Little_Jacks_A_1.xml'])
-    comparer.compare(fingerprint_matrices['Trad_Jig_B_6.xml'], fingerprint_matrices['Boivin_YEAR_MoneyMusk_A.xml'], True)
+    comparer.compare(fingerprint_matrices['King_George_A_2.xml'], fingerprint_matrices['Squirrel_A_3.xml'], True)
 
 # Settings:
 pandas.set_option('display.height', 1000)
@@ -909,10 +949,7 @@ pandas.set_option('display.width', 1000)
 # Workflow for Risk project -- fingerprint horizontal interval indexer
 # Will be used as the init later on
 test_set_path = "../risk_test_set/"
-builder = FingerprintBuilder(test_set_path)
-fingerprint_matrices = builder.fingerprint_matrices
-#comparer = FingerprintComparer(fingerprint_matrices)
-#print comparer.similarity_matrix
+db = FingerprintDatabase(test_set_path)
 
 # LM: Run interpreter on command line
 import readline 
