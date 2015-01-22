@@ -106,7 +106,7 @@ class DissonanceIndexer(indexer.Indexer):
     def __init__(self, score, settings=None):
         """
         :param score: The output from :class:`~vis.analyzers.indexers.interval.IntervalIndexer`.
-            You *must* include interval quality and *must* use simple intervals.
+            You must include interval quality and use simple intervals.
         :type score:  :class:`pandas.DataFrame`.
         :param settings: This indexer uses no settings, so this is ignored.
         :type settings: NoneType
@@ -117,15 +117,15 @@ class DissonanceIndexer(indexer.Indexer):
         super(DissonanceIndexer, self).__init__(score, None)
         self._indexer_func = indexer_func
 
-    def check_4s_5s(voice_pair_name, start_ind, suspect_diss):
+    def check_4s_5s(self, pair_name, start_ind, suspect_diss):
         """
         This function evaluates whether P4's, A4's, and d5's should be considered consonant based
         whether or not the lower voice of the suspect_diss forms an interval that causes us to deem
         the fourth or fifth consonant, as determined by the cons_makers list below. The function
         should be called once for each potentially consonant fourth or fifth.
 
-        :param voice_pair_name: Name of pair that has the potentially consonant fourth or fifth.
-        :type voice_pair_name: String in the format '0,2' if the pair in question is S and T in an
+        :param pair_name: Name of pair that has the potentially consonant fourth or fifth.
+        :type pair_name: String in the format '0,2' if the pair in question is S and T in an
             SATB texture.
         :param start_ind: Index of 4th or 5th being analyzed taken from the index of its voice
             pair.
@@ -141,17 +141,17 @@ class DissonanceIndexer(indexer.Indexer):
         cons_made = False
 
         if '-' in suspect_diss: 
-            lower_voice = voice_pair_name.split(',')[0]
+            lower_voice = pair_name.split(',')[0]
         else:
-            lower_voice = voice_pair_name.index.split(',')[1]
+            lower_voice = pair_name.index.split(',')[1]
 
-        for voice_combo in interval.IntervalIndexer:
-            if lower_voice == voice_comb.index.split(',')[0] and voice_combo != voice_pair_name:     # look at other pairs that have lower_voice as their upper voice. Could be optimized.
-                if any(SimulIndexer[voice_combo.index][start_ind:end_ind] in cons_makers[suspect_diss]):
+        for cn, voice_combo in enumerate(interval.IntervalIndexer.columns):
+            if lower_voice == voice_combo[1].split(',')[0] and voice_combo[1] != pair_name: # look at other pairs that have lower_voice as their upper voice. Could be optimized.
+                if any(SimulIndexer[SimulIndexer.columns[cn]][start_ind:end_ind] in cons_makers[suspect_diss]):
                     cons_made = True
                     break
-           elif lower_voice == voice_comb.index.split(',')[1] and voice_combo != voice_pair_name:     # look at other pairs that have lower_voice as their lower voice. Could be optimized.
-                if any(SimulIndexer[voice_combo.index][start_ind:end_ind][1:] in cons_makers[suspect_diss]):
+           elif lower_voice == voice_combo[1].split(',')[1] and voice_combo[1] != pair_name: # look at other pairs that have lower_voice as their lower voice. Could be optimized.
+                if any(SimulIndexer[SimulIndexer.columns[cn]][start_ind:end_ind][1:] in cons_makers[suspect_diss]):
                     cons_made = True
                     break
  
@@ -177,14 +177,13 @@ class DissonanceIndexer(indexer.Indexer):
                        u'-m3', u'-M3', u'-P5', u'-m6', u'-M6', u'-P8']
         potential_consonances = [u'P4', u'-P4', u'A4', u'-A4', u'd5', u'-d5']
 
-        for voice_pair in combinations:
-            for j, interval in enumerate(voice_pair):   # TODO: j should really be the offset of the interval in the piece.
-                if interval in consonances:
-                    voice_pair[j] = NaN
-                elif interval in potential_consonances:
-                    voice_pair[j] = check_4s_5s(voice_pair, j, interval)
-                else:   # All other intervals are necessarily dissonant.
-                    voice_pair[j] = interval
+        for pair_index in combinations.columns:
+            for j, event in enumerate(combinations[pair_index]):
+                if event in consonances:
+                    combinations[pair_index].iloc[j] = nan
+                elif event in potential_consonances:
+                    combinations[pair_index[j]] = self.check_4s_5s(pair_index[1], combinations.index[j], event)
+                # NB: all other events are either dissonant or don't qualify as interval onsets.
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
