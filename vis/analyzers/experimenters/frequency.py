@@ -30,6 +30,7 @@ Experimenters that deal with the frequencies (number of occurrences) of events.
 
 # pylint: disable=pointless-string-statement
 
+import six
 import pandas
 from vis.analyzers import experimenter
 
@@ -93,7 +94,7 @@ class FrequencyExperimenter(experimenter.Experimenter):
                 Used to select columns; automatically adjusts to select through the column label or
                 the upper-most level of a MultiIndex, as required.
                 """
-                if isinstance(column_label, basestring):
+                if isinstance(column_label, six.string_types):
                     return column_label == self._settings['column']
                 else:
                     return column_label[0] == self._settings['column']

@@ -7,7 +7,7 @@
 # Filename: run_tests.py
 # Purpose: Run automated tests for the VIS Framework.
 #
-# Copyright (C) 2012, 2013, 2014 Jamie Klassen, Christopher Antila
+# Copyright (C) 2012, 2013, 2014 Jamie Klassen, Christopher Antila, Ryan Bannon
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -43,6 +43,7 @@ from vis.tests import test_lilypond
 from vis.tests import test_indexed_piece
 from vis.tests import test_aggregated_pieces
 from vis.tests import bwv2_integration_tests as bwv2
+from vis.tests import bwv603_integration_tests as bwv603
 from vis.tests import test_workflow
 from vis.tests import test_workflow_integration
 from vis.tests import test_workflow_experiments
@@ -78,7 +79,7 @@ THE_TESTS = (# Indexer and Subclasses
              # WorkflowManager
              test_workflow.WORKFLOW_TESTS,
              test_workflow.FILTER_DATA_FRAME,
-             test_workflow.EXPORT,
+             test_workflow.MAKE_TABLE,
              test_workflow.EXTRA_PAIRS,
              test_workflow.SETTINGS,
              test_workflow.OUTPUT,
@@ -89,6 +90,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_workflow_experiments.INTERVALS,
              # Integration Tests
              bwv2.ALL_VOICE_INTERVAL_NGRAMS,
+             bwv603.ALL_VOICE_INTERVAL_NGRAMS,
              test_workflow_integration.INTERVALS_TESTS,
              test_workflow_integration.NGRAMS_TESTS,
         )

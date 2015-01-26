@@ -30,6 +30,8 @@
 
 import os
 import unittest
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers.indexers import noterest
@@ -93,7 +95,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -115,7 +117,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -135,7 +137,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -147,7 +149,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -159,7 +161,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -174,7 +176,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         nr_indexer = noterest.NoteRestIndexer(test_part)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertEqual(4, len(actual.columns))
-        for key in expected.iterkeys():
+        for key in six.iterkeys(expected):
             # We have to call dropna() to remove the NaN values; these appear for offsets that have
             # an event in one part, but not necessarily all the others.
             this_actual = actual[key].dropna(inplace=False)

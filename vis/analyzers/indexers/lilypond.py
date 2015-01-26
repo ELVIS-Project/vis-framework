@@ -29,6 +29,8 @@ Indexers related to producing LilyPond-format output from the VIS Framework. Als
 :mod:`vis.analyzers.experimenters.lilypond` module.
 """
 
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from vis.analyzers import indexer
 
 
@@ -37,12 +39,12 @@ def annotation_func(obj):
     Used by :class:`AnnotationIndexer` to make a "markup" command for LilyPond scores.
 
     :param obj: A single-element :class:`Series` with the string to wrap in a "markup" command.
-    :type obj: :class:`pandas.Series` of ``unicode``
+    :type obj: :class:`pandas.Series` of ``str``
 
     :returns: The thing in a markup.
-    :rtype: ``unicode``
+    :rtype: str
     """
-    return unicode(''.join(['_\\markup{ "', unicode(obj[0]), u'" }']))
+    return six.u(''.join(['_\\markup{ "', str(obj[0]), '" }']))
 
 
 class AnnotationIndexer(indexer.Indexer):
@@ -71,10 +73,10 @@ class AnnotationIndexer(indexer.Indexer):
 
         :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
             index of the :class:`Part` used to generate it, in the order specified to the
-            constructor. Each element in the :class:`Series` is a ``basestring``.
+            constructor. Each element in the :class:`Series` is a ``str``.
         :rtype: :class:`pandas.DataFrame`
         """
         # Calculate each part separately:
         combinations = [[x] for x in xrange(len(self._score))]
         results = self._do_multiprocessing(combinations)
-        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+        return self.make_return([six.u(str(x))[1:-1] for x in combinations], results)

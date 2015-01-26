@@ -42,7 +42,7 @@ setup(
     name = "vis-framework",
     version = VERSION,
     description = "The VIS Framework for Music Analysis",
-    author = "Christopher Antila, Jamie Klassen",
+    author = "Christopher Antila, Jamie Klassen, Alexander Morgan",
     author_email = "christopher@antila.ca",
     license = "AGPLv3+",
     url = "http://elvisproject.ca/api/",
@@ -53,11 +53,11 @@ setup(
         # NB: keep this in sync with vis/requirements.txt and vis/optional_requirements.txt
         # NB2: I left out the optional requirements and mock, since they aren't *required*
         'music21 (>= 1.9.3, <2.0)',
-        'pandas (>=0.14.1, <0.15)',
+        'pandas (>=0.14.1, <0.16)',
         ],
     install_requires = [
         'music21 >=1.9.3, <2.0',
-        'pandas >=0.14.1, <0.15',
+        'pandas >=0.14.1, <0.16',
         ],
     packages = [
         'vis',
@@ -69,7 +69,9 @@ setup(
         ],
     package_data = {'vis': ['scripts/*']},
     classifiers = [
-        "Programming Language :: Python",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
         "Natural Language :: English",
         "Development Status :: 4 - Beta",
         "Environment :: Console",

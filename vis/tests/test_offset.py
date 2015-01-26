@@ -7,7 +7,7 @@
 # Filename:               analyzers_tests/test_offset.py
 # Purpose:                Tests for offset-based indexers.
 #
-# Copyright (C) 2013 to 2014, Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -29,7 +29,12 @@
 # pylint: disable=R0904
 
 import unittest
-import mock
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+if six.PY3:
+    from unittest import mock
+else:
+    import mock
 import pandas
 from vis.analyzers.indexers.offset import FilterByOffsetIndexer
 
@@ -49,8 +54,8 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
         self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
         try:
             FilterByOffsetIndexer(in_val, setts)
-        except RuntimeError as runerr:
-            self.assertEqual(FilterByOffsetIndexer._NO_QLENGTH_ERROR, runerr.message)
+        except RuntimeError as run_err:
+            self.assertEqual(FilterByOffsetIndexer._NO_QLENGTH_ERROR, run_err.args[0])
 
     def test_init_3(self):
         # when the specified quarterLength is less than 0.001
@@ -59,8 +64,8 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
         self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
         try:
             FilterByOffsetIndexer(in_val, setts)
-        except RuntimeError as runerr:
-            self.assertEqual(FilterByOffsetIndexer._QLENGTH_TOO_SMALL_ERROR, runerr.message)
+        except RuntimeError as run_err:
+            self.assertEqual(FilterByOffsetIndexer._QLENGTH_TOO_SMALL_ERROR, run_err.args[0])
 
     def test_init_4(self):
         # when the inputted indices have no parts
@@ -69,8 +74,8 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
         self.assertRaises(RuntimeError, FilterByOffsetIndexer, in_val, setts)
         try:
             FilterByOffsetIndexer(in_val, setts)
-        except RuntimeError as runerr:
-            self.assertEqual(FilterByOffsetIndexer._ZERO_PART_ERROR, runerr.message)
+        except RuntimeError as run_err:
+            self.assertEqual(FilterByOffsetIndexer._ZERO_PART_ERROR, run_err.args[0])
     
     def test_run_1(self):
         # ensure that run() properly gets "method" from self._settings

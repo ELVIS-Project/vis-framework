@@ -35,6 +35,7 @@ corresponding to the score.
 # pylint: disable=pointless-string-statement
 
 from math import fsum
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from numpy import isnan, NaN  # pylint: disable=no-name-in-module
 import pandas
 from music21 import stream, note, duration
@@ -49,7 +50,7 @@ def annotate_the_note(obj):
     the annotation passed in. Take note (hahaha): the ``lily_invisible`` property is set to ``True``!
 
     :param obj: A string to put as the ``lily_markup`` property of a new :class:`Note`.
-    :type obj: basestring
+    :type obj: str
 
     :returns: An annotated note.
     :rtype: :class:`music21.note.Note`
@@ -84,10 +85,10 @@ class LilyPondExperimenter(experimenter.Experimenter):
 
     :keyword boolean 'run_lilypond': Whether to run LilyPond; if ``False`` or omitted, simply
         produce the input file LilyPond requires.
-    :keyword basestring 'output_pathname': Pathname for the resulting LilyPond output file. If
+    :keyword str 'output_pathname': Pathname for the resulting LilyPond output file. If
         ``'run_lilypond'`` is ``True``, you must include this setting. If ``'run_lilypond'`` is
         ``False`` and you do not provide ``'output_pathname'`` then the output file is returned
-        by :meth:`run` as a ``unicode``.
+        by :meth:`run` as a ``str``.
     :keyword 'annotation_part': A :class:`Part` or list of :class:`Part` objects with annotation
         instructions for :mod:`outputlilypond`. This :class:`Part` will be appended as last in
         the :class:`Score`.
@@ -146,7 +147,7 @@ class LilyPondExperimenter(experimenter.Experimenter):
 
         :returns: A string holding the LilyPond-format representation of the score and its
             annotation parts.
-        :rtype: basestring
+        :rtype: str
         """
         lily_setts = oly_settings.LilyPondSettings()
 
@@ -208,7 +209,7 @@ class AnnotateTheNoteExperimenter(experimenter.Experimenter):
 
         :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
             index of the :class:`Part` used to generate it, in the order specified to the
-            constructor. Each element in the :class:`Series` is a ``basestring``.
+            constructor. Each element in the :class:`Series` is a ``str``.
         :rtype: list of :class:`pandas.Series`
         """
         self._index = self._index[self._settings['column']]
@@ -234,7 +235,7 @@ class PartNotesExperimenter(experimenter.Experimenter):
     :param part_names: Names for the annotation parts, in order. If there are more part names than
         parts, extra names will be ignored. If there are fewer part names than parts, some parts
         will not be named.
-    :type part_names: list of basestring
+    :type part_names: list of str
     """
 
     _IMPOSSIBLE_QUARTERLENGTH = 'Impossible \'quarterLength\': {}.'

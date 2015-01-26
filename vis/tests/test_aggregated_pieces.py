@@ -7,7 +7,7 @@
 # Filename:               models_tests/test_aggregated_pieces.py
 # Purpose:                Tests for models/aggregated_pieces.py.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -27,7 +27,12 @@ Tests for :py:class:`~vis.models.aggregated_pieces.AggregatedPieces`.
 """
 
 from unittest import TestCase, TestLoader
-from mock import MagicMock, Mock
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+if six.PY3:
+    from unittest.mock import MagicMock, Mock
+else:
+    from mock import MagicMock, Mock
 import pandas
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.experimenter import Experimenter
@@ -52,12 +57,12 @@ class TestAggregatedPieces(TestCase):
         self.assertSequenceEqual(self.pathnames, self.agg_p.metadata('pathnames'))
 
     def test_metadata_2(self):
-        """raises TypeError if the field is not a basestring"""
+        """raises TypeError if the field is not a string"""
         self.assertRaises(TypeError, self.agg_p.metadata, 12)
         try:
             self.agg_p.metadata(12)
         except TypeError as t_err:
-            self.assertEqual(AggregatedPieces._FIELD_STRING, t_err.message)  # pylint: disable=protected-access
+            self.assertEqual(AggregatedPieces._FIELD_STRING, t_err.args[0])  # pylint: disable=protected-access
 
     def test_metadata_3(self):
         """returns None for non-existant field"""
@@ -151,7 +156,7 @@ class TestAggregatedPieces(TestCase):
         except TypeError as t_err:
             # pylint: disable=protected-access
             self.assertEqual(AggregatedPieces._NOT_EXPERIMENTER.format(non_analyzer),
-                             t_err.message)
+                             t_err.args[0])
 
     def test_get_data_2(self):
         """try get_data() on an AggregatedPieces with no pieces (no aggregated analyzers)"""

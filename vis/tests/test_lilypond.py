@@ -30,7 +30,12 @@ Tests for the 'indexers.lilypond' and 'experimenters.lilypond' modules.
 # pylint: disable=too-many-public-methods
 
 import unittest
-import mock
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+if six.PY3:
+    from unittest import mock
+else:
+    import mock
 from numpy import isnan, NaN  # pylint: disable=no-name-in-module
 import pandas
 from music21 import note, stream
@@ -42,13 +47,13 @@ from vis.analyzers.experimenters.lilypond import PartNotesExperimenter, Annotate
 class TestAnnotationIndexer(unittest.TestCase):
     def test_ind_func_1(self):
         in_val = pandas.Series(['my shirt'])
-        expected = u'_\\markup{ "my shirt" }'
+        expected = '_\\markup{ "my shirt" }'
         actual = lilypond.annotation_func(in_val)
         self.assertEqual(expected, actual)
 
     def test_ind_func_2(self):
         in_val = pandas.Series([42])
-        expected = u'_\\markup{ "42" }'
+        expected = '_\\markup{ "42" }'
         actual = lilypond.annotation_func(in_val)
         self.assertEqual(expected, actual)
 
@@ -74,13 +79,13 @@ class TestAnnotateTheNoteExperimenter(unittest.TestCase):
 
     def test_ind_func_1(self):
         """That the indexing function, annotate_the_note(), works properly."""
-        in_val = u'_\\markup{ "my shirt" }'
+        in_val = '_\\markup{ "my shirt" }'
         actual = annotate_the_note(in_val)
         self.assertTrue(isinstance(actual, note.Note))
-        self.assertTrue(hasattr(actual, u'lily_invisible'))
-        self.assertTrue(hasattr(actual, u'lily_markup'))
+        self.assertTrue(hasattr(actual, 'lily_invisible'))
+        self.assertTrue(hasattr(actual, 'lily_markup'))
         self.assertEqual(True, actual.lily_invisible)
-        self.assertEqual(u'_\\markup{ "my shirt" }', actual.lily_markup)
+        self.assertEqual('_\\markup{ "my shirt" }', actual.lily_markup)
 
     def test_ind_func_2(self):
         """That the indexing function, annotate_the_note(), works properly with NaN input."""
@@ -99,7 +104,7 @@ class TestAnnotateTheNoteExperimenter(unittest.TestCase):
         try:
             AnnotateTheNoteExperimenter('some DF', {'row': 'the zoo'})
         except RuntimeError as run_err:
-            self.assertEqual(AnnotateTheNoteExperimenter._MISSING_SETTING, run_err.message)
+            self.assertEqual(AnnotateTheNoteExperimenter._MISSING_SETTING, run_err.args[0])
 
     def test_run_1(self):
         """That run() works properly when all the annotations are at the same index/offset."""
@@ -117,8 +122,8 @@ class TestAnnotateTheNoteExperimenter(unittest.TestCase):
         for i, each_part in enumerate(actual):
             for j, each_note in enumerate(each_part):
                 self.assertTrue(isinstance(each_note, note.Note))
-                self.assertTrue(hasattr(each_note, u'lily_invisible'))
-                self.assertTrue(hasattr(each_note, u'lily_markup'))
+                self.assertTrue(hasattr(each_note, 'lily_invisible'))
+                self.assertTrue(hasattr(each_note, 'lily_markup'))
                 self.assertEqual(True, each_note.lily_invisible)
                 self.assertEqual(annotes[i][j], each_note.lily_markup)
 
@@ -142,8 +147,8 @@ class TestAnnotateTheNoteExperimenter(unittest.TestCase):
         for i, each_part in enumerate(actual):
             for j, each_note in enumerate(each_part):
                 self.assertTrue(isinstance(each_note, note.Note))
-                self.assertTrue(hasattr(each_note, u'lily_invisible'))
-                self.assertTrue(hasattr(each_note, u'lily_markup'))
+                self.assertTrue(hasattr(each_note, 'lily_invisible'))
+                self.assertTrue(hasattr(each_note, 'lily_markup'))
                 self.assertEqual(True, each_note.lily_invisible)
                 self.assertEqual(annotes[i][j], each_note.lily_markup)
                  # check the offsets are still right
@@ -253,7 +258,7 @@ class TestPartNotesExperimenter(unittest.TestCase):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
         self.assertEqual(in_val.lily_analysis_voice, actual.lily_analysis_voice)
-        self.assertFalse(hasattr(actual, u'lily_instruction'))
+        self.assertFalse(hasattr(actual, 'lily_instruction'))
 
     def test_set_durations_2(self):
         # when we must insert rests
@@ -273,7 +278,7 @@ class TestPartNotesExperimenter(unittest.TestCase):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
         self.assertEqual(in_val.lily_instruction, actual.lily_instruction)
-        self.assertFalse(hasattr(actual, u'lily_analysis_voice'))
+        self.assertFalse(hasattr(actual, 'lily_analysis_voice'))
 
     def test_set_durations_3(self):
         # when we must insert rests
@@ -313,12 +318,12 @@ class TestPartNotesExperimenter(unittest.TestCase):
         for i, obj in enumerate(actual):
             self.assertEqual(expected[i][0], obj.offset)
             self.assertEqual(expected[i][1], obj.duration.quarterLength)
-        self.assertFalse(hasattr(actual, u'lily_analysis_voice'))
-        self.assertFalse(hasattr(actual, u'lily_instruction'))
+        self.assertFalse(hasattr(actual, 'lily_analysis_voice'))
+        self.assertFalse(hasattr(actual, 'lily_instruction'))
 
     def test_run_1(self):
         # test the whole thing! Oh my... kind of an integration test
-        markups = [u'_\\markup{ "Réduire" }', u'_\\markup{ "l\'endettement" }']
+        markups = ['_\\markup{ "Réduire" }', '_\\markup{ "l\'endettement" }']
         in_val = []
         for i in xrange(len(markups)):
             obj = note.Note('C4')
@@ -334,7 +339,7 @@ class TestPartNotesExperimenter(unittest.TestCase):
         self.assertTrue(hasattr(actual, 'lily_analysis_voice'))
         self.assertEqual(True, actual.lily_analysis_voice)
         self.assertTrue(hasattr(actual, 'lily_instruction'))
-        self.assertEqual(u'\t\\textLengthOn\n', actual.lily_instruction)
+        self.assertEqual('\t\\textLengthOn\n', actual.lily_instruction)
         # ... that the objects have the right offsets and durations
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
@@ -348,8 +353,8 @@ class TestPartNotesExperimenter(unittest.TestCase):
 
     def test_run_2(self):
         # same as test_run_1(), but with a 'part_names' setting
-        markups = [u'_\\markup{ "Réduire" }', u'_\\markup{ "l\'endettement" }']
-        #u'\t\\textLengthOn\n\t\\set Staff.instrumentName = "the name"\n'
+        markups = ['_\\markup{ "Réduire" }', '_\\markup{ "l\'endettement" }']
+        #'\t\\textLengthOn\n\t\\set Staff.instrumentName = "the name"\n'
         in_val = []
         for i in xrange(len(markups)):
             obj = note.Note('C4')
@@ -366,9 +371,9 @@ class TestPartNotesExperimenter(unittest.TestCase):
         self.assertTrue(hasattr(actual, 'lily_analysis_voice'))
         self.assertEqual(True, actual.lily_analysis_voice)
         self.assertTrue(hasattr(actual, 'lily_instruction'))
-        self.assertEqual(u'\t\\textLengthOn\n'
-                         u'\t\\set Staff.instrumentName = "the name"\n'
-                         u'\t\\set Staff.shortInstrumentName = "the name"\n', actual.lily_instruction)
+        self.assertEqual('\t\\textLengthOn\n'
+                         '\t\\set Staff.instrumentName = "the name"\n'
+                         '\t\\set Staff.shortInstrumentName = "the name"\n', actual.lily_instruction)
         # ... that the objects have the right offsets and durations
         self.assertEqual(len(expected), len(actual))
         for i, obj in enumerate(actual):
@@ -450,30 +455,30 @@ class TestLilyPondExperimenter(unittest.TestCase):
     @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_1(self):
         """output_pathname unspecified; run lily (RuntimeError)"""
-        setts = {u'run_lilypond': True}
+        setts = {'run_lilypond': True}
         self.assertRaises(RuntimeError, LilyPondExperimenter, 12, setts)
 
     @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_2(self):
         """output_pathname unspecified; don't run lily; have annotation part"""
-        setts = {u'run_lilypond': False, u'annotation_part': 42}
-        expected = {u'run_lilypond': False, u'annotation_part': [42], u'output_pathname': None}
+        setts = {'run_lilypond': False, 'annotation_part': 42}
+        expected = {'run_lilypond': False, 'annotation_part': [42], 'output_pathname': None}
         actual = LilyPondExperimenter(12, setts)
         self.assertEqual(expected, actual._settings)  # pylint: disable=W0212
 
     @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_3(self):
         """output_pathname specified; run lily; no annotation part"""
-        setts = {u'run_lilypond': True, u'output_pathname': u'PATH!'}
-        expected = {u'run_lilypond': True, u'annotation_part': None, u'output_pathname': u'PATH!'}
+        setts = {'run_lilypond': True, 'output_pathname': 'PATH!'}
+        expected = {'run_lilypond': True, 'annotation_part': None, 'output_pathname': 'PATH!'}
         actual = LilyPondExperimenter(12, setts)
         self.assertEqual(expected, actual._settings)  # pylint: disable=W0212
 
     @mock.patch('vis.analyzers.indexer.Indexer.__init__', new=lambda x, y, z: None)
     def test_init_4(self):
         """output_pathname specified; don't run lily; two annotation parts"""
-        setts = {u'run_lilypond': False, u'output_pathname': u'PATH!', u'annotation_part': [42, 52]}
-        exp_setts = {u'run_lilypond': False, u'annotation_part': [42, 52], u'output_pathname': u'PATH!'}
+        setts = {'run_lilypond': False, 'output_pathname': 'PATH!', 'annotation_part': [42, 52]}
+        exp_setts = {'run_lilypond': False, 'annotation_part': [42, 52], 'output_pathname': 'PATH!'}
         actual = LilyPondExperimenter(12, setts)
         self.assertEqual(exp_setts, actual._settings)  # pylint: disable=W0212
 
@@ -485,9 +490,9 @@ class TestLilyPondExperimenter(unittest.TestCase):
         mock_score = mock_score_cls()
         mock_score.insert = mock.MagicMock()
         mock_part = mock.MagicMock(spec_set=stream.Part)
-        setts = {u'annotation_part': mock_part}
+        setts = {'annotation_part': mock_part}
         oly_setts = mock.MagicMock()
-        expected = mock.MagicMock(spec_set=unicode)
+        expected = mock.MagicMock(spec_set=six.string_types)
         run_ly = mock.MagicMock()
         # run test
         with mock.patch('vis.analyzers.experimenters.lilypond.outputlilypond') as mock_oly:
@@ -495,8 +500,12 @@ class TestLilyPondExperimenter(unittest.TestCase):
             mock_oly.run_lilypond = run_ly
             with mock.patch('vis.analyzers.experimenters.lilypond.oly_settings') as mock_oly_s:
                 mock_oly_s.LilyPondSettings.return_value = oly_setts
-                with mock.patch('__builtin__.open', mock_open):
-                    actual = LilyPondExperimenter([mock_score], setts).run()
+                if six.PY2:
+                    with mock.patch('__builtin__.open', mock_open):
+                        actual = LilyPondExperimenter([mock_score], setts).run()
+                else:
+                    with mock.patch('builtins.open', mock_open):
+                        actual = LilyPondExperimenter([mock_score], setts).run()
         # verify results
             mock_oly.process_score.assert_called_once_with(mock_score, oly_setts)
         self.assertEqual(0, mock_open.call_count)
@@ -511,9 +520,9 @@ class TestLilyPondExperimenter(unittest.TestCase):
         mock_score_cls = type('MockIndexer', (stream.Score,), {})
         mock_score = mock_score_cls()
         mock_score.insert = mock.MagicMock()
-        setts = {u'run_lilypond': True, u'output_pathname': u'PATH!'}
+        setts = {'run_lilypond': True, 'output_pathname': 'PATH!'}
         oly_setts = mock.MagicMock()
-        expected = mock.MagicMock(spec_set=unicode)
+        expected = mock.MagicMock(spec_set=six.string_types)
         run_ly = mock.MagicMock()
         # run test
         with mock.patch('vis.analyzers.experimenters.lilypond.outputlilypond') as mock_oly:
@@ -521,12 +530,16 @@ class TestLilyPondExperimenter(unittest.TestCase):
             mock_oly.run_lilypond = run_ly
             with mock.patch('vis.analyzers.experimenters.lilypond.oly_settings') as mock_oly_s:
                 mock_oly_s.LilyPondSettings.return_value = oly_setts
-                with mock.patch('__builtin__.open', mock_open):
-                    actual = LilyPondExperimenter([mock_score], setts).run()
+                if six.PY2:
+                    with mock.patch('__builtin__.open', mock_open):
+                        actual = LilyPondExperimenter([mock_score], setts).run()
+                else:
+                    with mock.patch('builtins.open', mock_open):
+                        actual = LilyPondExperimenter([mock_score], setts).run()
         # verify results
             mock_oly.process_score.assert_called_once_with(mock_score, oly_setts)
-        mock_open.assert_called_once_with(setts[u'output_pathname'], 'w')
-        run_ly.assert_called_once_with(setts[u'output_pathname'], oly_setts)
+        mock_open.assert_called_once_with(setts['output_pathname'], 'w')
+        run_ly.assert_called_once_with(setts['output_pathname'], oly_setts)
         self.assertEqual(0, mock_score.insert.call_count)
         self.assertEqual(expected, actual)
 
@@ -537,11 +550,11 @@ class TestLilyPondExperimenter(unittest.TestCase):
         mock_score_cls = type('MockIndexer', (stream.Score,), {})
         mock_score = mock_score_cls()
         mock_score.insert = mock.MagicMock()
-        mock_parts = [mock.MagicMock(name=u'anno part 1', spec_set=stream.Part),
-                      mock.MagicMock(name=u'anno part 2', spec_set=stream.Part)]
-        setts = {u'annotation_part': mock_parts}
+        mock_parts = [mock.MagicMock(name='anno part 1', spec_set=stream.Part),
+                      mock.MagicMock(name='anno part 2', spec_set=stream.Part)]
+        setts = {'annotation_part': mock_parts}
         oly_setts = mock.MagicMock()
-        expected = mock.MagicMock(spec_set=unicode)
+        expected = mock.MagicMock(spec_set=six.string_types)
         run_ly = mock.MagicMock()
         # run test
         with mock.patch('vis.analyzers.experimenters.lilypond.outputlilypond') as mock_oly:
@@ -549,8 +562,12 @@ class TestLilyPondExperimenter(unittest.TestCase):
             mock_oly.run_lilypond = run_ly
             with mock.patch('vis.analyzers.experimenters.lilypond.oly_settings') as mock_oly_s:
                 mock_oly_s.LilyPondSettings.return_value = oly_setts
-                with mock.patch('__builtin__.open', mock_open):
-                    actual = LilyPondExperimenter([mock_score], setts).run()
+                if six.PY2:
+                    with mock.patch('__builtin__.open', mock_open):
+                        actual = LilyPondExperimenter([mock_score], setts).run()
+                else:
+                    with mock.patch('builtins.open', mock_open):
+                        actual = LilyPondExperimenter([mock_score], setts).run()
         # verify results
             mock_oly.process_score.assert_called_once_with(mock_score, oly_setts)
         self.assertEqual(0, mock_open.call_count)

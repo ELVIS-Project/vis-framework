@@ -146,8 +146,8 @@ class RBarChart(experimenter.Experimenter):
         """
         Produce the bar chart.
 
-        :returns: The pathname of the outputted PNG file containing a bar chart.
-        :rtype: str
+        :returns: The pathname of the outputted PNG file containing a bar chart.s
+        :rtype: string
         :raises: :exc:`RuntimeError` if the call to ``Rscript`` fails for any reason. The return
             code and command's output are included as the :attr:`RuntimeError.args[0]` attribute.
         """

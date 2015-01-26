@@ -32,6 +32,8 @@ new ``WorkflowManager`` classes.
 
 from os import path
 from ast import literal_eval
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 import vis
 from vis.models import indexed_piece
@@ -45,8 +47,7 @@ def split_part_combo(key):
     """
     Split a comma-separated list of two integer part names into a tuple of the integers.
 
-    :param key: String with the part names.
-    :type key: basestring
+    :param str key: String with the part names.
     :returns: The indices of parts referred to by the key.
     :rtype: tuple of int
 
@@ -65,7 +66,7 @@ def split_part_combo(key):
 class WorkflowManager(object):
     """
     :parameter pathnames: A list of pathnames.
-    :type pathnames: list or tuple of basestring or :class:`~vis.models.indexed_piece.IndexedPiece`
+    :type pathnames: list or tuple of string or :class:`~vis.models.indexed_piece.IndexedPiece`
 
     The :class:`WorkflowManager` automates several common music analysis patterns for counterpoint.
     Use the ``WorkflowManager`` with these four tasks:
@@ -119,24 +120,24 @@ class WorkflowManager(object):
     # The error when an ``instruction`` arg is invalid
     _UNRECOGNIZED_INSTRUCTION = 'Unrecognized instruction: "{}"'
 
-    # The error when the argument to __init__() isn't a list/tuple of basestring
+    # The error when the argument to __init__() isn't a list/tuple of string
     _BAD_INIT_ARG = 'WorkflowManager() requires a list/tuple of strings.'
 
     def __init__(self, pathnames):
         """
-        :raises: :exc:`TypeError` if ``pathnames`` is not a list or tuple of basestring or
+        :raises: :exc:`TypeError` if ``pathnames`` is not a list or tuple of string or
             :class:`IndexedPiece`
         """
-        # ensure ``pathnames`` is a list or tuple of basestring...
+        # ensure ``pathnames`` is a list or tuple of string...
         # this may have security repercussions, as noted in GH#332
         if not (isinstance(pathnames, (list, tuple)) and
-                all(map(lambda x: isinstance(x, (basestring, indexed_piece.IndexedPiece)), pathnames))):
+                all(map(lambda x: isinstance(x, (six.string_types, indexed_piece.IndexedPiece)), pathnames))):
             raise TypeError(WorkflowManager._BAD_INIT_ARG)
 
         # create the list of IndexedPiece objects
         self._data = []
         for each_val in pathnames:
-            if isinstance(each_val, basestring):
+            if isinstance(each_val, six.string_types):
                 self._data.append(indexed_piece.IndexedPiece(each_val))
             elif isinstance(each_val, indexed_piece.IndexedPiece):
                 self._data.append(each_val)
@@ -188,11 +189,9 @@ class WorkflowManager(object):
         .. note:: If one of the files imports as a :class:`music21.stream.Opus`, the number of
             pieces and their order *will* change.
 
-        :parameter instruction: The type of data to load. Defaults to ``'pieces'``.
-        :type instruction: basestring
-        :parameter pathname: The pathname of the data to import; not required for the \
+        :parameter str instruction: The type of data to load. Defaults to ``'pieces'``.
+        :parameter str pathname: The pathname of the data to import; not required for the \
             ``'pieces'`` instruction.
-        :type pathname: basestring
 
         :raises: :exc:`RuntimeError` if the ``instruction`` is not recognized.
 
@@ -221,7 +220,7 @@ class WorkflowManager(object):
         elif 'hdf5' == instruction or 'stata' == instruction or 'pickle' == instruction:
             raise NotImplementedError('The ' + instruction + ' instruction does\'t work yet!')
         else:
-            raise RuntimeError('Unrecognized load() instruction: "' + unicode(instruction) + '"')
+            raise RuntimeError('Unrecognized load() instruction: "' + six.u(instruction) + '"')
         self._loaded = True
 
     def _get_unique_combos(self, index):
@@ -240,14 +239,13 @@ class WorkflowManager(object):
         # 5.) use set() to remove duplicate sub-lists
         # 6.) use map() to run literal_eval() again to turn the sub-lists back into lists
         VOX_COM = 'voice combinations'
-        return map(literal_eval, list(set(map(str, literal_eval(str(self.settings(index, VOX_COM)))))))
+        return list(map(literal_eval, list(set(map(str, literal_eval(str(self.settings(index, VOX_COM))))))))
 
     def run(self, instruction):
         """
         Run an experiment's workflow. Remember to call :meth:`load` before this method.
 
-        :parameter instruction: The experiment to run (refer to "List of Experiments" below).
-        :type instruction: basestring
+        :parameter str instruction: The experiment to run (refer to "List of Experiments" below).
 
         :returns: The result of the experiment.
         :rtype: :class:`pandas.Series` or :class:`pandas.DataFrame` or a list of lists of
@@ -686,8 +684,8 @@ class WorkflowManager(object):
         :param vert_ints: The results of IntervalIndexer.
         :type vert_ints: :class:`pandas.DataFrame`
         :param combos: The voice pairs to keep.
-        :type combos: sequence of basestring
-        :param basestring which_ind: The name of the indexer in which to remove results. The default
+        :type combos: sequence of string
+        :param str which_ind: The name of the indexer in which to remove results. The default
             is ``'interval.IntervalIndexer'``.
 
         :returns: Only the voice pairs you want.
@@ -712,9 +710,8 @@ class WorkflowManager(object):
         :param threshold: If a result is strictly less than this number, it won't be included. The
             default is ``None``.
         :type threshold: number
-        :param name: String to use for the column name of the Series currently held in self._result.
-            The default is 'data'. Ignored if self._data is already a :class:`DataFrame`.
-        :type name: basestring
+        :param str name: String to use for the column name of the Series currently held in
+            self._result. The default is 'data'. Ignored if self._data is already a :class:`DataFrame`.
         :returns: A :class:`DataFrame` with self._result as the only column.
 
         **About the "name" Parameter**
@@ -750,15 +747,6 @@ class WorkflowManager(object):
 
         return pandas.DataFrame({x: series_filter(starting[x]) for x in list(starting.columns)})
 
-
-        #if isinstance(self._result, pandas.DataFrame):
-            ## NB: usually self._result is a list, in which case we couldn't call .columns... but
-            ##     we're protected in this case by the isinstance() call
-            #post =
-            #return pandas.DataFrame(post)
-        #else:
-            #return pandas.DataFrame({name: series_filter(self._result)})
-
     def output(self, instruction, pathname=None, top_x=None, threshold=None):
         """
         Output the results of the most recent call to :meth:`run`, saved in a file. This method
@@ -767,13 +755,14 @@ class WorkflowManager(object):
         .. note:: For LiliyPond output, you must have called :meth:`run` with ``count frequency``
             set to ``False``.
 
-        :parameter instruction: The type of visualization to output.
-        :type instruction: basestring
-        :parameter pathname: The pathname for the output. The default is
+        .. note:: If ``count frequency`` is set to ``False`` for CSV, Stata, Excel, or HTML output,
+            the ``top_x`` and ``threshold`` parameters are ignored.
+
+        :parameter str instruction: The type of visualization to output.
+        :parameter str pathname: The pathname for the output. The default is
             ``'test_output/output_result``. Do not include a file-type "extension," since we add
             this automatically. For the LilyPond experiment, if there are multiple pieces in the
             :class:`WorkflowManager`, we append the piece's index to the pathname.
-        :type pathname: basestring
         :param top_x: This is the "X" in "only show the top X results." The default is ``None``.
             Does not apply to the LilyPond experiment.
         :type top_x: integer
@@ -784,7 +773,8 @@ class WorkflowManager(object):
 
         :returns: The pathname(s) of the outputted visualization(s). Requesting a histogram always
             returns a single string; requesting a score (or some scores) always returns a list.
-        :rtype: basestring or list of basestring
+            The other formats will return a list if the ``count frequency`` setting is ``False``.
+        :rtype: str or [str]
 
         :raises: :exc:`RuntimeError` for unrecognized instructions.
         :raises: :exc:`RuntimeError` if :meth:`run` has never been called.
@@ -821,8 +811,11 @@ class WorkflowManager(object):
 
         # handle instructions
         if instruction in ('CSV', 'Stata', 'Excel', 'HTML'):
-            # these will be done by export()
-            return self._export(instruction, pathname, top_x, threshold)
+            pathnames = self._make_table(instruction, pathname, top_x, threshold)
+            if 1 == len(pathnames):
+                return pathnames[0]
+            else:
+                return pathnames  # TODO: test this
         elif instruction == 'LilyPond':
             return self._make_lilypond(pathname)
         elif instruction == 'histogram' or instruction == 'R histogram':
@@ -842,12 +835,12 @@ class WorkflowManager(object):
         chart_data = self._filter_dataframe(top_x=top_x, threshold=threshold, name='freq')
 
         # properly set output paths
-        setts = {'pathname': 'test_output/output_result' if pathname is None else unicode(pathname)}
+        setts = {'pathname': 'test_output/output_result' if pathname is None else str(pathname)}
 
         # choose the proper token
         if 'intervals' == self._previous_exp:
             setts['token'] = 'interval'
-        elif 'n-grams' == self._previous_exp:
+        elif 'interval n-grams' == self._previous_exp:  # TEST
             setts['token'] = '{}-gram'.format(self.settings(None, 'n'))
         else:
             setts['token'] = 'objects'
@@ -871,7 +864,8 @@ class WorkflowManager(object):
         """
 
         file_ext = 'ly'
-        pathname = 'test_output/output_result' if pathname is None else unicode(pathname)
+        if pathname is None:
+            pathname = 'test_output/output_result'
 
         # try to determine whether they called run() properly (``count frequency`` should be False)
         if self.settings(None, 'count frequency') is True or len(self._data) != len(self._result):
@@ -910,30 +904,58 @@ class WorkflowManager(object):
 
         return pathnames
 
-    def _export(self, form, pathname=None, top_x=None, threshold=None):
+    def _make_table(self, form, pathname, top_x, threshold):
         """
-        Arguments as per :meth:`output`. You should always use :meth:`output`.
-        """
+        Output a table-style result. Called by :meth:`output`.
 
-        # filter the results
-        export_me = self._filter_dataframe(top_x=top_x, threshold=threshold)
+        :param st form: Either 'CSV', 'Stata', 'Excel', or 'HTML', depending on the desired output
+            format.
+        :param str pathname: As in :meth:`output`.
+        :param int top_x: As in :meth:`output`.
+        :param int threshold: As in :meth:`output`.
+
+        :returns: The pathname(s) of the outputted files.
+        :rtype: list of str
+
+        .. note:: If ``count frequency`` is ``False``, the ``top_x`` and ``threshold`` parameters
+            are ignored.
+        """
 
         # key is the instruction; value is (extension, export_method)
-        directory = {'CSV': ('.csv', export_me.to_csv),
-                     'Stata': ('.dta', export_me.to_stata),
-                     'Excel': ('.xlsx', export_me.to_excel),
-                     'HTML': ('.html', export_me.to_html)}
+        directory = {'CSV': ('.csv', 'to_csv'),
+                     'Stata': ('.dta', 'to_stata'),
+                     'Excel': ('.xlsx', 'to_excel'),
+                     'HTML': ('.html', 'to_html')}
 
-        # ensure we have an output path
-        pathname = 'test_output/no_path' if pathname is None else unicode(pathname)
-        # ensure there's a file extension
-        if directory[form][0] != pathname[-1 * len(directory[form][0]):]:
-            pathname += directory[form][0]
+        # set file extension and the method to call for output
+        file_ext, output_meth = directory[form]
 
-        # call the to_whatever() method
-        directory[form][1](pathname)
+        # ensure the pathname doesn't have a file extension
+        if pathname.endswith(file_ext):
+            pathname = pathname[:(-1 * len(file_ext))]
 
-        return pathname
+        pathnames = []
+
+        if self.settings(None, 'count frequency'):
+            # filter the results
+            name = 'Interval Frequency' if self._previous_exp == 'intervals' else 'Interval N-Gram Frequency'
+            export_me = self._filter_dataframe(top_x=top_x, threshold=threshold, name=name)
+            pathnames.append('{}{}'.format(pathname, file_ext))
+            getattr(export_me, output_meth)(pathnames[-1])
+        else:
+            enum = True if (len(self._data) > 1 and not self.settings(None, 'count frequency')) else False
+            for i in xrange(len(self._data)):
+                # append piece index to pathname, if there are many pieces
+                if enum:
+                    pathnames.append('{}-{}{}'.format(pathname, i, file_ext))
+                    # call the method that actually outputs the result
+                    getattr(self._result[i], output_meth)(pathnames[-1])
+                else:
+                    pathnames.append('{}{}'.format(pathname, file_ext))
+                    # call the method that actually outputs the result
+                    getattr(self._result[i], output_meth)(pathnames[-1])
+
+        return pathnames
 
     def metadata(self, index, field, value=None):
         """
@@ -943,19 +965,16 @@ class WorkflowManager(object):
         A metadatum is a salient musical characteristic of a particular piece, and does not change
         across analyses.
 
-        :param index: The index of the piece to access. The range of valid indices is ``0`` through
-            one fewer than the return value of calling :func:`len` on this :class:`WorkflowManager`.
-        :type index: :obj:`int`
-        :param field: The name of the field to be accessed or modified.
-        :type field: :obj:`basestring`
-        :param value: If not ``None``, the new value to be assigned to ``field``.
-        :type value: :obj:`object` or :obj:`None`
+        :param int index: The index of the piece to access. The range of valid indices is ``0``
+            through one fewer than the :func:`len` of this :class:`WorkflowManager`.
+        :param str field: The name of the field to be accessed or modified.
+        :param object value: If not ``None``, the new value to be assigned to ``field``.
 
         :returns: The value of the requested field or ``None``, if assigning, or if accessing a
             non-existant field or a field that has not yet been initialized.
-        :rtype: :obj:`object` or :obj:`None`
+        :rtype: object
 
-        :raises: :exc:`TypeError` if ``field`` is not a ``basestring``.
+        :raises: :exc:`TypeError` if ``field`` is not a string.
         :raises: :exc:`AttributeError` if accessing an invalid ``field``.
         :raises: :exc:`IndexError` if ``index`` is invalid for this ``WorkflowManager``.
         """
@@ -974,8 +993,7 @@ class WorkflowManager(object):
             one fewer than the return value of calling :func:`len` on this WorkflowManager. If
             ``value`` is not ``None`` and ``index`` is ``None``, you can set a field for all pieces.
         :type index: int or ``None``
-        :param field: The name of the field to be accessed or modified.
-        :type field: basestring
+        :param str field: The name of the field to be accessed or modified.
         :param value: If not ``None``, the new value to be assigned to ``field``.
         :type value: object or ``None``
 
@@ -1002,7 +1020,7 @@ class WorkflowManager(object):
             set this setting to a list of a list of iterables. The following value would analyze \
             the highest three voices with each other: ``'[[0,1,2]]'`` while this would analyze the \
             every part with the lowest for a four-part piece: ``'[[0, 3], [1, 3], [2, 3]]'``. This \
-            should always be a ``basestring`` that nominally represents a list (except the special \
+            should always be a ``str`` that nominally represents a list (except the special \
             values for ``'all'`` parts at once or ``'all pairs'``).
 
         **Shared Settings**
@@ -1041,9 +1059,9 @@ class WorkflowManager(object):
                 for i in xrange(len(self._settings)):
                     self.settings(i, field, value)
         elif not 0 <= index < len(self._settings):
-            raise IndexError('Invalid piece index :' + unicode(index))
+            raise IndexError('Invalid piece index: {}'.format(index))
         elif field not in self._settings[index]:
-            raise AttributeError('Invalid setting: ' + unicode(field))
+            raise AttributeError('Invalid setting: {}'.format(field))
         elif value is None:
             return self._settings[index][field]
         elif field == 'offset interval' and value == 0:  # can't set directly to None :(

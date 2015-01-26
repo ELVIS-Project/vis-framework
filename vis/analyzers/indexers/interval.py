@@ -33,6 +33,8 @@ same part.
 # disable "string statement has no effect"... it's for sphinx
 # pylint: disable=W0105
 
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
@@ -44,7 +46,7 @@ def real_indexer(simultaneity, simple, quality):
 
     :param simultaneity: A two-item iterable with the note names for the higher and lower parts,
         respectively.
-    :type simultaneity: list of basestring
+    :type simultaneity: list of string
     :param simple: Whether intervals should be reduced to their single-octave version.
     :type simple: boolean
     :param quality: Whether the interval's quality should be prepended.
@@ -52,7 +54,7 @@ def real_indexer(simultaneity, simple, quality):
 
     :returns: ``'Rest'`` if one or more of the parts is ``'Rest'``; otherwise, the interval
         between the parts.
-    :rtype: unicode string
+    :rtype: string
     """
 
     if 2 != len(simultaneity):
@@ -62,19 +64,19 @@ def real_indexer(simultaneity, simple, quality):
             upper, lower = simultaneity
             interv = interval.Interval(note.Note(lower), note.Note(upper))
         except pitch.PitchException:
-            return u'Rest'
-        post = u'-' if interv.direction < 0 else u''
+            return 'Rest'
+        post = '-' if interv.direction < 0 else ''
         if quality:
             # We must get all of the quality, and none of the size (important for AA, dd, etc.)
-            q_str = u''
+            q_str = ''
             for each in interv.name:
-                if each in u'AMPmd':
+                if each in 'AMPmd':
                     q_str += each
             post += q_str
         if simple:
-            post += unicode(interv.generic.semiSimpleUndirected)
+            post += six.u(str(interv.generic.semiSimpleUndirected))
         else:
-            post += unicode(interv.generic.undirected)
+            post += six.u(str(interv.generic.undirected))
         return post
 
 
@@ -128,16 +130,16 @@ class IntervalIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
-    possible_settings = [u'simple or compound', u'quality']
+    possible_settings = ['simple or compound', 'quality']
     """
     A list of possible settings for the :class:`IntervalIndexer`.
 
-    :keyword unicode u'simple or compound': Whether intervals should be represented in their \
-        single-octave form (either ``u'simple'`` or ``u'compound'``).
-    :keyword boolean u'quality': Whether to display an interval's quality.
+    :keyword str 'simple or compound': Whether intervals should be represented in their \
+        single-octave form (either ``'simple'`` or ``'compound'``).
+    :keyword boolean 'quality': Whether to display an interval's quality.
     """
 
-    default_settings = {u'simple or compound': u'compound', u'quality': False}
+    default_settings = {'simple or compound': 'compound', 'quality': False}
     "A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
@@ -204,7 +206,7 @@ class IntervalIndexer(indexer.Indexer):
         for left in xrange(len(self._score)):
             for right in xrange(left + 1, len(self._score)):
                 combinations.append([left, right])
-                combination_labels.append(unicode(left) + u',' + unicode(right))
+                combination_labels.append('{},{}'.format(left, right))
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
@@ -279,7 +281,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # first element, and the other will be missing the last element. We'll also use the index
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
-        combination_labels = [unicode(x) for x in xrange(len(self._score))]
+        combination_labels = [six.u(str(x)) for x in xrange(len(self._score))]
         if self._settings['horiz_attach_later']:
             new_parts = [x.iloc[1:] for x in self._score]
             self._score = [pandas.Series(x.values[:-1], index=x.index[1:]) for x in self._score]

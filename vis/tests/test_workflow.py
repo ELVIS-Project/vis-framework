@@ -32,7 +32,12 @@ Tests for the WorkflowManager
 
 import os
 from unittest import TestCase, TestLoader
-import mock
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+if six.PY3:
+    from unittest import mock
+else:
+    import mock
 from mock import MagicMock
 from numpy import NaN
 import pandas
@@ -55,7 +60,7 @@ class WorkflowTests(TestCase):
 
     @mock.patch('vis.workflow.path.join', return_value='/some/vis/path.r')
     def test_init_1(self, mock_join):
-        """__init__() with a list of basestrings"""
+        """__init__() with a list of strings"""
         # NB: mocked out os.path.join()
         with mock.patch('vis.models.indexed_piece.IndexedPiece') as mock_ip:
             in_val = ['help.txt', 'path.xml', 'why_you_do_this.rtf']
@@ -132,14 +137,14 @@ class WorkflowTests(TestCase):
         try:
             WorkflowManager(in_val)
         except TypeError as type_err:
-            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.message)
+            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.args[0])
         # next, with a single string
         in_val = 'best piece ever.mei'
         self.assertRaises(TypeError, WorkflowManager, in_val)
         try:
             WorkflowManager(in_val)
         except TypeError as type_err:
-            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.message)
+            self.assertEqual(WorkflowManager._BAD_INIT_ARG, type_err.args[0])
 
     def test_load_1(self):
         # that "get_data" is called correctly on each thing
@@ -334,7 +339,7 @@ class Output(TestCase):
             test_wc.output(bad_instruction)
         except RuntimeError as run_err:
             self.assertEqual(WorkflowManager._UNRECOGNIZED_INSTRUCTION.format(bad_instruction),
-                             run_err.message)
+                             run_err.args[0])
 
     def test_output_4(self):
         """ensure RuntimeError if self._result is None"""
@@ -344,14 +349,14 @@ class Output(TestCase):
         try:
             test_wc.output('R histogram')
         except RuntimeError as run_err:
-            self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.message)
+            self.assertEqual(WorkflowManager._NO_RESULTS_ERROR, run_err.args[0])
 
-    @mock.patch('vis.workflow.WorkflowManager._export')
-    def test_output_5(self, mock_export):
+    @mock.patch('vis.workflow.WorkflowManager._make_table')
+    def test_output_5(self, mock_table):
         """ensure output() calls export() as required"""
         # 1: prepare
         export_path = 'the_path'
-        mock_export.return_value = export_path
+        mock_table.return_value = export_path
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'intervals'
         test_wc._data = [1 for _ in xrange(20)]
@@ -362,7 +367,7 @@ class Output(TestCase):
         actual = test_wc.output('Excel', path)
         # 3: check
         self.assertEqual(export_path, actual)
-        mock_export.assert_called_once_with(*expected_args)
+        mock_table.assert_called_once_with(*expected_args)
 
 
 @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
@@ -398,10 +403,10 @@ class MakeHistogram(TestCase):
         - pathname: given
         - top_x: given
         - threshold: given
-        - test_wc._previous_exp: 'n-grams'
+        - test_wc._previous_exp: 'interval n-grams'
         """
         test_wc = WorkflowManager([])
-        test_wc._previous_exp = 'n-grams'
+        test_wc._previous_exp = 'interval n-grams'
         test_wc.settings(None, 'n', 42)
         mock_fdf.return_value = 'filtered DataFrame'
         exp_setts = {'pathname': 'some_path', 'token': '42-gram', 'type': 'png',
@@ -696,42 +701,92 @@ class ExtraPairs(TestCase):
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
 
 
-class Export(TestCase):
-    """Tests for WorkflowManager._export()"""
+class MakeTable(TestCase):
+    """Tests for WorkflowManager._make_table()"""
 
     @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
-    def test_export_1(self, mock_fdf):
-        """the method works as expected for CSV, Excel, and Stata when _result is a DataFrame"""
+    def test_table_1(self, mock_fdf):
+        '''
+        _make_table():
+
+        - "count frequency" is True
+        - file extension on "pathname" with period
+        '''
         test_wm = WorkflowManager([])
+        test_wm.settings(None, 'count frequency', True)  # just to be 100% clear
         mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
         test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
-        test_wm._export('CSV', 'test_path')  # pylint: disable=protected-access
-        test_wm._export('Excel', 'test_path')  # pylint: disable=protected-access
-        test_wm._export('Stata', 'test_path')  # pylint: disable=protected-access
-        test_wm._export('HTML', 'test_path')  # pylint: disable=protected-access
+        test_wm._previous_exp = 'intervals'  # to get the proper "exp_name"
+        top_x = None
+        threshold = None
+        exp_name = 'Interval Frequency'
+        pathname = 'test_path'
+
+        test_wm._make_table('CSV', pathname + '.csv', top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Excel', pathname + '.xlsx', top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Stata', pathname + '.dta', top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('HTML', pathname + '.html', top_x, threshold)  # pylint: disable=protected-access
+
         mock_fdf.return_value.to_csv.assert_called_once_with('test_path.csv')
         mock_fdf.return_value.to_stata.assert_called_once_with('test_path.dta')
         mock_fdf.return_value.to_excel.assert_called_once_with('test_path.xlsx')
         mock_fdf.return_value.to_html.assert_called_once_with('test_path.html')
-        self.assertSequenceEqual([mock.call(top_x=None, threshold=None) for _ in xrange(4)],
+        self.assertSequenceEqual([mock.call(top_x=top_x, threshold=threshold, name=exp_name) for _ in xrange(4)],
                                  mock_fdf.call_args_list)
 
-    @mock.patch('vis.workflow.WorkflowManager._filter_dataframe')
-    def test_export_2(self, mock_fdf):
-        """test_export_1() with a valid extension already on"""
+    def test_table_2(self):
+        '''
+        _make_table():
+
+        - "count frequency" is False
+        - file extension not on "pathname"
+        - there is only one IndexedPiece
+        '''
         test_wm = WorkflowManager([])
-        mock_fdf.return_value = mock.MagicMock(spec_set=pandas.DataFrame)
-        test_wm._result = mock_fdf.return_value  # to avoid a RuntimeError
-        test_wm._export('CSV', 'test_path.csv')  # pylint: disable=protected-access
-        test_wm._export('Excel', 'test_path.xlsx')  # pylint: disable=protected-access
-        test_wm._export('Stata', 'test_path.dta')  # pylint: disable=protected-access
-        test_wm._export('HTML', 'test_path.html')  # pylint: disable=protected-access
-        test_wm._result.to_csv.assert_called_once_with('test_path.csv')
-        test_wm._result.to_stata.assert_called_once_with('test_path.dta')
-        test_wm._result.to_excel.assert_called_once_with('test_path.xlsx')
-        test_wm._result.to_html.assert_called_once_with('test_path.html')
-        self.assertSequenceEqual([mock.call(top_x=None, threshold=None) for _ in xrange(4)],
-                                 mock_fdf.call_args_list)
+        test_wm.settings(None, 'count frequency', False)
+        test_wm._result = [mock.MagicMock(spec_set=pandas.DataFrame)]
+        test_wm._data = ['boop' for _ in xrange(len(test_wm._result))]
+        top_x = None
+        threshold = None
+        pathname = 'test_path'
+
+        test_wm._make_table('CSV', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Excel', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Stata', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('HTML', pathname, top_x, threshold)  # pylint: disable=protected-access
+
+        for i in xrange(len(test_wm._result)):
+            test_wm._result[i].to_csv.assert_called_once_with(pathname + '.csv')
+            test_wm._result[i].to_excel.assert_called_once_with(pathname + '.xlsx')
+            test_wm._result[i].to_stata.assert_called_once_with(pathname + '.dta')
+            test_wm._result[i].to_html.assert_called_once_with(pathname + '.html')
+
+    def test_table_3(self):
+        '''
+        _make_table():
+
+        - "count frequency" is False
+        - file extension not on "pathname"
+        - there are several IndexedPiece objects
+        '''
+        test_wm = WorkflowManager([])
+        test_wm.settings(None, 'count frequency', False)
+        test_wm._result = [mock.MagicMock(spec_set=pandas.DataFrame) for _ in xrange(5)]
+        test_wm._data = ['boop' for _ in xrange(len(test_wm._result))]
+        top_x = None
+        threshold = None
+        pathname = 'test_path'
+
+        test_wm._make_table('CSV', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Excel', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('Stata', pathname, top_x, threshold)  # pylint: disable=protected-access
+        test_wm._make_table('HTML', pathname, top_x, threshold)  # pylint: disable=protected-access
+
+        for i in xrange(len(test_wm._result)):
+            test_wm._result[i].to_csv.assert_called_once_with('{}-{}{}'.format(pathname, i, '.csv'))
+            test_wm._result[i].to_excel.assert_called_once_with('{}-{}{}'.format(pathname, i, '.xlsx'))
+            test_wm._result[i].to_stata.assert_called_once_with('{}-{}{}'.format(pathname, i, '.dta'))
+            test_wm._result[i].to_html.assert_called_once_with('{}-{}{}'.format(pathname, i, '.html'))
 
 
 class FilterDataFrame(TestCase):
@@ -906,9 +961,16 @@ class AuxiliaryExperimentMethods(TestCase):
         expected_1 = [[0, 1], [0, 2], [0, 3]]
         expected_2 = [[0, 1], [1, 2], [2, 3, 4]]
 
-        self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
-        self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
-        self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+        # in py3, map() returns a map() instance, which doesn't end up working, somehow
+        self.assertIsInstance(workm._get_unique_combos(0), list)
+        if six.PY2:
+            self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+            self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+            self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+        else:
+            self.assertCountEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+            self.assertCountEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+            self.assertCountEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
 
     def test_unique_combos_2(self):
         """_get_unique_combos() with all some duplicates"""
@@ -920,16 +982,21 @@ class AuxiliaryExperimentMethods(TestCase):
         expected_1 = [[0, 1], [0, 2], [0, 3]]
         expected_2 = [[0, 1], [1, 2], [2, 3, 4]]
 
-        self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
-        self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
-        self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+        if six.PY2:
+            self.assertItemsEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+            self.assertItemsEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+            self.assertItemsEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
+        else:
+            self.assertCountEqual(expected_0, workm._get_unique_combos(0))  # pylint: disable=protected-access
+            self.assertCountEqual(expected_1, workm._get_unique_combos(1))  # pylint: disable=protected-access
+            self.assertCountEqual(expected_2, workm._get_unique_combos(2))  # pylint: disable=protected-access
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
 WORKFLOW_TESTS = TestLoader().loadTestsFromTestCase(WorkflowTests)
 FILTER_DATA_FRAME = TestLoader().loadTestsFromTestCase(FilterDataFrame)
-EXPORT = TestLoader().loadTestsFromTestCase(Export)
+MAKE_TABLE = TestLoader().loadTestsFromTestCase(MakeTable)
 EXTRA_PAIRS = TestLoader().loadTestsFromTestCase(ExtraPairs)
 SETTINGS = TestLoader().loadTestsFromTestCase(Settings)
 OUTPUT = TestLoader().loadTestsFromTestCase(Output)

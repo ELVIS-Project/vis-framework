@@ -27,7 +27,12 @@ Tests for the WorkflowManager
 """
 
 from unittest import TestCase, TestLoader
-import mock
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+if six.PY3:
+    from unittest import mock
+else:
+    import mock
 from mock import MagicMock
 import pandas
 from vis.workflow import WorkflowManager
@@ -158,7 +163,7 @@ class Intervals(TestCase):
         try:
             test_wc._intervs()  # pylint: disable=protected-access
         except RuntimeError as run_err:
-            self.assertEqual(exp_err_msg, run_err.message)
+            self.assertEqual(exp_err_msg, run_err.args[0])
 
 
 class IntervalNGrams(TestCase):

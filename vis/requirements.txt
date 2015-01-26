@@ -1,7 +1,8 @@
 # These packages are required for vis.
 # Certain functionality will be missing; see optional_requirements.txt.
 music21>=1.9.3,<2
-pandas>=0.14.1,<0.15
+pandas>=0.14.1,<0.16
 mock>=1.0.1
 coverage
 python-coveralls
+six

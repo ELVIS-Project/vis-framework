@@ -4,10 +4,10 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/noterest.py
-# Purpose:                Index note and rest objects.
+# Filename:               controllers/indexers/fermata.py
+# Purpose:                Index fermattas.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila, Ryan Bannon
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -23,48 +23,41 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 """
-.. codeauthor:: Christopher Antila <christopher@antila.ca>
+.. codeauthor:: Ryan Bannon <ryan.bannon@gmail.com>
 
-Index note and rest objects.
+Index fermatas.
 """
 
 import six
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
-from music21 import stream, note
+from numpy import NaN  # pylint: disable=no-name-in-module
+from music21 import stream, expressions, note
 from vis.analyzers import indexer
 
 def indexer_func(obj):
     """
-    Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
-    :class:`~music21.note.Rest` objects into a string.
+    Used internally by :class:`FermataIndexer`. Inspects :class:`~music21.note.Note` and
+    :class:`~music21.note.Rest` and returns ``u'Fermata'`` if a fermata is associated, else NaN.
 
     :param obj: An iterable (nominally a :class:`~pandas.Series`) with an object to convert. Only
         the first object in the iterable is processed.
     :type obj: iterable of :class:`music21.note.Note` or :class:`music21.note.Rest`
 
-    :returns: If the first object in the list is a :class:`music21.note.Rest`, the string
-        ``u'Rest'``; otherwise the :attr:`~music21.note.Note.nameWithOctave` attribute, which is
-        the pitch class and octave of the :class:`Note`.
+    :returns: If the first object in the list is a contains a :class:`~music21.expressions.Fermata`,
+    string ``u'Fermata'`` is returned. Else, NaN.
     :rtype: str
-
-    **Examples:**
-
-    >>> from music21 import note
-    >>> indexer_func([note.Note('C4')])
-    u'C4'
-    >>> indexer_func([note.Rest()])
-    u'Rest'
     """
-    return 'Rest' if isinstance(obj[0], note.Rest) else six.u(str(obj[0].nameWithOctave))
+    for expression in obj[0].expressions:
+        if isinstance(expression, expressions.Fermata):
+            return 'Fermata'
+    return NaN
 
 
-class NoteRestIndexer(indexer.Indexer):
+class FermataIndexer(indexer.Indexer):
     """
-    Index :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects in a
-    :class:`~music21.stream.Part`.
+    Index :class:`~music21.expressions.Fermata`.
 
-    :class:`Rest` objects become ``'Rest'``, and :class:`Note objects become the string-format
-    version of their :attr:`~music21.note.Note.nameWithOctave` attribute.
+    Finds :class:`~music21.expressions.Fermata`s.
     """
 
     required_score_type = 'stream.Part'
@@ -78,7 +71,7 @@ class NoteRestIndexer(indexer.Indexer):
 
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the right type.
         """
-        super(NoteRestIndexer, self).__init__(score, None)
+        super(FermataIndexer, self).__init__(score, None)
         self._types = [note.Note, note.Rest]
         self._indexer_func = indexer_func
 
@@ -92,12 +85,11 @@ class NoteRestIndexer(indexer.Indexer):
 
         **Example:**
 
-        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-        >>> the_score.parts[5]
-        (the first clarinet Part)
-        >>> the_notes = NoteRestIndexer(the_score).run()
-        >>> the_notes['noterest.NoteRestIndexer']['5']
-        (the first clarinet Series)
+        >>> import vis
+        >>> VIS_PATH = vis.__path__[0]
+        >>> ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
+        >>> fermatas = ind_piece.get_data([fermata.FermataIndexer])
+        >>> print fermatas
         """
         combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately
         results = self._do_multiprocessing(combinations)

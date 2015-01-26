@@ -7,7 +7,7 @@
 # Filename:               analyzers_tests/template_test.py
 # Purpose:                Template for testing indexers.
 #
-# Copyright (C) 2013 Christopher Antila
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -63,7 +63,11 @@
 
 
 import unittest
-import mock
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+if six.PY3:
+    from unittest import mock
+else:
+    import mock
 import pandas
 from vis.analyzers.indexers import template
 
@@ -92,7 +96,7 @@ class TestTemplateIndexer(unittest.TestCase):
         test_ind = template.TemplateIndexer(in_val, setts)
         # 4.) Setup the mock.
         with mock.patch(u'vis.analyzers.indexers.template.indexer_func') as mock_indfunc:
-            # 5.) The indexer_func() will always return a zero-length unicode string.
+            # 5.) The indexer_func() will always return a zero-length unicode string (or string).
             mock_indfunc.return_value = u''
             # 6.) Run the indexer.
             test_ind.run()
