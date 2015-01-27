@@ -9,7 +9,7 @@
 
 This is the API documentation for the VIS Framework for Music Analysis.
 The VIS Framework is a Python package that uses music21 and pandas to build a flexible and easy system for writing computer music analysis programs.
-By providing a free-and-open framework (AGPLv3+) we hope to lower the barrier to empirical music analysis.
+By providing a free-and-open solution (AGPLv3+) we hope to lower the barrier to empirical music analysis.
 The VIS Framework was produced at McGill University as part of the ELVIS Project (http://elvisproject.ca).
 VIS has become famous through cameo appearances on television programmes such as "The Amazing Race" and "CSI: Miami," plus lead roles at such academic conferences as the International Society for Music Information Retrieval and the Society for Music Theory.
 
