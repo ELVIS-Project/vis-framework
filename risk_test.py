@@ -8,6 +8,7 @@ from collections import Counter
 import numpy as np
 import music21
 import os
+import pickle
 
 ''' INFO/USEFULS
 ==========================================================================================
@@ -193,7 +194,7 @@ if (this_index != len(matched_intervals)-1) and np.isnan(this_interval[0]):
             matched_weaks[this_index] = 0
 
 
-=========== Old Time Signature Modifier =========
+=========== Time Signature Modifier =========
     # Allowing for changes in time signature
     offset_boundaries = []
     offset_increments = []
@@ -239,8 +240,12 @@ class FingerprintComparer:
 
     similarity_matrix = None
 
-    def __init__(self, fingerprint_matrices=None):
+    sim_pickle_path = None
+
+    def __init__(self, fingerprint_matrices=None, sim_pickle_path=None):
+        self.sim_pickle_path = sim_pickle_path
         self.similarity_matrix = self.build_similarity_matrix(fingerprint_matrices)
+        self.dump_similarity_matrix()
     
     ##################### Strong Beat Compares #####################
 
@@ -722,6 +727,16 @@ class FingerprintComparer:
             return None
         names = fingerprint_matrices.keys()
         similarity_matrix = DataFrame(index=names, columns=names)
+
+        if self.sim_pickle_path is not None:
+            if os.path.isfile(self.sim_pickle_path):
+                print "Found pickled similarity matrix at '" + self.sim_pickle_path +"', importing..."
+                with open(self.sim_pickle_path, 'rb') as sim_pickle:
+                    similarity_matrix.update(pickle.load(sim_pickle))
+            else:
+                print "Warning: was asked to look for similarity matrix at '" + self.sim_pickle_path +"'"
+                print "Couldn't find one -- new pickle file will be created."
+
         for name1, fp1 in fingerprint_matrices.iteritems():
             for name2, fp2 in fingerprint_matrices.iteritems():
                 #print "Comparing: " + name1 + " and " + name2
@@ -732,7 +747,21 @@ class FingerprintComparer:
                     similarity_measure = self.similarity_measure(comparison_result)
                     similarity_matrix.loc[name1, name2] = similarity_measure
                     similarity_matrix.loc[name2, name1] = similarity_measure
+
         return similarity_matrix
+
+    def dump_similarity_matrix(self):
+        print "Updating pickled similarity matrix at " + self.sim_pickle_path
+        with open(self.sim_pickle_path, 'wb') as sim_pickle:
+            pickle.dump(self.similarity_matrix, sim_pickle)
+        print "Updated."
+
+    def clean_pickle(self, path, pathnames):
+        for index in [index for index in self.similarity_matrix.index.values if index not in pathnames]:
+            self.similarity_matrix = self.similarity_matrix.drop(index, axis=0)
+            self.similarity_matrix = self.similarity_matrix.drop(index, axis=1)
+        self.dump_similarity_matrix()
+
 
 ##################### Fingerprint Matrix Builder #####################
 class FingerprintBuilder:
@@ -742,6 +771,8 @@ class FingerprintBuilder:
     
     # Path to files containing pieces in xml format
     pathnames = ""
+    # Path to pickled matrices
+    fp_pickle_path = None
     # Max allowed number of fingerprints
     number_of_fingerprints = 0
     # Interval settings, typically will not allow this to be changed.
@@ -749,10 +780,12 @@ class FingerprintBuilder:
     # Built fingerprint matrices
     fingerprint_matrices = None
     
-    def __init__ (self, test_set_path, number_of_fingerprints=10000):
+    def __init__ (self, test_set_path, fp_pickle_path=None, number_of_fingerprints=10000):
+        self.fp_pickle_path = fp_pickle_path
         self.pathnames = [ os.path.join(test_set_path, f) for f in os.listdir(test_set_path) if os.path.isfile(os.path.join(test_set_path, f)) and not f.startswith('.')]
         self.number_of_fingerprints = number_of_fingerprints
         self.fingerprint_matrices = self.build_fingerprint_matrices()
+        self.dump_fingerprints()
 
     # Used below to push results to the front of their Series object
     def __shift_matrix(self, df):
@@ -810,18 +843,29 @@ class FingerprintBuilder:
 
         return weak_intervals
 
-    def remove_rests(self, fp):
-        pass
-
     def build_fingerprint_matrices(self):
         # pathnames: List of paths to each piece for which a fingerprint matrix should be built
         # number_of_fingerprints: however many fingerprints you need
         interval_settings = self.interval_settings
 
         fingerprint_matrices = {}
+        
+        # Load pickled fingerprints
+        if self.fp_pickle_path is not None:
+            if os.path.isfile(self.fp_pickle_path):
+                print "Found pickled fingerprints at '" + self.fp_pickle_path +"', importing..."
+                with open(self.fp_pickle_path, 'rb') as fp_pickle:
+                    fingerprint_matrices = pickle.load(fp_pickle)
+            else:
+                print "Warning: was asked to look for pickled fingerprints at '" + self.fp_pickle_path +"'"
+                print "Couldn't find any -- new pickle file will be created."
+
         number_of_fingerprints = self.number_of_fingerprints
 
         for path in self.pathnames:
+            # Skip pickled fingerprints
+            if os.path.basename(path) in fingerprint_matrices.keys():
+                continue
             # Setup for each piece
             #print("Indexing " + path)
             piece = IndexedPiece(path)
@@ -879,66 +923,84 @@ class FingerprintBuilder:
                 
             number_of_fingerprints -= 1
             if 0 == number_of_fingerprints:
+                print "Max Number of Fingerprints Reached"
                 break
 
         return fingerprint_matrices
 
+    def dump_fingerprints(self):
+        if self.fp_pickle_path is not None:
+            print "Updating pickled fingerprints at " + self.fp_pickle_path
+            with open(self.fp_pickle_path, 'wb') as fp_pickle:
+                pickle.dump(self.fingerprint_matrices, fp_pickle)
+            print "Updated."
+
+    def clean_pickle(self, path, pathnames):
+        for key in [key for key in self.fingerprint_matrices.keys() if key not in pathnames]:
+            del(self.fingerprint_matrices[key])
+        self.dump_fingerprints()
 
 ##################### Database Matrix Builder #####################
 class FingerprintDatabase:
     '''
     Will, for now, build and store pickled dataframes to store previous results... possible future extensions could include using Django or sqlite
     '''
-    
-    # Store fingerprint matrices    
-    fingerprint_matrices = None
-    # Store simularity measures in an adjacency matrix
-    similarity_matrix = None
+        
     # fingerprint builder
     builder = None
     # fingerprint comparer
     comparer = None
+    # Path to test xml files
+    test_set_path = None
+    # Path to pickles
+    fp_pickle_path = None
+    sim_pickle_path = None
 
-    def __init__(self, test_set_path):
-        self.build(test_set_path)
+    def __init__(self, test_set_path, pickle_path=None):
+        self.test_set_path = test_set_path
+        self.fp_pickle_path = None if pickle_path is None else os.path.join(pickle_path, 'pickled_fingerprints.p') 
+        self.sim_pickle_path = None if pickle_path is None else os.path.join(pickle_path, 'pickled_sim_matrix.p')
+        self.build()
 
-    def build(self, test_set_path):
+    def build(self):
         print "------------ Building Database... ------------"
         print "Building Fingerprint Matrices"
-        self.builder = FingerprintBuilder(test_set_path)
-        self.fingerprint_matrices = self.builder.fingerprint_matrices
+        self.builder = FingerprintBuilder(self.test_set_path, self.fp_pickle_path)
+        print "-- Done. --"
         print "Building Similarity Matrix"
-        self.comparer = FingerprintComparer(self.fingerprint_matrices)
-        self.similarity_matrix = self.comparer.similarity_matrix
-        print "Done."
+        self.comparer = FingerprintComparer(self.builder.fingerprint_matrices, self.sim_pickle_path)
+        print "-- Done. --"
         print ""
 
     def fingerprints(self):
-        print self.fingerprint_matrices.keys()
+        return self.builder.fingerprint_matrices.keys()
 
     def fingerprint_matrices(self):
-        for name, fp in self.fingerprint_matrices.iteritems():
+        for name, fp in self.builder.fingerprint_matrices.iteritems():
             print "------------ Fingerprint: " + name + " ------------"
             print fp
             print ""
 
-    def rankings_for(self, name, number):
+    def fingerprint_matrix(self, name):
+        return self.builder.fingerprint_matrices[name]
+
+    def similarity_matrix(self):
+        return self.comparer.similarity_matrix
+
+    def rankings_for(self, name, number=-1):
         #self.similarity_matrix.sort(columns=name)
-        print self.similarity_matrix.sort(columns=name, ascending=False)[name]
+        return self.comparer.similarity_matrix.sort(columns=name, ascending=False)[name][:number]
 
+    def compare(self, name1, name2):
+        return self.comparer.compare(self.builder.fingerprint_matrices[name1], self.builder.fingerprint_matrices[name2], True)
 
-# Anything that should be chained together is here temporarily
-def run():
-    comparer = FingerprintComparer()
-    #return comparer.compare(fingerprint_matrices['Allard_1928_MoneyMusk_A.xml'], fingerprint_matrices['Allard_1928_MoneyMusk_B.xml'])
-    #return comparer.compare(fingerprint_matrices['Lajoie_YEAR_MoneyMusk_D.xml'], fingerprint_matrices['Allard_1928_MoneyMusk_B.xml'])
-    #return comparer.compare(fingerprint_matrices['Boivin_YEAR_MoneyMusk_A.xml'], fingerprint_matrices['Allard_1928_MoneyMusk_A.xml'])
-    #comparer.compare(fingerprint_matrices['Allard_1928_MoneyMusk_A.xml'], fingerprint_matrices['Soucy_1927_MoneyMusk_G.xml'], True)
-    #return comparer.compare(fingerprint_matrices['Trad_Jig_B_3.xml'], fingerprint_matrices['Trad_Jig_B_6.xml'])
-    # Recursion tests
-    #return comparer.compare(fingerprint_matrices['King_George_A_1.xml'], fingerprint_matrices['King_George_A_2.xml'])
-    #return comparer.compare(fingerprint_matrices['Little_Jacks_A_7.xml'], fingerprint_matrices['Little_Jacks_A_1.xml'])
-    comparer.compare(fingerprint_matrices['King_George_A_2.xml'], fingerprint_matrices['Squirrel_A_3.xml'], True)
+    def clean_pickle(self):
+        if raw_input("Warning: was asked to remove entries not in " + self.test_set_path + " from pickled similarity matrix. Continue [YES/NO]?") == "YES":
+            new_fps = [f for f in os.listdir(self.test_set_path) if os.path.isfile(os.path.join(self.test_set_path, f)) and not f.startswith('.')]
+            print "Removing " + str([key for key in self.fingerprints() if key not in new_fps])
+            self.builder.clean_pickle(self.test_set_path, new_fps)
+            self.comparer.clean_pickle(self.test_set_path, new_fps)
+
 
 # Settings:
 pandas.set_option('display.height', 1000)
@@ -948,8 +1010,9 @@ pandas.set_option('display.width', 1000)
 
 # Workflow for Risk project -- fingerprint horizontal interval indexer
 # Will be used as the init later on
-test_set_path = "../risk_test_set/"
-db = FingerprintDatabase(test_set_path)
+test_set_path = "../first_test/"
+pickle_path = "../../"
+db = FingerprintDatabase(test_set_path, pickle_path)
 
 # LM: Run interpreter on command line
 import readline 
