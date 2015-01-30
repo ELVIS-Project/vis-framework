@@ -4,7 +4,7 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
-* 2.1.0:
+* 2.1.0 (pending release):
     - Python 3 compatibility.
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
