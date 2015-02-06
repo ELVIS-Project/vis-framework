@@ -24,7 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-codeauthor::    Alexander Morgan
+.. codeauthor::    Alexander Morgan
 
 Indexers for metric concerns.
 """

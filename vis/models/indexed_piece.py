@@ -205,7 +205,7 @@ class IndexedPiece(object):
         """
         score = converter.Converter()
         score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
-        score = score.stream
+        score = score.stream.stripTies()
         if isinstance(score, stream.Opus):
             if known_opus is False and self._opus_id is None:
                 # unexpected Opus---can't continue
