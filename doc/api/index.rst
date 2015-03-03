@@ -28,17 +28,19 @@ The VIS Framework uses two data models (:class:`~vis.models.indexed_piece.Indexe
 Call their :meth:`~vis.models.indexed_piece.IndexedPiece.get_data` method with a list of analyzer classes to run, and a dictionary with their settings.
 After you develop an analysis workflow, add it to the :class:`~vis.workflow.WorkflowManager` for more consistent operation.
 
+Table of Contents
+-----------------
 
 Learn about and Install the VIS Framework
--------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
 
     about
     install_and_test
 
 Programming Tutorials for VIS
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. toctree::
     :maxdepth: 1
 
@@ -47,15 +49,15 @@ Programming Tutorials for VIS
 
 
 API Specification
------------------
+^^^^^^^^^^^^^^^^^
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
 
    modules
 
 
 Indices and Tables
-------------------
+^^^^^^^^^^^^^^^^^^
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
