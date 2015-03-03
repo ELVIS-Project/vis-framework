@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'VIS Framework'
-copyright = '2013 to 2014 Christopher Antila, CC-BY-SA 4.0'
+copyright = '2013 to 2015 Christopher Antila, CC-BY-SA 4.0'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
