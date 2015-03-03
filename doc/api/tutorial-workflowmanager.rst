@@ -2,11 +2,11 @@
 .. _use_the_workflowmanager:
 
 Tutorial: Use the WorkflowManager
-=================================
-The script developed in :ref:`make_a_new_workflow` is suitable for users comfortable with an interactive Python shell.
-Application developers making a graphical interface---whether on the Web or in a desktop application---can take advantage of a further layer of abstraction offered by our :class:`~vis.workflow.WorkflowManager`.
-Since developers often prefer to separate their user interface code from any of the so-called "business logic," the :class:`WorkflowManager` provides the means by which to connect the "dumb" user interface with the highly-abstracted vis framework.
-You can think of the :class:`WorkflowManager` as the true back-end component of your application, and you should expect to rewrite it with every application you develop.
+---------------------------------
+The script developed in :ref:`tutorial-melodic_ngrams` is suitable for users doing exploratory work in an interactive Python shell.
+When a query becomes regularized and you want it to be easily repeatable, or if you are an application developer making a graphical interface (whether on the Web or in a desktop application) you can take advantage of a further layer of abstraction offered by our :class:`~vis.workflow.WorkflowManager`.
+The :class:`WorkflowManager` is designed as the point of interaction for end-user applications, providing a consistent interface and reference implementations of the steps involved in all queries.
+While every new query will involve modifying a portion of the :meth:`run` method's code, you may be able to re-use the existing input and output methods without change.
 
 The :class:`WorkflowManager`'s documentation describes its functionality:
 
@@ -15,12 +15,15 @@ The :class:`WorkflowManager`'s documentation describes its functionality:
 
 Port a Query into the WorkflowManager
 -------------------------------------
-If I want to port the :ref:`make_a_new_workflow` query to the :class:`WorkflowManager`, I need to fit its functionality into the existing methods.
-The :meth:`load`, :meth:`output`, and :meth:`export` methods are all related to preparing :class:`IndexedPiece` objects for analysis and saving or outputting results.
-Since my query requires no special treatment in these areas, I will not modify those methods, and all of my changes will be in the :meth:`run` method.
+Porting an existing query to the :class:`WorkflowManager` involves fitting its code into the appropriate pre-existing methods.
+The :meth:`load` method prepares :class:`IndexedPiece` objects and metadata by loading files for analysis.
+The :meth:`output` method outputs query results to a variety of formats, including spreadsheets, charts, and scores.
+You will not usually need to modify :meth:`load`, and you may not need to modify :meth:`output` either.
 
-Since my new program only requires one query, I can make a very simple :meth:`run` method and remove the other hidden methods (:meth:`_intervs`, :meth:`_interval_ngrams`, :meth:`_variable_part_modules`, :meth:`_two_part_modules`, and :meth:`_all_part_modules`).
-Of course, you may wish to use those methods for inspiration when you build your own queries.
+The majority of development work will be spent in the :meth:`run` method or its related hidden methods (like the :meth:`_intervs`, :meth:`_inteval_ngrams`, and other methods that are included in the default :class:`WorkflowManager`).
+
+TODO: continue revising here.
+
 When I add my new query's logic to the :meth:`run` method, I get this:
 
 .. code-block:: python
@@ -54,7 +57,7 @@ I made the following changes:
 
 I could also use the :meth:`WorkflowManager.settings` method to get other settings by piece or shared across all pieces, like ``'simple intervals'``, which tells the :class:`HorizontalIntervalIndexer` whether to display all intervals as their single-octave equivalents.
 
-To run the same analysis as in :ref:`make_a_new_workflow`, use the :class:`WorkflowManager` like this:
+To run the same analysis as in :ref:`tutorial-melodic_ngrams`, use the :class:`WorkflowManager` like this:
 
 .. code-block:: python
     :linenos:
@@ -69,4 +72,4 @@ To run the same analysis as in :ref:`make_a_new_workflow`, use the :class:`Workf
     work.run()
     work.export('CSV', 'output_filename.csv')
 
-This script actually does more than the program in :ref:`make_a_new_workflow` because :meth:`export` "converts" the results to a :class:`~pandas.DataFrame`, sorts, and outputs the results.
+This script actually does more than the program in :ref:`tutorial-melodic_ngrams` because :meth:`export` "converts" the results to a :class:`~pandas.DataFrame`, sorts, and outputs the results.
