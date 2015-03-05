@@ -704,19 +704,24 @@ class DissonanceClassifier(indexer.Indexer):
     def run(self):
         iterables = [[diss_types], self._score[dur_ind].columns]
         d_types_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-        ret = pandas.DataFrame(index=self._score[diss_ind].index, columns=d_types_multi_index, dtype=str)
+        ret = pandas.DataFrame(index=self._score.index, columns=d_types_multi_index, dtype=str)
+        diss_cols = {}
+        for pair in self._score[diss_ind].columns:
+            diss_cols[pair] = self._score.columns.get_loc((diss_ind, pair))
+
+        # pdb.set_trace()
+
         for each_pair in self._score[diss_ind].columns:
-            # for i, each_event in enumerate(self._score[diss_ind][each_pair]):
-            for i, each_event in enumerate(self._score.loc[:, (diss_ind, each_pair)]):
+            for i, each_event in enumerate(self._score.iloc[:, diss_cols[each_pair]]):
                 voices = each_pair.split(',') # assign top and bottom voices as strings
-                top_voice = min(voices)
-                bott_voice = max(voices)
+                top_voice = int(min(voices))
+                bott_voice = int(max(voices))
                 # The interval must be dissonant and neither voice should already have a dissonance label assigned.
-                if (each_event not in _ignored and ret.loc[:, (diss_types, top_voice)].iloc[i]
-                    in _passes and ret.loc[:, (diss_types, bott_voice)].iloc[i] in _passes):
+                if (each_event not in _ignored and ret.iat[i, top_voice] in _passes
+                    and ret.iat[i, bott_voice] in _passes):
                     diss_analysis = self.classify(i, each_pair)
-                    ret.loc[:, (diss_types, diss_analysis[1])].iloc[i] = diss_analysis[2]
-                    ret.loc[:, (diss_types, diss_analysis[3])].iloc[i] = diss_analysis[4]
+                    ret.iat[i, int(diss_analysis[1])] = diss_analysis[2]
+                    ret.iat[i, int(diss_analysis[3])] = diss_analysis[4]
         ret.replace('n', _no_diss_label, inplace=True)
 
         # Remove lingering unexplainable labels from notes that are only dissonant against identifiable dissonances.
@@ -730,11 +735,11 @@ class DissonanceClassifier(indexer.Indexer):
                 v_to_check.remove(str(unknowns[1][x]))
                 v_temp = self._score.loc[:, (h_ind, v_to_check[0])].iloc[:ndx + 1].last_valid_index()
                 v_ndx = numpy.where(self._score.index == v_temp)[0][0]
-                if self._score.loc[:, (diss_ind, pair)].iloc[ndx] in _ignored:
+                if self._score.iat[ndx, diss_cols[pair]] in _ignored:
                     continue
                 go_on = False
                 for event in range(v_ndx, ndx + 1):
-                    if ret.loc[:, (diss_types, v_to_check[0])].iloc[event] not in _go_ons:
+                    if ret.iat[event, int(v_to_check[0])] not in _go_ons:
                         go_on = True
                         break
                 if go_on:
@@ -742,7 +747,7 @@ class DissonanceClassifier(indexer.Indexer):
                 passable = False
                 break
             if passable:
-                ret.loc[:, (diss_types, str(unknowns[1][x]))].iloc[ndx] = _only_diss_w_diss
+                ret.iat[ndx, unknowns[1][x]] = _only_diss_w_diss
 
         print ret['dissonance.DissonanceTypes'].stack().value_counts()
         return ret
@@ -769,6 +774,7 @@ class DissonanceIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
         super(DissonanceIndexer, self).__init__(score)
+
 
     def check_4s_5s(self, pair_name, iloc_indx, suspect_diss, simuls):
         """
@@ -802,7 +808,7 @@ class DissonanceIndexer(indexer.Indexer):
         else:
             lower_voice = pair_name.split(',')[1]
 
-        for voice_combo in self._score[int_ind]:
+        for voice_combo in simuls:
             if lower_voice == voice_combo.split(',')[0] and voice_combo != pair_name: # look at other pairs that have lower_voice as their upper voice. Could be optimized.
                 if simuls[voice_combo].iloc[iloc_indx:end_iloc].any() in cons_makers[suspect_diss]:
                     cons_made = True
@@ -828,16 +834,19 @@ class DissonanceIndexer(indexer.Indexer):
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
         :rtype: :class:`pandas.DataFrame`
         """
+
+
         results = self._score[int_ind].copy(deep=True)
-        simuls = self._score[int_ind].ffill()
+        simuls = results.ffill()
         t1 = time.clock()
-        for pair_title in results:
-            for j, event in enumerate(results[pair_title]):
+        for col, pair_title in enumerate(results):
+            # pair_col = results.columns.get_loc(pair_title)
+            for j, event in enumerate(results.iloc[:, col]):
                 if event in _potential_consonances: # NB: all other events are definite consonances or dissonances or don't qualify as interval onsets.
-                    results[pair_title].iloc[j] = self.check_4s_5s(pair_title, j, event, simuls)
+                    results.iat[j, col] = self.check_4s_5s(pair_title, j, event, simuls)
         t2 = time.clock()
         print 'Time to run check_4s_5s: ' + str(t2-t1)
-        iterables = [[diss_ind], self._score[int_ind].columns]
+        iterables = [[diss_ind], results.columns]
         results.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
 
         return results
