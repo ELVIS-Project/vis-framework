@@ -49,13 +49,13 @@ _echappee = 'E'
 _no_diss_label = '-'
 _unexplainable = 'Z'
 _only_diss_w_diss = 'O'
-_consonances = ['P1', 'm3', 'M3', 'CP4', 'CA4', 'Cd5', 'P5', 'm6', 'M6', 'P8', '-m3', '-M3', 'C-P4',
-                'C-A4', 'C-d5', '-P5', '-m6', '-M6', '-P8']
-_potential_consonances = [u'P4', u'-P4', u'A4', u'-A4', u'd5', u'-d5']
-_nan_rest = [nan, 'Rest']
-_ignored = (_consonances + _nan_rest)
-_go_ons = [_no_diss_label, _unexplainable]
-_passes = ('n', _no_diss_label, _unexplainable)
+_consonances = set(['P1', 'm3', 'M3', 'CP4', 'CA4', 'Cd5', 'P5', 'm6', 'M6', 'P8', '-m3', '-M3', 'C-P4',
+                'C-A4', 'C-d5', '-P5', '-m6', '-M6', '-P8'])
+_potential_consonances = set([u'P4', u'-P4', u'A4', u'-A4', u'd5', u'-d5'])
+_nan_rest = set([nan, 'Rest'])
+_ignored = _consonances.union(_nan_rest)
+_go_ons = set([_no_diss_label, _unexplainable])
+_passes = set(('n', _no_diss_label, _unexplainable))
 _char_del = dict.fromkeys(map(ord, 'AaDdMmP'), None)
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
@@ -792,8 +792,8 @@ class DissonanceIndexer(indexer.Indexer):
             corresponds to the fourth or fifth to be examined.
         :type suspect_diss: String.
         """
-        cons_makers = {'P4':[u'm3', u'M3', u'P5'], 'd5':[u'M6'], 'A4':[u'm3'], '-P4':[u'm3', u'M3', u'P5'], '-d5':[u'M6'], '-A4':[u'm3']}
-        Xed_makers = {'P4':[u'-m3', u'-M3', u'-P5'], 'd5':[u'-M6'], 'A4':[u'-m3'],'-P4':[u'-m3', u'-M3', u'-P5'], '-d5':[u'-M6'], '-A4':[u'-m3']}
+        cons_makers = {'P4':set([u'm3', u'M3', u'P5']), 'd5':[u'M6'], 'A4':[u'm3'], '-P4':set([u'm3', u'M3', u'P5']), '-d5':[u'M6'], '-A4':[u'm3']}
+        Xed_makers = {'P4':set([u'-m3', u'-M3', u'-P5']), 'd5':[u'-M6'], 'A4':[u'-m3'],'-P4':set([u'-m3', u'-M3', u'-P5']), '-d5':[u'-M6'], '-A4':[u'-m3']}
         cons_made = False
         # Find the offset of the next event in the voice pair to know when the interval ends.
         # pdb.set_trace()
