@@ -557,12 +557,24 @@ class FingerprintComparer:
     def similarity_measure(self, comparison_results):
         # Note: dependent on index labelling in comparison function... see __compare_recursive()
 
+        # Length of the comparison results matrix -- not the same as the fingerprint lengths
         length = len(comparison_results.columns)
 
         # No results
 
         if length == 0:
             return 0.0
+        
+        # All of the following variables include the leading strong beat (SB1=>SB1)
+        # Number of Truncations
+        truncations = comparison_results.loc['Number of Truncations'].iloc[0]
+        # Length of shorter FP in strong beats
+        shorter_length = comparison_results.loc['Shorter FP Length'].iloc[0]
+        # Length of longer FP in strong beats
+        longer_length = comparison_results.loc['Longer FP Length'].iloc[0]
+        # Number of matching strong beats that match (after trunctations) that are in the (not truncated) first half of shorter fingerprint
+        matching_strongs_first_half = len(filter(lambda x: True if not np.isnan(x[0]) and (x[1] + truncations) <= shorter_length/2 else False,
+            comparison_results.loc['Strong Beat Comparison'].tolist()))
 
         # Strong Beat Percentage
         matching_strongs = 0.0
@@ -609,7 +621,7 @@ class FingerprintComparer:
 
         return strong_beat_parameter + weak_beat_parameter + (strong_contour_rev_parameter + weak_contour_rev_parameter)/2
 
-    def __compare(self, fp1, fp2):
+    def _compare(self, fp1, fp2):
         # LM: Extract Column_1 [1:end]: Intervals (0.0, 1.0), (0.0, 2.0), ..., (0.0, end of piece)
         # Recursive call: will be i to j of i < n-1, j < n where n = max offsets
         fp1c1 = fp1.T.iloc[0].tolist()[1:]
@@ -698,7 +710,11 @@ class FingerprintComparer:
                 print "Fingerprint 2: "
                 print fp2_truncated
             
-            comparison_result = self.__compare(fp1_truncated, fp2_truncated)
+            comparison_result = self._compare(fp1_truncated, fp2_truncated)
+            comparison_result.loc['Shorter FP Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) < len(fp2.iloc[0])) else len(fp2.iloc[0])
+            comparison_result.loc['Longer FP Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) > len(fp2.iloc[0])) else len(fp2.iloc[0])
+            comparison_result.loc['Number of Truncations'] = i
+            
             similarity_measure = self.similarity_measure(comparison_result)
             
             if verbose:
@@ -710,7 +726,7 @@ class FingerprintComparer:
             if similarity_measure > best_similarity_measure:
                 best_similarity_measure = similarity_measure
                 best_comparison_result = comparison_result
-                best_comparison_result.loc['Number of Truncations'] = i
+                #best_comparison_result.loc['Number of Truncations'] = i
 
         if verbose:
             print "======================================================= Best Result: ======================================================="
@@ -1010,8 +1026,8 @@ pandas.set_option('display.width', 1000)
 
 # Workflow for Risk project -- fingerprint horizontal interval indexer
 # Will be used as the init later on
-test_set_path = "../first_test/"
-pickle_path = "../../"
+test_set_path = "../rep_index/"
+pickle_path = "../"
 db = FingerprintDatabase(test_set_path, pickle_path)
 
 # LM: Run interpreter on command line
