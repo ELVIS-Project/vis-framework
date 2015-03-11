@@ -34,6 +34,7 @@ Indexers for metric concerns.
 
 from music21 import note
 from vis.analyzers import indexer
+import pandas
 
 
 def beatstrength_ind_func(obj):
@@ -161,3 +162,41 @@ class DurationIndexer(indexer.Indexer):
         combinations = [[x] for x in xrange(len(self._score))]
         results = self._do_multiprocessing(combinations)
         return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+
+class MeasureIndexer(indexer.Indexer):
+    """
+    Make an index of the measures in a piece. Note that for simplicity, just the measures of the
+    upper-most part are indexed so it is assumed that all parts have the same number of measures.
+    Time signatures changes do not cause a problem provided that all parts change time signatures at
+    the same time and in the same way.
+    """
+    
+    required_score_type = 'stream.Part'
+    
+    def __init__(self, score, settings=None):
+        """
+        :param score: :class:`Part` object to use for producing this index. It should be the highest
+            part in the score.
+        :type score: :class:`music21.stream.Part`
+        :param settings: This indexer requires no settings so this parameter is ignored.
+        :type settings: None
+        
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        """
+        
+        super(MeasureIndexer, self).__init__(score, None)
+    
+    def run(self):
+        measure_stream = self._score.measureTemplate()
+        measure_numbers = []
+        measure_offsets = []
+        for m in measure_stream:
+            measure_numbers.append(m.measureNumber)
+            measure_offsets.append(m.offset)
+        meas_ind = pandas.DataFrame(measure_numbers, index=measure_offsets)    
+        iterables = [['metre.MeasureIndexer'], ['Measures']]
+        meas_ind.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', ''])
+
+        return meas_ind
+
