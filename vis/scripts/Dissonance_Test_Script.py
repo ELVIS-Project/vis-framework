@@ -3,7 +3,7 @@ import os
 import pandas
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import noterest, interval, ngram, dissonancelocator, metre
+from vis.analyzers.indexers import noterest, interval, ngram, dissonance, metre, fermata
 from vis.analyzers.experimenters import frequency
 from vis import workflow
 from numpy import nan, isnan
@@ -12,8 +12,7 @@ import six
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import time
 import pdb
-from music21 import converter
-
+from music21 import converter, stream, expressions, note
 import array
 
 # get the path to the 'vis' directory
@@ -25,11 +24,116 @@ def main():
     piece_path = "/Users/amor/Documents/Code/VIS/vis/tests/corpus/Kyrie.krn"
     # piece_path = '/Users/amor/Downloads/a3_Josquin_DeTousBiens_StrettoCanonTB.xml'
     # piece_path = "/Users/amor/Documents/Code/VIS/vis/tests/corpus/bwv77.mxl"
+    # piece_path = '/Users/amor/Documents/Code/Reimenschnieder/1-026900B_.xml'
     ind_piece = IndexedPiece(piece_path)
 
-    # # pdb.set_trace()
     setts = {'quality': True, 'simple or compound': 'simple'}
     horiz_setts = {'quality': False, 'simple or compound': 'compound'}
+
+
+
+    basic1 = time.clock()
+    parts_nr = []
+    parts_dur = []
+    parts_bs = []
+    parts_ms = []
+    test_piece = converter.parse(piece_path)
+    part_numbers = range(len(test_piece.parts))
+    for x in part_numbers:
+        temp = test_piece.parts[x]
+        nr = []
+        dur = []
+        bs = []
+        part_index = []
+        ms = []
+        measure_index = []
+        for event in temp.recurse():
+            if 'GeneralNote' in event.classes:
+                if hasattr(event, 'tie') and event.tie is not None and event.tie.type in ('stop', 'continue'):
+                    dur[-1] += event.quarterLength
+                    continue
+                if event.name != 'rest':
+                    nr.append(event.nameWithOctave)
+                else:
+                    nr.append('Rest')
+                dur.append(event.quarterLength)
+                bs.append(event.beatStrength)
+                for y in event.contextSites():
+                    if y[0] is temp:
+                        part_index.append(y[1])
+            elif 'Measure' in event.classes:
+                ms.append(event.measureNumber)
+                measure_index.append(event.offset)   
+
+        parts_nr.append(pandas.Series(nr, index=part_index))
+        parts_dur.append(pandas.Series(dur, index=part_index))
+        parts_bs.append(pandas.Series(bs, index=part_index))
+        parts_ms.append(pandas.Series(ms, index=measure_index))
+
+    basic_nr = pandas.concat([s for s in parts_nr], axis=1)
+    basic_dur = pandas.concat([s for s in parts_dur], axis=1)
+    basic_bs = pandas.concat([s for s in parts_bs], axis=1)
+    basic_ms = pandas.concat([s for s in parts_ms], axis=1)
+    
+    part_strings = []
+    for num in part_numbers:
+        part_strings.append(unicode(num))
+    
+    iterables = [['basic.NoteRestIndexer'], part_strings]
+    basic_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    basic_nr.columns = basic_nr_multi_index
+
+    iterables = [['basic.DurationIndexer'], part_strings]
+    basic_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    basic_dur.columns = basic_dur_multi_index
+
+    iterables = [['basic.NoteBeatStrengthIndexer'], part_strings]
+    basic_bs_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    basic_bs.columns = basic_bs_multi_index
+
+    iterables = [['basic.MeasureIndexer'], part_strings]
+    basic_ms_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    basic_ms.columns = basic_ms_multi_index
+
+    basic2 = time.clock()
+    print 'Basic-Indexer Runtime: ' + str(basic2 - basic1)
+
+
+
+    horiz = interval.HorizontalIntervalIndexer(basic_nr, horiz_setts).run()
+    vert_ints = interval.IntervalIndexer(basic_nr, setts).run()
+    dissonances = dissonance.DissonanceIndexer(pandas.concat([horiz, basic_dur, basic_bs, vert_ints], axis=1)).run()
+
+
+
+    t1 = time.time()
+    print 'Time taken to run all indexers: '
+    print t1 - t0
+
+    # diss_types = dissonancelocator.DissonanceClassifier(combined_df).run()
+    # print diss_types
+
+
+    t2 = time.time()
+
+    workm = WorkflowManager([piece_path])
+    workm.settings(None, 'voice combinations', '[[0, 1]]')
+    workm.settings(None, 'count frequency', False)
+
+    iterables = [[''], basic_nr['basic.NoteRestIndexer'].columns]
+    d_types_multi_index_for_LilyPond = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    dissonances.columns = d_types_multi_index_for_LilyPond
+
+    workm._result = [dissonances]
+    workm.output('LilyPond', '/Users/amor/Documents/Code/VIS/test_output/combined_dissonances')
+
+    t3 = time.time()
+    print 'Time to produce score output: '
+    print t3 - t2
+
+if __name__ == "__main__":
+    main()
+
 
     # nr1 = time.clock()
     # note_rest = ind_piece.get_data([noterest.NoteRestIndexer], setts)
@@ -62,7 +166,6 @@ def main():
     # new_nr.columns = new_nr_multi_index
     # print 'New NoteRest Indexer Runtime: ' + str(newnr2 - newnr1)
 
-    # # pdb.set_trace()
 
 
     # # New Duration Indexer
@@ -89,96 +192,109 @@ def main():
     # new_dur.columns = new_dur_multi_index
     # print 'New Duration Indexer Runtime: ' + str(newdur2 - newdur1)
 
+    # # double1 = time.clock()
+    # # parts_nr = []
+    # # parts_dur = []
+    # # test_piece = converter.parse(piece_path)
+    # # part_numbers = range(len(test_piece.parts))
+    # # for x in part_numbers:
+    # #     temp = test_piece.parts[x].flat.stripTies().notesAndRests
+    # #     nr = []
+    # #     dur = []
+    # #     part_index = []
+    # #     for event in temp:
+    # #         part_index.append(event.offset)
+    # #         event_dur = event.quarterLength
+    # #         dur.append(event_dur)
+    # #         if event.name != r:
+    # #             nr.append(event.nameWithOctave)
+    # #         else:
+    # #             nr.append(R)
 
-    double1 = time.clock()
-    test_piece = converter.parse(piece_path)
-    parts_nr = []
-    parts_dur = []
-    part_numbers = range(len(test_piece.parts))
+    # #     parts_nr.append(pandas.Series(nr, index=part_index))
+    # #     parts_dur.append(pandas.Series(dur, index=part_index))
+    # # double_nr = pandas.concat([s for s in parts_nr], axis=1)
+    # # double_dur = pandas.concat([s for s in parts_dur], axis=1)
+    # # part_strings = []
+    # # for num in part_numbers:
+    # #     part_strings.append(unicode(num))
+    # # iterables = [['noterest.NoteRestIndexer'], part_strings]
+    # # double_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # # double_nr.columns = double_nr_multi_index
 
-    for x in part_numbers:
-        temp = list(test_piece.parts[x].flat.stripTies().notesAndRests)
-        nr = []
-        dur = []
-        part_index = []
-        for event in temp:
-            part_index.append(event.offset)
-            event_dur = event.quarterLength
-            dur.append(event_dur)
-            if event.name != 'rest':
-                nr.append(event.nameWithOctave)
-            else:
-                nr.append('Rest')
+    # double1 = time.clock()
+    # parts_nr = []
+    # parts_dur = []
+    # test_piece = converter.parse(piece_path)
+    # part_numbers = range(len(test_piece.parts))
+    # for x in part_numbers:
+    #     temp = test_piece.parts[x]
+    #     nr = []
+    #     dur = []
+    #     part_index = []
+    #     for event in temp.recurse():
+    #         if gn not in event.classes:
+    #             continue
+    #         if hasattr(event, 'tie') and event.tie is not None and event.tie.type in ('stop', 'continue'):
+    #             dur[-1] += event.quarterLength
+    #             continue
+    #         for y in event.contextSites():
+    #             if y[0] is temp:
+    #                 part_index.append(y[1])
+    #         dur.append(event.quarterLength)
+    #         if event.name != r:
+    #             nr.append(event.nameWithOctave)
+    #         else:
+    #             nr.append(R)
+    #     parts_nr.append(pandas.Series(nr, index=part_index))
+    #     parts_dur.append(pandas.Series(dur, index=part_index))
 
-        parts_nr.append(pandas.Series(nr, index=part_index))
-        parts_dur.append(pandas.Series(dur, index=part_index))
-    double_nr = pandas.concat([s for s in parts_nr], axis=1)
-    double_dur = pandas.concat([s for s in parts_dur], axis=1)
-    part_strings = []
-    for num in part_numbers:
-        part_strings.append(unicode(num))
-    iterables = [['noterest.NoteRestIndexer'], part_strings]
-    double_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-    double_nr.columns = double_nr_multi_index
+    # double2 = time.clock()
+    # print 'Double-Indexer Runtime: ' + str(double2 - double1)
 
-    iterables = [['metre.DurationIndexer'], part_strings]
-    double_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-    double_dur.columns = double_dur_multi_index
+    # double_nr = pandas.concat([s for s in parts_nr], axis=1)
+    # double_dur = pandas.concat([s for s in parts_dur], axis=1)
+    # part_strings = []
+    # for num in part_numbers:
+    #     part_strings.append(unicode(num))
+    # iterables = [['noterest.NoteRestIndexer'], part_strings]
+    # double_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # double_nr.columns = double_nr_multi_index
 
-
-    double2 = time.clock()
-    print 'Double-Indexer Runtime: ' + str(double2 - double1)
-
-
-    # New BeatStrength Indexer
-    newbs1 = time.clock()
-    test_piece = converter.parse(piece_path)
-    part_bs = []
-    part_numbers = range(len(test_piece.parts))
-    for x in part_numbers:
-        temp = list(test_piece.parts[x].flat.notesAndRests)
-        bs = []
-        part_bs_index = []
-        for indx, event in enumerate(temp):
-            bs.append(event.beatStrength)
-            part_bs_index.append(event.offset)
-        part_bs.append(pandas.Series(bs, index=part_bs_index))
-    new_bs = pandas.concat([s for s in part_bs], axis=1)
-    part_strings = []
-    for num in part_numbers:
-        part_strings.append(unicode(num))
-    iterables = [['metre.NoteBeatStrengthIndexer'], part_strings]
-    new_bs.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-    newbs2 = time.clock()
-    print 'New BeatStrength Indexer Runtime: ' + str(newbs2 - newbs1)
+    # iterables = [['metre.DurationIndexer'], part_strings]
+    # double_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # double_dur.columns = double_dur_multi_index
 
 
 
+    # # New BeatStrength Indexer
+    # newbs1 = time.clock()
+    # test_piece = converter.parse(piece_path) # Why does this run faster when this line is reexecuted?
+    # part_bs = []
+    # part_numbers = range(len(test_piece.parts))
+    # for x in part_numbers:
+    #     bs = []
+    #     part_bs_index = []
+    #     part = test_piece.parts[x]
+    #     for event in part.recurse():
+    #         if gn not in event.classes:
+    #             continue
+    #         if hasattr(event, 'tie') and event.tie is not None and event.tie.type in ('stop', 'continue'):
+    #             continue
+    #         bs.append(event.beatStrength)
+    #         for y in event.contextSites():
+    #             if y[0] is part:
+    #                 part_bs_index.append(y[1])
+    #     part_bs.append(pandas.Series(bs, index=part_bs_index))
+    # new_bs = pandas.concat([s for s in part_bs], axis=1)
+    # part_strings = []
+    # for num in part_numbers:
+    #     part_strings.append(unicode(num))
+    # iterables = [['metre.NoteBeatStrengthIndexer'], part_strings]
+    # new_bs.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # newbs2 = time.clock()
+    # print 'New BeatStrength Indexer Runtime: ' + str(newbs2 - newbs1)
 
-    horiz = interval.HorizontalIntervalIndexer(double_nr, horiz_setts).run()
-
-    vert_ints = interval.IntervalIndexer(double_nr, setts).run()
-    dissonances = dissonancelocator.DissonanceIndexer(pandas.concat([horiz, double_dur, new_bs, vert_ints], axis=1)).run()
-    # print dissonances
-
-
-
-    # dissonances = ind_piece.get_data([noterest.NoteRestIndexer,
-    #                                 interval.IntervalIndexer,
-    #                                 dissonancelocator.DissonanceIndexer],
-    #                                 setts)
-    # print dissonances
-
-    
-    # dur1 = time.clock()
-    # durations = ind_piece.get_data([metre.DurationIndexer], setts)
-    # dur2 = time.clock()
-    # print 'Time to run DurationIndexer: ' + str(dur2-dur1)
-        
-    # bs1 = time.clock()
-    # beat_strengths = ind_piece.get_data([metre.NoteBeatStrengthIndexer], setts)
-    # bs2 = time.clock()
-    # print 'Time to run BeatStrengthIndexer: ' + str(bs2-bs1)
 
 
     # # This group_strengths code works but is not needed for dissonance detection.
@@ -198,17 +314,6 @@ def main():
     # group_strengths.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # # print group_strengths
 
-    # combined_df = pandas.concat([dissonances, horiz, double_dur, new_bs], axis=1)
-    # print combined_df
-
-    t1 = time.time()
-    print 'Time taken to run all indexers: '
-    print t1 - t0
-
-    # diss_types = dissonancelocator.DissonanceClassifier(combined_df).run()
-    # print diss_types
-
-
 
 
     # group_durations = pandas.DataFrame()    # Debug, the logic shouldn't be the same as for group_strengths
@@ -226,22 +331,53 @@ def main():
     #     group_durations[y] = group_data
     # print group_durations
 
-    t2 = time.time()
 
-    workm = WorkflowManager([piece_path])
-    workm.settings(None, 'voice combinations', '[[0, 1]]')
-    workm.settings(None, 'count frequency', False)
 
-    iterables = [[''], double_nr['noterest.NoteRestIndexer'].columns]
-    d_types_multi_index_for_LilyPond = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-    dissonances.columns = d_types_multi_index_for_LilyPond
+    # mi4 = time.clock()
+    # vis_m_ind = metre.MeasureIndexer(test_piece.parts[0]).run()
+    # mi5 = time.clock()
+    # print "Time taken to run old measure indexer: " + str(mi5-mi4)
+    # pdb.set_trace()
 
-    workm._result = [dissonances]
-    workm.output('LilyPond', '/Users/amor/Documents/Code/VIS/test_output/combined_dissonances')
 
-    t3 = time.time()
-    print 'Time to produce score output: '
-    print t3 - t2
 
-if __name__ == "__main__":
-    main()
+
+    # fa1 = time.clock()
+    # fermatas = ind_piece.get_data([fermata.FermataIndexer])
+    # fa2 = time.clock()
+    # print "Fermata runtime: " + str(fa2-fa1)
+
+
+    # fa3 = time.clock() # This version of the fermata indexer runs about 5 times as fast.
+    # test_piece = converter.parse(piece_path)
+    # part_numbers = range(len(test_piece.parts))
+    # parts_fm = []
+    # for x in part_numbers:
+    #     fm = []
+    #     fermatas_index = []
+    #     temp = test_piece.parts[x]
+    #     for event in temp.recurse():
+    #         if 'GeneralNote' in event.classes:
+    #             found_fm = False
+    #             for expression in event.expressions:
+    #                 if isinstance(expression, expressions.Fermata):
+    #                     fm.append('Fermata')
+    #                     found_fm = True
+    #                     break
+    #             if not found_fm:
+    #                 fm.append(nan)
+    #             for y in event.contextSites():
+    #                 if y[0] is temp:
+    #                     fermatas_index.append(y[1])
+    #     parts_fm.append(pandas.Series(fm, index=fermatas_index))
+    # basic_fm = pandas.concat([s for s in parts_fm], axis=1)
+    # part_strings = []
+    # for num in part_numbers:
+    #     part_strings.append(unicode(num))
+    # iterables = [['fermata.FermataIndexer'], part_strings]
+    # basic_fm_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # basic_fm.columns = basic_fm_multi_index
+
+    # fa4 = time.clock()
+    # print "New Fermata indexer runtime: " + str(fa4 - fa3)
+
