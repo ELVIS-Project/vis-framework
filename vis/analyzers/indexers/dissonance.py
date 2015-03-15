@@ -60,20 +60,20 @@ _char_del = dict.fromkeys(map(ord, 'AaDdMmP'), None)
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
 h_ind = u'interval.HorizontalIntervalIndexer'
-bs_ind = u'metre.NoteBeatStrengthIndexer'
-dur_ind = u'metre.DurationIndexer'
+bs_ind = u'basic.NoteBeatStrengthIndexer'
+dur_ind = u'basic.DurationIndexer'
 diss_types = u'dissonance.DissonanceTypes'
 
 
 class DissonanceIndexer(indexer.Indexer):
     """
-    Indexer that locates vertical dissonances between pairs of voices in a piece. It then categorizes
-    intervals as consonant or dissonant and in the case of fourths (perfect or augmented) and
-    diminished fifths it examines the other parts sounding with that fourth or fifth (if there are
-    any) to see if the interval can be considered consonant. This analysis step can be saved and
-    output but currently isn't. Finally, this dissonance analysis allows for the assignment of a
-    dissonance type name or a consonance label for each voice at each offset. This last step is the
-    DataFrame that gets returned.
+    Indexer that locates vertical dissonances between pairs of voices in a piece. It then
+    categorizes intervals as consonant or dissonant and in the case of fourths (perfect or
+    augmented) and diminished fifths it examines the other parts sounding with that fourth or fifth
+    (if there are any) to see if the interval can be considered consonant. This analysis step can be
+    saved and output but currently isn't. Finally, this dissonance analysis allows for the
+    assignment of a dissonance type name or a consonance label for each voice at each offset. This
+    last step is the DataFrame that gets returned.
     """
     required_score_type = 'pandas.DataFrame'
 
@@ -101,68 +101,57 @@ class DissonanceIndexer(indexer.Indexer):
 
         return horiz_int
 
-    def _is_d3q(self, indx, pair, event, prev_event):
-        """
-        A legal "dissonant 3rd quarter" is a dissonant 1 on a weak half, approached by step
-        from above and preceded by a 2 or longer, and continuing by step in the same direction.
-        The suspect dissonance occurs at the indx passed.
-
-        :returns: A string of the part number and a dissonance label or else returns False if this
-                    dissonance type was not detected.
-        :rtype: 5-tuple with (True, number of the upper voice, label for upper voice, number of the 
-                    lower voice, label for the lower voice), or a singleton tuple (False,) if the
-                    dissonance in question is not a d3q.
-        """
-        upper = pair.split(',')[0] # Upper voice variables
-        h_upper_col = self._score.columns.get_loc((h_ind, upper))
-        d_upper_col = self._score.columns.get_loc((dur_ind, upper))
-        bs_upper_col = self._score.columns.get_loc((bs_ind, upper))
-        a_temp = self._score.iloc[:indx, h_upper_col].last_valid_index()
-        a_ind = numpy.where(self._score.index == a_temp)[0][0]
-        a = self._set_horiz_invl(a_ind, h_upper_col)
-        b = self._set_horiz_invl(indx, h_upper_col)
-        dur_a = self._score.iat[a_ind, d_upper_col]
-        dur_b = self._score.iat[indx, d_upper_col]
-        bs_b = self._score.iat[indx, bs_upper_col]
-
-        lower = pair.split(',')[1] # Lower voice variables
-        h_lower_col = self._score.columns.get_loc((h_ind, lower))
-        d_lower_col = self._score.columns.get_loc((dur_ind, lower))
-        bs_lower_col = self._score.columns.get_loc((bs_ind, lower))
-        x_temp = self._score.iloc[:indx, h_lower_col].last_valid_index()
-        x_ind = numpy.where(self._score.index == x_temp)[0][0]
-        x = self._set_horiz_invl(x_ind, h_lower_col)
-        y = self._set_horiz_invl(indx, h_lower_col)
-        dur_x = self._score.iat[x_ind, d_lower_col]
-        dur_y = self._score.iat[indx, d_lower_col]
-        bs_y = self._score.iat[indx, bs_lower_col]
-
-        # TODO: make the beatstrength requirements dependent on the detected meter. Right now it is hard-coded for 4/2 meter.
-        if bs_b == .25 and dur_a >= 2 and dur_b == 1 and a == -2 and b == -2: # Upper voice is d3q
-            return (True, upper, _d3q_label, lower, _no_diss_label)            
-        elif bs_y == .25 and dur_x >= 2 and dur_y == 1 and x == -2 and y == -2: # Lower voice is d3q
-            return (True, upper, _no_diss_label, lower, _d3q_label)
-        else: # The dissonance is not a d3q.
-            return (False,)
-
     def _is_passing_or_neigh(self, indx, pair, event, prev_event):
         """
-        Passing and neighbour tone detection have been grouped to improve analysis speed because
-        their requirements are almost identical.
-
-        A passing tone moves by step obliquely (i.e. the other voice stands still while this one moves)
-        creating a dissonant interval, continues stepwise in the same direction without resting, AND
-        satisfies one of the following:
-         -it is on a weak 2, preceded by a 2 or longer, and its duration is one 2,  OR
-         -it is on a weak quarter and its duration is one quarter or less,  OR
-         -it is on a weak eighth and its duration is one eighth or less.
-
-        A neighbour tone moves obliquely by step creating a dissonant interval, without resting, by
-        changing direction and returning by step to the same note that preceded it AND meets one of
-        the following requirements:
-         -it is on a weak half, preceded by a half note or longer, and its duration is one half note, OR
+        A passing tone moves by step obliquely (i.e. the other voice stands still while this one
+        moves) creating a dissonant interval, continues stepwise in the same direction without
+        resting, AND satisfies one of the following:
+         -it is on a weak half, preceded by a half or longer, and its duration is one half note, OR
          -it is on a weak quarter and its duration is one quarter or less, OR
          -it is on a weak eighth and its duration is one eighth or less.
+        A neighbour tone moves obliquely by step creating a dissonant interval, without resting, by
+        changing direction and returning by step to the same note that preceded it AND meets one of
+        the above metric requirements.
+
+        Passing and neighbour tone detection have been grouped to improve analysis speed because
+        their requirements are almost identical. This function takes four parameters to situate the
+        analysis in a specific pair of voices at a given moment in the piece and returns the results
+        of that analysis. The labels assigned can be modified by changing the file-wide labels at
+        the top of this file. The variables assigned at the beginning of this and all the other
+        dissonance type definition functions are as follows (note that not all appear in each
+        function):
+        a2 == horizontal motion of the upper voice into the note or rest at a_ind
+        a == horizontal motion of upper voice into dissonance
+        b == horizontal motion of upper voice out of dissonance
+        c == horizontal motion of upper voice out of the note or rest after the dissonance
+        x2, x, y, z, z2 correspond to a2, a, b, c, d respectively but for the lower voice.
+        h_upper_col, d_upper_col, and bs_upper_col correspond to the column indecies in self._score
+            where the horizontal, duration, and beatStrength information of the upper voice can be
+            found. These columns are also calculated for the lower voice, replacing 'upper' with
+            'lower'.
+        'letter'_temp == label-based index letter's row position
+        'letter'_ind == int-based index of letter's row position
+        dur_'letter' == duration of note or rest at the passed position
+        bs_'letter' == beatStrength of note or rest at the passed position
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: If it finds a suspension a five-tuple with True as the first argument, the
+            upper-voice number stored as a string as the second argument, the label to assign the
+            upper voice as the third argument, the lower-voice number as a string as the fourth
+            argument, and the label to assign the lower voice as the fifth argument. If the analysis
+            does not find a suspension the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
         """
         if prev_event == None:
             return (False,)
@@ -244,8 +233,33 @@ class DissonanceIndexer(indexer.Indexer):
         another voice enters or moves by step or by leap to create a dissonant interval AND:
          -its next move (the "resolution") is downwards by step without resting (it may restrike the
           same note before resolving, though), AND
-         -the resolution is on a weaker beat than the dissonance, or, if the dissonant note is a whole
-          note in duration, the resolution is on a weaker-or-equally-strong beat.
+         -the resolution is on a weaker beat than the dissonance, or, if the dissonant note is a
+          whole note in duration, the resolution is on a weaker-or-equally-strong beat.
+
+        This function takes four parameters to situate the analysis in a specific pair of voices at
+        a given moment in the piece and returns the results of that analysis. For the meaning of the
+        numerous variables assigned at the beginning of this function, please refer to the doc
+        string of "_is_passing_or_neigh". The labels assigned can be modified by changing the
+        file-wide labels at the top of this file.
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: If it finds a suspension a five-tuple with True as the first argument, the
+            upper-voice number stored as a string as the second argument, the label to assign the
+            upper voice as the third argument, the lower-voice number as a string as the fourth
+            argument, and the label to assign the lower voice as the fifth argument. If the analysis
+            does not find a suspension the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
         """
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -294,13 +308,39 @@ class DissonanceIndexer(indexer.Indexer):
 
     def _is_fake_suspension(self, indx, pair, event, prev_event): 
         """
-        A fake suspension is moved to by step obliquely and becomes a dissonant suspension by being tied
-        to a dissonant note (or followed by the same note) whose next move is down by step, with
-        a duration of either:
+        A fake suspension (more accurately a "fake preparation") is a dissonant preparation to a
+        suspension. It is moved to by step obliquely and becomes a dissonant suspension by being
+        tied to a dissonant note (or followed by the same note) whose next move is down by step,
+        with a duration of either:
          -a weak half, with the ensuing suspended note (or part of note) falling on the following
           downbeat, OR
-         -(diminished fake suspension) a weak quarter, with the ensuing suspended note (or part of note)
-          falling on the following strong quarter.
+         -(diminished fake suspension) a weak quarter, with the ensuing suspended note (or part of
+          note) falling on the following strong quarter.
+
+        This function takes four parameters to situate the analysis in a specific pair of voices at
+        a given moment in the piece and returns the results of that analysis. For the meaning of the
+        numerous variables assigned at the beginning of this function, please refer to the doc
+        string of "_is_passing_or_neigh". The labels assigned can be modified by changing the
+        file-wide labels at the top of this file.
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: If it finds a fake suspension a five-tuple with True as the first argument, the
+            upper-voice number stored as a string as the second argument, the label to assign the
+            upper voice as the third argument, the lower-voice number as a string as the fourth
+            argument, and the label to assign the lower voice as the fifth argument. If the analysis
+            does not find a suspension the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
         """
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -348,11 +388,99 @@ class DissonanceIndexer(indexer.Indexer):
                 return (True, upper, _no_diss_label, lower, _dim_fake_susp_label) # Diminished fake susp in lower voice
         return (False,)
 
+    def _is_d3q(self, indx, pair, event, prev_event):
+        """
+        A legal "dissonant 3rd quarter" is a dissonant 1 on a weak half, approached by step
+        from above and preceded by a 2 or longer, and continuing by step in the same direction.
+        The suspect dissonance occurs at the indx passed.
+
+        This function takes four parameters to situate the analysis in a specific pair of voices at
+        a given moment in the piece and returns the results of that analysis. For the meaning of the
+        numerous variables assigned at the beginning of this function, please refer to the doc
+        string of "_is_passing_or_neigh". The labels assigned can be modified by changing the
+        file-wide labels at the top of this file.
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: If it finds a dissonant 3rd quarter a five-tuple with True as the first argument,
+            the upper-voice number stored as a string as the second argument, the label to assign
+            the upper voice as the third argument, the lower-voice number as a string as the fourth
+            argument, and the label to assign the lower voice as the fifth argument. If the analysis
+            does not find a suspension the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
+        """
+        upper = pair.split(',')[0] # Upper voice variables
+        h_upper_col = self._score.columns.get_loc((h_ind, upper))
+        d_upper_col = self._score.columns.get_loc((dur_ind, upper))
+        bs_upper_col = self._score.columns.get_loc((bs_ind, upper))
+        a_temp = self._score.iloc[:indx, h_upper_col].last_valid_index()
+        a_ind = numpy.where(self._score.index == a_temp)[0][0]
+        a = self._set_horiz_invl(a_ind, h_upper_col)
+        b = self._set_horiz_invl(indx, h_upper_col)
+        dur_a = self._score.iat[a_ind, d_upper_col]
+        dur_b = self._score.iat[indx, d_upper_col]
+        bs_b = self._score.iat[indx, bs_upper_col]
+
+        lower = pair.split(',')[1] # Lower voice variables
+        h_lower_col = self._score.columns.get_loc((h_ind, lower))
+        d_lower_col = self._score.columns.get_loc((dur_ind, lower))
+        bs_lower_col = self._score.columns.get_loc((bs_ind, lower))
+        x_temp = self._score.iloc[:indx, h_lower_col].last_valid_index()
+        x_ind = numpy.where(self._score.index == x_temp)[0][0]
+        x = self._set_horiz_invl(x_ind, h_lower_col)
+        y = self._set_horiz_invl(indx, h_lower_col)
+        dur_x = self._score.iat[x_ind, d_lower_col]
+        dur_y = self._score.iat[indx, d_lower_col]
+        bs_y = self._score.iat[indx, bs_lower_col]
+
+        # TODO: make the beatstrength requirements dependent on the detected meter. Right now it is hard-coded for 4/2 meter.
+        if bs_b == .25 and dur_a >= 2 and dur_b == 1 and a == -2 and b == -2: # Upper voice is d3q
+            return (True, upper, _d3q_label, lower, _no_diss_label)            
+        elif bs_y == .25 and dur_x >= 2 and dur_y == 1 and x == -2 and y == -2: # Lower voice is d3q
+            return (True, upper, _no_diss_label, lower, _d3q_label)
+        else: # The dissonance is not a d3q.
+            return (False,)
+
     def _is_anticipation(self, indx, pair, event, prev_event):
         """
-        An anticipation occurs on a weak quarter-note, is approached obliquely by step from above, and
-        is followed immediately (i.e. on the strong quarter, which might be a downbeat or a weak half)
-        by the same pitch.
+        An anticipation occurs on a weak quarter-note, is approached obliquely by step from above,
+        and is followed immediately (i.e. on the strong quarter, which might be a downbeat or a weak
+        half) by the same pitch.
+
+        This function takes four parameters to situate the analysis in a specific pair of voices at
+        a given moment in the piece and returns the results of that analysis. For the meaning of the
+        numerous variables assigned at the beginning of this function, please refer to the doc
+        string of "_is_passing_or_neigh". The labels assigned can be modified by changing the
+        file-wide labels at the top of this file.
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: If it finds an anticipation a five-tuple with True as the first argument, the
+            upper-voice number stored as a string as the second argument, the label to assign the
+            upper voice as the third argument, the lower-voice number as a string as the fourth
+            argument, and the label to assign the lower voice as the fifth argument. If the analysis
+            does not find a suspension the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
         """
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -384,10 +512,34 @@ class DissonanceIndexer(indexer.Indexer):
 
     def _is_cambiata(self, indx, pair, event, prev_event):
         """
-        A nota cambiata figure moves obliquely by descending step to a dissonant weak half or quarter,
-        then skips down a third before ascending by step to the note skipped over.
-        """
-        # QUESTION: is b on a weak half even if it lasts a quarter note?
+        A nota cambiata figure moves obliquely by descending step to a dissonant weak half or
+        quarter then skips down a third before ascending by step to the note skipped over.
+
+        This function takes four parameters to situate the analysis in a specific pair of voices at
+        a given moment in the piece and returns the results of that analysis. For the meaning of the
+        numerous variables assigned at the beginning of this function, please refer to the doc
+        string of "_is_passing_or_neigh". The labels assigned can be modified by changing the
+        file-wide labels at the top of this file.
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: If it finds a nota cambiata a five-tuple with True as the first argument, the
+            upper-voice number stored as a string as the second argument, the label to assign the
+            upper voice as the third argument, the lower-voice number as a string as the fourth
+            argument, and the label to assign the lower voice as the fifth argument. If the analysis
+            does not find a suspension the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
+        """        # QUESTION: is b on a weak half even if it lasts a quarter note?
 
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -441,6 +593,31 @@ class DissonanceIndexer(indexer.Indexer):
           returns upwards by step to a whole note on the downbeat
          -the inactive voice is extended past the downbeat, becoming a dissonant suspension that
           resolves down by step.
+
+        This function takes four parameters to situate the analysis in a specific pair of voices at
+        a given moment in the piece and returns the results of that analysis. For the meaning of the
+        numerous variables assigned at the beginning of this function, please refer to the doc
+        string of "_is_passing_or_neigh". The labels assigned can be modified by changing the
+        file-wide labels at the top of this file.
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: If it finds a chanson idiom a five-tuple with True as the first argument, the
+            upper-voice number stored as a string as the second argument, the label to assign the
+            upper voice as the third argument, the lower-voice number as a string as the fourth
+            argument, and the label to assign the lower voice as the fifth argument. If the analysis
+            does not find a suspension the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
         """
         diss = int(event.translate(_char_del), 10)
 
@@ -504,6 +681,31 @@ class DissonanceIndexer(indexer.Indexer):
         """
         A note is considered an échappée if it consists of a quarter-note dissonance on a weak
         quarter note that is approached by step and left by leap in the opposite direction.
+
+        This function takes four parameters to situate the analysis in a specific pair of voices at
+        a given moment in the piece and returns the results of that analysis. For the meaning of the
+        numerous variables assigned at the beginning of this function, please refer to the doc
+        string of "_is_passing_or_neigh". The labels assigned can be modified by changing the
+        file-wide labels at the top of this file.
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: If it finds an échappée a five-tuple with True as the first argument, the
+            upper-voice number stored as a string as the second argument, the label to assign the
+            upper voice as the third argument, the lower-voice number as a string as the fourth
+            argument, and the label to assign the lower voice as the fifth argument. If the analysis
+            does not find a suspension the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
         """
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -541,7 +743,34 @@ class DissonanceIndexer(indexer.Indexer):
         they moved together to the dissonance the note that leaves the dissonance first will be
         labeled as the dissonant one. If they move to and from the dissonance together they will
         both be labeled dissonant.
-        """ 
+
+        This function takes four parameters to situate the analysis in a specific pair of voices at
+        a given moment in the piece and returns the results of that analysis. By this point, none of
+        the known dissonance types have been detected so this function determines which voice of the
+        pair should get the dissonance lable, or whether both should. For the meaning of the
+        numerous variables assigned at the beginning of this function, please refer to the doc
+        string of "_is_passing_or_neigh". The labels assigned can be modified by changing the
+        file-wide labels at the top of this file.
+
+        :param indx: The position-based (iloc) index of the dissonance being analyzed.
+        :type indx: int
+        :param pair: name of the voice pair in which the dissonance happens.
+        :type pair: string with the lower numbered voice first and a comma separating the two
+            voices.
+        :param event: the interval that has been analyzed as a dissonance to be classified.
+        :type event: string of dissonant interval with quality. All fourths and fifths should be 
+            dissonant fourths and fifths based on the analysis of method check_4s_5s.
+        :param prev_event: previous event in the same voice pair which may be a consonance, a
+            dissonance, a rest, or non-existent if there was no previous event in the pair.
+        :type prev_event: string of previous event in the same voice pair or None if there was no
+            previous event.
+        :returns: A five-tuple with True as the first argument, the upper-voice number stored as a
+            string as the second argument, the label to assign the upper voice as the third
+            argument, the lower-voice number as a string as the fourth argument, and the label to
+            assign the lower voice as the fifth argument. If the analysis does not find a suspension
+            the function returns a 1-tuple with False as the argument.
+        :rtype: tuple
+        """
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -570,12 +799,17 @@ class DissonanceIndexer(indexer.Indexer):
         Checks the dissonance definitions to find a suitable label for the dissonance passed. If no
         identifiable dissonance type matches, returns an unknown dissonance label. Omits checking
         the pair if either voice was previously given a known dissonance label still in vigour at
-        the given offset. Returns separate labels for each voice in the pair.
+        the given offset. It only takes its four arguments to pass them on to the dissonance-type
+        functions it calls.
+
+        :returns: A 5-tuple that can be unpacked to assign separate labels for each voice in the
+            pair. If none of the known dissonance types were detected the 5-tuple will have the
+            labels to mark one or both of the voices as dissonant.
+        :rtype: tuple
         """
         diss_types = [
                       self._is_passing_or_neigh,
                       self._is_suspension,
-                      # self._is_neighbour,
                       self._is_d3q,
                       self._is_fake_suspension,
                       self._is_chanson_idiom,
@@ -605,6 +839,10 @@ class DissonanceIndexer(indexer.Indexer):
         :param suspect_diss: Interval name with quality and direction (i.e. nothing or '-') that
             corresponds to the fourth or fifth to be examined.
         :type suspect_diss: String.
+        :returns: string representing analysis of fourth or fifth in question where a 'C' or 'D' has
+            been prepended to the interval name with quality to show that it was considered
+            consonant or dissonant respectively.
+        :rtype: string
         """
         cons_makers = {'P4':set([u'm3', u'M3', u'P5']), 'd5':[u'M6'], 'A4':[u'm3'], '-P4':set([u'm3', u'M3', u'P5']), '-d5':[u'M6'], '-A4':[u'm3']}
         Xed_makers = {'P4':set([u'-m3', u'-M3', u'-P5']), 'd5':[u'-M6'], 'A4':[u'-m3'],'-P4':set([u'-m3', u'-M3', u'-P5']), '-d5':[u'-M6'], '-A4':[u'-m3']}
@@ -639,10 +877,14 @@ class DissonanceIndexer(indexer.Indexer):
 
     def run(self):
         """
-        Make a new index of the piece in the same format as the :class:`IntervalIndexer` (i.e. a
-        DataFrame of Series where each series corresponds to the intervals in a given voice pair).
-        The difference between this and the interval indexer is that this one figures out whether
-        fourths or diminished fifths should be considered consonant for the purposes of dissonance
+        Make a new index of the piece which consists of a DataFrame with as many columns as there
+        are voices in the piece. The index is the offset of the dissonance analyses. Another
+        DataFrame (diss_ints) is calculated but not returned. It is in the same format as the
+        :class:`IntervalIndexer` (i.e. a DataFrame of Series where each series corresponds to the
+        intervals in a given voice pair). The difference between this and the interval indexer is
+        that this one figures out whether fourths or diminished fifths should be considered
+        consonant for the purposes of dissonance classification. diss_ints is not calculated
+        separately because it essentially consists of the same loop needed for dissonance
         classification.
 
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
