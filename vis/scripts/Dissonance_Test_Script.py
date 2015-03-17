@@ -3,7 +3,7 @@ import os
 import pandas
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import noterest, interval, ngram, dissonance, metre, fermata
+from vis.analyzers.indexers import interval, dissonance
 from vis.analyzers.experimenters import frequency
 from vis import workflow
 from numpy import nan, isnan
@@ -33,6 +33,7 @@ def main():
 
 
     basic1 = time.clock()
+    parts_fm = []
     parts_nr = []
     parts_dur = []
     parts_bs = []
@@ -41,6 +42,8 @@ def main():
     part_numbers = range(len(test_piece.parts))
     for x in part_numbers:
         temp = test_piece.parts[x]
+        fm = []
+        fermata_index = []
         nr = []
         dur = []
         bs = []
@@ -49,6 +52,17 @@ def main():
         measure_index = []
         for event in temp.recurse():
             if 'GeneralNote' in event.classes:
+                found_fm = False
+                for expression in event.expressions:
+                    if isinstance(expression, expressions.Fermata):
+                        fm.append('Fermata')
+                        found_fm = True
+                        break
+                if not found_fm:
+                    fm.append(nan)
+                for y in event.contextSites():
+                    if y[0] is temp:
+                        fermata_index.append(y[1])
                 if hasattr(event, 'tie') and event.tie is not None and event.tie.type in ('stop', 'continue'):
                     dur[-1] += event.quarterLength
                     continue
@@ -56,11 +70,9 @@ def main():
                     nr.append(event.nameWithOctave)
                 else:
                     nr.append('Rest')
+                part_index.append(fermata_index[-1])
                 dur.append(event.quarterLength)
                 bs.append(event.beatStrength)
-                for y in event.contextSites():
-                    if y[0] is temp:
-                        part_index.append(y[1])
             elif 'Measure' in event.classes:
                 ms.append(event.measureNumber)
                 measure_index.append(event.offset)   
@@ -69,11 +81,13 @@ def main():
         parts_dur.append(pandas.Series(dur, index=part_index))
         parts_bs.append(pandas.Series(bs, index=part_index))
         parts_ms.append(pandas.Series(ms, index=measure_index))
+        parts_fm.append(pandas.Series(fm, index=fermata_index))
 
     basic_nr = pandas.concat([s for s in parts_nr], axis=1)
     basic_dur = pandas.concat([s for s in parts_dur], axis=1)
     basic_bs = pandas.concat([s for s in parts_bs], axis=1)
     basic_ms = pandas.concat([s for s in parts_ms], axis=1)
+    basic_fm = pandas.concat([s for s in parts_fm], axis=1)
     
     part_strings = []
     for num in part_numbers:
@@ -95,9 +109,13 @@ def main():
     basic_ms_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     basic_ms.columns = basic_ms_multi_index
 
+    iterables = [['fermata.FermataIndexer'], part_strings]
+    basic_fm_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    basic_fm.columns = basic_fm_multi_index
+
+
     basic2 = time.clock()
     print 'Basic-Indexer Runtime: ' + str(basic2 - basic1)
-
 
 
     horiz = interval.HorizontalIntervalIndexer(basic_nr, horiz_setts).run()
@@ -110,8 +128,7 @@ def main():
     print 'Time taken to run all indexers: '
     print t1 - t0
 
-    # diss_types = dissonancelocator.DissonanceClassifier(combined_df).run()
-    # print diss_types
+    pdb.set_trace()
 
 
     t2 = time.time()
