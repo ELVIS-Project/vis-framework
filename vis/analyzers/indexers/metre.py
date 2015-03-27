@@ -39,75 +39,75 @@ import pandas
 
 def beatstrength_ind_func(obj):
     """
-        The function that indexes the "beatStrength" of a whatever it's given.
-        
-        :param obj: A singleton list with an object of which to find the beatStrength.
-        :type obj: list of :class:`~music21.base.Music21Object` subclasses.
-        
-        :returns: The :attr:`~music21.base.Music21Object.beatStrength` of the inputted object.
-        :rtype: float
-        """
+    The function that indexes the "beatStrength" of a whatever it's given.
+
+    :param obj: A singleton list with an object of which to find the beatStrength.
+    :type obj: list of :class:`~music21.base.Music21Object` subclasses.
+
+    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of the inputted object.
+    :rtype: float
+    """
     return obj[0].beatStrength
 
 def duration_ind_func(obj):
     """
-        The function that indexes the "duration" of a whatever it's given.
-        
-        :param obj: A singleton list with an object of which to find the duration.
-        :type obj: list of :class:`~music21.base.Music21Object` subclasses.
-        
-        :returns: The :attr:`~music21.base.Music21Object.beatStrength` of the inputted object.
-        :rtype: float
-        """
+    The function that indexes the "duration" of a whatever it's given.
+
+    :param obj: A singleton list with an object of which to find the duration.
+    :type obj: list of :class:`~music21.base.Music21Object` subclasses.
+
+    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of the inputted object.
+    :rtype: float
+    """
     return obj[0].duration.quarterLength
 
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
     """
-        Make an index of the :attr:`~music21.base.Music21Object.beatStrength` for all :class:`Note`
-        and :class:`Rest` objects.
-        
-        .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
-        objects rather than ``unicode`` objects.
-        """
-    
+    Make an index of the :attr:`~music21.base.Music21Object.beatStrength` for all :class:`Note`
+    and :class:`Rest` objects.
+
+    .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
+    objects rather than ``unicode`` objects.
+    """
+
     required_score_type = 'stream.Part'
     possible_settings = []
     default_settings = {}
-    
+
     def __init__(self, score, settings=None):
         """
-            :param score: A list of the :class:`Part` objects to use for producing this index.
-            :type score: list of :class:`music21.stream.Part`
-            :param settings: This indexer requires no settings so this parameter is ignored.
-            :type settings: any
-            
-            :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-            :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
-            """
-        
+        :param score: A list of the :class:`Part` objects to use for producing this index.
+        :type score: list of :class:`music21.stream.Part`
+        :param settings: This indexer requires no settings so this parameter is ignored.
+        :type settings: any
+
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        """
+
         super(NoteBeatStrengthIndexer, self).__init__(score, None)
         self._types = [note.Note, note.Rest]
         self._indexer_func = beatstrength_ind_func
-    
+
     def run(self):
         """
-            Make a new index of the piece.
-            
-            :returns: The new indices. Refer to the example below. Note that each item is a float,
-            rather than the usual basestring.
-            :rtype: :class:`pandas.DataFrame`
-            
-            **Example:**
-            
-            >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-            >>> the_score.parts[5]
-            (the first clarinet Part)
-            >>> the_notes = NoteBeatStrengthIndexer(the_score).run()
-            >>> the_notes['metre.NoteBeatStrengthIndexer']['5']
-            (the first clarinet Series of beatStrength float values)
-            """
-        
+        Make a new index of the piece.
+
+        :returns: The new indices. Refer to the example below. Note that each item is a float,
+        rather than the usual basestring.
+        :rtype: :class:`pandas.DataFrame`
+
+        **Example:**
+
+        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
+        >>> the_score.parts[5]
+        (the first clarinet Part)
+        >>> the_notes = NoteBeatStrengthIndexer(the_score).run()
+        >>> the_notes['metre.NoteBeatStrengthIndexer']['5']
+        (the first clarinet Series of beatStrength float values)
+        """
+
         combinations = [[x] for x in xrange(len(self._score))]
         results = self._do_multiprocessing(combinations)
         return self.make_return([unicode(x)[1:-1] for x in combinations], results)
@@ -115,53 +115,54 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
 
 class DurationIndexer(indexer.Indexer):
     """
-        Make an index of the :attr:`~music21.base.Music21Object.beatStrength` for all :class:`Note`
-        and :class:`Rest` objects.
-        
-        .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
-        objects rather than ``unicode`` objects.
-        """
-    
+    Make an index of the :attr:`~music21.base.Music21Object.beatStrength` for all :class:`Note`
+    and :class:`Rest` objects.
+
+    .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
+    objects rather than ``unicode`` objects.
+    """
+
     required_score_type = 'stream.Part'
     possible_settings = []
     default_settings = {}
-    
+
     def __init__(self, score, settings=None):
         """
-            :param score: A list of the :class:`Part` objects to use for producing this index.
-            :type score: list of :class:`music21.stream.Part`
-            :param settings: This indexer requires no settings so this parameter is ignored.
-            :type settings: any
-            
-            :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-            :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
-            """
-        
+        :param score: A list of the :class:`Part` objects to use for producing this index.
+        :type score: list of :class:`music21.stream.Part`
+        :param settings: This indexer requires no settings so this parameter is ignored.
+        :type settings: any
+
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        """
+
         super(DurationIndexer, self).__init__(score, None)
         self._types = [note.Note, note.Rest]
         self._indexer_func = duration_ind_func
-    
+
     def run(self):
         """
-            Make a new index of the piece.
-            
-            :returns: The new indices. Refer to the example below. Note that each item is a float,
-            rather than the usual basestring.
-            :rtype: :class:`pandas.DataFrame`
-            
-            **Example:**
-            
-            >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-            >>> the_score.parts[5]
-            (the first clarinet Part)
-            >>> the_notes = DurationIndexer(the_score).run()
-            >>> the_notes['metre.DurationIndexer']['5']
-            (the first clarinet Series of duration float values)
-            """
-        
+        Make a new index of the piece.
+
+        :returns: The new indices. Refer to the example below. Note that each item is a float,
+        rather than the usual basestring.
+        :rtype: :class:`pandas.DataFrame`
+
+        **Example:**
+
+        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
+        >>> the_score.parts[5]
+        (the first clarinet Part)
+        >>> the_notes = DurationIndexer(the_score).run()
+        >>> the_notes['metre.DurationIndexer']['5']
+        (the first clarinet Series of duration float values)
+        """
+
         combinations = [[x] for x in xrange(len(self._score))]
         results = self._do_multiprocessing(combinations)
         return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+
 
 class MeasureIndexer(indexer.Indexer):
     """
@@ -170,9 +171,9 @@ class MeasureIndexer(indexer.Indexer):
     Time signatures changes do not cause a problem provided that all parts change time signatures at
     the same time and in the same way.
     """
-    
+
     required_score_type = 'stream.Part'
-    
+
     def __init__(self, score, settings=None):
         """
         :param score: :class:`Part` object to use for producing this index. It should be the highest
@@ -184,9 +185,8 @@ class MeasureIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
-        
         super(MeasureIndexer, self).__init__(score, None)
-    
+
     def run(self):
         measure_stream = self._score.measureTemplate()
         measure_numbers = []
