@@ -21,12 +21,15 @@ VIS_PATH = vis.__path__[0]
 
 def main():
     t0 = time.time()
-    piece_path = "/Users/amor/Documents/Code/VIS/vis/tests/corpus/Kyrie.krn"
+    # piece_path = "/Users/amor/Documents/Code/VIS/vis/tests/corpus/Kyrie.krn"
     # piece_path = '/Users/amor/Downloads/a3_Josquin_DeTousBiens_StrettoCanonTB.xml'
     # piece_path = "/Users/amor/Documents/Code/VIS/vis/tests/corpus/bwv77.mxl"
-    # piece_path = '/Users/amor/Documents/Code/Reimenschnieder/1-026900B_.xml'
+    piece_path = '/Users/amor/Documents/Code/Reimenschnieder/1-026900B_.xml'
+    # piece_path = '/Users/amor/Documents/Code/VIS/vis/tests/corpus/Jos2308.mei'
+    # piece_path = '/Users/amor/Documents/Code/VIS/vis/tests/corpus/Sanctus.krn'
     ind_piece = IndexedPiece(piece_path)
 
+    # pdb.set_trace()
     setts = {'quality': True, 'simple or compound': 'simple'}
     horiz_setts = {'quality': False, 'simple or compound': 'compound'}
 
@@ -40,8 +43,12 @@ def main():
     parts_ms = []
     test_piece = converter.parse(piece_path)
     part_numbers = range(len(test_piece.parts))
+    from vis.analyzers.indexers.noterest import indexer_func as nr_ind_func
+    from vis.analyzers.indexers.metre import duration_ind_func as dur_ind_func
+    from vis.analyzers.indexers.metre import beatstrength_ind_func as bs_ind_func
+    from vis.analyzers.indexers.fermata import indexer_func as fm_ind_func
     for x in part_numbers:
-        temp = test_piece.parts[x]
+        temp_part = test_piece.parts[x]
         fm = []
         fermata_index = []
         nr = []
@@ -50,29 +57,33 @@ def main():
         part_index = []
         ms = []
         measure_index = []
-        for event in temp.recurse():
+        for event in temp_part.recurse():
             if 'GeneralNote' in event.classes:
-                found_fm = False
-                for expression in event.expressions:
-                    if isinstance(expression, expressions.Fermata):
-                        fm.append('Fermata')
-                        found_fm = True
-                        break
-                if not found_fm:
-                    fm.append(nan)
+                # found_fm = False
+                # for expression in event.expressions:
+                #     if isinstance(expression, expressions.Fermata):
+                #         fm.append('Fermata')
+                #         found_fm = True
+                #         break
+                # if not found_fm:
+                #     fm.append(nan)
+                fm.append(fm_ind_func((event,)))
                 for y in event.contextSites():
-                    if y[0] is temp:
+                    if y[0] is temp_part:
                         fermata_index.append(y[1])
-                if hasattr(event, 'tie') and event.tie is not None and event.tie.type in ('stop', 'continue'):
-                    dur[-1] += event.quarterLength
-                    continue
-                if event.name != 'rest':
-                    nr.append(event.nameWithOctave)
-                else:
-                    nr.append('Rest')
+                # if hasattr(event, 'tie') and event.tie is not None and event.tie.type in ('stop', 'continue'):
+                #     dur[-1] += event.quarterLength
+                #     continue
+                # if event.name != 'rest':
+                #     nr.append(event.nameWithOctave)
+                # else:
+                #     nr.append('Rest')
+                nr.append(nr_ind_func((event,)))
                 part_index.append(fermata_index[-1])
-                dur.append(event.quarterLength)
-                bs.append(event.beatStrength)
+                # dur.append(event.quarterLength)
+                dur.append(dur_ind_func((event,)))
+                # bs.append(event.beatStrength)
+                bs.append(bs_ind_func((event,)))
             elif 'Measure' in event.classes:
                 ms.append(event.measureNumber)
                 measure_index.append(event.offset)   
