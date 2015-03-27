@@ -51,14 +51,22 @@ def beatstrength_ind_func(obj):
 
 def duration_ind_func(obj):
     """
-    The function that indexes the "duration" of a whatever it's given.
+    The function that indexes the "duration" of a whatever it's given. Returns a negative
+    value if the duration should be added on to the previous event in the part. This would
+    happen if obj is part of a tie but not the first note in that tie group.
+
+    .. warning:: May return a negative value.
 
     :param obj: A singleton list with an object of which to find the duration.
     :type obj: list of :class:`~music21.base.Music21Object` subclasses.
 
-    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of the inputted object.
+    :returns: The :attr:`~music21.base.Music21Object.duration` of the inputted object.
     :rtype: float
     """
+    if hasattr(obj[0], 'tie') and obj[0].tie is not None and obj[0].tie.type in ('stop', 'continue'):
+        print 'Here'
+        return 0 - obj[0].duration.quarterLength
+    print 'There'
     return obj[0].duration.quarterLength
 
 
