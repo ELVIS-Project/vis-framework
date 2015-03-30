@@ -56,7 +56,7 @@ setup(
         'pandas (>=0.14.1, <0.16)',
         ],
     install_requires = [
-        'music21 >=1.9.3, <2.0',
+        'music21 >=1.9.3, <2.1',
         'pandas >=0.14.1, <0.16',
         ],
     packages = [
