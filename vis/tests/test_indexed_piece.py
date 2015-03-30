@@ -467,14 +467,16 @@ class TestIndexedPieceB(TestCase):
         mock_con_class.stream = music21.stream.Opus()
         for i in xrange(5):
             mock_con_class.stream.insert(music21.stream.Score())
-            mock_con_class.stream[i].priority = 42 + i
+            # vis_import_order is an attribute just created for this test. vis_import_order is meant
+            # represent the order in which pieces inside of an opus are stored.
+            mock_con_class.stream[i].vis_import_order = 42 + i
         mock_conv.Converter.return_value = mock_con_class
 
         actual = self.ind_piece._import_score(known_opus=True)
 
         self.assertEqual(5, len(actual))
         for i, piece in enumerate(actual):
-            self.assertEqual(42 + i, piece._import_score().priority)
+            self.assertEqual(42 + i, piece._import_score().vis_import_order)
 
     # TODO: write more tests here, bro
 
