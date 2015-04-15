@@ -64,9 +64,7 @@ def duration_ind_func(obj):
     :rtype: float
     """
     if hasattr(obj[0], 'tie') and obj[0].tie is not None and obj[0].tie.type in ('stop', 'continue'):
-        print 'Here'
         return 0 - obj[0].duration.quarterLength
-    print 'There'
     return obj[0].duration.quarterLength
 
 
@@ -146,7 +144,7 @@ class DurationIndexer(indexer.Indexer):
         """
 
         super(DurationIndexer, self).__init__(score, None)
-        self._types = [note.Note, note.Rest]
+        self._types = [note.GeneralNote]
         self._indexer_func = duration_ind_func
 
     def run(self):
@@ -168,7 +166,7 @@ class DurationIndexer(indexer.Indexer):
         """
 
         combinations = [[x] for x in xrange(len(self._score))]
-        results = self._do_multiprocessing(combinations)
+        results = self._do_multiprocessing(combinations, special_case=(True, 'Duration'))
         return self.make_return([unicode(x)[1:-1] for x in combinations], results)
 
 
