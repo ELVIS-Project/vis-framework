@@ -296,7 +296,7 @@ class WorkflowManager(object):
             # interval n-grams
             self._previous_exp = WorkflowManager._experiments_list[1]
             post = self._interval_ngrams()
-        elif instruction.startwwith(WorkflowManager._experiments_list[2]):
+        elif instruction.startswith(WorkflowManager._experiments_list[2]):
             # basic indexers (that import info from music21)
             self._previous_exp = WorkflowManager._experiments_list[1]
             post = self._basic()
