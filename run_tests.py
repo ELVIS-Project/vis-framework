@@ -31,6 +31,7 @@ VERBOSITY = 0
 from unittest import TextTestRunner
 
 from vis.tests import test_indexer
+from vis.tests import test_duration_indexer
 from vis.tests import test_note_rest_indexer
 from vis.tests import test_ngram
 from vis.tests import test_repeat
@@ -55,6 +56,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_indexer.INDEXER_MULTI_EVENT_SUITE,
              test_indexer.UNIQUE_OFFSETS_SUITE,
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
+             test_duration_indexer.DURATION_INDEXER_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE,
              test_interval_indexer.INT_IND_INDEXER_SUITE,
