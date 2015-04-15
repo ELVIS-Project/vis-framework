@@ -582,7 +582,7 @@ class DissonanceIndexer(indexer.Indexer):
             return (True, upper, _no_diss_label, lower, _camb_label) # Cambiata in lower voice
         return (False,)
 
-    def _is_chanson_idiom(self, indx, pair, event, prev_event):
+    def _is_chanson_idiom(self, indx, pair, event, prev_event): #m.136 in alto? What about diminished lengths?
         """
         The chanson idiom dissonance consists of a seventh or second, struck simultaneously or
         obliquely on the 3rd quarter of a whole note, involving a quarter in one voice ("the active
@@ -915,6 +915,10 @@ class DissonanceIndexer(indexer.Indexer):
                     prev_event = diss_ints[pair_title].iloc[:i].last_valid_index()
                     if prev_event != None:
                         prev_event = diss_ints.at[prev_event, pair_title]
+                    # if prev_event not in _consonances and i > 0 and (ret.iat[i-1, top_voice] in
+                    #     (_pass_rp_label, _pass_dp_label) or ret.iat[i-1, bott_voice] in
+                    #     (_pass_rp_label, _pass_dp_label)):
+                    #     prev_event = 'm3' # If there's a passing tone at the preceding note, call the prev_event a consonance (any consonance will do) so that there can be two passing tones in a row.
                     diss_analysis = self.classify(i, pair_title, event, prev_event)
                     ret.iat[i, int(diss_analysis[1], 10)] = diss_analysis[2]
                     ret.iat[i, int(diss_analysis[3], 10)] = diss_analysis[4]
