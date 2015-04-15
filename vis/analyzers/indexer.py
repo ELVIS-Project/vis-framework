@@ -51,7 +51,7 @@ def mpi_unique_offsets(streams):
     return sorted(set.union(*offsets))  # pylint: disable=W0142
 
 
-def stream_indexer(pipe_index, parts, indexer_func, types=None):
+def stream_indexer(pipe_index, parts, indexer_func, types=None, special_case=(False,)):
     """
     Perform the indexation of a :class:`Part` or :class:`Part` combination. This is a module-level
     function designed to ease implementation of multiprocessing.
@@ -89,7 +89,7 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
 
     # Convert "frozen" Streams, if needed; flatten the streams and filter classes
     if isinstance(parts[0], six.string_types):
-        all_parts = [getter(converter.thaw(each).flat) for each in parts]
+        all_parts = [getter(converter.thaw(each).flat) for each in parts] # TODO: These .flat arguments should be replaced with .recurse()
     else:
         all_parts = [getter(part.flat) for part in parts]
 
@@ -105,20 +105,32 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
         # inspired by vis.controllers.analyzer._event_finder() in vis9c
         current_events = []
         for part in all_parts:  # find the events happening at this offset in all parts
-            current_events.append(list(part.getElementsByOffset(off, mustBeginInSpan=False)))
+            current_events.append(list(part.getElementsByOffset(off, mustBeginInSpan=False))) # TODO: replace .getELements with .recurse()
 
         # Arrange groups of things to index
         current_events = [[event[0] for event in current_events]]
 
         # Index previously-arranged groups
-        for each_simul in current_events:
-            new_series_data.append(indexer_func(each_simul))
-            offsets_for_series.append(off)
+        if special_case[0] and special_case[1] == 'Duration':
+            for each_simul in current_events:
+                this_result = indexer_func(each_simul)
+                if this_result < 0:
+                    new_series_data[-1] += abs(this_result)
+                    new_series_data.append(float('nan'))
+                else:
+                    new_series_data.append(this_result)
+
+                offsets_for_series.append(off)
+
+        else:
+            for each_simul in current_events:
+                new_series_data.append(indexer_func(each_simul))
+                offsets_for_series.append(off)
 
     return pipe_index, pandas.Series(new_series_data, index=offsets_for_series)
 
 
-def series_indexer(pipe_index, parts, indexer_func):
+def series_indexer(pipe_index, parts, indexer_func, special_case=(False,)):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing.
@@ -328,7 +340,7 @@ class Indexer(object):
         """
         pass
 
-    def _do_multiprocessing(self, combos):
+    def _do_multiprocessing(self, combos, special_case=(False,)): #, asdf=(False,) (True, 'duration')):
         """
         Index each part combination and await the jobs' completion. In the future, this method
         may use multiprocessing.
@@ -353,12 +365,22 @@ class Indexer(object):
         """
         post = []
         # use serial processing
+        if special_case[0] and special_case[1] == 'Duration':
+            for each_combo in combos:
+                voices = [self._score[x] for x in each_combo]
+                if isinstance(self._score[0], stream.Stream):
+                    post.append(stream_indexer(0, voices, self._indexer_func, self._types, special_case)[1])
+                else:
+                    post.append(series_indexer(0, voices, self._indexer_func, special_case)[1])
+            return post
+
         for each_combo in combos:
+            # voices holds the music21 Part objects indicated by each_combo
             voices = [self._score[x] for x in each_combo]
             if isinstance(self._score[0], stream.Stream):
-                post.append(stream_indexer(0, voices, self._indexer_func, self._types)[1])
+                post.append(stream_indexer(0, voices, self._indexer_func, self._types, special_case)[1])
             else:
-                post.append(series_indexer(0, voices, self._indexer_func)[1])
+                post.append(series_indexer(0, voices, self._indexer_func, special_case)[1])
         return post
 
     def make_return(self, labels, indices):
