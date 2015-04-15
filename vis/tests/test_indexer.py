@@ -231,7 +231,7 @@ class TestIndexerInit(unittest.TestCase):
             t_ind._indexer_func = fake_indexer_func
             t_ind.run()
             # check results
-            mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None)
+            mpi_mock.assert_called_once_with(0, test_parts, fake_indexer_func, None, (False,))
 
     def test_indexer_init_9(self):
         # That calling Indexer.__init__() with required_score_type set to an invalid value results
