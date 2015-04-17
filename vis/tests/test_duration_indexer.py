@@ -4,10 +4,10 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers_tests/test_note_rest_indexer.py
-# Purpose:                Tests for the NoteRestIndexer
+# Filename:               analyzers_tests/test_duration_indexer.py
+# Purpose:                Tests for the DurationIndexer
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2015 Alexander Morgan, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
