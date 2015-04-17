@@ -57,6 +57,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_indexer.UNIQUE_OFFSETS_SUITE,
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_duration_indexer.DURATION_INDEXER_SUITE,
+             test_beat_strength_indexer.BEAT_STRENGTH_INDEXER_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE,
              test_interval_indexer.INT_IND_INDEXER_SUITE,
