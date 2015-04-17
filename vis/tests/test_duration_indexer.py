@@ -174,7 +174,7 @@ class TestDurationIndexer(unittest.TestCase):
         for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertTrue((isnan(expected[key]) == isnan(actual[key])).all()) # Are NaNs in the same positions?
+            self.assertTrue((isnan(expected[key]) == isnan(actual[key])).all()) # Are NaNs in the same places?
             # the following loop is necessary because the assertSequenceEqual method doesn't work
             # for NaN values
             for i, val in enumerate(expected[key]):
@@ -192,12 +192,13 @@ class TestDurationIndexer(unittest.TestCase):
         actual = dur_indexer.run()['metre.DurationIndexer']
         self.assertEqual(4, len(actual.columns))
         for key in six.iterkeys(expected):
-            # Calling .dropna() on actual would remove the NaN values; these appear for offsets that
-            # have an event in one part, but not necessarily all the others. This is done in other
-            # tests but is omitted here because these NaNs are an important part of the analysis.
+            # Calling .dropna() on actual[key] would remove the NaN values; these appear for offsets
+            # that have an event in one part, but not necessarily all the others. This is done in
+            # other tests but is omitted here because these NaNs are an important part of the
+            # analysis.
             self.assertTrue(key in actual)
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertTrue((isnan(expected[key]) == isnan(actual[key])).all()) # Are NaNs in the same positions?
+            self.assertTrue((isnan(expected[key]) == isnan(actual[key])).all()) # Are NaNs in the same places?
             # the following loop is necessary because the assertSequenceEqual method doesn't work
             # for NaN values
             for i, val in enumerate(expected[key]):
