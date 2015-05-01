@@ -33,7 +33,7 @@ import unittest
 import six
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
-from music21 import converter, stream, clef, bar, note
+from music21 import converter, stream, clef, bar, note, meter
 from vis.analyzers.indexers import metre
 from numpy import nan, isnan
 import pdb
@@ -132,38 +132,44 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-<Pick up here, there should be a detector for pieces without a timesignature>
-    # def test_note_beat_strength_indexer_3(self):
-    #     # When there are a bunch of notes
-    #     expected = {'0': pandas.Series([1.0 for _ in xrange(10)],
-    #                                    index=[float(x) for x in xrange(10)])}
-    #     test_part = stream.Part()
-    #     # add stuff to the test_part
-    #     for i in xrange(10):
-    #         add_me = note.Note(u'C4', quarterLength=1.0)
-    #         add_me.offset = i
-    #         test_part.append(add_me)
-    #     test_part = [test_part]
-    #     # finished adding stuff to the test_part
-    #     bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
-    #     actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
-    #     self.assertEqual(len(expected), len(actual.columns))
-    #     for key in six.iterkeys(expected):
-    #         self.assertTrue(key in actual)
-    #         self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-    #         self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+# <Pick up here, there should be a detector for pieces without a timesignature>
+    def test_note_beat_strength_indexer_3(self):
+        # When there are a few notes
+        expected = {'0': pandas.Series([1.0, 0.5, 0.5, 1.0, 0.5, 0.5])}
+        test_part = stream.Part()
+        # add stuff to the test_part
+        measure = stream.Measure()
+        # In music21 beginning time signatures are preferably inserted in the first measure and a
+        # timeSignature is needed to be able to calculate beatStrength
+        measure.insert(0, meter.TimeSignature('3/4'))
+        for i in xrange(6):
+            add_me = note.Note(u'C4', quarterLength=1.0)
+            add_me.offset = i
+            measure.append(add_me)
+        test_part.insert(0, measure)
+        test_part = [test_part]
+        # finished adding stuff to the test_part
+        bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
+        actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
+        self.assertEqual(len(expected), len(actual.columns))
+        for key in six.iterkeys(expected):
+            self.assertTrue(key in actual)
+            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-    # def test_note_beat_strength_indexer_4(self):
-    #     # Soprano part of bwv77.mxl which is a part with no ties
-    #     expected = {'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv77_soprano)}
-    #     test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
-    #     bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
-    #     actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
-    #     self.assertEqual(len(expected), len(actual.columns))
-    #     for key in six.iterkeys(expected):
-    #         self.assertTrue(key in actual)
-    #         self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-    #         self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+# <Pick up here>
+
+#     def test_note_beat_strength_indexer_4(self):
+#         # Soprano part of bwv77.mxl which is a part with no ties
+#         expected = {'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv77_soprano)}
+#         test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
+#         bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
+#         actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
+#         self.assertEqual(len(expected), len(actual.columns))
+#         for key in six.iterkeys(expected):
+#             self.assertTrue(key in actual)
+#             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+#             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
     # def test_note_beat_strength_indexer_5(self):
     #     # Alto part of bwv603.mxl which is a part with ties
