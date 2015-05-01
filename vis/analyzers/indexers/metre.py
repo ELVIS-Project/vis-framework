@@ -35,6 +35,7 @@ Indexers for metric concerns.
 from music21 import note
 from vis.analyzers import indexer
 import pandas
+import pdb
 
 
 def beatstrength_ind_func(obj):
@@ -63,9 +64,14 @@ def duration_ind_func(obj):
     :returns: The :attr:`~music21.base.Music21Object.duration` of the inputted object.
     :rtype: float
     """
-    if hasattr(obj[0], 'tie') and obj[0].tie is not None and obj[0].tie.type in ('stop', 'continue'):
-        return 0 - obj[0].duration.quarterLength
-    return obj[0].duration.quarterLength
+    if hasattr(obj[0], 'tie') and obj[0].tie is not None:
+        if obj[0].tie.type == 'start': # 'GeneralNote' object has a tie with a 'start' label
+            return obj[0].duration.quarterLength
+        else: # 'GeneralNote' object has a tie with a 'continue' or a 'stop' label
+            obj[1][-1] += obj[0].duration.quarterLength
+            return None
+    else: # The 'GeneralNote' object has no tie or has a tie of type None
+        return obj[0].duration.quarterLength
 
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
@@ -78,8 +84,6 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
     """
 
     required_score_type = 'stream.Part'
-    possible_settings = []
-    default_settings = {}
 
     def __init__(self, score, settings=None):
         """
@@ -93,8 +97,9 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         """
 
         super(NoteBeatStrengthIndexer, self).__init__(score, None)
-        self._types = [note.Note, note.Rest]
+        self._types = ('GeneralNote',)
         self._indexer_func = beatstrength_ind_func
+        self._settings = settings
 
     def run(self):
         """
@@ -129,10 +134,8 @@ class DurationIndexer(indexer.Indexer):
     """
 
     required_score_type = 'stream.Part'
-    possible_settings = []
-    default_settings = {}
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score):
         """
         :param score: A list of the :class:`Part` objects to use for producing this index.
         :type score: list of :class:`music21.stream.Part`
@@ -144,7 +147,7 @@ class DurationIndexer(indexer.Indexer):
         """
 
         super(DurationIndexer, self).__init__(score, None)
-        self._types = [note.GeneralNote]
+        self._types = ('GeneralNote',)
         self._indexer_func = duration_ind_func
 
     def run(self):
@@ -166,7 +169,7 @@ class DurationIndexer(indexer.Indexer):
         """
 
         combinations = [[x] for x in xrange(len(self._score))]
-        results = self._do_multiprocessing(combinations, special_case=(True, 'Duration'))
+        results = self._do_multiprocessing(combinations, True)
         return self.make_return([unicode(x)[1:-1] for x in combinations], results)
 
 
