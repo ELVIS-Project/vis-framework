@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/noterest.py
 # Purpose:                Index note and rest objects.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014, 2015 Christopher Antila, and Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
+.. codeauthor:: Alexander Morgan
 
 Index note and rest objects.
 """
@@ -69,17 +70,14 @@ class NoteRestIndexer(indexer.Indexer):
 
     required_score_type = 'stream.Part'
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score):
         """
         :param score: A list of all the Parts to index.
         :type score: list of :class:`music21.stream.Part`
-        :param settings: This indexer uses no settings, so this is ignored.
-        :type settings: NoneType
-
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the right type.
         """
         super(NoteRestIndexer, self).__init__(score, None)
-        self._types = [note.Note, note.Rest]
+        self._types = ('GeneralNote',)
         self._indexer_func = indexer_func
 
     def run(self):
