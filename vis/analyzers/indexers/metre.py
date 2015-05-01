@@ -35,8 +35,6 @@ Indexers for metric concerns.
 from music21 import note
 from vis.analyzers import indexer
 import pandas
-import pdb
-
 
 def beatstrength_ind_func(obj):
     """
