@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers_tests/test_duration_indexer.py
+# Filename:               analyzers_tests/test_dur_indexer.py
 # Purpose:                Tests for the DurationIndexer
 #
 # Copyright (C) 2015 Alexander Morgan, Christopher Antila
@@ -62,10 +62,9 @@ class TestDurationIndexer(unittest.TestCase):
     bwv603_alto = [(0.0, 1.0), (1.0, 2.0), (3.0, 1.0), (4.0, 2.0), (6.0, 1.0), (7.0, 2.0),
                    (9.0, 1.0), (10.0, 3.0), (13.0, 2.0), (15.0, 1.0), (16.0, 2.0), (18.0, 1.0),
                    (19.0, 2.0), (21.0, 1.0), (22.0, 2.0), (24.0, 1.0), (25.0, 2.0), (27.0, 2.0),
-                   (28.0, float('nan')), (29.0, 1.0), (30.0, 1.0), (31.0, 2.0), (33.0, 1.0),
-                   (34.0, 1.0), (35.0, 1.0), (36.0, 1.0), (37.0, 2.0), (39.0, 1.0), (40.0, 1.0),
-                   (41.0, 1.0), (42.0, 2.0), (43.0, float('nan')), (44.0, 1.0), (45.0, 1.0),
-                   (46.0, 2.0)]
+                   (29.0, 1.0), (30.0, 1.0), (31.0, 2.0), (33.0, 1.0), (34.0, 1.0), (35.0, 1.0),
+                   (36.0, 1.0), (37.0, 2.0), (39.0, 1.0), (40.0, 1.0), (41.0, 1.0), (42.0, 2.0),
+                   (44.0, 1.0), (45.0, 1.0), (46.0, 2.0)]
 
     bwv603_soprano = [(0.0, 1.0), (1.0, 2.0), (2.0, float('nan')), (3.0, 1.0), (4.0, 2.0),
                      (5.0, float('nan')), (6.0, 1.0), (7.0, 1.0), (8.0, 1.0), (9.0, 1.0),
@@ -170,6 +169,7 @@ class TestDurationIndexer(unittest.TestCase):
         test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml')).parts[1]]
         dur_indexer = metre.DurationIndexer(test_part)
         actual = dur_indexer.run()['metre.DurationIndexer']
+        pdb.set_trace()
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
