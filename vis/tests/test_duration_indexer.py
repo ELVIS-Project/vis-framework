@@ -36,7 +36,6 @@ import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers.indexers import metre
 from numpy import nan, isnan
-import pdb
 
 # find the pathname of the 'vis' directory
 import vis
@@ -169,7 +168,6 @@ class TestDurationIndexer(unittest.TestCase):
         test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml')).parts[1]]
         dur_indexer = metre.DurationIndexer(test_part)
         actual = dur_indexer.run()['metre.DurationIndexer']
-        pdb.set_trace()
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
