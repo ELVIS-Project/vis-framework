@@ -92,15 +92,15 @@ class AllVoiceFermatas(TestCase):
         """rest fermatas; no WorkflowManager"""
 
         # Create expected.
-        #expected = self.createExpectedFermataIndexerResult(2, 8)
-        #expected.set_value(6, ('fermata.FermataIndexer', '0'), 'Fermata')
-        #expected.set_value(6, ('fermata.FermataIndexer', '1'), 'Fermata')
-        #expected = expected.drop(expected.index[[5, 7]])
+        expected = self.createExpectedFermataIndexerResult(2, 8)
+        expected.set_value(6, ('fermata.FermataIndexer', '0'), 'Fermata')
+        expected.set_value(6, ('fermata.FermataIndexer', '1'), 'Fermata')
+        expected = expected.drop(expected.index[[5, 7]])
 
         # Test.
-        #ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_fermata_rest.xml'))
-        #actual = ind_piece.get_data([fermata.FermataIndexer])
-        #self.assertDataFramesEqual(expected, actual)
+        ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_fermata_rest.xml'))
+        actual = ind_piece.get_data([fermata.FermataIndexer])
+        self.assertDataFramesEqual(expected, actual)
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #

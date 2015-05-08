@@ -4,7 +4,7 @@
   <identification>
     <encoding>
       <software>MuseScore 1.3</software>
-      <encoding-date>2015-01-13</encoding-date>
+      <encoding-date>2015-05-08</encoding-date>
       </encoding>
     </identification>
   <defaults>
@@ -49,7 +49,7 @@
       <print>
         <system-layout>
           <system-margins>
-            <left-margin>87.13</left-margin>
+            <left-margin>87.12</left-margin>
             <right-margin>0.00</right-margin>
             </system-margins>
           <top-system-distance>70.00</top-system-distance>
@@ -192,7 +192,7 @@
         <staff>2</staff>
         <notations>
           <fermata type="inverted"/>
-        </notations>
+          </notations>
         </note>
       <barline location="right">
         <bar-style>light-heavy</bar-style>
