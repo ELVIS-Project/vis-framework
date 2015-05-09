@@ -598,7 +598,7 @@ class FingerprintComparer:
         for result in comparison_results.loc['Displacement Comparison (Strong-Weak)'].tolist():
             displaced_strongs = displaced_strongs + 1 if (result == 1) else displaced_strongs
 
-        strong_beat_parameter = (matching_strongs + displaced_strongs/2)/length
+        strong_beat_parameter = (matching_strongs*8 + matching_strongs_first_half*4 + displaced_strongs*6)/maximum_similarity_measure
         
         # Weak Beat Total
         
@@ -608,13 +608,14 @@ class FingerprintComparer:
             if (isinstance(result, list)) and result[0] != 0:
                 matching_weaks_on_matched_strongs += 1
 
-        weak_beat_parameter = matching_weaks/length
         # Weak Beat on Mismatched Strongs Total
         matching_weaks_on_mismatched_strongs = 0.0
         for result in (comparison_results.loc['Weak Beats Comparison (Mismatched Strongs)'].tolist()):
             if (isinstance(result, list)) and result[0] != 0:
                 matching_weaks_on_mismatched_strongs += 1
 
+        weak_beat_parameter = (matching_weaks_on_matched_strongs*2 + matching_weaks_on_mismatched_strongs*2)/maximum_similarity_measure 
+        
         # Strong Beat Contours + Reversals
         value = 0.0
         for result in (comparison_results.loc['Contour Comparison (Strongs)'].tolist() + 
@@ -622,7 +623,7 @@ class FingerprintComparer:
             if not np.isnan(result):
                 value += result
 
-        strong_contour_rev_parameter = value/length
+        strong_contour_rev_parameter = value*6/maximum_similarity_measure
 
         # Weak Beat Contours + Reversals
         value = 0.0
@@ -636,9 +637,9 @@ class FingerprintComparer:
                 fraction_2 = 0 if result[1][0] == 0 else float(result[1][0])/result[1][1]
                 value += (fraction_1 + fraction_2)/2
 
-        weak_contour_rev_parameter = value/length
+        weak_contour_rev_parameter = value*2/maximum_similarity_measure
 
-        return strong_beat_parameter + weak_beat_parameter + (strong_contour_rev_parameter + weak_contour_rev_parameter)/2
+        return (strong_beat_parameter + weak_beat_parameter + strong_contour_rev_parameter + weak_contour_rev_parameter)*100*longer_length/average_length
 
     def _compare(self, fp1, fp2):
         # LM: Extract Column_1 [1:end]: Intervals (0.0, 1.0), (0.0, 2.0), ..., (0.0, end of piece)
