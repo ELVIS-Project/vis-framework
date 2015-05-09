@@ -382,6 +382,8 @@ class FingerprintComparer:
         return matched_weaks
 
     def weak_matching_helper(self, first_weaks, second_weaks):
+        if len(first_weaks) == 1 and len(second_weaks) == 1 and np.isnan(first_weaks[0]) and np.isnan(second_weaks[0]):
+                return [1.0, 1.0]
         if set(first_weaks) & set(second_weaks):
             # Choose shorter list... 
             if len(first_weaks) > len(second_weaks):
