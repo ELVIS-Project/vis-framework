@@ -571,9 +571,9 @@ class FingerprintComparer:
         # Number of Truncations
         truncations = comparison_results.loc['Number of Truncations'].iloc[0]
         # Length of shorter FP in strong beats
-        shorter_length = comparison_results.loc['Shorter FP Length'].iloc[0]
+        shorter_length = comparison_results.loc['Shorter Incipit Length'].iloc[0]
         # Length of longer FP in strong beats
-        longer_length = comparison_results.loc['Longer FP Length'].iloc[0]
+        longer_length = comparison_results.loc['Longer Incipit Length'].iloc[0]
         # Number of matching strong beats that match (after trunctations) that are in the (not truncated) first half of shorter fingerprint
         matching_strongs_first_half = len(filter(lambda x: True if not np.isnan(x[0]) and (x[1] + truncations) <= shorter_length/2 else False,
             comparison_results.loc['Strong Beat Comparison'].tolist()))
@@ -715,6 +715,8 @@ class FingerprintComparer:
             comparison_result = self._compare(fp1_truncated, fp2_truncated)
             comparison_result.loc['Shorter FP Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) < len(fp2.iloc[0])) else len(fp2.iloc[0])
             comparison_result.loc['Longer FP Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) > len(fp2.iloc[0])) else len(fp2.iloc[0])
+            comparison_result.loc['Shorter Incipit Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) < len(fp2.iloc[0])) else len(fp2.iloc[0])
+            comparison_result.loc['Longer Incipit Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) > len(fp2.iloc[0])) else len(fp2.iloc[0])
             comparison_result.loc['Number of Truncations'] = i
             
             similarity_measure = self.similarity_measure(comparison_result)
