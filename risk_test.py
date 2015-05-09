@@ -713,8 +713,6 @@ class FingerprintComparer:
                 print fp2_truncated
             
             comparison_result = self._compare(fp1_truncated, fp2_truncated)
-            comparison_result.loc['Shorter FP Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) < len(fp2.iloc[0])) else len(fp2.iloc[0])
-            comparison_result.loc['Longer FP Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) > len(fp2.iloc[0])) else len(fp2.iloc[0])
             comparison_result.loc['Shorter Incipit Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) < len(fp2.iloc[0])) else len(fp2.iloc[0])
             comparison_result.loc['Longer Incipit Length'] = len(fp1.iloc[0]) if (len(fp1.iloc[0]) > len(fp2.iloc[0])) else len(fp2.iloc[0])
             comparison_result.loc['Number of Truncations'] = i
@@ -897,13 +895,13 @@ class FingerprintBuilder:
             # Assuming no time signature change in whole piece, assign offsets to strong beats
             if time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '6/8' or time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0] == '9/8':
                 strong_beat_offsets = 1.5
-                measures = 2
+                measures = 4
             else:
                 strong_beat_offsets = 1.0
-                measures = 2
+                measures = 4
             # LM: Get total number of offsets
             numer, denom = time_sigs['metre.TimeSignatureIndexer']['0'].iloc[0].split('/')
-            # Two bars worth of offsets, ignoring anacrusis...
+            # Four bars worth of offsets, ignoring anacrusis...
             # Add an extra strong beat at end 
             total_offsets = int(numer) * measures*4.0/int(denom) + strong_beat_offsets
 
