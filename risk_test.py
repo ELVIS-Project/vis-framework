@@ -574,10 +574,21 @@ class FingerprintComparer:
         shorter_length = comparison_results.loc['Shorter Incipit Length'].iloc[0]
         # Length of longer FP in strong beats
         longer_length = comparison_results.loc['Longer Incipit Length'].iloc[0]
+        #difference between shorter FP and longer FP in strong beats
+        difference_in_lengths = longer_length - shorter_length
+        #average length of the fingerprints
+        average_length = (longer_length + shorter_length)/2
+        #midway between length of shorter fingerprint and average length 
+        short_average_length = (longer_length + shorter_length*3)/4
         # Number of matching strong beats that match (after trunctations) that are in the (not truncated) first half of shorter fingerprint
         matching_strongs_first_half = len(filter(lambda x: True if not np.isnan(x[0]) and (x[1] + truncations) <= shorter_length/2 else False,
             comparison_results.loc['Strong Beat Comparison'].tolist()))
+        # maximum value for "matching strongs first half"
+        maximum_matching_strongs_first_half = int((shorter_length+1)/2)
 
+        # Maximum possible similarity measure (all strong beats and all weak beats of the longer FP match)
+        maximum_similarity_measure = (longer_length*10) + maximum_matching_strongs_first_half*4
+        
         # Strong Beat Percentage
         matching_strongs = 0.0
         for [this_interval, fp1_index, fp2_index] in comparison_results.loc['Strong Beat Comparison'].tolist():
@@ -589,14 +600,20 @@ class FingerprintComparer:
 
         strong_beat_parameter = (matching_strongs + displaced_strongs/2)/length
         
-        # Weak Beat Percentage
-        matching_weaks = 0.0
-        for result in (comparison_results.loc['Weak Beats Comparison (Matched Strongs)'].tolist() + 
-            comparison_results.loc['Weak Beats Comparison (Mismatched Strongs)'].tolist()):
+        # Weak Beat Total
+        
+        # Weak Beat on Matched Strongs Total
+        matching_weaks_on_matched_strongs = 0.0
+        for result in (comparison_results.loc['Weak Beats Comparison (Matched Strongs)'].tolist()):
             if (isinstance(result, list)) and result[0] != 0:
-                matching_weaks += 1
+                matching_weaks_on_matched_strongs += 1
 
         weak_beat_parameter = matching_weaks/length
+        # Weak Beat on Mismatched Strongs Total
+        matching_weaks_on_mismatched_strongs = 0.0
+        for result in (comparison_results.loc['Weak Beats Comparison (Mismatched Strongs)'].tolist()):
+            if (isinstance(result, list)) and result[0] != 0:
+                matching_weaks_on_mismatched_strongs += 1
 
         # Strong Beat Contours + Reversals
         value = 0.0
