@@ -369,13 +369,13 @@ class IndexerTestBase(unittest.TestCase):
 
 class TestIndexerSinglePart(IndexerTestBase):
     def test_series_indexer(self):
-        result_uniform = indexer.series_indexer([self.in_series], verbatim_ser)
+        result_uniform = indexer.series_indexer(([self.in_series], verbatim_ser))
         # that we get a Series back when a Series is given
         self.assertIs(type(result_uniform), pandas.Series, msg='')
         # the verbatim_ser function is designed to produce exactly what is given
         self.assertSequenceEqual(list(result_uniform.index), list(self.in_series.index))
         self.assertSequenceEqual(list(result_uniform), list(self.in_series))
-        result_mixed = indexer.series_indexer([self.mixed_series], verbatim_ser)
+        result_mixed = indexer.series_indexer(([self.mixed_series], verbatim_ser))
         # that a list with two types is not filtered when it's given as a Series
         self.assertEqual(len(self.mixed_series), len(result_mixed))
         expect_mixed = ['Rest' if isinstance(elt, note.Rest) else elt.obj
