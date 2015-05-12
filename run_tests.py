@@ -103,5 +103,5 @@ THE_TESTS = (# Indexer and Subclasses
 if __name__ == '__main__':
     for each_test in THE_TESTS:
         result = TextTestRunner(verbosity=VERBOSITY, descriptions=False).run(each_test)
-        # if not result.wasSuccessful():
-        #     raise RuntimeError('Test failure')
+        if not result.wasSuccessful():
+            raise RuntimeError('Test failure')
