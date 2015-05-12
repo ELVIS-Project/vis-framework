@@ -34,6 +34,7 @@ import six
 from six.moves import range, xrange
 import pandas
 from music21 import stream, converter
+import multiprocessing as mp
 
 # def mpi_unique_offsets(streams): # No longer needed because it is never called
 #     """
@@ -98,7 +99,7 @@ def stream_indexer(part, indexer_func, types=None, index_tied=False):
 
     return pandas.Series(series_data, index=offsets)
 
-def series_indexer(parts, indexer_func):
+def series_indexer((parts, indexer_func)):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing.
@@ -329,13 +330,20 @@ class Indexer(object):
         Blocks until all voice combinations have completed.
         """
         post = []
+        jobs = []
         for each_combo in combos:
             # voices holds the music21 Part objects indicated by each_combo
             voices = [self._score[x] for x in each_combo]
             if isinstance(self._score[0], stream.Stream):
                 post.append(stream_indexer(voices, self._indexer_func, self._types, index_tied))
             else:
-                post.append(series_indexer(voices, self._indexer_func))
+                jobs.append((voices, self._indexer_func))
+                # The next line would call the series_indexer serially.
+                # post.append(series_indexer((voices, self._indexer_func)))
+        if len(jobs) > 0:
+            pool = mp.Pool(3)
+            post = pool.map(series_indexer, jobs)
+            pool.close()
         return post
 
     def make_return(self, labels, indices):
