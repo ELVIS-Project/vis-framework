@@ -77,7 +77,7 @@ class NoteRestIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the right type.
         """
         super(NoteRestIndexer, self).__init__(score, None)
-        self._types = ('GeneralNote',)
+        self._types = ('Note', 'Rest')
         self._indexer_func = indexer_func
 
     def run(self):

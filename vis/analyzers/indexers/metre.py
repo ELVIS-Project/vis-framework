@@ -95,7 +95,7 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         """
 
         super(NoteBeatStrengthIndexer, self).__init__(score, None)
-        self._types = ('GeneralNote',)
+        self._types = ('Note', 'Rest')
         self._indexer_func = beatstrength_ind_func
         self._settings = settings
 
@@ -145,7 +145,7 @@ class DurationIndexer(indexer.Indexer):
         """
 
         super(DurationIndexer, self).__init__(score, None)
-        self._types = ('GeneralNote',)
+        self._types = ('Note', 'Rest')
         self._indexer_func = duration_ind_func
 
     def run(self):
