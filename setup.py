@@ -52,11 +52,11 @@ setup(
     requires = [
         # NB: keep this in sync with vis/requirements.txt and vis/optional_requirements.txt
         # NB2: I left out the optional requirements and mock, since they aren't *required*
-        'music21 (>= 1.9.3, <2.0)',
+        'music21 (>= 2.0.3, <2.1)',
         'pandas (>=0.14.1, <0.16)',
         ],
     install_requires = [
-        'music21 >=1.9.3, <2.0',
+        'music21 >=2.0.3, <2.1',
         'pandas >=0.14.1, <0.16',
         ],
     packages = [

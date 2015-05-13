@@ -49,9 +49,11 @@ from vis.tests import bwv603_integration_tests as bwv603
 from vis.tests import test_workflow
 from vis.tests import test_workflow_integration
 from vis.tests import test_workflow_experiments
+from vis.tests import test_fermata_indexer
 
 
 THE_TESTS = (# Indexer and Subclasses
+             test_fermata_indexer.FERMATA_INDEXER_SUITE,
              test_indexer.INDEXER_INIT_SUITE,
              test_indexer.INDEXER_1_PART_SUITE,
              test_indexer.INDEXER_MULTI_EVENT_SUITE,
