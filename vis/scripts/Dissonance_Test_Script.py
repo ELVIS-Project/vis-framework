@@ -20,12 +20,11 @@ import vis
 VIS_PATH = vis.__path__[0]
 
 def main():
-    piece_path = "/Users/amor/Documents/Code/VIS/vis/tests/corpus/Kyrie.krn"
-    # piece_path = '/Users/amor/Downloads/a3_Josquin_DeTousBiens_StrettoCanonTB.xml'
-    # piece_path = "/Users/amor/Documents/Code/VIS/vis/tests/corpus/bwv603.xml"
-    # piece_path = '/Users/amor/Documents/Code/Reimenschnieder/1-026900B_.xml'
-    # piece_path = '/Users/amor/Documents/Code/VIS/vis/tests/corpus/Jos2308.mei'
-    # piece_path = '/Users/amor/Documents/Code/VIS/vis/tests/corpus/Sanctus.krn'
+    piece_path = "/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn"
+    # piece_path = "/home/amor/Code/vis-framework/vis/tests/corpus/bwv603.xml"
+    # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Reimenschnieder/1-026900B_.xml'
+    #piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos2308.mei'
+    # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Sanctus.krn'
     ind_piece = IndexedPiece(piece_path)
 
 
@@ -36,11 +35,13 @@ def main():
     horiz_setts = {'quality': False, 'simple or compound': 'compound'}
 
     actual = ind_piece.get_data([noterest.NoteRestIndexer]) #dur_indexer.run()['metre.DurationIndexer']
-
-    t0 = time.time()
+    pdb.set_trace()
 
     horiz = interval.HorizontalIntervalIndexer(actual, horiz_setts).run()
+    vert_ints = interval.IntervalIndexer(actual, setts).run()
 
+    t0 = time.time()
+    actual2 = actual.T
     # actual = ind_piece.get_data([noterest.NoteRestIndexer]) #dur_indexer.run()['metre.DurationIndexer']
     # actual = ind_piece.get_data([metre.NoteBeatStrengthIndexer]) #dur_indexer.run()['metre.DurationIndexer']
     t1 = time.time()

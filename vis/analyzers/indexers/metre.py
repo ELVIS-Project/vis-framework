@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/metre.py
 # Purpose:                Indexers for metric concerns.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,7 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-.. codeauthor::    Alexander Morgan
+.. codeauthor:: Alexander Morgan
 
 Indexers for metric concerns.
 """
@@ -34,41 +34,51 @@ Indexers for metric concerns.
 
 from music21 import note
 from vis.analyzers import indexer
-import pandas
+#import pandas # This is only needed for the measure indexer which is still experimental
 
 def beatstrength_ind_func(obj):
     """
-    The function that indexes the "beatStrength" of a whatever it's given.
+    Used internally by :class:`NoteBeatStrengthIndexer`. Convert :class:`~music21.note.Note` and
+    :class:`~music21.note.Rest` objects into a string.
 
-    :param obj: A singleton list with an object of which to find the beatStrength.
-    :type obj: list of :class:`~music21.base.Music21Object` subclasses.
+    :param obj: An 2-tuple with an object to convert. Only the first object in the iterable is
+        processed in this function.
+    :type obj: a 2-tuple containing either a :class:`music21.note.Note` or a
+        :class:`music21.note.Rest` as its first element and a list of the running results of this
+        indexer_func as the second element.
 
-    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of the inputted object.
+    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of obj[0] which is dependent on
+        the prevailing time signature.
     :rtype: float
     """
     return obj[0].beatStrength
 
 def duration_ind_func(obj):
     """
-    The function that indexes the "duration" of a whatever it's given. Returns a negative
-    value if the duration should be added on to the previous event in the part. This would
-    happen if obj is part of a tie but not the first note in that tie group.
+    The function that indexes the duration of a whatever it's given. If the note or rest is a
+    non-first element of a group of notes or rests that are tied together, it will add the duration
+    value of the non-first tied element to the previous one instead of returning a new reading to
+    be added to the list of results.
 
-    .. warning:: May return a negative value.
+    Used internally by :class:`DurationIndexer`. Convert :class:`~music21.note.Note` and
+        :class:`~music21.note.Rest` objects into a floats of their durations.
 
-    :param obj: A singleton list with an object of which to find the duration.
-    :type obj: list of :class:`~music21.base.Music21Object` subclasses.
+    :param obj: An 2-tuple with an object to analyze and a list of the running results.
+    :type obj: a 2-tuple containing either a :class:`music21.note.Note` or a
+        :class:`music21.note.Rest` as its first element and a list of the running results of this
+        indexer_func as the second element.
 
-    :returns: The :attr:`~music21.base.Music21Object.duration` of the inputted object.
-    :rtype: float
+    :returns: The :attr:`~music21.base.Music21Object.duration` of obj[0] or None if that event is
+        tied to a preceding event. In this case obj[0]'s duration is added to the last observation.
+    :rtype: float or None
     """
     if hasattr(obj[0], 'tie') and obj[0].tie is not None:
-        if obj[0].tie.type == 'start': # 'GeneralNote' object has a tie with a 'start' label
+        if obj[0].tie.type == 'start': # Note or Rest object has a tie with a 'start' label
             return obj[0].duration.quarterLength
-        else: # 'GeneralNote' object has a tie with a 'continue' or a 'stop' label
+        else: # Note or Rest object has a tie with a 'continue' or a 'stop' label
             obj[1][-1] += obj[0].duration.quarterLength
             return None
-    else: # The 'GeneralNote' object has no tie or has a tie of type None
+    else: # The Note or Rest object has no tie or has a tie of type None
         return obj[0].duration.quarterLength
 
 
@@ -83,12 +93,10 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
 
     required_score_type = 'stream.Part'
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score):
         """
         :param score: A list of the :class:`Part` objects to use for producing this index.
         :type score: list of :class:`music21.stream.Part`
-        :param settings: This indexer requires no settings so this parameter is ignored.
-        :type settings: any
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
@@ -97,7 +105,6 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         super(NoteBeatStrengthIndexer, self).__init__(score, None)
         self._types = ('Note', 'Rest')
         self._indexer_func = beatstrength_ind_func
-        self._settings = settings
 
     def run(self):
         """
@@ -124,8 +131,8 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
 
 class DurationIndexer(indexer.Indexer):
     """
-    Make an index of the :attr:`~music21.base.Music21Object.beatStrength` for all :class:`Note`
-    and :class:`Rest` objects.
+    Make an index of the :attr:`~music21.base.Music21Object.duration.quarterLength` for all
+    :class:`Note` and :class:`Rest` objects.
 
     .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
     objects rather than ``unicode`` objects.
@@ -137,8 +144,6 @@ class DurationIndexer(indexer.Indexer):
         """
         :param score: A list of the :class:`Part` objects to use for producing this index.
         :type score: list of :class:`music21.stream.Part`
-        :param settings: This indexer requires no settings so this parameter is ignored.
-        :type settings: any
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
@@ -152,8 +157,8 @@ class DurationIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        :returns: The new indices. Refer to the example below. Note that each item is a float,
-        rather than the usual basestring.
+        :returns: The new indices of the durations of each note or rest event in a score. Note that
+            each item is a float, rather than the usual basestring.
         :rtype: :class:`pandas.DataFrame`
 
         **Example:**
@@ -171,39 +176,39 @@ class DurationIndexer(indexer.Indexer):
         return self.make_return([unicode(x)[1:-1] for x in combinations], results)
 
 
-class MeasureIndexer(indexer.Indexer):
-    """
-    Make an index of the measures in a piece. Note that for simplicity, just the measures of the
-    upper-most part are indexed so it is assumed that all parts have the same number of measures.
-    Time signatures changes do not cause a problem provided that all parts change time signatures at
-    the same time and in the same way.
-    """
+#class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
+    #"""
+    #Make an index of the measures in a piece. Note that for simplicity, just the measures of the
+    #upper-most part are indexed so it is assumed that all parts have the same number of measures.
+    #Time signatures changes do not cause a problem provided that all parts change time signatures at
+    #the same time and in the same way.
+    #"""
 
-    required_score_type = 'stream.Part'
+    #required_score_type = 'stream.Part'
 
-    def __init__(self, score, settings=None):
-        """
-        :param score: :class:`Part` object to use for producing this index. It should be the highest
-            part in the score.
-        :type score: :class:`music21.stream.Part`
-        :param settings: This indexer requires no settings so this parameter is ignored.
-        :type settings: None
+    #def __init__(self, score, settings=None):
+        #"""
+        #:param score: :class:`Part` object to use for producing this index. It should be the highest
+            #part in the score.
+        #:type score: :class:`music21.stream.Part`
+        #:param settings: This indexer requires no settings so this parameter is ignored.
+        #:type settings: None
         
-        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
-        """
-        super(MeasureIndexer, self).__init__(score, None)
+        #:raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        #:raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        #"""
+        #super(MeasureIndexer, self).__init__(score, None)
 
-    def run(self):
-        measure_stream = self._score.measureTemplate()
-        measure_numbers = []
-        measure_offsets = []
-        for m in measure_stream:
-            measure_numbers.append(m.measureNumber)
-            measure_offsets.append(m.offset)
-        meas_ind = pandas.DataFrame(measure_numbers, index=measure_offsets)    
-        iterables = [['metre.MeasureIndexer'], ['Measures']]
-        meas_ind.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', ''])
+    #def run(self):
+        #measure_stream = self._score.measureTemplate()
+        #measure_numbers = []
+        #measure_offsets = []
+        #for m in measure_stream:
+            #measure_numbers.append(m.measureNumber)
+            #measure_offsets.append(m.offset)
+        #meas_ind = pandas.DataFrame(measure_numbers, index=measure_offsets)
+        #iterables = [['metre.MeasureIndexer'], ['Measures']]
+        #meas_ind.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', ''])
 
-        return meas_ind
+        #return meas_ind
 

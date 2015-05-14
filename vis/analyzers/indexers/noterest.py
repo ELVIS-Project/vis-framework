@@ -39,9 +39,11 @@ def indexer_func(obj):
     Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
     :class:`~music21.note.Rest` objects into a string.
 
-    :param obj: An iterable (nominally a :class:`~pandas.Series`) with an object to convert. Only
-        the first object in the iterable is processed.
-    :type obj: iterable of :class:`music21.note.Note` or :class:`music21.note.Rest`
+    :param obj: An 2-tuple with an object to convert. Only the first object in the iterable is
+        processed in this function.
+    :type obj: a 2-tuple containing either a :class:`music21.note.Note` or a
+        :class:`music21.note.Rest` as its first element and a list of the running results of this
+        indexer_func as the second element.
 
     :returns: If the first object in the list is a :class:`music21.note.Rest`, the string
         ``u'Rest'``; otherwise the :attr:`~music21.note.Note.nameWithOctave` attribute, which is
@@ -51,9 +53,9 @@ def indexer_func(obj):
     **Examples:**
 
     >>> from music21 import note
-    >>> indexer_func([note.Note('C4')])
+    >>> indexer_func((note.Note('C4'), []))
     u'C4'
-    >>> indexer_func([note.Rest()])
+    >>> indexer_func((note.Rest(), []))
     u'Rest'
     """
     return 'Rest' if isinstance(obj[0], note.Rest) else six.u(str(obj[0].nameWithOctave))
