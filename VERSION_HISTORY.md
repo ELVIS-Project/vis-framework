@@ -9,6 +9,8 @@ the top of the file.
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
+* 2.1.1
+    - fixed music21 dependency
 * 2.1.0
     - NoteBeatStrengthIndexer and accompanying tests
     - DurationIndexer and accompanying tests
