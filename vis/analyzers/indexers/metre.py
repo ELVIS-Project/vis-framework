@@ -32,6 +32,8 @@ Indexers for metric concerns.
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
 # pylint: disable=W0105
 
+import six
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import note
 from vis.analyzers import indexer
 #import pandas # This is only needed for the measure indexer which is still experimental
@@ -126,7 +128,7 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
 
         combinations = [[x] for x in xrange(len(self._score))]
         results = self._do_multiprocessing(combinations)
-        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+        return self.make_return([six.text_type(x)[1:-1] for x in combinations], results)
 
 
 class DurationIndexer(indexer.Indexer):
@@ -173,7 +175,7 @@ class DurationIndexer(indexer.Indexer):
 
         combinations = [[x] for x in xrange(len(self._score))]
         results = self._do_multiprocessing(combinations, True)
-        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+        return self.make_return([six.text_type(x)[1:-1] for x in combinations], results)
 
 
 #class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
