@@ -102,9 +102,6 @@ def series_indexer((parts, indexer_func)):
 
     If your :class:`Indexer` has settings, use the :func:`indexer_func` to adjust for them.
 
-    :param pipe_index: An identifier value for use by the caller. This is returned unchanged, so a
-        caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
-    :type pipe_index: object
     :param parts: A list of at least one :class:`Series` object. Every new event, or change of
         simlutaneity, will appear in the outputted index. Therefore, the new index will contain at
         least as many events as the inputted :class:`Series` with the most events. This is not a
@@ -112,11 +109,10 @@ def series_indexer((parts, indexer_func)):
     :type parts: list of :class:`pandas.Series`
     :param function indexer_func: This function transforms found events into some other string.
 
-    :returns: The ``pipe_index`` argument and the new index. The new index is a :class:`pandas.Series`
-        where every element is a string. The :class:`~pandas.core.index.Index` of the
-        :class:`Series` corresponds to the ``quarterLength`` offset of the event in the inputted
-        :class:`Stream`.
-    :rtype: 2-tuple of object and :class:`pandas.Series`
+    :returns: The new index. This is a :class:`pandas.Series` where every element is a string.
+        The :class:`~pandas.core.index.Index` of the :class:`Series` corresponds to the
+        ``quarterLength`` offset of the event in the inputted :class:`Stream`.
+    :rtype: :class:`pandas.Series`
 
     :raises: :exc:`ValueError` if there are multiple events at an offset in any of the inputted
         :class:`Series`.
