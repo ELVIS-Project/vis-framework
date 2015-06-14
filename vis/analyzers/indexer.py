@@ -95,19 +95,23 @@ def stream_indexer(part, indexer_func, types=None, index_tied=False):
 
     return pandas.Series(series_data, index=offsets)
 
-def series_indexer((parts, indexer_func)):
+def series_indexer(parts_and_indexer_func):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing.
 
     If your :class:`Indexer` has settings, use the :func:`indexer_func` to adjust for them.
 
-    :param parts: A list of at least one :class:`Series` object. Every new event, or change of
-        simlutaneity, will appear in the outputted index. Therefore, the new index will contain at
-        least as many events as the inputted :class:`Series` with the most events. This is not a
-        :class:`DataFrame`, since each part will likely have different offsets.
-    :type parts: list of :class:`pandas.Series`
-    :param function indexer_func: This function transforms found events into some other string.
+    :param parts_and_indexer_func: A 2-tuple containing the two arguments ``(parts, indexer_func)``
+        described below. This argument needs to be a tuple instead of two individual arguments
+        so that multiprocessing can work correctly.
+
+        - ``parts`` (list of :class:`pandas.Series`): A list of at least one :class:`Series` object. Every new event, or change of
+          simultaneity, will appear in the outputted index. Therefore, the new index will contain at
+          least as many events as the inputted :class:`Series` with the most events. This is not a
+          :class:`DataFrame`, since each part will likely have different offsets.
+
+        - ``indexer_func`` (function): This function transforms found events into some other string.
 
     :returns: The new index. This is a :class:`pandas.Series` where every element is a string.
         The :class:`~pandas.core.index.Index` of the :class:`Series` corresponds to the
@@ -117,6 +121,8 @@ def series_indexer((parts, indexer_func)):
     :raises: :exc:`ValueError` if there are multiple events at an offset in any of the inputted
         :class:`Series`.
     """
+    parts, indexer_func = parts_and_indexer_func
+
     # find the offsets at which things happen
     all_offsets = pandas.Index([])
     for i in xrange(0, len(parts)):
