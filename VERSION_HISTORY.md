@@ -9,6 +9,11 @@ the top of the file.
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
+* 2.1.3
+    - can turn on/off multiprocessing
+    - fixed issue with Pandas converting strings to floats (or, rather, hacked a solution)
+* 2.1.2
+    - reverted music21 requirement to pip (not git)
 * 2.1.1
     - fixed music21 dependency
 * 2.1.0
