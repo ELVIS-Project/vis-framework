@@ -229,7 +229,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     You should provide the result of :class:`~vis.analyzers.noterest.NoteRestIndexer`.
     """
 
-    possible_settings = ['horiz_attach_later']
+    possible_settings = ['horiz_attach_later', 'mp']
     """
     This setting applies to the :class:`HorizontalIntervalIndexer` *in addition to* the settings
     available from the :class:`IntervalIndexer`.
@@ -237,9 +237,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     :keyword boolean 'horiz_attach_later': If ``True``, the offset for a horizontal interval is
         the offset of the later note in the interval. The default is ``False``, which gives
         horizontal intervals the offset of the first note in the interval.
+    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
+    :type 'mp': boolean
     """
 
-    default_settings = {'horiz_attach_later': False}
+    default_settings = {'horiz_attach_later': False, 'mp': True}
 
     def __init__(self, score, settings=None):
         """
@@ -259,6 +261,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
             self._settings['horiz_attach_later'] = settings['horiz_attach_later']
         else:
             self._settings['horiz_attach_later'] = HorizontalIntervalIndexer.default_settings['horiz_attach_later']  # pylint: disable=line-too-long
+            
+        if 'mp' in settings:
+            self._settings['mp'] = settings['mp']
+        else:
+            self._settings['mp'] = IntervalIndexer.default_settings['mp']
 
     def run(self):
         """
@@ -301,5 +308,5 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # "upper voice," so ascending intervals don't get a direction.
         combinations = [[new_zero + x, x] for x in xrange(new_zero)]
 
-        results = self._do_multiprocessing(combinations)
+        results = self._do_multiprocessing(combinations, on=self._settings['mp'])
         return  self.make_return(combination_labels, results)

@@ -90,5 +90,5 @@ class AnnotationIndexer(indexer.Indexer):
         """
         # Calculate each part separately:
         combinations = [[x] for x in xrange(len(self._score))]
-        results = self._do_multiprocessing(combinations)
+        results = self._do_multiprocessing(combinations, on=self._settings['mp'])
         return self.make_return([six.u(str(x))[1:-1] for x in combinations], results)
