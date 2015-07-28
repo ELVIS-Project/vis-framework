@@ -194,7 +194,7 @@ class NGramIndexer(indexer.Indexer):
         elif things[0] in terminator:
             raise RuntimeWarning('hit a terminator')
         elif m_singles:
-            post.extend([markers[0], six.u(things[0]), markers[1]])
+            post.extend([markers[0], six.u(str(things[0])), markers[1]])
         else:
             post.append(things[0])
         return ''.join(post)
