@@ -4,11 +4,18 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
-* 2.1.0 (pending release):
+* 2.2.0 (pending release):
     - Python 3 compatibility.
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
+* 2.1.1
+    - fixed music21 dependency
+* 2.1.0
+    - NoteBeatStrengthIndexer and accompanying tests
+    - DurationIndexer and accompanying tests
+    - Rewrite of indexer.py's stream_indexer
+    - Integration of multiprocessing into series_indexer
 * 2.0.3
     - added test for fermata indexer
     - now depends on latest music21 which fixed a bug for fermatas associated with rests; music21 >= 2.0.3 < 2.1
