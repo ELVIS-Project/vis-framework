@@ -83,7 +83,7 @@ class NGramIndexer(indexer.Indexer):
 
     required_score_type = 'pandas.DataFrame'
 
-    possible_settings = ['horizontal', 'vertical', 'n', 'mark_singles', 'terminator', 'continuer']
+    possible_settings = ['horizontal', 'vertical', 'n', 'mark_singles', 'terminator', 'continuer', 'mp']
     """
     A list of possible settings for the :class:`NGramIndexer`.
 
@@ -103,9 +103,11 @@ class NGramIndexer(indexer.Indexer):
     :keyword 'continuer': When there is no "horizontal" event that corresponds to a vertical
         event, this is printed instead, to show that the previous "horizontal" event continues.
     :type 'continuer': str
+    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
+    :type 'mp': boolean
     """
 
-    default_settings = {'mark_singles': True, 'horizontal': [], 'terminator': [], 'continuer': '_'}
+    default_settings = {'mark_singles': True, 'horizontal': [], 'terminator': [], 'continuer': '_', 'mp': True}
 
     _MISSING_SETTINGS = 'NGramIndexer requires "vertical" and "n" settings'
     _N_VALUE_TOO_LOW = 'NGramIndexer requires an "n" value of at least 1'
@@ -145,6 +147,10 @@ class NGramIndexer(indexer.Indexer):
                 else NGramIndexer.default_settings['terminator'])
             self._settings['continuer'] = (settings['continuer'] if 'continuer' in settings
                 else NGramIndexer.default_settings['continuer'])
+            if 'mp' in settings:
+                self._settings['mp'] = settings['mp']
+            else:
+                self._settings['mp'] = NGramIndexer.default_settings['mp']
 
         super(NGramIndexer, self).__init__(score, None)
 

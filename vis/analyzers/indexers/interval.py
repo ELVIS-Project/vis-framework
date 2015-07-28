@@ -39,7 +39,6 @@ import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
 
-
 def real_indexer(simultaneity, simple, quality):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
@@ -130,16 +129,18 @@ class IntervalIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
-    possible_settings = ['simple or compound', 'quality']
+    possible_settings = ['simple or compound', 'quality', 'mp']
     """
     A list of possible settings for the :class:`IntervalIndexer`.
 
     :keyword str 'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``'simple'`` or ``'compound'``).
     :keyword boolean 'quality': Whether to display an interval's quality.
+    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
+    :type 'mp': boolean
     """
 
-    default_settings = {'simple or compound': 'compound', 'quality': False}
+    default_settings = {'simple or compound': 'compound', 'quality': False, 'mp': True}
     "A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
@@ -165,6 +166,10 @@ class IntervalIndexer(indexer.Indexer):
             self._settings['quality'] = settings['quality']
         else:
             self._settings['quality'] = IntervalIndexer.default_settings['quality']
+        if 'mp' in settings:
+            self._settings['mp'] = settings['mp']
+        else:
+            self._settings['mp'] = IntervalIndexer.default_settings['mp']
 
         super(IntervalIndexer, self).__init__(score, None)
 
