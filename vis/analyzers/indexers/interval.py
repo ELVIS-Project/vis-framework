@@ -215,7 +215,7 @@ class IntervalIndexer(indexer.Indexer):
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
-        results = self._do_multiprocessing(combinations)
+        results = self._do_multiprocessing(combinations, on=self._settings['mp'])
 
         # Return the results.
         return self.make_return(combination_labels, results)
