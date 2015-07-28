@@ -154,7 +154,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
     required_score_type = 'pandas.Series'
     "The :class:`FilterByOffsetIndexer` uses :class:`pandas.Series` objects."
 
-    possible_settings = ['quarterLength', 'method']
+    possible_settings = ['quarterLength', 'method', 'mp']
     """
     A ``list`` of possible settings for the :class:`FilterByOffsetIndexer`.
 
@@ -166,9 +166,11 @@ class FilterByOffsetIndexer(indexer.Indexer):
         The default is ``'ffill'``, which fills in missing indices with the previous value. This is
         useful for vertical intervals, but not for horizontal, where you should use ``None`` instead.
     :type 'method': str or None
+    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
+    :type 'mp': boolean
     """
     
-    default_settings = {'method': 'ffill'}
+    default_settings = {'method': 'ffill', 'mp': True}
 
     _ZERO_PART_ERROR = u'FilterByOffsetIndexer requires an index with at least one part.'
     _NO_QLENGTH_ERROR = u'FilterByOffsetIndexer requires a "quarterLength" setting.'
@@ -197,7 +199,11 @@ class FilterByOffsetIndexer(indexer.Indexer):
             self._settings[u'quarterLength'] = settings[u'quarterLength']
 
         self._settings['method'] = (settings['method'] if 'method' in settings else
-                                    FilterByOffsetIndexer.default_settings['method'])
+                                    FilterByOffsetIndexer.default_settings['method'])                    
+        if 'mp' in settings:
+            self._settings['mp'] = settings['mp']
+        else:
+            self._settings['mp'] = FilterByOffsetIndexer.default_settings['mp']
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []
