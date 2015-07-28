@@ -301,7 +301,7 @@ class Indexer(object):
         """
         pass
 
-    def _do_multiprocessing(self, combos, index_tied=False):
+    def _do_multiprocessing(self, combos, index_tied=False, on=True):
         """
         Parallelize the indexing of series. If the call to this function is for stream_indexer jobs,
         it will execute serially because music21 streams cannot be multiprocessed.
@@ -319,6 +319,8 @@ class Indexer(object):
             The function stored in :func:`self._indexer_func` must know how to deal with the number
             of simultaneous events it will receive.
         :type combos: list of list of integers
+        :param on: On/off switch allowing multiprocessing to be turned off if necessary.
+        :type on: Boolean, defaults to True meaning that multiprocessing will occur if possible.
 
         :returns: Analysis results.
         :rtype: list of one :class:`pandas.Series` per combo in combos.
@@ -332,17 +334,17 @@ class Indexer(object):
                 post.append(stream_indexer(voices, self._indexer_func, self._types, index_tied))
             else:
                 jobs.append((voices, self._indexer_func))
-                # The next line would call the series_indexer serially.
-                # post.append(series_indexer((voices, self._indexer_func)))
-
-        # Determine an appropriate number of cores to use.
-        tasks = len(combos)
-        if tasks < 16:
-            cores = tasks
-        else:
-            cores = 16
-
-        if len(jobs) > 0:
+                if not on and len(jobs) > 0:
+                    post.append(series_indexer((voices, self._indexer_func)))
+        
+        if on and len(jobs) > 0:
+            # Determine an appropriate number of cores to use.
+            tasks = len(combos)
+            if tasks < 16:
+                cores = tasks
+            else:
+                cores = 16
+                
             pool = mp.Pool(cores)
             post = pool.map(series_indexer, jobs)
             pool.close()
