@@ -107,7 +107,7 @@ class NGramIndexer(indexer.Indexer):
     :type 'mp': boolean
     """
 
-    default_settings = {'mark_singles': True, 'horizontal': [], 'terminator': [], 'continuer': '_', 'mp' = True}
+    default_settings = {'mark_singles': True, 'horizontal': [], 'terminator': [], 'continuer': '_', 'mp': True}
 
     _MISSING_SETTINGS = 'NGramIndexer requires "vertical" and "n" settings'
     _N_VALUE_TOO_LOW = 'NGramIndexer requires an "n" value of at least 1'
@@ -150,7 +150,7 @@ class NGramIndexer(indexer.Indexer):
             if 'mp' in settings:
                 self._settings['mp'] = settings['mp']
             else:
-                self._settings['mp'] = FilterByOffsetIndexer.default_settings['mp']
+                self._settings['mp'] = NGramIndexer.default_settings['mp']
 
         super(NGramIndexer, self).__init__(score, None)
 

@@ -74,7 +74,7 @@ class AnnotationIndexer(indexer.Indexer):
         super(AnnotationIndexer, self).__init__(score, None)
         self._indexer_func = annotation_func
         
-        if 'mp' in settings:
+        if settings is not None and 'mp' in settings:
             self._settings['mp'] = settings['mp']
         else:
             self._settings['mp'] = AnnotationIndexer.default_settings['mp']
