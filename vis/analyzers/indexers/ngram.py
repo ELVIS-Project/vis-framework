@@ -62,6 +62,10 @@ class NGramIndexer(indexer.Indexer):
          'horizontal': [('interval.HorizontalIntervalIndexer', '1')],
          'n': 3}
 
+    IMPORTANT: the data associated with the ``'horizontal'`` settings should have been generated
+    with ``'horiz_attach_later'`` set to ``True``. If not, the resulting n-grams will have their
+    "horizontal" intervals incorrectly offset.
+
     In the output, groups of "vertical" events are normally enclosed in brackets, while groups of
     "horizontal" events are enclosed in parentheses. For cases where there is only one index in a
     particular direction, you can avoid printing the brackets or parentheses by setting the
