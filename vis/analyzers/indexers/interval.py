@@ -126,20 +126,15 @@ class IntervalIndexer(indexer.Indexer):
     However, to increase your flexibility, the constructor requires only a list of :class:`Series`.
     You may also provide a :class:`DataFrame` exactly as outputted by the
     :class:`NoteRestIndexer`.
-    """
 
-    required_score_type = 'pandas.Series'
-    possible_settings = ['simple or compound', 'quality', 'mp']
-    """
-    A list of possible settings for the :class:`IntervalIndexer`.
-
+    The settings for the :class:`IntervalIndexer` are as follows:
     :keyword str 'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``'simple'`` or ``'compound'``).
     :keyword boolean 'quality': Whether to display an interval's quality.
     :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
     :type 'mp': boolean
     """
-
+    required_score_type = 'pandas.Series'
     default_settings = {'simple or compound': 'compound', 'quality': False, 'mp': True}
     "A dict of default settings for the :class:`IntervalIndexer`."
 
@@ -148,29 +143,12 @@ class IntervalIndexer(indexer.Indexer):
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece, or a list of
             :class:`Series` of the style produced by the :class:`NoteRestIndexer`.
         :type score: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
-        :param dict settings: Required and optional settings. Refer to descriptions in \
-            :const:`possible_settings`.
+        :param dict settings: Required and optional settings.
         """
-
-        if settings is None:
-            settings = {}
-
-        # Check all required settings are present in the "settings" argument
-        self._settings = {}
-        if 'simple or compound' in settings:
-            self._settings['simple or compound'] = settings['simple or compound']
-        else:
-            self._settings['simple or compound'] = \
-                IntervalIndexer.default_settings['simple or compound']  # pylint: disable=C0301
-        if 'quality' in settings:
-            self._settings['quality'] = settings['quality']
-        else:
-            self._settings['quality'] = IntervalIndexer.default_settings['quality']
-        if 'mp' in settings:
-            self._settings['mp'] = settings['mp']
-        else:
-            self._settings['mp'] = IntervalIndexer.default_settings['mp']
-
+        self._settings = IntervalIndexer.default_settings.copy()
+        if settings is not None:
+            self._settings.update(settings)
+        
         super(IntervalIndexer, self).__init__(score, None)
 
         # Which indexer function to set?
@@ -226,12 +204,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     Use :class:`music21.interval.Interval` to create an index of the horizontal (melodic) intervals
     in a single part.
 
-    You should provide the result of :class:`~vis.analyzers.noterest.NoteRestIndexer`.
-    """
+    You should provide the result of :class:`~vis.analyzers.noterest.NoteRestIndexer`. Alternatively
+    you could provide the results of the :class:'~vis.analyzers.offset.FilterByOffsetIndexer' if you
+    want to check for horizontal intervals at regular durational intervals.
 
-    possible_settings = ['horiz_attach_later', 'mp']
-    """
-    This setting applies to the :class:`HorizontalIntervalIndexer` *in addition to* the settings
+    These settings apply to the :class:`HorizontalIntervalIndexer` *in addition to* the settings
     available from the :class:`IntervalIndexer`.
 
     :keyword boolean 'horiz_attach_later': If ``True``, the offset for a horizontal interval is
@@ -249,23 +226,12 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
         :type score: list of :class:`pandas.Series`
-        :param dict settings: Required and optional settings. See descriptions in \
-            :const:`IntervalIndexer.possible_settings`.
+        :param dict settings: Required and optional settings.
         """
-        if settings is None:
-            settings = {}
-
-        super(HorizontalIntervalIndexer, self).__init__(score, settings)
-
-        if 'horiz_attach_later' in settings:
-            self._settings['horiz_attach_later'] = settings['horiz_attach_later']
-        else:
-            self._settings['horiz_attach_later'] = HorizontalIntervalIndexer.default_settings['horiz_attach_later']  # pylint: disable=line-too-long
-            
-        if 'mp' in settings:
-            self._settings['mp'] = settings['mp']
-        else:
-            self._settings['mp'] = IntervalIndexer.default_settings['mp']
+        self._settings = HorizontalIntervalIndexer.default_settings.copy()
+        if settings is not None:
+            self._settings.update(settings)
+        super(HorizontalIntervalIndexer, self).__init__(score, self._settings)
 
     def run(self):
         """
