@@ -117,6 +117,8 @@ class RBarChart(experimenter.Experimenter):
 
         self._settings = RBarChart.default_settings.copy()
         self._settings.update(settings)
+        if self._settings['nr_pieces'] is not None:
+        	self._settings['nr_pieces'] = str(self._settings['nr_pieces'])
 
         # set the path to the script
         self._r_bar_chart_path = path.join(vis.__path__[0], 'scripts', 'R_bar_chart.r')
