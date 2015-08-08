@@ -132,26 +132,11 @@ class NGramIndexer(indexer.Indexer):
         elif settings['n'] < 1:
             raise RuntimeError(NGramIndexer._N_VALUE_TOO_LOW)
         else:
-            self._settings = {}
-            self._settings['vertical'] = settings['vertical']
-            self._settings['n'] = settings['n']
-            self._settings['horizontal'] = (settings['horizontal'] if 'horizontal' in settings
-                else NGramIndexer.default_settings['horizontal'])
-            if 'mark singles' in settings:
-                self._settings['mark_singles'] = settings['mark singles']
-            elif 'mark_singles' in settings:
-                self._settings['mark_singles'] = settings['mark_singles']
-            else:
-                self._settings['mark_singles'] = NGramIndexer.default_settings['mark_singles']
-            self._settings['terminator'] = (settings['terminator'] if 'terminator' in settings
-                else NGramIndexer.default_settings['terminator'])
-            self._settings['continuer'] = (settings['continuer'] if 'continuer' in settings
-                else NGramIndexer.default_settings['continuer'])
-            if 'mp' in settings:
-                self._settings['mp'] = settings['mp']
-            else:
-                self._settings['mp'] = NGramIndexer.default_settings['mp']
-
+            self._settings = NGramIndexer.default_settings.copy()
+            self._settings.update(settings)
+        if 'mark singles' in self._settings: 
+            self._settings['mark_singles'] = self._settings.pop('mark singles')
+            
         super(NGramIndexer, self).__init__(score, None)
 
     @staticmethod
