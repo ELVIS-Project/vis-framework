@@ -111,6 +111,11 @@ class HierarchicalClusterer(experimenter.Experimenter):
                                    'ax': None,
                                    'above_threshold_color': 'b'
                                    }
+    _UNEQUAL_SERS_WEIGHTS = 'There should be the same number of types of analysis in the sers argument as there are floats in the weights argument.'
+    _INVALID_WEIGHTS = 'Each element of this tuple should be >=0 and <=1 and the sum of the elements in the weights argument should equal 1.0'
+    _INVALID_GRAPH_SETTING = ' is not a valid graph setting. Please consult our documentation for the file dendrogram.py'
+    _INVALID_DENDRO_SETTING = ' is not a valid dendrogram setting. Please see the scipy documentation for a list of valid settings: \
+                                http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html'
 
     def __init__(self, sers, weights=(1.0,), graph_settings=None, dendrogram_settings=None):
         """
@@ -144,29 +149,25 @@ class HierarchicalClusterer(experimenter.Experimenter):
             http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
         :type dendrogram_settings: Dictionary
         """
-        self._sers = sers
-        if round(sum(weights), 3) != 1.0:
-            raise RuntimeWarning('The sum of the elements in the weights argument should equal 1.0')
         if len(sers) != len(weights):
-            raise RuntimeWarning('There should be the same number of types of analysis in the sers \
-                argument as there are floats in the weights argument.')
+            raise RuntimeWarning(HierarchicalClusterer._UNEQUAL_SERS_WEIGHTS)
+        if round(sum(weights), 3) != 1 or max(weights) > 1 or min(weights) < 0:
+            raise RuntimeWarning(HierarchicalClusterer._INVALID_WEIGHTS)
+        self._sers = sers
         self._weights = weights
 
         self._graph_settings = HierarchicalClusterer.default_graph_settings.copy()
         if graph_settings is not None:
             for k in graph_settings.keys(): # Make sure the user didn't pass any erroneous settings in graph_settings.
                 if k not in HierarchicalClusterer.default_graph_settings:
-                    raise RuntimeWarning(k + ' is not a possible graph setting. Please consult our \
-                                         documentation for the file dendrogram.py')
+                    raise RuntimeWarning(k + HierarchicalClusterer._INVALID_GRAPH_SETTING)
             self._graph_settings.update(graph_settings)
 
         self._dendrogram_settings = HierarchicalClusterer.default_dendrogram_settings.copy()
         if dendrogram_settings is not None:
             for k in dendrogram_settings.keys(): # Make sure the use didn't pass any erroneous settings in dendrogram_settings.
                 if k not in HierarchicalClusterer.default_dendrogram_settings:
-                    raise RuntimeWarning(k + ' is not a possible dendrogram setting. Please see the \
-                                         scipy documentation for a list of valid settings: \
-                                         http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html')
+                    raise RuntimeWarning(k + HierarchicalClusterer._INVALID_DENDRO_SETTING)
             self._dendrogram_settings.update(dendrogram_settings)
 
         # super(HierarchicalClusterer, self).__init__(sers, (1.0,), None, None) # What would this do and why doesn't it work?
@@ -377,15 +378,6 @@ class HierarchicalClusterer(experimenter.Experimenter):
 #         self.matrix = matrix
 
 
-
-
-# query = HierClus()
-# sers = query.run_vis(pL, opera, f_setts, h_setts, v_setts, n_setts)
-# query.pair_compare(sers)
-
-
-# query.dendrogram_maker(query.matrix)
-# pdb.set_trace()
 
 
 # matrix = [38.194908723754992, 41.971036331759343, 40.454774502393484, 38.012251196774962, 34.468125960061528, 41.284686992694795, 39.847081394541263, 39.452435760076753, 41.713369963370042, 44.773058381012916, 39.110588129818993, 43.487427286255404, 43.171077659714044, 44.673507258734467, 41.144735606274203, 35.343750331498057, 41.718220211840269, 44.860157699443434, 42.676703702871414, 45.11315900021004, 41.916034333313668, 35.392825844666405, 40.822137778108136, 39.308470709728226, 39.884058842392179, 42.129784520472704, 45.202853753990063, 39.66468969398656, 37.847744450119947, 36.74332503434065, 37.018799885010793, 34.832995163877456, 33.780489809335862, 41.777478701438142, 39.732987180543532, 36.27793082338539, 38.041960811559768, 41.806033823079282, 40.266651338079853, 41.799420664805169, 46.80201056523731, 39.37950097768443, 40.622622327167754, 46.180448436150193, 48.672915888824953, 38.991350446428555, 34.547873212645925, 39.671344286514767, 36.04068047337288, 44.546588722725083, 41.07260122984114, 42.693031869610763, 41.331673472505301, 35.74298960219437, 43.88177452353505, 38.86854210367234, 42.343122413945935, 40.153502327206873, 48.182539682539598, 42.884369019418514, 40.940737833594994, 48.360126078708603, 41.279143475572077, 40.600668312499742, 43.44869387148789, 42.638547477866958]
