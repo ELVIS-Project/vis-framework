@@ -7,7 +7,7 @@
 # Filename:               vis/tests/test_barchart.py
 # Purpose:                Tests for the "barchart" experimenter module.
 #
-# Copyright (C) 2014 Alexander Morgan
+# Copyright (C) 2015 Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
