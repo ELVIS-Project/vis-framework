@@ -29,7 +29,6 @@ import vis
 from vis.analyzers import experimenter
 import matplotlib.pyplot as plt
 from scipy.cluster.hierarchy import dendrogram, linkage
-import pdb
 
 class HierarchicalClusterer(experimenter.Experimenter):
     """
@@ -48,10 +47,16 @@ class HierarchicalClusterer(experimenter.Experimenter):
     the 'dendrogram_settings' get passed verbatim to the scipy function dendrogram(). For
     information about how these settings influence the dendrogram please see:
     http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
+    Note that if graph_settings['interactive_dendrogram'] == False and
+    graph_settings['filename_and_type'] is None dendrogram_setting['no_plot'] will automatically be
+    set to True. If neither of those two conditions obtain, dendrogram_settings['no_plot'] will
+    automatically be set to False.
+
     The 'graph_settings' consist of all other necessary settings to do cluster analysis and to
     produce a dendrogram. Each setting does the following:
 
-    :param label_connections: if true display the percent dissimilarity of each dendrogram connection
+    :param label_connections: if True, display the percent dissimilarity of each dendrogram
+        connection.
     :type label_connections: boolean, defaults to True
     :param connection_string: controls the appearance of the label_connections if they are activated.
         The first character sets the color from this choice of eight colors:
@@ -74,10 +79,28 @@ class HierarchicalClusterer(experimenter.Experimenter):
     :type ylabel: string
     :param title: assings string to dendrogram title. If you want no title, pass an empty string.
     :type title: string
+    :param interactive_dendrogram: controls whether or no to produce a matplotlib interactive
+        dendrogram. This is similar to the dendrogram_settings['no_plot'] setting but because of the
+        added rendering in the form of axis labels, label connection annotations, etc. this switch
+        is also necessary. If you don't want to produce an interactive dendrogram set this to False.
+        The matplotlib dendrogram window is "interactive" in that you can zoom in and alter other
+        aspects of the graph unlike the .pdf and .png formats which are immutable.
+    :type interactive_dendrogram: boolean
     :param filename_and_type: set this to a filename ending in .pdf or .png if you want to save a
-        pdf or a png of the dendrogram.
-    :type filename_and_type: None will not save a file. Otherwise a string with the filename followed
-        by either .pdf or .png.
+        pdf or a png of the dendrogram. If you don't add either type but do include a filename, the
+        default type is .png.
+    :type filename_and_type: None will not save a file. Otherwise a string with the filename
+        followed by either .pdf or .png.
+    :param return_data: Return just the data of the connections. If you don't want to spend time
+        rendering the dendrogram too then you should set graph_settings['label_connections']: False,
+        graph_settings['interactive_dendrogram']: False, and graph_settings['filename_and_type']:
+        None. Setting interactive_dendrogram to False and filename_and_type to None will
+        automatically set dendrogram_settings['no_plot']:True. The settings return_data,
+        interactive_dendrogram, and filename_and_type are all kept separate so that the user can
+        theoretically produce an interactive dendrogram, a static file, and return the data of the
+        output as well, though I can't imagine that anyone would actually want to do all three at
+        the same time. Any combination of the three outputs is also possible.
+    :type return_data: boolean
     """
     default_graph_settings = {
                               'label_connections': True,
@@ -86,7 +109,9 @@ class HierarchicalClusterer(experimenter.Experimenter):
                               'xlabel': 'Analyses',
                               'ylabel': 'Percent Dissimilarity',
                               'title': '',
-                              'filename_and_type': None # .pdf and .png are the only possible formats
+                              'interactive_dendrogram': True,
+                              'filename_and_type': None, # .pdf and .png (default) are the only possible formats
+                              'return_data': False
                               }
 
     default_dendrogram_settings = {
@@ -111,7 +136,9 @@ class HierarchicalClusterer(experimenter.Experimenter):
                                    'ax': None,
                                    'above_threshold_color': 'b'
                                    }
+
     _UNEQUAL_SERS_WEIGHTS = 'There should be the same number of types of analysis in the sers argument as there are floats in the weights argument.'
+    _UNEQUAL_ANALYSES = 'All internal lists in sers must be of the same length, i.e. include the same pieces in each analysis metric.'
     _INVALID_WEIGHTS = 'Each element of this tuple should be >=0 and <=1 and the sum of the elements in the weights argument should equal 1.0'
     _INVALID_GRAPH_SETTING = ' is not a valid graph setting. Please consult our documentation for the file dendrogram.py'
     _INVALID_DENDRO_SETTING = ' is not a valid dendrogram setting. Please see the scipy documentation for a list of valid settings: \
@@ -151,6 +178,10 @@ class HierarchicalClusterer(experimenter.Experimenter):
         """
         if len(sers) != len(weights):
             raise RuntimeWarning(HierarchicalClusterer._UNEQUAL_SERS_WEIGHTS)
+        if len(sers) > 1:
+            for lyst in sers[1:]:
+                if len(lyst) != len(sers[0]):
+                    raise RuntimeWarning(HierarchicalClusterer._UNEQUAL_ANALYSES)
         if round(sum(weights), 3) != 1 or max(weights) > 1 or min(weights) < 0:
             raise RuntimeWarning(HierarchicalClusterer._INVALID_WEIGHTS)
         self._sers = sers
@@ -169,6 +200,11 @@ class HierarchicalClusterer(experimenter.Experimenter):
                 if k not in HierarchicalClusterer.default_dendrogram_settings:
                     raise RuntimeWarning(k + HierarchicalClusterer._INVALID_DENDRO_SETTING)
             self._dendrogram_settings.update(dendrogram_settings)
+        # Don't spend time rendering the graph if you're not going to produce visual output.
+        if not self._graph_settings['interactive_dendrogram'] and self._graph_settings['filename_and_type'] is None:
+            self._dendrogram_settings['no_plot'] = True
+        else:
+            self._dendrogram_settings['no_plot'] = False
 
         # super(HierarchicalClusterer, self).__init__(sers, (1.0,), None, None) # What would this do and why doesn't it work?
     
@@ -210,27 +246,39 @@ class HierarchicalClusterer(experimenter.Experimenter):
                     c_total = float(sum(combined))
                     percA = a_total/c_total # out of 1, not out of 100
                     percB = b_total/c_total
-                    dissimilarity = 100.0
-                    for n in combined.index: # Each n is the name of an n-grams
-                        a_ideal = combined.at[n] * percA
-                        b_ideal = combined.at[n] * percB
+                    dissimilarity = 1 # pieces start 100% dissimilary, but out of 1, not 100
+                    for l, n in enumerate(combined.index):
+                        # "Ideal" values are what each observation would be if the proportion of the
+                        # each piece total out of c_total obtained perfectly and uniformly at each
+                        # observation.
+                        a_ideal = combined.iat[l] * percA
+                        b_ideal = combined.iat[l] * percB
                         a_val, b_val = 0, 0
                         if n in ser1.index:
                             a_val = ser1.at[n]
                         if n in ser2.index:
                             b_val = ser2.at[n]
-                        a_acc = 1 - abs(a_val - a_ideal)/combined.at[n]
-                        b_acc = 1 - abs(b_val - b_ideal)/combined.at[n]
-                        n_perc = combined.at[n]/c_total
-                        dissimilarity -= a_acc * b_acc * n_perc * 100
-                    matrix[position] += dissimilarity * self._weights[i]
-                    position += 1
+
+                        a_tup = (a_ideal, a_val)
+                        b_tup = (b_ideal, b_val)
+                        # Determine the accuracy of the sers1 and sers2 values at index=n
+                        a_acc = min(a_tup)/max(a_tup)
+                        b_acc = min(b_tup)/max(b_tup)
+
+                        n_perc = combined.iat[l]/c_total
+                        dissimilarity -= a_acc * b_acc * n_perc # percent out of 1, not 100
+
+                    matrix[position] += dissimilarity * self._weights[i] * 100 # apply the weight assigned to this analysis metric and make percent out of 100
+                    position += 1 # keep track of which pair comparison we're going to next in case we need to come back for another metric
+
         return matrix
 
     def run(self):
         """
-        Used to execute the pair_comparison() analysis and draw a dendrogram to visualize the results.
-        :returns: A dendrogram in the form of an interactive pylab window, or saved as a pdf or a png.
+        Used to execute the pair_compare() analysis and render a dendrogram to visualize the
+        results and/or return the data used to produce the dendrogram.
+        :returns: A dendrogram in the form of an interactive pylab window, and/or saved as a pdf or
+        a png, and/or the data used to produce the dendrogram.
         """
         if self._dendrogram_settings['labels'] is None: # If the user hasn't provided labels, generate number strings starting from 1.
             self._dendrogram_settings['labels'] = []
@@ -238,147 +286,31 @@ class HierarchicalClusterer(experimenter.Experimenter):
                 self._dendrogram_settings['labels'].append(str(x+1))
         # linkage() organizes the dissimilarity matrix into a plotable structure.
         linkage_matrix = linkage(self.pair_compare(), self._graph_settings['linkage_type'])
-        # 'Dendrogram' will be the name of the window if self._dendrogram_settings['no_plot']==False
+        # 'Dendrogram' will be the name of the window if self._graph_settings['interactive_dendrogram'] == True
         plt.figure('Dendrogram') 
-
+        # d_data is the main data of the dendrogram hierarchized but not yet rendered for visual output.
         d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
-        if self._graph_settings['label_connections']: # Add connection annotations if the user asked for them
-            for i, d in zip(d_data['icoord'], d_data['dcoord']):
-                x = 0.5 * sum(i[1:3])
-                y = d[1]
-                plt.plot(x, y, self._graph_settings['connection_string'])
-                plt.annotate("%.3g" % y, (x, y), xytext=(0, -8),
-                             textcoords='offset points',
-                             va='top', ha='center')
-
-        # Apply labels. If you want to omit a label, pass an empty string ''.
-        plt.xlabel(self._graph_settings['xlabel'])
-        plt.ylabel(self._graph_settings['ylabel'])
-        plt.title(self._graph_settings['title'])
-
-        if self._graph_settings['filename_and_type'] is not None:
-            plt.savefig(self._graph_settings['filename_and_type'])
-
+        # Only do this rendering if the user has asked for visual output of some kind.
         if not self._dendrogram_settings['no_plot']:
-            plt.show()
-
-
-
-# import os
-# import pandas as pd
-# from vis.models.indexed_piece import IndexedPiece
-# from vis.analyzers.indexers import interval, dissonance, metre, noterest, ngram, offset
-# from vis.analyzers.experimenters import frequency
-# from numpy import nan, isnan, array
-# import numpy
-# import six
-# from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
-# import time
-# import pdb
-# from music21 import converter, stream, expressions, note
-# import array
-# from vis.analyzers.indexers.noterest import indexer_func as nr_ind_func
-# import multiprocessing as mp
-# import matplotlib.pyplot as plt
-# from scipy.cluster.hierarchy import dendrogram, linkage
-
-# # get the path to the 'vis' directory
-# import vis
-# VIS_PATH = vis.__path__[0]
-
-# pL = [
-#         'Lassus_Duets/Lassus_1_Beatus_Vir.xml',        # Lassus Duos
-#         'Lassus_Duets/Lassus_2_Beatus_Homo.xml',
-#         'Lassus_Duets/Lassus_3_Oculus.xml',
-#         'Lassus_Duets/Lassus_4_justus.xml',
-#         'Lassus_Duets/Lassus_5_Expectatio.xml',
-#         'Lassus_Duets/Lassus_6_Qui_Sequitur_Me.xml',
-#         'Lassus_Duets/Lassus_7_Justi.xml',
-#         'Lassus_Duets/Lassus_8_Sancti_mei.xml',
-#         'Lassus_Duets/Lassus_9_Qui_Vult.xml',
-#         'Lassus_Duets/Lassus_10_Serve_bone.xml',
-#         'Lassus_Duets/Lassus_11_Fulgebunt_justi.xml',
-#         'Lassus_Duets/Lassus_12_Sicut_Rosa.xml',
-
-#         # 'Morley_Duets/1 Goe yee my canzonets.xml',      # Morley Duos
-#         # 'Morley_Duets/2 When loe by break of morning.xml',
-#         # 'Morley_Duets/3 Sweet nymph.xml',
-#         # 'Morley_Duets/5 I goe before my darling.xml',
-#         # 'Morley_Duets/6 La Girandola.xml',
-#         # 'Morley_Duets/7 Miraculous loves wounding.xml',
-#         # 'Morley_Duets/8 Lo heere another love.xml',
-#         # 'Morley_Duets/11 Fyre and Lightning.xml',
-#         # 'Morley_Duets/13 Flora wilt thou torment mee.xml',
-#         # 'Morley_Duets/15 In nets of golden wyers.xml',
-#         # 'Morley_Duets/17 O thou that art so cruell.xml',
-#         # 'Morley_Duets/19 I should for griefe and anguish.xml',
-
-#         # 'Josquin_Duets/Agnus Dei.xml',                  # Josquin Duos
-#         # 'Josquin_Duets/Crucifixus.xml',
-#         # 'Josquin_Duets/Et incarnatus est.xml',
-#         # 'Josquin_Duets/Missa_Ad_Fugam_Sanctus_version_2_Benedictus.xml',
-#         # 'Josquin_Duets/Missa_Ad_fugam_Sanctus_version_2_Pleni.xml',
-#         # 'Josquin_Duets/Missa_Ad_fugam_Sanctus_version_2_Qui_venit.xml',
-#         # 'Josquin_Duets/Missa_Allez_regretz_I_Sanctus_Pleni.xml',
-#         # 'Josquin_Duets/Missa_Ave_maris_stella_Sanctus_Benedictus.xml',
-#         # 'Josquin_Duets/Missa_Ave_maris_stella_Sanctus_Qui_venit.xml',
-#         # 'Josquin_Duets/Missa_Pange_lingua_Sanctus_Benedictus.xml',
-#         # 'Josquin_Duets/Missa_Pange_lingua_Sanctus_Pleni_sunt_celi.xml',
-#         # 'Josquin_Duets/Qui edunt me.xml'
-#         ]
-
-
-
-# opera = float(len(pL))
-# f_setts = {'quarterLength': 2.0, 'method':'ffill'}
-# v_setts = {'quality': False, 'simple or compound': 'simple'}
-# h_setts = {'quality': False, 'horiz_attach_later': True, 'simple or compound': 'compound'}
-# n_setts = {'n': 2, 'horizontal': [('interval.HorizontalIntervalIndexer', '1')],
-#             'vertical': [('interval.IntervalIndexer', '0,1')], 'mark_singles': False}
-
-
-
-
-
-#     def pair_compare(self, sers):
-#         t1 = time.time()
-#         # pair_comparisons = {}
-#         matrix = []
-#         numPieces = len(sers)
-#         comparisons = numPieces*(numPieces-1)/2.0
-#         count = 0
-#         for j, ser1 in enumerate(sers[:-1]):
-#             for k, ser2 in enumerate(sers[j+1:]):
-#                 combined = ser1.add(ser2, fill_value=0)
-#                 a_total = sum(ser1)
-#                 b_total = sum(ser2)
-#                 c_total = float(sum(combined))
-#                 percA = a_total/c_total # out of 1, not out of 100
-#                 percB = b_total/c_total
-#                 similarity = 0.0
-#                 count += 1
-#                 for n in combined.index: # Each n is the name of an n-grams
-#                     a_ideal = combined.at[n] * percA
-#                     b_ideal = combined.at[n] * percB
-#                     a_val, b_val = 0, 0
-#                     if n in ser1.index:
-#                         a_val += ser1.at[n]
-#                     if n in ser2.index:
-#                         b_val += ser2.at[n]
-#                     a_acc = 1 - abs(a_val - a_ideal)/combined.at[n]
-#                     b_acc = 1 - abs(b_val - b_ideal)/combined.at[n]
-#                     n_perc = combined.at[n]/c_total
-#                     similarity += a_acc * b_acc * n_perc * 100
-#                 # pair_comparisons[','.join((str(j+1), str(j+k+2)))] = 100 - similarity
-#                 matrix.append(100 - similarity)
-#             print '%d percent done with n-gram profile comparisons' % (count/comparisons*100)
-#         t2 = time.time()
-#         print 'Pair Comparisons took %f seconds.' % round((t2-t1), 2)
-#         # self.pair_comparisons = pair_comparisons
-#         self.matrix = matrix
-
-
-
-
-# matrix = [38.194908723754992, 41.971036331759343, 40.454774502393484, 38.012251196774962, 34.468125960061528, 41.284686992694795, 39.847081394541263, 39.452435760076753, 41.713369963370042, 44.773058381012916, 39.110588129818993, 43.487427286255404, 43.171077659714044, 44.673507258734467, 41.144735606274203, 35.343750331498057, 41.718220211840269, 44.860157699443434, 42.676703702871414, 45.11315900021004, 41.916034333313668, 35.392825844666405, 40.822137778108136, 39.308470709728226, 39.884058842392179, 42.129784520472704, 45.202853753990063, 39.66468969398656, 37.847744450119947, 36.74332503434065, 37.018799885010793, 34.832995163877456, 33.780489809335862, 41.777478701438142, 39.732987180543532, 36.27793082338539, 38.041960811559768, 41.806033823079282, 40.266651338079853, 41.799420664805169, 46.80201056523731, 39.37950097768443, 40.622622327167754, 46.180448436150193, 48.672915888824953, 38.991350446428555, 34.547873212645925, 39.671344286514767, 36.04068047337288, 44.546588722725083, 41.07260122984114, 42.693031869610763, 41.331673472505301, 35.74298960219437, 43.88177452353505, 38.86854210367234, 42.343122413945935, 40.153502327206873, 48.182539682539598, 42.884369019418514, 40.940737833594994, 48.360126078708603, 41.279143475572077, 40.600668312499742, 43.44869387148789, 42.638547477866958]
-# Lassus_titles = ['1: Beatus Vir', '2: Beatus Homo', '3: Oculus', '4: Justus', '5: Expectatio', '6: Qui sequitur me', '7: Justi', '8: Sancti mei', '9: Qui vult', '10: Serve bone', '11: Fulgebunt justi', '12: Sicut Rosa']
+            # Add connection annotations if the user asked for them
+            if self._graph_settings['label_connections']:
+                for i, d in zip(d_data['icoord'], d_data['dcoord']):
+                    x = 0.5 * sum(i[1:3])
+                    y = d[1]
+                    plt.plot(x, y, self._graph_settings['connection_string'])
+                    plt.annotate("%.3g" % y, (x, y), xytext=(0, -8),
+                                 textcoords='offset points',
+                                 va='top', ha='center')
+            # Apply labels. If you want to omit a label, pass an empty string ''.
+            plt.xlabel(self._graph_settings['xlabel'])
+            plt.ylabel(self._graph_settings['ylabel'])
+            plt.title(self._graph_settings['title'])
+            # If the user provided a filepath, export as a .png (default) or .pdf.
+            if self._graph_settings['filename_and_type'] is not None:
+                plt.savefig(self._graph_settings['filename_and_type'])
+            # If the user wants an interactive matplotlib dendrogram, make it.
+            if self._graph_settings['interactive_dendrogram']:
+                plt.show()
+        # If the user wants the data, return that. NB: this is not so common but useful for testing.
+        if self._graph_settings['return_data']:
+            return d_data
