@@ -378,23 +378,14 @@ class Indexer(object):
         my_mod = six.u(str(self.__module__))[six.u(str(self.__module__)).rfind('.') + 1:]
         my_class = six.u(str(self.__class__))[six.u(str(self.__class__)).rfind('.'):-2]
         my_name = my_mod + my_class
-        # make the MultiIndex and its labels
+        
+        # the levels argument is necessary below even though it just gets written over by the 
+        # multi_index because it ensures that even empty series will be included in the dataframe.
+        ret = pandas.concat(indices, levels=labels, axis=1)
+        # Apply the multi_index as the column labels.
+        iterables = (my_name, labels)
+        multi_index = pandas.MultiIndex.from_product(iterables, names = ('Indexer', 'Parts'))
+        ret.columns = multi_index
 
-        tuples = [(my_name, labels[i]) for i in xrange(len(labels))]
-        multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Indexer', 'Parts'])
-        # foist our MultiIndex onto the new results
-        return pandas.DataFrame(indices, index=multiindex).T
-
-        ##This is a simpler and much faster way to construct dataframes and produces the right
-        ##results but for some reason doesn't pass all the tests.
-        #tuples = (my_name, labels)
-        #multi_index = pandas.MultiIndex.from_product(tuples, names = ('Indexer', 'Parts'))
-        #ret = pandas.concat(indices, axis=1)
-        #ret.columns = multi_index # Apply the multi_index as the column labels.
-        #return ret
-
-
-
-
-
+        return ret
 
