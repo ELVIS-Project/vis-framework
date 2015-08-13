@@ -4,11 +4,11 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 * 2.3.0 (pending release):
-    - Python 3 compatibility.
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
 * 2.2.0:
+    - Python 3 compatibility.
     - New: hierarchical clustering and dengrogram graphical output with dendrogram.py
     - Refactoring/rewrite: update make_return() method in indexer.py to greatly enhance performance when creating dataframes. Uses pandas.concat() instead of pandas.DataFrame()
     - Refactoring: simplified the way several indexers and experimenters internally set their settings to make their init methods easier to read. Uses .update() instead of making piecemeal changes.
