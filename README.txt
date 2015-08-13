@@ -7,6 +7,7 @@ The VIS Framework for Music Analysis
 [![Coverage Status](https://img.shields.io/coveralls/ELVIS-Project/vis.svg)](https://coveralls.io/r/ELVIS-Project/vis-framework)
 [![Latest Version](https://pypip.in/version/vis-framework/badge.svg?text=version)](https://pypi.python.org/pypi/vis-framework/)
 [![License](https://pypip.in/license/vis-framework/badge.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
+[![Latest Version](https://pypip.in/version/vis-framework/badge.svg)](https://pypi.python.org/pypi/vis-framework/)
 
 The VIS Framework is a Python package that uses the music21 and pandas libraries to build a ridiculously flexible and preposterously easy system for writing computer music analysis programs.
 
