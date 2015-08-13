@@ -23,9 +23,8 @@ The VIS Framework uses many software libraries to help with analysis. These are 
 - Python 2.7
 - music21
 - pandas
-- mock (for testing)
-- coverage (for testing)
-- python-coveralls (to for automated coverage with coveralls.io)
+- matplotlib (plotting)
+- scipy (plotting)
 
 These are recommended dependencies:
 
@@ -33,6 +32,9 @@ These are recommended dependencies:
 - Bottleneck (improved performance for pandas)
 - tables (HDF5 output for pandas)
 - openpyxl (Excel output for pandas)
+- mock (for testing)
+- coverage (for testing)
+- python-coveralls (to for automated coverage with coveralls.io)
 
 Citation
 ========

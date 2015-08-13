@@ -2,11 +2,22 @@
 # Improved performance for pandas
 numexpr>=2.2.2
 Bottleneck>=0.7.0
+
 # Required for "tables"
 # cython>=0.19
 # Additional output formats for pandas (HDF5 and Excel)
 # NB: commented "tables" until we actually use HDF5
 # tables>=3.0.0
 openpyxl>=1.6.2
+
 # Static analysis to make sure we don't make a hugebig mess.
 pylint
+
+# Plotting tools
+scipy >= 0.16.0, < 1.0.0
+matplotlib >= 1.4.3, < 2.0.0
+
+# For testing, coverage, stuff like that.
+mock>=1.0.1
+coverage
+python-coveralls
