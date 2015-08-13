@@ -195,15 +195,9 @@ class FilterByOffsetIndexer(indexer.Indexer):
             raise RuntimeError(FilterByOffsetIndexer._NO_QLENGTH_ERROR)
         elif settings[u'quarterLength'] < 0.001:
             raise RuntimeError(FilterByOffsetIndexer._QLENGTH_TOO_SMALL_ERROR)
-        else:
-            self._settings[u'quarterLength'] = settings[u'quarterLength']
-
-        self._settings['method'] = (settings['method'] if 'method' in settings else
-                                    FilterByOffsetIndexer.default_settings['method'])                    
-        if 'mp' in settings:
-            self._settings['mp'] = settings['mp']
-        else:
-            self._settings['mp'] = FilterByOffsetIndexer.default_settings['mp']
+        
+        self._settings = FilterByOffsetIndexer.default_settings.copy()
+        self._settings.update(settings)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []
