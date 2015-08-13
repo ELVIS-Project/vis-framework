@@ -20,7 +20,7 @@ before_install:
 #            - gfortran
 
 # The 'travis_wait' causes a log output every so often. We use this so the build doesn't timeout (because of scipy).
-install: pip install -r vis/travis_requirements.txt
+install: travis_wait pip install -r vis/travis_requirements.txt
 
 script:  coverage run run_tests.py
 
