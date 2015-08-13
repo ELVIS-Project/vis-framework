@@ -4,7 +4,6 @@ The VIS Framework
 The VIS Framework for Music Analysis
 
 [![Build Status](https://travis-ci.org/ELVIS-Project/vis-framework.svg?branch=master)](https://travis-ci.org/ELVIS-Project/vis-framework)
-[![Coverage Status](https://coveralls.io/repos/ELVIS-Project/vis/badge.svg?branch=master&service=github)](https://coveralls.io/github/ELVIS-Project/vis?branch=master)
 [![Latest Version](https://img.shields.io/pypi/v/vis-framework.svg)](https://pypi.python.org/pypi/vis-framework/)
 [![License](https://img.shields.io/badge/license-AGPL%203.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
 
