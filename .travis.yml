@@ -9,7 +9,7 @@ virtualenv:
   system_site_packages: true
 
 before_install:
- - sudo apt-get install -qq liblapack-dev gfortran
+ - sudo apt-get install -qq python-scipy
 
 install: pip install -r vis/travis_requirements.txt
 
