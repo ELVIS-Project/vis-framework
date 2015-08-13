@@ -5,6 +5,12 @@ python:
   - "2.7"
   - "3.4"
 
+virtualenv:
+  system_site_packages: true
+
+before_install:
+ - sudo apt-get install -qq python-numpy python-scipy
+
 install: pip install -r vis/travis_requirements.txt
 
 script:  coverage run run_tests.py
