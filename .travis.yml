@@ -1,7 +1,11 @@
 # Configuration File for Travis-CI
 sudo: false
 
-addons: {apt: { packages: liblapack-dev gfortran } }
+addons:
+ apt:
+  packages:
+   - liblapack-dev
+   - gfortran
 
 language: python
 python:
