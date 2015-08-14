@@ -1,29 +1,14 @@
 # Configuration File for Travis-CI
 sudo: false
-
 addons:
  apt:
   packages:
    - liblapack-dev
    - gfortran
-
 language: python
 python:
   - "2.7"
   - "3.4"
-
-# We need a virtualenv so we can install some stuff beforehand...
-#virtualenv:
-#  system_site_packages: true
-
-# This is what we need to install...
-#before_install:
-# - sudo apt-get install -qq liblapack-dev gfortran
-
-
-# The 'travis_wait' causes a log output every so often. We use this so the build doesn't timeout (because of scipy).
 install: pip install -r vis/travis_requirements.txt
-
 script:  coverage run run_tests.py
-
 after_success: coveralls
