@@ -1,5 +1,8 @@
 # Configuration File for Travis-CI
 sudo: false
+
+addons: {apt: { packages: g++-4.8 clang++-3.6 zlib1g zlib1g-dev } }
+
 language: python
 python:
   - "2.7"
@@ -13,7 +16,6 @@ python:
 #before_install:
 # - sudo apt-get install -qq liblapack-dev gfortran
 
-addons: {apt: { packages: liblapack-dev gfortran } }
 
 # The 'travis_wait' causes a log output every so often. We use this so the build doesn't timeout (because of scipy).
 install: pip install -r vis/travis_requirements.txt
