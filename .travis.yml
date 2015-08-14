@@ -9,6 +9,6 @@ language: python
 python:
   - "2.7"
   - "3.4"
-install: pip install -r vis/travis_requirements.txt
+install: travis_wait pip install -r vis/travis_requirements.txt
 script:  coverage run run_tests.py
 after_success: coveralls
