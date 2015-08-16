@@ -53,11 +53,11 @@ setup(
         # NB: keep this in sync with vis/requirements.txt and vis/optional_requirements.txt
         # NB2: I left out the optional requirements and mock, since they aren't *required*
         'music21 (>=2.0.3, <2.1)',
-        'pandas (>=0.14.1, <0.16)',
+        'pandas (>=0.14.1, <0.17)',
         ],
     install_requires = [
         'music21 >= 2.0.3, <2.1',
-        'pandas >=0.14.1, <0.16',
+        'pandas >=0.14.1, <0.17',
         ],
     dependency_links = [
         # music21 2.0.3 has not been released to PyPl yet (2015-05-20).
