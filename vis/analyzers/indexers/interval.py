@@ -39,7 +39,6 @@ import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
 
-
 def real_indexer(simultaneity, simple, quality):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
@@ -130,16 +129,18 @@ class IntervalIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.Series'
-    possible_settings = ['simple or compound', 'quality']
+    possible_settings = ['simple or compound', 'quality', 'mp']
     """
     A list of possible settings for the :class:`IntervalIndexer`.
 
     :keyword str 'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``'simple'`` or ``'compound'``).
     :keyword boolean 'quality': Whether to display an interval's quality.
+    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
+    :type 'mp': boolean
     """
 
-    default_settings = {'simple or compound': 'compound', 'quality': False}
+    default_settings = {'simple or compound': 'compound', 'quality': False, 'mp': True}
     "A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
@@ -165,6 +166,10 @@ class IntervalIndexer(indexer.Indexer):
             self._settings['quality'] = settings['quality']
         else:
             self._settings['quality'] = IntervalIndexer.default_settings['quality']
+        if 'mp' in settings:
+            self._settings['mp'] = settings['mp']
+        else:
+            self._settings['mp'] = IntervalIndexer.default_settings['mp']
 
         super(IntervalIndexer, self).__init__(score, None)
 
@@ -210,7 +215,7 @@ class IntervalIndexer(indexer.Indexer):
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
-        results = self._do_multiprocessing(combinations)
+        results = self._do_multiprocessing(combinations, on=self._settings['mp'])
 
         # Return the results.
         return self.make_return(combination_labels, results)
@@ -224,7 +229,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     You should provide the result of :class:`~vis.analyzers.noterest.NoteRestIndexer`.
     """
 
-    possible_settings = ['horiz_attach_later']
+    possible_settings = ['horiz_attach_later', 'mp']
     """
     This setting applies to the :class:`HorizontalIntervalIndexer` *in addition to* the settings
     available from the :class:`IntervalIndexer`.
@@ -232,9 +237,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     :keyword boolean 'horiz_attach_later': If ``True``, the offset for a horizontal interval is
         the offset of the later note in the interval. The default is ``False``, which gives
         horizontal intervals the offset of the first note in the interval.
+    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
+    :type 'mp': boolean
     """
 
-    default_settings = {'horiz_attach_later': False}
+    default_settings = {'horiz_attach_later': False, 'mp': True}
 
     def __init__(self, score, settings=None):
         """
@@ -254,6 +261,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
             self._settings['horiz_attach_later'] = settings['horiz_attach_later']
         else:
             self._settings['horiz_attach_later'] = HorizontalIntervalIndexer.default_settings['horiz_attach_later']  # pylint: disable=line-too-long
+            
+        if 'mp' in settings:
+            self._settings['mp'] = settings['mp']
+        else:
+            self._settings['mp'] = IntervalIndexer.default_settings['mp']
 
     def run(self):
         """
@@ -296,5 +308,5 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # "upper voice," so ascending intervals don't get a direction.
         combinations = [[new_zero + x, x] for x in xrange(new_zero)]
 
-        results = self._do_multiprocessing(combinations)
+        results = self._do_multiprocessing(combinations, on=self._settings['mp'])
         return  self.make_return(combination_labels, results)

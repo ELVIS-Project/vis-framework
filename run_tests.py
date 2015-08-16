@@ -31,6 +31,8 @@ VERBOSITY = 0
 from unittest import TextTestRunner
 
 from vis.tests import test_indexer
+from vis.tests import test_duration_indexer
+from vis.tests import test_note_beat_strength_indexer
 from vis.tests import test_note_rest_indexer
 from vis.tests import test_ngram
 from vis.tests import test_repeat
@@ -47,14 +49,18 @@ from vis.tests import bwv603_integration_tests as bwv603
 from vis.tests import test_workflow
 from vis.tests import test_workflow_integration
 from vis.tests import test_workflow_experiments
+from vis.tests import test_fermata_indexer
 
 
 THE_TESTS = (# Indexer and Subclasses
+             test_fermata_indexer.FERMATA_INDEXER_SUITE,
              test_indexer.INDEXER_INIT_SUITE,
              test_indexer.INDEXER_1_PART_SUITE,
              test_indexer.INDEXER_MULTI_EVENT_SUITE,
-             test_indexer.UNIQUE_OFFSETS_SUITE,
+             # test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
+             test_duration_indexer.DURATION_INDEXER_SUITE,
+             test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE,
              test_interval_indexer.INT_IND_INDEXER_SUITE,

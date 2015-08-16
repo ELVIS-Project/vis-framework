@@ -168,7 +168,7 @@ class TestNoteRestIndexer(unittest.TestCase):
 
     def test_note_rest_indexer_6(self):
         # Soprano and Bass parts of bwv77.mxl
-        # We won't verify all the part, but we'll submit them all for analysis.
+        # We won't verify all the parts, but we'll submit them all for analysis.
         expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano),
                     '3': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)}
         bwv77 = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))

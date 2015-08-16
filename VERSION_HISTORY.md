@@ -4,12 +4,29 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 
-* 2.1.0 (pending release):
+* 2.2.0 (pending release):
     - Python 3 compatibility.
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
     - Greatly improved API documentation.
+* 2.1.3
+    - can turn on/off multiprocessing
+    - fixed issue with Pandas converting strings to floats (or, rather, hacked a solution)
+* 2.1.2
+    - reverted music21 requirement to pip (not git)
+* 2.1.1
+    - fixed music21 dependency
+* 2.1.0
+    - NoteBeatStrengthIndexer and accompanying tests
+    - DurationIndexer and accompanying tests
+    - Rewrite of indexer.py's stream_indexer
+    - Integration of multiprocessing into series_indexer
+* 2.0.3
+    - added test for fermata indexer
+    - now depends on latest music21 which fixed a bug for fermatas associated with rests; music21 >= 2.0.3 < 2.1
+* 2.0.2
+    - fixed bug that now allows support for music21 >= 1.9.3 < 2.1
 * 2.0.1:
     - WorkflowManager didn't output histograms with proper labels, for "interval n-grams."
 * 2.0.0:

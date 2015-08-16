@@ -7,7 +7,7 @@
 # Filename:               vis/workflow.py
 # Purpose:                WorkflowManager
 #
-# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
+# Copyright (C) 2013, 2014, 2015 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -103,7 +103,7 @@ class WorkflowManager(object):
 
     # names of the experiments available through run()
     # NOTE: do not re-order these, or run() will break
-    _experiments_list = ['intervals', 'interval n-grams']
+    _experiments_list = ['intervals', 'interval n-grams', 'basic']
 
     # Error message when users call output() with LilyPond, but they probably called run() with
     # ``count frequency`` set to True.
@@ -295,6 +295,10 @@ class WorkflowManager(object):
             # interval n-grams
             self._previous_exp = WorkflowManager._experiments_list[1]
             post = self._interval_ngrams()
+        elif instruction.startswith(WorkflowManager._experiments_list[2]):
+            # basic indexers (that import info from music21)
+            self._previous_exp = WorkflowManager._experiments_list[1]
+            post = self._basic()
         else:
             raise RuntimeError(error_msg)
         if was_dynamic_quality:
@@ -589,6 +593,38 @@ class WorkflowManager(object):
             self._run_freq_agg('interval.IntervalIndexer')
 
         return self._result
+
+    def _basic(self): # TODO: Make a real doc-string and add real code.
+        """
+        Prepare a list of frequencies of interval n-grams in all pieces.
+
+        This method automatically uses :meth:`_two_part_modules`, :meth:`_all_part_modules`, and
+        :meth:`_variable_part_modules` when relevant.
+
+        These indexers and experimenters will be run:
+
+        * :class:`~vis.analyzers.indexers.interval.IntervalIndexer`
+        * :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer`
+        * :class:`~vis.analyzers.indexers.ngram.NGramIndexer`
+        * :class:`~vis.analyzers.experimenters.frequency.FrequencyExperimenter`
+        * :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+
+        Settings are parsed automatically by piece. If the ``offset interval`` setting has a value,
+        :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer` is run with that value. If
+        the ``filter repeats`` setting is ``True``, the
+        :class:`~vis.analyzers.repeat.FilterByRepeatIndexer` is run (after the offset indexer, if
+        relevant).
+
+        :returns: Result of the :class:`~vis.analyzers.experimenters.aggregator.ColumnAggregator`
+            or a list of outputs from :class:`~vis.analyzers.indexers.ngram.NGramIndexer`,
+            depending on the ``count frequency`` setting.
+
+        .. note:: To compute more than one value of ``n``, call :meth:`_interval_ngrams` once for
+            each value of ``n``.
+
+        """
+        pass
+
 
     def _run_off_rep(self, index, so_far, is_horizontal=False):
         """

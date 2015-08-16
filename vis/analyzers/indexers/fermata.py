@@ -33,6 +33,7 @@ from six.moves import range, xrange  # pylint: disable=import-error,redefined-bu
 from numpy import NaN  # pylint: disable=no-name-in-module
 from music21 import stream, expressions, note
 from vis.analyzers import indexer
+import pdb
 
 def indexer_func(obj):
     """
@@ -72,7 +73,7 @@ class FermataIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the right type.
         """
         super(FermataIndexer, self).__init__(score, None)
-        self._types = [note.Note, note.Rest]
+        self._types = ('Note', 'Rest')
         self._indexer_func = indexer_func
 
     def run(self):

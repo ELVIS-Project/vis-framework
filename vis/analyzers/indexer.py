@@ -7,7 +7,7 @@
 # Filename:               controllers/indexer.py
 # Purpose:                Help with indexing data from musical scores.
 #
-# Copyright (C) 2013, 2014 Christopher Antila and Jamie Klassen
+# Copyright (C) 2013, 2014, 2015 Christopher Antila, Jamie Klassen, and Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -25,6 +25,7 @@
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 .. codeauthor:: Jamie Klassen <michigan.j.frog@gmail.com>
+.. codeauthor:: Alexander Morgan
 
 The controllers that deal with indexing data from music21 Score objects.
 """
@@ -33,28 +34,28 @@ import six
 from six.moves import range, xrange
 import pandas
 from music21 import stream, converter
+import multiprocessing as mp
 
+# def mpi_unique_offsets(streams): # No longer needed because it is never called
+#     """
+#     For a set of :class:`Stream` objects, find the offsets at which events begin. Used by
+#     :meth:`stream_indexer`.
 
-def mpi_unique_offsets(streams):
+#     :param streams: A list of :class:`Stream` objects in which to find the offsets where events begin.
+#     :type streams: list of :class:`music21.stream.Stream`
+
+#     :returns: A list of floating-point numbers representing offsets at which a new event begins in
+#         any of the :class:`Stream` objects. Offsets are sorted from lowest to highest (start to end).
+#     :rtype: list of float
+#     """
+#     offsets = ({e.offset for e in part.elements} for part in streams)
+#     return sorted(set.union(*offsets))  # pylint: disable=W0142
+
+def stream_indexer(part, indexer_func, types=None, index_tied=False):
     """
-    For a set of :class:`Stream` objects, find the offsets at which events begin. Used by
-    :meth:`stream_indexer`.
-
-    :param streams: A list of :class:`Stream` objects in which to find the offsets where events begin.
-    :type streams: list of :class:`music21.stream.Stream`
-
-    :returns: A list of floating-point numbers representing offsets at which a new event begins in
-        any of the :class:`Stream` objects. Offsets are sorted from lowest to highest (start to end).
-    :rtype: list of float
-    """
-    offsets = ({e.offset for e in part.elements} for part in streams)
-    return sorted(set.union(*offsets))  # pylint: disable=W0142
-
-
-def stream_indexer(pipe_index, parts, indexer_func, types=None):
-    """
-    Perform the indexation of a :class:`Part` or :class:`Part` combination. This is a module-level
-    function designed to ease implementation of multiprocessing.
+    Perform the indexation of a :class:`Part`. This is a module-level function designed to ease
+    implementation of multiprocessing, though music21 streams cannot be multiprocessed in python so
+    execution still happens serially.
 
     If your :class:`Indexer` subclass has settings, use the :func:`indexer_func` to adjust for them.
 
@@ -63,62 +64,38 @@ def stream_indexer(pipe_index, parts, indexer_func, types=None):
     was imported as two :class:`Note` objects in the same :class:`Part`, rather than as a
     :class:`Chord`.
 
-    :param object pipe_index: An identifier value for use by the caller. This is returned unchanged,
-        so a caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
-    :param parts: A list of at least one :class:`Stream` object. Every new event or change of
-        simlutaneity will appear in the outputted index. Therefore, the new index will contain at
-        least as many events as the inputted :class:`Part` with the most events.
-    :type parts: list of :class:`music21.stream.Stream`
-    :param function indexer_func: This function transforms found events into some other string.
+    :param part: A list one :class:`Stream` object.
+    :type part: a singleton list with one :class:`music21.stream.Stream`
+    :param function indexer_func: Transforms events found in part into strings, ints, or floats.
     :param types: Only objects of a type in this list will be passed to the
         :func:`~vis.analyzers.indexers.template.indexer_func` for inclusion in the resulting index.
-    :type types: list of type
+    :type types: Tuple of relevent types.
 
-    :returns: The ``pipe_index`` argument and the new index. The new index is a :class:`pandas.Series`
-        where every element is a string. The :class:`~pandas.core.index.Index` of the
-        :class:`Series` corresponds to the ``quarterLength`` offset of the event in the inputted
-        :class:`Stream`.
-    :rtype: 2-tuple of object and :class:`pandas.Series`
+    :returns: The new index is a :class:`pandas.Series` where every element is a string, int, or
+        float depending on the indexer_func passed. The :class:`~pandas.core.index.Index` of the
+        :class:`Series` corresponds to the ``quarterLength`` offset of the events of relevent type
+        in the part.
+    :rtype: :class:`pandas.Series`
     """
-    # NB: It's hard to tell, but this function is based on music21.stream.Stream.chordify()
-    # NB2: This must not be a single-line if/else statement, or the getter() call will fail.
-    if types is None:
-        getter = lambda thing: thing
-    else:
-        getter = lambda thing: thing.getElementsByClass(types)
+    temp_part = part[0].recurse()
+    series_data = []
+    offsets = []
+    for event in temp_part[1:]: # the [1:] gets rid of the leading stream in this part stream
+        if not (types == None or any([typ in event.classes for typ in types])):
+            continue
+        if not index_tied and hasattr(event, 'tie') and event.tie is not None and event.tie.type != 'start':
+            continue
+        result = indexer_func((event, series_data))
+        if result == None:
+            continue
+        series_data.append(result)
+        for y in event.contextSites():
+            if y[0] is part[0]: # Check to see if we're examining the correct voice
+                offsets.append(y[1]) # The second element in y is the event's offset
 
-    # Convert "frozen" Streams, if needed; flatten the streams and filter classes
-    if isinstance(parts[0], six.string_types):
-        all_parts = [getter(converter.thaw(each).flat) for each in parts]
-    else:
-        all_parts = [getter(part.flat) for part in parts]
+    return pandas.Series(series_data, index=offsets)
 
-    # collect all unique offsets
-    unique_offsets = mpi_unique_offsets(all_parts)
-
-    # in cases where there will be more than one event at an offset, we need this
-    offsets_for_series = []
-
-    # Convert to requested index format
-    new_series_data = []
-    for off in unique_offsets:
-        # inspired by vis.controllers.analyzer._event_finder() in vis9c
-        current_events = []
-        for part in all_parts:  # find the events happening at this offset in all parts
-            current_events.append(list(part.getElementsByOffset(off, mustBeginInSpan=False)))
-
-        # Arrange groups of things to index
-        current_events = [[event[0] for event in current_events]]
-
-        # Index previously-arranged groups
-        for each_simul in current_events:
-            new_series_data.append(indexer_func(each_simul))
-            offsets_for_series.append(off)
-
-    return pipe_index, pandas.Series(new_series_data, index=offsets_for_series)
-
-
-def series_indexer(pipe_index, parts, indexer_func):
+def series_indexer((parts, indexer_func)):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing.
@@ -144,7 +121,6 @@ def series_indexer(pipe_index, parts, indexer_func):
     :raises: :exc:`ValueError` if there are multiple events at an offset in any of the inputted
         :class:`Series`.
     """
-
     # find the offsets at which things happen
     all_offsets = pandas.Index([])
     for i in xrange(0, len(parts)):
@@ -158,9 +134,7 @@ def series_indexer(pipe_index, parts, indexer_func):
 
     # do the indexing
     new_series_data = dframe.apply(indexer_func, axis=1)
-
-    # make the new index
-    return pipe_index, new_series_data
+    return new_series_data
 
 
 class Indexer(object):
@@ -178,7 +152,6 @@ class Indexer(object):
         This module underwent significant changes for  release 2.0.0. In particular, the
         constructor's ``score`` argument and the :meth:`run` method's return type have changed.
     """
-
     # just the standard instance variables
     required_score_type = None
     "Described in the :class:`~vis.analyzers.indexers.template.TemplateIndexer`."
@@ -328,37 +301,54 @@ class Indexer(object):
         """
         pass
 
-    def _do_multiprocessing(self, combos):
+    def _do_multiprocessing(self, combos, index_tied=False, on=True):
         """
-        Index each part combination and await the jobs' completion. In the future, this method
-        may use multiprocessing.
+        Parallelize the indexing of series. If the call to this function is for stream_indexer jobs,
+        it will execute serially because music21 streams cannot be multiprocessed.
 
         :param combos: A list of all voice combinations to be analyzed. For example:
             - ``[[0], [1], [2], [3]]``
                 Analyze each of four parts independently.
+
             - ``[[0, 1], [0, 2], [0, 3]]``
                 Analyze the highest part compared with all others.
+
             - ``[[0, 1, 2, 3]]``
                 Analyze all parts at once.
+
             The function stored in :func:`self._indexer_func` must know how to deal with the number
             of simultaneous events it will receive.
         :type combos: list of list of integers
+        :param on: On/off switch allowing multiprocessing to be turned off if necessary.
+        :type on: Boolean, defaults to True meaning that multiprocessing will occur if possible.
 
         :returns: Analysis results.
-        :rtype: list of :class:`pandas.Series`
-
-        ** Side Effects **
-
-        Blocks until all voice combinations have completed.
+        :rtype: list of one :class:`pandas.Series` per combo in combos.
         """
         post = []
-        # use serial processing
+        jobs = []
         for each_combo in combos:
+            # voices holds the music21 Part objects indicated by each_combo
             voices = [self._score[x] for x in each_combo]
             if isinstance(self._score[0], stream.Stream):
-                post.append(stream_indexer(0, voices, self._indexer_func, self._types)[1])
+                post.append(stream_indexer(voices, self._indexer_func, self._types, index_tied))
             else:
-                post.append(series_indexer(0, voices, self._indexer_func)[1])
+                jobs.append((voices, self._indexer_func))
+                if not on and len(jobs) > 0:
+                    post.append(series_indexer((voices, self._indexer_func)))
+        
+        if on and len(jobs) > 0:
+            # Determine an appropriate number of cores to use.
+            tasks = len(combos)
+            if tasks < 16:
+                cores = tasks
+            else:
+                cores = 16
+                
+            pool = mp.Pool(cores)
+            post = pool.map(series_indexer, jobs)
+            pool.close()
+
         return post
 
     def make_return(self, labels, indices):
@@ -389,7 +379,22 @@ class Indexer(object):
         my_class = six.u(str(self.__class__))[six.u(str(self.__class__)).rfind('.'):-2]
         my_name = my_mod + my_class
         # make the MultiIndex and its labels
+
         tuples = [(my_name, labels[i]) for i in xrange(len(labels))]
         multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Indexer', 'Parts'])
         # foist our MultiIndex onto the new results
         return pandas.DataFrame(indices, index=multiindex).T
+
+        ##This is a simpler and much faster way to construct dataframes and produces the right
+        ##results but for some reason doesn't pass all the tests.
+        #tuples = (my_name, labels)
+        #multi_index = pandas.MultiIndex.from_product(tuples, names = ('Indexer', 'Parts'))
+        #ret = pandas.concat(indices, axis=1)
+        #ret.columns = multi_index # Apply the multi_index as the column labels.
+        #return ret
+
+
+
+
+
+
