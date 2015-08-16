@@ -59,11 +59,6 @@ setup(
         'music21 >= 2.0.3, <2.1',
         'pandas >=0.14.1, <0.17',
         ],
-    dependency_links = [
-        # music21 2.0.3 has not been released to PyPl yet (2015-05-20).
-        # This particular commit fixes an issue with exporting fermatas on rests.
-        "https://github.com/cuthbertLab/music21/archive/3fb33def708602485eadc1a655ede2fe22acb766.zip#egg=music21-2.0.3"
-    ],
     packages = [
         'vis',
         'vis.models',
