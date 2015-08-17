@@ -14,6 +14,7 @@ the top of the file.
     - Refactoring: simplified the way several indexers and experimenters internally set their settings to make their init methods easier to read. Uses .update() instead of making piecemeal changes.
     - Tests: includes 15 new tests in a test suite for the dendrogram.py file and comments out 2 tests in offset.py because they are incompatible with the new version of make_return() as they pass magic mock objects to a be concatenated by pandas.concat().
     - Automated test and code coverage fix
+    - cleanup of dependencies/requirements (big thanks to maxalbert, https://github.com/maxalbert)
 * 2.1.3
     - can turn on/off multiprocessing
     - fixed issue with Pandas converting strings to floats (or, rather, hacked a solution)
