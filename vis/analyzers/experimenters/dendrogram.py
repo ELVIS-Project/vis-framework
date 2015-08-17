@@ -207,13 +207,7 @@ class HierarchicalClusterer(experimenter.Experimenter):
         else:
             self._dendrogram_settings['no_plot'] = False
 
-        if self._dendrogram_settings['labels'] is None: # If the user hasn't provided labels, generate number strings starting from 1.
-            self._dendrogram_settings['labels'] = []
-            for x in range(len(self._sers[0])):
-                self._dendrogram_settings['labels'].append(str(x+1))
-
         self._plotter_path = path.join(vis.__path__[0], 'scripts')
-
 
         # super(HierarchicalClusterer, self).__init__(sers, (1.0,), None, None) # What would this do and why doesn't it work?
     
@@ -292,8 +286,14 @@ class HierarchicalClusterer(experimenter.Experimenter):
         :returns: A dendrogram in the form of an interactive pylab window, and/or saved as a pdf or
         a png, and/or the data used to produce the dendrogram.
         """
+        if self._dendrogram_settings['labels'] is None: # If the user hasn't provided labels, generate number strings starting from 1.
+            self._dendrogram_settings['labels'] = []
+            for x in range(len(self._sers[0])):
+                self._dendrogram_settings['labels'].append(str(x+1))
+
         # linkage() organizes the dissimilarity matrix into a plotable structure.
         linkage_matrix = linkage(self.pair_compare(), self._graph_settings['linkage_type'])
         d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
         if self._graph_settings['return_data']:
             return d_data
+        
