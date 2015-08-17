@@ -27,8 +27,9 @@ these clusterings.
 from os import path
 import vis
 from vis.analyzers import experimenter
-import matplotlib.pyplot as plt
+import subprocess
 from scipy.cluster.hierarchy import dendrogram, linkage
+
 
 class HierarchicalClusterer(experimenter.Experimenter):
     """
@@ -206,6 +207,14 @@ class HierarchicalClusterer(experimenter.Experimenter):
         else:
             self._dendrogram_settings['no_plot'] = False
 
+        if self._dendrogram_settings['labels'] is None: # If the user hasn't provided labels, generate number strings starting from 1.
+            self._dendrogram_settings['labels'] = []
+            for x in range(len(self._sers[0])):
+                self._dendrogram_settings['labels'].append(str(x+1))
+
+        self._plotter_path = path.join(vis.__path__[0], 'scripts')
+
+
         # super(HierarchicalClusterer, self).__init__(sers, (1.0,), None, None) # What would this do and why doesn't it work?
     
     def pair_compare(self):
@@ -233,6 +242,9 @@ class HierarchicalClusterer(experimenter.Experimenter):
         length are minimized. Also, comparing A to B will get the same score as comparing B to A,
         which is why only the upper half of the dissimilarity matrix is needed.
         """
+        # Notes from discussion with Gabriel: normalize each observation for the total of that
+        # observation in the pair. Then calculate distance in n-dimensional space with n =
+        # number of types of observations.
         numPieces = len(self._sers[0])
         comparisons = numPieces*(numPieces-1)/2
         matrix = [0]*comparisons
@@ -280,37 +292,8 @@ class HierarchicalClusterer(experimenter.Experimenter):
         :returns: A dendrogram in the form of an interactive pylab window, and/or saved as a pdf or
         a png, and/or the data used to produce the dendrogram.
         """
-        if self._dendrogram_settings['labels'] is None: # If the user hasn't provided labels, generate number strings starting from 1.
-            self._dendrogram_settings['labels'] = []
-            for x in range(len(self._sers[0])):
-                self._dendrogram_settings['labels'].append(str(x+1))
         # linkage() organizes the dissimilarity matrix into a plotable structure.
         linkage_matrix = linkage(self.pair_compare(), self._graph_settings['linkage_type'])
-        # 'Dendrogram' will be the name of the window if self._graph_settings['interactive_dendrogram'] == True
-        plt.figure('Dendrogram') 
-        # d_data is the main data of the dendrogram hierarchized but not yet rendered for visual output.
         d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
-        # Only do this rendering if the user has asked for visual output of some kind.
-        if not self._dendrogram_settings['no_plot']:
-            # Add connection annotations if the user asked for them
-            if self._graph_settings['label_connections']:
-                for i, d in zip(d_data['icoord'], d_data['dcoord']):
-                    x = 0.5 * sum(i[1:3])
-                    y = d[1]
-                    plt.plot(x, y, self._graph_settings['connection_string'])
-                    plt.annotate("%.3g" % y, (x, y), xytext=(0, -8),
-                                 textcoords='offset points',
-                                 va='top', ha='center')
-            # Apply labels. If you want to omit a label, pass an empty string ''.
-            plt.xlabel(self._graph_settings['xlabel'])
-            plt.ylabel(self._graph_settings['ylabel'])
-            plt.title(self._graph_settings['title'])
-            # If the user provided a filepath, export as a .png (default) or .pdf.
-            if self._graph_settings['filename_and_type'] is not None:
-                plt.savefig(self._graph_settings['filename_and_type'])
-            # If the user wants an interactive matplotlib dendrogram, make it.
-            if self._graph_settings['interactive_dendrogram']:
-                plt.show()
-        # If the user wants the data, return that. NB: this is not so common but useful for testing.
         if self._graph_settings['return_data']:
             return d_data
