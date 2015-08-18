@@ -95,7 +95,7 @@ class TestTemplateIndexer(unittest.TestCase):
         test_ind = template.TemplateIndexer(in_val, setts)
         # 4.) Setup the mock.
         with mock.patch(u'vis.analyzers.indexers.template.indexer_func') as mock_indfunc:
-            # 5.) The indexer_func() will always return a zero-length unicode string (or string).
+            # 5.) The indexer_func() will always return a zero-length string.
             mock_indfunc.return_value = u''
             # 6.) Run the indexer.
             test_ind.run()

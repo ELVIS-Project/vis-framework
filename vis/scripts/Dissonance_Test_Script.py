@@ -3,7 +3,7 @@ import os
 import pandas
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import interval, dissonance, metre, noterest
+from vis.analyzers.indexers import interval, dissonance, metre, noterest, offset
 from vis.analyzers.experimenters import frequency
 from vis import workflow
 from numpy import nan, isnan
@@ -34,7 +34,10 @@ def main():
     setts = {'quality': True, 'simple or compound': 'simple'}
     horiz_setts = {'quality': False, 'simple or compound': 'compound'}
 
-    actual = ind_piece.get_data([noterest.NoteRestIndexer]) #dur_indexer.run()['metre.DurationIndexer']
+    actual = ind_piece.get_data([noterest.NoteRestIndexer]) #dur_indexer.run()['metre.DurationIndexer']    
+    
+    filter_setts = {'quarterLength': 2.0, 'method':None}
+    filtered_results = offset.FilterByOffsetIndexer(actual, filter_setts).run()
     pdb.set_trace()
 
     horiz = interval.HorizontalIntervalIndexer(actual, horiz_setts).run()
@@ -54,15 +57,15 @@ def main():
     basic1 = time.clock()
     parts_fm = []
     parts_nr = []
-    # parts_dur = []
+    parts_dur = []
     parts_bs = []
     parts_ms = []
     test_piece = converter.parse(piece_path)
     part_numbers = range(len(test_piece.parts))
     from vis.analyzers.indexers.noterest import indexer_func as nr_ind_func
-    # from vis.analyzers.indexers.metre import duration_ind_func as dur_ind_func
-    # from vis.analyzers.indexers.metre import beatstrength_ind_func as bs_ind_func
-    # from vis.analyzers.indexers.fermata import indexer_func as fm_ind_func
+    from vis.analyzers.indexers.metre import duration_ind_func as dur_ind_func
+    from vis.analyzers.indexers.metre import beatstrength_ind_func as bs_ind_func
+    from vis.analyzers.indexers.fermata import indexer_func as fm_ind_func
     for x in part_numbers:
         temp_part = test_piece.parts[x]
         fm = []
@@ -114,7 +117,7 @@ def main():
     
     part_strings = []
     for num in part_numbers:
-        part_strings.append(unicode(num))
+        part_strings.append(str(num))
     
     iterables = [['basic.NoteRestIndexer'], part_strings]
     basic_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
@@ -143,7 +146,7 @@ def main():
 
     horiz = interval.HorizontalIntervalIndexer(basic_nr, horiz_setts).run()
     vert_ints = interval.IntervalIndexer(basic_nr, setts).run()
-    # dissonances = dissonance.DissonanceIndexer(pandas.concat([horiz, basic_dur, basic_bs, vert_ints], axis=1)).run()
+    dissonances = dissonance.DissonanceIndexer(pandas.concat([horiz, basic_dur, basic_bs, vert_ints], axis=1)).run()
 
 
 
@@ -200,7 +203,7 @@ if __name__ == "__main__":
     # new_nr = pandas.concat([s for s in parts], axis=1)
     # part_strings = []
     # for num in part_numbers:
-    #     part_strings.append(unicode(num))
+    #     part_strings.append(str(num))
     # iterables = [['noterest.NoteRestIndexer'], part_strings]
     # new_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # new_nr.columns = new_nr_multi_index
@@ -226,7 +229,7 @@ if __name__ == "__main__":
     # new_dur = pandas.concat([s for s in part_durs], axis=1)
     # part_strings = []
     # for num in part_numbers:
-    #     part_strings.append(unicode(num))
+    #     part_strings.append(str(num))
     # iterables = [['metre.DurationIndexer'], part_strings]
     # new_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # new_dur.columns = new_dur_multi_index
@@ -257,7 +260,7 @@ if __name__ == "__main__":
     # # double_dur = pandas.concat([s for s in parts_dur], axis=1)
     # # part_strings = []
     # # for num in part_numbers:
-    # #     part_strings.append(unicode(num))
+    # #     part_strings.append(str(num))
     # # iterables = [['noterest.NoteRestIndexer'], part_strings]
     # # double_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # # double_nr.columns = double_nr_multi_index
@@ -296,7 +299,7 @@ if __name__ == "__main__":
     # double_dur = pandas.concat([s for s in parts_dur], axis=1)
     # part_strings = []
     # for num in part_numbers:
-    #     part_strings.append(unicode(num))
+    #     part_strings.append(str(num))
     # iterables = [['noterest.NoteRestIndexer'], part_strings]
     # double_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # double_nr.columns = double_nr_multi_index
@@ -329,7 +332,7 @@ if __name__ == "__main__":
     # new_bs = pandas.concat([s for s in part_bs], axis=1)
     # part_strings = []
     # for num in part_numbers:
-    #     part_strings.append(unicode(num))
+    #     part_strings.append(str(num))
     # iterables = [['metre.NoteBeatStrengthIndexer'], part_strings]
     # new_bs.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # newbs2 = time.clock()
@@ -413,7 +416,7 @@ if __name__ == "__main__":
     # basic_fm = pandas.concat([s for s in parts_fm], axis=1)
     # part_strings = []
     # for num in part_numbers:
-    #     part_strings.append(unicode(num))
+    #     part_strings.append(str(num))
     # iterables = [['fermata.FermataIndexer'], part_strings]
     # basic_fm_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # basic_fm.columns = basic_fm_multi_index
