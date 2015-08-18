@@ -103,7 +103,6 @@ def series_indexer(parts, indexer_func):
     :raises: :exc:`ValueError` if there are multiple events at an offset in any of the inputted
         :class:`Series`.
     """
-    parts, indexer_func = parts_and_indexer_func
 
     # find the offsets at which things happen
     all_offsets = pandas.Index([])

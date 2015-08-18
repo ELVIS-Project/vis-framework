@@ -32,8 +32,6 @@ Indexers for metric concerns.
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
 # pylint: disable=W0105
 
-import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import note
 from vis.analyzers import indexer
 #import pandas # This is only needed for the measure indexer which is still experimental
