@@ -15,6 +15,7 @@ the top of the file.
     - Tests: includes 15 new tests in a test suite for the dendrogram.py file and comments out 2 tests in offset.py because they are incompatible with the new version of make_return() as they pass magic mock objects to a be concatenated by pandas.concat().
     - Automated test and code coverage fix
     - cleanup of dependencies/requirements (big thanks to maxalbert, https://github.com/maxalbert)
+    - 'scripts' directory for helpful scripts
 * 2.1.3
     - can turn on/off multiprocessing
     - fixed issue with Pandas converting strings to floats (or, rather, hacked a solution)
