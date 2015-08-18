@@ -28,7 +28,6 @@ Tests for the WorkflowManager
 
 from unittest import TestCase, TestLoader
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest import mock
 else:
@@ -50,11 +49,11 @@ class Intervals(TestCase):
         """Ensure _intervs() calls everything in the right order, with the right args & settings.
            This test uses all the default settings."""
         test_settings = {'simple or compound': 'compound', 'quality': False}
-        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
-        returns = ['get_data() {}'.format(i) for i in xrange(len(test_pieces))]
+        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in range(3)]
+        returns = ['get_data() {}'.format(i) for i in range(len(test_pieces))]
         for piece in test_pieces:
             piece.get_data.side_effect = lambda *x: returns.pop(0)
-        expected = ['get_data() {}'.format(i) for i in xrange(len(test_pieces))]
+        expected = ['get_data() {}'.format(i) for i in range(len(test_pieces))]
         exp_analyzers = [noterest.NoteRestIndexer, interval.IntervalIndexer]
 
         test_wc = WorkflowManager(test_pieces)
@@ -67,7 +66,7 @@ class Intervals(TestCase):
         mock_rfa.assert_called_once_with('interval.IntervalIndexer')
         for piece in test_pieces:
             piece.get_data.assert_called_once_with(exp_analyzers, test_settings)
-        for i in xrange(len(actual)):
+        for i in range(len(actual)):
             # NB: in real use, _run_freq_agg() would aggregate a piece's voice pairs and save it in
             #     self._result... but since that method's mocked out, we have to check here the
             #     return of each piece's get_data() call
@@ -85,16 +84,16 @@ class Intervals(TestCase):
         voice_combos = str(mock_guc.return_value)
         exp_voice_combos = ['0,1']
         test_settings = {'simple or compound': 'compound', 'quality': False}
-        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
-        returns = ['get_data() {}'.format(i) for i in xrange(len(test_pieces))]
+        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in range(3)]
+        returns = ['get_data() {}'.format(i) for i in range(len(test_pieces))]
         for piece in test_pieces:
             piece.get_data.side_effect = lambda *x: returns.pop(0)
-        exp_into_mock_rep = ['get_data() {}'.format(i) for i in xrange(len(test_pieces))]
-        mock_rep_returns = ['IndP-{} no pairs'.format(i) for i in xrange(len(test_pieces))]
+        exp_into_mock_rep = ['get_data() {}'.format(i) for i in range(len(test_pieces))]
+        mock_rep_returns = ['IndP-{} no pairs'.format(i) for i in range(len(test_pieces))]
         mock_rep.side_effect = lambda *x: mock_rep_returns.pop(0)
-        expected = ['IndP-{} no pairs'.format(i) for i in xrange(len(test_pieces))]
+        expected = ['IndP-{} no pairs'.format(i) for i in range(len(test_pieces))]
         exp_analyzers = [noterest.NoteRestIndexer, interval.IntervalIndexer]
-        exp_mock_guc = [mock.call(i) for i in xrange(len(test_pieces))]
+        exp_mock_guc = [mock.call(i) for i in range(len(test_pieces))]
 
         test_wc = WorkflowManager(test_pieces)
         test_wc.settings(None, 'include rests', True)
@@ -106,11 +105,11 @@ class Intervals(TestCase):
         self.assertEqual(len(test_pieces), len(expected), len(actual))
         self.assertEqual(0, mock_rfa.call_count)
         self.assertEqual(len(test_pieces), mock_rep.call_count)
-        for i in xrange(len(test_pieces)):
+        for i in range(len(test_pieces)):
             mock_rep.assert_any_call(exp_into_mock_rep[i], exp_voice_combos)
         for piece in test_pieces:
             piece.get_data.assert_called_once_with(exp_analyzers, test_settings)
-        for i in xrange(len(actual)):
+        for i in range(len(actual)):
             self.assertSequenceEqual(expected[i], actual[i])
 
     @mock.patch('vis.workflow.WorkflowManager._remove_extra_pairs')
@@ -120,10 +119,10 @@ class Intervals(TestCase):
         """Ensure _intervs() calls everything in the right order, with the right args & settings.
            This uses the default *except* requires removing rests, so it's more complex."""
         test_settings = {'simple or compound': 'compound', 'quality': False}
-        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
+        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in range(3)]
         returns = [pandas.DataFrame([pandas.Series(['3', 'Rest', '5'])],
                                     index=[['interval.IntervalIndexer'], ['0,1']]).T
-                   for i in xrange(len(test_pieces))]
+                   for i in range(len(test_pieces))]
         for piece in test_pieces:
             piece.get_data.side_effect = lambda *x: returns.pop(0)
         exp_series_ind = ('interval.IntervalIndexer', '0,1')
@@ -140,7 +139,7 @@ class Intervals(TestCase):
         self.assertEqual(0, mock_rep.call_count)
         for piece in test_pieces:
             piece.get_data.assert_called_once_with(exp_analyzers, test_settings)
-        for i in xrange(len(actual)):
+        for i in range(len(actual)):
             self.assertSequenceEqual(list(expected_df.columns), list(actual[i].columns))
             self.assertSequenceEqual(list(expected_df[exp_series_ind].index),
                                      list(actual[i][exp_series_ind].index))
@@ -149,8 +148,8 @@ class Intervals(TestCase):
 
     def test_intervs_4(self):
         """Ensure _intervs() fails when given an impossible 'voice pair'."""
-        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
-        returns = ['get_data() {}'.format(i) for i in xrange(len(test_pieces))]
+        test_pieces = [MagicMock(spec_set=IndexedPiece) for _ in range(3)]
+        returns = ['get_data() {}'.format(i) for i in range(len(test_pieces))]
         for piece in test_pieces:
             piece.get_data.side_effect = lambda *x: returns.pop(0)
         exp_err_msg = WorkflowManager._REQUIRE_PAIRS_ERROR.format(3)  # pylint: disable=protected-access
@@ -176,7 +175,7 @@ class IntervalNGrams(TestCase):
     def test_interval_ngrams_1(self, mock_two, mock_all, mock_var, mock_rfa):
         """test _interval_ngrams() with three pieces, each of which requires a different helper"""
         # 1.) prepare mocks
-        ind_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
+        ind_pieces = [MagicMock(spec_set=IndexedPiece) for _ in range(3)]
         mock_rfa.return_value = 'mock_rfa() return value'
         mock_two.return_value = ['mock_two() return value']
         mock_all.return_value = ['mock_all() return value']
@@ -206,7 +205,7 @@ class IntervalNGrams(TestCase):
     def test_interval_ngrams_2(self, mock_two, mock_all, mock_var, mock_rfa):
         """same as test_interval_ngrams_1(), but with "count frequency" set to False"""
         # 1.) prepare mocks
-        ind_pieces = [MagicMock(spec_set=IndexedPiece) for _ in xrange(3)]
+        ind_pieces = [MagicMock(spec_set=IndexedPiece) for _ in range(3)]
         mock_rfa.return_value = 'mock_rfa() return value'
         mock_two.return_value = ['mock_two() return value']
         mock_all.return_value = ['mock_all() return value']
@@ -423,8 +422,8 @@ class IntervalNGrams(TestCase):
         test_index = 0
         # NB: this DataFrame replicates what would exist for a four-voice piece; we have to return
         #     a real DataFrame so that _two_part_modules() will loop appropriately
-        piece_df = pandas.DataFrame([None for _ in xrange(6)],
-                                    index=[['interval.IntervalIndexer' for _ in xrange(6)],
+        piece_df = pandas.DataFrame([None for _ in range(6)],
+                                    index=[['interval.IntervalIndexer' for _ in range(6)],
                                            ['0,1', '0,2', '0,3', '1,2', '1,3', '2,3']]).T
         mock_concat_returns = [piece_df, 'pandas.concat() return']
         mock_concat.side_effect = lambda df, axis: mock_concat_returns.pop(0)
@@ -492,7 +491,7 @@ class IntervalNGrams(TestCase):
         exp_ror_calls = [mock.call(0, "get_data([<class 'vis.analyzers.indexers.noterest.NoteRestIndexer'>])")]
         exp_concat_calls = [mock.call(("get_data([<class 'vis.analyzers.indexers.interval.IntervalIndexer'>])",
                                        "get_data([<class 'vis.analyzers.indexers.interval.HorizontalIntervalIndexer'>])"), axis=1),
-                            mock.call(["get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])" for _ in xrange(6)], axis=1)]
+                            mock.call(["get_data([<class 'vis.analyzers.indexers.ngram.NGramIndexer'>])" for _ in range(6)], axis=1)]
 
         test_wc = WorkflowManager(test_pieces)
         test_wc.settings(test_index, 'interval quality', True)

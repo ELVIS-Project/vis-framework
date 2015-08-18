@@ -31,7 +31,6 @@ Tests for the 'indexers.lilypond' and 'experimenters.lilypond' modules.
 
 import unittest
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest import mock
 else:
@@ -244,8 +243,8 @@ class TestPartNotesExperimenter(unittest.TestCase):
         # when only one object is required (i.e., the notes are enough)
         # --> has lily_analysis_voice
         in_offsets = [0.0, 4.0]
-        in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
-        for i in xrange(len(in_offsets)):
+        in_val = stream.Part([note.Note() for _ in range(len(in_offsets))])
+        for i in range(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
         in_val.lily_analysis_voice = 42
         expected = [(0.0, 4.0), (4.0, 1.0)]
@@ -264,8 +263,8 @@ class TestPartNotesExperimenter(unittest.TestCase):
         # when we must insert rests
         # --> has lily_instruction
         in_offsets = [0.0, 3.0]
-        in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
-        for i in xrange(len(in_offsets)):
+        in_val = stream.Part([note.Note() for _ in range(len(in_offsets))])
+        for i in range(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
         in_val.lily_instruction = 66
         expected = [(0.0, 2.0), (2.0, 1.0), (3.0, 1.0)]
@@ -284,8 +283,8 @@ class TestPartNotesExperimenter(unittest.TestCase):
         # when we must insert rests
         # --> both lily_instruction and lily_analysis_voice
         in_offsets = [0.0, 2.75]
-        in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
-        for i in xrange(len(in_offsets)):
+        in_val = stream.Part([note.Note() for _ in range(len(in_offsets))])
+        for i in range(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
         in_val.lily_analysis_voice = 42
         in_val.lily_instruction = 66
@@ -305,8 +304,8 @@ class TestPartNotesExperimenter(unittest.TestCase):
         # when we must insert rests
         # --> neither lily_analysis_voice nor lily_instruction
         in_offsets = [3.96875, 7.9375]
-        in_val = stream.Part([note.Note() for _ in xrange(len(in_offsets))])
-        for i in xrange(len(in_offsets)):
+        in_val = stream.Part([note.Note() for _ in range(len(in_offsets))])
+        for i in range(len(in_offsets)):
             in_val[i].offset = in_offsets[i]
         expected = [(3.96875, 2.0), (5.96875, 1.0), (6.96875, 0.5), (7.46875, 0.25),
                     (7.71875, 0.125), (7.84375, 0.0625), (7.90625, 0.03125), (7.9375, 1.0)]
@@ -325,7 +324,7 @@ class TestPartNotesExperimenter(unittest.TestCase):
         # test the whole thing! Oh my... kind of an integration test
         markups = ['_\\markup{ "Réduire" }', '_\\markup{ "l\'endettement" }']
         in_val = []
-        for i in xrange(len(markups)):
+        for i in range(len(markups)):
             obj = note.Note('C4')
             obj.lily_invisible = True
             obj.lily_markup = markups[i]
@@ -356,7 +355,7 @@ class TestPartNotesExperimenter(unittest.TestCase):
         markups = ['_\\markup{ "Réduire" }', '_\\markup{ "l\'endettement" }']
         #'\t\\textLengthOn\n\t\\set Staff.instrumentName = "the name"\n'
         in_val = []
-        for i in xrange(len(markups)):
+        for i in range(len(markups)):
             obj = note.Note('C4')
             obj.lily_invisible = True
             obj.lily_markup = markups[i]
