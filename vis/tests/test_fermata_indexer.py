@@ -45,7 +45,7 @@ class AllVoiceFermatas(TestCase):
         Returns blank data-frame (in the fermata.FermataIndexer 'style').
         """
         expected_data = [[NaN] * number_of_indices] * number_of_parts
-        tuples = [(u'fermata.FermataIndexer', str(i)) for i in xrange(number_of_parts)]
+        tuples = [(u'fermata.FermataIndexer', str(i)) for i in range(number_of_parts)]
         multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Indexer', 'Parts'])
         return pandas.DataFrame(data = expected_data, index = multiindex, dtype = object).T
 
