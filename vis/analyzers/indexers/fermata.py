@@ -29,7 +29,6 @@ Index fermatas.
 """
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from numpy import NaN  # pylint: disable=no-name-in-module
 from music21 import stream, expressions, note
 from vis.analyzers import indexer
@@ -92,6 +91,6 @@ class FermataIndexer(indexer.Indexer):
         >>> fermatas = ind_piece.get_data([fermata.FermataIndexer])
         >>> print fermatas
         """
-        combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately
+        combinations = [[x] for x in range(len(self._score))]  # calculate each voice separately
         results = self._do_multiprocessing(combinations)
         return self.make_return([six.u(str(x))[1:-1] for x in combinations], results)

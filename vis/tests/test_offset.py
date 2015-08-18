@@ -30,7 +30,6 @@
 
 import unittest
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest import mock
 else:
@@ -238,7 +237,7 @@ class TestOffsetIndexerManyParts(unittest.TestCase):
     def test_offset_xparts_0a(self):
         # 0 length, many parts
         in_val = [pandas.Series(), pandas.Series(), pandas.Series(), pandas.Series()]
-        expected = pandas.DataFrame({str(i): pandas.Series() for i in xrange(4)})
+        expected = pandas.DataFrame({str(i): pandas.Series() for i in range(4)})
         offset_interval = 12.0
         ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
         actual = ind.run()['offset.FilterByOffsetIndexer']
@@ -289,8 +288,8 @@ class TestOffsetIndexerManyParts(unittest.TestCase):
         # input is expected output; 10 parts
         letters = ['a', 'b', 'c', 'd']
         offsets = [0.0, 0.5, 1.0, 1.5]
-        in_val = [pandas.Series(letters, index=offsets) for _ in xrange(10)]
-        expected = {str(i): pandas.Series(letters, index=offsets) for i in xrange(10)}
+        in_val = [pandas.Series(letters, index=offsets) for _ in range(10)]
+        expected = {str(i): pandas.Series(letters, index=offsets) for i in range(10)}
         expected = pandas.DataFrame(expected)
         offset_interval = 0.5
         ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})

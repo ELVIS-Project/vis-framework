@@ -32,7 +32,6 @@
 import unittest
 import copy
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest import mock
 else:
@@ -305,8 +304,8 @@ class IndexerTestBase(unittest.TestCase):
     # pylint: disable=R0902
     def setUp(self):
         # prepare a valid list of ElementWrappers (with proper offset and duration)
-        self.in_series = pandas.Series(range(100), index=[0.25 * x for x in xrange(100)])
-        self.in_stream = stream.Stream(base.ElementWrapper(i) for i in xrange(100))
+        self.in_series = pandas.Series(range(100), index=[0.25 * x for x in range(100)])
+        self.in_stream = stream.Stream(base.ElementWrapper(i) for i in range(100))
         for i, elem in enumerate(self.in_stream):
             elem.offset = i * 0.25
             elem.duration = duration.Duration(0.25)
@@ -320,7 +319,7 @@ class IndexerTestBase(unittest.TestCase):
         mixed_series_rests_offsets = []
         mixed_series_notes = []
         mixed_series_notes_offsets = []
-        for i in xrange(100):
+        for i in range(100):
             app_me = note.Rest(quarterLength=0.25)
             app_me.offset = i * 0.5
             mixed_series_offsets.append(app_me.offset)
@@ -347,7 +346,7 @@ class IndexerTestBase(unittest.TestCase):
         s_m_series_offsets = []
         s_m_rests_series = []
         s_m_rests_series_offsets = []
-        for i in xrange(100):
+        for i in range(100):
             app_me = note.Rest(quarterLength=0.25)
             app_me.offset = i * 0.25
             s_m_series_offsets.append(app_me.offset)
@@ -369,13 +368,13 @@ class IndexerTestBase(unittest.TestCase):
 
 class TestIndexerSinglePart(IndexerTestBase):
     def test_series_indexer(self):
-        result_uniform = indexer.series_indexer(([self.in_series], verbatim_ser))
+        result_uniform = indexer.series_indexer([self.in_series], verbatim_ser)
         # that we get a Series back when a Series is given
         self.assertIs(type(result_uniform), pandas.Series, msg='')
         # the verbatim_ser function is designed to produce exactly what is given
         self.assertSequenceEqual(list(result_uniform.index), list(self.in_series.index))
         self.assertSequenceEqual(list(result_uniform), list(self.in_series))
-        result_mixed = indexer.series_indexer(([self.mixed_series], verbatim_ser))
+        result_mixed = indexer.series_indexer([self.mixed_series], verbatim_ser)
         # that a list with two types is not filtered when it's given as a Series
         self.assertEqual(len(self.mixed_series), len(result_mixed))
         expect_mixed = ['Rest' if isinstance(elt, note.Rest) else elt.obj
@@ -487,13 +486,13 @@ class TestIndexerMultiEvent(IndexerTestBase):
     #     # part 1:  [0]  |  [1]  |  [2]  |  [3]  |  [4]
     #     # part 2:  [0]  |  [1]  |  [2]  |  [3]  |  [4]
     #     part_1 = stream.Stream()
-    #     for i in xrange(5):
+    #     for i in range(5):
     #         obj = base.ElementWrapper(i)
     #         obj.offset = 0.5 * i
     #         obj.duration = duration.Duration(0.5)
     #         part_1.append(obj)
     #     part_2 = stream.Stream()
-    #     for i in xrange(5):
+    #     for i in range(5):
     #         obj = base.ElementWrapper(i)
     #         obj.offset = 0.5 * i
     #         obj.duration = duration.Duration(0.5)
@@ -510,13 +509,13 @@ class TestIndexerMultiEvent(IndexerTestBase):
     #     # part 1:  [1]  |  [2][6]  |  [3]     |  [4][7]  |  [5][8]
     #     # part 2:  [1]  |  [2][6]  |  [3][7]  |  [4]     |  [5][8]
     #     part_1 = stream.Stream()
-    #     for i in xrange(5):
+    #     for i in range(5):
     #         obj = base.ElementWrapper(i)
     #         obj.offset = 0.5 * i
     #         obj.duration = duration.Duration(0.5)
     #         part_1.append(obj)
     #     part_2 = stream.Stream()
-    #     for i in xrange(5):
+    #     for i in range(5):
     #         obj = base.ElementWrapper(i)
     #         obj.offset = 0.5 * i
     #         obj.duration = duration.Duration(0.5)
@@ -539,7 +538,7 @@ class TestIndexerMultiEvent(IndexerTestBase):
     #     ## part 2:  [1]  |  [2][6]  |  [3][7]     |  [4]     |  [5]
     #     ## part 3:  [1]  |  [2][6]  |  [3][7]     |  [4][8]  |  [5][9]
     #     part_1 = stream.Stream()
-    #     for i in xrange(5):
+    #     for i in range(5):
     #         obj = base.ElementWrapper(i)
     #         obj.offset = 0.5 * i
     #         obj.duration = duration.Duration(0.5)
@@ -660,10 +659,10 @@ class TestMakeReturn(unittest.TestCase):
     def test_make_return_1(self):
         # 1: the usual case
         # prepare
-        violini = pandas.Series([x for x in xrange(10)])
-        violinii = pandas.Series([x + 10 for x in xrange(10)])
-        viola = pandas.Series([x + 20 for x in xrange(10)])
-        cello = pandas.Series([x + 30 for x in xrange(10)])
+        violini = pandas.Series([x for x in range(10)])
+        violinii = pandas.Series([x + 10 for x in range(10)])
+        viola = pandas.Series([x + 20 for x in range(10)])
+        cello = pandas.Series([x + 30 for x in range(10)])
         names = ['Violin I', 'Violin II', 'Viola', 'Violoncello']
         parts = [violini, violinii, viola, cello]
         class QuartetIndexer(indexer.Indexer):
@@ -677,8 +676,8 @@ class TestMakeReturn(unittest.TestCase):
     def test_make_return_2(self):
         # 2: more parts than names
         # prepare
-        clarinet = pandas.Series([x for x in xrange(10)])
-        tuba = pandas.Series([x + 10 for x in xrange(10)])
+        clarinet = pandas.Series([x for x in range(10)])
+        tuba = pandas.Series([x + 10 for x in range(10)])
         names = ['Clarinet']
         parts = [clarinet, tuba]
         class SadIndexer(indexer.Indexer):
@@ -695,8 +694,8 @@ class TestMakeReturn(unittest.TestCase):
     def test_make_return_3(self):
         # 3: more names than parts
         # prepare
-        clarinet = pandas.Series([x for x in xrange(10)])
-        #tuba = pandas.Series([x + 10 for x in xrange(10)])
+        clarinet = pandas.Series([x for x in range(10)])
+        #tuba = pandas.Series([x + 10 for x in range(10)])
         names = ['Clarinet', 'Tuba']
         parts = [clarinet]
         class SadIndexer(indexer.Indexer):

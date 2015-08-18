@@ -30,7 +30,6 @@ Index note and rest objects.
 """
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import stream, note
 from vis.analyzers import indexer
 
@@ -99,6 +98,6 @@ class NoteRestIndexer(indexer.Indexer):
         >>> the_notes['noterest.NoteRestIndexer']['5']
         (the first clarinet Series)
         """
-        combinations = [[x] for x in xrange(len(self._score))]  # calculate each voice separately
+        combinations = [[x] for x in range(len(self._score))]  # calculate each voice separately
         results = self._do_multiprocessing(combinations)
         return self.make_return([six.u(str(x))[1:-1] for x in combinations], results)

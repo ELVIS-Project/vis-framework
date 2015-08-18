@@ -31,7 +31,6 @@
 import os
 import unittest
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers.indexers import metre
@@ -113,7 +112,7 @@ class TestDurationIndexer(unittest.TestCase):
         expected = {'0': pandas.Series()}
         test_part = stream.Part()
         # add stuff to the test_part
-        for i in xrange(1000):
+        for i in range(1000):
             add_me = clef.BassClef()
             add_me.offset = i
             test_part.append(add_me)
@@ -132,11 +131,11 @@ class TestDurationIndexer(unittest.TestCase):
 
     def test_duration_indexer_3(self):
         # When there are a bunch of notes
-        expected = {'0': pandas.Series([1.0 for _ in xrange(10)],
-                                       index=[float(x) for x in xrange(10)])}
+        expected = {'0': pandas.Series([1.0 for _ in range(10)],
+                                       index=[float(x) for x in range(10)])}
         test_part = stream.Part()
         # add stuff to the test_part
-        for i in xrange(10):
+        for i in range(10):
             add_me = note.Note(u'C4', quarterLength=1.0)
             add_me.offset = i
             test_part.append(add_me)

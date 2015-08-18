@@ -34,7 +34,6 @@ same part.
 # pylint: disable=W0105
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
@@ -186,8 +185,8 @@ class IntervalIndexer(indexer.Indexer):
         combinations = []
         combination_labels = []
         # To calculate all 2-part combinations:
-        for left in xrange(len(self._score)):
-            for right in xrange(left + 1, len(self._score)):
+        for left in range(len(self._score)):
+            for right in range(left + 1, len(self._score)):
                 combinations.append([left, right])
                 combination_labels.append('{},{}'.format(left, right))
 
@@ -259,7 +258,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # first element, and the other will be missing the last element. We'll also use the index
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
-        combination_labels = [six.u(str(x)) for x in xrange(len(self._score))]
+        combination_labels = [six.u(str(x)) for x in range(len(self._score))]
         if self._settings['horiz_attach_later']:
             new_parts = [x.iloc[1:] for x in self._score]
             self._score = [pandas.Series(x.values[:-1], index=x.index[1:]) for x in self._score]
@@ -272,7 +271,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
         # Calculate each voice with its copy. "new_parts" is put first, so it's considered the
         # "upper voice," so ascending intervals don't get a direction.
-        combinations = [[new_zero + x, x] for x in xrange(new_zero)]
+        combinations = [[new_zero + x, x] for x in range(new_zero)]
 
         results = self._do_multiprocessing(combinations, on=self._settings['mp'])
         return  self.make_return(combination_labels, results)

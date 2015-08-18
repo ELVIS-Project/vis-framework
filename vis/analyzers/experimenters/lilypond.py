@@ -35,7 +35,6 @@ corresponding to the score.
 # pylint: disable=pointless-string-statement
 
 from math import fsum
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from numpy import isnan, NaN  # pylint: disable=no-name-in-module
 import pandas
 from music21 import stream, note, duration
@@ -321,7 +320,7 @@ class PartNotesExperimenter(experimenter.Experimenter):
         """
         in_len = len(in_part)
         ret_part = stream.Part()
-        for i in xrange(in_len):
+        for i in range(in_len):
             qls = None
             try:
                 qls = PartNotesExperimenter._fill_space_between_offsets(in_part[i].offset,
@@ -330,7 +329,7 @@ class PartNotesExperimenter(experimenter.Experimenter):
                 qls = [1.0]
             in_part[i].duration = duration.Duration(quarterLength=qls[0])
             ret_part.insert(in_part[i].offset, in_part[i])
-            for j in xrange(len(qls[1:])):
+            for j in range(len(qls[1:])):
                 # the offset for insertion is...
                 #   offset of the Note object, plus
                 #   duration of the Note object, plus
@@ -361,7 +360,7 @@ class PartNotesExperimenter(experimenter.Experimenter):
         """
         if 0.0 != in_part.index[0]:
             durations = PartNotesExperimenter._fill_space_between_offsets(0.0, in_part.index[0])
-            offsets = [max(0.0, sum(durations[:i])) for i in xrange(len(durations))]
+            offsets = [max(0.0, sum(durations[:i])) for i in range(len(durations))]
             for i, offset in enumerate(offsets):
                 in_part[offset] = note.Rest(quarterLength=durations[i])
             return in_part.sort_index()

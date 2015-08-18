@@ -126,9 +126,9 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         (the first clarinet Series of beatStrength float values)
         """
 
-        combinations = [[x] for x in xrange(len(self._score))]
+        combinations = [[x] for x in range(len(self._score))]
         results = self._do_multiprocessing(combinations)
-        return self.make_return([six.text_type(x)[1:-1] for x in combinations], results)
+        return self.make_return([str(x)[1:-1] for x in combinations], results)
 
 
 class DurationIndexer(indexer.Indexer):
@@ -173,9 +173,9 @@ class DurationIndexer(indexer.Indexer):
         (the first clarinet Series of duration float values)
         """
 
-        combinations = [[x] for x in xrange(len(self._score))]
+        combinations = [[x] for x in range(len(self._score))]
         results = self._do_multiprocessing(combinations, True)
-        return self.make_return([six.text_type(x)[1:-1] for x in combinations], results)
+        return self.make_return([str(x)[1:-1] for x in combinations], results)
 
 
 #class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental

@@ -63,7 +63,6 @@
 
 
 import unittest
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest import mock
 else:
@@ -96,7 +95,7 @@ class TestTemplateIndexer(unittest.TestCase):
         test_ind = template.TemplateIndexer(in_val, setts)
         # 4.) Setup the mock.
         with mock.patch(u'vis.analyzers.indexers.template.indexer_func') as mock_indfunc:
-            # 5.) The indexer_func() will always return a zero-length unicode string (or string).
+            # 5.) The indexer_func() will always return a zero-length string.
             mock_indfunc.return_value = u''
             # 6.) Run the indexer.
             test_ind.run()
@@ -125,7 +124,7 @@ class TestTemplateIndexer(unittest.TestCase):
         # 4.) Ensure we received the expected number of parts.
         self.assertEqual(len(expected), len(actual))
         # 5.) Compare each part...
-        for i in xrange(len(expected)):
+        for i in range(len(expected)):
             # ... to know the index has the expected values, ...
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
             # ... and that the values are the expected values.
