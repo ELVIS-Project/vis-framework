@@ -35,6 +35,7 @@ from six.moves import range, xrange
 import pandas
 from music21 import stream, converter
 import multiprocessing as mp
+from functools import partial
 
 def stream_indexer(part, indexer_func, types=None, index_tied=False):
     """
@@ -80,16 +81,13 @@ def stream_indexer(part, indexer_func, types=None, index_tied=False):
 
     return pandas.Series(series_data, index=offsets)
 
-def series_indexer((parts, indexer_func)):
+def series_indexer(parts, indexer_func):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing.
 
     If your :class:`Indexer` has settings, use the :func:`indexer_func` to adjust for them.
 
-    :param pipe_index: An identifier value for use by the caller. This is returned unchanged, so a
-        caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
-    :type pipe_index: object
     :param parts: A list of at least one :class:`Series` object. Every new event, or change of
         simlutaneity, will appear in the outputted index. Therefore, the new index will contain at
         least as many events as the inputted :class:`Series` with the most events. This is not a
@@ -318,9 +316,9 @@ class Indexer(object):
             if isinstance(self._score[0], stream.Stream):
                 post.append(stream_indexer(voices, self._indexer_func, self._types, index_tied))
             else:
-                jobs.append((voices, self._indexer_func))
+                jobs.append(voices)
                 if not on and len(jobs) > 0:
-                    post.append(series_indexer((voices, self._indexer_func)))
+                    post.append(series_indexer(voices, self._indexer_func))
         
         if on and len(jobs) > 0:
             # Determine an appropriate number of cores to use.
@@ -331,7 +329,7 @@ class Indexer(object):
                 cores = 16
                 
             pool = mp.Pool(cores)
-            post = pool.map(series_indexer, jobs)
+            post = pool.map(partial(series_indexer, indexer_func=self._indexer_func), jobs)
             pool.close()
 
         return post
