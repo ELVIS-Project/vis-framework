@@ -29,7 +29,6 @@ Indexers that consider repetition in any way.
 """
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from numpy import nan
 import pandas
 from vis.analyzers import indexer
@@ -89,5 +88,5 @@ class FilterByRepeatIndexer(indexer.Indexer):
             post.append(part.dropna())
 
         # prepare the proper return type
-        combinations = [[x] for x in xrange(len(self._score))]
+        combinations = [[x] for x in range(len(self._score))]
         return self.make_return([six.u(str(x))[1:-1] for x in combinations], post)

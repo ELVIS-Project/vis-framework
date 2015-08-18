@@ -31,7 +31,6 @@ The controllers that deal with indexing data from music21 Score objects.
 """
 
 import six
-from six.moves import range, xrange
 import pandas
 from music21 import stream, converter
 import multiprocessing as mp
@@ -106,7 +105,7 @@ def series_indexer(parts, indexer_func):
     """
     # find the offsets at which things happen
     all_offsets = pandas.Index([])
-    for i in xrange(0, len(parts)):
+    for i in range(0, len(parts)):
         all_offsets = all_offsets.union(parts[i].index)
 
     # Copy each Series with index=offset values that match all_offsets, filling in non-existant
@@ -217,9 +216,9 @@ class Indexer(object):
             else:
                 ind_name = score.columns.levels[0][0]
                 num_parts = len(score[ind_name].columns)
-                score = [score[ind_name][str(i)].dropna() for i in xrange(num_parts)]
+                score = [score[ind_name][str(i)].dropna() for i in range(num_parts)]
         elif isinstance(score, stream.Score) and req_s_type is stream.Part:
-            score = [score.parts[i] for i in xrange(len(score.parts))]
+            score = [score.parts[i] for i in range(len(score.parts))]
 
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()

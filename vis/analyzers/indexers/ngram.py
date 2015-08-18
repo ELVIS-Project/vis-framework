@@ -31,7 +31,6 @@ Indexer to find k-part any-object n-grams.
 # pylint: disable=pointless-string-statement
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from vis.analyzers import indexer
 
@@ -304,7 +303,7 @@ class NGramIndexer(indexer.Indexer):
                 events.update(events.loc[:, ('h', i)].fillna(value=self._settings['continuer']))
 
         # Iterate the offsets
-        for i in xrange(len(events)):
+        for i in range(len(events)):
             loop_post = None
             try:
                 # first vertical event
@@ -314,7 +313,7 @@ class NGramIndexer(indexer.Indexer):
             except RuntimeWarning:  # we hit a terminator
                 continue
             try:
-                for j in xrange(self._settings['n'] - 1):  # iterate to the end of 'n'
+                for j in range(self._settings['n'] - 1):  # iterate to the end of 'n'
                     k = i + j + 1  # the index we need
                     ilp = None  # it means "Inner Loop Post"
                     if 'h' in events:  # are there "horizontal" events?
