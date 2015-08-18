@@ -36,21 +36,6 @@ import pandas
 from music21 import stream, converter
 import multiprocessing as mp
 
-# def mpi_unique_offsets(streams): # No longer needed because it is never called
-#     """
-#     For a set of :class:`Stream` objects, find the offsets at which events begin. Used by
-#     :meth:`stream_indexer`.
-
-#     :param streams: A list of :class:`Stream` objects in which to find the offsets where events begin.
-#     :type streams: list of :class:`music21.stream.Stream`
-
-#     :returns: A list of floating-point numbers representing offsets at which a new event begins in
-#         any of the :class:`Stream` objects. Offsets are sorted from lowest to highest (start to end).
-#     :rtype: list of float
-#     """
-#     offsets = ({e.offset for e in part.elements} for part in streams)
-#     return sorted(set.union(*offsets))  # pylint: disable=W0142
-
 def stream_indexer(part, indexer_func, types=None, index_tied=False):
     """
     Perform the indexation of a :class:`Part`. This is a module-level function designed to ease
