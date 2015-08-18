@@ -241,7 +241,7 @@ class HierarchicalClusterer(experimenter.Experimenter):
         # number of types of observations.
         numPieces = len(self._sers[0])
         comparisons = numPieces*(numPieces-1)/2
-        matrix = [0]*comparisons
+        matrix = [0]*int(comparisons)
         for i in range(len(self._sers)): # The outer loop is what allows multiple metrics to be mixed
             position = 0
             for j, ser1 in enumerate(self._sers[i][:-1]):
@@ -296,4 +296,4 @@ class HierarchicalClusterer(experimenter.Experimenter):
         d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
         if self._graph_settings['return_data']:
             return d_data
-        
+            
