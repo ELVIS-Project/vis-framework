@@ -9,7 +9,7 @@ the top of the file.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
 * 2.2.0:
     - Python 3 compatibility.
-    - New: hierarchical clustering and dengrogram graphical output with dendrogram.py
+    - New: hierarchical clustering and dendrogram graphical output with dendrogram.py
     - Refactoring/rewrite: update make_return() method in indexer.py to greatly enhance performance when creating dataframes. Uses pandas.concat() instead of pandas.DataFrame()
     - Refactoring: simplified the way several indexers and experimenters internally set their settings to make their init methods easier to read. Uses .update() instead of making piecemeal changes.
     - Tests: includes 15 new tests in a test suite for the dendrogram.py file and comments out 2 tests in offset.py because they are incompatible with the new version of make_return() as they pass magic mock objects to a be concatenated by pandas.concat().
