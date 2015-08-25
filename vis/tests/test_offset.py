@@ -90,7 +90,7 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
         settings = {'quarterLength': 1.0, 'method': 'ffill'}
         actual = FilterByOffsetIndexer(in_val, settings).run()
         self.assertEqual(actual.index[0], 4.0)
-        self.assertListEqual(list(actual.index), [4.0, 5.0, 9.0, 10.0])
+        self.assertListEqual(list(actual.index), [4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
         self.assertEqual(len(actual.columns), 2)
 
     def test_run_2_a(self):
