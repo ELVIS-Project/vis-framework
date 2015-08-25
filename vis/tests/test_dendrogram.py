@@ -155,8 +155,8 @@ class TestHierarchicalClusterer(unittest.TestCase):
         same matrix that will get passed to the run() method in test_run_1."""
         setts = {'sers': [list_of_3_series_a]}
         actual = dendrogram.HierarchicalClusterer(**setts).pair_compare()
-        expected = [25.925925925925931, 25.925925925925931, 44.44444444444445]
-        self.assertEqual(actual, expected)
+        expected = [16.666666666666675, 16.666666666666675, 33.333333333333336]
+        self.assertEqual(expected, actual)
 
     def test_pair_compare_2(self):
         """ That pair_compare() works properly with just one metric again but with some values that 
@@ -164,8 +164,8 @@ class TestHierarchicalClusterer(unittest.TestCase):
         duration count would look like."""
         setts = {'sers': [list_of_3_series_b]}
         actual = dendrogram.HierarchicalClusterer(**setts).pair_compare()
-        expected = [55.555555555555557, 88.888888888888886, 83.333333333333343]
-        self.assertEqual(actual, expected)
+        expected = [50.0, 83.333333333333343, 83.333333333333343]
+        self.assertEqual(expected, actual)
 
     def test_pair_compare_3(self):
         """ That pair_compare() works properly with two analysis metrics. These results 
@@ -173,8 +173,8 @@ class TestHierarchicalClusterer(unittest.TestCase):
         argument."""
         setts = {'sers': [list_of_3_series_a, list_of_3_series_b], 'weights': (.8, .2) }
         actual = dendrogram.HierarchicalClusterer(**setts).pair_compare()
-        expected = [31.851851851851855, 38.518518518518519, 52.222222222222229]
-        self.assertEqual(actual, expected)
+        expected = [23.333333333333339, 30.000000000000007, 43.333333333333343]
+        self.assertEqual(expected, actual)
 
     def test_run_1(self):
         """ That run() works properly. The sers argument passed here is similar to what a note 
@@ -184,11 +184,11 @@ class TestHierarchicalClusterer(unittest.TestCase):
                  'graph_settings': {'return_data': True, 'interactive_dendrogram': False} }
         actual = dendrogram.HierarchicalClusterer(**setts).run()
         expected = {'ivl': ['3', '1', '2'],
-                    'dcoord': [[0.0, 25.925925925925931, 25.925925925925931, 0.0], 
-                               [0.0, 35.18518518518519, 35.18518518518519, 25.925925925925931]], 
-                    'leaves': [2, 0, 1], 'color_list': ['g', 'g'], 
+                    'dcoord': [[0.0, 16.666666666666675, 16.666666666666675, 0.0],
+                               [0.0, 25.000000000000007, 25.000000000000007, 16.666666666666675]],
+                    'leaves': [2, 0, 1], 'color_list': ['g', 'g'],
                     'icoord': [[15.0, 15.0, 25.0, 25.0], [5.0, 5.0, 20.0, 20.0]]}
-        self.assertEqual(actual, expected)
+        self.assertEqual(expected, actual)
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
