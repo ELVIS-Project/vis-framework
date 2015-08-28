@@ -187,7 +187,10 @@ class DurationIndexer(indexer.Indexer):
 class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
     """
     Make an index of the measures in a piece. Time signatures changes do not cause a problem. Note 
-    that unlike most other indexers this one returns integer values >= 0.
+    that unlike most other indexers this one returns integer values >= 0. Using music21's 
+    part.measureTemplate() function is an alternative but it turned out to be much less efficient 
+    to looping over the piece and doing it this way makes this indexer just like all the other 
+    stream indexers in VIS. 
     """
 
     required_score_type = 'stream.Part'
