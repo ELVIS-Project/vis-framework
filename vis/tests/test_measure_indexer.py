@@ -34,7 +34,6 @@ Tests for the measure indexer. NB: Based on noterest indexer tests.
 
 import os
 import unittest
-import six
 import pandas
 from music21 import converter, stream, note
 from vis.analyzers.indexers import metre
@@ -47,28 +46,15 @@ class TestMeasureIndexer(unittest.TestCase):
     bwv77_measure_index = [0.0, 1.0, 5.0, 9.0, 13.0, 17.0, 21.0, 25.0, 29.0, 33.0, 
                            37.0, 41.0, 45.0, 49.0, 53.0, 57.0, 61.0, 65.0, 69.0]
 
-    @staticmethod
-    def make_series(lotuples):
-        """
-        From a list of two-tuples, make a Series. The list should be like this:
-
-        [(desired_index, value), (desired_index, value), (desired_index, value)]
-        """
-        new_index = [x[0] for x in lotuples]
-        vals = [x[1] for x in lotuples]
-        return pandas.Series(vals, index=new_index)
-
     def test_measure_indexer_1(self):
         # When the parts are empty
         expected = {'0': pandas.Series(), '1': pandas.Series()}
         test_part = [stream.Part(), stream.Part()]
         measure_indexer = metre.MeasureIndexer(test_part)
         actual = measure_indexer.run()['metre.MeasureIndexer']
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
+        for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
-
 
     def test_note_rest_indexer_2(self):
         # When the part has no Measure objects in it but a bunch of notes.
@@ -84,8 +70,7 @@ class TestMeasureIndexer(unittest.TestCase):
         measure_indexer = metre.MeasureIndexer(test_part)
         actual = measure_indexer.run()['metre.MeasureIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
+        for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
@@ -105,34 +90,32 @@ class TestMeasureIndexer(unittest.TestCase):
         measure_indexer = metre.MeasureIndexer(test_part)
         actual = measure_indexer.run()['metre.MeasureIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
+        for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
     def test_note_rest_indexer_4(self):
-        # Soprano part of bwv77.mxl, which is a piece with a pick-up measure.
-        expected = {'0': pandas.Series(range(19), index=TestMeasureIndexer.bwv77_measure_index)}
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
-        measure_indexer = metre.MeasureIndexer(test_part)
+        # bwv77.mxl, which is a piece with a pick-up measure. All 4 parts have the same data.
+        measure_data = pandas.Series(range(19), index=TestMeasureIndexer.bwv77_measure_index)
+        expected = {'0': measure_data, '1': measure_data, '2': measure_data, '3': measure_data}
+        test_parts = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts
+        measure_indexer = metre.MeasureIndexer(test_parts)
         actual = measure_indexer.run()['metre.MeasureIndexer']
         self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
+        for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
     def test_note_rest_indexer_5(self):
         # A two-part test piece with no pick-up measure originally written to test fermata indexer.
-        expected = {'0': pandas.Series([1, 2], index=[0.0, 4.0]),
-                    '1': pandas.Series([1, 2], index=[0.0, 4.0])}
+        measure_data = pandas.Series([1, 2], index=[0.0, 4.0])
+        expected = {'0': measure_data, '1': measure_data}
         test_piece = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/test_fermata_rest.xml'))
         test_parts = test_piece.parts
         measure_indexer = metre.MeasureIndexer(test_parts)
         actual = measure_indexer.run()['metre.MeasureIndexer']
         self.assertEqual(2, len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
+        for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
