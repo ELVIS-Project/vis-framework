@@ -210,8 +210,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         actual = dissonance.DissonanceIndexer(in_dfs).run()
         assert_frame_equal(expected, actual)
 
-<<<<<<< HEAD
-=======
     def test_diss_indexer_run_2(self):
         """
         Test the dissonance indexer on an entire real piece that has most of the dissonance types 
@@ -235,7 +233,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         actual = dissonance.DissonanceIndexer(in_dfs).run()
         assert_frame_equal(expected, actual)
 
->>>>>>> alex_devel
 
 
 #-------------------------------------------------------------------------------------------------#
