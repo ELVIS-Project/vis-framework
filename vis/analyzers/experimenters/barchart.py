@@ -32,10 +32,19 @@ The experimenters in this module all generate bar charts. Currently the only cla
 # pylint: disable=pointless-string-statement
 
 from os import path
-import subprocess
+from distutils.spawn import find_executable
 import pandas
+import subprocess
 import vis
 from vis.analyzers import experimenter
+
+
+def find_Rscript():
+    rscript_path = find_executable('Rscript')
+    if rscript_path is None:
+        raise RuntimeError("Could not find 'Rscript' executable.")
+    else:
+        return rscript_path
 
 
 class RBarChart(experimenter.Experimenter):
@@ -43,7 +52,7 @@ class RBarChart(experimenter.Experimenter):
     Use ``Rscript`` to run a bar-chart-generating script in the R programming language.
     """
 
-    RSCRIPT_PATH = '/usr/bin/Rscript'
+    RSCRIPT_PATH = find_Rscript()
     """
     Full pathname to the ``Rscript`` program. If this doesn't work on your system, you'll have a
     hard time getting :class:`RbarChart` to work.
