@@ -31,7 +31,6 @@ import numpy
 from numpy import nan, isnan  # pylint: disable=no-name-in-module
 from music21 import stream
 from vis.analyzers import indexer
-import pdb
 import time
 
 _d3q_label = 'Q'
