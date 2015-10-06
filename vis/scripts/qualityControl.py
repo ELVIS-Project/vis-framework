@@ -1,10 +1,13 @@
-from vis.models.indexed_piece import IndexedPiece
+from music21 import converter
 from vis.analyzers.indexers import metre
+import pdb
 
-no_parts_warning = 'This piece appears to have no parts.'
+convert_error = 'This piece could not be converted by music21.'
+no_parts = 'This piece appears to have no parts.'
+no_measures = 'This piece has at least one part, but no measures.'
 only_one_part = 'This piece only has one part in its encoding so this check cannot be performed.'
 uneven_measures = 'This piece\'s parts change measures at different offsets.'
-passing_message = 'This piece passed the measure-integrity test.'
+passing_message = 'This piece was successfully converted and passed the measure-integrity test.'
 
 class QualityControl(object):
     """
@@ -17,6 +20,19 @@ class QualityControl(object):
     >>> test = QualityControl()
     >>> result = test.measure_checker(path_to_piece_in_symbolic_notation)
     """
+    def check_convert(self, path):
+        """
+        Makes sure that the piece passed can be converted by music21.
+
+        returns: A 2-tuple of (True, list_of_piece's_parts) if the conversion was successfully 
+            imported by music21, or a 1-tuple (False,) if the conversion failed.
+        """
+        try:
+            piece = converter.parse(path)
+            parts = piece.parts
+            return (True, parts)
+        except:
+            return (False,)
 
     def measure_checker(self, path):
         """
@@ -29,13 +45,16 @@ class QualityControl(object):
             passed or in the case of a 1-voice piece, not performable; False means the test was 
             failed) and a string containing a brief message explaining the result of the test.
         """
-        ind_piece = IndexedPiece(path)
-        test_piece = ind_piece._import_score()
-        test_parts = test_piece.parts
+        temp = self.check_convert(path)
+        if not temp[0]:
+            return (False, convert_error)
+        test_parts = temp[1]
         measures = metre.MeasureIndexer(test_parts).run()
         cols = len(measures.columns)
         if cols == 0:
-            return (False, no_parts_warning)
+            return (False, no_parts)
+        elif cols > 0 and len(measures.index) == 0:
+            return (False, no_measures)
         elif cols == 1:
             return (True, only_one_part)
         else:
@@ -45,3 +64,7 @@ class QualityControl(object):
                     return (False, uneven_measures)
         return (True, passing_message)
 
+path = '/home/amor/Code/vis-framework/vis/scripts/Confirmed-Attribution/Alma-redemptoris-mater_Josquin-Des-Prez_file1.xml'
+test = QualityControl()
+res = test.measure_checker(path)
+pdb.set_trace()
