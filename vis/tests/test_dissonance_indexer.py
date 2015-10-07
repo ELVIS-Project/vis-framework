@@ -36,13 +36,33 @@ import pandas as pd
 import music21
 from music21 import converter
 from vis.analyzers.indexers import dissonance, noterest, metre, interval
-from pandas.util.testing import assert_frame_equal
-from numpy import nan, isnan  # pylint: disable=no-name-in-module
 import pdb
+from pandas.util.testing import assert_frame_equal
 
 # find the pathname of the 'vis' directory
 import vis
 VIS_PATH = vis.__path__[0]
+
+
+def make_series(lotuples):
+    """
+    From a list of two-tuples, make a Series. The list should be like this:
+
+    [(desired_index, value), (desired_index, value), (desired_index, value)]
+    """
+    new_index = [x[0] for x in lotuples]
+    vals = [x[1] for x in lotuples]
+    return pd.Series(vals, index=new_index)
+
+def pandas_maker(lolists):
+    """
+    Use make_series() to convert a list of appropriate tuples into a list of appropriate Series.
+
+    Input: list of the input desired by make_series()
+
+    Output: list of pd.Series
+    """
+    return [make_series(x) for x in lolists]
 
 def make_df(series_list, mI):
     """
@@ -165,20 +185,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         actual = init._is_passing_or_neigh(1, '0,1', 'M2', 'P1')
         self.assertSequenceEqual(expected, actual)
 
-    def test_diss_indexer_is_unexplainable_1(self):
-        """
-        Detection of label assignment for unexplainable dissonances. The inputs aren't so important 
-        as long as NaN's and proper values are in the right spots.
-        """
-        horiz_df = hdescq_h_df.copy()
-        horiz_df.iat[2, 1] = nan
-        in_dfs = [hq_b_df, hq_dur_df, horiz_df, asc_q_v_df]
-        in_dfs = pd.concat(in_dfs, axis=1)
-        expected = (True, '0', dissonance._unexplainable, '1', dissonance._no_diss_label)
-        init = dissonance.DissonanceIndexer(in_dfs)
-        actual = init._is_unexplainable(2, '0,1', 'M2', 'P1')
-        self.assertSequenceEqual(expected, actual)
-
     def test_diss_indexer_run_1a(self):
         """
         Detection of two rising passing tones in a mini-piece.
@@ -222,7 +228,7 @@ class TestDissonanceIndexer(unittest.TestCase):
         vert = interval.IntervalIndexer(nr, vert_setts).run()
 
         in_dfs = [bs, dur, horiz, vert]
-        in_dfs = pd.concat(in_dfs, axis=1) # for some reason this df can't be read in instead of calculated.
+        in_dfs = pd.concat(in_dfs, axis=1)
         expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
         actual = dissonance.DissonanceIndexer(in_dfs).run()
         assert_frame_equal(expected, actual)
