@@ -128,9 +128,13 @@ class RBarChart(experimenter.Experimenter):
 
         super(RBarChart, self).__init__(index, None)
 
-    def run(self):
+    def run(self, path_to_Rscript=None):
         """
         Produce the bar chart.
+
+        :param path_to_Rscript: Path to the `Rscript` executable. If not given, it will be
+            determined automatically if possible.
+        :type path_to_Rscript: str or None
 
         :returns: The pathname of the outputted PNG file containing a bar chart.
         :rtype: string
@@ -158,7 +162,7 @@ class RBarChart(experimenter.Experimenter):
         self._index.to_stata(stata_path)
 
         # prepare the call for subprocess
-        rscript_path = find_Rscript()
+        rscript_path = path_to_Rscript or find_Rscript()
         call_to_r = [rscript_path, '--vanilla', self._r_bar_chart_path, stata_path, out_path, token]
         if self._settings['nr_pieces'] is not None:
             call_to_r += [self._settings['nr_pieces']]
