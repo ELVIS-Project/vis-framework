@@ -31,10 +31,10 @@ The experimenters in this module all generate bar charts. Currently the only cla
 
 # pylint: disable=pointless-string-statement
 
-from os import path
 from distutils.spawn import find_executable
-import pandas
+from os import path
 import subprocess
+import pandas
 import vis
 from vis.analyzers import experimenter
 
