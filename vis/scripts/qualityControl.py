@@ -1,6 +1,5 @@
 from music21 import converter
 from vis.analyzers.indexers import metre
-import pdb
 
 convert_error = 'This piece could not be converted by music21.'
 no_parts = 'This piece appears to have no parts.'
@@ -63,8 +62,3 @@ class QualityControl(object):
                 if first_col_vals != measures.iloc[:, col_num].tolist():
                     return (False, uneven_measures)
         return (True, passing_message)
-
-path = '/home/amor/Code/vis-framework/vis/scripts/Confirmed-Attribution/Alma-redemptoris-mater_Josquin-Des-Prez_file1.xml'
-test = QualityControl()
-res = test.measure_checker(path)
-pdb.set_trace()
