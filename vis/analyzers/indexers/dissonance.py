@@ -137,7 +137,7 @@ class DissonanceIndexer(indexer.Indexer):
         :param indx: The position-based (iloc) index of the dissonance being analyzed.
         :type indx: int
         :param pair: name of the voice pair in which the dissonance happens.
-        :type pair: string with the lower-numbered voice first and a comma separating the two
+        :type pair: string with the lower numbered voice first and a comma separating the two
             voices.
         :param event: the interval that has been analyzed as a dissonance to be classified.
         :type event: string of dissonant interval with quality. All fourths and fifths should be 
@@ -218,7 +218,7 @@ class DissonanceIndexer(indexer.Indexer):
                     return (True, upper, _no_diss_label, lower, _pass_rp_label)
                 elif x == -2:
                     return (True, upper, _no_diss_label, lower, _neigh_ln_label)
-            elif y == -2:
+            elif x == -2 and y == -2:
                 if x == -2:
                     return (True, upper, _no_diss_label, lower, _pass_dp_label)
                 elif x == 2:
