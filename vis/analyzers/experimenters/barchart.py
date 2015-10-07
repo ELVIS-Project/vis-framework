@@ -52,12 +52,6 @@ class RBarChart(experimenter.Experimenter):
     Use ``Rscript`` to run a bar-chart-generating script in the R programming language.
     """
 
-    RSCRIPT_PATH = find_Rscript()
-    """
-    Full pathname to the ``Rscript`` program. If this doesn't work on your system, you'll have a
-    hard time getting :class:`RbarChart` to work.
-    """
-
     OUTPUT_TYPES = ('eps', 'ps', 'tex', 'pdf', 'jpeg', 'tiff', 'png', 'bmp', 'svg')
     """
     R additionally supports the ``'wmf'`` format, which is for Windows only. However, since VIS
@@ -164,12 +158,10 @@ class RBarChart(experimenter.Experimenter):
         self._index.to_stata(stata_path)
 
         # prepare the call for subprocess
-        if self._settings['nr_pieces'] is None:
-            call_to_r = [RBarChart.RSCRIPT_PATH, '--vanilla', self._r_bar_chart_path, stata_path,
-                        out_path, token]
-        else:
-            call_to_r = [RBarChart.RSCRIPT_PATH, '--vanilla', self._r_bar_chart_path, stata_path,
-                        out_path, token, self._settings['nr_pieces']]
+        rscript_path = find_Rscript()
+        call_to_r = [rscript_path, '--vanilla', self._r_bar_chart_path, stata_path, out_path, token]
+        if self._settings['nr_pieces'] is not None:
+            call_to_r += [self._settings['nr_pieces']]
 
         # do the actual call to Rscript
         try:
