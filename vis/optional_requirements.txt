@@ -10,7 +10,7 @@ Bottleneck>=0.7.0
 # tables>=3.0.0
 openpyxl>=1.6.2
 
-# Static analysis to make sure we don't make a hugebig mess.
+# Static analysis to make sure we don't make a huge big mess.
 pylint
 
 # Plotting tools
