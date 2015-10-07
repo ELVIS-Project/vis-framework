@@ -165,7 +165,7 @@ class RBarChart(experimenter.Experimenter):
 
         # do the actual call to Rscript
         try:
-            subprocess.check_output(call_to_r)
+            subprocess.check_output(call_to_r, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as cpe:
             raise RuntimeError(RBarChart._RSCRIPT_FAILED.format(cpe.output, cpe.returncode))
 
