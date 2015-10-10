@@ -1,6 +1,6 @@
 # These packages are required for vis to run 'run_tests.py'.
 # Don't use this for a requirements file. Rather, use 'requirements.txt' and then 'optional_requirements.txt' (if desired).
-music21>=2.0.3,<2.1
+music21==2.1.2
 pandas>=0.14.1,<0.17
 
 # For plotting.

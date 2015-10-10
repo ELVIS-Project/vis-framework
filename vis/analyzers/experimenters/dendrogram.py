@@ -26,6 +26,7 @@ these clusterings.
 # pylint: disable=pointless-string-statement
 from os import path
 import vis
+import pandas as pd
 from vis.analyzers import experimenter
 import subprocess
 from scipy.cluster.hierarchy import dendrogram, linkage
@@ -244,39 +245,17 @@ class HierarchicalClusterer(experimenter.Experimenter):
         matrix = [0]*int(comparisons)
         for i in range(len(self._sers)): # The outer loop is what allows multiple metrics to be mixed
             position = 0
-            for j, ser1 in enumerate(self._sers[i][:-1]):
-                for k, ser2 in enumerate(self._sers[i][j+1:]):
-                    combined = ser1.add(ser2, fill_value=0)
-                    a_total = sum(ser1)
-                    b_total = sum(ser2)
-                    c_total = float(sum(combined))
-                    percA = a_total/c_total # out of 1, not out of 100
-                    percB = b_total/c_total
-                    dissimilarity = 1 # pieces start 100% dissimilary, but out of 1, not 100
-                    for l, n in enumerate(combined.index):
-                        # "Ideal" values are what each observation would be if the proportion of the
-                        # each piece total out of c_total obtained perfectly and uniformly at each
-                        # observation.
-                        a_ideal = combined.iat[l] * percA
-                        b_ideal = combined.iat[l] * percB
-                        a_val, b_val = 0, 0
-                        if n in ser1.index:
-                            a_val = ser1.at[n]
-                        if n in ser2.index:
-                            b_val = ser2.at[n]
-
-                        a_tup = (a_ideal, a_val)
-                        b_tup = (b_ideal, b_val)
-                        # Determine the accuracy of the sers1 and sers2 values at index=n
-                        a_acc = min(a_tup)/max(a_tup)
-                        b_acc = min(b_tup)/max(b_tup)
-
-                        n_perc = combined.iat[l]/c_total
-                        dissimilarity -= a_acc * b_acc * n_perc # percent out of 1, not 100
-
-                    matrix[position] += dissimilarity * self._weights[i] * 100 # apply the weight assigned to this analysis metric and make percent out of 100
+            for j, ser_A in enumerate(self._sers[i][:-1]):
+                for k, ser_B in enumerate(self._sers[i][j+1:]):
+                    similarity = 0
+                    # TODO: move the next three lines out of the loop!
+                    df = pd.concat([ser_A, ser_B], axis=1, ignore_index=True) # put the two analysis profiles in a dataframe
+                    df = df.replace(to_replace='NaN', value=0)
+                    df = df.div(list(df.sum())) # make the df show the percent out of 1 that each analysis observation is of its piece
+                    for n in range(len(df.index)): # loop over all the observations in the analysis profiles
+                        similarity += min(df.iloc[n, :]) # keep a tally of only the percent out of 1 that they have in common for all observations
+                    matrix[position] += (1 - similarity) * self._weights[i] * 100 # apply the weight assigned to this analysis metric and make percent out of 100
                     position += 1 # keep track of which pair comparison we're going to next in case we need to come back for another metric
-
         return matrix
 
     def run(self):
@@ -293,7 +272,28 @@ class HierarchicalClusterer(experimenter.Experimenter):
 
         # linkage() organizes the dissimilarity matrix into a plotable structure.
         linkage_matrix = linkage(self.pair_compare(), self._graph_settings['linkage_type'])
-        d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
         if self._graph_settings['return_data']:
+            d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
             return d_data
-            
+        if not self._dendrogram_settings['no_plot']:
+            import matplotlib.pyplot as plt
+            plt.figure('Dendrogram') 
+            d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
+            # Add connection annotations if the user asked for them
+            if self._graph_settings['label_connections']:
+                for i, d in zip(d_data['icoord'], d_data['dcoord']):
+                    x = 0.5 * sum(i[1:3])
+                    y = d[1]
+                    plt.plot(x, y, self._graph_settings['connection_string'])
+                    plt.annotate("%.3g" % y, (x, y), xytext=(0, -8), textcoords='offset points',
+                                 va='top', ha='center')
+            # Apply labels. If you want to omit a label, pass an empty string ''.
+            plt.xlabel(self._graph_settings['xlabel'])
+            plt.ylabel(self._graph_settings['ylabel'])
+            plt.title(self._graph_settings['title'])
+            # If the user provided a filepath, export as a .png (default) or .pdf.
+            if self._graph_settings['filename_and_type'] is not None:
+                plt.savefig(self._graph_settings['filename_and_type'])
+            # If the user wants an interactive matplotlib dendrogram, make it.
+            if self._graph_settings['interactive_dendrogram']:
+                plt.show()

@@ -76,25 +76,38 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
         except RuntimeError as run_err:
             self.assertEqual(FilterByOffsetIndexer._ZERO_PART_ERROR, run_err.args[0])
     
-    # These next two tests don't work with the new make_return method but only because the
-    # mock objects that they use in lieu of real pandas.Series can't be concatenated.
-    # def test_run_1(self):
-    #     # ensure that run() properly gets "method" from self._settings
-    #     in_val = [mock.MagicMock(spec_set=pandas.Series)]
-    #     in_val[0].index = [0.0]
-    #     settings = {'quarterLength': 0.5, 'method': 'silly'}
-    #     ind = FilterByOffsetIndexer(in_val, settings)
-    #     ind.run()
-    #     in_val[0].reindex.assert_called_once_with(index=[0.0], method='silly')
+    def test_run_1_a(self):
+        # try statement correctly finds minimum start_offset and whole index when no series is empty.
+        in_val = [pandas.Series(['A', 'B']), pandas.Series(['B', 'C'], index=[1, 2])]
+        settings = {'quarterLength': 1.0, 'method': 'ffill'}
+        actual = FilterByOffsetIndexer(in_val, settings).run()
+        self.assertListEqual(list(actual.index), [0.0, 1.0, 2.0])
+        self.assertEqual(len(actual.columns), 2)
+
+    def test_run_1_b(self):
+        # same as test_run_1_a but with a non-zero starting point and non-overlapping indecies.
+        in_val = [pandas.Series(['A', 'B'], index=[4, 5]), pandas.Series(['C', 'D'], index=[9, 10])]
+        settings = {'quarterLength': 1.0, 'method': 'ffill'}
+        actual = FilterByOffsetIndexer(in_val, settings).run()
+        self.assertEqual(actual.index[0], 4.0)
+        self.assertListEqual(list(actual.index), [4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
+        self.assertEqual(len(actual.columns), 2)
+
+    def test_run_2_a(self):
+        # checks if the index and number of columns are correct if one of the passed series is empty.
+        in_val = [pandas.Series(['A', 'B']), pandas.Series()]
+        settings = {'quarterLength': 1.0, 'method': 'ffill'}
+        actual = FilterByOffsetIndexer(in_val, settings).run()
+        self.assertListEqual(list(actual.index), [0.0, 1.0])
+        self.assertEqual(len(actual.columns), 2)
         
-    # def test_run_2(self):
-    #     # ensure that run() properly gets "method" from self._settings (default value)
-    #     in_val = [mock.MagicMock(spec_set=pandas.Series)]
-    #     in_val[0].index = [0.0]
-    #     settings = {'quarterLength': 0.5}
-    #     ind = FilterByOffsetIndexer(in_val, settings)
-    #     ind.run()
-    #     in_val[0].reindex.assert_called_once_with(index=[0.0], method='ffill')
+    def test_run_2_b(self):
+        # checks if the index and number of columns are correct if all the passed series are empty.
+        in_val = [pandas.Series(), pandas.Series()]
+        settings = {'quarterLength': 1.0, 'method': 'ffill'}
+        actual = FilterByOffsetIndexer(in_val, settings).run()
+        self.assertListEqual(list(actual.index), [])
+        self.assertEqual(len(actual.columns), 2)
 
     def test_offset_1part_1(self):
         # 0 length

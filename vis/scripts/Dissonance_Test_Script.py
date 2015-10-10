@@ -27,7 +27,6 @@ def main():
     # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Sanctus.krn'
     ind_piece = IndexedPiece(piece_path)
 
-
     # bwv603 = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
     # test_part = [bwv603.parts[0], bwv603.parts[1], bwv603.parts[2], bwv603.parts[3]]
 
