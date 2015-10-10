@@ -7,6 +7,8 @@ the top of the file.
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
+* 2.2.1:
+    - set music21 version to 2.1.2 exclusively
 * 2.2.0:
     - Python 3 compatibility.
     - New: hierarchical clustering and dengrogram graphical output with dendrogram.py
