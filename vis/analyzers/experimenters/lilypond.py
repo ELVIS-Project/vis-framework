@@ -35,7 +35,6 @@ corresponding to the score.
 # pylint: disable=pointless-string-statement
 
 from math import fsum
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from numpy import isnan, NaN  # pylint: disable=no-name-in-module
 import pandas
 from music21 import stream, note, duration
@@ -115,26 +114,14 @@ class LilyPondExperimenter(experimenter.Experimenter):
         self._settings = {}
 
         # dealing with output_pathname is a little complicated...
-        if u'output_pathname' in settings:
-            self._settings[u'output_pathname'] = settings[u'output_pathname']
-            if u'run_lilypond' in settings:
-                self._settings[u'run_lilypond'] = settings[u'run_lilypond']
-        else:
-            self._settings[u'output_pathname'] = LilyPondExperimenter.default_settings[u'output_pathname']
-            if u'run_lilypond' in settings and settings[u'run_lilypond'] is True:
-                raise RuntimeError(LilyPondExperimenter._MISSING_PATHNAME)
+        if 'output_pathname' not in settings and 'run_lilypond' in settings and settings['run_lilypond'] is True:
+            raise RuntimeError(LilyPondExperimenter._MISSING_PATHNAME)
+        # if 'annotation _part' isn't a list, put its value in a list
+        if 'annotation_part' in settings and not isinstance(settings['annotation_part'], list):
+            settings['annotation_part'] = [settings['annotation_part']]
 
-        # if they didn't specify whether to run LilyPond
-        if u'run_lilypond' not in self._settings:
-            self._settings[u'run_lilypond'] = LilyPondExperimenter.default_settings[u'run_lilypond']
-
-        # deal with the annotation_part
-        if u'annotation_part' in settings:
-            self._settings[u'annotation_part'] = settings[u'annotation_part']
-            if not isinstance(self._settings[u'annotation_part'], list):
-                self._settings[u'annotation_part'] = [self._settings[u'annotation_part']]
-        else:
-            self._settings[u'annotation_part'] = LilyPondExperimenter.default_settings[u'annotation_part']
+        self._settings = LilyPondExperimenter.default_settings.copy()
+        self._settings.update(settings)
 
         super(LilyPondExperimenter, self).__init__(index, None)
 
@@ -333,7 +320,7 @@ class PartNotesExperimenter(experimenter.Experimenter):
         """
         in_len = len(in_part)
         ret_part = stream.Part()
-        for i in xrange(in_len):
+        for i in range(in_len):
             qls = None
             try:
                 qls = PartNotesExperimenter._fill_space_between_offsets(in_part[i].offset,
@@ -342,7 +329,7 @@ class PartNotesExperimenter(experimenter.Experimenter):
                 qls = [1.0]
             in_part[i].duration = duration.Duration(quarterLength=qls[0])
             ret_part.insert(in_part[i].offset, in_part[i])
-            for j in xrange(len(qls[1:])):
+            for j in range(len(qls[1:])):
                 # the offset for insertion is...
                 #   offset of the Note object, plus
                 #   duration of the Note object, plus
@@ -373,7 +360,7 @@ class PartNotesExperimenter(experimenter.Experimenter):
         """
         if 0.0 != in_part.index[0]:
             durations = PartNotesExperimenter._fill_space_between_offsets(0.0, in_part.index[0])
-            offsets = [max(0.0, sum(durations[:i])) for i in xrange(len(durations))]
+            offsets = [max(0.0, sum(durations[:i])) for i in range(len(durations))]
             for i, offset in enumerate(offsets):
                 in_part[offset] = note.Rest(quarterLength=durations[i])
             return in_part.sort_index()

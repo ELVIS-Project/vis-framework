@@ -73,7 +73,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         not_processed = [[(0.0, 'G4')], [(0.0, 'G3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -89,7 +89,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                          [(0.0, 'G3'), (0.25, 'Rest')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -104,7 +104,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         not_processed = [[(0.0, 'G4')], [(0.0, 'G3'), (0.25, 'Rest')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -119,7 +119,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         not_processed = [[(0.0, 'G4'), (0.25, 'Rest')], [(0.0, 'G3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -135,7 +135,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                          [(0.0, 'G3'), (0.5, 'A3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -150,7 +150,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         not_processed = [[(0.0, 'G4', 1.0)], [(0.0, 'G3'), (0.5, 'A3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -169,7 +169,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                           (1.0, 'A3'), (1.5, 'B3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -186,7 +186,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                          [(0.0, 'G3'), (0.25, 'Rest'), (0.5, 'A3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -204,7 +204,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                          [(0.0, 'G3'), (0.25, 'Rest'), (0.5, 'A3'), (1.0, 'B3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -219,7 +219,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         not_processed = [[(0.0, 'G4', 1.0)], [(0.0, 'G3'), (0.25, 'A3', 0.75)]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -234,7 +234,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
         not_processed = [[(0.0, 'G4', 1.0)], [(0.0, 'G3'), (0.5, 'G3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -251,7 +251,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                          [(0.0, 'G3'), (0.25, 'Rest'), (0.5, 'G3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -271,7 +271,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                           (0.25, 'A3', 0.125), (0.375, 'Rest', 0.125), (0.5, 'G3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -299,7 +299,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                           (0.375, 'Rest', 0.0625), (0.4375, 'Rest', 0.0625), (0.5, 'G3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -320,7 +320,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                           (1.0, 'Rest'), (1.5, 'G3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -341,7 +341,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                           (0.75, 'F3', 0.75), (1.5, 'E3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -364,7 +364,7 @@ class TestIntervalIndexerShort(unittest.TestCase):
                           (1.125, 'Rest'), (1.375, 'G3', 0.625), (2.0, 'G3')]]
         test_in = pandas_maker(not_processed)
         int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound'})
+                                      {'quality': True, 'simple or compound': 'compound', 'direction': True})
         actual = int_indexer.run()['interval.IntervalIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
@@ -478,172 +478,172 @@ class TestIntervalIndexerIndexer(unittest.TestCase):
         # ascending simple: quality, simple
         notes = ['E4', 'C4']
         expected = 'M3'
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_2(self):
         # ascending simple: quality, compound
         notes = ['E4', 'C4']
         expected = 'M3'
-        actual = real_indexer(notes, quality=True, simple=False)
+        actual = real_indexer(notes, quality=True, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_3(self):
         # ascending simple: noQuality, simple
         notes = ['E4', 'C4']
         expected = '3'
-        actual = real_indexer(notes, quality=False, simple=True)
+        actual = real_indexer(notes, quality=False, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_4(self):
         # ascending simple: noQuality, compound
         notes = ['E4', 'C4']
         expected = '3'
-        actual = real_indexer(notes, quality=False, simple=False)
+        actual = real_indexer(notes, quality=False, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_5(self):
         # ascending compound: quality, simple
         notes = ['E5', 'C4']
         expected = 'M3'
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_6(self):
         # ascending compound: quality, compound
         notes = ['E5', 'C4']
         expected = 'M10'
-        actual = real_indexer(notes, quality=True, simple=False)
+        actual = real_indexer(notes, quality=True, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_7(self):
         # ascending compound: noQuality, simple
         notes = ['E5', 'C4']
         expected = '3'
-        actual = real_indexer(notes, quality=False, simple=True)
+        actual = real_indexer(notes, quality=False, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_8(self):
         # ascending compound: noQuality, compound
         notes = ['E5', 'C4']
         expected = '10'
-        actual = real_indexer(notes, quality=False, simple=False)
+        actual = real_indexer(notes, quality=False, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_9(self):
         # descending simple: quality, simple
         notes = ['C4', 'E4']
         expected = '-M3'
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_10(self):
         # descending simple: quality, compound
         notes = ['C4', 'E4']
         expected = '-M3'
-        actual = real_indexer(notes, quality=True, simple=False)
+        actual = real_indexer(notes, quality=True, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_11(self):
         # descending simple: noQuality, simple
         notes = ['C4', 'E4']
         expected = '-3'
-        actual = real_indexer(notes, quality=False, simple=True)
+        actual = real_indexer(notes, quality=False, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_12(self):
         # descending simple: noQuality, compound
         notes = ['C4', 'E4']
         expected = '-3'
-        actual = real_indexer(notes, quality=False, simple=False)
+        actual = real_indexer(notes, quality=False, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_13(self):
         # descending compound: quality, simple
         notes = ['C4', 'E5']
         expected = '-M3'
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_14(self):
         # descending compound: quality, compound
         notes = ['C4', 'E5']
         expected = '-M10'
-        actual = real_indexer(notes, quality=True, simple=False)
+        actual = real_indexer(notes, quality=True, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_15(self):
         # descending compound: noQuality, simple
         notes = ['C4', 'E5']
         expected = '-3'
-        actual = real_indexer(notes, quality=False, simple=True)
+        actual = real_indexer(notes, quality=False, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_16(self):
         # descending compound: noQuality, compound
         notes = ['C4', 'E5']
         expected = '-10'
-        actual = real_indexer(notes, quality=False, simple=False)
+        actual = real_indexer(notes, quality=False, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_17(self):
         # rest in upper part
         notes = ['C4', 'Rest']
         expected = 'Rest'
-        actual = real_indexer(notes, quality=False, simple=False)
+        actual = real_indexer(notes, quality=False, simple=False, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_18(self):
         # rest in lower part
         notes = ['Rest', 'C4']
         expected = 'Rest'
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_19(self):
         # triple augmented ascending
         notes = ['G###4', 'C4']
         expected = 'AAA5'
-        actual = real_indexer(notes, quality=True, simple=False)
+        actual = real_indexer(notes, quality=True, simple=False, direction=True)
         self.assertEqual(expected, actual)
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_20(self):
         # triple diminished descending
         notes = ['C###4', 'G4']
         expected = '-ddd5'
-        actual = real_indexer(notes, quality=True, simple=False)
+        actual = real_indexer(notes, quality=True, simple=False, direction=True)
         self.assertEqual(expected, actual)
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_21(self):
         # too few inputs
         notes = ['C4']
         expected = None
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_int_ind_indexer_22(self):
         # too many inputs
         notes = ['C4', 'D4', 'E4']
         expected = None
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_regression_1(self):
         "indexer_qual_simple(): P15 --> P8"
         notes = ['C6', 'C4']
         expected = 'P8'
-        actual = real_indexer(notes, quality=True, simple=True)
+        actual = real_indexer(notes, quality=True, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
     def test_regression_2(self):
         "indexer_nq_simple(): 15 --> 8"
         notes = ['C6', 'C4']
         expected = '8'
-        actual = real_indexer(notes, quality=False, simple=True)
+        actual = real_indexer(notes, quality=False, simple=True, direction=True)
         self.assertEqual(expected, actual)
 
 

@@ -55,7 +55,7 @@ def beatstrength_ind_func(obj):
 
 def duration_ind_func(obj):
     """
-    The function that indexes the duration of a whatever it's given. If the note or rest is a
+    The function that indexes the duration of whatever it's given. If the note or rest is a
     non-first element of a group of notes or rests that are tied together, it will add the duration
     value of the non-first tied element to the previous one instead of returning a new reading to
     be added to the list of results.
@@ -80,6 +80,14 @@ def duration_ind_func(obj):
             return None
     else: # The Note or Rest object has no tie or has a tie of type None
         return obj[0].duration.quarterLength
+
+def measure_ind_func(obj):
+    """
+    The function that indexes the measure numbers of each part in a piece. Unlike most other 
+    indexers, this one returns int values. Measure numbering starts from 1 unless there is a pick-up 
+    measure which gets the number 0. This can handle changes in time signature without problems.
+    """
+    return obj[0].measureNumber
 
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
@@ -124,9 +132,9 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         (the first clarinet Series of beatStrength float values)
         """
 
-        combinations = [[x] for x in xrange(len(self._score))]
+        combinations = [[x] for x in range(len(self._score))]
         results = self._do_multiprocessing(combinations)
-        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+        return self.make_return([str(x)[1:-1] for x in combinations], results)
 
 
 class DurationIndexer(indexer.Indexer):
@@ -171,44 +179,50 @@ class DurationIndexer(indexer.Indexer):
         (the first clarinet Series of duration float values)
         """
 
-        combinations = [[x] for x in xrange(len(self._score))]
+        combinations = [[x] for x in range(len(self._score))]
         results = self._do_multiprocessing(combinations, True)
-        return self.make_return([unicode(x)[1:-1] for x in combinations], results)
+        return self.make_return([str(x)[1:-1] for x in combinations], results)
 
 
-#class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
-    #"""
-    #Make an index of the measures in a piece. Note that for simplicity, just the measures of the
-    #upper-most part are indexed so it is assumed that all parts have the same number of measures.
-    #Time signatures changes do not cause a problem provided that all parts change time signatures at
-    #the same time and in the same way.
-    #"""
+class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
+    """
+    Make an index of the measures in a piece. Time signatures changes do not cause a problem. Note 
+    that unlike most other indexers this one returns integer values >= 0. Using music21's 
+    part.measureTemplate() function is an alternative but it turned out to be much less efficient 
+    to looping over the piece and doing it this way makes this indexer just like all the other 
+    stream indexers in VIS. 
+    """
 
-    #required_score_type = 'stream.Part'
+    required_score_type = 'stream.Part'
 
-    #def __init__(self, score, settings=None):
-        #"""
-        #:param score: :class:`Part` object to use for producing this index. It should be the highest
-            #part in the score.
-        #:type score: :class:`music21.stream.Part`
-        #:param settings: This indexer requires no settings so this parameter is ignored.
-        #:type settings: None
+    def __init__(self, score, settings=None):
+        """
+        :param score: :class:`Part` object to use for producing this index. It should be the highest
+            part in the score.
+        :type score: :class:`music21.stream.Part`
+        :param settings: This indexer requires no settings so this parameter is ignored.
+        :type settings: None
         
-        #:raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        #:raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
-        #"""
-        #super(MeasureIndexer, self).__init__(score, None)
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        """
+        super(MeasureIndexer, self).__init__(score, None)
+        self._types = ('Measure',)
+        self._indexer_func = measure_ind_func
 
-    #def run(self):
-        #measure_stream = self._score.measureTemplate()
-        #measure_numbers = []
-        #measure_offsets = []
-        #for m in measure_stream:
-            #measure_numbers.append(m.measureNumber)
-            #measure_offsets.append(m.offset)
-        #meas_ind = pandas.DataFrame(measure_numbers, index=measure_offsets)
-        #iterables = [['metre.MeasureIndexer'], ['Measures']]
-        #meas_ind.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', ''])
+    def run(self):
+        """
+        Make a new index of the piece where the values are the measure numbers in each part and the 
+        index contains the offsets at which those measures begin.
 
-        #return meas_ind
+        :returns: The measure number of each measure in each part in a score. Note that
+            each item is an integer, rather than the usual basestring. The index contains the
+            offsets at which the observed measures begin.
+        :rtype: :class:`pandas.DataFrame`
+        """
+        combinations = [[x] for x in range(len(self._score))]
+        results = self._do_multiprocessing(combinations, True)
+        return self.make_return([str(x)[1:-1] for x in combinations], results)
+
+
 

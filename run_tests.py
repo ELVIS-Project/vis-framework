@@ -7,7 +7,7 @@
 # Filename: run_tests.py
 # Purpose: Run automated tests for the VIS Framework.
 #
-# Copyright (C) 2012, 2013, 2014 Jamie Klassen, Christopher Antila, Ryan Bannon
+# Copyright (C) 2012, 2013, 2014 Jamie Klassen, Christopher Antila, Ryan Bannon, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -33,13 +33,16 @@ from unittest import TextTestRunner
 from vis.tests import test_indexer
 from vis.tests import test_duration_indexer
 from vis.tests import test_note_beat_strength_indexer
+from vis.tests import test_measure_indexer
 from vis.tests import test_note_rest_indexer
 from vis.tests import test_ngram
+from vis.tests import test_dissonance_indexer
 from vis.tests import test_repeat
 from vis.tests import test_interval_indexer
 from vis.tests import test_frequency_experimenter
 from vis.tests import test_aggregator
 from vis.tests import test_barchart
+from vis.tests import test_dendrogram
 from vis.tests import test_offset
 from vis.tests import test_lilypond
 from vis.tests import test_indexed_piece
@@ -61,12 +64,14 @@ THE_TESTS = (# Indexer and Subclasses
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_duration_indexer.DURATION_INDEXER_SUITE,
              test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,
+             test_measure_indexer.MEASURE_INDEXER_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE,
              test_interval_indexer.INT_IND_INDEXER_SUITE,
              test_interval_indexer.HORIZ_INT_IND_LONG_SUITE,
              test_repeat.REPEAT_INDEXER_SUITE,
              test_ngram.NGRAM_INDEXER_SUITE,
+             test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,
              test_offset.OFFSET_INDEXER_SINGLE_SUITE,
              test_offset.OFFSET_INDEXER_MULTI_SUITE,
              test_lilypond.ANNOTATION_SUITE,
@@ -77,6 +82,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_frequency_experimenter.FREQUENCY_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
              test_barchart.R_BAR_CHART_SUITE,
+             test_dendrogram.DENDROGRAM_SUITE,
              # IndexedPiece and AggregatedPieces
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_SUITE_B,

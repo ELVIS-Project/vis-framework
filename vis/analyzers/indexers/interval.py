@@ -34,12 +34,11 @@ same part.
 # pylint: disable=W0105
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
 
-def real_indexer(simultaneity, simple, quality):
+def real_indexer(simultaneity, simple, quality, direction):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
 
@@ -50,6 +49,9 @@ def real_indexer(simultaneity, simple, quality):
     :type simple: boolean
     :param quality: Whether the interval's quality should be prepended.
     :type quality: boolean
+    :param direction: Whether we distinguish between which note is higher than the other. If True,
+        prepends a '-' before everything else if the first note in simultaneity is higher than the second.
+    :type direction: boolean
 
     :returns: ``'Rest'`` if one or more of the parts is ``'Rest'``; otherwise, the interval
         between the parts.
@@ -64,7 +66,7 @@ def real_indexer(simultaneity, simple, quality):
             interv = interval.Interval(note.Note(lower), note.Note(upper))
         except pitch.PitchException:
             return 'Rest'
-        post = '-' if interv.direction < 0 else ''
+        post = '-' if interv.direction < 0 and direction else ''
         if quality:
             # We must get all of the quality, and none of the size (important for AA, dd, etc.)
             q_str = ''
@@ -84,37 +86,68 @@ def real_indexer(simultaneity, simple, quality):
 def indexer_qual_simple(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-
     Call :func:`real_indexer` with settings to print simple intervals with quality.
     """
-    return real_indexer(ecks, True, True)
+    return real_indexer(ecks, True, True, True)
 
 
 def indexer_qual_comp(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-
     Call :func:`real_indexer` with settings to print compound intervals with quality.
     """
-    return real_indexer(ecks, False, True)
+    return real_indexer(ecks, False, True, True)
 
 
 def indexer_nq_simple(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-
     Call :func:`real_indexer` with settings to print simple intervals without quality.
     """
-    return real_indexer(ecks, True, False)
+    return real_indexer(ecks, True, False, True)
 
 
 def indexer_nq_comp(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-
     Call :func:`real_indexer` with settings to print compound intervals without quality.
     """
-    return real_indexer(ecks, False, False)
+    return real_indexer(ecks, False, False, True)
+
+def indexer_qual_simple_undir(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Call :func:`real_indexer` with settings for simple intervals with quality that are 
+    undirected.
+    """
+    return real_indexer(ecks, True, True, False)
+
+def indexer_qual_comp_undir(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Call :func:`real_indexer` with settings for compound intervals with quality that are 
+    undirected.
+    """
+    return real_indexer(ecks, False, True, False)
+
+def indexer_nq_simple_undir(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Call :func:`real_indexer` with settings for simple intervals without quality that are 
+    undirected.
+    """
+    return real_indexer(ecks, True, False, False)
+
+def indexer_nq_comp_undir(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Call :func:`real_indexer` with settings for compound intervals without quality that are 
+    undirected.
+    """
+    return real_indexer(ecks, False, False, False)
+
+indexer_funcs = (indexer_qual_simple, indexer_qual_comp, indexer_nq_simple, indexer_nq_comp,
+                 indexer_qual_simple_undir, indexer_qual_comp_undir, indexer_nq_simple_undir, indexer_nq_comp_undir)
 
 
 class IntervalIndexer(indexer.Indexer):
@@ -126,21 +159,18 @@ class IntervalIndexer(indexer.Indexer):
     However, to increase your flexibility, the constructor requires only a list of :class:`Series`.
     You may also provide a :class:`DataFrame` exactly as outputted by the
     :class:`NoteRestIndexer`.
-    """
 
-    required_score_type = 'pandas.Series'
-    possible_settings = ['simple or compound', 'quality', 'mp']
-    """
-    A list of possible settings for the :class:`IntervalIndexer`.
-
+    The settings for the :class:`IntervalIndexer` are as follows:
     :keyword str 'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``'simple'`` or ``'compound'``).
     :keyword boolean 'quality': Whether to display an interval's quality.
-    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
-    :type 'mp': boolean
+    :keyword boolean 'direction': Whether we distinguish between which note is higher than the other. \
+        If True (default), prepends a '-' before everything else if the first note passed is higher \
+        than the second.
+    :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
     """
-
-    default_settings = {'simple or compound': 'compound', 'quality': False, 'mp': True}
+    required_score_type = 'pandas.Series'
+    default_settings = {'simple or compound': 'compound', 'quality': False, 'direction':True, 'mp': True}
     "A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
@@ -148,42 +178,23 @@ class IntervalIndexer(indexer.Indexer):
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece, or a list of
             :class:`Series` of the style produced by the :class:`NoteRestIndexer`.
         :type score: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
-        :param dict settings: Required and optional settings. Refer to descriptions in \
-            :const:`possible_settings`.
+        :param dict settings: Required and optional settings.
         """
-
-        if settings is None:
-            settings = {}
-
-        # Check all required settings are present in the "settings" argument
-        self._settings = {}
-        if 'simple or compound' in settings:
-            self._settings['simple or compound'] = settings['simple or compound']
-        else:
-            self._settings['simple or compound'] = \
-                IntervalIndexer.default_settings['simple or compound']  # pylint: disable=C0301
-        if 'quality' in settings:
-            self._settings['quality'] = settings['quality']
-        else:
-            self._settings['quality'] = IntervalIndexer.default_settings['quality']
-        if 'mp' in settings:
-            self._settings['mp'] = settings['mp']
-        else:
-            self._settings['mp'] = IntervalIndexer.default_settings['mp']
-
+        self._settings = IntervalIndexer.default_settings.copy()
+        if settings is not None:
+            self._settings.update(settings)
+        
         super(IntervalIndexer, self).__init__(score, None)
 
-        # Which indexer function to set?
-        if self._settings['quality']:
-            if 'simple' == self._settings['simple or compound']:
-                self._indexer_func = indexer_qual_simple
-            else:
-                self._indexer_func = indexer_qual_comp
-        else:
-            if 'simple' == self._settings['simple or compound']:
-                self._indexer_func = indexer_nq_simple
-            else:
-                self._indexer_func = indexer_nq_comp
+        # Which indexer function to set? Use binary to choose one of eight indexer_funcs.
+        func_num = 0
+        if self._settings['simple or compound'] == 'compound':
+            func_num += 1
+        if not self._settings['quality']:
+            func_num += 2
+        if not self._settings['direction']:
+            func_num += 4
+        self._indexer_func = indexer_funcs[func_num]
 
     def run(self):
         """
@@ -208,8 +219,8 @@ class IntervalIndexer(indexer.Indexer):
         combinations = []
         combination_labels = []
         # To calculate all 2-part combinations:
-        for left in xrange(len(self._score)):
-            for right in xrange(left + 1, len(self._score)):
+        for left in range(len(self._score)):
+            for right in range(left + 1, len(self._score)):
                 combinations.append([left, right])
                 combination_labels.append('{},{}'.format(left, right))
 
@@ -226,22 +237,27 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     Use :class:`music21.interval.Interval` to create an index of the horizontal (melodic) intervals
     in a single part.
 
-    You should provide the result of :class:`~vis.analyzers.noterest.NoteRestIndexer`.
-    """
+    You should provide the result of :class:`~vis.analyzers.noterest.NoteRestIndexer`. Alternatively
+    you could provide the results of the :class:'~vis.analyzers.offset.FilterByOffsetIndexer' if you
+    want to check for horizontal intervals at regular durational intervals.
 
-    possible_settings = ['horiz_attach_later', 'mp']
-    """
-    This setting applies to the :class:`HorizontalIntervalIndexer` *in addition to* the settings
+    These settings apply to the :class:`HorizontalIntervalIndexer` *in addition to* the settings
     available from the :class:`IntervalIndexer`.
 
-    :keyword boolean 'horiz_attach_later': If ``True``, the offset for a horizontal interval is
-        the offset of the later note in the interval. The default is ``False``, which gives
+    :keyword str 'simple or compound': Whether intervals should be represented in their \
+        single-octave form (either ``'simple'`` or ``'compound'``).
+    :keyword boolean 'quality': Whether to display an interval's quality.
+    :keyword boolean 'direction': Whether we distinguish between which note is higher than the other. \
+        If True (default), prepends a '-' before everything else if the first note passed is higher \
+        than the second.
+    :keyword boolean 'horiz_attach_later': If ``True``, the offset for a horizontal interval is \
+        the offset of the later note in the interval. The default is ``False``, which gives \
         horizontal intervals the offset of the first note in the interval.
-    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
-    :type 'mp': boolean
+    :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
     """
 
-    default_settings = {'horiz_attach_later': False, 'mp': True}
+    default_settings = {'simple or compound': 'compound', 'quality': False, 'direction':True, 
+                        'horiz_attach_later': False, 'mp': True}
 
     def __init__(self, score, settings=None):
         """
@@ -249,23 +265,12 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
         :param score: The output of :class:`NoteRestIndexer` for all parts in a piece.
         :type score: list of :class:`pandas.Series`
-        :param dict settings: Required and optional settings. See descriptions in \
-            :const:`IntervalIndexer.possible_settings`.
+        :param dict settings: Required and optional settings.
         """
-        if settings is None:
-            settings = {}
-
-        super(HorizontalIntervalIndexer, self).__init__(score, settings)
-
-        if 'horiz_attach_later' in settings:
-            self._settings['horiz_attach_later'] = settings['horiz_attach_later']
-        else:
-            self._settings['horiz_attach_later'] = HorizontalIntervalIndexer.default_settings['horiz_attach_later']  # pylint: disable=line-too-long
-            
-        if 'mp' in settings:
-            self._settings['mp'] = settings['mp']
-        else:
-            self._settings['mp'] = IntervalIndexer.default_settings['mp']
+        self._settings = HorizontalIntervalIndexer.default_settings.copy()
+        if settings is not None:
+            self._settings.update(settings)
+        super(HorizontalIntervalIndexer, self).__init__(score, self._settings)
 
     def run(self):
         """
@@ -293,7 +298,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # first element, and the other will be missing the last element. We'll also use the index
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
-        combination_labels = [six.u(str(x)) for x in xrange(len(self._score))]
+        combination_labels = [six.u(str(x)) for x in range(len(self._score))]
         if self._settings['horiz_attach_later']:
             new_parts = [x.iloc[1:] for x in self._score]
             self._score = [pandas.Series(x.values[:-1], index=x.index[1:]) for x in self._score]
@@ -306,7 +311,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
         # Calculate each voice with its copy. "new_parts" is put first, so it's considered the
         # "upper voice," so ascending intervals don't get a direction.
-        combinations = [[new_zero + x, x] for x in xrange(new_zero)]
+        combinations = [[new_zero + x, x] for x in range(new_zero)]
 
         results = self._do_multiprocessing(combinations, on=self._settings['mp'])
         return  self.make_return(combination_labels, results)

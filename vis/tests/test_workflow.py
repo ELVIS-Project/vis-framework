@@ -33,7 +33,6 @@ Tests for the WorkflowManager
 import os
 from unittest import TestCase, TestLoader
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest import mock
 else:
@@ -149,7 +148,7 @@ class WorkflowTests(TestCase):
     def test_load_1(self):
         # that "get_data" is called correctly on each thing
         test_wc = WorkflowManager([])
-        test_wc._data = [mock.MagicMock(spec=IndexedPiece) for _ in xrange(5)]
+        test_wc._data = [mock.MagicMock(spec=IndexedPiece) for _ in range(5)]
         test_wc.load('pieces')
         for mock_piece in test_wc._data:
             mock_piece.get_data.assert_called_once_with([noterest.NoteRestIndexer])
@@ -170,7 +169,7 @@ class WorkflowTests(TestCase):
         # NOTE: we have to do this by digging until music21 imports metadata from **kern files, at
         #       which point we'll be able to use our very own metadata() method
         exp_names = ['Alex', 'Sarah', 'Emerald']
-        for i in xrange(3):
+        for i in range(3):
             # first Score gets some extra metadata
             which_el = 5 if i == 0 else 3
             piece = test_wc._data[i]._import_score()
@@ -179,7 +178,7 @@ class WorkflowTests(TestCase):
             self.assertEqual(exp_names[i], piece[which_el].value)
         # NOTE: once music21 works:
         #exp_names = ['Alex', 'Sarah', 'Emerald']
-        #for i in xrange(3):
+        #for i in range(3):
             #self.assertEqual(exp_names[i], test_wc.metadata(i, 'composer'))
 
     def test_load_4(self):
@@ -279,7 +278,7 @@ class Output(TestCase):
         mock_histo.return_value = histo_path
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'intervals'
-        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._data = [1 for _ in range(20)]
         test_wc._result = MagicMock(spec=pandas.DataFrame)
         path = 'pathname!'
         top_x = 20
@@ -299,7 +298,7 @@ class Output(TestCase):
         mock_histo.return_value = histo_path
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'intervals'
-        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._data = [1 for _ in range(20)]
         test_wc._result = MagicMock(spec=pandas.DataFrame)
         path = 'pathname!'
         top_x = 20
@@ -319,7 +318,7 @@ class Output(TestCase):
         mock_lily.return_value = lily_path
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'intervals'
-        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._data = [1 for _ in range(20)]
         test_wc._result = MagicMock(spec=pandas.DataFrame)
         path = 'pathname!'
         expected_args = [path]
@@ -359,7 +358,7 @@ class Output(TestCase):
         mock_table.return_value = export_path
         test_wc = WorkflowManager([])
         test_wc._previous_exp = 'intervals'
-        test_wc._data = [1 for _ in xrange(20)]
+        test_wc._data = [1 for _ in range(20)]
         test_wc._result = MagicMock(spec=pandas.DataFrame)
         path = 'pathname!'
         expected_args = ['Excel', path, None, None]
@@ -475,9 +474,9 @@ class MakeLilyPond(TestCase):
         """one piece with one part; specified pathname; and there's a NaN in the Series!"""
         mock_ips = [MagicMock(spec_set=IndexedPiece)]
         mock_ips[0].get_data.return_value = ['ready for LilyPond']
-        result = [pandas.DataFrame({('analyzer', 'clarinet'): pandas.Series(xrange(10))})]
+        result = [pandas.DataFrame({('analyzer', 'clarinet'): pandas.Series(range(10))})]
         result[0][('analyzer', 'clarinet')].iloc[0] = NaN
-        exp_series = pandas.Series(xrange(1, 10), index=xrange(1, 10))  # to test dropna() was run
+        exp_series = pandas.Series(range(1, 10), index=range(1, 10))  # to test dropna() was run
         pathname = 'this_path'
         expected = ['this_path.ly']
         exp_get_data_calls = [mock.call([lilypond_ind.AnnotationIndexer,
@@ -508,10 +507,10 @@ class MakeLilyPond(TestCase):
         mock_ips = [MagicMock(spec_set=IndexedPiece), MagicMock(spec_set=IndexedPiece)]
         mock_ips[0].get_data.return_value = ['0 ready for LilyPond']
         mock_ips[1].get_data.return_value = ['1 ready for LilyPond']
-        result = [pandas.DataFrame({('analyzer', 'clarinet'): pandas.Series(xrange(10)),
-                                    ('analyzer', 'tuba'): pandas.Series(xrange(10))}),
-                  pandas.DataFrame({('analyzer', 'flute'): pandas.Series(xrange(10)),
-                                    ('analyzer', 'horn'): pandas.Series(xrange(10))})]
+        result = [pandas.DataFrame({('analyzer', 'clarinet'): pandas.Series(range(10)),
+                                    ('analyzer', 'tuba'): pandas.Series(range(10))}),
+                  pandas.DataFrame({('analyzer', 'flute'): pandas.Series(range(10)),
+                                    ('analyzer', 'horn'): pandas.Series(range(10))})]
         expected = ['test_output/output_result-0.ly', 'test_output/output_result-1.ly']
         exp_get_data_calls_0 = [mock.call([lilypond_ind.AnnotationIndexer,
                                            lilypond_exp.AnnotateTheNoteExperimenter,
@@ -583,7 +582,7 @@ class Settings(TestCase):
         test_wm = WorkflowManager(['a', 'b', 'c'])
         self.assertEqual(3, mock_ip.call_count)  # to make sure we're using the mock, not real IP
         test_wm.settings(None, 'filter repeats', True)
-        for i in xrange(3):
+        for i in range(3):
             self.assertEqual(True, test_wm._settings[i]['filter repeats'])
 
     @mock.patch('vis.models.indexed_piece.IndexedPiece')
@@ -681,7 +680,7 @@ class ExtraPairs(TestCase):
     def test_extra_pairs_4(self):
         """when there are lots of pairs, only some of which are desired"""
         vert_ints = DataFrame([Series([1]), Series([2]), Series([3]), Series([4]), Series([5]), Series([6])],
-                              index=[['intervals' for _ in xrange(6)],
+                              index=[['intervals' for _ in range(6)],
                                      ['0,1', '0,2', '1,2', '256,128', '11,12', '4,20']]).T
         combos = ('0,1', '0,2', '1,2')
         expected = DataFrame([Series([1]), Series([2]), Series([3])],
@@ -692,7 +691,7 @@ class ExtraPairs(TestCase):
     def test_extra_pairs_5(self):
         """when there are lots of pairs, only some of which are desired, and there are invalid"""
         vert_ints = DataFrame([Series([1]), Series([2]), Series([3]), Series([4]), Series([5]), Series([6])],
-                              index=[['intervals' for _ in xrange(6)],
+                              index=[['intervals' for _ in range(6)],
                                      ['0,1', '0,2', '1,2', '256,128', '11,12', '4,20']]).T
         combos = ('0,1', '1,2,3,4,5', '0,2', '9,11,43', '1,2')
         expected = DataFrame([Series([1]), Series([2]), Series([3])],
@@ -731,7 +730,7 @@ class MakeTable(TestCase):
         mock_fdf.return_value.to_stata.assert_called_once_with('test_path.dta')
         mock_fdf.return_value.to_excel.assert_called_once_with('test_path.xlsx')
         mock_fdf.return_value.to_html.assert_called_once_with('test_path.html')
-        self.assertSequenceEqual([mock.call(top_x=top_x, threshold=threshold, name=exp_name) for _ in xrange(4)],
+        self.assertSequenceEqual([mock.call(top_x=top_x, threshold=threshold, name=exp_name) for _ in range(4)],
                                  mock_fdf.call_args_list)
 
     def test_table_2(self):
@@ -745,7 +744,7 @@ class MakeTable(TestCase):
         test_wm = WorkflowManager([])
         test_wm.settings(None, 'count frequency', False)
         test_wm._result = [mock.MagicMock(spec_set=pandas.DataFrame)]
-        test_wm._data = ['boop' for _ in xrange(len(test_wm._result))]
+        test_wm._data = ['boop' for _ in range(len(test_wm._result))]
         top_x = None
         threshold = None
         pathname = 'test_path'
@@ -755,7 +754,7 @@ class MakeTable(TestCase):
         test_wm._make_table('Stata', pathname, top_x, threshold)  # pylint: disable=protected-access
         test_wm._make_table('HTML', pathname, top_x, threshold)  # pylint: disable=protected-access
 
-        for i in xrange(len(test_wm._result)):
+        for i in range(len(test_wm._result)):
             test_wm._result[i].to_csv.assert_called_once_with(pathname + '.csv')
             test_wm._result[i].to_excel.assert_called_once_with(pathname + '.xlsx')
             test_wm._result[i].to_stata.assert_called_once_with(pathname + '.dta')
@@ -771,8 +770,8 @@ class MakeTable(TestCase):
         '''
         test_wm = WorkflowManager([])
         test_wm.settings(None, 'count frequency', False)
-        test_wm._result = [mock.MagicMock(spec_set=pandas.DataFrame) for _ in xrange(5)]
-        test_wm._data = ['boop' for _ in xrange(len(test_wm._result))]
+        test_wm._result = [mock.MagicMock(spec_set=pandas.DataFrame) for _ in range(5)]
+        test_wm._data = ['boop' for _ in range(len(test_wm._result))]
         top_x = None
         threshold = None
         pathname = 'test_path'
@@ -782,7 +781,7 @@ class MakeTable(TestCase):
         test_wm._make_table('Stata', pathname, top_x, threshold)  # pylint: disable=protected-access
         test_wm._make_table('HTML', pathname, top_x, threshold)  # pylint: disable=protected-access
 
-        for i in xrange(len(test_wm._result)):
+        for i in range(len(test_wm._result)):
             test_wm._result[i].to_csv.assert_called_once_with('{}-{}{}'.format(pathname, i, '.csv'))
             test_wm._result[i].to_excel.assert_called_once_with('{}-{}{}'.format(pathname, i, '.xlsx'))
             test_wm._result[i].to_stata.assert_called_once_with('{}-{}{}'.format(pathname, i, '.dta'))
@@ -795,8 +794,8 @@ class FilterDataFrame(TestCase):
     def test_filter_dataframe_1(self):
         """test with top_x=auto, threshold=auto, name=auto"""
         test_wc = WorkflowManager([])
-        test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
-        expected = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
+        test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in range(10, 0, -1)])})
+        expected = pandas.DataFrame({'data': pandas.Series([i for i in range(10, 0, -1)])})
         actual = test_wc._filter_dataframe()
         self.assertEqual(len(expected.columns), len(actual.columns))
         for i in expected.columns:
@@ -806,7 +805,7 @@ class FilterDataFrame(TestCase):
     def test_filter_dataframe_2(self):
         """test with top_x=3, threshold=auto, name='asdf'"""
         test_wc = WorkflowManager([])
-        test_wc._result = pandas.DataFrame({'asdf': pandas.Series([i for i in xrange(10, 0, -1)])})
+        test_wc._result = pandas.DataFrame({'asdf': pandas.Series([i for i in range(10, 0, -1)])})
         expected = pandas.DataFrame({'asdf': pandas.Series([10, 9, 8])})
         actual = test_wc._filter_dataframe(top_x=3, name='asdf')
         self.assertEqual(len(expected.columns), len(actual.columns))
@@ -817,7 +816,7 @@ class FilterDataFrame(TestCase):
     def test_filter_dataframe_3(self):
         """test with top_x=3, threshold=5 (so the top_x still removes after threshold), name=auto"""
         test_wc = WorkflowManager([])
-        test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
+        test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in range(10, 0, -1)])})
         expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
         actual = test_wc._filter_dataframe(top_x=3, threshold=5)
         self.assertEqual(len(expected.columns), len(actual.columns))
@@ -828,7 +827,7 @@ class FilterDataFrame(TestCase):
     def test_filter_dataframe_4(self):
         """test with top_x=5, threshold=7 (so threshold leaves fewer than 5 results), name=auto"""
         test_wc = WorkflowManager([])
-        test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in xrange(10, 0, -1)])})
+        test_wc._result = pandas.DataFrame({'data': pandas.Series([i for i in range(10, 0, -1)])})
         expected = pandas.DataFrame({'data': pandas.Series([10, 9, 8])})
         actual = test_wc._filter_dataframe(top_x=5, threshold=7)
         self.assertEqual(len(expected.columns), len(actual.columns))
@@ -839,9 +838,9 @@ class FilterDataFrame(TestCase):
     def test_filter_dataframe_5(self):
         """test with top_x=3, threshold=auto, name='asdf'; many input columns"""
         test_wc = WorkflowManager([])
-        test_wc._result = pandas.DataFrame({('1', 'b'): pandas.Series([i for i in xrange(10, 0, -1)]),
-                                            ('1', 'z'): pandas.Series([i for i in xrange(10, 20)]),
-                                            ('2', 'e'): pandas.Series([i for i in xrange(40, 900)])})
+        test_wc._result = pandas.DataFrame({('1', 'b'): pandas.Series([i for i in range(10, 0, -1)]),
+                                            ('1', 'z'): pandas.Series([i for i in range(10, 20)]),
+                                            ('2', 'e'): pandas.Series([i for i in range(40, 900)])})
         expected = pandas.DataFrame({'asdf': pandas.Series([10, 9, 8])})
         actual = test_wc._filter_dataframe(top_x=3, name='asdf')
         self.assertEqual(len(expected.columns), len(actual.columns))
@@ -852,9 +851,9 @@ class FilterDataFrame(TestCase):
     def test_filter_dataframe_6(self):
         """test with top_x=3, threshold=auto, name=auto; many input columns"""
         test_wc = WorkflowManager([])
-        test_wc._result = pandas.DataFrame({('1', 'b'): pandas.Series([i for i in xrange(10, 0, -1)]),
-                                            ('1', 'z'): pandas.Series([i for i in xrange(10, 20)]),
-                                            ('2', 'e'): pandas.Series([i for i in xrange(40, 900)])})
+        test_wc._result = pandas.DataFrame({('1', 'b'): pandas.Series([i for i in range(10, 0, -1)]),
+                                            ('1', 'z'): pandas.Series([i for i in range(10, 20)]),
+                                            ('2', 'e'): pandas.Series([i for i in range(40, 900)])})
         expected = pandas.DataFrame({('1', 'b'): pandas.Series([10, 9, 8]),
                                      ('1', 'z'): pandas.Series([10, 11, 12]),
                                      ('2', 'e'): pandas.Series([40, 41, 42])})
@@ -953,7 +952,7 @@ class AuxiliaryExperimentMethods(TestCase):
 
     def test_unique_combos_1(self):
         """_get_unique_combos() with all proper data"""
-        workm = WorkflowManager([mock.MagicMock(spec_set=IndexedPiece) for _ in xrange(3)])
+        workm = WorkflowManager([mock.MagicMock(spec_set=IndexedPiece) for _ in range(3)])
         workm.settings(0, 'voice combinations', '[[0, 1], [0, 2]]')
         workm.settings(1, 'voice combinations', '[[0, 1], [0, 2], [0, 3]]')
         workm.settings(2, 'voice combinations', '[[0, 1], [1, 2], [2, 3, 4]]')
@@ -974,7 +973,7 @@ class AuxiliaryExperimentMethods(TestCase):
 
     def test_unique_combos_2(self):
         """_get_unique_combos() with all some duplicates"""
-        workm = WorkflowManager([mock.MagicMock(spec_set=IndexedPiece) for _ in xrange(3)])
+        workm = WorkflowManager([mock.MagicMock(spec_set=IndexedPiece) for _ in range(3)])
         workm.settings(0, 'voice combinations', '[[0, 1], [0, 2], [0, 1]]')
         workm.settings(1, 'voice combinations', '[[0, 1], [0, 2], [0, 3], [0, 1], [0, 2], [0, 3]]')
         workm.settings(2, 'voice combinations', '[[0, 1], [1, 2], [2, 3, 4], [2, 3, 4], [2, 3, 4]]')

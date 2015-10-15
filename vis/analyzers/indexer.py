@@ -31,25 +31,10 @@ The controllers that deal with indexing data from music21 Score objects.
 """
 
 import six
-from six.moves import range, xrange
 import pandas
 from music21 import stream, converter
 import multiprocessing as mp
-
-# def mpi_unique_offsets(streams): # No longer needed because it is never called
-#     """
-#     For a set of :class:`Stream` objects, find the offsets at which events begin. Used by
-#     :meth:`stream_indexer`.
-
-#     :param streams: A list of :class:`Stream` objects in which to find the offsets where events begin.
-#     :type streams: list of :class:`music21.stream.Stream`
-
-#     :returns: A list of floating-point numbers representing offsets at which a new event begins in
-#         any of the :class:`Stream` objects. Offsets are sorted from lowest to highest (start to end).
-#     :rtype: list of float
-#     """
-#     offsets = ({e.offset for e in part.elements} for part in streams)
-#     return sorted(set.union(*offsets))  # pylint: disable=W0142
+from functools import partial
 
 def stream_indexer(part, indexer_func, types=None, index_tied=False):
     """
@@ -95,16 +80,13 @@ def stream_indexer(part, indexer_func, types=None, index_tied=False):
 
     return pandas.Series(series_data, index=offsets)
 
-def series_indexer((parts, indexer_func)):
+def series_indexer(parts, indexer_func):
     """
     Perform the indexation of a part or part combination. This is a module-level function designed
     to ease implementation of multiprocessing.
 
     If your :class:`Indexer` has settings, use the :func:`indexer_func` to adjust for them.
 
-    :param pipe_index: An identifier value for use by the caller. This is returned unchanged, so a
-        caller may use the ``pipe_index`` as a tag with which to keep track of jobs.
-    :type pipe_index: object
     :param parts: A list of at least one :class:`Series` object. Every new event, or change of
         simlutaneity, will appear in the outputted index. Therefore, the new index will contain at
         least as many events as the inputted :class:`Series` with the most events. This is not a
@@ -121,9 +103,10 @@ def series_indexer((parts, indexer_func)):
     :raises: :exc:`ValueError` if there are multiple events at an offset in any of the inputted
         :class:`Series`.
     """
+
     # find the offsets at which things happen
     all_offsets = pandas.Index([])
-    for i in xrange(0, len(parts)):
+    for i in range(0, len(parts)):
         all_offsets = all_offsets.union(parts[i].index)
 
     # Copy each Series with index=offset values that match all_offsets, filling in non-existant
@@ -234,9 +217,9 @@ class Indexer(object):
             else:
                 ind_name = score.columns.levels[0][0]
                 num_parts = len(score[ind_name].columns)
-                score = [score[ind_name][str(i)].dropna() for i in xrange(num_parts)]
+                score = [score[ind_name][str(i)].dropna() for i in range(num_parts)]
         elif isinstance(score, stream.Score) and req_s_type is stream.Part:
-            score = [score.parts[i] for i in xrange(len(score.parts))]
+            score = [score.parts[i] for i in range(len(score.parts))]
 
         # Call our superclass constructor, then set instance variables
         super(Indexer, self).__init__()
@@ -333,9 +316,9 @@ class Indexer(object):
             if isinstance(self._score[0], stream.Stream):
                 post.append(stream_indexer(voices, self._indexer_func, self._types, index_tied))
             else:
-                jobs.append((voices, self._indexer_func))
+                jobs.append(voices)
                 if not on and len(jobs) > 0:
-                    post.append(series_indexer((voices, self._indexer_func)))
+                    post.append(series_indexer(voices, self._indexer_func))
         
         if on and len(jobs) > 0:
             # Determine an appropriate number of cores to use.
@@ -346,7 +329,7 @@ class Indexer(object):
                 cores = 16
                 
             pool = mp.Pool(cores)
-            post = pool.map(series_indexer, jobs)
+            post = pool.map(partial(series_indexer, indexer_func=self._indexer_func), jobs)
             pool.close()
 
         return post
@@ -378,23 +361,14 @@ class Indexer(object):
         my_mod = six.u(str(self.__module__))[six.u(str(self.__module__)).rfind('.') + 1:]
         my_class = six.u(str(self.__class__))[six.u(str(self.__class__)).rfind('.'):-2]
         my_name = my_mod + my_class
-        # make the MultiIndex and its labels
+        
+        # the levels argument is necessary below even though it just gets written over by the 
+        # multi_index because it ensures that even empty series will be included in the dataframe.
+        ret = pandas.concat(indices, levels=labels, axis=1)
+        # Apply the multi_index as the column labels.
+        iterables = (my_name, labels)
+        multi_index = pandas.MultiIndex.from_product(iterables, names = ('Indexer', 'Parts'))
+        ret.columns = multi_index
 
-        tuples = [(my_name, labels[i]) for i in xrange(len(labels))]
-        multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Indexer', 'Parts'])
-        # foist our MultiIndex onto the new results
-        return pandas.DataFrame(indices, index=multiindex).T
-
-        ##This is a simpler and much faster way to construct dataframes and produces the right
-        ##results but for some reason doesn't pass all the tests.
-        #tuples = (my_name, labels)
-        #multi_index = pandas.MultiIndex.from_product(tuples, names = ('Indexer', 'Parts'))
-        #ret = pandas.concat(indices, axis=1)
-        #ret.columns = multi_index # Apply the multi_index as the column labels.
-        #return ret
-
-
-
-
-
+        return ret
 

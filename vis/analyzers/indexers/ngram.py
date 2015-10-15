@@ -31,7 +31,6 @@ Indexer to find k-part any-object n-grams.
 # pylint: disable=pointless-string-statement
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from vis.analyzers import indexer
 
@@ -61,6 +60,10 @@ class NGramIndexer(indexer.Indexer):
         {'vertical': [('interval.IntervalIndexer', '0,1')],
          'horizontal': [('interval.HorizontalIntervalIndexer', '1')],
          'n': 3}
+
+    IMPORTANT: the data associated with the ``'horizontal'`` settings should have been generated
+    with ``'horiz_attach_later'`` set to ``True``. If not, the resulting n-grams will have their
+    "horizontal" intervals incorrectly offset.
 
     In the output, groups of "vertical" events are normally enclosed in brackets, while groups of
     "horizontal" events are enclosed in parentheses. For cases where there is only one index in a
@@ -132,26 +135,11 @@ class NGramIndexer(indexer.Indexer):
         elif settings['n'] < 1:
             raise RuntimeError(NGramIndexer._N_VALUE_TOO_LOW)
         else:
-            self._settings = {}
-            self._settings['vertical'] = settings['vertical']
-            self._settings['n'] = settings['n']
-            self._settings['horizontal'] = (settings['horizontal'] if 'horizontal' in settings
-                else NGramIndexer.default_settings['horizontal'])
-            if 'mark singles' in settings:
-                self._settings['mark_singles'] = settings['mark singles']
-            elif 'mark_singles' in settings:
-                self._settings['mark_singles'] = settings['mark_singles']
-            else:
-                self._settings['mark_singles'] = NGramIndexer.default_settings['mark_singles']
-            self._settings['terminator'] = (settings['terminator'] if 'terminator' in settings
-                else NGramIndexer.default_settings['terminator'])
-            self._settings['continuer'] = (settings['continuer'] if 'continuer' in settings
-                else NGramIndexer.default_settings['continuer'])
-            if 'mp' in settings:
-                self._settings['mp'] = settings['mp']
-            else:
-                self._settings['mp'] = NGramIndexer.default_settings['mp']
-
+            self._settings = NGramIndexer.default_settings.copy()
+            self._settings.update(settings)
+        if 'mark singles' in self._settings: 
+            self._settings['mark_singles'] = self._settings.pop('mark singles')
+            
         super(NGramIndexer, self).__init__(score, None)
 
     @staticmethod
@@ -315,7 +303,7 @@ class NGramIndexer(indexer.Indexer):
                 events.update(events.loc[:, ('h', i)].fillna(value=self._settings['continuer']))
 
         # Iterate the offsets
-        for i in xrange(len(events)):
+        for i in range(len(events)):
             loop_post = None
             try:
                 # first vertical event
@@ -325,7 +313,7 @@ class NGramIndexer(indexer.Indexer):
             except RuntimeWarning:  # we hit a terminator
                 continue
             try:
-                for j in xrange(self._settings['n'] - 1):  # iterate to the end of 'n'
+                for j in range(self._settings['n'] - 1):  # iterate to the end of 'n'
                     k = i + j + 1  # the index we need
                     ilp = None  # it means "Inner Loop Post"
                     if 'h' in events:  # are there "horizontal" events?

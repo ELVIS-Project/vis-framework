@@ -30,7 +30,6 @@
 
 import unittest
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest import mock
 else:
@@ -77,23 +76,38 @@ class TestOffsetIndexerSinglePart(unittest.TestCase):
         except RuntimeError as run_err:
             self.assertEqual(FilterByOffsetIndexer._ZERO_PART_ERROR, run_err.args[0])
     
-    def test_run_1(self):
-        # ensure that run() properly gets "method" from self._settings
-        in_val = [mock.MagicMock(spec_set=pandas.Series)]
-        in_val[0].index = [0.0]
-        settings = {'quarterLength': 0.5, 'method': 'silly'}
-        ind = FilterByOffsetIndexer(in_val, settings)
-        ind.run()
-        in_val[0].reindex.assert_called_once_with(index=[0.0], method='silly')
+    def test_run_1_a(self):
+        # try statement correctly finds minimum start_offset and whole index when no series is empty.
+        in_val = [pandas.Series(['A', 'B']), pandas.Series(['B', 'C'], index=[1, 2])]
+        settings = {'quarterLength': 1.0, 'method': 'ffill'}
+        actual = FilterByOffsetIndexer(in_val, settings).run()
+        self.assertListEqual(list(actual.index), [0.0, 1.0, 2.0])
+        self.assertEqual(len(actual.columns), 2)
+
+    def test_run_1_b(self):
+        # same as test_run_1_a but with a non-zero starting point and non-overlapping indecies.
+        in_val = [pandas.Series(['A', 'B'], index=[4, 5]), pandas.Series(['C', 'D'], index=[9, 10])]
+        settings = {'quarterLength': 1.0, 'method': 'ffill'}
+        actual = FilterByOffsetIndexer(in_val, settings).run()
+        self.assertEqual(actual.index[0], 4.0)
+        self.assertListEqual(list(actual.index), [4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
+        self.assertEqual(len(actual.columns), 2)
+
+    def test_run_2_a(self):
+        # checks if the index and number of columns are correct if one of the passed series is empty.
+        in_val = [pandas.Series(['A', 'B']), pandas.Series()]
+        settings = {'quarterLength': 1.0, 'method': 'ffill'}
+        actual = FilterByOffsetIndexer(in_val, settings).run()
+        self.assertListEqual(list(actual.index), [0.0, 1.0])
+        self.assertEqual(len(actual.columns), 2)
         
-    def test_run_2(self):
-        # ensure that run() properly gets "method" from self._settings (default value)
-        in_val = [mock.MagicMock(spec_set=pandas.Series)]
-        in_val[0].index = [0.0]
-        settings = {'quarterLength': 0.5}
-        ind = FilterByOffsetIndexer(in_val, settings)
-        ind.run()
-        in_val[0].reindex.assert_called_once_with(index=[0.0], method='ffill')
+    def test_run_2_b(self):
+        # checks if the index and number of columns are correct if all the passed series are empty.
+        in_val = [pandas.Series(), pandas.Series()]
+        settings = {'quarterLength': 1.0, 'method': 'ffill'}
+        actual = FilterByOffsetIndexer(in_val, settings).run()
+        self.assertListEqual(list(actual.index), [])
+        self.assertEqual(len(actual.columns), 2)
 
     def test_offset_1part_1(self):
         # 0 length
@@ -236,7 +250,7 @@ class TestOffsetIndexerManyParts(unittest.TestCase):
     def test_offset_xparts_0a(self):
         # 0 length, many parts
         in_val = [pandas.Series(), pandas.Series(), pandas.Series(), pandas.Series()]
-        expected = pandas.DataFrame({str(i): pandas.Series() for i in xrange(4)})
+        expected = pandas.DataFrame({str(i): pandas.Series() for i in range(4)})
         offset_interval = 12.0
         ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})
         actual = ind.run()['offset.FilterByOffsetIndexer']
@@ -287,8 +301,8 @@ class TestOffsetIndexerManyParts(unittest.TestCase):
         # input is expected output; 10 parts
         letters = ['a', 'b', 'c', 'd']
         offsets = [0.0, 0.5, 1.0, 1.5]
-        in_val = [pandas.Series(letters, index=offsets) for _ in xrange(10)]
-        expected = {str(i): pandas.Series(letters, index=offsets) for i in xrange(10)}
+        in_val = [pandas.Series(letters, index=offsets) for _ in range(10)]
+        expected = {str(i): pandas.Series(letters, index=offsets) for i in range(10)}
         expected = pandas.DataFrame(expected)
         offset_interval = 0.5
         ind = FilterByOffsetIndexer(in_val, {u'quarterLength': offset_interval})

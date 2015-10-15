@@ -29,7 +29,6 @@ Tests for :py:class:`~vis.models.indexed_piece.IndexedPiece`.
 import os
 from unittest import TestCase, TestLoader
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest import mock
     from unittest.mock import call, patch, MagicMock, Mock
@@ -435,7 +434,7 @@ class TestIndexedPieceB(TestCase):
         mock_con_class = mock.MagicMock(spec_set=converter.Converter())
         mock_con_class.parseFile = mock.MagicMock(return_value=None)
         mock_con_class.stream = music21.stream.Opus()
-        for _ in xrange(5):
+        for _ in range(5):
             mock_con_class.stream.insert(music21.stream.Score())
         mock_conv.Converter.return_value = mock_con_class
 
@@ -465,7 +464,7 @@ class TestIndexedPieceB(TestCase):
         mock_con_class = mock.MagicMock(spec_set=converter.Converter())
         mock_con_class.parseFile = mock.MagicMock(return_value=None)
         mock_con_class.stream = music21.stream.Opus()
-        for i in xrange(5):
+        for i in range(5):
             mock_con_class.stream.insert(music21.stream.Score())
             # vis_import_order is an attribute just created for this test. vis_import_order is meant
             # represent the order in which pieces inside of an opus are stored.

@@ -50,7 +50,6 @@ The :class:`TemplateIndexer` does nothing, and should only be used by programmer
 """
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import stream
 from vis.analyzers import indexer
 
@@ -165,11 +164,11 @@ class TemplateIndexer(indexer.Indexer):
         # NOTE: We recommend indexing all possible voice combinations, whenever feasible.
 
         # To calculate each part separately:
-        combinations = [[x] for x in xrange(len(self._score))]
+        combinations = [[x] for x in range(len(self._score))]
 
         # To calculate all 2-part combinations:
-        #for left in xrange(len(self._score)):
-        #    for right in xrange(left + 1, len(self._score)):
+        #for left in range(len(self._score)):
+        #    for right in range(left + 1, len(self._score)):
         #        combinations.append([left, right])
 
         # This method returns once all computation is complete. The results are returned as a list

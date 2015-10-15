@@ -28,7 +28,6 @@ Tests for :py:class:`~vis.models.aggregated_pieces.AggregatedPieces`.
 
 from unittest import TestCase, TestLoader
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 if six.PY3:
     from unittest.mock import MagicMock, Mock
 else:
@@ -47,7 +46,7 @@ class TestAggregatedPieces(TestCase):
     def setUp(self):
         """Set up stuff"""
         self.pathnames = ['test_path_1', 'test_path_2', 'test_path_3']
-        self.ind_pieces = [MagicMock(spec=IndexedPiece) for _ in xrange(len(self.pathnames))]
+        self.ind_pieces = [MagicMock(spec=IndexedPiece) for _ in range(len(self.pathnames))]
         for i, ind_p in enumerate(self.ind_pieces):
             ind_p.metadata.return_value = self.pathnames[i]
         self.agg_p = AggregatedPieces(self.ind_pieces)
@@ -186,10 +185,10 @@ class TestAggregatedPieces(TestCase):
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
         an_indexer = type('AMockIndexer', (Indexer,), {})
         other_indexer = type('OtherMockIndexer', (Indexer,), {})
-        expected = [pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0]) for _ in xrange(3)]
+        expected = [pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0]) for _ in range(3)]
         actual = self.agg_p.get_data([an_indexer, other_indexer], [])
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
+        for i in range(len(expected)):
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
             self.assertSequenceEqual(list(expected[i]), list(actual[i]))
         for piece in self.ind_pieces:
@@ -238,10 +237,10 @@ class TestAggregatedPieces(TestCase):
         for piece in self.ind_pieces:
             piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
         an_indexer = type('AMockIndexer', (Indexer,), {})
-        expected = [pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0]) for _ in xrange(3)]
+        expected = [pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0]) for _ in range(3)]
         actual = self.agg_p.get_data([an_indexer], [], {'awesome': True})
         self.assertEqual(len(expected), len(actual))
-        for i in xrange(len(expected)):
+        for i in range(len(expected)):
             self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
             self.assertSequenceEqual(list(expected[i]), list(actual[i]))
         for piece in self.ind_pieces:

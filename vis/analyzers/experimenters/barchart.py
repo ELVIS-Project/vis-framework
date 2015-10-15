@@ -110,32 +110,15 @@ class RBarChart(experimenter.Experimenter):
         if 'pathname' not in settings:
             raise RuntimeError(RBarChart._MISSING_SETTINGS)
 
-        self._settings = {'pathname': settings['pathname']}
-
-        # set 'type' ensuring it is valid
+        # Make sure 'type' is valid
         if 'type' in settings:
-            if settings['type'] in RBarChart.OUTPUT_TYPES:
-                self._settings['type'] = settings['type']
-            else:
+            if settings['type'] not in RBarChart.OUTPUT_TYPES:
                 raise RuntimeError(RBarChart._INVALID_TYPE.format(settings['type']))
-        else:
-            self._settings['type'] = RBarChart.default_settings['type']
 
-        # set the other settings
-        if 'column' in settings:
-            self._settings['column'] = settings['column']
-        else:
-            self._settings['column'] = RBarChart.default_settings['column']
-
-        if 'token' in settings:
-            self._settings['token'] = settings['token']
-        else:
-            self._settings['token'] = RBarChart.default_settings['token']
-
-        if 'nr_pieces' in settings:
-            self._settings['nr_pieces'] = str(settings['nr_pieces'])
-        else:
-            self._settings['nr_pieces'] = RBarChart.default_settings['nr_pieces']
+        self._settings = RBarChart.default_settings.copy()
+        self._settings.update(settings)
+        if self._settings['nr_pieces'] is not None:
+        	self._settings['nr_pieces'] = str(self._settings['nr_pieces'])
 
         # set the path to the script
         self._r_bar_chart_path = path.join(vis.__path__[0], 'scripts', 'R_bar_chart.r')

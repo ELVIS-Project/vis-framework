@@ -31,7 +31,6 @@ import numpy
 from numpy import nan, isnan  # pylint: disable=no-name-in-module
 from music21 import stream
 from vis.analyzers import indexer
-import pdb
 import time
 
 _d3q_label = 'Q'
@@ -60,9 +59,9 @@ _char_del = dict.fromkeys(map(ord, 'AaDdMmP'), None)
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
 h_ind = u'interval.HorizontalIntervalIndexer'
-bs_ind = u'basic.NoteBeatStrengthIndexer'
-dur_ind = u'basic.DurationIndexer'
-diss_types = u'dissonance.DissonanceTypes'
+bs_ind = u'metre.NoteBeatStrengthIndexer'
+dur_ind = u'metre.DurationIndexer'
+diss_types = u'dissonance.DissonanceIndexer'
 
 
 class DissonanceIndexer(indexer.Indexer):
@@ -137,7 +136,7 @@ class DissonanceIndexer(indexer.Indexer):
         :param indx: The position-based (iloc) index of the dissonance being analyzed.
         :type indx: int
         :param pair: name of the voice pair in which the dissonance happens.
-        :type pair: string with the lower numbered voice first and a comma separating the two
+        :type pair: string with the lower-numbered voice first and a comma separating the two
             voices.
         :param event: the interval that has been analyzed as a dissonance to be classified.
         :type event: string of dissonant interval with quality. All fourths and fifths should be 
@@ -218,7 +217,7 @@ class DissonanceIndexer(indexer.Indexer):
                     return (True, upper, _no_diss_label, lower, _pass_rp_label)
                 elif x == -2:
                     return (True, upper, _no_diss_label, lower, _neigh_ln_label)
-            elif x == -2 and y == -2:
+            elif y == -2:
                 if x == -2:
                     return (True, upper, _no_diss_label, lower, _pass_dp_label)
                 elif x == 2:
@@ -848,14 +847,13 @@ class DissonanceIndexer(indexer.Indexer):
         Xed_makers = {'P4':set([u'-m3', u'-M3', u'-P5']), 'd5':[u'-M6'], 'A4':[u'-m3'],'-P4':set([u'-m3', u'-M3', u'-P5']), '-d5':[u'-M6'], '-A4':[u'-m3']}
         cons_made = False
         # Find the offset of the next event in the voice pair to know when the interval ends.
-        # pdb.set_trace()
         end_temp = self._score.loc[:, (int_ind, pair_name)].iloc[iloc_indx +1:].first_valid_index()
         if end_temp != None: # for the case where a 4th or 5th is in the last attack of the piece.
             end_iloc = numpy.where(self._score.index == end_temp)[0][0]
         else:
             end_iloc = len(self._score) + 1
 
-        if '-' in suspect_diss: 
+        if '-' in suspect_diss: # set the voice that is spelled lower as the lower voice.
             lower_voice = pair_name.split(',')[0]
         else:
             lower_voice = pair_name.split(',')[1]
@@ -950,7 +948,7 @@ class DissonanceIndexer(indexer.Indexer):
                 ret.iat[ndx, unknowns[1][x]] = _only_diss_w_diss
 
         t2 = time.clock()
-        print 'Time to analyze dissonances: ' + str(t2-t1)
+        # print 'Time to analyze dissonances: ' + str(t2-t1)
 
-        print ret['dissonance.DissonanceTypes'].stack().value_counts()
+        # print ret['dissonance.DissonanceIndexer'].stack().value_counts()
         return ret

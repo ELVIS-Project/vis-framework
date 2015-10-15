@@ -31,7 +31,6 @@ themselves.
 """
 
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from vis.analyzers import indexer
 
@@ -195,15 +194,9 @@ class FilterByOffsetIndexer(indexer.Indexer):
             raise RuntimeError(FilterByOffsetIndexer._NO_QLENGTH_ERROR)
         elif settings[u'quarterLength'] < 0.001:
             raise RuntimeError(FilterByOffsetIndexer._QLENGTH_TOO_SMALL_ERROR)
-        else:
-            self._settings[u'quarterLength'] = settings[u'quarterLength']
-
-        self._settings['method'] = (settings['method'] if 'method' in settings else
-                                    FilterByOffsetIndexer.default_settings['method'])                    
-        if 'mp' in settings:
-            self._settings['mp'] = settings['mp']
-        else:
-            self._settings['mp'] = FilterByOffsetIndexer.default_settings['mp']
+        
+        self._settings = FilterByOffsetIndexer.default_settings.copy()
+        self._settings.update(settings)
 
         # If self._score is a Stream (subclass), change to a list of types you want to process
         self._types = []
@@ -241,7 +234,7 @@ class FilterByOffsetIndexer(indexer.Indexer):
                     start_offset.append(part.index[0])
             if 0 == len(start_offset):
                 # all the parts have no length, so we need as many empty parts
-                post = [pandas.Series() for _ in xrange(len(self._score))]
+                post = [pandas.Series() for _ in range(len(self._score))]
             else:
                 start_offset = int(min(start_offset))
         if 0 == len(post):
@@ -253,5 +246,5 @@ class FilterByOffsetIndexer(indexer.Indexer):
                     step = int(self._settings[u'quarterLength'] * 1000)
                     off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
                     post.append(part.reindex(index=off_list, method=self._settings['method']))
-        post = self.make_return([six.u(str(x)) for x in xrange(len(post))], [x for x in post])
+        post = self.make_return([six.u(str(x)) for x in range(len(post))], [x for x in post])
         return post

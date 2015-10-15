@@ -31,7 +31,6 @@
 import os
 import unittest
 import six
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 import pandas
 from music21 import converter, stream, clef, bar, note, meter
 from vis.analyzers.indexers import metre
@@ -114,7 +113,7 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
         expected = {'0': pandas.Series()}
         test_part = stream.Part()
         # add stuff to the test_part
-        for i in xrange(1000):
+        for i in range(1000):
             add_me = clef.BassClef()
             add_me.offset = i
             test_part.append(add_me)
@@ -140,7 +139,7 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
         # In music21 beginning time signatures are preferably inserted in the first measure and a
         # timeSignature is needed to be able to calculate beatStrength
         measure.insert(0, meter.TimeSignature('3/4'))
-        for i in xrange(6):
+        for i in range(6):
             add_me = note.Note(u'C4', quarterLength=1.0)
             add_me.offset = i
             measure.append(add_me)
