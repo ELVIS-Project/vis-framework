@@ -50,11 +50,11 @@ setup(
     platforms = 'any',
     keywords = ['music', 'music analysis', 'music theory', 'counterpoint'],
     requires = [
-        'music21 (>= 2.0.3, < 2.1)',
+        'music21 (== 2.1.2)',
         'pandas (>= 0.14.1, < 0.17)'
         ],
     install_requires = [
-        'music21 >= 2.0.3, < 2.1',
+        'music21 == 2.1.2',
         'pandas >= 0.14.1, < 0.17'
         ],
     packages = [
