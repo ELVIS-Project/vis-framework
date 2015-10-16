@@ -73,8 +73,7 @@ class WorkflowManager(object):
 
     * :meth:`load`, to import pieces from symbolic data formats.
     * :meth:`run`, to perform a pre-defined analysis.
-    * :meth:`output`, to output a visualization of the analysis results.
-    * :meth:`export`, to output a text-based version of the analysis results.
+    * :meth:`output`, to output analysis results.
 
     Before you analyze, you may wish to use these methods:
 
@@ -125,7 +124,7 @@ class WorkflowManager(object):
 
     def __init__(self, pathnames):
         """
-        :raises: :exc:`TypeError` if ``pathnames`` is not a list or tuple of string or
+        :raises: :exc:`TypeError` if ``pathnames`` is not a list or tuple of string or \
             :class:`IndexedPiece`
         """
         # ensure ``pathnames`` is a list or tuple of string...
@@ -200,9 +199,9 @@ class WorkflowManager(object):
         .. note:: only ``'pieces'`` is implemented at this time.
 
         * ``'pieces'``, to import all pieces, collect metadata, and run :class:`NoteRestIndexer`
-        * ``'hdf5'`` to load data from a previous :meth:`export`.
-        * ``'stata'`` to load data from a previous :meth:`export`.
-        * ``'pickle'`` to load data from a previous :meth:`export`.
+        * ``'hdf5'`` to load data from a previous :meth:`output`.
+        * ``'stata'`` to load data from a previous :meth:`output`.
+        * ``'pickle'`` to load data from a previous :meth:`output`.
         """
         # TODO: rewrite this with multiprocessing
         # NOTE: you may want to have the worker process create a new IndexedPiece object, import it
@@ -822,7 +821,7 @@ class WorkflowManager(object):
 
         * ``'histogram'``: a histogram. Currently equivalent to the ``'R histogram'`` instruction.
         * ``'LilyPond'``: each score with annotations for analyzed objects.
-        * ``'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the
+        * ``'R histogram'``: a histogram with ggplot2 in R. Currently equivalent to the \
             ``'histogram'`` instruction. In the future, this will be used to distinguish histograms
             produced with R from those produced with other libraries, like matplotlib or bokeh.
         * ``'CSV'``: output a Series or DataFrame to a CSV file.
@@ -1046,9 +1045,9 @@ class WorkflowManager(object):
         Pieces do not share these settings.
 
         * ``offset interval``: If you want to run the \
-            :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`, specify a value for this
-            setting. To avoid running the :class:`FilterByOffsetIndexer`, set this to ``0``.
-            setting that will become the ``quarterLength`` duration between observed offsets.
+            :class:`~vis.analyzers.indexers.offset.FilterByOffsetIndexer`, specify a value for this \
+            setting. To avoid running the :class:`FilterByOffsetIndexer`, set this to ``0``. This \
+            will become the ``quarterLength`` duration between observed offsets.
         * ``filter repeats``: If you want to run the \
             :class:`~vis.analyzers.indexers.repeat.FilterByRepeatIndexer`, set this setting to \
             ``True``.

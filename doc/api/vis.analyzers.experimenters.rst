@@ -25,6 +25,14 @@ experimenters Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`barchart` Module
+-----------------------
+
+.. automodule:: vis.analyzers.experimenters.barchart
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`lilypond` Module
 -----------------------
 
