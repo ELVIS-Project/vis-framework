@@ -3,13 +3,16 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
-* 2.3.0 (pending release):
+* 2.x.0 (pending release):
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
-    - Greatly improved API documentation.
-* 2.2.1:
-    - set music21 version to 2.1.2 exclusively
+* 2.3.0:
+    - support for interval direction, i.e. an 'M3' is a '-M3' if the interval is between two voices that are crossed with respect to their staff position
+    - inclusion of experimental qualityControl file in scripts which can be used to make sure that a file can be imported by music21 and to run a basic verification that the parts line up properly
+    - begin tracking experimental MedievalNoteRestIndexer script in scripts folder
+    - basic testing suite for DissonanceIndexer
+    - tons of docs improvements (thanks @maxalbert)
 * 2.2.0:
     - Python 3 compatibility.
     - New: hierarchical clustering and dendrogram graphical output with dendrogram.py
