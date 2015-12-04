@@ -53,7 +53,7 @@ class QualityControl(object):
         cols = len(measures.columns)
         if cols == 0:
             return (False, no_parts)
-        elif cols > 0 and len(measures.index) == 0:
+        elif path[-3:] not in ('mid', 'idi') and cols > 0 and len(measures.index) == 0:
             return (False, no_measures)
         elif cols == 1:
             return (True, only_one_part)
@@ -64,7 +64,3 @@ class QualityControl(object):
                     return (False, uneven_measures)
         return (True, passing_message)
 
-path = '/home/amor/Code/vis-framework/vis/scripts/Confirmed-Attribution/Alma-redemptoris-mater_Josquin-Des-Prez_file1.xml'
-test = QualityControl()
-res = test.measure_checker(path)
-pdb.set_trace()
