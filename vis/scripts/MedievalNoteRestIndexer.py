@@ -37,8 +37,8 @@ t1 = time.time()
 sers = []
 pathnames = [
              # '/home/amor/Code/vis-framework/vis/scripts/Karens_Pieces/garison.mei',
-             '/home/amor/Code/vis-framework/vis/scripts/Karens_Pieces/qui_secuntur.xml'
-             # '/home/amor/Code/vis-framework/vis/scripts/Karens_Pieces/qui_secuntur.mei'
+             # '/home/amor/Code/vis-framework/vis/scripts/Karens_Pieces/qui_secuntur.xml'
+             '/home/amor/Code/vis-framework/vis/scripts/Karens_Pieces/qui_secuntur.mei'
              ]
 
 parts_nr = []
@@ -157,7 +157,7 @@ dur_ngrams = pd.concat(dur_ngram_list, axis=1)
 # freqs = pd.concat([frequency.FrequencyExperimenter(in_df).run()[0] for in_df in (nr, dur, beat_sth, horiz, vert, ngrams, dur_ngrams)], axis=1)
 dfs = pd.concat((med_nr, nr, dur, beat_sth, measures, horiz, vert, ngrams, dur_ngrams), axis=1)
 
-dfs.to_csv('/home/amor/Code/vis-framework/vis/scripts/Karens_Pieces/indexer_data.csv')
+# dfs.to_csv('/home/amor/Code/vis-framework/vis/scripts/Karens_Pieces/indexer_data.csv')
 # freqs.to_csv('/home/amor/Code/vis-framework/vis/scripts/Karens_Pieces/frequency_data.csv')
 
 t2 = time.time()

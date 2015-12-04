@@ -248,6 +248,7 @@ class HierarchicalClusterer(experimenter.Experimenter):
             for j, ser_A in enumerate(self._sers[i][:-1]):
                 for k, ser_B in enumerate(self._sers[i][j+1:]):
                     similarity = 0
+                    # TODO: move the next three lines out of the loop!
                     df = pd.concat([ser_A, ser_B], axis=1, ignore_index=True) # put the two analysis profiles in a dataframe
                     df = df.replace(to_replace='NaN', value=0)
                     df = df.div(list(df.sum())) # make the df show the percent out of 1 that each analysis observation is of its piece
