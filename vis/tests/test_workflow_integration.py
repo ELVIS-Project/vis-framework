@@ -120,8 +120,6 @@ class IntervalsTests(TestCase):
         actual = actual['aggregator.ColumnAggregator']
         exp_ind = list(IntervalsTests.EXPECTED_3.index)
         act_ind = list(actual.index)
-        # import pdb
-        # pdb.set_trace()
         for ind_item in exp_ind:
             self.assertTrue(ind_item in act_ind)
         for ind_item in exp_ind:
