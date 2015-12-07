@@ -203,7 +203,7 @@ class IntervalsTests(TestCase):
         # TODO: change this into a WorkflowManager-using test when the "horizontal intervals" experiment is ready
         expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'A_horiz_ints.csv'),
                                    comment='#', index_col=0, header=[0, 1], quotechar="'")
-        setts = {'quality': True, 'simple or compound': 'compound', 'horiz_attach_later': True}
+        setts = {'quality': True, 'simple or compound': 'compound', 'horiz_attach_later': False}
 
         test_ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl'))
         actual = test_ip.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],
@@ -220,7 +220,7 @@ class IntervalsTests(TestCase):
         # TODO: change this into a WorkflowManager-using test when the "horizontal intervals" experiment is ready
         expected = pandas.read_csv(os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'A_horiz_ints_nq.csv'),
                                    comment='#', index_col=0, header=[0, 1], quotechar="'", dtype='object')
-        setts = {'quality': False, 'simple or compound': 'compound', 'horiz_attach_later': True}
+        setts = {'quality': False, 'simple or compound': 'compound', 'horiz_attach_later': False}
 
         test_ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl'))
         actual = test_ip.get_data([noterest.NoteRestIndexer, interval.HorizontalIntervalIndexer],

@@ -115,7 +115,7 @@ class AllVoiceIntervalNGrams(TestCase):
         expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.twograms)
         expected = pandas.DataFrame({('ngram.NGramIndexer', '[0,3 1,3 2,3] 3'): expected})
         ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
-        setts = {'quality': False, 'simple': False, 'horiz_attach_later': True}
+        setts = {'quality': False, 'simple': False, 'horiz_attach_later': False}
         horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                          interval.HorizontalIntervalIndexer],
                                         setts)

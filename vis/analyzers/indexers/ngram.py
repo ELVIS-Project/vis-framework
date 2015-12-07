@@ -33,6 +33,7 @@ Indexer to find k-part any-object n-grams.
 import six
 import pandas
 from vis.analyzers import indexer
+import pdb
 
 
 class NGramIndexer(indexer.Indexer):
@@ -278,6 +279,7 @@ class NGramIndexer(indexer.Indexer):
         # for the formatting methods
         m_singles = self._settings['mark_singles']
         term = self._settings['terminator']
+        n = self._settings['n']
 
         # Order the parts as specified. We have to track "i" and "name" separately so we have a new
         # order for the dict but can keep self._score straight. We'll use these tuples to keep
@@ -290,54 +292,44 @@ class NGramIndexer(indexer.Indexer):
 
         # Make the MultiIndex and DataFrame with all events
         events = pandas.DataFrame(events, columns=pandas.MultiIndex.from_tuples(events.keys()))
-
         # Fill in all "vertical" NaN values with the previous value
-        for i in events['v'].columns:
+        for i in events['v'].columns: # XXXX Can't we ffill all of the columns at the same time?
             # NB: still have to test the fix, as stated in issue 261
             events.update(events.loc[:, ('v', i)].fillna(method='ffill'))
 
         # Fill in all "horizontal" NaN values with the continuer
-        if 'h' in events:
+        if 'h' in events: # XXXX Can't we ffill all of the columns at the same time?
             for i in events['h'].columns:
                 # NB: still have to test the fix, as stated in issue 261
                 events.update(events.loc[:, ('h', i)].fillna(value=self._settings['continuer']))
 
         # Iterate the offsets
-        for i in range(len(events)):
-            loop_post = None
-            try:
-                # first vertical event
-                loop_post = [NGramIndexer._format_vert(list(events['v'].iloc[i].sort_index()),
-                                                       m_singles,
-                                                       term)]
-            except RuntimeWarning:  # we hit a terminator
-                continue
+        for i in range(len(events) - n + 1):
+            loop_post = ''
             try:
                 for j in range(self._settings['n'] - 1):  # iterate to the end of 'n'
-                    k = i + j + 1  # the index we need
-                    ilp = None  # it means "Inner Loop Post"
+                    k = i + j  # the index we need
                     if 'h' in events:  # are there "horizontal" events?
-                        ilp = [' ',
-                               NGramIndexer._format_horiz(list(events['h'].iloc[k].sort_index()),
-                                                          m_singles),
-                               ' ',
-                               NGramIndexer._format_vert(list(events['v'].iloc[k].sort_index()),
-                                                         m_singles,
-                                                         term)]
+                        loop_post += (NGramIndexer._format_vert(list(events['v'].iloc[k].sort_index()),
+                                                         m_singles, term) +  ' ' + 
+                                      NGramIndexer._format_horiz(list(events['h'].iloc[k].sort_index()),
+                                                          m_singles) + ' ')
                     else:
-                        ilp = [' ',
-                               NGramIndexer._format_vert(list(events['v'].iloc[k].sort_index()),
-                                                         m_singles,
-                                                         term)]
-                    loop_post.extend(ilp)
-            except (KeyError, IndexError, RuntimeWarning) as the_err:
+                        loop_post += (NGramIndexer._format_vert(list(events['v'].iloc[k].sort_index()),
+                                                         m_singles, term) + ' ')
+            except (IndexError, RuntimeWarning) as the_err:
                 if isinstance(the_err, (IndexError, KeyError)):  # end of inputted Series
                     break
                 else:  # we hit a terminator
                     continue
-            post.append(''.join(loop_post))
+            try:
+                # last vertical event
+                loop_post += NGramIndexer._format_vert(list(events['v'].iloc[i + n - 1].sort_index()),
+                                                       m_singles, term)
+            except RuntimeWarning:  # we hit a terminator
+                continue
+            post.append(loop_post)
             post_offsets.append(events.index[i])
-
         # prepare the part-combination labels
         combos = self._make_column_label()
         return self.make_return(combos, [pandas.Series(post, post_offsets)])
