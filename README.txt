@@ -20,9 +20,9 @@ Software Dependencies
 
 The VIS Framework uses many software libraries to help with analysis. These are required dependencies:
 
-- Python 2.7
-- music21
-- pandas
+- [Python 2.7](https://www.python.org)
+- [music21](http://web.mit.edu/music21/)
+- [pandas](http://pandas.pydata.org)
 
 These are recommended dependencies:
 
