@@ -31,8 +31,102 @@ Indexer to find k-part any-object n-grams.
 # pylint: disable=pointless-string-statement
 
 import six
+from six.moves import range
 import pandas
 from vis.analyzers import indexer
+
+
+def _format_thing(things, m_singles, markers=('[', ']'), terminator=None):
+    """
+    Format str objects by concatenating them with a space between and the appropriate
+    grouping symbol, if relevant. This method is used by _format_vert() and _format_horiz().
+
+    :param things: All the events for this moment.
+    :type things: iterable of str
+
+    :param m_singles: Whether to put marker characters around single-item iterables.
+    :type m_singles: boolean
+
+    :param markers: The "marker" strings to put around the output, if desired. Defualt is [].
+    :type markers: 2-tuple of str
+
+    :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
+        is [None].
+    :type terminator: list of str or None
+
+    :returns: A str with a space between every event and marker characters if there is more
+        than one event or m_singles is True.
+    :rtype: str
+
+    :raises: StopIteration, if the one of the events is a "terminator."
+    """
+    terminator = [] if terminator is None else terminator
+    post = []
+    if len(things) > 1:
+        post.append(markers[0])
+        for obj in things:
+            if obj in terminator:
+                raise StopIteration('hit a terminator')
+            else:
+                post.append('{}'.format(obj))
+                post.append(' ')
+        post = post[:-1]  # remove last space
+        post.append(markers[1])
+    elif things[0] in terminator:
+        raise StopIteration('hit a terminator')
+    elif m_singles:
+        post.extend([markers[0], six.u(str(things[0])), markers[1]])
+    else:
+        post.append(things[0])
+    return ''.join(post)
+
+
+def _format_vert(verts, m_singles, terminator=None):
+    """
+    Format "vertical" str objects by concatenating them with a space between and the
+    appropriate grouping symbol, if relevant.
+
+    :param verts: All the "vertical" events for this moment.
+    :type verts: iterable of str
+
+    :param m_singles: Whether to put marker characters around single-item iterables.
+    :type m_singles: boolean
+
+    :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
+        is [None].
+    :type terminator: list of str or None
+
+    :returns: A str with a space between every event and marker characters if there is more
+        than one event or m_singles is True.
+    :rtype: str
+
+    :raises: StopIteration, if the one of the events is a "terminator."
+    """
+    return _format_thing(verts, m_singles, ('[', ']'), terminator)
+
+
+def _format_horiz(horizs, m_singles, terminator=None):
+    """
+    Format "horizontal" str objects by concatenating them with a space between and the
+    appropriate grouping symbol, if relevant.
+
+    :param verts: All the "horizontal" events for this moment.
+    :type verts: iterable of str
+
+    :param m_singles: Whether to put marker characters around single-item iterables.
+    :type m_singles: boolean
+
+    :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
+        is [None].
+    :type terminator: list of str or None
+
+    :returns: A str with a space between every event and marker characters if there is more
+        than one event or m_singles is True.
+    :rtype: str
+
+    :raises: StopIteration, if the one of the events is a "terminator."
+    """
+    return _format_thing(horizs, m_singles, ('(', ')'), terminator)
 
 
 class NGramIndexer(indexer.Indexer):
@@ -137,103 +231,10 @@ class NGramIndexer(indexer.Indexer):
         else:
             self._settings = NGramIndexer.default_settings.copy()
             self._settings.update(settings)
-        if 'mark singles' in self._settings: 
+        if 'mark singles' in self._settings:
             self._settings['mark_singles'] = self._settings.pop('mark singles')
-            
+
         super(NGramIndexer, self).__init__(score, None)
-
-    @staticmethod
-    def _format_thing(things, m_singles, markers=('[', ']'), terminator=None):
-        """
-        Format str objects by concatenating them with a space between and the appropriate
-        grouping symbol, if relevant. This method is used by _format_vert() and _format_horiz().
-
-        :param things: All the events for this moment.
-        :type things: iterable of str
-
-        :param m_singles: Whether to put marker characters around single-item iterables.
-        :type m_singles: boolean
-
-        :param markers: The "marker" strings to put around the output, if desired. Defualt is [].
-        :type markers: 2-tuple of str
-
-        :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
-            is [None].
-        :type terminator: list of str or None
-
-        :returns: A str with a space between every event and marker characters if there is more
-            than one event or m_singles is True.
-        :rtype: str
-
-        :raises: RuntimeWarning, if the one of the events is a "terminator."
-        """
-        terminator = [] if terminator is None else terminator
-        post = []
-        if len(things) > 1:
-            post.append(markers[0])
-            for obj in things:
-                if obj in terminator:
-                    raise RuntimeWarning('hit a terminator')
-                else:
-                    post.append('{}'.format(obj))
-                    post.append(' ')
-            post = post[:-1]  # remove last space
-            post.append(markers[1])
-        elif things[0] in terminator:
-            raise RuntimeWarning('hit a terminator')
-        elif m_singles:
-            post.extend([markers[0], six.u(str(things[0])), markers[1]])
-        else:
-            post.append(things[0])
-        return ''.join(post)
-
-    @staticmethod
-    def _format_vert(verts, m_singles, terminator=None):
-        """
-        Format "vertical" str objects by concatenating them with a space between and the
-        appropriate grouping symbol, if relevant.
-
-        :param verts: All the "vertical" events for this moment.
-        :type verts: iterable of str
-
-        :param m_singles: Whether to put marker characters around single-item iterables.
-        :type m_singles: boolean
-
-        :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
-            is [None].
-        :type terminator: list of str or None
-
-        :returns: A str with a space between every event and marker characters if there is more
-            than one event or m_singles is True.
-        :rtype: str
-
-        :raises: RuntimeWarning, if the one of the events is a "terminator."
-        """
-        return NGramIndexer._format_thing(verts, m_singles, ('[', ']'), terminator)
-
-    @staticmethod
-    def _format_horiz(horizs, m_singles, terminator=None):
-        """
-        Format "horizontal" str objects by concatenating them with a space between and the
-        appropriate grouping symbol, if relevant.
-
-        :param verts: All the "horizontal" events for this moment.
-        :type verts: iterable of str
-
-        :param m_singles: Whether to put marker characters around single-item iterables.
-        :type m_singles: boolean
-
-        :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
-            is [None].
-        :type terminator: list of str or None
-
-        :returns: A str with a space between every event and marker characters if there is more
-            than one event or m_singles is True.
-        :rtype: str
-
-        :raises: RuntimeWarning, if the one of the events is a "terminator."
-        """
-        return NGramIndexer._format_thing(horizs, m_singles, ('(', ')'), terminator)
 
     def _make_column_label(self):
         """
@@ -307,10 +308,10 @@ class NGramIndexer(indexer.Indexer):
             loop_post = None
             try:
                 # first vertical event
-                loop_post = [NGramIndexer._format_vert(list(events['v'].iloc[i].sort_index()),
+                loop_post = [_format_vert(list(events['v'].iloc[i].sort_index()),
                                                        m_singles,
                                                        term)]
-            except RuntimeWarning:  # we hit a terminator
+            except StopIteration:  # we hit a terminator
                 continue
             try:
                 for j in range(self._settings['n'] - 1):  # iterate to the end of 'n'
@@ -318,19 +319,155 @@ class NGramIndexer(indexer.Indexer):
                     ilp = None  # it means "Inner Loop Post"
                     if 'h' in events:  # are there "horizontal" events?
                         ilp = [' ',
-                               NGramIndexer._format_horiz(list(events['h'].iloc[k].sort_index()),
+                               _format_horiz(list(events['h'].iloc[k].sort_index()),
                                                           m_singles),
                                ' ',
-                               NGramIndexer._format_vert(list(events['v'].iloc[k].sort_index()),
+                               _format_vert(list(events['v'].iloc[k].sort_index()),
                                                          m_singles,
                                                          term)]
                     else:
                         ilp = [' ',
-                               NGramIndexer._format_vert(list(events['v'].iloc[k].sort_index()),
+                               _format_vert(list(events['v'].iloc[k].sort_index()),
                                                          m_singles,
                                                          term)]
                     loop_post.extend(ilp)
-            except (KeyError, IndexError, RuntimeWarning) as the_err:
+            except (KeyError, IndexError, StopIteration) as the_err:
+                if isinstance(the_err, (IndexError, KeyError)):  # end of inputted Series
+                    break
+                else:  # we hit a terminator
+                    continue
+            post.append(''.join(loop_post))
+            post_offsets.append(events.index[i])
+
+        # prepare the part-combination labels
+        combos = self._make_column_label()
+        return self.make_return(combos, [pandas.Series(post, post_offsets)])
+
+
+class NGramFinder(indexer.Indexer):
+    """
+    This indexer extracts "raw n-grams" from the results of other indexers. This means that results
+    stay in their most tabular form, and are not collected into a string. Use the
+    :class:`NGramLabeler` to collect n-grams into strings.
+
+    The indices'll be all like:
+
+    [('interval.IntervalIndexer', '0,1'),
+     ('interval.HorizontalIntervalIndexer', '1'),
+     ('noterest.NoteRestIndexer', '1'),
+    ]
+
+    or something.
+    """
+
+    required_score_type = 'pandas.DataFrame'
+
+    possible_settings = ['indices']
+    """
+    A list of possible settings for the :class:`NGramFinder`.
+
+    :kwarg indices: A list of the indices to use.
+    :type indices: list of tuple of str
+    """
+
+    _NO_INDICES = 'NGramFinder is missing the required "indices" setting.'
+
+    def __init__(self, score, settings=None):
+        """
+        :param score: The :class:`DataFrame` to use for preparing n-grams. You must ensure the
+            :class:`DataFrame` has the columns indicated in the ``settings``, or the :meth:`run`
+            method will fail.
+        :type score: :class:`pandas.DataFrame`
+        :param dict settings: Required and optional settings. See descriptions in
+            :const:`possible_settings`.
+
+        :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        :raises: :exc:`RuntimeError` if required settings are not present in ``settings``.
+        :raises: :exc:`RuntimeError` if ``'n'`` is less than ``1``.
+        """
+        # Check all required settings are present in the "settings" argument.
+        if settings is None or 'indices' not in settings:
+            raise RuntimeError(NGramFinder._NO_INDICES)
+
+        self._settings = settings
+        super(NGramFinder, self).__init__(self, score, None)
+
+        # Check that "score" has the required indices, as given by "indices".
+        # TODO: ^that
+
+    def run(self):
+        """
+        Make an index of k-part n-grams of anything.
+
+        :returns: A single-column :class:`~pandas.DataFrame` with the new index.
+        """
+        # NOTE: in an incredible stroke of luck, the VIS 1 run() algorithm works without change
+        #       for the VIS 2.0 release...
+        # - So in a future 2.x-series point release, we can add "true" multidimensional functionality
+        #   while retaining the existing 'horizontal' and 'vertical' method of naming the dimensions.
+        #   In other words, we'll break the API at release 2.0 while retaining the algorithm, and
+        #   add new features along with a new algorithm later, without breaking the API.
+
+        post = []
+        post_offsets = []
+
+        # for the formatting methods
+        m_singles = self._settings['mark_singles']
+        term = self._settings['terminator']
+
+        # Order the parts as specified. We have to track "i" and "name" separately so we have a new
+        # order for the dict but can keep self._score straight. We'll use these tuples to keep
+        # vertical and horizontal events separated in the DataFrame with a MultiIndex
+        events = {}
+        for i, name in enumerate(self._settings['vertical']):
+            events[('v', i)] = self._score[name].dropna()
+        for i, name in enumerate(self._settings['horizontal']):
+            events[('h', i)] = self._score[name].dropna()
+
+        # Make the MultiIndex and DataFrame with all events
+        events = pandas.DataFrame(events, columns=pandas.MultiIndex.from_tuples(events.keys()))
+
+        # Fill in all "vertical" NaN values with the previous value
+        for i in events['v'].columns:
+            # NB: still have to test the fix, as stated in issue 261
+            events.update(events.loc[:, ('v', i)].fillna(method='ffill'))
+
+        # Fill in all "horizontal" NaN values with the continuer
+        if 'h' in events:
+            for i in events['h'].columns:
+                # NB: still have to test the fix, as stated in issue 261
+                events.update(events.loc[:, ('h', i)].fillna(value=self._settings['continuer']))
+
+        # Iterate the offsets
+        for i in range(len(events)):
+            loop_post = None
+            try:
+                # first vertical event
+                loop_post = [_format_vert(list(events['v'].iloc[i].sort_index()),
+                                                       m_singles,
+                                                       term)]
+            except StopIteration:  # we hit a terminator
+                continue
+            try:
+                for j in range(self._settings['n'] - 1):  # iterate to the end of 'n'
+                    k = i + j + 1  # the index we need
+                    ilp = None  # it means "Inner Loop Post"
+                    if 'h' in events:  # are there "horizontal" events?
+                        ilp = [' ',
+                               _format_horiz(list(events['h'].iloc[k].sort_index()),
+                                                          m_singles),
+                               ' ',
+                               _format_vert(list(events['v'].iloc[k].sort_index()),
+                                                         m_singles,
+                                                         term)]
+                    else:
+                        ilp = [' ',
+                               _format_vert(list(events['v'].iloc[k].sort_index()),
+                                                         m_singles,
+                                                         term)]
+                    loop_post.extend(ilp)
+            except (KeyError, IndexError, StopIteration) as the_err:
                 if isinstance(the_err, (IndexError, KeyError)):  # end of inputted Series
                     break
                 else:  # we hit a terminator

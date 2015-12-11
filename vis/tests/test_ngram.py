@@ -78,6 +78,89 @@ def series_maker(lotuples):
     return pandas.Series([x[1] for x in lotuples], index=[x[0] for x in lotuples])
 
 
+class TestNGramFormatFunctions(unittest.TestCase):
+    """
+    Tests for ngram._format_thing(), _format_vert(), and _format_horiz().
+    """
+
+    def test_ngram_format_1(self):
+        """one thing, it's a terminator (don't mark singles)"""
+        # pylint: disable=protected-access
+        things = ['A']
+        m_singles = False
+        self.assertRaises(StopIteration, ngram._format_thing, things, m_singles, None,
+                          terminator=['A'])
+
+    def test_ngram_format_2(self):
+        """one thing, don't mark singles"""
+        # pylint: disable=protected-access
+        things = ['A']
+        m_singles = False
+        expected = 'A'
+        actual = ngram._format_thing(things, m_singles)
+        self.assertEqual(expected, actual)
+
+    def test_ngram_format_3(self):
+        """one thing, mark singles"""
+        # pylint: disable=protected-access
+        things = ['A']
+        m_singles = True
+        expected = '[A]'
+        actual = ngram._format_thing(things, m_singles)
+        self.assertEqual(expected, actual)
+
+    def test_ngram_format_4(self):
+        """many things, terminator first"""
+        # pylint: disable=protected-access
+        things = ['A', 'B', 'C']
+        m_singles = False
+        self.assertRaises(StopIteration, ngram._format_thing, things, m_singles,
+                          ('[', ']'), terminator=['A'])
+
+    def test_ngram_format_5(self):
+        """many things, terminator middle"""
+        # pylint: disable=protected-access
+        things = ['A', 'B', 'C']
+        m_singles = False
+        self.assertRaises(StopIteration, ngram._format_thing, things, m_singles,
+                          ('[', ']'), terminator=['B'])
+
+    def test_ngram_format_6(self):
+        """many things, terminator last"""
+        # pylint: disable=protected-access
+        things = ['A', 'B', 'C']
+        m_singles = False
+        self.assertRaises(StopIteration, ngram._format_thing, things, m_singles,
+                          ('[', ']'), terminator=['C'])
+
+    def test_ngram_format_7(self):
+        """many things, don't mark singles"""
+        # pylint: disable=protected-access
+        things = ['A', 'B', 'C']
+        m_singles = False
+        expected = '[A B C]'
+        actual = ngram._format_thing(things, m_singles)
+        self.assertEqual(expected, actual)
+
+    def test_ngram_format_8(self):
+        """many things, mark singles"""
+        # pylint: disable=protected-access
+        things = ['A', 'B', 'C']
+        m_singles = True
+        expected = '[A B C]'
+        actual = ngram._format_thing(things, m_singles)
+        self.assertEqual(expected, actual)
+
+    def test_ngram_format_9(self):
+        """many things, change the markers"""
+        # pylint: disable=protected-access
+        things = ['A', 'B', 'C']
+        m_singles = False
+        expected = '$A B C&'
+        actual = ngram._format_thing(things, m_singles, ('$', '&'))
+        self.assertEqual(expected, actual)
+
+
 class TestNGramIndexer(unittest.TestCase):
     """Tests for the NGramIndexer and its helper functions."""
 
@@ -591,83 +674,6 @@ class TestNGramIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
             self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
-    def test_ngram_format_1(self):
-        """one thing, it's a terminator (don't mark singles)"""
-        # pylint: disable=protected-access
-        things = ['A']
-        m_singles = False
-        self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles, None,
-                          terminator=['A'])
-
-    def test_ngram_format_2(self):
-        """one thing, don't mark singles"""
-        # pylint: disable=protected-access
-        things = ['A']
-        m_singles = False
-        expected = 'A'
-        actual = ngram.NGramIndexer._format_thing(things, m_singles)
-        self.assertEqual(expected, actual)
-
-    def test_ngram_format_3(self):
-        """one thing, mark singles"""
-        # pylint: disable=protected-access
-        things = ['A']
-        m_singles = True
-        expected = '[A]'
-        actual = ngram.NGramIndexer._format_thing(things, m_singles)
-        self.assertEqual(expected, actual)
-
-    def test_ngram_format_4(self):
-        """many things, terminator first"""
-        # pylint: disable=protected-access
-        things = ['A', 'B', 'C']
-        m_singles = False
-        self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
-                          ('[', ']'), terminator=['A'])
-
-    def test_ngram_format_5(self):
-        """many things, terminator middle"""
-        # pylint: disable=protected-access
-        things = ['A', 'B', 'C']
-        m_singles = False
-        self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
-                          ('[', ']'), terminator=['B'])
-
-    def test_ngram_format_6(self):
-        """many things, terminator last"""
-        # pylint: disable=protected-access
-        things = ['A', 'B', 'C']
-        m_singles = False
-        self.assertRaises(RuntimeWarning, ngram.NGramIndexer._format_thing, things, m_singles,
-                          ('[', ']'), terminator=['C'])
-
-    def test_ngram_format_7(self):
-        """many things, don't mark singles"""
-        # pylint: disable=protected-access
-        things = ['A', 'B', 'C']
-        m_singles = False
-        expected = '[A B C]'
-        actual = ngram.NGramIndexer._format_thing(things, m_singles)
-        self.assertEqual(expected, actual)
-
-    def test_ngram_format_8(self):
-        """many things, mark singles"""
-        # pylint: disable=protected-access
-        things = ['A', 'B', 'C']
-        m_singles = True
-        expected = '[A B C]'
-        actual = ngram.NGramIndexer._format_thing(things, m_singles)
-        self.assertEqual(expected, actual)
-
-    def test_ngram_format_9(self):
-        """many things, change the markers"""
-        # pylint: disable=protected-access
-        things = ['A', 'B', 'C']
-        m_singles = False
-        expected = '$A B C&'
-        actual = ngram.NGramIndexer._format_thing(things, m_singles, ('$', '&'))
-        self.assertEqual(expected, actual)
-
     def test_make_column_label_1(self):
         """
         - single vertical thing
@@ -753,7 +759,9 @@ class TestNGramIndexer(unittest.TestCase):
         actual = ngind._make_column_label()[0]
         self.assertEqual(expected, actual)
 
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 NGRAM_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNGramIndexer)
+FORMAT_FUNCTION_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNGramFormatFunctions)

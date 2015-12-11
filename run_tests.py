@@ -71,6 +71,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_interval_indexer.HORIZ_INT_IND_LONG_SUITE,
              test_repeat.REPEAT_INDEXER_SUITE,
              test_ngram.NGRAM_INDEXER_SUITE,
+             test_ngram.FORMAT_FUNCTION_SUITE,
              test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,
              test_offset.OFFSET_INDEXER_SINGLE_SUITE,
              test_offset.OFFSET_INDEXER_MULTI_SUITE,
