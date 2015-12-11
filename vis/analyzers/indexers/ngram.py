@@ -43,42 +43,35 @@ def _format_thing(things, m_singles, markers=('[', ']'), terminator=None):
 
     :param things: All the events for this moment.
     :type things: iterable of str
-
     :param m_singles: Whether to put marker characters around single-item iterables.
     :type m_singles: boolean
-
     :param markers: The "marker" strings to put around the output, if desired. Defualt is [].
     :type markers: 2-tuple of str
-
-    :param terminator: If one of the events is in this iterale, raise a RuntimeError. Default
-        is [None].
-    :type terminator: list of str or None
-
+    :param terminator: If one of the events is in this iterable, raise a RuntimeError. Default
+        is ``[None]``.
+    :type terminator: list of str or NoneType
     :returns: A str with a space between every event and marker characters if there is more
         than one event or m_singles is True.
     :rtype: str
-
-    :raises: StopIteration, if the one of the events is a "terminator."
+    :raises: :exc:`StopIteration` if the one of the events is a "terminator."
     """
     terminator = [] if terminator is None else terminator
-    post = []
+    post = None
+
     if len(things) > 1:
-        post.append(markers[0])
         for obj in things:
             if obj in terminator:
                 raise StopIteration('hit a terminator')
-            else:
-                post.append('{}'.format(obj))
-                post.append(' ')
-        post = post[:-1]  # remove last space
-        post.append(markers[1])
+
+        post = '{start}{things}{end}'.format(start=markers[0], things=' '.join(things), end=markers[1])
     elif things[0] in terminator:
         raise StopIteration('hit a terminator')
     elif m_singles:
-        post.extend([markers[0], six.u(str(things[0])), markers[1]])
+        post = '{start}{things}{end}'.format(start=markers[0], things=things[0], end=markers[1])
     else:
-        post.append(things[0])
-    return ''.join(post)
+        post = things[0]
+
+    return post
 
 
 def _format_vert(verts, m_singles, terminator=None):
