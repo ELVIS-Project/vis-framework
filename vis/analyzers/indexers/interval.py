@@ -263,8 +263,11 @@ class IntervalIndexer(indexer.Indexer):
     The settings for the :class:`IntervalIndexer` are as follows:
     :keyword str 'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``'simple'`` or ``'compound'``).
-    :keyword boolean 'quality': Whether to display an interval's quality.
-    :keyword boolean 'direction': Whether we distinguish between which note is higher than the other. \
+    :keyword bool or string 'quality': Whether to display diatonic intervals without quality \
+        (either False or "diatonic no quality"), diatonic intervals with quality (either True or \
+        'diatonic with quality'), chromatic intervals (use 'chromatic'), or interval class intervals \
+        (use 'interval class').
+    :keyword boolean 'directed': Whether we distinguish between which note is higher than the other. \
         If True (default), prepends a '-' before everything else if the first note passed is higher \
         than the second.
     :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
@@ -368,8 +371,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
     :keyword str 'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``'simple'`` or ``'compound'``).
-    :keyword boolean 'quality': Whether to display an interval's quality.
-    :keyword boolean 'direction': Whether we distinguish between which note is higher than the other. \
+    :keyword bool or string 'quality': Whether to display diatonic intervals without quality \
+        (either False or "diatonic no quality"), diatonic intervals with quality (either True or \
+        'diatonic with quality'), chromatic intervals (use 'chromatic'), or interval class intervals \
+        (use 'interval class').
+    :keyword boolean 'directed': Whether we distinguish between which note is higher than the other. \
         If True (default), prepends a '-' before everything else if the first note passed is higher \
         than the second.
     :keyword boolean 'horiz_attach_later': If ``True``, the offset for a horizontal interval is \
