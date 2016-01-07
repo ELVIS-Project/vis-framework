@@ -31,8 +31,6 @@ import numpy
 from numpy import nan, isnan  # pylint: disable=no-name-in-module
 from music21 import stream
 from vis.analyzers import indexer
-import pdb
-import time
 
 _d3q_label = 'Q'
 _pass_dp_label = 'D'
@@ -70,10 +68,13 @@ class DissonanceIndexer(indexer.Indexer):
     Indexer that locates vertical dissonances between pairs of voices in a piece. It then
     categorizes intervals as consonant or dissonant and in the case of fourths (perfect or
     augmented) and diminished fifths it examines the other parts sounding with that fourth or fifth
-    (if there are any) to see if the interval can be considered consonant. This analysis step can be
-    saved and output but currently isn't. Finally, this dissonance analysis allows for the
-    assignment of a dissonance type name or a consonance label for each voice at each offset. This
-    last step is the DataFrame that gets returned.
+    (if there are any) to see if the interval can be considered consonant. This dissonance analysis 
+    allows for the assignment of a dissonance type name or a consonance label for each voice at 
+    each offset. This last step is the DataFrame that gets returned.
+
+    The score type must be a list of dataframes of the results of the following indexers (order 
+    matters): horizontal, duration, beatstrength, vertical.
+
     """
     required_score_type = 'pandas.DataFrame'
 
@@ -89,6 +90,7 @@ class DissonanceIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
         super(DissonanceIndexer, self).__init__(score)
+        self._score = pandas.concat(score, axis=1)
 
     def _set_horiz_invl(self, indx, col_indx):
         """
@@ -893,7 +895,6 @@ class DissonanceIndexer(indexer.Indexer):
 
         diss_ints = self._score[int_ind].copy(deep=True)
         simuls = diss_ints.ffill()
-        t1 = time.clock()
 
         iterables = [[diss_types], self._score[dur_ind].columns]
         d_types_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
@@ -948,8 +949,4 @@ class DissonanceIndexer(indexer.Indexer):
             if passable:
                 ret.iat[ndx, unknowns[1][x]] = _only_diss_w_diss
 
-        t2 = time.clock()
-        # print 'Time to analyze dissonances: ' + str(t2-t1)
-
-        # print ret['dissonance.DissonanceIndexer'].stack().value_counts()
         return ret
