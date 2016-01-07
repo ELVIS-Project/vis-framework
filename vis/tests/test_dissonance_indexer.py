@@ -145,7 +145,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         Check that (False,) is returned whenprevious_event is None.
         """
         in_dfs = [qh_b_df, qh_dur_df, qh_h_df, asc_q_v_df]
-        in_dfs = pd.concat(in_dfs, axis=1)
         expected = (False,)
         init = dissonance.DissonanceIndexer(in_dfs)
         actual = init._is_passing_or_neigh('dummy', 'dummy', 'dummy', None)
@@ -156,7 +155,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         Check that (False,) is returned when previous_event is not in dissonance._consonances.
         """
         in_dfs = [qh_b_df, qh_dur_df, qh_h_df, asc_q_v_df]
-        in_dfs = pd.concat(in_dfs, axis=1)
         expected = (False,)
         init = dissonance.DissonanceIndexer(in_dfs)
         actual = init._is_passing_or_neigh(1, '0,1', 'M2', 'm2')
@@ -167,7 +165,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         Detection of rising passing tone in quarter notes.
         """
         in_dfs = [qh_b_df, qh_dur_df, qh_h_df, asc_q_v_df]
-        in_dfs = pd.concat(in_dfs, axis=1)
         expected = (True, '0', dissonance._pass_rp_label, '1', dissonance._no_diss_label)
         init = dissonance.DissonanceIndexer(in_dfs)
         actual = init._is_passing_or_neigh(1, '0,1', 'M2', 'P1')
@@ -178,7 +175,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         Detection of rising passing tone in quarter notes.
         """
         in_dfs = [hq_b_df, hq_dur_df, hdescq_h_df, asc_q_v_df]
-        in_dfs = pd.concat(in_dfs, axis=1)
         expected = (True, '0', dissonance._no_diss_label, '1', dissonance._pass_dp_label)
         init = dissonance.DissonanceIndexer(in_dfs)
         actual = init._is_passing_or_neigh(1, '0,1', 'M2', 'P1')
@@ -189,7 +185,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         Detection of two rising passing tones in a mini-piece.
         """
         in_dfs = [qh_b_df, qh_dur_df, qh_h_df, asc_q_v_df]
-        in_dfs = pd.concat(in_dfs, axis=1)
         expected = empty_df.copy()
         expected.iat[1, 0] = 'R'
         expected.iat[3, 0] = 'R'
@@ -202,7 +197,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         though the passing tones are descending because the passing tones are in the lower voice
         """
         in_dfs = [hq_b_df, hq_dur_df, hdescq_h_df, asc_q_v_df]
-        in_dfs = pd.concat(in_dfs, axis=1)
         expected = empty_df.copy()
         expected.iat[1, 1] = 'D'
         expected.iat[3, 1] = 'D'
