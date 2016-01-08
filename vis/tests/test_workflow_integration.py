@@ -52,20 +52,20 @@ class IntervalsTests(TestCase):
                                 '1': 8, '2': 8, '14': 7, '17': 5, '-2': 3, '-3': 2, '16': 1})
     # EXPECTED_3 is the result of "intervals" experiment on madrigal51 with "all pairs" as the
     # voice pairs and not including rests; note that I didn't verify this by counting
-    EXPECTED_3 = pandas.Series({'3': 219, '8': 208, '10': 193, '5': 192, '6': 155, '1': 153,
+    EXPECTED_3 = pandas.Series({'3': 219, '8': 208, '10': 193, '5': 192, '6': 155, '1': 154,
                                 '4': 125, '7': 124, '9': 122, '11': 96, '12': 96, '2': 66,
                                 '-3': 58, '15': 47, '13': 46, '14': 40, '-2': 37, '-4': 31,
                                 '-5': 29, '16': 23, '-6': 22, '17': 14, '-8': 10, '19': 9, '-7': 8,
-                                '18': 4, '-9': 3, '20': 3, '-12': 3, '22': 1, '-10': 1, '-1': 1})
+                                '18': 4, '-9': 3, '20': 3, '-12': 3, '22': 1, '-10': 1})
     # EXPECTED_4 is the result of "intervals" experiment on madrigal51 with "all pairs" as the
     # voice pairs and including rests; note that I didn't verify this by counting
     # NB: only difference between this and EXPECTED_3 should be the 'Rest' entry
     EXPECTED_4 = pandas.Series({'Rest': 1228, '3': 219, '8': 208, '10': 193, '5': 192, '6': 155,
-                                '1': 153, '4': 125, '7': 124, '9': 122, '11': 96, '12': 96,
+                                '1': 154, '4': 125, '7': 124, '9': 122, '11': 96, '12': 96,
                                 '2': 66, '-3': 58, '15': 47, '13': 46, '14': 40, '-2': 37,
                                 '-4': 31, '-5': 29, '16': 23, '-6': 22, '17': 14, '-8': 10,
                                 '19': 9, '-7': 8, '18': 4, '-9': 3, '20': 3, '-12': 3, '22': 1,
-                                '-10': 1, '-1': 1})
+                                '-10': 1})
 
     def assertDataFramesEqual(self, exp, act):  # pylint: disable=invalid-name
         """Ensure that two DataFrame objects, ``exp`` and ``act``, are equal."""

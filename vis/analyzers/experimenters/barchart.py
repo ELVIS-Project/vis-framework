@@ -62,7 +62,7 @@ class RBarChart(experimenter.Experimenter):
     and the values in :const:`default_settings`.
 
     :keyword str 'pathname': The pathname to use for the outputted file.
-    :keyword str 'column': The column of the :class:`DataFrame to choose for outputting. If the
+    :keyword str 'column': The column of the :class:`DataFrame` to choose for outputting. If the
         data you wish to include in the chart is not in the ``'freq'`` column, use this setting to
         determine which column is used instead.
     :keyword str 'type': The output type, chosen from :const:`OUTPUT_TYPES`.
@@ -132,7 +132,7 @@ class RBarChart(experimenter.Experimenter):
         :returns: The pathname of the outputted PNG file containing a bar chart.
         :rtype: string
         :raises: :exc:`RuntimeError` if the call to ``Rscript`` fails for any reason. The return
-            code and command's output are included as the :attr:`RuntimeError.message` attribute.
+            code and command's output are included as the :attr:`RuntimeError.args[0]` attribute.
         """
 
         # properly set output paths

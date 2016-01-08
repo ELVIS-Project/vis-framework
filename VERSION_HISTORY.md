@@ -3,18 +3,25 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
-* 2.3.0 (pending release):
+* 2.x.0 (pending release):
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
+* 2.3.0:
+    - support for interval direction, i.e. an 'M3' is a '-M3' if the interval is between two voices that are crossed with respect to their staff position
+    - inclusion of experimental qualityControl file in scripts which can be used to make sure that a file can be imported by music21 and to run a basic verification that the parts line up properly
+    - begin tracking experimental MedievalNoteRestIndexer script in scripts folder
+    - basic testing suite for DissonanceIndexer
+    - tons of docs improvements (thanks @maxalbert)
 * 2.2.0:
     - Python 3 compatibility.
-    - New: hierarchical clustering and dengrogram graphical output with dendrogram.py
+    - New: hierarchical clustering and dendrogram graphical output with dendrogram.py
     - Refactoring/rewrite: update make_return() method in indexer.py to greatly enhance performance when creating dataframes. Uses pandas.concat() instead of pandas.DataFrame()
     - Refactoring: simplified the way several indexers and experimenters internally set their settings to make their init methods easier to read. Uses .update() instead of making piecemeal changes.
     - Tests: includes 15 new tests in a test suite for the dendrogram.py file and comments out 2 tests in offset.py because they are incompatible with the new version of make_return() as they pass magic mock objects to a be concatenated by pandas.concat().
     - Automated test and code coverage fix
     - cleanup of dependencies/requirements (big thanks to maxalbert, https://github.com/maxalbert)
+    - 'scripts' directory for helpful scripts
 * 2.1.3
     - can turn on/off multiprocessing
     - fixed issue with Pandas converting strings to floats (or, rather, hacked a solution)

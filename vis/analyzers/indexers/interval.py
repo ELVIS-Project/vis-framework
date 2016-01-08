@@ -38,22 +38,22 @@ import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
 
-def real_indexer(simultaneity, simple, quality, direction):
+def real_indexer_func(simultaneity, analysis_type):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
 
-    :param simultaneity: A two-item iterable with the note names for the higher and lower parts,
+    :param simultaneity: A two-item iterable with the note names for the higher and lower parts, \
         respectively.
     :type simultaneity: list of string
     :param simple: Whether intervals should be reduced to their single-octave version.
     :type simple: boolean
     :param quality: Whether the interval's quality should be prepended.
     :type quality: boolean
-    :param direction: Whether we distinguish between which note is higher than the other. If True,
-        prepends a '-' before everything else if the first note in simultaneity is higher than the second.
-    :type direction: boolean
+    :param directed: Whether notes can be negative. If True, prepends a '-' before everything \
+        else if the first note in simultaneity is higher than the second.
+    :type directed: boolean
 
-    :returns: ``'Rest'`` if one or more of the parts is ``'Rest'``; otherwise, the interval
+    :returns: ``'Rest'`` if one or more of the parts is ``'Rest'``; otherwise, the interval \
         between the parts.
     :rtype: string
     """
@@ -66,88 +66,188 @@ def real_indexer(simultaneity, simple, quality, direction):
             interv = interval.Interval(note.Note(lower), note.Note(upper))
         except pitch.PitchException:
             return 'Rest'
-        post = '-' if interv.direction < 0 and direction else ''
-        if quality:
-            # We must get all of the quality, and none of the size (important for AA, dd, etc.)
-            q_str = ''
-            for each in interv.name:
-                if each in 'AMPmd':
-                    q_str += each
-            post += q_str
-        if simple:
-            post += six.u(str(interv.generic.semiSimpleUndirected))
-        else:
-            post += six.u(str(interv.generic.undirected))
-        return post
+        return analysis_type(interv)
 
 
-# We give these functions to the multiprocessor; they're pickle-able, they let us choose settings,
-# and the function still only requires one argument at run-time from the Indexer.mp_indexer().
-def indexer_qual_simple(ecks):
+# We give the functions below to the multiprocessor; they're pickle-able and they basically help us 
+# apply the appropriate analysis settings. The settings requested by the user are set in the init
+# method and are all applied with the use of the xxxx_analysis functions. They appear below in the 
+# same order as their position in the indexer_funcs list. Each indexer_xxxx method is immediately 
+# followed by the xxxx_analysis method that it passes to real_indexer_func_func.
+
+
+def indexer_dnq_dir_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Call :func:`real_indexer` with settings to print simple intervals with quality.
+    Calls :func:`real_indexer_func_func` such that quality-free diatonic intervals that are directed and \
+    simple (i.e. -8 to 8 with no zero) are returned.
     """
-    return real_indexer(ecks, True, True, True)
+    return real_indexer_func(ecks, dnq_dir_sim_analysis)
 
-
-def indexer_qual_comp(ecks):
+def dnq_dir_sim_analysis(interv):
+    return str(interv.generic.semiSimpleDirected)
+#-----
+def indexer_dwq_dir_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Call :func:`real_indexer` with settings to print compound intervals with quality.
+    Calls :func:`real_indexer_func` such that diatonic intervals with quality that are directed and \
+    simple (i.e. -A8 to A8 with no zero) are returned.
     """
-    return real_indexer(ecks, False, True, True)
+    return real_indexer_func(ecks, dwq_dir_sim_analysis)
 
-
-def indexer_nq_simple(ecks):
+def dwq_dir_sim_analysis(interv):
+    post = '-' if interv.direction == -1 else ''
+    return post + interv.semiSimpleName
+#-----
+def indexer_chr_dir_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Call :func:`real_indexer` with settings to print simple intervals without quality.
+    Calls :func:`real_indexer_func` such that chromatic intervals that are directed and simple \
+    (i.e. -11 to 11) are returned.
     """
-    return real_indexer(ecks, True, False, True)
+    return real_indexer_func(ecks, chr_dir_sim_analysis)
 
-
-def indexer_nq_comp(ecks):
+def chr_dir_sim_analysis(interv):
+    return str(interv.chromatic.simpleDirected)
+#-----
+def indexer_icl_dir_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Call :func:`real_indexer` with settings to print compound intervals without quality.
+    Calls :func:`real_indexer_func` such that interval-class intervals that are directed and simple \
+    (i.e. -6 to 6) are returned.
     """
-    return real_indexer(ecks, False, False, True)
+    return real_indexer_func(ecks, icl_dir_sim_analysis)
 
-def indexer_qual_simple_undir(ecks):
+def icl_dir_sim_analysis(interv):
+    post = '-' if interv.direction == -1 else ''
+    return post + str(interv.intervalClass)
+
+#-----------------------------------------*
+
+def indexer_dnq_und_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Call :func:`real_indexer` with settings for simple intervals with quality that are 
-    undirected.
+    Calls :func:`real_indexer_func` such that quality-free diatonic intervals that are undirected and \
+    simple (i.e. 1 to 8) are returned.
     """
-    return real_indexer(ecks, True, True, False)
+    return real_indexer_func(ecks, dnq_und_sim_analysis)
 
-def indexer_qual_comp_undir(ecks):
+def dnq_und_sim_analysis(interv):
+    return str(interv.generic.semiSimpleUndirected)
+#-----
+def indexer_dwq_und_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Call :func:`real_indexer` with settings for compound intervals with quality that are 
-    undirected.
+    Calls :func:`real_indexer_func` such that quality-free diatonic intervals that are undirected and \
+    simple (i.e. P1 to A8) are returned.
     """
-    return real_indexer(ecks, False, True, False)
+    return real_indexer_func(ecks, dwq_und_sim_analysis)
 
-def indexer_nq_simple_undir(ecks):
+def dwq_und_sim_analysis(interv):
+    return interv.semiSimpleName
+#-----
+def indexer_chr_und_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Call :func:`real_indexer` with settings for simple intervals without quality that are 
-    undirected.
+    Calls :func:`real_indexer_func` such that chromatic intervals that are undirected and simple \
+    (i.e. 0 to 11) are returned.
     """
-    return real_indexer(ecks, True, False, False)
+    return real_indexer_func(ecks, chr_und_sim_analysis)
 
-def indexer_nq_comp_undir(ecks):
+def chr_und_sim_analysis(interv):
+    return str(interv.chromatic.simpleUndirected)
+#-----
+def indexer_icl_und_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Call :func:`real_indexer` with settings for compound intervals without quality that are 
-    undirected.
+    Calls :func:`real_indexer_func` such that interval-class intervals that are undirected and simple \
+    (i.e. 0 to 6) are returned.
     """
-    return real_indexer(ecks, False, False, False)
+    return real_indexer_func(ecks, icl_und_sim_analysis)
 
-indexer_funcs = (indexer_qual_simple, indexer_qual_comp, indexer_nq_simple, indexer_nq_comp,
-                 indexer_qual_simple_undir, indexer_qual_comp_undir, indexer_nq_simple_undir, indexer_nq_comp_undir)
+def icl_und_sim_analysis(interv):
+    return str(interv.intervalClass)
+
+
+#-----------------------------------------*
+
+def indexer_dnq_dir_com(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Calls :func:`real_indexer_func` such that quality-free diatonic intervals that are directed and \
+    compound (i.e. negative infinity to infinity with no zero) are returned.
+    """
+    return real_indexer_func(ecks, dnq_dir_com_analysis)
+
+def dnq_dir_com_analysis(interv):
+    return str(interv.generic.directed)
+#-----
+def indexer_dwq_dir_com(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Calls :func:`real_indexer_func` such that diatonic intervals with quality that are directed and \
+    compound (i.e. negative infinity to infinity with no zero) are returned.
+    """
+    return real_indexer_func(ecks, dwq_dir_com_analysis)
+
+def dwq_dir_com_analysis(interv):
+    post = '-' if interv.direction == -1 else ''
+    return post + interv.name
+#-----
+def indexer_chr_dir_com(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Calls :func:`real_indexer_func` such that chromatic intervals that are directed and compound \
+    (i.e. negative infinity to infinity) are returned.
+    """
+    return real_indexer_func(ecks, chr_dir_com_analysis)
+
+def chr_dir_com_analysis(interv):
+    return str(interv.semitones)
+
+#-----------------------------------------*
+
+def indexer_dnq_und_com(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Calls :func:`real_indexer_func` such that quality-free diatonic intervals that are undirected and \
+    compound (i.e. 1 to infinity) are returned.
+    """
+    return real_indexer_func(ecks, dnq_und_com_analysis)
+
+def dnq_und_com_analysis(interv):
+    return str(interv.generic.undirected)
+#-----
+def indexer_dwq_und_com(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Calls :func:`real_indexer_func` such that diatonic intervals with quality that are undirected and \
+    compound (i.e. P1 to infinity) are returned.
+    """
+    return real_indexer_func(ecks, dwq_und_com_analysis)
+
+def dwq_und_com_analysis(interv):
+    return interv.name
+#-----
+def indexer_chr_und_com(ecks):
+    """
+    Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
+    Calls :func:`real_indexer_func` such that chromatic intervals that are undirected and compound \
+    (i.e. 0 to infinity) are returned.
+    """
+    return real_indexer_func(ecks, chr_und_com_analysis)
+
+def chr_und_com_analysis(interv):
+    return str(interv.chromatic.undirected)
+
+#-----------------------------------------*
+
+#                    NO_QUALITY      -    WITH_QUALITY    -     CHROMATIC      -  INTERVAL CLASS
+indexer_funcs = (indexer_dnq_dir_sim, indexer_dwq_dir_sim, indexer_chr_dir_sim, indexer_icl_dir_sim,        # DIRECTED   & SIMPLE
+                 indexer_dnq_und_sim, indexer_dwq_und_sim, indexer_chr_und_sim, indexer_icl_und_sim,        # UNDIRECTED & SIMPLE
+                 indexer_dnq_dir_com, indexer_dwq_dir_com, indexer_chr_dir_com, None,                       # DIRECTED   & COMPOUND
+                 indexer_dnq_und_com, indexer_dwq_und_com, indexer_chr_und_com, None)                       # UNDIRECTED & COMPOUND
+
 
 
 class IntervalIndexer(indexer.Indexer):
@@ -163,14 +263,17 @@ class IntervalIndexer(indexer.Indexer):
     The settings for the :class:`IntervalIndexer` are as follows:
     :keyword str 'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``'simple'`` or ``'compound'``).
-    :keyword boolean 'quality': Whether to display an interval's quality.
-    :keyword boolean 'direction': Whether we distinguish between which note is higher than the other. \
+    :keyword bool or string 'quality': Whether to display diatonic intervals without quality \
+        (either False or "diatonic no quality"), diatonic intervals with quality (either True or \
+        'diatonic with quality'), chromatic intervals (use 'chromatic'), or interval class intervals \
+        (use 'interval class').
+    :keyword boolean 'directed': Whether we distinguish between which note is higher than the other. \
         If True (default), prepends a '-' before everything else if the first note passed is higher \
         than the second.
     :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
     """
     required_score_type = 'pandas.Series'
-    default_settings = {'simple or compound': 'compound', 'quality': False, 'direction':True, 'mp': True}
+    default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 'mp': True}
     "A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
@@ -180,21 +283,43 @@ class IntervalIndexer(indexer.Indexer):
         :type score: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
         :param dict settings: Required and optional settings.
         """
+        # TODO: add runtime warning for people who set compound
+
         self._settings = IntervalIndexer.default_settings.copy()
         if settings is not None:
             self._settings.update(settings)
         
         super(IntervalIndexer, self).__init__(score, None)
 
-        # Which indexer function to set? Use binary to choose one of eight indexer_funcs.
-        func_num = 0
+        if self._settings['simple or compound'] == 'compound' and self._settings['quality'] == 'interval class':
+            raise RuntimeWarning('Interval class analysis cannot be compound, so the simple or compound setting has been reset to compound')
+            self._settings['simple or compound'] = 'simple'
+
+        # Use binary-inspired system to choose one of 14 indexer_funcs.
+        indexer_number = 0
+
+        # This block deals with the four quality settings. True and False are offered as options to
+        # accommodate the old setting types when we only offered two options for interval quality.
+        if self._settings['quality'] == False or self._settings['quality'] == 'diatonic no quality':
+            pass
+        elif self._settings['quality'] == True or self._settings['quality'] == 'diatonic with quality':
+            indexer_number += 1
+        elif self._settings['quality'] == 'chromatic':
+            indexer_number += 2
+        else: # i.e. self._settings['quality'] == 'interval class'
+            indexer_number += 3
+
+        # This block determines if the intervals are directed or not, that is, whether they can be negative or not.
+        if not self._settings['directed']:
+            indexer_number += 4
+
+        # This block decides between simple, i.e. within an octave, or compound intervals.
         if self._settings['simple or compound'] == 'compound':
-            func_num += 1
-        if not self._settings['quality']:
-            func_num += 2
-        if not self._settings['direction']:
-            func_num += 4
-        self._indexer_func = indexer_funcs[func_num]
+            indexer_number += 8
+
+        self._indexer_func = indexer_funcs[indexer_number]
+
+
 
     def run(self):
         """
@@ -246,8 +371,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
     :keyword str 'simple or compound': Whether intervals should be represented in their \
         single-octave form (either ``'simple'`` or ``'compound'``).
-    :keyword boolean 'quality': Whether to display an interval's quality.
-    :keyword boolean 'direction': Whether we distinguish between which note is higher than the other. \
+    :keyword bool or string 'quality': Whether to display diatonic intervals without quality \
+        (either False or "diatonic no quality"), diatonic intervals with quality (either True or \
+        'diatonic with quality'), chromatic intervals (use 'chromatic'), or interval class intervals \
+        (use 'interval class').
+    :keyword boolean 'directed': Whether we distinguish between which note is higher than the other. \
         If True (default), prepends a '-' before everything else if the first note passed is higher \
         than the second.
     :keyword boolean 'horiz_attach_later': If ``True``, the offset for a horizontal interval is \
@@ -256,7 +384,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
     """
 
-    default_settings = {'simple or compound': 'compound', 'quality': False, 'direction':True, 
+    default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 
                         'horiz_attach_later': False, 'mp': True}
 
     def __init__(self, score, settings=None):
