@@ -207,7 +207,7 @@ class Indexer(object):
         except KeyError:
             raise TypeError(Indexer._INIT_KEY_ERR.format(self.__class__))
         # if "score" is a list, check it's of the right type
-        if isinstance(score, list) and (req_s_type is pandas.Series or req_s_type is stream.Part):
+        if isinstance(score, list) and (req_s_type in (pandas.DataFrame, pandas.Series, stream.Part)):
             if not all([isinstance(e, req_s_type) for e in score]):
                 raise TypeError(Indexer._INIT_TYPE_ERR.format(self.__class__,
                                                              self.required_score_type))
