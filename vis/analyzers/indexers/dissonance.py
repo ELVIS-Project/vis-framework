@@ -220,7 +220,7 @@ class DissonanceIndexer(indexer.Indexer):
                     return (True, upper, _no_diss_label, lower, _pass_rp_label)
                 elif x == -2:
                     return (True, upper, _no_diss_label, lower, _neigh_ln_label)
-            elif x == -2 and y == -2:
+            elif y == -2:
                 if x == -2:
                     return (True, upper, _no_diss_label, lower, _pass_dp_label)
                 elif x == 2:
