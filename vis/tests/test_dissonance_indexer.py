@@ -107,7 +107,7 @@ empty_df = make_df([empty, empty], diss_mI)
 
 class TestDissonanceIndexer(unittest.TestCase):
     """
-
+    Limited unit tests and two integration tests for the dissonance indexer.
     """
     def test_diss_indexer_is_passing_1a(self):
         """
