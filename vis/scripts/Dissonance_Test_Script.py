@@ -148,7 +148,7 @@ def main():
 
     # horiz = interval.HorizontalIntervalIndexer(basic_nr, horiz_setts).run()
     # vert_ints = interval.IntervalIndexer(basic_nr, setts).run()
-    dissonances = dissonance.DissonanceIndexer([horiz, dur_ind, bs_ind, vert_ints]).run()
+    dissonances = dissonance.DissonanceIndexer([bs_ind, dur_ind, horiz, vert_ints]).run()
 
 
 

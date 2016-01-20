@@ -28,9 +28,10 @@
 """
 import pandas
 import numpy
-from numpy import nan, isnan  # pylint: disable=no-name-in-module
+from numpy import nan  # pylint: disable=no-name-in-module
 from music21 import stream
 from vis.analyzers import indexer
+import pdb
 
 _d3q_label = 'Q'
 _pass_dp_label = 'D'
@@ -54,7 +55,7 @@ _nan_rest = set([nan, 'Rest'])
 _ignored = _consonances.union(_nan_rest)
 _go_ons = set([_no_diss_label, _unexplainable])
 _passes = set(('n', _no_diss_label, _unexplainable))
-_char_del = dict.fromkeys(map(ord, 'AaDdMmP'), None)
+_char_del = 'AaDdMmP'
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
 h_ind = u'interval.HorizontalIntervalIndexer'
@@ -73,8 +74,7 @@ class DissonanceIndexer(indexer.Indexer):
     each offset. This last step is the DataFrame that gets returned.
 
     The score type must be a list of dataframes of the results of the following indexers (order 
-    matters): horizontal, duration, beatstrength, vertical.
-
+    matters): beatstrength, duration, horizontal, vertical.
     """
     required_score_type = 'pandas.DataFrame'
 
@@ -621,7 +621,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        diss = int(event.translate(_char_del), 10)
+        diss = int(event.translate(None, _char_del), 10)
 
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))

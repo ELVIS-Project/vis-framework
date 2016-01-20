@@ -107,18 +107,7 @@ empty_df = make_df([empty, empty], diss_mI)
 
 class TestDissonanceIndexer(unittest.TestCase):
     """
-    TODO:
-    - Use actual indexers instead of basic_indexer in test_dissonance_indexer.py
-    - Consider omitting the concatenation step for the indexer results that are passed to the 
-        dissonance indexer call (duration, horiz_int, note_beat_strength, vert_int)
-        NB: be sure to put them in alphabetical order as above.
-    - Separate out check4s_5s() into its own series indexer
-    - Separate out passing tone and neighbor tone detection
-    - Revisit run method
-    - Reconsider assigning variables just once and sending the results to each dissonance type checker. 
-        Ask Ryan about this.
-    - Revisit classify() method
-    - Actually write a bunch of tests. Loosely base them on the interval indexer tests below.
+
     """
     def test_diss_indexer_is_passing_1a(self):
         """
@@ -160,20 +149,6 @@ class TestDissonanceIndexer(unittest.TestCase):
         actual = init._is_passing_or_neigh(1, '0,1', 'M2', 'P1')
         self.assertSequenceEqual(expected, actual)
 
-    def test_diss_indexer_is_unexplainable_1(self):
-        """
-        Detection of label assignment for unexplainable dissonances. The inputs aren't so important 
-        as long as NaN's and proper values are in the right spots.
-        """
-        horiz_df = hdescq_h_df.copy()
-        horiz_df.iat[2, 1] = nan
-        in_dfs = [hq_b_df, hq_dur_df, horiz_df, asc_q_v_df]
-        in_dfs = pd.concat(in_dfs, axis=1)
-        expected = (True, '0', dissonance._unexplainable, '1', dissonance._no_diss_label)
-        init = dissonance.DissonanceIndexer(in_dfs)
-        actual = init._is_unexplainable(2, '0,1', 'M2', 'P1')
-        self.assertSequenceEqual(expected, actual)
-        
     def test_diss_indexer_run_1a(self):
         """
         Detection of two rising passing tones in a mini-piece.
