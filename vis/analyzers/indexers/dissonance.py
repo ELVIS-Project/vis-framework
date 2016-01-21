@@ -28,7 +28,7 @@
 """
 import pandas
 import numpy
-from numpy import nan, isnan  # pylint: disable=no-name-in-module
+from numpy import nan  # pylint: disable=no-name-in-module
 from music21 import stream
 from vis.analyzers import indexer
 
@@ -54,7 +54,6 @@ _nan_rest = set([nan, 'Rest'])
 _ignored = _consonances.union(_nan_rest)
 _go_ons = set([_no_diss_label, _unexplainable])
 _passes = set(('n', _no_diss_label, _unexplainable))
-_char_del = dict.fromkeys(map(ord, 'AaDdMmP'), None)
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
 h_ind = u'interval.HorizontalIntervalIndexer'
@@ -73,8 +72,7 @@ class DissonanceIndexer(indexer.Indexer):
     each offset. This last step is the DataFrame that gets returned.
 
     The score type must be a list of dataframes of the results of the following indexers (order 
-    matters): horizontal, duration, beatstrength, vertical.
-
+    matters): beatstrength, duration, horizontal, vertical.
     """
     required_score_type = 'pandas.DataFrame'
 
@@ -220,7 +218,7 @@ class DissonanceIndexer(indexer.Indexer):
                     return (True, upper, _no_diss_label, lower, _pass_rp_label)
                 elif x == -2:
                     return (True, upper, _no_diss_label, lower, _neigh_ln_label)
-            elif x == -2 and y == -2:
+            elif y == -2:
                 if x == -2:
                     return (True, upper, _no_diss_label, lower, _pass_dp_label)
                 elif x == 2:
@@ -263,6 +261,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -344,6 +344,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -421,6 +423,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -484,6 +488,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -542,7 +548,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """        # QUESTION: is b on a weak half even if it lasts a quarter note?
-
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -621,7 +628,9 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        diss = int(event.translate(_char_del), 10)
+        if prev_event == None:
+            return (False,)
+        diss = int(''.join(dig for dig in event if dig.isdigit()), 10) # delete all non-digit characters from event string and convert to int.
 
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -709,6 +718,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
