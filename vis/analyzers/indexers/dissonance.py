@@ -261,6 +261,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -342,6 +344,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -419,6 +423,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -482,6 +488,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -540,7 +548,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """        # QUESTION: is b on a weak half even if it lasts a quarter note?
-
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))
@@ -619,6 +628,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         diss = int(''.join(dig for dig in event if dig.isdigit()), 10) # delete all non-digit characters from event string and convert to int.
 
         upper = pair.split(',')[0] # Upper voice variables
@@ -707,6 +718,8 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
+        if prev_event == None:
+            return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
         d_upper_col = self._score.columns.get_loc((dur_ind, upper))

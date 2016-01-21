@@ -20,7 +20,8 @@ import vis
 VIS_PATH = vis.__path__[0]
 
 def main():
-    piece_path = "/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn"
+    # piece_path = "/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn"
+    piece_path = "/home/amor/Code/vis-framework/vis/tests/corpus/bach.xml"
     # piece_path = "/home/amor/Code/vis-framework/vis/tests/corpus/bwv603.xml"
     # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Reimenschnieder/1-026900B_.xml'
     #piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos2308.mei'
