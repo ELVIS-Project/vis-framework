@@ -31,11 +31,8 @@ Indexer to find k-part any-object n-grams.
 
 # pylint: disable=pointless-string-statement
 
-import six
 import pandas
 from vis.analyzers import indexer
-import pdb
-import time
 import numpy as np
 
 
