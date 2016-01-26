@@ -3,10 +3,13 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
-* 2.x.0 (pending release):
+* 2.3.1:
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
     - WorkflowManager.output() changes the column name for table-like outputs, according to the experiment.
+    - stops checking midi files for some of the checks.
+    - interval indexer improvements
+    - required_score_type can now be a list of pandas.dataframes.
 * 2.3.0:
     - support for interval direction, i.e. an 'M3' is a '-M3' if the interval is between two voices that are crossed with respect to their staff position
     - inclusion of experimental qualityControl file in scripts which can be used to make sure that a file can be imported by music21 and to run a basic verification that the parts line up properly
