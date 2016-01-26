@@ -379,7 +379,7 @@ class WorkflowManager(object):
         # NB: we have to run the offset and repeat indexers on the notes/rests
         notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
         settings = {'quality': self.settings(index, 'interval quality'),
-                    'horiz_attach_later': False}
+                    'horiz_attach_later': True}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
         vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
@@ -438,7 +438,7 @@ class WorkflowManager(object):
         # NB: we have to run the offset and repeat indexers on the notes/rests
         notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
         settings = {'quality': self.settings(index, 'interval quality'),
-                    'horiz_attach_later': False}
+                    'horiz_attach_later': True}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
         vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)
@@ -491,7 +491,7 @@ class WorkflowManager(object):
         # NB: we have to run the offset and repeat indexers on the notes/rests
         notes = self._run_off_rep(index, piece.get_data([noterest.NoteRestIndexer]))
         settings = {'quality': self.settings(index, 'interval quality'),
-                    'horiz_attach_later': False}
+                    'horiz_attach_later': True}
         settings['simple or compound'] = ('simple' if self.settings(None, 'simple intervals')
                                           is True else 'compound')
         vert_ints = piece.get_data([interval.IntervalIndexer], settings, notes)

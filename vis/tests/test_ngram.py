@@ -30,7 +30,6 @@
 import unittest
 import pandas
 from vis.analyzers.indexers import ngram
-import pdb
 
 VERTICAL_TUPLES = [(0.0, 'P4'),
                    (4.0, 'M3'),
@@ -50,29 +49,29 @@ VERTICAL_TUPLES = [(0.0, 'P4'),
                    (36.0, 'Rest'),
                    (38.0, 'Rest')]
 
-HORIZONTAL_TUPLES = [(0.0, 'P4'),
-                     (4.0, '-m3'),
-                     (8.0, '-M2'),
-                     (12.0, 'M3'),
-                     (14.0, '-M2'),
+HORIZONTAL_TUPLES = [(4.0, 'P4'),
+                     (8.0, '-m3'),
+                     (12.0, '-M2'),
+                     (14.0, 'M3'),
                      (16.0, '-M2'),
-                     (20.0, 'P5'),
-                     (28.0, '-M2'),
-                     (31.0, '-m2'),
-                     (32.0, 'Rest')]
+                     (20.0, '-M2'),
+                     (28.0, 'P5'),
+                     (31.0, '-M2'),
+                     (32.0, '-m2'),
+                     (36.0, 'Rest')]
 
 EXPECTED = [(0.0, '[P4] (P4) [M3] (-m3) [M6] (-M2) [P8]'),
             (4.0, '[M3] (-m3) [M6] (-M2) [P8] (M3) [m6]'),
             (8.0, '[M6] (-M2) [P8] (M3) [m6] (-M2) [m7]'),
-            (12.0, '[P8] (M3) [m6] (-M2) [m7] (-M2) [M6]'),
-            (14.0, '[m6] (-M2) [m7] (-M2) [M6] (P1) [M6]'),
-            (16.0, '[m7] (-M2) [M6] (P1) [M6] (P5) [P5]'),
-            (18.0, '[M6] (P1) [M6] (P5) [P5] (P1) [P8]'),
-            (20.0, '[M6] (P5) [P5] (P1) [P8] (P1) [P4]'),
-            (22.0, '[P5] (P1) [P8] (P1) [P4] (-M2) [M3]'),
-            (26.0, '[P8] (P1) [P4] (-M2) [M3] (P1) [A4]'),
-            (28.0, '[P4] (-M2) [M3] (P1) [A4] (-m2) [P4]'),
-            (30.0, '[M3] (P1) [A4] (-m2) [P4] (Rest) [m3]')]
+            (12.0, '[P8] (M3) [m6] (-M2) [m7] (P1) [M6]'),
+            (14.0, '[m6] (-M2) [m7] (P1) [M6] (-M2) [M6]'),
+            (16.0, '[m7] (P1) [M6] (-M2) [M6] (P1) [P5]'),
+            (18.0, '[M6] (-M2) [M6] (P1) [P5] (P1) [P8]'),
+            (20.0, '[M6] (P1) [P5] (P1) [P8] (P5) [P4]'),
+            (22.0, '[P5] (P1) [P8] (P5) [P4] (P1) [M3]'),
+            (26.0, '[P8] (P5) [P4] (P1) [M3] (-M2) [A4]'),
+            (28.0, '[P4] (P1) [M3] (-M2) [A4] (-m2) [P4]'),
+            (30.0, '[M3] (-M2) [A4] (-m2) [P4] (P1) [m3]')]
 
 def series_maker(lotuples):
     """Turn a List Of TUPLES (offset, 'value') into a Series."""
@@ -124,7 +123,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_1a(self):
         """most basic test"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'b', 'c'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark_singles': False}
@@ -159,7 +158,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_1c(self):
         """like test _1a but with 'mark singles' instead of 'mark_singles'"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'b', 'c'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark singles': False}
@@ -177,7 +176,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_2(self):
         """adds the grouping characters"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'b', 'c'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark_singles': True}
@@ -195,7 +194,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_3(self):
         """test _1 but n=3"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'b', 'c'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 3, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark_singles': False}
@@ -214,7 +213,7 @@ class TestNGramIndexer(unittest.TestCase):
         """test _1 but with two verticals"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
-        horizontal = pandas.Series(['a', 'b', 'c'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical_a, vertical_b, horizontal],
                                   index=[['vert', 'vert', 'horiz'], ['0,1', '0,2', '2']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '2')], 'vertical': [('vert', '0,1'), ('vert', '0,2')],
@@ -233,8 +232,8 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_5(self):
         """test _0 but with two horizontals, and the order of 'horizontal' setting is important"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal_b = pandas.Series(['z', 'x', 'y'])
-        horizontal_a = pandas.Series(['a', 'b', 'c'])
+        horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
+        horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical, horizontal_b, horizontal_a],
                                   index=[['vert', 'horiz', 'horiz'], ['0,1', '2', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1'), ('horiz', '2')], 'vertical': [('vert', '0,1')],
@@ -254,8 +253,8 @@ class TestNGramIndexer(unittest.TestCase):
         """combination of tests _3 and _4"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
-        horizontal_a = pandas.Series(['a', 'b', 'c'])
-        horizontal_b = pandas.Series(['z', 'x', 'y'])
+        horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
+        horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical_a, vertical_b, horizontal_a, horizontal_b],
                                   index=[['vert', 'vert', 'horiz', 'horiz'],
                                          ['0,1', '0,2', '1', '2']]).T
@@ -278,7 +277,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_7(self):
         """test _1 with a terminator; nothing should be picked up after terminator"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'b', 'c'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'terminator': ['C']}
@@ -297,8 +296,8 @@ class TestNGramIndexer(unittest.TestCase):
         """test _6 with a terminator; nothing should be picked up before terminator"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W'])
-        horizontal_a = pandas.Series(['a', 'b', 'c'])
-        horizontal_b = pandas.Series(['z', 'x', 'y'])
+        horizontal_a = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
+        horizontal_b = pandas.Series(['z', 'x', 'y'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical_a, vertical_b, horizontal_a, horizontal_b],
                                   index=[['vert', 'vert', 'horiz', 'horiz'],
                                          ['0,1', '0,2', '1', '2']]).T
@@ -320,8 +319,8 @@ class TestNGramIndexer(unittest.TestCase):
         """test _8 but longer; things happen before and after terminator"""
         vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
-        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'])
-        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'])
+        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
+        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
         in_val = pandas.DataFrame([vertical_a, vertical_b, horizontal_a, horizontal_b],
                                   index=[['vert', 'vert', 'horiz', 'horiz'],
                                          ['0,1', '0,2', '1', '2']]).T
@@ -343,7 +342,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_10(self):
         """test _1 with too few "horizontal" things (should use "continuer" character)"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'b'])
+        horizontal = pandas.Series(['a', 'b'], index=[1, 2])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark_singles': False}
@@ -361,7 +360,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_11(self):
         """test _10 with one "horizontal" thing at the end"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['z'], index=[2])
+        horizontal = pandas.Series(['z'], index=[3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark_singles': False}
@@ -379,7 +378,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_12(self):
         """test _11 with one missing "horizontal" thing in the middle"""
         vertical = pandas.Series(['A', 'B', 'C', 'D'])
-        horizontal = pandas.Series(['a', 'z'], index=[0, 2])
+        horizontal = pandas.Series(['a', 'z'], index=[1, 3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark_singles': False}
@@ -394,10 +393,10 @@ class TestNGramIndexer(unittest.TestCase):
             self.assertSequenceEqual(list(expected[col_name].index), list(actual[col_name].index))
             self.assertSequenceEqual(list(expected[col_name].values), list(actual[col_name].values))
 
-    def test_ngram_13(self): # XXXX This is an impossible scenario because the horizontal observations must stop one before the vertical ones.
+    def test_ngram_13(self):
         """test _1 with too few "vertical" things (last should be repeated)"""
         vertical = pandas.Series(['A', 'B', 'C'])
-        horizontal = pandas.Series(['a', 'b', 'c'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark_singles': False}
@@ -405,7 +404,7 @@ class TestNGramIndexer(unittest.TestCase):
                                     index=[['ngram.NGramIndexer'], ['0,1 1']]).T
 
         actual = ngram.NGramIndexer(in_val, setts).run()
-        # pdb.set_trace()
+
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
         for col_name in expected.columns:
@@ -415,7 +414,7 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_14(self):
         """test _13 with one missing "vertical" thing in the middle"""
         vertical = pandas.Series(['A', 'C', 'D'], index=[0, 2, 3])
-        horizontal = pandas.Series(['a', 'b', 'c'])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])
         in_val = pandas.DataFrame([vertical, horizontal], index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'horizontal': [('horiz', '1')], 'vertical': [('vert', '0,1')],
                  'mark_singles': False}
@@ -441,7 +440,7 @@ class TestNGramIndexer(unittest.TestCase):
                                     index=[['ngram.NGramIndexer'], ['[0,1] (1)']]).T
 
         actual = ngram.NGramIndexer(in_val, setts).run()
-        pdb.set_trace()
+
         self.assertSequenceEqual(list(expected.columns), list(actual.columns))
         self.assertEqual(len(expected), len(actual))
         for col_name in expected.columns:
@@ -453,8 +452,8 @@ class TestNGramIndexer(unittest.TestCase):
         vertical_a = pandas.Series(['A', 'B', 'C', 'D', 'E'])
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
         vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
-        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'])
-        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'])
+        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
+        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
         in_val = pandas.DataFrame([vertical_a, vertical_b, vertical_c, horizontal_a, horizontal_b],
                                   index=[['vert', 'vert', 'vert', 'horiz', 'horiz'],
                                          ['0,1', '0,2', '0,3', '2', '3']]).T
@@ -480,8 +479,8 @@ class TestNGramIndexer(unittest.TestCase):
         vertical_b = pandas.Series(['Z', 'X', 'Y', 'W', 'V'])
         vertical_c = pandas.Series(['Q', 'R', 'S', 'T', 'U'])
         vertical_d = pandas.Series(['J', 'K', 'L', 'M', 'N'])
-        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'])
-        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'])
+        horizontal_b = pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])
+        horizontal_a = pandas.Series(['a', 'b', 'c', 'd'], index=[1, 2, 3, 4])
         in_val = pandas.DataFrame([vertical_a, vertical_b, vertical_c, vertical_d,
                                    horizontal_a, horizontal_b],
                                   index=[['vert', 'vert', 'vert', 'vert', 'horiz', 'horiz'],
@@ -542,7 +541,7 @@ class TestNGramIndexer(unittest.TestCase):
         # 3: 'C c D'
         # NB: this started as a regression test for issue 261, where missing values weren't filled
         vertical = pandas.Series(['A', 'B', 'C', 'D'], index=[0, 1, 2, 4])
-        horizontal = pandas.Series(['a', 'b', 'c'], index=[0, 2, 3])
+        horizontal = pandas.Series(['a', 'b', 'c'], index=[1, 3, 4])
         in_val = pandas.DataFrame([vertical, horizontal],
                                   index=[['vert', 'horiz'], ['0,1', '1']]).T
         setts = {'n': 2, 'mark singles': False, 'horizontal': [('horiz', '1')],
@@ -561,7 +560,6 @@ class TestNGramIndexer(unittest.TestCase):
     def test_ngram_20(self):
         """
         Ensure that events in other voices don't erroneously cause events in the voices-under-study.
-
         Regression test for GH#334.
         """
         # NB: it looks like this:

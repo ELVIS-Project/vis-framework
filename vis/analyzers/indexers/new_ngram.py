@@ -87,7 +87,7 @@ class NewNGramIndexer(indexer.Indexer):
 
     required_score_type = 'pandas.DataFrame'
 
-    possible_settings = ['horizontal', 'vertical', 'n', 'hanging', 'use brackets', 'terminator', 'continuer']
+    possible_settings = ['horizontal', 'vertical', 'n', 'hanging', 'brackets', 'terminator', 'continuer']
     """
     A list of possible settings for the :class:`NewNGramIndexer`.
 
@@ -100,11 +100,11 @@ class NewNGramIndexer(indexer.Indexer):
     :keyword 'hanging': End ngrams with a vertical event if False (default), or end ngrams with 
         their last horizontal event if True.
     :type 'hanigng': boolean
-    :keyword 'use brackets': Whether to use delimiters around event observations. Square brakets [] are used 
+    :keyword 'brackets': Whether to use delimiters around event observations. Square brakets [] are used 
         to set off vertical events and round brackets () are used to set off horizontal events. This is 
         particularly important to leave as True (default) for better legibility when there are multiple 
         vertical or multiple horizontal observations at each offset.
-    :type 'muse brackets': bool
+    :type 'brackets': bool
     :keyword 'terminator': Do not find an n-gram with a vertical item that contains any of these
         values.
     :type 'terminator': list of str
@@ -113,13 +113,15 @@ class NewNGramIndexer(indexer.Indexer):
     :type 'continuer': str
     """
 
-    default_settings = {'use brackets': True, 'horizontal': None, 'hanging': False, 'terminator': [], 
+    default_settings = {'brackets': True, 'horizontal': [], 'hanging': False, 'terminator': [], 
                         'vertical': 'all pairs', 'continuer': '_'}
 
-    _MISSING_SETTINGS = 'NewNGramIndexer requires "vertical" and "n" settings'
+    _MISSING_SETTINGS = 'NewNGramIndexer requires "vertical" and "n" settings.'
     _MISSING_HORIZONTAL_DATA = 'NewNGramIndexer needs a dataframe of horizontal observations if you want \
-        to include a horizontal dimension in your ngrams'
-    _N_VALUE_TOO_LOW = 'NewNGramIndexer requires an "n" value of at least 1'
+        to include a horizontal dimension in your ngrams.'
+    _SUPERFLUOUS_HORIZONTAL_DATA = 'If n is set to 1, no horizontal observations will be included in ngrams \
+        so you should leave the "horizontal" setting blank.'
+    _N_VALUE_TOO_LOW = 'NewNGramIndexer requires an "n" value of at least 1.'
 
     def __init__(self, score, settings=None):
         """
@@ -148,9 +150,11 @@ class NewNGramIndexer(indexer.Indexer):
         # pdb.set_trace()
         self._vertical_indexer_name = self._score[0].columns[0][0]
 
-        if self._settings['horizontal'] is not None:
+        if self._settings['horizontal']:
             if len(self._score) != 2:
                 raise RuntimeError(NewNGramIndexer._MISSING_HORIZONTAL_DATA)
+            if self._settings['n'] == 1:
+                raise RuntimeError(NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
 
         if self._settings['vertical'] == 'all pairs':
@@ -175,7 +179,7 @@ class NewNGramIndexer(indexer.Indexer):
         cols = []
         for j, verts in enumerate(self._settings['vertical']):
             events = {}
-            if self._settings['use brackets']: events[('v', 'v0')] = '['
+            if self._settings['brackets']: events[('v', 'v0')] = '['
             col_label = []
             for i, name in enumerate(verts):
                 if i == 0:
@@ -183,20 +187,27 @@ class NewNGramIndexer(indexer.Indexer):
                     col_label.append(name)
                 else:
                     events[('v', 'v' + str(i + 1))] = ' ' + self._score[0].loc[:, (self._vertical_indexer_name, name)].dropna()
-                    col_label.extend((' ', name))
-            if self._settings['use brackets']: events[('v', 'v' + str(len(verts) + 1))] = '] '
+                    col_label.append(name)
+            if self._settings['brackets']:
+                events[('v', 'v' + str(len(verts) + 1))] = '] '
+            else:
+                events[('v', 'v' + str(len(verts) + 1))] = ' '
 
             if self._settings['horizontal']: # NB: the bool value of an empty list is False.
                 horizs = self._settings['horizontal'][j]
-                if self._settings['use brackets']: events[('h', 'h0')] = '('
+                if self._settings['brackets']: events[('h', 'h0')] = '('
                 for i, name in enumerate(horizs):
                     if i == 0:
                         events[('h', 'h1')] = self._score[1].loc[:, (self._horizontal_indexer_name, name)].dropna()
                         col_label.extend((':', name))
                     else:
                         events[('h', 'h' + str(i + 1))] = ' ' + self._score[1].loc[:, (self._horizontal_indexer_name, name)].dropna()
-                        col_label.extend((' ', name))
-                if self._settings['use brackets']: events[('h', 'h' + str(len(horizs) + 1))] = ') '
+                        col_label.append(name)
+                if self._settings['brackets']:
+                    events[('h', 'h' + str(len(horizs) + 1))] = ') '
+                else:
+                    events[('h', 'h' + str(len(horizs) + 1))] = ' '
+
             
             cols.append(' '.join(col_label))
             events = pandas.DataFrame.from_dict(events)
@@ -214,15 +225,20 @@ class NewNGramIndexer(indexer.Indexer):
             if not self._settings['hanging']:
                 chunks.append(v_filled.shift(-n + 1))
             ngram_df = pandas.concat(chunks, axis=1)
-            
-            # Get rid of the rows that contain any of the terminators
-            if self._settings['terminator']:
-                ngram_df = ngram_df.loc[~(ngram_df.isin(self._settings['terminator'])).apply(np.any, axis=1)]
-            
+
             # Concatenate strings of each row to turn df into a series and also remove the last n-1
             # observations since they can't contain valid n-grams.
-            res = ngram_df.iloc[:(-n+1), 0].str.cat([ngram_df.iloc[:(-n+1), x] for x in range(1, len(ngram_df.columns))])
+            if n == 1:
+                res = ngram_df.iloc[:, 0].str.cat([ngram_df.iloc[:, x] for x in range(1, len(ngram_df.columns))])
+            else:
+                res = ngram_df.iloc[:(-n+1), 0].str.cat([ngram_df.iloc[:(-n+1), x] for x in range(1, len(ngram_df.columns))])
             
+            # Get rid of the observations that contain any of the terminators
+            if self._settings['terminator']:
+                for arnie in self._settings['terminator']:
+                    terminated = res.apply(lambda r : any([arnie in e for e in r]))
+                    res = res[~terminated]
+
             # Get rid of the trailing space in each ngram and add this combo to post
             post.append(res.str.rstrip())
 
