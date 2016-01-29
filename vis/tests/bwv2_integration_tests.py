@@ -7,7 +7,7 @@
 # Filename:               controllers_tests/test_indexed_piece.py
 # Purpose:                Integration tests with the "bwv2.xml" file.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014, 2016 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -233,22 +233,20 @@ class AllVoiceIntervalNGrams(TestCase):
         actual = workm.run('interval n-grams')[0]
         self.assertDataFramesEqual(expected, actual)
 
-    def test_new_ngrams_1(self):
+    def test_new_ngrams_2(self):
         """Same as test_ngrams_1() but uses new_ngram indexer."""
         expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.new_two_grams)
         expected = pandas.DataFrame({('new_ngram.NewNGramIndexer', '0,3 1,3 2,3 : 3'): expected})
         ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
-        setts = {'quality': False, 'simple': False, 'horiz_attach_later': False}
+        setts = {'quality': False, 'simple': False, 'horiz_attach_later': True}
         horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                          interval.HorizontalIntervalIndexer],
                                         setts)
         vert_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                         interval.IntervalIndexer],
                                         setts)
-        setts = {'n': 2, 'horizontal': 'lowest', 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True,}
+        setts = {'n': 2, 'continuer': '1', 'horizontal': 'lowest', 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True,}
         actual = new_ngram.NewNGramIndexer([vert_ints, horiz_ints], setts).run()
-        import pdb
-        pdb.set_trace()
         self.assertTrue(actual.equals(expected))
 
     # TODO: these tests again, counting frequency

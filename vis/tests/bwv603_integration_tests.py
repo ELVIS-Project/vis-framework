@@ -30,7 +30,7 @@ import os
 from unittest import TestCase, TestLoader
 import pandas
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import noterest, interval, ngram
+from vis.analyzers.indexers import noterest, interval, ngram, new_ngram
 from vis.analyzers.experimenters import frequency
 from vis import workflow
 
@@ -85,6 +85,49 @@ class AllVoiceIntervalNGrams(TestCase):
                 (44, '[12 10 7] 2 [10 8 5]'),
                 (45, '[10 8 5] -5 [15 12 10]')]
 
+    new_two_grams = [(0, '[15 12 10] (8) [8 5 3]'),
+                    (1, '[8 5 3] (-2) [9 6 4]'),
+                    (2, '[9 6 4] (-2) [10 10 6]'),
+                    (3, '[10 10 6] (2) [10 8 5]'),
+                    (4, '[10 8 5] (-4) [13 11 8]'),
+                    (5, '[13 11 8] (3) [11 9 6]'),
+                    (6, '[11 9 6] (-2) [13 10 6]'),
+                    (7, '[13 10 6] (-3) [14 12 10]'),
+                    (8, '[14 12 10] (4) [10 8 5]'),
+                    (9, '[10 8 5] (-4) [12 10 8]'),
+                    (10, '[12 10 8] (1) [15 12 10]'),
+                    (13, '[15 12 10] (8) [8 5 3]'),
+                    (14, '[8 5 3] (-2) [10 6 4]'),
+                    (15, '[10 6 4] (-2) [10 8 5]'),
+                    (16, '[10 8 5] (-3) [12 10 6]'),
+                    (17, '[12 10 6] (2) [10 8 5]'),
+                    (18, '[10 8 5] (-5) [15 12 10]'),
+                    (19, '[15 12 10] (8) [8 5 3]'),
+                    (21, '[8 5 3] (-3) [10 8 5]'),
+                    (22, '[10 8 5] (-3) [12 10 6]'),
+                    (23, '[12 10 6] (-3) [14 10 8]'),
+                    (24, '[14 10 8] (4) [10 8 5]'),
+                    (25, '[10 8 5] (-3) [12 10 8]'),
+                    (26, '[12 10 8] (-3) [13 12 10]'),
+                    (27, '[13 12 10] (2) [12 11 8]'),
+                    (28, '[12 11 8] (1) [13 10 6]'),
+                    (29, '[13 10 6] (2) [10 8 5]'),
+                    (30, '[10 8 5] (-5) [15 12 10]'),
+                    (31, '[15 12 10] (6) [10 6 3]'),
+                    (33, '[10 6 3] (1) [9 6 4]'),
+                    (34, '[9 6 4] (-2) [10 8 6]'),
+                    (35, '[10 8 6] (2) [10 6 3]'),
+                    (36, '[10 6 3] (2) [10 5 1]'),
+                    (37, '[10 5 1] (-2) [11 6 4]'),
+                    (38, '[11 6 4] (2) [10 7 5]'),
+                    (39, '[10 7 5] (2) [10 5 3]'),
+                    (40, '[10 5 3] (-5) [14 10 8]'),
+                    (41, '[14 10 8] (2) [12 10 7]'),
+                    (42, '[12 10 7] (2) [10 9 5]'),
+                    (43, '[10 9 5] (-3) [12 10 7]'),
+                    (44, '[12 10 7] (2) [10 8 5]'),
+                    (45, '[10 8 5] (-5) [15 12 10]')]
+
     @staticmethod
     def series_maker(make_series):
         """
@@ -115,7 +158,7 @@ class AllVoiceIntervalNGrams(TestCase):
         expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.twograms)
         expected = pandas.DataFrame({('ngram.NGramIndexer', '[0,3 1,3 2,3] 3'): expected})
         ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
-        setts = {'quality': False, 'simple': False, 'horiz_attach_later': False}
+        setts = {'quality': False, 'simple': False, 'horiz_attach_later': True}
         horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
                                          interval.HorizontalIntervalIndexer],
                                         setts)
@@ -143,6 +186,21 @@ class AllVoiceIntervalNGrams(TestCase):
         workm.settings(0, 'voice combinations', 'all')
         actual = workm.run('interval n-grams')[0]
         self.assertDataFramesEqual(expected, actual)
+
+    def test_new_ngrams_3(self):
+        """same as test_ngrams_2() but with new_ngram_indexer instead of WorkFlowManager."""
+        expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.new_two_grams)
+        expected = pandas.DataFrame({('new_ngram.NewNGramIndexer', '0,3 1,3 2,3 : 3'): expected})
+        v_setts = {'quality': False, 'simple or compound': 'compound', 'directed': True}
+        h_setts = {'quality': False, 'horiz_attach_later': True, 'simple or compound': False, 'directed': True}
+        n_setts = {'n': 2, 'horizontal': [('3',)], 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True, 'continuer': '1'}
+        ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
+        parts = ind_piece._import_score().parts
+        nr = noterest.NoteRestIndexer(parts).run()
+        vt = interval.IntervalIndexer(nr, v_setts).run()
+        hz = interval.HorizontalIntervalIndexer(nr, h_setts).run()
+        actual = new_ngram.NewNGramIndexer((vt, hz), n_setts).run()
+        self.assertTrue(actual.equals(expected))
 
     # TODO: those two tests, again, counting frequency
 

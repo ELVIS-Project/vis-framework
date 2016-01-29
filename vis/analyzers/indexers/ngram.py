@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
+Warning: This indexer is deprecated and will eventually be replaced with the new_ngram_indexer.
 Indexer to find k-part any-object n-grams.
 """
 
@@ -36,6 +37,9 @@ from vis.analyzers import indexer
 
 class NGramIndexer(indexer.Indexer):
     """
+    Warning: This indexer is deprecated and will eventually be replaced with the new_ngram_indexer.
+    
+    Indexer to find k-part any-object n-grams.
     Indexer that finds k-part n-grams from other indices.
     The indexer requires at least one "vertical" index, and supports "horizontal" indices that seem
     to "connect" instances in the vertical indices. Although we use "vertical" and "horizontal" to

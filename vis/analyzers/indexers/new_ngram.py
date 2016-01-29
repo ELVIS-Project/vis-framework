@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Alexander Morgan
+.. codeauthor:: Christopher Antila <christopher@antila.ca>
 
 Indexer to find k-part any-object n-grams.
 """
@@ -45,44 +46,78 @@ class NewNGramIndexer(indexer.Indexer):
     describe these index types, because the class is an abstraction of two-part interval n-grams,
     you can supply any information as either type of index. If you want one-part melodic n-grams
     for example, you should supply the relevant interval information as the "vertical" component.
+    The "vertical" and "horizontal" indices can contain an arbitrary number of observations that 
+    can get condensed into one value or kept separate in different columns. There is no 
+    relationship between the number of index types, though there must be at least one "vertical" 
+    index.
 
-    There is no relationship between the number of index types, though there must be at least one
-    "vertical" index.
+    The ``'vertical'`` and ``'horizontal'`` settings determine which columns of the dataframes in 
+    ``score`` are included in the n-gram output. ``score`` is a list of two dataframes, the 
+    vertical observations :class:`DataFrame` and the horizontal observations :class:`DataFrame`. 
+    The format of the vertical and horizontal settings is very important and will decide the 
+    structure of the resulting n-gram results. Both the vertical and horizontal settings should 
+    be a list of tuples. If the optional horizontal setting is passed, its list should be of the 
+    same length as that of the vertical setting. Inside of each tuple, enter the column names of 
+    the observations that you want to include in each value. For example, if you want to make 
+    3-grams of notes in the tenor in a four-voice choral, use the following settings (NB: there 
+    is no horizontal element in this simple query so no horizontal setting is passed. In this 
+    scenario you would need to pass the noterest indexer results as the only dataframe in the 
+    "score" list of dataframes.):
+    
+    settings = {'n': 3, 'vertical': [('2',)]}
 
-    The ``'horizontal'`` and ``'vertical'`` settings determine which columns of the ``score``
-    :class:`DataFrame` are included in the n-gram output. They are added to the n-gram in the order
-    specified, so if the ``'vertical'`` setting is
-    ``[('noterest.NoteRestIndexer', '1'), ('noterest.NoteRestIndexer', '0')]``, this will put the
-    lower part (with index ``'1'``) before the higher part (with index ``'0'``). Note that both the
-    indexer's name and the part-combination name must be included.
+    If you want to look at the 4-grams in the interval pairs between the bass and soprano of a 
+    four-voice choral and track the melodic motions of the bass, the ``score`` argument should 
+    be a 2-item list containing the IntervalIndexer results dataframe and the 
+    HorizontalIntervalIndexer dataframe. Note that the HorizontalIntervalIndexer results must 
+    have been calculated with the 'horiz_attach_later' setting set to True (this is in order 
+    to avoid an indexing nightmare). The settings dictionary to pass to this indexer would be:
 
-    This is an example minimum ``settings`` dictionary for making interval 3-grams:::
+    settings = {'n': 4, 'vertical': [('0,3',)], 'horizontal': [('3',)]}
 
-        {'vertical': [('interval.IntervalIndexer', '0,1')],
-         'horizontal': [('interval.HorizontalIntervalIndexer', '1')],
-         'n': 3}
+    If you want to get 'figured-bass' 2-gram output from this same 4-voice choral, use the same 
+    2-item list for the score argument, and then put all of the voice pairs that sound against 
+    the bass in the same tuple in the vertical setting. Here's what the settings should be:
 
-    IMPORTANT: the data associated with the ``'horizontal'`` settings should have been generated
-    with ``'horiz_attach_later'`` set to ``True``. If not, the resulting n-grams will have their
-    "horizontal" intervals incorrectly offset.
+    settings = {'n': 2, 'vertical': [('0,3', '1,3', '2,3')], 'horizontal': [('3',)]}
 
-    In the output, groups of "vertical" events are normally enclosed in brackets, while groups of
-    "horizontal" events are enclosed in parentheses. For cases where there is only one index in a
-    particular direction, you can avoid printing the brackets or parentheses by setting the
-    ``'mark singles'`` setting to ``False`` (the default is ``True``).
+    In the example above, if you wanted stacks of vertical events without the horizontal 
+    connecting events, you would just omit the 'horizontal' setting from the settings dictionary 
+    and also only include the vertical observations in the ``score`` list of dataframes.
+
+    If instead you want to look at all the pairs of voices in the 4-voice piece, and always track 
+    the melodic motions of the lowest voice in that pair, then put each pair in a different tuple,
+    and in the voice to track melodically in the corresponding tuple in the horizontal list. Since 
+    there are 6 pairs of voices in a 4-voice piece, both your vertical and horizontal settings 
+    should be a list of six tuples. This will cause the resulting n-gram results dataframe to have 
+    six columns of observations. Your settings should look like this:
+
+    settings = {'n': 2, 'vertical': [('0,1',), ('0,2',), ('0,3',), ('1,2',), ('1,3',), ('2,3')], 
+                'horizontal': [('1',), ('2',), ('3',), ('2',), ('3',), ('3',)]}
+
+    Since we often want to look at all the pairs of voices in a piece, you can set the 'vertical' 
+    setting to 'all' and this will get all the column names from the first dataframe in the 
+    score list of dataframes. Similarly, as we often want to always track the melodic motions of 
+    the lowest or highest voice in the vertical groups, the horizontal setting can be set to 
+    'highest' or 'lowest' to automate this voice selection. This means that the preceeding query 
+    can also be accomplished with the following settings:
+
+    settings = {'n': 2, 'vertical': 'all', 'horizontal': 'lowest'}
+
+    The 'brackets' setting will set off all the vertical events at each time point in square 
+    brackets '[]' and horizontal observations will appear in parentheses '()'. This is particularly 
+    useful if there are multiple observations in each vertical or horizontal slice. For example, if 
+    we wanted to redo the query above where n = 4, but this time tracking the melodic motions of 
+    both the upper and the lower voice, it would be a good idea to set 'brackets' to True to make 
+    the results easier to read. The settings would look like this:
+
+    settings = {'n': 4, 'vertical': [('0,3',)], 'horizontal': [('0', '3',)], 'brackets': True}
 
     If you want n-grams to terminate when finding one or several particular values, you can specify
-    this with the ``'terminator'`` setting.
+    this by passing a list of strings as the ``'terminator'`` setting.
 
     To show that a horizontal event continues, we use ``'_'`` by default, but you can set this
-    separately, for example to ``'P1'`` ``'0'``, as seems appropriate. Note that the default
-    :class:`WorkflowManager` overrides this setting by dynamically adjusting for interval quality,
-    and also offers a ``'continuer'`` setting of its own, which is passed to this indexer.
-
-    You can also use the :class:`NewNGramIndexer` to collect "stacks" of single vertical events. If
-    you provide indices of intervals above a lowest part, for example, these "stacks" become the
-    figured bass signature of a single moment. Set ``'n'`` to ``1`` for this feature. Horizontal
-    events are obviously ignored in this case.
+    separately, for example to ``'P1'`` ``'0'``, as seems appropriate. 
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -91,30 +126,29 @@ class NewNGramIndexer(indexer.Indexer):
     """
     A list of possible settings for the :class:`NewNGramIndexer`.
 
-    :keyword 'horizontal': Selectors for the parts to consider as "horizontal."
-    :type 'horizontal': list of (str, str) tuples
-    :keyword 'vertical': Selectors for the parts to consider as "vertical."
-    :type 'vertical': list of (str, str) tuples
+    :keyword 'horizontal': Selectors for the columns to consider as "horizontal."
+    :type 'horizontal': list of tuples of strings, default [].
+    :keyword 'vertical': Selectors for the column names to consider as "vertical."
+    :type 'vertical': list of tuples of strings, default 'all'.
     :keyword 'n': The number of "vertical" events per n-gram.
     :type 'n': int
-    :keyword 'hanging': End ngrams with a vertical event if False (default), or end ngrams with 
-        their last horizontal event if True.
-    :type 'hanigng': boolean
+    :keyword 'hanging': Appends the next horizontal observation to n-grams leaving them open-ended.
+    :type 'hanging': boolean, default False.
     :keyword 'brackets': Whether to use delimiters around event observations. Square brakets [] are used 
         to set off vertical events and round brackets () are used to set off horizontal events. This is 
         particularly important to leave as True (default) for better legibility when there are multiple 
-        vertical or multiple horizontal observations at each offset.
-    :type 'brackets': bool
+        vertical or multiple horizontal observations at each slice.
+    :type 'brackets': bool, default True.
     :keyword 'terminator': Do not find an n-gram with a vertical item that contains any of these
         values.
-    :type 'terminator': list of str
+    :type 'terminator': list of str, default [].
     :keyword 'continuer': When there is no "horizontal" event that corresponds to a vertical
         event, this is printed instead, to show that the previous "horizontal" event continues.
-    :type 'continuer': str
+    :type 'continuer': str, default '_'.
     """
 
     default_settings = {'brackets': True, 'horizontal': [], 'hanging': False, 'terminator': [], 
-                        'vertical': 'all pairs', 'continuer': '_'}
+                        'vertical': 'all', 'continuer': '_'}
 
     _MISSING_SETTINGS = 'NewNGramIndexer requires "vertical" and "n" settings.'
     _MISSING_HORIZONTAL_DATA = 'NewNGramIndexer needs a dataframe of horizontal observations if you want \
@@ -122,6 +156,8 @@ class NewNGramIndexer(indexer.Indexer):
     _SUPERFLUOUS_HORIZONTAL_DATA = 'If n is set to 1, no horizontal observations will be included in ngrams \
         so you should leave the "horizontal" setting blank.'
     _N_VALUE_TOO_LOW = 'NewNGramIndexer requires an "n" value of at least 1.'
+    _N_VALUE_TOO_HIGH = 'NewNGramIndexer is unlikely to return results when the value of n is greater than \
+        the number of passed observations in either of the passed dataframes.'
 
     def __init__(self, score, settings=None):
         """
@@ -145,7 +181,11 @@ class NewNGramIndexer(indexer.Indexer):
         else:
             self._settings = NewNGramIndexer.default_settings.copy()
             self._settings.update(settings)
-     
+        
+        self._cut_off = self._settings['n'] if not self._settings['hanging'] else self._settings['n'] + 1
+        if all(self._cut_off > len(df) for df in score):
+            raise RuntimeWarning(NewNGramIndexer._N_VALUE_TOO_HIGH)
+
         super(NewNGramIndexer, self).__init__(score, None)
         # pdb.set_trace()
         self._vertical_indexer_name = self._score[0].columns[0][0]
@@ -153,11 +193,11 @@ class NewNGramIndexer(indexer.Indexer):
         if self._settings['horizontal']:
             if len(self._score) != 2:
                 raise RuntimeError(NewNGramIndexer._MISSING_HORIZONTAL_DATA)
-            if self._settings['n'] == 1:
+            if self._settings['n'] == 1 and not self._settings['hanging']:
                 raise RuntimeError(NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
 
-        if self._settings['vertical'] == 'all pairs':
+        if self._settings['vertical'] == 'all':
             self._settings['vertical'] = [(x,) for x in self._score[0][self._vertical_indexer_name].columns]
 
         if self._settings['horizontal'] == 'lowest':
@@ -172,7 +212,8 @@ class NewNGramIndexer(indexer.Indexer):
         """
         Make an index of k-part n-grams of anything.
 
-        :returns: A single-column :class:`~pandas.DataFrame` with the new index.
+        :returns: A new index of the piece in the form of a class:`~pandas.DataFrame` with as many 
+            columns as there are tuples in the 'vertical' setting of the passed settings.
         """
         n = self._settings['n']        
         post = []
@@ -208,30 +249,33 @@ class NewNGramIndexer(indexer.Indexer):
                 else:
                     events[('h', 'h' + str(len(horizs) + 1))] = ' '
 
-            
             cols.append(' '.join(col_label))
             events = pandas.DataFrame.from_dict(events)
-            
+
             # Ffill all the "vertical" events
             v_filled = events.loc[:, 'v'].fillna(method='ffill')
             # Fill in all "horizontal" NaN values with the continuer
             if 'h' in events:
                 h_filled = events.loc[:, 'h'].fillna(value=self._settings['continuer'])
-                ffilled_events = pandas.concat((v_filled, h_filled), axis=1)
-                chunks = [ffilled_events.shift(-x) for x in range(n - 1)]
+                ffilled_events = pandas.concat((h_filled, v_filled), axis=1)
+                chunks = [v_filled]
+                if n > 1:
+                    chunks.extend([ffilled_events.shift(-x) for x in range(1, n)])
             else:
-                chunks = [v_filled.shift(-x) for x in range(n - 1)]
+                chunks = [v_filled.shift(-x) for x in range(n)]
 
-            if not self._settings['hanging']:
-                chunks.append(v_filled.shift(-n + 1))
+            if self._settings['hanging']:
+                chunks.append(h_filled.shift(-n))
+
             ngram_df = pandas.concat(chunks, axis=1)
 
             # Concatenate strings of each row to turn df into a series and also remove the last n-1
             # observations since they can't contain valid n-grams.
-            if n == 1:
+            if self._cut_off == 1:
                 res = ngram_df.iloc[:, 0].str.cat([ngram_df.iloc[:, x] for x in range(1, len(ngram_df.columns))])
             else:
-                res = ngram_df.iloc[:(-n+1), 0].str.cat([ngram_df.iloc[:(-n+1), x] for x in range(1, len(ngram_df.columns))])
+                res = ngram_df.iloc[:(-self._cut_off + 1), 0].str.cat([ngram_df.iloc[:(-self._cut_off + 1), 
+                               x] for x in range(1, len(ngram_df.columns))])
             
             # Get rid of the observations that contain any of the terminators
             if self._settings['terminator']:
