@@ -34,34 +34,14 @@ import unittest
 import six
 import pandas as pd
 import music21
-from vis.analyzers.indexers import dissonance
-import pdb
+from music21 import converter
+from vis.analyzers.indexers import dissonance, noterest, metre, interval
 from pandas.util.testing import assert_frame_equal
 
 # find the pathname of the 'vis' directory
 import vis
 VIS_PATH = vis.__path__[0]
 
-
-def make_series(lotuples):
-    """
-    From a list of two-tuples, make a Series. The list should be like this:
-
-    [(desired_index, value), (desired_index, value), (desired_index, value)]
-    """
-    new_index = [x[0] for x in lotuples]
-    vals = [x[1] for x in lotuples]
-    return pd.Series(vals, index=new_index)
-
-def pandas_maker(lolists):
-    """
-    Use make_series() to convert a list of appropriate tuples into a list of appropriate Series.
-
-    Input: list of the input desired by make_series()
-
-    Output: list of pd.Series
-    """
-    return [make_series(x) for x in lolists]
 
 def make_df(series_list, mI):
     """
@@ -127,18 +107,7 @@ empty_df = make_df([empty, empty], diss_mI)
 
 class TestDissonanceIndexer(unittest.TestCase):
     """
-    TODO:
-    - Use actual indexers instead of basic_indexer in test_dissonance_indexer.py
-    - Consider omitting the concatenation step for the indexer results that are passed to the 
-        dissonance indexer call (duration, horiz_int, note_beat_strength, vert_int)
-        NB: be sure to put them in alphabetical order as above.
-    - Separate out check4s_5s() into its own series indexer
-    - Separate out passing tone and neighbor tone detection
-    - Revisit run method
-    - Reconsider assigning variables just once and sending the results to each dissonance type checker. 
-        Ask Ryan about this.
-    - Revisit classify() method
-    - Actually write a bunch of tests. Loosely base them on the interval indexer tests below.
+    Limited unit tests and two integration tests for the dissonance indexer.
     """
     def test_diss_indexer_is_passing_1a(self):
         """
@@ -203,6 +172,27 @@ class TestDissonanceIndexer(unittest.TestCase):
         actual = dissonance.DissonanceIndexer(in_dfs).run()
         assert_frame_equal(expected, actual)
 
+    def test_diss_indexer_run_2(self):
+        """
+        Test the dissonance indexer on an entire real piece that has most of the dissonance types 
+        and covers almost all of the logic, namely the "Kyrie" in the test corpus. NB: perhaps 
+        this test should get moved to the integration tests file.
+        """
+        pathname = os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn')
+        test_piece = converter.parse(pathname)
+        parts = test_piece.parts
+        nr = noterest.NoteRestIndexer(parts).run()
+        bs = metre.NoteBeatStrengthIndexer(parts).run()
+        dur = metre.DurationIndexer(parts).run()
+        horiz_setts = {'quality': False, 'simple or compound': 'compound'}
+        horiz = interval.HorizontalIntervalIndexer(nr, horiz_setts).run()
+        vert_setts = {'quality': True, 'simple or compound': 'simple'}
+        vert = interval.IntervalIndexer(nr, vert_setts).run()
+
+        in_dfs = [bs, dur, horiz, vert]
+        expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
+        actual = dissonance.DissonanceIndexer(in_dfs).run()
+        assert_frame_equal(expected, actual)
 
 
 #-------------------------------------------------------------------------------------------------#
