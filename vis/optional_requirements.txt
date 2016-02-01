@@ -15,7 +15,7 @@ pylint
 
 # Plotting tools.
 scipy >= 0.16.0, < 1.0.0
-matplotlib >= 1.4.3, < 2.0.0
+matplotlib = 1.4.3
 
 # For testing, coverage, stuff like that.
 mock>=1.0.1
