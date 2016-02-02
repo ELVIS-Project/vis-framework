@@ -14,8 +14,8 @@ openpyxl>=1.6.2
 pylint
 
 # Plotting tools.
-scipy == 0.16.0
-matplotlib == 1.4.3
+scipy==0.16.0
+matplotlib==1.4.3
 
 # For testing, coverage, stuff like that.
 mock>=1.0.1
