@@ -34,8 +34,6 @@ Indexer to find k-part any-object n-grams.
 import pandas
 from vis.analyzers import indexer
 import numpy as np
-import pdb
-
 
 class NewNGramIndexer(indexer.Indexer):
     """
@@ -122,7 +120,7 @@ class NewNGramIndexer(indexer.Indexer):
 
     required_score_type = 'pandas.DataFrame'
 
-    possible_settings = ['horizontal', 'vertical', 'n', 'hanging', 'brackets', 'terminator', 'continuer']
+    possible_settings = ['horizontal', 'vertical', 'n', 'open-ended', 'brackets', 'terminator', 'continuer']
     """
     A list of possible settings for the :class:`NewNGramIndexer`.
 
@@ -132,8 +130,8 @@ class NewNGramIndexer(indexer.Indexer):
     :type 'vertical': list of tuples of strings, default 'all'.
     :keyword 'n': The number of "vertical" events per n-gram.
     :type 'n': int
-    :keyword 'hanging': Appends the next horizontal observation to n-grams leaving them open-ended.
-    :type 'hanging': boolean, default False.
+    :keyword 'open-ended': Appends the next horizontal observation to n-grams leaving them open-ended.
+    :type 'open-ended': boolean, default False.
     :keyword 'brackets': Whether to use delimiters around event observations. Square brakets [] are used 
         to set off vertical events and round brackets () are used to set off horizontal events. This is 
         particularly important to leave as True (default) for better legibility when there are multiple 
@@ -147,7 +145,7 @@ class NewNGramIndexer(indexer.Indexer):
     :type 'continuer': str, default '_'.
     """
 
-    default_settings = {'brackets': True, 'horizontal': [], 'hanging': False, 'terminator': [], 
+    default_settings = {'brackets': True, 'horizontal': [], 'open-ended': False, 'terminator': [], 
                         'vertical': 'all', 'continuer': '_'}
 
     _MISSING_SETTINGS = 'NewNGramIndexer requires "vertical" and "n" settings.'
@@ -182,18 +180,18 @@ class NewNGramIndexer(indexer.Indexer):
             self._settings = NewNGramIndexer.default_settings.copy()
             self._settings.update(settings)
         
-        self._cut_off = self._settings['n'] if not self._settings['hanging'] else self._settings['n'] + 1
+        self._cut_off = self._settings['n'] if not self._settings['open-ended'] else self._settings['n'] + 1
         if all(self._cut_off > len(df) for df in score):
             raise RuntimeWarning(NewNGramIndexer._N_VALUE_TOO_HIGH)
 
         super(NewNGramIndexer, self).__init__(score, None)
-        # pdb.set_trace()
+
         self._vertical_indexer_name = self._score[0].columns[0][0]
 
         if self._settings['horizontal']:
             if len(self._score) != 2:
                 raise RuntimeError(NewNGramIndexer._MISSING_HORIZONTAL_DATA)
-            if self._settings['n'] == 1 and not self._settings['hanging']:
+            if self._settings['n'] == 1 and not self._settings['open-ended']:
                 raise RuntimeError(NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
 
@@ -264,7 +262,7 @@ class NewNGramIndexer(indexer.Indexer):
             else:
                 chunks = [v_filled.shift(-x) for x in range(n)]
 
-            if self._settings['hanging']:
+            if self._settings['open-ended']:
                 chunks.append(h_filled.shift(-n))
 
             ngram_df = pandas.concat(chunks, axis=1)

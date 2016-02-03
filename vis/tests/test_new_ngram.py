@@ -127,9 +127,9 @@ class TestNewNGramIndexer(unittest.TestCase):
         """that __init__() works properly (all settings given)"""
         # pylint: disable=protected-access
         setts = {'n': 2, 'vertical': ['0,1'], 'horizontal': 'banana', 'brackets': True,
-                 'terminator': 'RoboCop', 'continuer': 'Alex Murphy', 'hanging': True}
+                 'terminator': 'RoboCop', 'continuer': 'Alex Murphy', 'open-ended': True}
         actual = new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
-        for setting in ('n', 'vertical', 'horizontal', 'brackets', 'terminator', 'continuer', 'hanging'):
+        for setting in ('n', 'vertical', 'horizontal', 'brackets', 'terminator', 'continuer', 'open-ended'):
             self.assertEqual(setts[setting], actual._settings[setting])
 
     def test_init_3(self):
@@ -156,7 +156,7 @@ class TestNewNGramIndexer(unittest.TestCase):
         """that __init__() fails when horizontal observations are provided and 'n' equals 1."""
         # pylint: disable=protected-access
         setts = {'n': 1, 'vertical': ['0,1'], 'horizontal': 'banana', 'brackets': True,
-                 'terminator': 'RoboCop', 'continuer': 'Alex Murphy', 'hanging': True}
+                 'terminator': 'RoboCop', 'continuer': 'Alex Murphy', 'open-ended': True}
         self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
         try:
             new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
@@ -184,7 +184,7 @@ class TestNewNGramIndexer(unittest.TestCase):
         self.assertEqual([('1',)], actual._settings['horizontal'])
 
     def test_init_7a(self):
-        """that __init__() raises a RuntimeWarning when n (+1 if 'hanging' setting is True) is 
+        """that __init__() raises a RuntimeWarning when n (+1 if 'open-ended' setting is True) is 
         set higher than the number of observations in either of the passed dataframes."""
         setts = {'n': 16, 'horizontal': [('1',)], 'vertical': [('0,1',)]}
         self.assertRaises(RuntimeWarning, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
@@ -194,10 +194,10 @@ class TestNewNGramIndexer(unittest.TestCase):
             self.assertEqual(new_ngram.NewNGramIndexer._N_VALUE_TOO_HIGH, run_err.args[0])
 
     def test_init_7b(self):
-        """that __init__() raises a RuntimeWarning when n (+1 if 'hanging' setting is True) is 
+        """that __init__() raises a RuntimeWarning when n (+1 if 'open-ended' setting is True) is 
         set higher than the number of observations in either of the passed dataframes. Same as
-        _7a but n = 15 and hanging is True."""
-        setts = {'n': 15, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'hanging': True}
+        _7a but n = 15 and open-ended is True."""
+        setts = {'n': 15, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'open-ended': True}
         self.assertRaises(RuntimeWarning, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
         try:
             new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
@@ -225,11 +225,11 @@ class TestNewNGramIndexer(unittest.TestCase):
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_1c(self):
-        """like test _1a but with self._settings['hanging'] set to True."""
+        """like test _1a but with self._settings['open-ended'] set to True."""
         vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 1, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False,
-                 'hanging': True}
+                 'open-ended': True}
         expected = pandas.DataFrame([pandas.Series(['A a', 'B b', 'C c'])],
                                     index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
         actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
@@ -240,7 +240,7 @@ class TestNewNGramIndexer(unittest.TestCase):
         vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False,
-                 'hanging': True}
+                 'open-ended': True}
         expected = pandas.DataFrame([pandas.Series(['A a B b', 'B b C c'])],
                                     index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
         actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
