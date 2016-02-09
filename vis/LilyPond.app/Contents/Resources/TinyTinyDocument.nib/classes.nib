@@ -1,0 +1,26 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = NSScriptCommand; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = ProcessLog; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {cancelProcess = id; }; 
+            CLASS = ProcessLogController; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {processLog = ProcessLog; textView = NSTextView; }; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {
+            ACTIONS = {}; 
+            CLASS = TinyTinyDocument; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {
+                processLogWindowController = ProcessLogWindowController; 
+                textView = NSTextView; 
+            }; 
+            SUPERCLASS = NSDocument; 
+        }, 
+        {CLASS = URLHandlerCommand; LANGUAGE = ObjC; SUPERCLASS = NSScriptCommand; }
+    ); 
+    IBVersion = 1; 
+}

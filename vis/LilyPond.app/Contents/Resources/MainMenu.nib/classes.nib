@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {
+            ACTIONS = {compileFile = id; contextHelp = id; updateSyntax = id; }; 
+            CLASS = FirstResponder; 
+            LANGUAGE = ObjC; 
+            SUPERCLASS = NSObject; 
+        }, 
+        {CLASS = NSScriptCommand; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {CLASS = URLHandlerClass; LANGUAGE = ObjC; SUPERCLASS = NSScriptCommand; }
+    ); 
+    IBVersion = 1; 
+}
