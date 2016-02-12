@@ -3,6 +3,13 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 2.4.0:
+    - Deprecates n-gram indexer.
+    - Adds new_ngram indexer and accompanying tests.
+    - Removes version ranges for scipy and matplotlib, and replaces them with specific versions.
+    - Minor change to dissonance indexer to avoid issues when dissonances are not preceded by a legal dissonance.
+    - Increases testing coverage for dissonance indexer.
+
 * 2.3.1:
     - Importing no longer uses/stores cached pickle files.
     - WorkflowManager.output() produces many table-format results if "count frequency" is False.
