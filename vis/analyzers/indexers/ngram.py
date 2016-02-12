@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/ngram.py
 # Purpose:                k-part anything n-gram Indexer
 #
-# Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
+# Copyright (C) 2013-2016 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,7 +24,10 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-Warning: This indexer is deprecated and will eventually be replaced with the new_ngram_indexer.
+.. codeauthor:: Alexander Morgan
+.. deprecated:: 2.4.0
+	This indexer is deprecated and will be replaced in version 3.0 with  what is currently 
+	called the new_ngram_indexer.
 Indexer to find k-part any-object n-grams.
 """
 
@@ -37,7 +40,8 @@ from vis.analyzers import indexer
 
 class NGramIndexer(indexer.Indexer):
     """
-    Warning: This indexer is deprecated and will eventually be replaced with the new_ngram_indexer.
+    Warning: This indexer is deprecated and will be replaced in version 3.0 with  what is currently 
+    called the new_ngram_indexer.
     
     Indexer to find k-part any-object n-grams.
     Indexer that finds k-part n-grams from other indices.
