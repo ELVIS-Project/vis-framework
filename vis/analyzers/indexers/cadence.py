@@ -4,8 +4,8 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers/indexers/figured_bass.py
-# Purpose:                Figured bass indexer
+# Filename:               controllers/indexers/cadence.py
+# Purpose:                Cadence Indexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson
 #
@@ -29,7 +29,6 @@
 import six
 from music21 import stream
 from vis.analyzers import indexer
-from vis.analyzers.indexers import ngram
 import pandas
 
 
@@ -53,44 +52,52 @@ def indexer_func(obj):
     return None
 
 
-class FiguredBassIndexer(indexer.Indexer):
+class CadenceIndexer(indexer.Indexer):
 
     required_score_type = 'pandas.DataFrame'
-    possible_settings = ['horizontal']
-
+    possible_settings = ['length', 'voice']
 
     def __init__(self, score, settings=None):
 
-        self.horiz_score = score['interval.HorizontalIntervalIndexer']
-        self.vert_score = score['interval.IntervalIndexer']
 
-        if settings is None:
-            self._settings = {}
-            self.horizontal_voice = len(self.horiz_score.columns) - 1
-            self._settings['horizontal'] = len(self.horiz_score.columns) - 1
+        self.fig = score['figured_bass.FiguredBassIndexer']
+        self.ferm = score['fermata.FermataIndexer']
+
+        if settings is None or 'length' not in settings:
+            raise RuntimeError('CadenceIndexer requires "length" setting.')
+        elif settings['length'] < 1:
+            raise RuntimeError('Setting "length" must have a value of at least 1.')
         else:
             self._settings = settings
-            
-        super(FiguredBassIndexer, self).__init__(score, None)
+
+        super(CadenceIndexer, self).__init__(score, None)
 
 
     def run(self):
+        
+        endings = []
+        for part in self.ferm.columns:
+            endings.extend(self.ferm[self.ferm[part].notnull()].index.tolist())
 
-        pairs = []
-        intervals = []
-        results = self.horiz_score[str(self.horizontal_voice)]
-        intervals.append(results.tolist())
+        endings = list(set(endings))
+        beginnings = []
+        indices = self.ferm.index.tolist()
 
-        for pair in list(self.vert_score.columns.values):
-            if str(self.horizontal_voice) in pair:
-                pairs.append(pair)
+        for ind in endings:
+            beginnings.append(indices[indices.index(ind)-self._settings['length']+1])
 
-        for pair in pairs:
-            intervals.append(self.vert_score[pair].tolist())
+        beginnings.sort()
+        endings.sort()
+        locations = zip(beginnings, endings)
 
-        intervals = zip(*intervals)
-        pairs = str(self.horizontal_voice) + ' ' + ' '.join(pairs)
+        cadences = []
 
-        result = pandas.DataFrame({pairs: pandas.Series([str(intvl) for intvl in intervals], index=self.horiz_score.index)})
+        for x in range(len(beginnings)):
+            my_cadence = []
+            for place in self.fig.loc[locations[x][0]:locations[x][1]].index.tolist():
+                my_cadence.extend(self.fig.loc[place].tolist())
+            cadences.append(my_cadence)
+
+        result = pandas.DataFrame({'Cadences': pandas.Series(cadences, index=beginnings)})
 
         return self.make_return(result.columns.values, [result[name] for name in result.columns])
