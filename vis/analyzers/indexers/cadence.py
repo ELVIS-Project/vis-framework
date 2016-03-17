@@ -32,41 +32,45 @@ from vis.analyzers import indexer
 import pandas
 
 
-def indexer_func(obj):
-    """
-    The function that indexes.
-
-    :param obj: The simultaneous event(s) to use when creating this index. (For indexers using a
-        :class:`Score`).
-    :type obj: list of objects of the types stored in :attr:`TemplateIndexer._types`
-
-    **or**
-
-    :param obj: The simultaneous event(s) to use when creating this index. (For indexers using a
-        :class:`Series`).
-    :type obj: :class:`pandas.Series` of strings
-
-    :returns: The value to store for this index at this offset.
-    :rtype: str
-    """
-    return None
-
-
 class CadenceIndexer(indexer.Indexer):
+    """
+    Using OverBassIndexer and FermataIndexer results, finds cadences as lists of occurences before a fermata.
+    """
 
     required_score_type = 'pandas.DataFrame'
     possible_settings = ['length', 'voice']
+    """
+    :keyword 'length': The length of the cadence, or how many events happen before a fermata.
+    :type 'length': int
+
+    :keyword 'voice': The voice in which you want to look for fermatas. The default value for this is 'all'.
+    :type 'voice': str or int
+    """
 
     def __init__(self, score, settings=None):
+        """
+        :param score: The OverBassIndexer results and FermataIndexer results to be used to find cadences.
+        :type score: :class:`pandas.DataFrame`
+        :param settings: The setting 'length' is required.
+        :type settings: dict
 
+        :raises: :exc:`RuntimeError` if the required setting 'length' is not given.
+        :raises: :exc:`RuntimeError` if the value of 'length' is below 1
+        :raises: :exc:`RuntimeError` if the given voice is not a voice found in the piece.
+        """
 
-        self.fig = score['figured_bass.FiguredBassIndexer']
+        self.fig = score['over_bass.OverBassIndexer']
         self.ferm = score['fermata.FermataIndexer']
 
         if settings is None or 'length' not in settings:
             raise RuntimeError('CadenceIndexer requires "length" setting.')
         elif settings['length'] < 1:
             raise RuntimeError('Setting "length" must have a value of at least 1.')
+        elif 'voice' not in settings:
+            self._settings = settings
+            self._settings['voice'] = 'all'
+        elif type(settings['voice']) is int and settings['voice'] > len(self.ferm.columns):
+            raise RuntimeError('voice setting must be a voice present in the piece')
         else:
             self._settings = settings
 
@@ -74,10 +78,19 @@ class CadenceIndexer(indexer.Indexer):
 
 
     def run(self):
+        """
+        Makes a new index of the cadences in the piece.
+
+        :returns: A :class:`DataFrame` of the cadences.
+        :rtype: :class:`pandas.DataFrame`
+        """
         
         endings = []
-        for part in self.ferm.columns:
-            endings.extend(self.ferm[self.ferm[part].notnull()].index.tolist())
+        if self._settings['voice'] is 'all':
+            for part in self.ferm.columns:
+                endings.extend(self.ferm[self.ferm[part].notnull()].index.tolist())
+        else:
+            endings.extend(self.ferm[self.ferm[str(self._settings['voice'])].notnull()].index.tolist())
 
         endings = list(set(endings))
         beginnings = []
