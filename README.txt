@@ -39,7 +39,7 @@ These are recommended dependencies:
 Documentation
 =============
 
-You can find current VIS API documentation here:
+You can find current documentation here:
 - [Stable Release Documentation](http://vis-framework.readthedocs.org/en/stable/)
 - [Latest Release Documentation](http://vis-framework.readthedocs.org/en/latest/)
 
