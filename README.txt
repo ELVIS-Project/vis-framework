@@ -36,6 +36,13 @@ These are recommended dependencies:
 - matplotlib (plotting)
 - scipy (plotting)
 
+Documentation
+=============
+
+You can find current VIS API documentation here:
+- [Stable Release Documentation](http://vis-framework.readthedocs.org/en/stable/)
+- [Latest Release Documentation](http://vis-framework.readthedocs.org/en/latest/)
+
 Citation
 ========
 
