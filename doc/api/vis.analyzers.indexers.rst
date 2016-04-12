@@ -52,7 +52,7 @@ indexers Package
 :mod:`new_ngram` Module
 -------------------
 
-.. automodule:: vis.analyzers.indexers.ngram
+.. automodule:: vis.analyzers.indexers.new_ngram
     :members:
     :undoc-members:
     :show-inheritance:
