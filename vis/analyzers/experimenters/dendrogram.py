@@ -30,7 +30,6 @@ import pandas as pd
 from vis.analyzers import experimenter
 import subprocess
 from scipy.cluster.hierarchy import dendrogram, linkage
-import pdb
 
 
 class HierarchicalClusterer(experimenter.Experimenter):
@@ -269,12 +268,10 @@ class HierarchicalClusterer(experimenter.Experimenter):
             self._dendrogram_settings['labels'] = []
             for x in range(len(self._sers[0])):
                 self._dendrogram_settings['labels'].append(str(x+1))
-
         # linkage() organizes the dissimilarity matrix into a plotable structure.
         linkage_matrix = linkage(self.pair_compare(), self._graph_settings['linkage_type'])
         if self._graph_settings['return_data']:
             d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
-            # pdb.set_trace()
             return d_data
         if not self._dendrogram_settings['no_plot']:
             import matplotlib.pyplot as plt
