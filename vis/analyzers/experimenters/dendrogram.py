@@ -30,6 +30,7 @@ import pandas as pd
 from vis.analyzers import experimenter
 import subprocess
 from scipy.cluster.hierarchy import dendrogram, linkage
+import pdb
 
 
 class HierarchicalClusterer(experimenter.Experimenter):
@@ -245,16 +246,15 @@ class HierarchicalClusterer(experimenter.Experimenter):
         matrix = [0]*int(comparisons)
         for i in range(len(self._sers)): # The outer loop is what allows multiple metrics to be mixed
             position = 0
-            for j, ser_A in enumerate(self._sers[i][:-1]):
-                for k, ser_B in enumerate(self._sers[i][j+1:]):
-                    similarity = 0
-                    # TODO: move the next three lines out of the loop!
-                    df = pd.concat([ser_A, ser_B], axis=1, ignore_index=True) # put the two analysis profiles in a dataframe
-                    df = df.replace(to_replace='NaN', value=0)
-                    df = df.div(list(df.sum())) # make the df show the percent out of 1 that each analysis observation is of its piece
-                    for n in range(len(df.index)): # loop over all the observations in the analysis profiles
-                        similarity += min(df.iloc[n, :]) # keep a tally of only the percent out of 1 that they have in common for all observations
-                    matrix[position] += (1 - similarity) * self._weights[i] * 100 # apply the weight assigned to this analysis metric and make percent out of 100
+            df = pd.concat(self._sers[i], axis=1, ignore_index=True) # put all the analysis profiles in this metric in a dataframe
+            df = df.replace(to_replace='NaN', value=0)
+            df = df.div(list(df.sum())) # make the df show the percent out of 1 that each analysis observation is of its piece
+            for jay in df.columns[:-1]:
+                for kay in df.columns[jay+1:]:
+                    # keep a tally of the percent out of 1 that each pair has in common for all observations
+                    similarity = sum([min(df.iat[n, jay], df.iat[n, kay]) for n in range(len(df.index))])
+                    # apply the weight assigned to this analysis metric and make percent out of 100
+                    matrix[position] += (1 - similarity) * self._weights[i] * 100
                     position += 1 # keep track of which pair comparison we're going to next in case we need to come back for another metric
         return matrix
 
@@ -274,6 +274,7 @@ class HierarchicalClusterer(experimenter.Experimenter):
         linkage_matrix = linkage(self.pair_compare(), self._graph_settings['linkage_type'])
         if self._graph_settings['return_data']:
             d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
+            # pdb.set_trace()
             return d_data
         if not self._dendrogram_settings['no_plot']:
             import matplotlib.pyplot as plt
