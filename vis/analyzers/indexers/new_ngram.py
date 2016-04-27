@@ -205,7 +205,6 @@ class NewNGramIndexer(indexer.Indexer):
             temp = [list(map(int, x[0].split(','))) for x in self._settings['vertical']]
             self._settings['horizontal'] = [(str(min(y)),) for y in temp]
 
-
     def run(self):
         """
         Make an index of k-part n-grams of anything.
@@ -224,35 +223,35 @@ class NewNGramIndexer(indexer.Indexer):
                 events[('v', 'v0')] = '['
 
             for j, name in enumerate(verts):
-                if j == 0:
-                    events[('v', 'v1')] = self._score[0].loc[:, (self._vertical_indexer_name, name)].dropna()
-                    col_label.append(name)
-                else:
-                    events[('v', 'v' + str(j + 1))] = ' ' + self._score[0].loc[:, (self._vertical_indexer_name, name)].dropna()
-                    col_label.append(name)
+                
+                if j > 0: # add a space if it's a non-first observation
+                    events[('v', 'v' +str(j + .5))] = ' '
+                events[('v', 'v' + str(j + 1))] = self._score[0].loc[:, (self._vertical_indexer_name, name)].dropna()
+                col_label.append(name)
 
             if self._settings['brackets']:
-                events[('v', 'v' + str(len(verts) + 1))] = '] '
-            else:
-                events[('v', 'v' + str(len(verts) + 1))] = ' '
+                events[('v', 'v' + str(len(verts) + 1))] = ']'
+            # add a space after all vertical observations
+            events[('v', 'v' + str(len(verts) + 1.5))] = ' '
+            # else:
+            #     events[('v', 'v' + str(len(verts) + 1))] = ' '
 
             if self._settings['horizontal']: # NB: the bool value of an empty list is False.
                 horizs = self._settings['horizontal'][i]
                 if self._settings['brackets']:
                     events[('h', 'h0')] = '('
+                col_label.append(':')
 
                 for j, name in enumerate(horizs):
-                    if j == 0:
-                        events[('h', 'h1')] = self._score[1].loc[:, (self._horizontal_indexer_name, name)].dropna()
-                        col_label.extend((':', name))
-                    else:
-                        events[('h', 'h' + str(j + 1))] = ' ' + self._score[1].loc[:, (self._horizontal_indexer_name, name)].dropna()
-                        col_label.append(name)
+                    if j > 0: # add a space if it's a non-first observation
+                        events[('h', 'h' + str(j + .5))] = ' '
+                    events[('h', 'h' + str(j + 1))] = self._score[1].loc[:, (self._horizontal_indexer_name, name)].dropna()
+                    col_label.append(name)
 
                 if self._settings['brackets']:
-                    events[('h', 'h' + str(len(horizs) + 1))] = ') '
-                else:
-                    events[('h', 'h' + str(len(horizs) + 1))] = ' '
+                    events[('h', 'h' + str(len(horizs) + 1))] = ')'
+                # add a space after all horizontal observations
+                events[('h', 'h' + str(len(horizs) + 1.5))] = ' '
 
             cols.append(' '.join(col_label))
             events = pandas.DataFrame.from_dict(events)
@@ -277,19 +276,16 @@ class NewNGramIndexer(indexer.Indexer):
             # Make a dataframe which each vertical or horizontal component of the ngrams as a column
             ngram_df = pandas.concat(chunks, axis=1)
 
-            # Concatenate strings of each row to turn df into a series and also remove the last n-1
-            # observations since they can't contain valid n-grams.
-            if self._cut_off == 1:
-                res = ngram_df.iloc[:, 0].str.cat([ngram_df.iloc[:, x] for x in range(1, len(ngram_df.columns))])
-            else:
-                res = ngram_df.iloc[:(-self._cut_off + 1), 0].str.cat([ngram_df.iloc[:(-self._cut_off + 1), 
-                               x] for x in range(1, len(ngram_df.columns))])
+            # Remove the last n-1 observations since they can't contain valid n-grams.
+            if self._cut_off > 1:
+                ngram_df = ngram_df.iloc[:(-self._cut_off + 1), :]
             
             # Get rid of the observations that contain any of the terminators
             if self._settings['terminator']:
-                for term in self._settings['terminator']:
-                    terminated = res.apply(lambda r : any([term in e for e in r]))
-                    res = res[~terminated]
+                ngram_df = ngram_df.replace(self._settings['terminator'], float('nan')).dropna()
+
+            # Concatenate strings of each row to turn df into a series.
+            res = ngram_df.iloc[:, 0].str.cat([ngram_df.iloc[:, x] for x in range(1, len(ngram_df.columns))])            
 
             # Get rid of the trailing space in each ngram and add this combination to post
             post.append(res.str.rstrip())

@@ -1,4 +1,4 @@
-from vis.analyzers.indexers import noterest, interval, new_ngram
+from vis.analyzers.indexers import noterest, interval, new_ngram, metre
 from vis.models.indexed_piece import IndexedPiece
 import pandas as pd
 import pdb
@@ -16,13 +16,24 @@ parts = ind_piece._import_score().parts
 
 v_setts = {'quality': True, 'simple or compound': 'simple', 'directed': True}
 h_setts = {'quality': True, 'horiz_attach_later': True, 'simple or compound': 'simple', 'directed': True}
-n_setts = {'n': 4, 'continuer': 'P1', 'horizontal': [('3',)], 'vertical': [('1,3',)],
-		   'terminator': ['Rest'], 'hanging': True, 'brackets': True}
+n_setts = {'n': 2, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': [('0,4',)],
+           'terminator': [], 'open-ended': False, 'brackets': False}
+n_setts_2 = {'n': 5, 'continuer': 'P1', 'horizontal': None, 'vertical': [('0',)],
+           'terminator': ['Rest', 'P1'], 'open-ended': False, 'brackets': False}
+n_setts_3 = {'n': 2, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': [('0,4',)],
+           'terminator': [], 'open-ended': False, 'brackets': False}
+
+
 
 nr = noterest.NoteRestIndexer(parts).run()
+# dr = metre.DurationIndexer(parts).run()
+# ms = metre.MeasureIndexer(parts).run()
+# bs = metre.NoteBeatStrengthIndexer(parts).run()
 vt = interval.IntervalIndexer(nr, v_setts).run()
 hz = interval.HorizontalIntervalIndexer(nr, h_setts).run()
 ng = new_ngram.NewNGramIndexer((vt, hz), n_setts).run()
+ng_2 = new_ngram.NewNGramIndexer((hz,), n_setts_2).run()
+# ng_3 = new_ngram.NewNGramIndexer((dr,), n_setts_3).run()
 
 
 pdb.set_trace()

@@ -30,7 +30,7 @@ import os
 import unittest
 import pandas
 from vis.analyzers.indexers import new_ngram
-import pdb
+
 # find pathname of the 'vis' directory
 import vis
 VIS_PATH = vis.__path__[0]
@@ -39,57 +39,11 @@ VIS_PATH = vis.__path__[0]
 V_IND = 'interval.IntervalIndexer'
 H_IND = 'interval.HorizontalIntervalIndexer'
 
-VERTICAL_TUPLES = [(0.0, 'P5'), (4.0, 'M3'), (8.0, 'M6'), (12.0, 'P8'), (14.0, 'm6'), (16.0, 'm7'),
-                   (18.0, 'M6'), (20.0, 'M6'), (22.0, 'P5'), (26.0, 'P8'), (28.0, 'P4'), (30.0, 'M3'), 
-                   (31.0, 'A4'), (32.0, 'P4'), (34.0, 'm3')]
 VERT_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'new_ngram_1.pickle'))
-# VERT_DF = pandas.concat([pandas.Series([x[1] for x in VERTICAL_TUPLES], index=[x[0] for x in VERTICAL_TUPLES])], axis=1)
-# iterables = [[V_IND], ('0,1',)]
-# vmi = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-# VERT_DF.columns = vmi
 
-HORIZONTAL_TUPLES = [(4.0, 'P4'), (8.0, '-m3'), (12.0, '-M2'), (14.0, 'M3'), (16.0, '-M2'),
-                     (20.0, '-M2'), (28.0, 'P5'), (31.0, '-M2'), (32.0, '-m2')]
 HORIZ_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'new_ngram_2.pickle'))
 
-EXPECTED = [(0.0, '[P5] (P4) [M3] (-m3) [M6] (-M2) [P8]'),
-            (4.0, '[M3] (-m3) [M6] (-M2) [P8] (M3) [m6]'),
-            (8.0, '[M6] (-M2) [P8] (M3) [m6] (-M2) [m7]'),
-            (12.0, '[P8] (M3) [m6] (-M2) [m7] (P1) [M6]'),
-            (14.0, '[m6] (-M2) [m7] (P1) [M6] (-M2) [M6]'),
-            (16.0, '[m7] (P1) [M6] (-M2) [M6] (P1) [P5]'),
-            (18.0, '[M6] (-M2) [M6] (P1) [P5] (P1) [P8]'),
-            (20.0, '[M6] (P1) [P5] (P1) [P8] (P5) [P4]'),
-            (22.0, '[P5] (P1) [P8] (P5) [P4] (P1) [M3]'),
-            (26.0, '[P8] (P5) [P4] (P1) [M3] (-M2) [A4]'),
-            (28.0, '[P4] (P1) [M3] (-M2) [A4] (-m2) [P4]'),
-            (30.0, '[M3] (-M2) [A4] (-m2) [P4] (P1) [m3]')]
-
-# EXPECTED_DF = pandas.concat([pandas.Series([x[1] for x in EXPECTED], index=[x[0] for x in EXPECTED])], axis=1)
-
 EXPECTED_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'new_ngram_3.pickle'))
-
-# h_ser = pandas.Series([x[1] for x in HORIZONTAL_TUPLES], index=[x[0] for x in HORIZONTAL_TUPLES])
-# HORIZ_DF = pandas.concat([h_ser], axis=1)
-# iterables = [['interval.HorizontalIntervalIndexer'], ('1',)]
-# hmi = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-# HORIZ_DF.columns = hmi
-
-
-
-# iterables = [['new_ngram.NewNGramIndexer'], ('0,1 : 1',)]
-# emi = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-# EXPECTED_DF.columns = emi
-
-
-# pdb.set_trace()
-
-
-# VERT_DF.to_pickle('/home/amor/Code/vis-framework/vis/tests/expecteds/new_ngram_1.pickle')
-# HORIZ_DF.to_pickle('/home/amor/Code/vis-framework/vis/tests/expecteds/new_ngram_2.pickle')
-# EXPECTED_DF.to_pickle('/home/amor/Code/vis-framework/vis/tests/expecteds/new_ngram_3.pickle')
-
-# pdb.set_trace()
 
 def series_maker(lotuples):
     """Turn a List Of TUPLES (offset, 'value') into a Series."""
