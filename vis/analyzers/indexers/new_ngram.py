@@ -34,9 +34,6 @@ of the previous ngram_indexer.py file.
 
 import pandas
 from vis.analyzers import indexer
-import pdb
-import time
-import numpy as np
 
 class NewNGramIndexer(indexer.Indexer):
     """
@@ -208,9 +205,6 @@ class NewNGramIndexer(indexer.Indexer):
             temp = [list(map(int, x[0].split(','))) for x in self._settings['vertical']]
             self._settings['horizontal'] = [(str(min(y)),) for y in temp]
 
-        # for df in self._settings['vertical']:
-        #   if df.dtype ==
-
     def run(self):
         """
         Make an index of k-part n-grams of anything.
@@ -286,12 +280,14 @@ class NewNGramIndexer(indexer.Indexer):
             elif self._cut_off > 1:
                 ngram_df = ngram_df.iloc[:(-self._cut_off + 1), :]
 
-            pdb.set_trace()
-
-            # TODO: add a try/except statement here to handle data that is not strings
-            # Concatenate strings of each row to turn df into a series.
-            res = ngram_df.iloc[:, 0].str.cat([ngram_df.iloc[:, x] for x in range(1, len(ngram_df.columns))])            
-
+            # Try to concatenate strings of each row to turn df into a series. If you encounter type other than string,
+            # first convert the values to strings then do the concatenation.
+            try:
+                res = ngram_df.iloc[:, 0].str.cat([ngram_df.iloc[:, x] for x in range(1, len(ngram_df.columns))])
+            except AttributeError:
+                ngram_df = ngram_df.applymap(str)
+                res = ngram_df.iloc[:, 0].str.cat([ngram_df.iloc[:, x] for x in range(1, len(ngram_df.columns))])
+            
             # Get rid of the trailing space in each ngram and add this combination to post
             post.append(res.str.rstrip())
 
