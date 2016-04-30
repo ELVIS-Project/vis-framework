@@ -34,6 +34,9 @@ of the previous ngram_indexer.py file.
 
 import pandas
 from vis.analyzers import indexer
+import pdb
+import time
+import numpy as np
 
 class NewNGramIndexer(indexer.Indexer):
     """
@@ -205,6 +208,9 @@ class NewNGramIndexer(indexer.Indexer):
             temp = [list(map(int, x[0].split(','))) for x in self._settings['vertical']]
             self._settings['horizontal'] = [(str(min(y)),) for y in temp]
 
+        # for df in self._settings['vertical']:
+        #   if df.dtype ==
+
     def run(self):
         """
         Make an index of k-part n-grams of anything.
@@ -223,7 +229,6 @@ class NewNGramIndexer(indexer.Indexer):
                 events[('v', 'v0')] = '['
 
             for j, name in enumerate(verts):
-                
                 if j > 0: # add a space if it's a non-first observation
                     events[('v', 'v' +str(j + .5))] = ' '
                 events[('v', 'v' + str(j + 1))] = self._score[0].loc[:, (self._vertical_indexer_name, name)].dropna()
@@ -233,8 +238,6 @@ class NewNGramIndexer(indexer.Indexer):
                 events[('v', 'v' + str(len(verts) + 1))] = ']'
             # add a space after all vertical observations
             events[('v', 'v' + str(len(verts) + 1.5))] = ' '
-            # else:
-            #     events[('v', 'v' + str(len(verts) + 1))] = ' '
 
             if self._settings['horizontal']: # NB: the bool value of an empty list is False.
                 horizs = self._settings['horizontal'][i]
@@ -273,17 +276,19 @@ class NewNGramIndexer(indexer.Indexer):
             if self._settings['open-ended']:
                 chunks.append(h_filled.shift(-n))
 
-            # Make a dataframe which each vertical or horizontal component of the ngrams as a column
+            # Make a dataframe which each vertical or horizontal component of the ngrams is a column
             ngram_df = pandas.concat(chunks, axis=1)
 
-            # Remove the last n-1 observations since they can't contain valid n-grams.
-            if self._cut_off > 1:
-                ngram_df = ngram_df.iloc[:(-self._cut_off + 1), :]
-            
-            # Get rid of the observations that contain any of the terminators
+            # Get rid of the observations that contain any of the terminators and trim the trailing rows that contain nans
             if self._settings['terminator']:
                 ngram_df = ngram_df.replace(self._settings['terminator'], float('nan')).dropna()
+            # if there are no terminators then we need to trim the trailing rows that contain nans
+            elif self._cut_off > 1:
+                ngram_df = ngram_df.iloc[:(-self._cut_off + 1), :]
 
+            pdb.set_trace()
+
+            # TODO: add a try/except statement here to handle data that is not strings
             # Concatenate strings of each row to turn df into a series.
             res = ngram_df.iloc[:, 0].str.cat([ngram_df.iloc[:, x] for x in range(1, len(ngram_df.columns))])            
 
