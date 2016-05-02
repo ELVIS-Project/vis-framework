@@ -7,7 +7,7 @@
 # Filename:               controllers/indexers/interval.py
 # Purpose:                Index vertical intervals.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014, 2016 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Alexander Morgan
 
 Index intervals. Use the :class:`IntervalIndexer` to find vertical (harmonic) intervals between two
 parts. Use the :class:`HorizontalIntervalIndexer` to find horizontal (melodic) intervals in the
@@ -37,6 +38,7 @@ import six
 import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
+from itertools import combinations
 
 def real_indexer_func(simultaneity, analysis_type):
     """
@@ -283,8 +285,6 @@ class IntervalIndexer(indexer.Indexer):
         :type score: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
         :param dict settings: Required and optional settings.
         """
-        # TODO: add runtime warning for people who set compound
-
         self._settings = IntervalIndexer.default_settings.copy()
         if settings is not None:
             self._settings.update(settings)
@@ -319,8 +319,6 @@ class IntervalIndexer(indexer.Indexer):
 
         self._indexer_func = indexer_funcs[indexer_number]
 
-
-
     def run(self):
         """
         Make a new index of the piece.
@@ -341,20 +339,15 @@ class IntervalIndexer(indexer.Indexer):
         >>> the_intervals['interval.IntervalIndexer']['5,6']
         (Series with vertical intervals between first and second clarinet)
         """
-        combinations = []
-        combination_labels = []
-        # To calculate all 2-part combinations:
-        for left in range(len(self._score)):
-            for right in range(left + 1, len(self._score)):
-                combinations.append([left, right])
-                combination_labels.append('{},{}'.format(left, right))
+        combos = list(combinations(range(len(self._score)), 2))
+        labels = ['{},{}'.format(x, y) for x, y in combos]
 
         # This method returns once all computation is complete. The results are returned as a list
         # of Series objects in the same order as the "combinations" argument.
-        results = self._do_multiprocessing(combinations, on=self._settings['mp'])
+        results = self._do_multiprocessing(combos, on=self._settings['mp'])
 
         # Return the results.
-        return self.make_return(combination_labels, results)
+        return self.make_return(labels, results)
 
 
 class HorizontalIntervalIndexer(IntervalIndexer):
@@ -443,3 +436,4 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
         results = self._do_multiprocessing(combinations, on=self._settings['mp'])
         return  self.make_return(combination_labels, results)
+
