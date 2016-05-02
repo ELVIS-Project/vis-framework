@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/metre.py
+# Filename:               controllers/indexers/meter.py
 # Purpose:                Indexers for metric concerns.
 #
 # Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan
@@ -128,7 +128,7 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         >>> the_score.parts[5]
         (the first clarinet Part)
         >>> the_notes = NoteBeatStrengthIndexer(the_score).run()
-        >>> the_notes['metre.NoteBeatStrengthIndexer']['5']
+        >>> the_notes['meter.NoteBeatStrengthIndexer']['5']
         (the first clarinet Series of beatStrength float values)
         """
 
@@ -175,7 +175,7 @@ class DurationIndexer(indexer.Indexer):
         >>> the_score.parts[5]
         (the first clarinet Part)
         >>> the_notes = DurationIndexer(the_score).run()
-        >>> the_notes['metre.DurationIndexer']['5']
+        >>> the_notes['meter.DurationIndexer']['5']
         (the first clarinet Series of duration float values)
         """
 
