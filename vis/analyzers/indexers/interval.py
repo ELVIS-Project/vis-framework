@@ -419,7 +419,6 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # first element, and the other will be missing the last element. We'll also use the index
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
-        combination_labels = [six.u(str(x)) for x in range(len(self._score))]
         if self._settings['horiz_attach_later']:
             new_parts = [x.iloc[1:] for x in self._score]
             self._score = [pandas.Series(x.values[:-1], index=x.index[1:]) for x in self._score]
@@ -427,13 +426,14 @@ class HorizontalIntervalIndexer(IntervalIndexer):
             new_parts = [pandas.Series(x.values[1:], index=x.index[:-1]) for x in self._score]
             self._score = [pandas.Series(x.values[:-1], index=x.index[:-1]) for x in self._score]
 
-        new_zero = len(self._score)
-        self._score.extend(new_parts)
 
         # Calculate each voice with its copy. "new_parts" is put first, so it's considered the
         # "upper voice," so ascending intervals don't get a direction.
-        combinations = [[new_zero + x, x] for x in range(new_zero)]
+        new_zero = len(self._score)
+        combos = [(new_zero + x, x) for x in range(new_zero)]
+        labels = [six.u(str(x)) for x in range(new_zero)]
 
-        results = self._do_multiprocessing(combinations, on=self._settings['mp'])
-        return  self.make_return(combination_labels, results)
+        self._score.extend(new_parts)
 
+        results = self._do_multiprocessing(combos, on=self._settings['mp'])
+        return  self.make_return(labels, results)
