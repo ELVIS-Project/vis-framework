@@ -47,6 +47,10 @@ class CadenceIndexer(indexer.Indexer):
     :type 'voice': str or int
     """
 
+    _MISSING_LENGTH = 'CadenceIndexer requires "length" setting.'
+    _LOW_LENGTH = 'Setting "length" must have a value of at least 1.'
+    _BAD_VOICE = 'voice setting must be a voice present in the piece'
+
     def __init__(self, score, settings=None):
         """
         :param score: The OverBassIndexer results and FermataIndexer results to be used to find cadences.
@@ -63,14 +67,14 @@ class CadenceIndexer(indexer.Indexer):
         self.ferm = score['fermata.FermataIndexer']
 
         if settings is None or 'length' not in settings:
-            raise RuntimeError('CadenceIndexer requires "length" setting.')
+            raise RuntimeError(_MISSING_LENGTH)
         elif settings['length'] < 1:
-            raise RuntimeError('Setting "length" must have a value of at least 1.')
+            raise RuntimeError(_LOW_LENGTH)
         elif 'voice' not in settings:
             self._settings = settings
             self._settings['voice'] = 'all'
         elif type(settings['voice']) is int and settings['voice'] > len(self.ferm.columns):
-            raise RuntimeError('voice setting must be a voice present in the piece')
+            raise RuntimeError(_BAD_VOICE)
         else:
             self._settings = settings
 
