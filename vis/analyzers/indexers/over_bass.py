@@ -50,12 +50,14 @@ class OverBassIndexer(indexer.Indexer):
     :type 'type': str
     """
 
+    _WRONG_HORIZ = 'horizontal setting must be a voice present in the piece'
+    _WRONG_TYPE = 'Type given is not found'
 
     def __init__(self, score, settings=None):
         """
         :param score: The intervals and horizontal events to be used to find the intervals over the bass.
         :type score: :class:`pandas.DataFrame`
-        :param settings: There are 2 settings but no required settings
+        :param settings: There are 2 possible settings but no required settings
         :type settings: dict or NoneType
 
         :raises: :exc:`RuntimeError` if the optional setting ``type`` does not match the ``score`` input.
@@ -65,24 +67,27 @@ class OverBassIndexer(indexer.Indexer):
         if settings is None:
             self._settings = {}
             self._settings['type'] = 'intervals'
+        elif 'type' not in settings and 'horizontal' in settings:
+            self._settings = {}
+            self._settings['type'] = 'intervals'
+            self._settings['horizontal'] = settings['horizontal']
         else:
             self._settings = settings
 
         types = {'intervals': 'interval.HorizontalIntervalIndexer', 
-                'notes': 'noterest.NoteRestIndexer', 
-                'offsets': 'offset.FilterByOffsetIndexer'}
+                'notes': 'noterest.NoteRestIndexer'}
 
-        if types[self._settings['type']] in score:
+        if self._settings['type'] in types and types[self._settings['type']] in score:
             self.horiz_score = score[types[self._settings['type']]]
         else:
-            raise RuntimeError('Type given is not found')
+            raise RuntimeError(self._WRONG_TYPE)
 
         self.vert_score = score['interval.IntervalIndexer']
 
         if 'horizontal' not in self._settings:
             self._settings['horizontal'] = len(self.horiz_score.columns) - 1
         elif self._settings['horizontal'] > len(self.horiz_score.columns) - 1:
-            raise RuntimeError('horizontal setting must be a voice present in the piece.')
+            raise RuntimeError(self._WRONG_HORIZ)
 
         self.horizontal_voice = self._settings['horizontal']
             
