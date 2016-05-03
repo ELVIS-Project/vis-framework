@@ -4,8 +4,8 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/template.py
-# Purpose:                Template indexer
+# Filename:               controllers/indexers/contour.py
+# Purpose:                Contour Indexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson
 #
@@ -29,28 +29,13 @@
 
 from vis.analyzers import indexer
 import music21
-import pprint
 import pandas
 
 
-def getContour(notes):
-
-    notes = [x for x in notes if x != 'Rest']
-    contour = list(map(music21.note.Note, notes))
-    
-    cseg = [0] * len(contour)
-
-    for i in range(len(contour)):
-        notes = []
-        for x in range(len(contour)):
-            if (music21.interval.getAbsoluteHigherNote(contour[i], contour[x]) == contour[i]) and (contour[i].nameWithOctave != contour[x].nameWithOctave) and (contour[x].nameWithOctave not in notes):
-                notes.append(contour[x].nameWithOctave)
-                cseg[i] += 1
-
-    return str(cseg)
-
-
 def COM_matrix(contour):
+    """
+    Returns matrix representing the contour given
+    """
 
     com = []
     for x in contour:
@@ -68,7 +53,30 @@ def COM_matrix(contour):
     return com
 
 
+def getContour(notes):
+    """
+    Method used by the ContourIndexer to convert pitches into contour numbers
+    """
+
+    notes = [x for x in notes if x != 'Rest']
+    contour = list(map(music21.note.Note, notes))
+    
+    cseg = [0] * len(contour)
+
+    for i in range(len(contour)):
+        notes = []
+        for x in range(len(contour)):
+            if (music21.interval.getAbsoluteHigherNote(contour[i], contour[x]) == contour[i]) and (contour[i].nameWithOctave != contour[x].nameWithOctave) and (contour[x].nameWithOctave not in notes):
+                notes.append(contour[x].nameWithOctave)
+                cseg[i] += 1
+
+    return str(cseg)
+
+
 def compare(contour1, contour2):
+    """
+    Additional method to compare COM_matrices
+    """
 
     count = 0
     l = len(contour1)
@@ -88,28 +96,51 @@ class ContourIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.DataFrame'
+    possible_settings = ['length']
+    """
+    :keyword 'length': This is the length of the contour you want to look at.
+    :type 'length': int
+    """
 
-    possible_settings = ['length', 'type']
+    _MISSING_LENGTH = 'ContourIndexer requires "length" setting.'
+    _LOW_LENGTH = 'Setting "length" must have a value of at least 1.'
 
-    default_settings = {'rests': 'on'}
 
-    
     def __init__(self, score, settings=None):
+        """
+        :param score: The input from which to produce the contour indexer results.
+        :type score: :class:`pandas.DataFrame`
+        :param settings: All the settings required by this indexer.
+        :type settings: dict or None
 
-        if settings is None:
-            self._settings = self.default_settings
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
+        :raises: :exc:`RuntimeError` if the required settings are not present in the ``settings`` argument.
+        :raises: :exc:`RuntimeError` if the value of 'length' is below 1
+        """
+
+        if 'length' not in settings:
+            raise RuntimeError(_MISSING_LENGTH)
+        elif settings['length'] < 1:
+            raise RuntimeError(_LOW_LENGTH)
+        else:
+            self.settings = settings
+
         self.score = score.dropna()
-        self.settings = settings
         self.parts = len(self.score.columns.values)
         super(ContourIndexer, self).__init__(score, None)
 
-    def run(self):
 
-        index = []
+    def run(self):
+        """
+        Makes a new index of the contours in the piece.
+
+        :returns: A :class:`DataFrame` of the contours.
+        :rtype: :class:`pandas.DataFrame`
+        """
+
         contours = []
 
-        for y in range(0, len(self.score.index)-self.settings['length'], self.settings['length']):
-            index.append(self.score.index[y])
+        for y in range(len(self.score.index)-self.settings['length']):
             cont = []
 
             for x in range(self.settings['length']):
@@ -124,7 +155,7 @@ class ContourIndexer(indexer.Indexer):
         final_conts = zip(*final_conts)
         frames = []
         for x in range(self.parts):
-            frames.append(pandas.DataFrame({str(x): pandas.Series([contour for contour in final_conts[x]], index=index)}))
+            frames.append(pandas.DataFrame({str(x): pandas.Series([contour for contour in final_conts[x]], index=self.score.index[0:len(final_conts[x])])}))
         result = pandas.concat(frames, axis=1)
 
         return self.make_return(result.columns.values, [result[name] for name in result.columns])
