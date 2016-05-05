@@ -67,14 +67,14 @@ class CadenceIndexer(indexer.Indexer):
         self.ferm = score['fermata.FermataIndexer']
 
         if settings is None or 'length' not in settings:
-            raise RuntimeError(_MISSING_LENGTH)
+            raise RuntimeError(self._MISSING_LENGTH)
         elif settings['length'] < 1:
-            raise RuntimeError(_LOW_LENGTH)
+            raise RuntimeError(self._LOW_LENGTH)
         elif 'voice' not in settings:
             self._settings = settings
             self._settings['voice'] = 'all'
         elif type(settings['voice']) is int and settings['voice'] > len(self.ferm.columns):
-            raise RuntimeError(_BAD_VOICE)
+            raise RuntimeError(self._BAD_VOICE)
         else:
             self._settings = settings
 

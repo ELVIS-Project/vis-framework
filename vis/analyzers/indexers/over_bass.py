@@ -29,7 +29,6 @@
 import six
 from music21 import stream
 from vis.analyzers import indexer
-from vis.analyzers.indexers import ngram
 import pandas
 
 

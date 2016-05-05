@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #--------------------------------------------------------------------------------------------------
@@ -110,18 +111,22 @@ class TestOverBassIndexer(TestCase):
 
 
     def test_init2(self):
-        """that __init__() works properly with different type settings"""
+        """that __init__() works properly with interval setting"""
 
         setts = {'type': 'intervals'}
         actual = over_bass.OverBassIndexer(pandas.concat([HORIZ, VERT], axis=1), setts).run()
         self.assertEqual(list(actual.columns), list(EXPECTED.columns))
+
+
+    def test_init3(self):
+        """tests that __init__() works properly with notes setting"""
 
         setts = {'type': 'notes'}
         actual = over_bass.OverBassIndexer(pandas.concat([NOTES, VERT], axis=1), setts).run()
         self.assertEqual(list(actual.columns), list(EXPECTED_NOTES.columns))
 
 
-    def test_init3(self):
+    def test_init4(self):
         """that __init__() fails when the horizontal setting is not an available option"""
 
         setts = {'horizontal': 5}
@@ -133,8 +138,8 @@ class TestOverBassIndexer(TestCase):
             self.assertEqual(over_bass.OverBassIndexer._WRONG_HORIZ, run_err.args[0])
 
 
-    def test_init4(self):
-        """that __init__() fails when the type setting is not an available option"""
+    def test_init5(self):
+        """that __init__() fails when the given type doesn't match the given dataframe"""
 
         setts = {'type': 'notes'}
         df = pandas.concat([HORIZ, VERT], axis=1)
@@ -143,6 +148,10 @@ class TestOverBassIndexer(TestCase):
             over_bass.OverBassIndexer(df, setts)
         except RuntimeError as run_err:
             self.assertEqual(over_bass.OverBassIndexer._WRONG_TYPE, run_err.args[0])
+
+
+    def test_init6(self):
+        """tests that __init__() fails when the given type doesn't exist"""
 
         setts = {'type': 'fake_type'}
         self.assertRaises(RuntimeError, over_bass.OverBassIndexer, df, setts)
@@ -153,12 +162,10 @@ class TestOverBassIndexer(TestCase):
 
 
     def test_overbass(self):
-        """most basic test"""
+        """test with intervals"""
 
         actual = over_bass.OverBassIndexer(pandas.concat([HORIZ, VERT], axis=1)).run()
-        for col in EXPECTED:
-            self.assertSequenceEqual(list(EXPECTED[col].index), list(actual[col].index))
-            self.assertSequenceEqual(list(EXPECTED[col].values), list(actual[col].values))
+        self.assertTrue(actual.equals(EXPECTED))
 
 
     def test_overbass_notes(self):
@@ -166,9 +173,7 @@ class TestOverBassIndexer(TestCase):
 
         settings = {'type': 'notes'}
         actual = over_bass.OverBassIndexer(pandas.concat([NOTES, VERT], axis=1), settings).run()
-        for col in EXPECTED_NOTES:
-            self.assertSequenceEqual(list(EXPECTED_NOTES[col].index), list(actual[col].index))
-            self.assertSequenceEqual(list(EXPECTED_NOTES[col].values), list(actual[col].values))
+        self.assertTrue(actual.equals(EXPECTED_NOTES))        
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
