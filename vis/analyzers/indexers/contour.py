@@ -30,13 +30,13 @@
 from vis.analyzers import indexer
 import music21
 import pandas
+import pprint as pp
 
 
 def COM_matrix(contour):
     """
     Returns matrix representing the contour given
     """
-
     com = []
     for x in contour:
         com.append([])
@@ -58,7 +58,6 @@ def getContour(notes):
     Method used by the ContourIndexer to convert pitches into contour numbers
     """
 
-    notes = [x for x in notes if x != 'Rest']
     contour = list(map(music21.note.Note, notes))
     
     cseg = [0] * len(contour)
@@ -137,25 +136,42 @@ class ContourIndexer(indexer.Indexer):
         :returns: A :class:`DataFrame` of the contours.
         :rtype: :class:`pandas.DataFrame`
         """
-
+        
         contours = []
+        indices = []
 
-        for y in range(len(self.score.index)-self.settings['length']):
-            cont = []
+        # for each voice
+        for voice in self.score.columns.values:
 
-            for x in range(self.settings['length']):
-                cont.append([list(self.score[self.score.columns.values[name]])[x+y] for name in range(len(self.score.columns.values))])
+            part = self.score[voice].tolist()
+            index = self.score.index.tolist()
+
+            voice_con = []
+            # get all the contours in this voice
             
-            contours.append(zip(*cont))
+            for n in range(len(part)-1, 0, -1):
+                if part[n] == 'Rest':
+                    index.pop(n)
+            while 'Rest' in part:
+                part.remove('Rest')
 
-        final_conts = []
-        for ind in contours:
-            final_conts.append(list(map(getContour, ind)))
+            for x in range(len(part)-self.settings['length']):
+                y = 0
+                cont = []
+                while len(cont) < self.settings['length']:
+                    cont.append(part[x+y])
+                    y += 1
+                
+                voice_con.append(cont)
 
-        final_conts = zip(*final_conts)
-        frames = []
-        for x in range(self.parts):
-            frames.append(pandas.DataFrame({str(x): pandas.Series([contour for contour in final_conts[x]], index=self.score.index[0:len(final_conts[x])])}))
-        result = pandas.concat(frames, axis=1)
+            contours.append(voice_con)
+            indices.append(index[0:len(index)-self.settings['length']])
+
+        column = []
+
+        for x in range(len(contours)):
+            column.append(pandas.DataFrame({str(x): pandas.Series([getContour(contour) for contour in contours[x]], indices[x])}))
+        
+        result = pandas.concat(column, axis=1)
 
         return self.make_return(result.columns.values, [result[name] for name in result.columns])
