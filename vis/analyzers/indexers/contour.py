@@ -31,6 +31,7 @@ from vis.analyzers import indexer
 import music21
 import pandas
 import pprint as pp
+import pdb
 
 
 def COM_matrix(contour):
@@ -117,10 +118,10 @@ class ContourIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if the value of 'length' is below 1
         """
 
-        if 'length' not in settings:
-            raise RuntimeError(_MISSING_LENGTH)
+        if settings is None or 'length' not in settings:
+            raise RuntimeError(self._MISSING_LENGTH)
         elif settings['length'] < 1:
-            raise RuntimeError(_LOW_LENGTH)
+            raise RuntimeError(self._LOW_LENGTH)
         else:
             self.settings = settings
 
@@ -147,31 +148,30 @@ class ContourIndexer(indexer.Indexer):
             index = self.score.index.tolist()
 
             voice_con = []
-            # get all the contours in this voice
             
+            # remove rests and corresponding indices            
             for n in range(len(part)-1, 0, -1):
                 if part[n] == 'Rest':
                     index.pop(n)
             while 'Rest' in part:
                 part.remove('Rest')
 
-            for x in range(len(part)-self.settings['length']):
+            # get all the contours for this part
+            for x in range(len(part)-(self.settings['length']-1)):
                 y = 0
                 cont = []
                 while len(cont) < self.settings['length']:
                     cont.append(part[x+y])
                     y += 1
-                
                 voice_con.append(cont)
 
             contours.append(voice_con)
-            indices.append(index[0:len(index)-self.settings['length']])
-
+            indices.append(index[:len(index)-self.settings['length']+1])
         column = []
 
         for x in range(len(contours)):
-            column.append(pandas.DataFrame({str(x): pandas.Series([getContour(contour) for contour in contours[x]], indices[x])}))
-        
+            column.append(pandas.Series([getContour(contour) for contour in contours[x]], index=indices[x], name=str(x)))
+
         result = pandas.concat(column, axis=1)
 
-        return self.make_return(result.columns.values, [result[name] for name in result.columns])
+        return self.make_return(result.columns, [result[name] for name in result.columns])
