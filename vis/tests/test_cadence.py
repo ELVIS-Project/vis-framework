@@ -4,8 +4,8 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               vis/tests/test_over_bass.py
-# Purpose:                Test indexing of over the bass indexer.
+# Filename:               vis/tests/test_cadence.py
+# Purpose:                Test indexing of cadence indexer.
 #
 # Copyright (C) 2016 Marina Borsodi-Benson
 #
@@ -115,7 +115,7 @@ class TestCadenceIndexer(TestCase):
             self.assertEqual(cadence.CadenceIndexer._BAD_VOICE, run_err.args[0])
 
     def test_cadence(self):
-        """"""
+        """tests that running the cadence indexer returns the expected results"""
         settings = {'length': 2}
         actual = cadence.CadenceIndexer(df, settings).run()
         self.assertTrue(actual.equals(CADENCE))
