@@ -39,12 +39,14 @@ class ActiveVoicesIndexer(indexer.Indexer):
     """
 
     required_score_type = 'pandas.DataFrame'
-    possible_settings = ['attacked']
+    possible_settings = ['attacked', 'show_all']
     """
-    :keyword 'attacked': attacked decides if voiced counted as active need to be attacking at that offset or not.
+    :keyword 'attacked': When true, only counts the voices that are attacking at each offset. Defaults to false.
     :type 'attacked': boolean
+    :keyword 'show_all': When true, shows the results at all offsets, even if there is not change. Defaults to false.
+    :type 'show_all': boolean
     """
-    default_settings = {'attacked': False}
+    default_settings = {'attacked': False, 'show_all': False}
 
 
     def __init__(self, score, settings=None):
@@ -56,11 +58,19 @@ class ActiveVoicesIndexer(indexer.Indexer):
 
         :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
         """
-
-        if settings is not None and 'attacked' in settings:
-            self._settings = {'attacked': settings['attacked']}
-        else:
+        if settings is None:
             self._settings = self.default_settings
+        else:
+            self._settings = {}
+            if 'attacked' in settings:
+                self._settings['attacked'] = settings['attacked']
+            else:
+                self._settings['attacked'] = self.default_settings['attacked']
+            if 'show_all' in settings:
+                self._settings['show_all'] = settings['show_all']
+            else:
+                self._settings['show_all'] = self.default_settings['show_all']
+
 
         self.score = score
 
@@ -84,8 +94,15 @@ class ActiveVoicesIndexer(indexer.Indexer):
             if self._settings['attacked']:
                 voices = [voice for voice in voices if type(voice) is not float]
 
-            voices = [voice for voice in voices if type(voice) is not str]
+            voices = [voice for voice in voices if voice is not 'Rest']
             num_voices.append(len(voices))
 
-        result = pandas.DataFrame({'Active Voices': pandas.Series(num_voices, index=self.score.index)})
+        indices = self.score.index.tolist()
+        if not self._settings['show_all']:
+            for n in range(len(num_voices)-1, 0, -1):
+                if num_voices[n] == num_voices[n-1]:
+                    indices.pop(n)
+                    num_voices.pop(n)
+
+        result = pandas.DataFrame({'Active Voices': pandas.Series(num_voices, index=indices)})
         return self.make_return(result.columns.values, [result[name] for name in result.columns])
