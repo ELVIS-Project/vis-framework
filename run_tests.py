@@ -54,6 +54,10 @@ from vis.tests import test_workflow
 from vis.tests import test_workflow_integration
 from vis.tests import test_workflow_experiments
 from vis.tests import test_fermata_indexer
+from vis.tests import test_over_bass
+from vis.tests import test_cadence
+from vis.tests import test_contour
+from vis.tests import test_active_voices
 
 
 THE_TESTS = (# Indexer and Subclasses
@@ -61,7 +65,7 @@ THE_TESTS = (# Indexer and Subclasses
              test_indexer.INDEXER_INIT_SUITE,
              test_indexer.INDEXER_1_PART_SUITE,
              test_indexer.INDEXER_MULTI_EVENT_SUITE,
-             # test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
+             test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_duration_indexer.DURATION_INDEXER_SUITE,
              test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,
@@ -80,6 +84,10 @@ THE_TESTS = (# Indexer and Subclasses
              test_lilypond.ANNOTATE_NOTE_SUITE,
              test_lilypond.PART_NOTES_SUITE,
              test_lilypond.LILYPOND_SUITE,
+             test_over_bass.OVER_BASS_INDEXER_SUITE,
+             test_cadence.CADENCE_INDEXER_SUITE,
+             test_contour.CONTOUR_INDEXER_SUITE,
+             test_active_voices.ACTIVE_VOICES_INDEXER_SUITE
              # Experimenter and Subclasses
              test_frequency_experimenter.FREQUENCY_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,

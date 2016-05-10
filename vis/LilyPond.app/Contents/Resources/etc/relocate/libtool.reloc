@@ -1,0 +1,1 @@
+prependdir DYLD_LIBRARY_PATH=$INSTALLER_PREFIX/lib
