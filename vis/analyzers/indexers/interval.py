@@ -40,6 +40,15 @@ from music21 import note, interval, pitch
 from vis.analyzers import indexer
 from itertools import combinations
 
+
+def test_int_func(event1, event2):
+    try:
+        interv = interval.Interval(event1, event2)
+    except pitch.PitchException:
+        return 'Rest'
+    return interv
+
+
 def real_indexer_func(simultaneity, analysis_type):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.

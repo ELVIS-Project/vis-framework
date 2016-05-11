@@ -32,9 +32,20 @@ Indexers for metric concerns.
 # disable "string statement has no effect" warning---they do have an effect with Sphinx!
 # pylint: disable=W0105
 
-from music21 import note
 from vis.analyzers import indexer
-#import pandas # This is only needed for the measure indexer which is still experimental
+from math import isnan
+import pdb
+
+def bsTest(event):
+    # if isinstance(event, float):
+    #     return event
+    # else:
+    return event.beatStrength
+
+def msTest(event):
+    if isinstance(event, float):
+        return event
+    return event.number
 
 def beatstrength_ind_func(obj):
     """
@@ -89,6 +100,8 @@ def measure_ind_func(obj):
     """
     return obj[0].measureNumber
 
+def test(event):
+    return event.measureNumber
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
     """

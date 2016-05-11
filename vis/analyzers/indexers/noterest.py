@@ -33,6 +33,13 @@ import six
 from music21 import stream, note
 from vis.analyzers import indexer
 
+def test(event):
+    if isinstance(event, float):
+        return float('nan')
+    if isinstance(event, note.Note):
+        return six.u(str(event.nameWithOctave))
+    return 'Rest'
+
 def indexer_func(obj):
     """
     Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and

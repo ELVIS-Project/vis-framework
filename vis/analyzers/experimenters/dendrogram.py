@@ -241,17 +241,17 @@ class HierarchicalClusterer(experimenter.Experimenter):
         # observation in the pair. Then calculate distance in n-dimensional space with n =
         # number of types of observations.
         numPieces = len(self._sers[0])
-        comparisons = numPieces*(numPieces-1)/2
-        matrix = [0]*int(comparisons)
-        for i in range(len(self._sers)): # The outer loop is what allows multiple metrics to be mixed
+        comparisons = int(numPieces*(numPieces-1)/2)
+        matrix = [0]*comparisons
+        for i in range(len(self._sers)): # The outermost loop is what allows multiple metrics to be mixed
             position = 0
             df = pd.concat(self._sers[i], axis=1, ignore_index=True) # put all the analysis profiles in this metric in a dataframe
             df = df.replace(to_replace='NaN', value=0)
             df = df.div(list(df.sum())) # make the df show the percent out of 1 that each analysis observation is of its piece
-            for jay in df.columns[:-1]:
-                for kay in df.columns[jay+1:]:
-                    # keep a tally of the percent out of 1 that each pair has in common for all observations
-                    similarity = sum([min(df.iat[n, jay], df.iat[n, kay]) for n in range(len(df.index))])
+            for j in df.columns[:-1]:
+                for k in df.columns[j+1:]:
+                    # get the percent out of 1 that each pair has in common for all observations
+                    similarity = sum(list(map(min, df.iloc[:, j], df.iloc[:, k])))
                     # apply the weight assigned to this analysis metric and make percent out of 100
                     matrix[position] += (1 - similarity) * self._weights[i] * 100
                     position += 1 # keep track of which pair comparison we're going to next in case we need to come back for another metric
