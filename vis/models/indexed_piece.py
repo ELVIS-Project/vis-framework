@@ -38,7 +38,7 @@ from music21 import converter, stream, analysis
 from music21 import interval as m21int
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest, metre, interval
+from vis.analyzers.indexers import noterest, meter, interval
 import pdb
 import time
 
@@ -140,11 +140,13 @@ def _eliminate_ties(event):
         return float('nan')
     return event
 
-def _int_func(x):
-    if x[0].isRest or x[1].isRest:
+def _int_func(ev1, ev2):
+    if ev1.isRest or ev2.isRest:
         return 'Rest'
     else:
-        return m21int.Interval(x[0], x[1])
+        ntrvl = m21int.Interval(ev1, ev2)
+        post = '-' if ntrvl.direction == -1 else ''
+        return post + ntrvl.name
 
 def _bsTest(event):
     return event.beatStrength
@@ -230,11 +232,13 @@ class IndexedPiece(object):
         self._m21_objs = None
         self._m21_noterest = None
         self._m21_noterest_no_tied = None
-        self._m21_h_ints = None
         self._m21_measure_objs = None
         self._new_noterest_results = None
         self._new_beatstrength_results = None
         self._new_measure_results = None
+        self._fermatas = None
+        self._h_ints = None
+        self._v_ints = None
         self._metadata = {}
         self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
         init_metadata()
@@ -289,7 +293,6 @@ class IndexedPiece(object):
                         self._metadata[field] = '???'
             self._metadata['parts'] = _find_part_names(score)
             self._metadata['title'] = _find_piece_title(score)
-            print 'here'
             self._metadata['partRanges'] = _find_part_ranges(score)
             self._metadata['pieceRange'] = _find_piece_range(score)
             self._imported = True
@@ -423,20 +426,21 @@ class IndexedPiece(object):
             self._m21_noterest_no_tied = self._get_m21_nr_objs(known_opus).applymap(_eliminate_ties).dropna(how='all')
         return self._m21_noterest_no_tied
 
-    def _get_m21_h_ints(self, known_opus=False):
-        if self._m21_h_ints is None:
+    def _get_h_ints(self, known_opus=False):
+        if self._h_ints is None:
             m21_objs = self._get_m21_nr_no_tied()
-            h_ints = []
-            # for i in range(len(m21_objs.columns)):
-            #     events = m21_objs.iloc[:, i].dropna().reset_index(drop=True)
-            #     df = pandas.DataFrame({0: events.iloc[:-1], 1: events.iloc[1:]})
-            #     pdb.set_trace()
-            #     h_ints.append(df.apply(_int_func, axis=1))
-            # res = pandas.concat(h_ints, axis=1)
-            # pdb.set_trace()
+            h_sers = [pandas.Series(list(map(_int_func, m21_objs.iloc[:-1, i].dropna(), m21_objs.iloc[1:, i].dropna())),
+                                          index=m21_objs.iloc[1:, i].dropna().index)
+                            for i in range(len(m21_objs.columns))]
+            self._h_ints = pandas.concat(h_sers, axis=1)
+        return self._h_ints
 
-
-
+    def _get_v_ints(self, known_opus=False):
+        if self._v_ints is None:
+            m21_objs = self._get_m21_nr_no_tied()
+            v_sers = <IMPLEMENT INDEXER>
+            self._v_ints = pandas.concat(v_sers, axis=1)
+        return self._v_ints
 
     def _get_m21_measure_objs(self, known_opus=False):
         """Makes a dataframe of the measure objects in the indexed_piece. Note that midi files do not have 
@@ -457,7 +461,7 @@ class IndexedPiece(object):
 
     # def _get_new_beatstrength_results(self, known_opus=False):
     #     if self._new_beatstrength_results is None:
-    #         self._new_beatstrength_results = self._get_m21_nr_no_tied().applymap(metre.bsTest)
+    #         self._new_beatstrength_results = self._get_m21_nr_no_tied().applymap(meter.bsTest)
     #     return self._new_beatstrength_results
 
     def _get_new_beatstrength_results(self, known_opus=False): # This implementation works too.
@@ -469,7 +473,7 @@ class IndexedPiece(object):
 
     def _get_new_measure_results(self, known_opus=False):
         if self._new_measure_results is None:
-            self._new_measure_results = self._get_m21_measure_objs().applymap(metre.msTest)
+            self._new_measure_results = self._get_m21_measure_objs().applymap(meter.msTest)
         return self._new_measure_results
 
     def _get_note_rest_index(self, known_opus=False):
