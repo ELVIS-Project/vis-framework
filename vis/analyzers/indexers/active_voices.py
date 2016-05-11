@@ -29,7 +29,6 @@
 
 import music21
 from vis.analyzers import indexer
-import numpy
 import pandas
 
 
@@ -58,19 +57,10 @@ class ActiveVoicesIndexer(indexer.Indexer):
 
         :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
         """
-        if settings is None:
-            self._settings = self.default_settings
-        else:
-            self._settings = {}
-            if 'attacked' in settings:
-                self._settings['attacked'] = settings['attacked']
-            else:
-                self._settings['attacked'] = self.default_settings['attacked']
-            if 'show_all' in settings:
-                self._settings['show_all'] = settings['show_all']
-            else:
-                self._settings['show_all'] = self.default_settings['show_all']
 
+        self._settings = self.default_settings
+        if settings is not None:
+            self._settings.update(settings)
 
         self.score = score
 
