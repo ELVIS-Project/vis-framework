@@ -74,13 +74,13 @@ class DissonanceIndexer(indexer.Indexer):
     The score type must be a list of dataframes of the results of the following indexers (order 
     matters): beatstrength, duration, horizontal, vertical.
     """
-    required_score_type = 'pandas.DataFrame'
+    required_score_type = 'pandas.DataFrame' # score is actually a list of dataframes
 
     def __init__(self, score, settings=None):
         """
         :param score: The output from :class:`~vis.analyzers.indexers.interval.IntervalIndexer`.
             You must include interval quality and use simple intervals.
-        :type score:  :class:`pandas.DataFrame`.
+        :type score: list of :class:`pandas.DataFrame`.
         :param settings: This indexer uses no settings, so this is ignored.
         :type settings: NoneType
 
