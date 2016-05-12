@@ -30,7 +30,6 @@
 from vis.analyzers import indexer
 import music21
 import pandas
-import pprint as pp
 import pdb
 
 
@@ -65,6 +64,7 @@ def getContour(notes):
 
     for i in range(len(contour)):
         notes = []
+        
         for x in range(len(contour)):
             if (music21.interval.getAbsoluteHigherNote(contour[i], contour[x]) == contour[i]) and (contour[i].nameWithOctave != contour[x].nameWithOctave) and (contour[x].nameWithOctave not in notes):
                 notes.append(contour[x].nameWithOctave)
@@ -125,7 +125,7 @@ class ContourIndexer(indexer.Indexer):
         else:
             self.settings = settings
 
-        self.score = score.dropna()
+        self.score = score
         self.parts = len(self.score.columns.values)
         super(ContourIndexer, self).__init__(score, None)
 
@@ -139,39 +139,34 @@ class ContourIndexer(indexer.Indexer):
         """
         
         contours = []
-        indices = []
 
-        # for each voice
-        for voice in self.score.columns.values:
+        for v, voice in enumerate(self.score.columns.values):
 
             part = self.score[voice].tolist()
             index = self.score.index.tolist()
-
+            new_index = []
             voice_con = []
-            
-            # remove rests and corresponding indices            
-            for n in range(len(part)-1, 0, -1):
-                if part[n] == 'Rest':
-                    index.pop(n)
-            while 'Rest' in part:
-                part.remove('Rest')
-
-            # get all the contours for this part
-            for x in range(len(part)-(self.settings['length']-1)):
-                y = 0
+            for x in range(len(part)-self.settings['length']+1):
                 cont = []
-                while len(cont) < self.settings['length']:
-                    cont.append(part[x+y])
-                    y += 1
-                voice_con.append(cont)
 
-            contours.append(voice_con)
-            indices.append(index[:len(index)-self.settings['length']+1])
-        column = []
+                if part[x] == 'Rest' or type(part[x]) == float:
+                    pass
+                else:
+                    cont.append(part[x])
+                    y = 1
+                    while (len(cont) < self.settings['length']) and (x+y < len(part)):
+                        if part[x+y] == 'Rest' or type(part[x+y]) == float:
+                            pass
+                        else:
+                            cont.append(part[x+y])
+                        y+=1
+                if len(cont) == self.settings['length']:
+                    voice_con.append(getContour(cont))
+                    new_index.append(index[x])
 
-        for x in range(len(contours)):
-            column.append(pandas.Series([getContour(contour) for contour in contours[x]], index=indices[x], name=str(x)))
+            voice = pandas.Series(voice_con, index=new_index, name=str(v))
+            contours.append(voice)
 
-        result = pandas.concat(column, axis=1)
+        result = pandas.concat(contours, axis=1)
 
         return self.make_return(result.columns, [result[name] for name in result.columns])
