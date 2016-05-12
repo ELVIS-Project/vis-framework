@@ -39,6 +39,7 @@ from music21 import interval as m21int
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, meter, interval
+from itertools import combinations
 import pdb
 import time
 
@@ -46,6 +47,7 @@ import time
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 
+_names = ('Indexer', 'Parts')
 
 def _find_piece_title(the_score):
     """
@@ -430,7 +432,7 @@ class IndexedPiece(object):
         if self._h_ints is None:
             m21_objs = self._get_m21_nr_no_tied()
             h_sers = [pandas.Series(list(map(_int_func, m21_objs.iloc[:-1, i].dropna(), m21_objs.iloc[1:, i].dropna())),
-                                          index=m21_objs.iloc[1:, i].dropna().index)
+                                    index=m21_objs.iloc[1:, i].dropna().index)
                             for i in range(len(m21_objs.columns))]
             self._h_ints = pandas.concat(h_sers, axis=1)
         return self._h_ints
@@ -438,8 +440,15 @@ class IndexedPiece(object):
     def _get_v_ints(self, known_opus=False):
         if self._v_ints is None:
             m21_objs = self._get_m21_nr_no_tied()
-            v_sers = <IMPLEMENT INDEXER>
-            self._v_ints = pandas.concat(v_sers, axis=1)
+            combos = [pandas.concat((m21_objs.iloc[:,x[0]], m21_objs.iloc[:,x[1]]), axis=1).fillna(method='ffill')
+                      for x in combinations(range(len(m21_objs.columns)), 2)]
+
+            v_sers = [pandas.Series(list(map(_int_func, df.iloc[:, 1], df.iloc[:, 0])),
+                                    index=df.index) for df in combos]
+            result = pandas.concat(v_sers, axis=1)
+            labels = ['{},{}'.format(x, y) for x, y in combos]
+            result.columns = pandas.MultiIndex.from_product((('IntervalIndexer',), labels), names=_names)
+            self._v_ints = result
         return self._v_ints
 
     def _get_m21_measure_objs(self, known_opus=False):
