@@ -48,6 +48,7 @@ import time
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 
 _names = ('Indexer', 'Parts')
+_default_interval_setts = {'quality':True, 'directed':True, 'simple or compound':'compound', 'horiz_attach_later':True}
 
 def _find_piece_title(the_score):
     """
@@ -150,6 +151,17 @@ def _int_func(ev1, ev2):
         post = '-' if ntrvl.direction == -1 else ''
         return post + ntrvl.name
 
+def series_method(val, int_type=None):
+    if val == 'Rest':
+        return val
+    # if isinstance(val, float):
+    #     return val
+    return int_type(m21int.Interval(val))
+
+def _m21int_maker(ser, int_type=None):
+    ser.dropna().apply(series_method, int_type=int_type)
+    return ser
+
 def _bsTest(event):
     return event.beatStrength
 
@@ -236,7 +248,7 @@ class IndexedPiece(object):
         self._m21_noterest_no_tied = None
         self._m21_measure_objs = None
         self._noterest = None
-        self._new_beatstrength_results = None
+        self._beatstrength = None
         self._new_measure_results = None
         self._fermatas = None
         self._h_ints = None
@@ -428,29 +440,26 @@ class IndexedPiece(object):
             self._m21_noterest_no_tied = self._get_m21_nr_objs(known_opus).applymap(_eliminate_ties).dropna(how='all')
         return self._m21_noterest_no_tied
 
-    def _get_h_ints(self, known_opus=False):
+    def _get_h_ints(self, settings=_default_interval_setts, known_opus=False):
         if self._h_ints is None:
-            m21_objs = self._get_m21_nr_no_tied()
-            h_sers = [pandas.Series(list(map(_int_func, m21_objs.iloc[:-1, i].dropna(), m21_objs.iloc[1:, i].dropna())),
-                                    index=m21_objs.iloc[1:, i].dropna().index)
-                            for i in range(len(m21_objs.columns))]
-            result = pandas.concat(h_sers, axis=1)
-            labels = [str(x) for x in range(len(result.columns))]
-            result.columns = pandas.MultiIndex.from_product((('HorizontalIntervalIndexer',), labels), names=_names)
-            self._h_ints = result
+            self._h_ints = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts).run()
+        if not ('directed' in settings and settings['directed'] == True and
+                'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
+                'simple or compound' in settings and settings['simple or compound'] == 'compound'):
+            # pdb.set_trace()
+            return interval.IntervalReindexer(self._h_ints, settings).run()
         return self._h_ints
 
-    def _get_v_ints(self, known_opus=False):
+
+
+    def _get_v_ints(self, settings=_default_interval_setts, known_opus=False):
         if self._v_ints is None:
-            m21_objs = self._get_m21_nr_no_tied()
-            combos = [pandas.concat((m21_objs.iloc[:,x[0]], m21_objs.iloc[:,x[1]]), axis=1).fillna(method='ffill')
-                      for x in combinations(range(len(m21_objs.columns)), 2)]
-            v_sers = [pandas.Series(list(map(_int_func, df.iloc[:, 1], df.iloc[:, 0])),
-                                    index=df.index) for df in combos]
-            result = pandas.concat(v_sers, axis=1)
-            labels = ['{},{}'.format(x, y) for x, y in combos]
-            result.columns = pandas.MultiIndex.from_product((('IntervalIndexer',), labels), names=_names)
-            self._v_ints = result
+            print '***********here'
+            self._v_ints = interval.IntervalIndexer(self._get_noterest(), _default_interval_setts).run()
+        if not ('directed' in settings and settings['directed'] == True and
+                'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
+                'simple or compound' in settings and settings['simple or compound'] == 'compound'):
+            return interval.IntervalReindexer(self._v_ints, settings).run()
         return self._v_ints
 
     def _get_m21_measure_objs(self, known_opus=False):
@@ -472,20 +481,20 @@ class IndexedPiece(object):
             self._noterest = result
         return self._noterest
 
-    # def _get_new_beatstrength_results(self, known_opus=False):
-    #     if self._new_beatstrength_results is None:
-    #         self._new_beatstrength_results = self._get_m21_nr_no_tied().applymap(meter.bsTest)
-    #     return self._new_beatstrength_results
+    # def _get_beatstrength(self, known_opus=False):
+    #     if self._beatstrength is None:
+    #         self._beatstrength = self._get_m21_nr_no_tied().applymap(meter.bsTest)
+    #     return self._beatstrength
 
-    def _get_new_beatstrength_results(self, known_opus=False): # This implementation works too.
-        if self._new_beatstrength_results is None:
+    def _get_beatstrength(self, known_opus=False): # This implementation works too.
+        if self._beatstrength is None:
             sers = [self._get_m21_nr_no_tied().iloc[:, i].dropna() for i in range(len(self._get_m21_nr_no_tied().columns))]
             lobs = [pandas.Series(list(map(_bsTest, sers[i])), index=sers[i].index) for i in range(len(sers))]
             result = pandas.concat(lobs, axis=1)
             labels = [str(x) for x in range(len(result.columns))]
             result.columns = pandas.MultiIndex.from_product((('NoteBeatStrengthIndexer',), labels), names=_names)
-            self._new_beatstrength_results = result
-        return self._new_beatstrength_results
+            self._beatstrength = result
+        return self._beatstrength
 
     def _get_new_measure_results(self, known_opus=False):
         if self._new_measure_results is None:
@@ -601,3 +610,16 @@ class IndexedPiece(object):
                 return data
             else:
                 return analyzer_cls[0](data, settings).run()
+
+
+
+        # if self._v_ints is None:
+        #     m21_objs = self._get_m21_nr_no_tied()
+        #     combos = [pandas.concat((m21_objs.iloc[:,x[0]], m21_objs.iloc[:,x[1]]), axis=1).fillna(method='ffill')
+        #               for x in combinations(range(len(m21_objs.columns)), 2)]
+        #     v_sers = [pandas.Series(list(map(_int_func, df.iloc[:, 1], df.iloc[:, 0])),
+        #                             index=df.index) for df in combos]
+        #     result = pandas.concat(v_sers, axis=1)
+        #     labels = ['{},{}'.format(x, y) for x, y in combos]
+        #     result.columns = pandas.MultiIndex.from_product((('IntervalIndexer',), labels), names=_names)
+        #     self._v_ints = result

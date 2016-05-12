@@ -39,6 +39,7 @@ import pandas
 from music21 import note, interval, pitch
 from vis.analyzers import indexer
 from itertools import combinations
+import pdb
 
 
 def test_int_func(event1, event2):
@@ -48,6 +49,8 @@ def test_int_func(event1, event2):
         return 'Rest'
     return interv
 
+_memos = {}
+_names = ('Indexer', 'Parts')
 
 def real_indexer_func(simultaneity, analysis_type):
     """
@@ -69,28 +72,33 @@ def real_indexer_func(simultaneity, analysis_type):
     :rtype: string
     """
 
-    if 2 != len(simultaneity):
-        return None
-    else:
+    # if 2 != len(simultaneity):
+    #     return None
+    # else:
+    # pdb.set_trace()
+    if isinstance(simultaneity, float):
+        return simultaneity
+    if simultaneity not in _memos:
+        # return self._memos[simultaneity]
         try:
             upper, lower = simultaneity
-            interv = interval.Interval(note.Note(lower), note.Note(upper))
+            _memos[simultaneity] = analysis_type(interval.Interval(note.Note(lower), note.Note(upper)))
         except pitch.PitchException:
-            return 'Rest'
-        return analysis_type(interv)
+            _memos[simultaneity] = 'Rest'
+    return _memos[simultaneity]
 
 
 # We give the functions below to the multiprocessor; they're pickle-able and they basically help us 
 # apply the appropriate analysis settings. The settings requested by the user are set in the init
 # method and are all applied with the use of the xxxx_analysis functions. They appear below in the 
 # same order as their position in the indexer_funcs list. Each indexer_xxxx method is immediately 
-# followed by the xxxx_analysis method that it passes to real_indexer_func_func.
+# followed by the xxxx_analysis method that it passes to real_indexer_func.
 
 
 def indexer_dnq_dir_sim(ecks):
     """
     Used internally by the :class:`IntervalIndexer` and :class:`HorizontalIntervalIndexer`.
-    Calls :func:`real_indexer_func_func` such that quality-free diatonic intervals that are directed and \
+    Calls :func:`real_indexer_func` such that quality-free diatonic intervals that are directed and \
     simple (i.e. -8 to 8 with no zero) are returned.
     """
     return real_indexer_func(ecks, dnq_dir_sim_analysis)
@@ -259,7 +267,10 @@ indexer_funcs = (indexer_dnq_dir_sim, indexer_dwq_dir_sim, indexer_chr_dir_sim, 
                  indexer_dnq_dir_com, indexer_dwq_dir_com, indexer_chr_dir_com, None,                       # DIRECTED   & COMPOUND
                  indexer_dnq_und_com, indexer_dwq_und_com, indexer_chr_und_com, None)                       # UNDIRECTED & COMPOUND
 
-
+analysis_types = (dnq_dir_sim_analysis, dwq_dir_sim_analysis, chr_dir_sim_analysis, icl_dir_sim_analysis,
+                  dnq_und_sim_analysis, dwq_und_sim_analysis, chr_und_sim_analysis, icl_und_sim_analysis,
+                  dnq_dir_com_analysis, dwq_dir_com_analysis, chr_dir_com_analysis, None,
+                  dnq_und_com_analysis, dwq_und_com_analysis, chr_und_com_analysis, None)
 
 class IntervalIndexer(indexer.Indexer):
     """
@@ -284,7 +295,8 @@ class IntervalIndexer(indexer.Indexer):
     :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
     """
     required_score_type = 'pandas.Series'
-    default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 'mp': True}
+    default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True,
+                        'reanalyze': False, 'mp': True}
     "A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
@@ -298,7 +310,8 @@ class IntervalIndexer(indexer.Indexer):
         if settings is not None:
             self._settings.update(settings)
         
-        super(IntervalIndexer, self).__init__(score, None)
+        # super(IntervalIndexer, self).__init__(score, None)
+        # pdb.set_trace()
 
         if self._settings['simple or compound'] == 'compound' and self._settings['quality'] == 'interval class':
             raise RuntimeWarning('Interval class analysis cannot be compound, so the simple or compound setting has been reset to compound')
@@ -348,7 +361,14 @@ class IntervalIndexer(indexer.Indexer):
         >>> the_intervals['interval.IntervalIndexer']['5,6']
         (Series with vertical intervals between first and second clarinet)
         """
-        combos = list(combinations(range(len(self._score)), 2))
+        combos = [pandas.concat((self._score.iloc[:,x[0]], self._score.iloc[:,x[1]]), axis=1).fillna(method='ffill')
+                  for x in combinations(range(len(self._score.columns)), 2)]
+        post = pandas.concat([zip(df.values) for df in combos], axis=1)
+        pdb.set_trace()
+        # self._score = [pandas.Series(zip(x.values[1:], x.values[:-1]), index=x.index[1:]) for x in self._score]
+
+        # combos = list(zip(self._score.iloc[combinations(range(len(self._score)), 2)]))
+        pdb.set_trace()
         labels = ['{},{}'.format(x, y) for x, y in combos]
 
         # This method returns once all computation is complete. The results are returned as a list
@@ -357,7 +377,6 @@ class IntervalIndexer(indexer.Indexer):
 
         # Return the results.
         return self.make_return(labels, results)
-
 
 class HorizontalIntervalIndexer(IntervalIndexer):
     """
@@ -400,7 +419,9 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         self._settings = HorizontalIntervalIndexer.default_settings.copy()
         if settings is not None:
             self._settings.update(settings)
+        self._memos = {}
         super(HorizontalIntervalIndexer, self).__init__(score, self._settings)
+        self._score = score
 
     def run(self):
         """
@@ -428,21 +449,74 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # first element, and the other will be missing the last element. We'll also use the index
         # values starting at the second element, so that each "horizontal" interval is presented
         # as occurring at the offset of the second note involved.
+        post = [self._score.iloc[:, x].dropna() for x in range(len(self._score.columns))]
         if self._settings['horiz_attach_later']:
-            new_parts = [x.iloc[1:] for x in self._score]
-            self._score = [pandas.Series(x.values[:-1], index=x.index[1:]) for x in self._score]
+            post = [pandas.Series(zip(x.values[1:], x.values[:-1]), index=x.index[1:]) for x in post]
         else:
-            new_parts = [pandas.Series(x.values[1:], index=x.index[:-1]) for x in self._score]
-            self._score = [pandas.Series(x.values[:-1], index=x.index[:-1]) for x in self._score]
+            post = [pandas.Series(zip(x.values[1:], x.values[:-1]), index=x.index[:-1]) for x in post]
+
+        post = pandas.concat(post, axis=1).applymap(self._indexer_func)
+        part_labels = [str(i) for i in range(len(post.columns))]
+        post.columns = pandas.MultiIndex.from_product((('interval.HorizontalIntervalIndexer',), part_labels), names=_names)
+        # print '********** memos: %i' %len(_memos)
+        return post
 
 
         # Calculate each voice with its copy. "new_parts" is put first, so it's considered the
         # "upper voice," so ascending intervals don't get a direction.
-        new_zero = len(self._score)
-        combos = [(new_zero + x, x) for x in range(new_zero)]
-        labels = [six.u(str(x)) for x in range(new_zero)]
+        # new_zero = len(self._score)
+        # combos = [(new_zero + x, x) for x in range(new_zero)]
+        # labels = [six.u(str(x)) for x in range(new_zero)]
 
-        self._score.extend(new_parts)
+        # self._score.extend(new_parts)
 
-        results = self._do_multiprocessing(combos, on=self._settings['mp'])
-        return  self.make_return(labels, results)
+        # results = self._do_multiprocessing(self._score, on=self._settings['mp'])
+        # return  self.make_return(labels, results)
+
+
+class IntervalReindexer(HorizontalIntervalIndexer):
+
+    def __init__(self, score, settings=None):
+        self._settings = HorizontalIntervalIndexer.default_settings.copy()
+        if settings is not None:
+            self._settings.update(settings)
+        super(IntervalReindexer, self).__init__(score, self._settings)
+        self._score = score
+
+        # Use binary-inspired system to choose one of 14 indexer_funcs.
+        indexer_number = 0
+
+        # This block deals with the four quality settings. True and False are offered as options to
+        # accommodate the old setting types when we only offered two options for interval quality.
+        if self._settings['quality'] == False or self._settings['quality'] == 'diatonic no quality':
+            pass
+        elif self._settings['quality'] == True or self._settings['quality'] == 'diatonic with quality':
+            indexer_number += 1
+        elif self._settings['quality'] == 'chromatic':
+            indexer_number += 2
+        else: # i.e. self._settings['quality'] == 'interval class'
+            indexer_number += 3
+
+        # This block determines if the intervals are directed or not, that is, whether they can be negative or not.
+        if not self._settings['directed']:
+            indexer_number += 4
+
+        # This block decides between simple, i.e. within an octave, or compound intervals.
+        if self._settings['simple or compound'] == 'compound':
+            indexer_number += 8
+
+        self._analysis_type = analysis_types[indexer_number]
+        self._memos = {'Rest': 'Rest'} # use a dict to memoize interval names
+
+        def indexer_func(x):
+            if isinstance(x, float):
+                return x
+            if x in self._memos:
+                return self._memos[x]
+            self._memos[x] = self._analysis_type(interval.Interval(x))
+            return self._memos[x]
+
+        self._indexer_func = indexer_func
+
+    def run(self):
+        return self._score.applymap(self._indexer_func)
