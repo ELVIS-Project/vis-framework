@@ -481,7 +481,10 @@ class IndexedPiece(object):
         if self._new_beatstrength_results is None:
             sers = [self._get_m21_nr_no_tied().iloc[:, i].dropna() for i in range(len(self._get_m21_nr_no_tied().columns))]
             lobs = [pandas.Series(list(map(_bsTest, sers[i])), index=sers[i].index) for i in range(len(sers))]
-            self._new_beatstrength_results = pandas.concat(lobs, axis=1)
+            result = pandas.concat(lobs, axis=1)
+            labels = [str(x) for x in range(len(result.columns))]
+            result.columns = pandas.MultiIndex.from_product((('NoteBeatStrengthIndexer',), labels), names=_names)
+            self._new_beatstrength_results = result
         return self._new_beatstrength_results
 
     def _get_new_measure_results(self, known_opus=False):
