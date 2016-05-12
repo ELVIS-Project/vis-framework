@@ -235,7 +235,7 @@ class IndexedPiece(object):
         self._m21_noterest = None
         self._m21_noterest_no_tied = None
         self._m21_measure_objs = None
-        self._new_noterest_results = None
+        self._noterest = None
         self._new_beatstrength_results = None
         self._new_measure_results = None
         self._fermatas = None
@@ -434,7 +434,10 @@ class IndexedPiece(object):
             h_sers = [pandas.Series(list(map(_int_func, m21_objs.iloc[:-1, i].dropna(), m21_objs.iloc[1:, i].dropna())),
                                     index=m21_objs.iloc[1:, i].dropna().index)
                             for i in range(len(m21_objs.columns))]
-            self._h_ints = pandas.concat(h_sers, axis=1)
+            result = pandas.concat(h_sers, axis=1)
+            result.columns = self._noterest.columns
+            result.columns.set_levels(('HorizontalIntervalIndexer',), level=0, inplace=True)
+            self._h_ints = result
         return self._h_ints
 
     def _get_v_ints(self, known_opus=False):
@@ -442,7 +445,6 @@ class IndexedPiece(object):
             m21_objs = self._get_m21_nr_no_tied()
             combos = [pandas.concat((m21_objs.iloc[:,x[0]], m21_objs.iloc[:,x[1]]), axis=1).fillna(method='ffill')
                       for x in combinations(range(len(m21_objs.columns)), 2)]
-
             v_sers = [pandas.Series(list(map(_int_func, df.iloc[:, 1], df.iloc[:, 0])),
                                     index=df.index) for df in combos]
             result = pandas.concat(v_sers, axis=1)
@@ -463,10 +465,12 @@ class IndexedPiece(object):
             self._m21_measure_objs = pandas.concat(sers, axis=1)
         return self._m21_measure_objs
 
-    def _get_new_noterest_results(self, known_opus=False):
-        if self._new_noterest_results is None:
-            self._new_noterest_results = self._get_m21_nr_no_tied().applymap(noterest.test)
-        return self._new_noterest_results
+    def _get_noterest(self, known_opus=False):
+        if self._noterest is None:
+            result = self._get_m21_nr_no_tied().applymap(noterest.test)
+            result.columns = pandas.MultiIndex.from_product((('NoteRestIndexer',), [str(x) for x in range(len(result.columns))]), names=_names)
+            self._noterest = result
+        return self._noterest
 
     # def _get_new_beatstrength_results(self, known_opus=False):
     #     if self._new_beatstrength_results is None:
