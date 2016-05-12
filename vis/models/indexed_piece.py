@@ -435,8 +435,8 @@ class IndexedPiece(object):
                                     index=m21_objs.iloc[1:, i].dropna().index)
                             for i in range(len(m21_objs.columns))]
             result = pandas.concat(h_sers, axis=1)
-            result.columns = self._noterest.columns
-            result.columns.set_levels(('HorizontalIntervalIndexer',), level=0, inplace=True)
+            labels = [str(x) for x in range(len(result.columns))]
+            result.columns = pandas.MultiIndex.from_product((('HorizontalIntervalIndexer',), labels), names=_names)
             self._h_ints = result
         return self._h_ints
 
