@@ -62,7 +62,11 @@ class ActiveVoicesIndexer(indexer.Indexer):
         if settings is not None:
             self._settings.update(settings)
 
-        self.score = score
+        
+        if self._settings['attacked'] == False:
+            self.score = score.fillna(method='ffill')
+        else:
+            self.score = score
 
         super(ActiveVoicesIndexer, self).__init__(score, None)
 
@@ -80,9 +84,6 @@ class ActiveVoicesIndexer(indexer.Indexer):
 
             for name in self.score.columns.values:
                 voices.append(self.score[name].tolist()[x])
-
-            if self._settings['attacked']:
-                voices = [voice for voice in voices if type(voice) is not float]
 
             voices = [voice for voice in voices if voice is not 'Rest']
             num_voices.append(len(voices))
