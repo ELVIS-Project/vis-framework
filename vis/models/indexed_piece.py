@@ -162,8 +162,14 @@ def _m21int_maker(ser, int_type=None):
     ser.dropna().apply(series_method, int_type=int_type)
     return ser
 
+_bsMemos = {}
 def _bsTest(event):
-    return event.beatStrength
+    if isinstance(event, float):
+        return event
+    offset = (event.sites.getAttrByName('offset') + event.offset)
+    if offset not in _bsMemos:
+        _bsMemos[offset] = event.beatStrength
+    return _bsMemos[offset]
 
 def _find_piece_range(the_score):
 
@@ -440,10 +446,10 @@ class IndexedPiece(object):
             self._m21_noterest_no_tied = self._get_m21_nr_objs(known_opus).applymap(_eliminate_ties).dropna(how='all')
         return self._m21_noterest_no_tied
 
-    def _get_h_ints(self, settings=_default_interval_setts, known_opus=False):
+    def _get_h_ints(self, settings=None, known_opus=False):
         if self._h_ints is None:
-            self._h_ints = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts).run()
-        if not ('directed' in settings and settings['directed'] == True and
+            self._h_ints = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts.copy()).run()
+        if settings is not None and not ('directed' in settings and settings['directed'] == True and
                 'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
                 'simple or compound' in settings and settings['simple or compound'] == 'compound'):
             # pdb.set_trace()
@@ -452,14 +458,16 @@ class IndexedPiece(object):
 
 
 
-    def _get_v_ints(self, settings=_default_interval_setts, known_opus=False):
+    def _get_v_ints(self, settings=None, known_opus=False):
         if self._v_ints is None:
-            print '***********here'
-            self._v_ints = interval.IntervalIndexer(self._get_noterest(), _default_interval_setts).run()
-        if not ('directed' in settings and settings['directed'] == True and
+            self._v_ints = interval.IntervalIndexer(self._get_noterest(), settings=_default_interval_setts.copy()).run()
+        if settings is not None and not ('directed' in settings and settings['directed'] == True and
                 'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
                 'simple or compound' in settings and settings['simple or compound'] == 'compound'):
-            return interval.IntervalReindexer(self._v_ints, settings).run()
+            temp = _default_interval_setts.copy()
+            temp.update(settings)
+            df = self._v_ints.copy()
+            return interval.IntervalReindexer(df, temp).run()
         return self._v_ints
 
     def _get_m21_measure_objs(self, known_opus=False):
@@ -481,20 +489,20 @@ class IndexedPiece(object):
             self._noterest = result
         return self._noterest
 
-    # def _get_beatstrength(self, known_opus=False):
-    #     if self._beatstrength is None:
-    #         self._beatstrength = self._get_m21_nr_no_tied().applymap(meter.bsTest)
-    #     return self._beatstrength
-
-    def _get_beatstrength(self, known_opus=False): # This implementation works too.
+    def _get_beatstrength(self, known_opus=False):
         if self._beatstrength is None:
-            sers = [self._get_m21_nr_no_tied().iloc[:, i].dropna() for i in range(len(self._get_m21_nr_no_tied().columns))]
-            lobs = [pandas.Series(list(map(_bsTest, sers[i])), index=sers[i].index) for i in range(len(sers))]
-            result = pandas.concat(lobs, axis=1)
-            labels = [str(x) for x in range(len(result.columns))]
-            result.columns = pandas.MultiIndex.from_product((('NoteBeatStrengthIndexer',), labels), names=_names)
-            self._beatstrength = result
+            self._beatstrength = self._get_m21_nr_no_tied().applymap(_bsTest)
         return self._beatstrength
+
+    # def _get_beatstrength(self, known_opus=False): # This implementation works too.
+    #     if self._beatstrength is None:
+    #         sers = [self._get_m21_nr_no_tied().iloc[:, i].dropna() for i in range(len(self._get_m21_nr_no_tied().columns))]
+    #         lobs = [pandas.Series(list(map(_bsTest, sers[i])), index=sers[i].index) for i in range(len(sers))]
+    #         result = pandas.concat(lobs, axis=1)
+    #         labels = [str(x) for x in range(len(result.columns))]
+    #         result.columns = pandas.MultiIndex.from_product((('NoteBeatStrengthIndexer',), labels), names=_names)
+    #         self._beatstrength = result
+    #     return self._beatstrength
 
     def _get_new_measure_results(self, known_opus=False):
         if self._new_measure_results is None:
@@ -615,8 +623,8 @@ class IndexedPiece(object):
 
         # if self._v_ints is None:
         #     m21_objs = self._get_m21_nr_no_tied()
-        #     combos = [pandas.concat((m21_objs.iloc[:,x[0]], m21_objs.iloc[:,x[1]]), axis=1).fillna(method='ffill')
-        #               for x in combinations(range(len(m21_objs.columns)), 2)]
+        #     combos = [pandas.concat((self._score.iloc[:,x[0]], self._score.iloc[:,x[1]]), axis=1).fillna(method='ffill')
+        #               for x in combinations(range(len(self._score.columns)), 2)]
         #     v_sers = [pandas.Series(list(map(_int_func, df.iloc[:, 1], df.iloc[:, 0])),
         #                             index=df.index) for df in combos]
         #     result = pandas.concat(v_sers, axis=1)
