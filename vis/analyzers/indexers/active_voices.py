@@ -75,6 +75,11 @@ class ActiveVoicesIndexer(indexer.Indexer):
         """
         :returns: Make a new index of the active voices in the piece.
         :rtype: :class:`pandas.DataFrame`
+        
+        PLEASE ADD (since it will become part of the auto-generated documentation):
+        **Example:**
+        
+        
         """
 
         num_voices = []
