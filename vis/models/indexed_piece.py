@@ -151,6 +151,23 @@ def _int_func(ev1, ev2):
         post = '-' if ntrvl.direction == -1 else ''
         return post + ntrvl.name
 
+def _dur_func(event):
+    if isinstance(event, float):
+        return event
+    return event.quarterLength
+
+def _combine_tied(df1, df2):
+    cols1 = [df1.iloc[:, x].dropna() for x in range(len(df1.columns))]
+    cols2 = [df2.iloc[:, x].dropna() for x in range(len(df2.columns))]
+
+    for i, ser2 in enumerate(cols2):
+        for j, val2 in enumerate(ser2):
+            if ser2.index[j] not in cols1[i].index:
+                ser2.at[ser2.iloc[:j].last_valid_index()] += val2
+                ser2.iat[j] = float('nan')
+        ser2 = ser2.dropna()
+    return pandas.concat(cols2, axis=1).dropna(how='all')
+
 def series_method(val, int_type=None):
     if val == 'Rest':
         return val
@@ -254,6 +271,7 @@ class IndexedPiece(object):
         self._m21_noterest_no_tied = None
         self._m21_measure_objs = None
         self._noterest = None
+        self._duration = None
         self._beatstrength = None
         self._new_measure_results = None
         self._fermatas = None
@@ -456,8 +474,6 @@ class IndexedPiece(object):
             return interval.IntervalReindexer(self._h_ints, settings).run()
         return self._h_ints
 
-
-
     def _get_v_ints(self, settings=None, known_opus=False):
         if self._v_ints is None:
             self._v_ints = interval.IntervalIndexer(self._get_noterest(), settings=_default_interval_setts.copy()).run()
@@ -489,9 +505,21 @@ class IndexedPiece(object):
             self._noterest = result
         return self._noterest
 
+    def _get_duration(self):
+        if self._duration is None:
+            post = self._get_m21_nr_objs().applymap(_dur_func)
+            post = _combine_tied(self._get_noterest(), post)
+            post.columns = pandas.MultiIndex.from_product((('meter.DurationIndexer',), [str(x) for x in range(len(post.columns))]), names=_names)
+            self._duration = post
+        return self._duration
+
+
+
     def _get_beatstrength(self, known_opus=False):
         if self._beatstrength is None:
-            self._beatstrength = self._get_m21_nr_no_tied().applymap(_bsTest)
+            post = self._get_m21_nr_no_tied().applymap(_bsTest)
+            post.columns = pandas.MultiIndex.from_product((('meter.NoteBeatStrengthIndexer',), [str(x) for x in range(len(post.columns))]), names=_names)
+            self._beatstrength = post
         return self._beatstrength
 
     # def _get_beatstrength(self, known_opus=False): # This implementation works too.
