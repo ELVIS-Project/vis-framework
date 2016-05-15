@@ -136,6 +136,11 @@ class ContourIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the contours.
         :rtype: :class:`pandas.DataFrame`
+        
+        PLEASE ADD:
+        
+        **Example:**
+        
         """
         
         contours = []
