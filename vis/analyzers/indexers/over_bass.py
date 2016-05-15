@@ -99,6 +99,10 @@ class OverBassIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the intervals over the bass.
         :rtype: :class:`pandas.DataFrame`
+        
+        PLEASE ADD:
+        **Example:**
+        
         """
 
         pairs = []
