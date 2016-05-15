@@ -32,13 +32,14 @@ This model represents an indexed and analyzed piece of music.
 # Imports
 import os
 import six
+import numpy
 import pandas
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from music21 import interval as m21int
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest, meter, interval
+from vis.analyzers.indexers import noterest, meter, interval, dissonance
 from itertools import combinations
 import pdb
 import time
@@ -150,6 +151,15 @@ def _int_func(ev1, ev2):
         ntrvl = m21int.Interval(ev1, ev2)
         post = '-' if ntrvl.direction == -1 else ''
         return post + ntrvl.name
+
+
+def _attach_before(df):
+        re_indexed = []
+        for x in range(len(df.columns)):
+            ser = df.iloc[:, x].dropna()
+            ser.index = numpy.insert(ser.index, 0, 0.0)[:-1]
+            re_indexed.append(ser)
+        return pandas.concat(re_indexed, axis=1)
 
 def _dur_func(event):
     if isinstance(event, float):
@@ -273,6 +283,7 @@ class IndexedPiece(object):
         self._noterest = None
         self._duration = None
         self._beatstrength = None
+        self._dissonance = None
         self._new_measure_results = None
         self._fermatas = None
         self._h_ints = None
@@ -464,6 +475,7 @@ class IndexedPiece(object):
             self._m21_noterest_no_tied = self._get_m21_nr_objs(known_opus).applymap(_eliminate_ties).dropna(how='all')
         return self._m21_noterest_no_tied
 
+
     def _get_h_ints(self, settings=None, known_opus=False):
         if self._h_ints is None:
             self._h_ints = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts.copy()).run()
@@ -471,7 +483,10 @@ class IndexedPiece(object):
                 'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
                 'simple or compound' in settings and settings['simple or compound'] == 'compound'):
             # pdb.set_trace()
-            return interval.IntervalReindexer(self._h_ints, settings).run()
+            post = interval.IntervalReindexer(self._h_ints, settings).run()
+            if 'horiz_attach_later' not in settings or not settings['horiz_attach_later']:
+                post = _attach_before(post)
+            return post
         return self._h_ints
 
     def _get_v_ints(self, settings=None, known_opus=False):
@@ -485,6 +500,14 @@ class IndexedPiece(object):
             df = self._v_ints.copy()
             return interval.IntervalReindexer(df, temp).run()
         return self._v_ints
+
+    def _get_dissonance(self, known_opus=False):
+        if self._dissonance is None:
+            h_setts = {'quality': False, 'simple or compound': 'compound'}
+            v_setts = setts = {'quality': True, 'simple or compound': 'simple'}
+            in_dfs = [self._get_beatstrength(), self._get_duration(), self._get_h_ints(h_setts), self._get_v_ints(v_setts)]
+            self._dissonance = dissonance.DissonanceIndexer(in_dfs).run()
+        return self._dissonance
 
     def _get_m21_measure_objs(self, known_opus=False):
         """Makes a dataframe of the measure objects in the indexed_piece. Note that midi files do not have 
