@@ -30,7 +30,6 @@
 from vis.analyzers import indexer
 import music21
 import pandas
-import pdb
 
 
 def COM_matrix(contour):
@@ -136,13 +135,20 @@ class ContourIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the contours.
         :rtype: :class:`pandas.DataFrame`
-        
-        PLEASE ADD:
-        
+
         **Example:**
-        
+
+        import music21
+        from vis.analyzers.indexers import noterest, contour
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        settings = {'length': 3}
+        contours = contour.ContourIndexer(notes).run()
+        print(contours)
         """
-        
+
         contours = []
 
         for v, voice in enumerate(self.score.columns.values):
