@@ -40,12 +40,14 @@ class OverBassIndexer(indexer.Indexer):
     required_score_type = 'pandas.DataFrame'
     possible_settings = ['horizontal', 'type']
     """
-    :keyword 'horizontal': The horizontal voice you wish to use as a bass. If not indicated, this is automatically assigned to the lowest voice.
+    :keyword 'horizontal': The horizontal voice you wish to use as a bass.
+        If not indicated, this is automatically assigned to the lowest voice.
     :type 'horizontal': int
 
-    :keyword 'type': The type of horizontal event you wish to index. 
-        The default is 'intervals', which should be used if you are passing in the results of the HorizontalIntervalIndexer. 
-        If you are passing in the results of the NoteRestIndexer or FilterByOffsetIndexer those should be indentified as "notes" or "offsets"
+    :keyword 'type': The type of horizontal event you wish to index.
+        The default is 'notes', which should be used if you are passing
+        in the results of the NoteRestIndexer.
+        If you are passing in the results of the HorizontalIntervalIndexer.
     :type 'type': str
     """
 
@@ -63,18 +65,20 @@ class OverBassIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if the optional setting ``horizontal`` indicates a voice that does not exist
         """
 
-        if settings is None:
-            self._settings = {}
-            self._settings['type'] = 'intervals'
-        elif 'type' not in settings and 'horizontal' in settings:
-            self._settings = {}
-            self._settings['type'] = 'intervals'
-            self._settings['horizontal'] = settings['horizontal']
-        else:
-            self._settings = settings
+        self._settings = {'type': 'notes'}
 
-        types = {'intervals': 'interval.HorizontalIntervalIndexer', 
-                'notes': 'noterest.NoteRestIndexer'}
+        if settings is not None:
+            self._settings.update(settings)
+
+        if 'horizontal' not in self._settings:
+            self._settings['horizontal'] = len(self.horiz_score.columns) - 1
+        elif self._settings['horizontal'] > len(self.horiz_score.columns) - 1:
+            raise RuntimeError(self._WRONG_HORIZ)
+
+        self.horizontal_voice = self._settings['horizontal']
+
+        types = {'intervals': 'interval.HorizontalIntervalIndexer',
+                 'notes': 'noterest.NoteRestIndexer'}
 
         if self._settings['type'] in types and types[self._settings['type']] in score:
             self.horiz_score = score[types[self._settings['type']]]
@@ -83,15 +87,7 @@ class OverBassIndexer(indexer.Indexer):
 
         self.vert_score = score['interval.IntervalIndexer']
 
-        if 'horizontal' not in self._settings:
-            self._settings['horizontal'] = len(self.horiz_score.columns) - 1
-        elif self._settings['horizontal'] > len(self.horiz_score.columns) - 1:
-            raise RuntimeError(self._WRONG_HORIZ)
-
-        self.horizontal_voice = self._settings['horizontal']
-            
         super(OverBassIndexer, self).__init__(score, None)
-
 
     def run(self):
         """
@@ -99,10 +95,21 @@ class OverBassIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the intervals over the bass.
         :rtype: :class:`pandas.DataFrame`
-        
-        PLEASE ADD:
+
         **Example:**
-        
+
+        import music21
+        import pandas
+        import vis.analyzers.indexers import noterest, interval, over_bass
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+        intervals = interval.IntervalIndexer(notes).run()
+
+        df = pandas.concat([notes, intervals])
+
+        overbass = over_bass.OverBassIndexer(df).run()
+        print(overbass)
         """
 
         pairs = []
