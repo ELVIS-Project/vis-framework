@@ -85,11 +85,12 @@ class FermataIndexer(indexer.Indexer):
 
         **Example:**
 
-        >>> import vis
-        >>> VIS_PATH = vis.__path__[0]
-        >>> ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
-        >>> fermatas = ind_piece.get_data([fermata.FermataIndexer])
-        >>> print fermatas
+        import music21
+        from vis.analyzers.indexers import fermata
+
+        score = music21.converter.parse('example.xml')
+        fermatas = fermata.FermataIndexer(score).run()
+        print(fermatas)
         """
         combinations = [[x] for x in range(len(self._score))]  # calculate each voice separately
         results = self._do_multiprocessing(combinations)

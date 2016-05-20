@@ -97,9 +97,5 @@ class ActiveVoicesIndexer(indexer.Indexer):
                 if ind == most.iloc[n - 1]:
                     most = most.drop(indices[n])
 
-<<<<<<< HEAD
         result = pandas.DataFrame({'Active Voices': most})
-=======
-        result = pandas.DataFrame({'Active Voices': pandas.Series(num_voices, index=indices)})
->>>>>>> bd587b6305707474dd15bec7c3863f2e11119645
         return self.make_return(result.columns.values, [result[name] for name in result.columns])
