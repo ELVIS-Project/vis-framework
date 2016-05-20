@@ -27,10 +27,8 @@
 
 """
 
-import music21
 from vis.analyzers import indexer
 import pandas
-import pdb
 
 
 def indexer1(x):
@@ -81,11 +79,17 @@ class ActiveVoicesIndexer(indexer.Indexer):
         """
         :returns: Make a new index of the active voices in the piece.
         :rtype: :class:`pandas.DataFrame`
-        
-        PLEASE ADD (since it will become part of the auto-generated documentation):
+
         **Example:**
-        
-        
+
+        import music21
+        from vis.analyzers.indexers import noterest, active_voices
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        av = active_voices.ActiveVoicesIndexer(notes).run()
+        print(av)
         """
 
         post = self.score.applymap(indexer1)
