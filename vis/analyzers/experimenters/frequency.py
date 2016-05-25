@@ -79,6 +79,18 @@ class FrequencyExperimenter(experimenter.Experimenter):
             the "all" column, and that not every part combination will have every interval; in \
             case an interval does not appear in a part combination, the value is :obj:`numpy.NaN`.
         :rtype: list of :class:`pandas.DataFrame`
+
+        ***Example:***
+
+        import music21
+        from vis.analyzers.indexers import noterest
+        from vis.analyzers.experimenters import frequency
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        freqs = frequency.FrequencyExperimenter(notes).run()
+        print(freqs)
         """
 
         # ensure we have a list of DatFrame

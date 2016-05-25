@@ -106,5 +106,3 @@ class Windexer(indexer.Indexer):
             l += 1
 
         return windowed
-
-
