@@ -120,6 +120,11 @@ class TestCadenceIndexer(TestCase):
         actual = cadence.CadenceIndexer(df, settings).run()
         self.assertTrue(actual.equals(CADENCE))
 
+    def test_cadence2(self):
+        settings = {'length': 2, 'voice': 0}
+        actual = cadence.CadenceIndexer(df, settings).run()
+        self.assertTrue(actual.equals(CADENCE))
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
