@@ -37,9 +37,14 @@ def COM_matrix(contour):
     Returns matrix representing the contour given
     """
     com = []
+
+    contour = contour.replace(' ', '')
+    contour = contour.replace('[', '')
+    contour = contour.replace(']', '')
+    contour = contour.split(',')
+
     for x in contour:
         com.append([])
-
     for i in range(len(contour)):
         for x in range(len(contour)):
             if contour[i] == contour[x]:
@@ -58,12 +63,12 @@ def getContour(notes):
     """
 
     contour = list(map(music21.note.Note, notes))
-    
+
     cseg = [0] * len(contour)
 
     for i in range(len(contour)):
         notes = []
-        
+
         for x in range(len(contour)):
             if (music21.interval.getAbsoluteHigherNote(contour[i], contour[x]) == contour[i]) and (contour[i].nameWithOctave != contour[x].nameWithOctave) and (contour[x].nameWithOctave not in notes):
                 notes.append(contour[x].nameWithOctave)
@@ -84,9 +89,9 @@ def compare(contour1, contour2):
             if c1 == c2:
                 count += 1
 
-    count = (count-l)/2
-    total = (l*(l-1))/2
-    return count/total
+    count = float((count - l) / 2)
+    total = float((l * (l - 1)) / 2)
+    return count / total
 
 
 class ContourIndexer(indexer.Indexer):
