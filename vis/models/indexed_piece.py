@@ -245,7 +245,6 @@ class IndexedPiece(object):
                         self._metadata[field] = '???'
             self._metadata['parts'] = _find_part_names(score)
             self._metadata['title'] = _find_piece_title(score)
-            print 'here'
             self._metadata['partRanges'] = _find_part_ranges(score)
             self._metadata['pieceRange'] = _find_piece_range(score)
             self._imported = True
