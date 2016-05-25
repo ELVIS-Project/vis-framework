@@ -30,9 +30,8 @@ Index fermatas.
 
 import six
 from numpy import NaN  # pylint: disable=no-name-in-module
-from music21 import stream, expressions, note
+from music21 import expressions
 from vis.analyzers import indexer
-import pdb
 
 def indexer_func(obj):
     """
