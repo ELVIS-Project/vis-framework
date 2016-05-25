@@ -47,6 +47,8 @@ class Windexer(indexer.Indexer):
 
     default_settings = {'window_size': 4}
 
+    _BIG_WINDOW = 'Window size is too large'
+
     def __init__(self, score, settings=None):
         """
         :param score: The input from which to produce a new index.
@@ -62,7 +64,7 @@ class Windexer(indexer.Indexer):
         if settings is None:
             self._settings = Windexer.default_settings
         elif settings['window_size'] > len(score):
-            raise RuntimeError
+            raise RuntimeError(self._BIG_WINDOW)
         else:
             self._settings = settings
 
