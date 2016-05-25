@@ -68,6 +68,17 @@ class FilterByRepeatIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the new indices.
         :rtype: :class:`pandas.DataFrame`
+
+        ***Example:***
+
+        import music21
+        from vis.analyzers.indexers import noterest
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        repeats = repeat.FilterByRepeatIndexer(notes).run()
+        print(repeats)
         """
         # I'm relying on pandas' efficiency. In the future, maybe we should use multiprocessing?
         post = []

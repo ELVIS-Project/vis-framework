@@ -76,6 +76,18 @@ class Windexer(indexer.Indexer):
         Make a new windowed index of the indexer results.
         :returns: The new windowed DataFrame.
         :rtype: :class:`pandas.DataFrame`
+
+        ***Example:***
+
+        import music21
+        from vis.analyzers.indexers import noterest
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        settings = {'window_size': 4}
+        windowed = windexer.Windexer(notes, settings).run()
+        print(windowed)
         """
 
         x = 0
