@@ -63,10 +63,10 @@ from vis.tests import test_windexer
 
 THE_TESTS = (  # Indexer and Subclasses
              test_fermata_indexer.FERMATA_INDEXER_SUITE,
-             # test_indexer.INDEXER_INIT_SUITE,
-             # test_indexer.INDEXER_1_PART_SUITE,
-             # test_indexer.INDEXER_MULTI_EVENT_SUITE,
-             # # test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
+             test_indexer.INDEXER_INIT_SUITE,
+             test_indexer.INDEXER_1_PART_SUITE,
+             test_indexer.INDEXER_MULTI_EVENT_SUITE,
+             # test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_duration_indexer.DURATION_INDEXER_SUITE,
              test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,
@@ -81,42 +81,42 @@ THE_TESTS = (  # Indexer and Subclasses
              test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,
              test_offset.OFFSET_INDEXER_SINGLE_SUITE,
              test_offset.OFFSET_INDEXER_MULTI_SUITE,
-             # test_lilypond.ANNOTATION_SUITE,
-             # test_lilypond.ANNOTATE_NOTE_SUITE,
-             # test_lilypond.PART_NOTES_SUITE,
-             # test_lilypond.LILYPOND_SUITE,
+             test_lilypond.ANNOTATION_SUITE,
+             test_lilypond.ANNOTATE_NOTE_SUITE,
+             test_lilypond.PART_NOTES_SUITE,
+             test_lilypond.LILYPOND_SUITE,
              test_over_bass.OVER_BASS_INDEXER_SUITE,
              test_cadence.CADENCE_INDEXER_SUITE,
              test_contour.CONTOUR_INDEXER_SUITE,
-             test_active_voices.ACTIVE_VOICES_INDEXER_SUITE, 
-             test_windexer.WINDEXER_SUITE
+             test_active_voices.ACTIVE_VOICES_INDEXER_SUITE,
+             test_windexer.WINDEXER_SUITE,
              # Experimenter and Subclasses
-             # test_frequency_experimenter.FREQUENCY_SUITE,
-             # test_aggregator.COLUMN_AGGREGATOR_SUITE,
-             # test_barchart.R_BAR_CHART_SUITE,
+             test_frequency_experimenter.FREQUENCY_SUITE,
+             test_aggregator.COLUMN_AGGREGATOR_SUITE,
+             test_barchart.R_BAR_CHART_SUITE,
              # test_dendrogram.DENDROGRAM_SUITE,
-             # # IndexedPiece and AggregatedPieces
+             # IndexedPiece and AggregatedPieces
              # test_indexed_piece.INDEXED_PIECE_SUITE_A,
-             # test_indexed_piece.INDEXED_PIECE_SUITE_B,
-             # test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
-             # test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
-             # # WorkflowManager
-             # test_workflow.WORKFLOW_TESTS,
-             # test_workflow.FILTER_DATA_FRAME,
-             # test_workflow.MAKE_TABLE,
-             # test_workflow.EXTRA_PAIRS,
-             # test_workflow.SETTINGS,
-             # test_workflow.OUTPUT,
-             # test_workflow.MAKE_HISTOGRAM,
-             # test_workflow.MAKE_LILYPOND,
-             # test_workflow.AUX_METHODS,
-             # test_workflow_experiments.INTERVAL_NGRAMS,
-             # test_workflow_experiments.INTERVALS,
-             # # Integration Tests
-             # bwv2.ALL_VOICE_INTERVAL_NGRAMS,
-             # bwv603.ALL_VOICE_INTERVAL_NGRAMS,
-             # test_workflow_integration.INTERVALS_TESTS,
-             # test_workflow_integration.NGRAMS_TESTS,
+             test_indexed_piece.INDEXED_PIECE_SUITE_B,
+             test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
+             test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
+             # WorkflowManager
+             test_workflow.WORKFLOW_TESTS,
+             test_workflow.FILTER_DATA_FRAME,
+             test_workflow.MAKE_TABLE,
+             test_workflow.EXTRA_PAIRS,
+             test_workflow.SETTINGS,
+             test_workflow.OUTPUT,
+             test_workflow.MAKE_HISTOGRAM,
+             test_workflow.MAKE_LILYPOND,
+             test_workflow.AUX_METHODS,
+             test_workflow_experiments.INTERVAL_NGRAMS,
+             test_workflow_experiments.INTERVALS,
+             # Integration Tests
+             bwv2.ALL_VOICE_INTERVAL_NGRAMS,
+             bwv603.ALL_VOICE_INTERVAL_NGRAMS,
+             test_workflow_integration.INTERVALS_TESTS,
+             test_workflow_integration.NGRAMS_TESTS,
         )
 
 

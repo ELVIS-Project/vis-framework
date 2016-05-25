@@ -26,48 +26,6 @@
 from unittest import TestCase, TestLoader
 import pandas
 from vis.analyzers.indexers import active_voices
-import pdb
-
-
-# def make_dataframe(labels, indices, name):
-#     ret = pandas.concat(indices, levels=labels, axis=1)
-#     iterables = (name, labels)
-#     multi_index = pandas.MultiIndex.from_product(iterables, names=('Indexer', 'Parts'))
-#     ret.columns = multi_index
-#     return ret
-
-# indices = [[0.0, 1.0, 1.5, 3.0, 3.5, 4.0, 7.5],
-#            [0.0, 1.0, 1.5, 2.5, 3.5, 4.0, 4.5, 6.0],
-#            [0.5, 1.5, 3.0, 3.5, 4.0, 5.0, 6.0],
-#            [0.0, 2.5, 4.0, 7.5]]
-# notes = [['G4', 'D4', 'G4', 'Rest', 'B4', 'D5', 'C5'],
-#          ['G4', 'D4', 'Rest', 'B4', 'D5', 'C5', 'Rest', 'Rest'],
-#          ['B4', 'D5', 'C5', 'Rest', 'Rest', 'D3', 'F3'],
-#          ['B4', 'D5', 'C5', 'Rest']]
-
-# name = 'noterest.NoteRestIndexer'
-# results = []
-# for x in range(len(indices)):
-#     results.append(pandas.Series(notes[x], index=indices[x], name=str(x)))
-# result = pandas.concat(results, axis=1)
-# NOTES = make_dataframe(result.columns.values, [result[nam] for nam in result.columns], name)
-
-# indices = [0.0, 0.5, 1.5, 2.5, 3.0, 4.5, 5.0, 7.5]
-# show_indices = [0.0, 0.5, 1.0, 1.5, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.5]
-# att_indices = [0.0, 0.5, 1.0, 3.0, 3.5, 4.0, 4.5, 5.0]
-# att_voices = [3, 1, 2, 1, 2, 3, 0, 1]
-# voices = [3, 4, 3, 4, 3, 2, 3, 2]
-# show_voices = [3, 4, 4, 3, 4, 3, 3, 3, 2, 3, 3, 2]
-# title = 'active_voices.ActiveVoicesIndexer'
-
-# result = pandas.DataFrame(pandas.Series(voices, indices, name='Active Voices'))
-# EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
-
-# result = pandas.DataFrame(pandas.Series(att_voices, att_indices, name='Active Voices'))
-# ATT_EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
-
-# result = pandas.DataFrame(pandas.Series(show_voices, show_indices, name='Active Voices'))
-# SHOW_EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
 
 
 class TestActiveVoicesIndexer(TestCase):
@@ -120,7 +78,6 @@ class TestActiveVoicesIndexer(TestCase):
         self.EXPECTED = None
         self.ATT_EXPECTED = None
         self.SHOW_EXPECTED = None
-
 
     def test_init1(self):
         """tests that __init__() works with no settings given"""

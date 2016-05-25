@@ -28,7 +28,6 @@
 # allow "too many public methods" for TestCase
 # pylint: disable=R0904
 
-
 import os
 import unittest
 import pandas as pd
@@ -102,7 +101,6 @@ diss_mI = pd.MultiIndex.from_product((diss_ind, ('0', '1')), names=names)
 empty_df = make_df([empty, empty], diss_mI)
 
 
-
 class TestDissonanceIndexer(unittest.TestCase):
     """
     Limited unit tests and two integration tests for the dissonance indexer.
@@ -147,53 +145,50 @@ class TestDissonanceIndexer(unittest.TestCase):
         actual = init._is_passing_or_neigh(1, '0,1', 'M2', 'P1')
         self.assertSequenceEqual(expected, actual)
 
-    # def test_diss_indexer_run_1a(self):
-    #     """
-    #     Detection of two rising passing tones in a mini-piece.
-    #     """
-    #     in_dfs = [qh_b_df, qh_dur_df, qh_h_df, asc_q_v_df]
-    #     print(in_dfs)
-    #     expected = empty_df.copy()
-    #     expected.iat[1, 0] = 'R'
-    #     expected.iat[3, 0] = 'R'
-    #     print(expected)
-    #     actual = dissonance.DissonanceIndexer(in_dfs).run()
-    #     print(actual)
-    #     assert_frame_equal(expected, actual)
+    def test_diss_indexer_run_1a(self):
+        """
+        Detection of two rising passing tones in a mini-piece.
+        """
+        in_dfs = [qh_b_df, qh_dur_df, qh_h_df, asc_q_v_df]
+        expected = empty_df.copy()
+        expected.iat[1, 0] = 'R'
+        expected.iat[3, 0] = 'R'
+        actual = dissonance.DissonanceIndexer(in_dfs).run()
+        assert_frame_equal(expected, actual)
 
-    # def test_diss_indexer_run_1b(self):
-    #     """
-    #     Detection of two descending passing tones in a mini-piece. NB: the int size increases even 
-    #     though the passing tones are descending because the passing tones are in the lower voice
-    #     """
-    #     in_dfs = [hq_b_df, hq_dur_df, hdescq_h_df, asc_q_v_df]
-    #     expected = empty_df.copy()
-    #     expected.iat[1, 1] = 'D'
-    #     expected.iat[3, 1] = 'D'
-    #     actual = dissonance.DissonanceIndexer(in_dfs).run()
-    #     assert_frame_equal(expected, actual)
+    def test_diss_indexer_run_1b(self):
+        """
+        Detection of two descending passing tones in a mini-piece. NB: the int size increases even 
+        though the passing tones are descending because the passing tones are in the lower voice
+        """
+        in_dfs = [hq_b_df, hq_dur_df, hdescq_h_df, asc_q_v_df]
+        expected = empty_df.copy()
+        expected.iat[1, 1] = 'D'
+        expected.iat[3, 1] = 'D'
+        actual = dissonance.DissonanceIndexer(in_dfs).run()
+        assert_frame_equal(expected, actual)
 
-    # def test_diss_indexer_run_2(self):
-    #     """
-    #     Test the dissonance indexer on an entire real piece that has most of the dissonance types 
-    #     and covers almost all of the logic, namely the "Kyrie" in the test corpus. NB: perhaps 
-    #     this test should get moved to the integration tests file.
-    #     """
-    #     pathname = os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn')
-    #     test_piece = converter.parse(pathname)
-    #     parts = test_piece.parts
-    #     nr = noterest.NoteRestIndexer(parts).run()
-    #     bs = meter.NoteBeatStrengthIndexer(parts).run()
-    #     dur = meter.DurationIndexer(parts).run()
-    #     horiz_setts = {'quality': False, 'simple or compound': 'compound'}
-    #     horiz = interval.HorizontalIntervalIndexer(nr, horiz_setts).run()
-    #     vert_setts = {'quality': True, 'simple or compound': 'simple'}
-    #     vert = interval.IntervalIndexer(nr, vert_setts).run()
+    def test_diss_indexer_run_2(self):
+        """
+        Test the dissonance indexer on an entire real piece that has most of the dissonance types 
+        and covers almost all of the logic, namely the "Kyrie" in the test corpus. NB: perhaps 
+        this test should get moved to the integration tests file.
+        """
+        pathname = os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn')
+        test_piece = converter.parse(pathname)
+        parts = test_piece.parts
+        nr = noterest.NoteRestIndexer(parts).run()
+        bs = meter.NoteBeatStrengthIndexer(parts).run()
+        dur = meter.DurationIndexer(parts).run()
+        horiz_setts = {'quality': False, 'simple or compound': 'compound'}
+        horiz = interval.HorizontalIntervalIndexer(nr, horiz_setts).run()
+        vert_setts = {'quality': True, 'simple or compound': 'simple'}
+        vert = interval.IntervalIndexer(nr, vert_setts).run()
 
-    #     in_dfs = [bs, dur, horiz, vert]
-    #     expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
-    #     actual = dissonance.DissonanceIndexer(in_dfs).run()
-    #     assert_frame_equal(expected, actual)
+        in_dfs = [bs, dur, horiz, vert]
+        expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
+        actual = dissonance.DissonanceIndexer(in_dfs).run()
+        assert_frame_equal(expected, actual)
 
 
 #-------------------------------------------------------------------------------------------------#

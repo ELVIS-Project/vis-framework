@@ -23,11 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
-import os
 from unittest import TestCase, TestLoader
 import pandas
 from vis.analyzers.indexers import cadence
-import vis
 
 
 def make_dataframe(labels, indices, name):

@@ -138,32 +138,6 @@ class TestOverBassIndexer(TestCase):
         except RuntimeError as run_err:
             self.assertEqual(over_bass.OverBassIndexer._WRONG_TYPE, run_err.args[0])
 
-
-    # def test_init6(self):
-    #     """tests that __init__() fails when the given type doesn't exist"""
-
-    #     setts = {'type': 'fake_type'}
-    #     self.assertRaises(RuntimeError, over_bass.OverBassIndexer, df, setts)
-    #     try:
-    #         over_bass.OverBassIndexer(df, setts)
-    #     except RuntimeError as run_err:
-    #         self.assertEqual(over_bass.OverBassIndexer._WRONG_TYPE, run_err.args[0])
-
-
-    # def test_overbass(self):
-    #     """test with intervals"""
-
-    #     actual = over_bass.OverBassIndexer(pandas.concat([HORIZ, VERT], axis=1)).run()
-    #     self.assertTrue(actual.equals(EXPECTED))
-
-
-    # def test_overbass_notes(self):
-    #     """test with notes type"""
-
-    #     settings = {'type': 'notes'}
-    #     actual = over_bass.OverBassIndexer(pandas.concat([NOTES, VERT], axis=1), settings).run()
-    #     self.assertTrue(actual.equals(EXPECTED_NOTES))        
-
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
