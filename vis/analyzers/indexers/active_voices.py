@@ -29,6 +29,7 @@
 
 from vis.analyzers import indexer
 import pandas
+import copy
 
 
 def indexer1(x):
@@ -54,6 +55,7 @@ class ActiveVoicesIndexer(indexer.Indexer):
     """
     default_settings = {'attacked': False, 'show_all': False}
 
+
     def __init__(self, score, settings=None):
         """
         :param score: The input from which to produce a new index.
@@ -63,8 +65,7 @@ class ActiveVoicesIndexer(indexer.Indexer):
 
         :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
         """
-
-        self._settings = self.default_settings
+        self._settings = self.default_settings.copy()
         if settings is not None:
             self._settings.update(settings)
 
