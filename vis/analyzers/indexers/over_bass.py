@@ -68,13 +68,6 @@ class OverBassIndexer(indexer.Indexer):
         if settings is not None:
             self._settings.update(settings)
 
-        if 'horizontal' not in self._settings:
-            self._settings['horizontal'] = len(self.horiz_score.columns) - 1
-        elif self._settings['horizontal'] > len(self.horiz_score.columns) - 1:
-            raise RuntimeError(self._WRONG_HORIZ)
-
-        self.horizontal_voice = self._settings['horizontal']
-
         types = {'intervals': 'interval.HorizontalIntervalIndexer',
                  'notes': 'noterest.NoteRestIndexer'}
 
@@ -82,6 +75,13 @@ class OverBassIndexer(indexer.Indexer):
             self.horiz_score = score[types[self._settings['type']]]
         else:
             raise RuntimeError(self._WRONG_TYPE)
+
+        if 'horizontal' not in self._settings:
+            self._settings['horizontal'] = len(self.horiz_score.columns) - 1
+        elif self._settings['horizontal'] > len(self.horiz_score.columns) - 1:
+            raise RuntimeError(self._WRONG_HORIZ)
+
+        self.horizontal_voice = self._settings['horizontal']
 
         self.vert_score = score['interval.IntervalIndexer']
 
