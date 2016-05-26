@@ -94,9 +94,9 @@ THE_TESTS = (  # Indexer and Subclasses
              test_frequency_experimenter.FREQUENCY_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
              test_barchart.R_BAR_CHART_SUITE,
-             # test_dendrogram.DENDROGRAM_SUITE,
+             test_dendrogram.DENDROGRAM_SUITE,
              # IndexedPiece and AggregatedPieces
-             # test_indexed_piece.INDEXED_PIECE_SUITE_A,
+             test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_SUITE_B,
              test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
              test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
