@@ -57,8 +57,8 @@ _passes = set(('n', _no_diss_label, _unexplainable))
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
 h_ind = u'interval.HorizontalIntervalIndexer'
-bs_ind = u'metre.NoteBeatStrengthIndexer'
-dur_ind = u'metre.DurationIndexer'
+bs_ind = u'meter.NoteBeatStrengthIndexer'
+dur_ind = u'meter.DurationIndexer'
 diss_types = u'dissonance.DissonanceIndexer'
 
 

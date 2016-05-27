@@ -1,0 +1,14 @@
+// URLHandler.scriptSuite:
+
+{
+    Name = URLHandler;
+    AppleEventCode = "UrHD";
+
+    Commands = {
+        "GetURL" = {
+            CommandClass = URLHandlerClass;
+            AppleEventCode = GURL;
+            AppleEventClassCode = GURL;
+         };
+    };
+}

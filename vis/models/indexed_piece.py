@@ -33,7 +33,7 @@ This model represents an indexed and analyzed piece of music.
 import os
 import six
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
-from music21 import converter, stream
+from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
@@ -114,6 +114,25 @@ def _find_part_names(the_score):
     return post
 
 
+def _find_piece_range(the_score):
+
+    p = analysis.discrete.Ambitus()
+    p_range = p.getPitchSpan(the_score)
+
+    return p_range[0].nameWithOctave, p_range[1].nameWithOctave
+
+
+def _find_part_ranges(the_score):
+
+    ranges = []
+    for x in range(len(the_score.parts)):
+        p = analysis.discrete.Ambitus()
+        p_range = p.getPitchSpan(the_score.parts[x])
+        ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
+
+    return ranges
+
+
 class OpusWarning(RuntimeWarning):
     """
     The :class:`OpusWarning` is raised by :meth:`IndexedPiece.get_data` when ``known_opus`` is
@@ -164,7 +183,7 @@ class IndexedPiece(object):
             """
             field_list = ['opusNumber', 'movementName', 'composer', 'number', 'anacrusis',
                 'movementNumber', 'date', 'composers', 'alternativeTitle', 'title',
-                'localeOfComposition', 'parts']
+                'localeOfComposition', 'parts', 'pieceRange', 'partRanges']
             for field in field_list:
                 self._metadata[field] = ''
             self._metadata['pathname'] = pathname
@@ -226,6 +245,8 @@ class IndexedPiece(object):
                         self._metadata[field] = '???'
             self._metadata['parts'] = _find_part_names(score)
             self._metadata['title'] = _find_piece_title(score)
+            self._metadata['partRanges'] = _find_part_ranges(score)
+            self._metadata['pieceRange'] = _find_piece_range(score)
             self._imported = True
         return score
 

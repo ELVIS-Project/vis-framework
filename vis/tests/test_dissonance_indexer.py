@@ -28,14 +28,11 @@
 # allow "too many public methods" for TestCase
 # pylint: disable=R0904
 
-
 import os
 import unittest
-import six
 import pandas as pd
-import music21
 from music21 import converter
-from vis.analyzers.indexers import dissonance, noterest, metre, interval
+from vis.analyzers.indexers import dissonance, noterest, meter, interval
 from pandas.util.testing import assert_frame_equal
 
 # find the pathname of the 'vis' directory
@@ -53,9 +50,9 @@ def make_df(series_list, mI):
     return df
 
 # strings with which to make multiIndecies
-b_ind = u'metre.NoteBeatStrengthIndexer'
+b_ind = u'meter.NoteBeatStrengthIndexer'
 diss_ind = u'dissonance.DissonanceIndexer' # equivalent to diss_types in dissonance indexer, not diss_ind
-dur_ind = u'metre.DurationIndexer'
+dur_ind = u'meter.DurationIndexer'
 h_ind = u'interval.HorizontalIntervalIndexer'
 v_ind = u'interval.IntervalIndexer'
 names = ('Indexer', 'Parts')
@@ -102,7 +99,6 @@ desc_q_v_df = make_df((desc_q_v_ser,), v_mI)
 empty = pd.Series(['-']*6)
 diss_mI = pd.MultiIndex.from_product((diss_ind, ('0', '1')), names=names)
 empty_df = make_df([empty, empty], diss_mI)
-
 
 
 class TestDissonanceIndexer(unittest.TestCase):
@@ -182,8 +178,8 @@ class TestDissonanceIndexer(unittest.TestCase):
         test_piece = converter.parse(pathname)
         parts = test_piece.parts
         nr = noterest.NoteRestIndexer(parts).run()
-        bs = metre.NoteBeatStrengthIndexer(parts).run()
-        dur = metre.DurationIndexer(parts).run()
+        bs = meter.NoteBeatStrengthIndexer(parts).run()
+        dur = meter.DurationIndexer(parts).run()
         horiz_setts = {'quality': False, 'simple or compound': 'compound'}
         horiz = interval.HorizontalIntervalIndexer(nr, horiz_setts).run()
         vert_setts = {'quality': True, 'simple or compound': 'simple'}

@@ -30,7 +30,6 @@ Tests for the "dendrogram" experimenters.
 
 import unittest
 import pandas
-import vis
 from vis.analyzers.experimenters import dendrogram
 
 list_of_3_series_a = [pandas.Series([1, 1, 1], index=['A', 'B', 'C']),

@@ -36,7 +36,7 @@ import os
 import unittest
 import pandas
 from music21 import converter, stream, note
-from vis.analyzers.indexers import metre
+from vis.analyzers.indexers import meter
 
 # find the pathname of the 'vis' directory
 import vis
@@ -50,8 +50,8 @@ class TestMeasureIndexer(unittest.TestCase):
         # When the parts are empty
         expected = {'0': pandas.Series(), '1': pandas.Series()}
         test_part = [stream.Part(), stream.Part()]
-        measure_indexer = metre.MeasureIndexer(test_part)
-        actual = measure_indexer.run()['metre.MeasureIndexer']
+        measure_indexer = meter.MeasureIndexer(test_part)
+        actual = measure_indexer.run()['meter.MeasureIndexer']
         for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
             self.assertSequenceEqual(list(expected[key]), list(actual[key]))
@@ -67,8 +67,8 @@ class TestMeasureIndexer(unittest.TestCase):
             test_part.append(add_me)
         test_part = [test_part]
         # finished adding stuff to the test_part
-        measure_indexer = metre.MeasureIndexer(test_part)
-        actual = measure_indexer.run()['metre.MeasureIndexer']
+        measure_indexer = meter.MeasureIndexer(test_part)
+        actual = measure_indexer.run()['meter.MeasureIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
@@ -87,8 +87,8 @@ class TestMeasureIndexer(unittest.TestCase):
             test_part.append(add_me)
         test_part = [test_part]
         # finished adding stuff to the test_part
-        measure_indexer = metre.MeasureIndexer(test_part)
-        actual = measure_indexer.run()['metre.MeasureIndexer']
+        measure_indexer = meter.MeasureIndexer(test_part)
+        actual = measure_indexer.run()['meter.MeasureIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
@@ -99,8 +99,8 @@ class TestMeasureIndexer(unittest.TestCase):
         measure_data = pandas.Series(range(19), index=TestMeasureIndexer.bwv77_measure_index)
         expected = {'0': measure_data, '1': measure_data, '2': measure_data, '3': measure_data}
         test_parts = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts
-        measure_indexer = metre.MeasureIndexer(test_parts)
-        actual = measure_indexer.run()['metre.MeasureIndexer']
+        measure_indexer = meter.MeasureIndexer(test_parts)
+        actual = measure_indexer.run()['meter.MeasureIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
@@ -112,8 +112,8 @@ class TestMeasureIndexer(unittest.TestCase):
         expected = {'0': measure_data, '1': measure_data}
         test_piece = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/test_fermata_rest.xml'))
         test_parts = test_piece.parts
-        measure_indexer = metre.MeasureIndexer(test_parts)
-        actual = measure_indexer.run()['metre.MeasureIndexer']
+        measure_indexer = meter.MeasureIndexer(test_parts)
+        actual = measure_indexer.run()['meter.MeasureIndexer']
         self.assertEqual(2, len(actual.columns))
         for key in expected:
             self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))

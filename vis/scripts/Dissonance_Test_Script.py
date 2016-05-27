@@ -3,7 +3,7 @@ import os
 import pandas
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import interval, dissonance, metre, noterest, offset
+from vis.analyzers.indexers import interval, dissonance, meter, noterest, offset
 from vis.analyzers.experimenters import frequency
 from vis import workflow
 from numpy import nan, isnan
@@ -42,14 +42,14 @@ def main():
     # filter_setts = {'quarterLength': 2.0, 'method':None}
     # filtered_results = offset.FilterByOffsetIndexer(actual, filter_setts).run()
     # pdb.set_trace()
-    dur_ind = metre.DurationIndexer(test_parts).run()
-    bs_ind = metre.NoteBeatStrengthIndexer(test_parts).run()
+    dur_ind = meter.DurationIndexer(test_parts).run()
+    bs_ind = meter.NoteBeatStrengthIndexer(test_parts).run()
     horiz = interval.HorizontalIntervalIndexer(actual, horiz_setts).run()
     vert_ints = interval.IntervalIndexer(actual, setts).run()
 
     # actual2 = actual.T
-    # # actual = ind_piece.get_data([noterest.NoteRestIndexer]) #dur_indexer.run()['metre.DurationIndexer']
-    # # actual = ind_piece.get_data([metre.NoteBeatStrengthIndexer]) #dur_indexer.run()['metre.DurationIndexer']
+    # # actual = ind_piece.get_data([noterest.NoteRestIndexer]) #dur_indexer.run()['meter.DurationIndexer']
+    # # actual = ind_piece.get_data([meter.NoteBeatStrengthIndexer]) #dur_indexer.run()['meter.DurationIndexer']
     # t1 = time.time()
     # print 'Noterest Indexer Runtime: ' + str(t1-t0)
     # pdb.set_trace()
@@ -66,8 +66,8 @@ def main():
     # test_piece = converter.parse(piece_path)
     # part_numbers = range(len(test_piece.parts))
     # from vis.analyzers.indexers.noterest import indexer_func as nr_ind_func
-    # from vis.analyzers.indexers.metre import duration_ind_func as dur_ind_func
-    # from vis.analyzers.indexers.metre import beatstrength_ind_func as bs_ind_func
+    # from vis.analyzers.indexers.meter import duration_ind_func as dur_ind_func
+    # from vis.analyzers.indexers.meter import beatstrength_ind_func as bs_ind_func
     # from vis.analyzers.indexers.fermata import indexer_func as fm_ind_func
     # for x in part_numbers:
     #     temp_part = test_piece.parts[x]
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     # part_strings = []
     # for num in part_numbers:
     #     part_strings.append(str(num))
-    # iterables = [['metre.DurationIndexer'], part_strings]
+    # iterables = [['meter.DurationIndexer'], part_strings]
     # new_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # new_dur.columns = new_dur_multi_index
     # print 'New Duration Indexer Runtime: ' + str(newdur2 - newdur1)
@@ -307,7 +307,7 @@ if __name__ == "__main__":
     # double_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # double_nr.columns = double_nr_multi_index
 
-    # iterables = [['metre.DurationIndexer'], part_strings]
+    # iterables = [['meter.DurationIndexer'], part_strings]
     # double_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # double_dur.columns = double_dur_multi_index
 
@@ -336,7 +336,7 @@ if __name__ == "__main__":
     # part_strings = []
     # for num in part_numbers:
     #     part_strings.append(str(num))
-    # iterables = [['metre.NoteBeatStrengthIndexer'], part_strings]
+    # iterables = [['meter.NoteBeatStrengthIndexer'], part_strings]
     # new_bs.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # newbs2 = time.clock()
     # print 'New BeatStrength Indexer Runtime: ' + str(newbs2 - newbs1)
@@ -352,11 +352,11 @@ if __name__ == "__main__":
     #     for z in group_strengths.index:
     #         strengths = [0] # Dummy zero is a hack to get around issues using max or nanmax with nans.
     #         for v in voices_in_group:
-    #             if beat_strengths['metre.NoteBeatStrengthIndexer'][v].loc[z] is not nan:
-    #                 strengths.append(beat_strengths['metre.NoteBeatStrengthIndexer'][v].loc[z])
+    #             if beat_strengths['meter.NoteBeatStrengthIndexer'][v].loc[z] is not nan:
+    #                 strengths.append(beat_strengths['meter.NoteBeatStrengthIndexer'][v].loc[z])
     #         group_data.append(max(strengths))
     #     group_strengths[y] = group_data
-    # iterables = [['metre.GroupBeatStrengthIndexer'], group_strengths.columns]
+    # iterables = [['meter.GroupBeatStrengthIndexer'], group_strengths.columns]
     # group_strengths.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # # print group_strengths
 
@@ -380,7 +380,7 @@ if __name__ == "__main__":
 
 
     # mi4 = time.clock()
-    # vis_m_ind = metre.MeasureIndexer(test_piece.parts[0]).run()
+    # vis_m_ind = meter.MeasureIndexer(test_piece.parts[0]).run()
     # mi5 = time.clock()
     # print "Time taken to run old measure indexer: " + str(mi5-mi4)
     # pdb.set_trace()

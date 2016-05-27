@@ -172,6 +172,19 @@ class ColumnAggregator(experimenter.Experimenter):
         :returns: A :class:`Series` with an index that is the combination of all indices of the \
             provided pandas objects, and the value is the sum of all values in the pandas objects.
         :rtype: :class:`pandas.Series`
+
+        ***Example:***
+
+        import music21
+        from vis.analyzers.indexers import noterest
+        from vis.analyzers.experimenters import aggregator, frequency
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        freqs = frequency.FrequencyExperimenter(notes).run()
+        agg = aggregator.ColumnAggregator(freqs).run()
+        print(agg)
         """
 
         # ensure we have a list of DatFrame
