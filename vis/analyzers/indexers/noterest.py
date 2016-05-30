@@ -30,8 +30,9 @@ Index note and rest objects.
 """
 
 import six
-from music21 import stream, note
+from music21 import note
 from vis.analyzers import indexer
+
 
 def indexer_func(obj):
     """

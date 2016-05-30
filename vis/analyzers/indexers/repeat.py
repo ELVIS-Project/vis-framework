@@ -30,7 +30,6 @@ Indexers that consider repetition in any way.
 
 import six
 from numpy import nan
-import pandas
 from vis.analyzers import indexer
 
 

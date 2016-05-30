@@ -50,7 +50,6 @@ The :class:`TemplateIndexer` does nothing, and should only be used by programmer
 """
 
 import six
-from music21 import stream
 from vis.analyzers import indexer
 
 

@@ -29,7 +29,6 @@
 
 from vis.analyzers import indexer
 import pandas
-import copy
 
 
 def indexer1(x):

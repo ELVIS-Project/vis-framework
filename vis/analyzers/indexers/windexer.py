@@ -26,8 +26,6 @@
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
 """
 
-import six
-from music21 import stream
 from vis.analyzers import indexer
 import pandas
 

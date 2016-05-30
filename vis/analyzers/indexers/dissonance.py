@@ -29,7 +29,6 @@
 import pandas
 import numpy
 from numpy import nan  # pylint: disable=no-name-in-module
-from music21 import stream
 from vis.analyzers import indexer
 
 _d3q_label = 'Q'

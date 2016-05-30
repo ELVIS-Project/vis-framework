@@ -33,7 +33,6 @@ Indexers for metric concerns.
 # with Sphinx!
 # pylint: disable=W0105
 
-from music21 import note
 from vis.analyzers import indexer
 # import pandas # This is only needed for the measure indexer which is still
 # experimental

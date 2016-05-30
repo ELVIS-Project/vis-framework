@@ -33,7 +33,7 @@ Indexer to find k-part any-object n-grams.
 
 import pandas
 from vis.analyzers import indexer
-import numpy as np
+
 
 class NewNGramIndexer(indexer.Indexer):
     """
