@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/contour.py
+# Filename:               analyzers/indexers/contour.py
 # Purpose:                Contour Indexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson

@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/offset.py
+# Filename:               analyzers/indexers/offset.py
 # Purpose:                Indexer to regularize the observed offsets.
 #
 # Copyright (C) 2013, 2014 Christopher Antila

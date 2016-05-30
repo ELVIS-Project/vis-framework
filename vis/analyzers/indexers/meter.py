@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/meter.py
+# Filename:               analyzers/indexers/meter.py
 # Purpose:                Indexers for metric concerns.
 #
 # Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan

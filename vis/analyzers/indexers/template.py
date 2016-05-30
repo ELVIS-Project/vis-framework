@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/template.py
+# Filename:               analyzers/indexers/template.py
 # Purpose:                Template indexer
 #
 # Copyright (C) 2013, 2014 Christopher Antila

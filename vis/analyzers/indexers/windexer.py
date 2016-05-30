@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/windexer.py
+# Filename:               analyzers/indexers/windexer.py
 # Purpose:                Windexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson

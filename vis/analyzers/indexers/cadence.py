@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/cadence.py
+# Filename:               analyzers/indexers/cadence.py
 # Purpose:                Cadence Indexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson

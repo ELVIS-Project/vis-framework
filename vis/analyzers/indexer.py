@@ -361,7 +361,7 @@ class Indexer(object):
         my_mod = six.u(str(self.__module__))[six.u(str(self.__module__)).rfind('.') + 1:]
         my_class = six.u(str(self.__class__))[six.u(str(self.__class__)).rfind('.'):-2]
         my_name = my_mod + my_class
-        
+
         # the levels argument is necessary below even though it just gets written over by the 
         # multi_index because it ensures that even empty series will be included in the dataframe.
         ret = pandas.concat(indices, levels=labels, axis=1)

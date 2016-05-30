@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/ngram.py
+# Filename:               analyzers/indexers/ngram.py
 # Purpose:                k-part anything n-gram Indexer
 #
 # Copyright (C) 2016 Alexander Morgan, Christopher Antila

@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/active_voices.py
+# Filename:               analyzers/indexers/active_voices.py
 # Purpose:                Active voices indexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson

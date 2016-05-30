@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/repeat.py
+# Filename:               analyzers/indexers/repeat.py
 # Purpose:                Indexers that somehow consider repetition.
 #
 # Copyright (C) 2013, 2014 Christopher Antila
