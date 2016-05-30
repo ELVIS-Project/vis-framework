@@ -33,16 +33,32 @@ from vis.analyzers import indexer
 from vis.analyzers.indexers import repeat
 
 
-# def from_intvls(intervals):
+def from_intvls(intervals):
+
+    chords = []
+    for intvls in intervals:
+        note = music21.note.Note('c')
+        chord = [note]
+        for intvl in intvls:
+            if intvl != 'Rest':
+                note = note.transpose(music21.interval.Interval(intvl))
+                chord.append(note)
+        chords.append(chord)
+
+    chords = map(music21.chord.Chord, chords)
+    return chords
+
 
 def from_horiz(score, length):
 
     chords = []
+    indices = []
     for part in score:
         part_c = []
-        part = score[part].dropna().tolist()
-        while 'Rest' in part:
-            part.remove('Rest')
+        part = score[part].dropna()
+        part = part[part != 'Rest']
+        index = part.index.tolist()
+        part = part.tolist()
         for y in range(len(part) - length):
             chord = []
             x = 0
@@ -51,11 +67,15 @@ def from_horiz(score, length):
                 x += 1
             part_c.append(chord)
         chords.append(part_c)
-    return chords
+        indices.append(index[:-length])
+    return {'chords': chords, 'indices': indices}
 
 
 def makeChord(chord):
 
+    chord = list(chord)
+    while 'Rest' in chord:
+        chord.remove('Rest')
     new_chord = map(music21.note.Note, chord)
     return music21.chord.Chord(new_chord)
 
@@ -72,11 +92,38 @@ def from_vert(score):
 def from_notes(tuples):
 
     chords = map(makeChord, tuples)
-    # for chord in tuples:
-    #     chord = list(chord)
-    #     chords.append(chord)
 
     return chords
+
+
+def forteClass(chord):
+
+    return chord.forteClass
+
+
+def orderedPitchClassesString(chord):
+
+    return chord.orderedPitchClassesString
+
+
+def forteClassTnI(chord):
+
+    return chord.forteClassTnI
+
+
+def normalForm(chord):
+
+    return chord.normalForm
+
+
+def primeFormString(chord):
+
+    return chord.primeFormString
+
+
+def intervalVector(chord):
+
+    return chord.intervalVector
 
 
 class SetClassIndexer(indexer.Indexer):
@@ -102,10 +149,12 @@ class SetClassIndexer(indexer.Indexer):
         :type 'type': str
         """
 
-        if 'label' not in settings or 'type' not in settings:
+        if settings is None or 'label' not in settings or 'type' not in settings:
             raise RuntimeError(self._MISSING_SETTINGS)
         else:
             self._settings = settings
+
+        name = str(score.columns.levels[0][0])
 
         if settings['type'] is 'horizontal':
 
@@ -114,6 +163,17 @@ class SetClassIndexer(indexer.Indexer):
 
             elif settings['length'] > 12 or settings['length'] < 1:
                 raise RuntimeError(self._WRONG_LENGTH)
+
+        elif name == 'interval.IntervalIndexer':
+            xs = []
+            first = [0, 1]
+            f = str(first[0]) + ',' + str(first[1])
+            while f in score.columns.levels[1]:
+                xs.extend([f])
+                first[0] += 1
+                first[1] += 1
+                f = str(first[0]) + ',' + str(first[1])
+            score = score[name][xs]
 
         super(SetClassIndexer, self).__init__(score, None)
 
@@ -127,54 +187,35 @@ class SetClassIndexer(indexer.Indexer):
         :returns: Make a new index of the set classes in the piece.
         :rtype: :class:`pandas.DataFrame`
         """
-        # types = {'interval': {'horizontal':, 'vertical'}, 'noterest': {'horizontal': , 'vertical'}}
+        if self._settings['type'] is 'horizontal':
+            total = from_horiz(self._score, self._settings['length'])
+            note_col = total['chords']
+            indices = total['indices']
+        else:
+            note_col = [from_vert(self._score)]
+            indices = [self._score.index.tolist()]
+
+        label = {'noterest': from_notes,
+                 'intervals': from_intvls}
+
+        chords = map(label[self._settings['label']], note_col)
 
         if self._settings['type'] is 'horizontal':
-            note_col = from_horiz(self._score, self._settings['length'])
+            labels = self._score.columns.labels[1]
         else:
-            note_col = from_vert(self._score)
+            labels = '0'
 
-        if self._settings['label'] is 'noterest':
-            chords = []
-            from_notes(note_col)
-        else:
-            chords = from_intvls(note_col)
+        parts = []
+        forteTypes = {'forteClass': forteClass,
+                      'orderedPitchClassesString': orderedPitchClassesString,
+                      'forteClassTnI': forteClassTnI,
+                      'normalForm': normalForm,
+                      'primeFormString': primeFormString,
+                      'intervalVector': intervalVector}
 
+        for x, part in enumerate(chords):
+            part = pandas.Series(part, index=indices[x], name=str(labels[x]))
+            parts.append(part.apply(forteTypes[self._settings['forteType']]))
 
-        # chords = []
-        # for each in from_horiz(self._score, 4):
-        #     part = []
-        #     for thing in from_notes(each):
-        #         part.append(makeChord(thing))
-        #     chords.append(part)
-
-        # comb = []
-        # for part in chords:
-        #     comb.append(pandas.Series(part, index=self._score.index[:len(self._score.index)-4]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        result = pandas.concat(parts, axis=1)
+        return self.make_return(result.columns, [result[name] for name in result.columns])
