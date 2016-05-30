@@ -34,11 +34,7 @@ class CadenceIndexer(indexer.Indexer):
     """
     Using OverBassIndexer and FermataIndexer results, finds cadences as lists
     of occurences before a fermata.
-    """
 
-    required_score_type = 'pandas.DataFrame'
-    possible_settings = ['length', 'voice']
-    """
     :keyword 'length': The length of the cadence, or how many events happen
         before a fermata.
     :type 'length': int
@@ -47,6 +43,9 @@ class CadenceIndexer(indexer.Indexer):
         The default value for this is 'all'.
     :type 'voice': str or int
     """
+
+    required_score_type = 'pandas.DataFrame'
+    possible_settings = ['length', 'voice']
 
     _MISSING_LENGTH = 'CadenceIndexer requires "length" setting.'
     _LOW_LENGTH = 'Setting "length" must have a value of at least 1.'
@@ -84,7 +83,6 @@ class CadenceIndexer(indexer.Indexer):
 
         super(CadenceIndexer, self).__init__(score, None)
 
-
     def run(self):
         """
         Makes a new index of the cadences in the piece.
@@ -101,7 +99,7 @@ class CadenceIndexer(indexer.Indexer):
         score = music21.converter.parse('example.xml')
         notes = noterest.NoteRestIndexer(score).run()
         intervals = interval.IntervalIndexer(notes).run()
-        
+
         fermatas = fermata.FermataIndexer(score).run()
 
         df = pandas.concat([notes, intervals])
@@ -110,10 +108,10 @@ class CadenceIndexer(indexer.Indexer):
         settings = {'length': 3}
         df = pandas.concat([overbass, fermatas])
 
-        cadences = cadences.CadenceIndexer(df, settings).run()
+        cadences = cadence.CadenceIndexer(df, settings).run()
         print(cadences)
         """
-        
+
         endings = []
         if self._settings['voice'] is 'all':
             for part in self.ferm.columns:

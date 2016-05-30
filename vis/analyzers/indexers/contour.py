@@ -34,7 +34,7 @@ import pandas
 
 def COM_matrix(contour):
     """
-    Returns matrix representing the contour given
+    Creates a matrix representing the contour given
     """
     com = []
 
@@ -96,15 +96,16 @@ def compare(contour1, contour2):
 
 class ContourIndexer(indexer.Indexer):
     """
-    Contour indexer class
+    Indexes the contours of a given length in a piece, where contour is a
+    way of numbering the relative heights of pitches, beginning at 0 for the
+    lowest pitch.
+
+    :keyword 'length': This is the length of the contour you want to look at.
+    :type 'length': int
     """
 
     required_score_type = 'pandas.DataFrame'
     possible_settings = ['length']
-    """
-    :keyword 'length': This is the length of the contour you want to look at.
-    :type 'length': int
-    """
 
     _MISSING_LENGTH = 'ContourIndexer requires "length" setting.'
     _LOW_LENGTH = 'Setting "length" must have a value of at least 1.'

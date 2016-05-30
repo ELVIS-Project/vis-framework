@@ -32,7 +32,10 @@ import pandas
 
 
 def indexer1(x):
-
+    """
+    Used internally by the :class:`ActiveVoicesIndexer` to count individual
+    events.
+    """
     if x == 'Rest' or isinstance(x, float):
         return 0
     else:
@@ -41,19 +44,21 @@ def indexer1(x):
 
 class ActiveVoicesIndexer(indexer.Indexer):
     """
-    Class that indexer the number of voices active at each offset.
+    Indexer that counts the number of voices active at each offset. It can
+    either find all voices sounding, or only the voices that are attacking.
+
+    :keyword 'attacked': When true, only counts the voices that are attacking
+        at each offset. Defaults to false.
+    :type 'attacked': boolean
+    :keyword 'show_all': When true, shows the results at all offsets, even if
+        there is not change. Defaults to false.
+    :type 'show_all': boolean
     """
 
     required_score_type = 'pandas.DataFrame'
     possible_settings = ['attacked', 'show_all']
-    """
-    :keyword 'attacked': When true, only counts the voices that are attacking at each offset. Defaults to false.
-    :type 'attacked': boolean
-    :keyword 'show_all': When true, shows the results at all offsets, even if there is not change. Defaults to false.
-    :type 'show_all': boolean
-    """
-    default_settings = {'attacked': False, 'show_all': False}
 
+    default_settings = {'attacked': False, 'show_all': False}
 
     def __init__(self, score, settings=None):
         """

@@ -92,7 +92,7 @@ class NoteRestIndexer(indexer.Indexer):
 
         # to see all the results
         print(notes)
-        
+
         # to see only one part
         print(notes['noterest.NoteRestIndexer']['3'])
         """

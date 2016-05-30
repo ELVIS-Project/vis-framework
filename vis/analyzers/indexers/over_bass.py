@@ -32,12 +32,9 @@ import pandas
 
 class OverBassIndexer(indexer.Indexer):
     """
-    Using horizontal events and vertical intervals, this finds the intervals over the bass motion.
-    """
+    Using horizontal events and vertical intervals, this finds the intervals
+    over the bass motion.
 
-    required_score_type = 'pandas.DataFrame'
-    possible_settings = ['horizontal', 'type']
-    """
     :keyword 'horizontal': The horizontal voice you wish to use as a bass.
         If not indicated, this is automatically assigned to the lowest voice.
     :type 'horizontal': int
@@ -49,18 +46,24 @@ class OverBassIndexer(indexer.Indexer):
     :type 'type': str
     """
 
+    required_score_type = 'pandas.DataFrame'
+    possible_settings = ['horizontal', 'type']
+
     _WRONG_HORIZ = 'horizontal setting must be a voice present in the piece'
     _WRONG_TYPE = 'Type given is not found'
 
     def __init__(self, score, settings=None):
         """
-        :param score: The intervals and horizontal events to be used to find the intervals over the bass.
+        :param score: The intervals and horizontal events to be used to find
+            the intervals over the bass.
         :type score: :class:`pandas.DataFrame`
         :param settings: There are 2 possible settings but no required settings
         :type settings: dict or NoneType
 
-        :raises: :exc:`RuntimeError` if the optional setting ``type`` does not match the ``score`` input.
-        :raises: :exc:`RuntimeError` if the optional setting ``horizontal`` indicates a voice that does not exist
+        :raises: :exc:`RuntimeError` if the optional setting ``type`` does not
+            match the ``score`` input.
+        :raises: :exc:`RuntimeError` if the optional setting ``horizontal``
+            indicates a voice that does not exist
         """
 
         self._settings = {'type': 'notes'}
