@@ -129,7 +129,7 @@ def intervalVector(chord):
 class SetClassIndexer(indexer.Indexer):
 
     required_score_type = 'pandas.DataFrame'
-    possible_settings = ['label', 'length', 'type']
+    possible_settings = ['label', 'length', 'type', 'forteType']
 
     _MISSING_SETTINGS = 'SetClassIndexer is missing required settings'
     _WRONG_LENGTH = 'The "length" setting must be between 1 and 12'
@@ -147,6 +147,9 @@ class SetClassIndexer(indexer.Indexer):
         :keyword 'type': This is the type of analysis you want to do, either
             looking at 'horizontal' or 'vertical' events.
         :type 'type': str
+        :keyword 'forteType': The music21 function you want to view the
+            setclass through.
+        :type 'forteType': str
         """
 
         if settings is None or 'label' not in settings or 'type' not in settings:
