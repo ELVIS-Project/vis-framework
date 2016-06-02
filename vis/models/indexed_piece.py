@@ -42,7 +42,6 @@ from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, meter, interval, dissonance
 from itertools import combinations
 import pdb
-import time
 
 
 # the title given to a piece when we cannot determine its title
@@ -152,14 +151,13 @@ def _int_func(ev1, ev2):
         post = '-' if ntrvl.direction == -1 else ''
         return post + ntrvl.name
 
-
 def _attach_before(df):
-        re_indexed = []
-        for x in range(len(df.columns)):
-            ser = df.iloc[:, x].dropna()
-            ser.index = numpy.insert(ser.index, 0, 0.0)[:-1]
-            re_indexed.append(ser)
-        return pandas.concat(re_indexed, axis=1)
+    re_indexed = []
+    for x in range(len(df.columns)):
+        ser = df.iloc[:, x].dropna()
+        ser.index = numpy.insert(ser.index, 0, 0.0)[:-1]
+        re_indexed.append(ser)
+    return pandas.concat(re_indexed, axis=1)
 
 def _dur_func(event):
     if isinstance(event, float):
@@ -204,7 +202,6 @@ def _find_piece_range(the_score):
     p_range = p.getPitchSpan(the_score)
 
     return p_range[0].nameWithOctave, p_range[1].nameWithOctave
-
 
 def _find_part_ranges(the_score):
 
@@ -415,9 +412,9 @@ class IndexedPiece(object):
             self._metadata[field] = value
 
     def _get_part_streams(self, known_opus=False):
-        if '_part_streams' not in self._analyses:
-            self._analyses['_part_streams'] = self._import_score(known_opus=known_opus)
-        return self._analyses['_part_streams']
+        if 'part_streams' not in self._analyses:
+            self._analyses['part_streams'] = self._import_score(known_opus=known_opus).parts
+        return self._analyses['part_streams']
 
     def _get_m21_objs(self, known_opus=False):
         """
@@ -440,94 +437,96 @@ class IndexedPiece(object):
             into pandas.Series and collected in a list.
         :rtype: list of :class:`pandas.Series`
         """
-        if '_m21_objs' not in self._analyses:
+        if 'm21_objs' not in self._analyses:
             # save the results as a list of series in the indexed_piece attributes
-            self._analyses['_m21_objs'] = [pandas.Series(x.recurse()) for x in self._get_part_streams(known_opus)]
-        return self._analyses['_m21_objs']
+            streams = self._get_part_streams()
+            pdb.set_trace()
+            self._analyses['m21_objs'] = [pandas.Series(x.recurse()) for x in self._get_part_streams(known_opus)]
+        return self._analyses['m21_objs']
 
     def _get_m21_nr_objs(self, known_opus=False):
-        if '_m21_noterest' not in self._analyses:
+        if 'm21_noterest' not in self._analyses:
             # get rid of all m21 objects that aren't notes or rests
             sers = [s.apply(_type_func_noterest).dropna() for s in self._get_m21_objs(known_opus)]
             # add the index to each part
             for ser in sers:
                 ser.index = ser.apply(_get_offset)
-            self._analyses['_m21_noterest'] = pandas.concat(sers, axis=1)
-        return self._analyses['_m21_noterest']
+            self._analyses['m21_noterest'] = pandas.concat(sers, axis=1)
+        return self._analyses['m21_noterest']
 
     def _get_m21_nr_no_tied(self, known_opus=False):
-        if '_m21_noterest_no_tied' not in self._analyses:
+        if 'm21_noterest_no_tied' not in self._analyses:
             self._analyses['m21_noterest_no_tied'] = self._get_m21_nr_objs(known_opus).applymap(_eliminate_ties).dropna(how='all')
-        return self._analyses['_m21_noterest_no_tied']
+        return self._analyses['m21_noterest_no_tied']
 
     def _get_h_ints(self, settings=None, known_opus=False):
-        if '_h_ints' not in self._analyses:
-            self._analyses['_h_ints'] = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts.copy()).run()
+        if 'h_ints' not in self._analyses:
+            self._analyses['h_ints'] = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts.copy()).run()
         if settings is not None and not ('directed' in settings and settings['directed'] == True and
                 'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
                 'simple or compound' in settings and settings['simple or compound'] == 'compound'):
-            post = interval.IntervalReindexer(self._analyses['_h_ints'], settings).run()
+            post = interval.IntervalReindexer(self._analyses['h_ints'], settings).run()
             if 'horiz_attach_later' not in settings or not settings['horiz_attach_later']:
                 post = _attach_before(post)
             return post
-        return self._analyses['_h_ints']
+        return self._analyses['h_ints']
 
     def _get_v_ints(self, settings=None, known_opus=False):
-        if '_v_ints' not in self._analyses:
-            self._analyses['_v_ints'] = interval.IntervalIndexer(self._get_noterest(), settings=_default_interval_setts.copy()).run()
+        if 'v_ints' not in self._analyses:
+            self._analyses['v_ints'] = interval.IntervalIndexer(self._get_noterest(), settings=_default_interval_setts.copy()).run()
         if settings is not None and not ('directed' in settings and settings['directed'] == True and
                 'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
                 'simple or compound' in settings and settings['simple or compound'] == 'compound'):
             temp = _default_interval_setts.copy().update(settings)
-            return interval.IntervalReindexer(self._analyses['_v_ints'], temp).run()
-        return self._analyses['_v_ints']
+            return interval.IntervalReindexer(self._analyses['v_ints'], temp).run()
+        return self._analyses['v_ints']
 
     def _get_dissonance(self, known_opus=False):
-        if '_dissonance' not in self._analyses:
+        if 'dissonance' not in self._analyses:
             h_setts = {'quality': False, 'simple or compound': 'compound'}
             v_setts = setts = {'quality': True, 'simple or compound': 'simple'}
             in_dfs = [self._get_beatstrength(), self._get_duration(), self._get_h_ints(h_setts), self._get_v_ints(v_setts)]
-            self._analyses['_dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
-        return self._analyses['_dissonance']
+            self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
+        return self._analyses['dissonance']
 
     def _get_m21_measure_objs(self, known_opus=False):
         """Makes a dataframe of the measure objects in the indexed_piece. Note that midi files do not have 
         measures."""
-        if '_m21_measure_objs' not in self._analyses:
+        if 'm21_measure_objs' not in self._analyses:
             # filter for just the measure objects in each part of this indexed piece
             sers = [s.apply(_type_func_measure).dropna() for s in self._get_m21_objs(known_opus)]
             # add the index to each part
             for ser in sers:
                 ser.index = ser.apply(_get_offset)         
-            self._analyses['_m21_measure_objs'] = pandas.concat(sers, axis=1)
-        return self._analyses['_m21_measure_objs']
+            self._analyses['m21_measure_objs'] = pandas.concat(sers, axis=1)
+        return self._analyses['m21_measure_objs']
 
     def _get_noterest(self, known_opus=False):
-        if '_noterest' not in self._analyses:
+        if 'noterest' not in self._analyses:
             result = self._get_m21_nr_no_tied().applymap(noterest.test)
             result.columns = pandas.MultiIndex.from_product((('NoteRestIndexer',), [str(x) for x in range(len(result.columns))]), names=_names)
-            self._analyses['_noterest'] = result
-        return self._analyses['_noterest']
+            self._analyses['noterest'] = result
+        return self._analyses['noterest']
 
     def _get_duration(self):
-        if '_duration' not in self._analyses:
+        if 'duration' not in self._analyses:
             post = self._get_m21_nr_objs().applymap(_dur_func)
             post = _combine_tied(self._get_noterest(), post)
             post.columns = pandas.MultiIndex.from_product((('meter.DurationIndexer',), [str(x) for x in range(len(post.columns))]), names=_names)
-            self._analyses['_duration'] = post
-        return self._analyses['_duration']
+            self._analyses['duration'] = post
+        return self._analyses['duration']
 
     def _get_beatstrength(self, known_opus=False):
-        if '_beatstrength' not in self._analyses:
+        if 'beatstrength' not in self._analyses:
             post = self._get_m21_nr_no_tied().applymap(_bsTest)
             post.columns = pandas.MultiIndex.from_product((('meter.NoteBeatStrengthIndexer',), [str(x) for x in range(len(post.columns))]), names=_names)
-            self._analyses['_beatstrength'] = post
-        return self._analyses['_beatstrength']
+            self._analyses['beatstrength'] = post
+        return self._analyses['beatstrength']
 
-    def _get_new_measure_results(self, known_opus=False):
-        if '_new_measure_results' not in self._analyses:
-            self._analyses['_new_measure_results'] = self._get_m21_measure_objs().applymap(meter.msTest)
-        return self._analyses['_new_measure_results']
+    def _get_measure(self, known_opus=False):
+        if 'measure' not in self._analyses:
+            self._analyses['measure'] = self._get_m21_measure_objs().applymap(meter.msTest)
+        return self._analyses['measure']
 
     @staticmethod
     def _type_verifier(cls_list):
