@@ -31,6 +31,8 @@ import numpy
 from numpy import nan  # pylint: disable=no-name-in-module
 from music21 import stream
 from vis.analyzers import indexer
+from fractions import Fraction as frac
+import pdb
 
 _d3q_label = 'Q'
 _pass_dp_label = 'D'
@@ -57,8 +59,8 @@ _passes = set(('n', _no_diss_label, _unexplainable))
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
 h_ind = u'interval.HorizontalIntervalIndexer'
-bs_ind = u'metre.NoteBeatStrengthIndexer'
-dur_ind = u'metre.DurationIndexer'
+bs_ind = u'meter.NoteBeatStrengthIndexer'
+dur_ind = u'meter.DurationIndexer'
 diss_types = u'dissonance.DissonanceIndexer'
 
 
@@ -79,7 +81,9 @@ class DissonanceIndexer(indexer.Indexer):
     def __init__(self, score, settings=None):
         """
         :param score: The output from :class:`~vis.analyzers.indexers.interval.IntervalIndexer`.
-            You must include interval quality and use simple intervals.
+            You must include interval quality and use simple intervals. But the results from
+            :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer` should be calculated 
+            as compound diatonic intervals without quality and with horiz_attach_later set to False.
         :type score: list of :class:`pandas.DataFrame`.
         :param settings: This indexer uses no settings, so this is ignored.
         :type settings: NoneType
@@ -195,11 +199,11 @@ class DissonanceIndexer(indexer.Indexer):
                     dur_x2 = self._score.iat[x2_ind, d_lower_col]
                     dur_x += dur_x2
 
-
         if prev_event not in _consonances: # The dissonance is can't be a passing tone.
             return (False,)
         elif (((dur_b == 2 and bs_b == .25) or (dur_b <= 1 and bs_b == .125) or 
-               (dur_b <= .5 and bs_b == .0625)) and dur_a >= dur_b and (y is nan or x == 1)):
+               (dur_b <= .5 and bs_b == .0625) or (dur_b == frac(4, 3) and bs_b == .5))
+              and dur_a >= dur_b and (y is nan or x == 1)):
             if b == 2:
                 if a == 2:
                     return (True, upper, _pass_rp_label, lower, _no_diss_label)
@@ -211,8 +215,9 @@ class DissonanceIndexer(indexer.Indexer):
                 elif a == 2:
                     return  (True, upper, _neigh_un_label, lower, _no_diss_label)
             
-        elif (((dur_y == 2 and bs_y == .25) or (dur_y <= 1 and bs_y == .125)
-               or (dur_y <= .5 and bs_y == .0625)) and dur_x >= dur_y and (b is nan or a == 1)):
+        elif (((dur_y == 2 and bs_y == .25) or (dur_y <= 1 and bs_y == .125) or 
+               (dur_y <= .5 and bs_y == .0625) or (dur_y == frac(4, 3) and bs_y == .5))
+              and dur_x >= dur_y and (b is nan or a == 1)):
             if y == 2:
                 if x == 2:
                     return (True, upper, _no_diss_label, lower, _pass_rp_label)
