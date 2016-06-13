@@ -34,7 +34,7 @@ import pandas
 
 def COM_matrix(contour):
     """
-    Creates a matrix representing the contour given
+    Creates a matrix representing the contour given.
     """
     com = []
 
@@ -59,7 +59,7 @@ def COM_matrix(contour):
 
 def getContour(notes):
     """
-    Method used by the ContourIndexer to convert pitches into contour numbers
+    Method used by the ContourIndexer to convert pitches into contour numbers.
     """
 
     contour = list(map(music21.note.Note, notes))
@@ -79,7 +79,7 @@ def getContour(notes):
 
 def compare(contour1, contour2):
     """
-    Additional method to compare COM_matrices
+    Additional method to compare COM_matrices.
     """
 
     count = 0
