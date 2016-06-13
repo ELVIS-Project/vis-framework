@@ -62,10 +62,10 @@ from vis.tests import test_windexer
 
 
 THE_TESTS = (  # Indexer and Subclasses
-             test_fermata_indexer.FERMATA_INDEXER_SUITE,
-             test_indexer.INDEXER_INIT_SUITE,
-             test_indexer.INDEXER_1_PART_SUITE,
-             test_indexer.INDEXER_MULTI_EVENT_SUITE,
+             test_fermata_indexer.FERMATA_INDEXER_SUITE,  # passes
+             test_indexer.INDEXER_INIT_SUITE,  # passes
+             test_indexer.INDEXER_1_PART_SUITE,  # passes
+             test_indexer.INDEXER_MULTI_EVENT_SUITE,  # no tests run
              # test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_duration_indexer.DURATION_INDEXER_SUITE,
