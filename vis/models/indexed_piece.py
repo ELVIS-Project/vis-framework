@@ -32,6 +32,8 @@ This model represents an indexed and analyzed piece of music.
 # Imports
 import os
 import six
+import json
+import warnings
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
@@ -168,7 +170,7 @@ class IndexedPiece(object):
     _UNEXP_NONOPUS = ('You expected a music21.stream.Opus but {} is not an Opus (refer to the '
                       'IndexedPiece.get_data() documentation)')
 
-    def __init__(self, pathname, opus_id=None):
+    def __init__(self, pathname, opus_id=None, metafile=None):
         """
         :param str pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
@@ -189,9 +191,12 @@ class IndexedPiece(object):
             self._metadata['pathname'] = pathname
 
         super(IndexedPiece, self).__init__()
+        if metafile is not None:
+            self._metafile = metafile
         self._imported = False
         self._noterest_results = None
         self._metadata = {}
+        self._pathname = pathname
         self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
         init_metadata()
 
@@ -247,6 +252,15 @@ class IndexedPiece(object):
             self._metadata['title'] = _find_piece_title(score)
             self._metadata['partRanges'] = _find_part_ranges(score)
             self._metadata['pieceRange'] = _find_piece_range(score)
+            self._metadata['religiosity'] = ''
+            self._metadata['creator'] = ''
+            self._metadata['genres'] = []
+            self._metadata['instruments_voices'] = []
+            self._metadata['languages'] = []
+            self._metadata['locations'] = []
+            self._metadata['sources'] = ''
+            self._metadata['tags'] = []
+            self._metadata['vocalization'] = ''
             self._imported = True
         return score
 
@@ -441,3 +455,65 @@ class IndexedPiece(object):
                 return data
             else:
                 return analyzer_cls[0](data, settings).run()
+
+    def _open_file(self):
+
+        with open(self._metafile) as mf:
+            f = []
+            x = 0
+
+            lines = mf.readlines()
+            exists = False
+            for line in lines:
+                if self._pathname in line:
+                    exists = True
+            if not exists:
+                warnings.warn('The meta file you have included does not seem to correspond to the file.')
+                return
+
+            for n, line in enumerate(lines):
+                if line.startswith('}'):
+                    line_range = [x, n]
+                    x = n + 1
+                    f.append(line_range)
+
+            if len(f) == 1:
+                self._json_reader()
+
+            for pair in f:
+                for line in lines[pair[0]: pair[1]]:
+                    if self._pathname in line:
+                        target = open('temp', 'w')
+                        for line1 in lines[pair[0]: pair[1]]:
+                            target.write(line1)
+                        target.write('}' + '\n')
+                        target.close()
+                        self._metafile = 'temp'
+                        self._json_reader()
+
+    def _json_reader(self):
+
+        with open(self._metafile) as mf:
+            data = json.load(mf)
+            self._metadata['composer'] = data['composer']['title']
+            for lang in data['languages']:
+                for title in lang:
+                    self._metadata['languages'].append(lang[title])
+            for tag in data['tags']:
+                for title in tag:
+                    self._metadata['tags'].append(tag[title])
+            self._metadata['title'] = data['piece']['title'] + ': ' + data['title']
+            self._metadata['composer'] = data['composer']['title']
+            types = ['vocalization', 'sources', 'religiosity', 'locations', 'instruments_voices', 'genres', 'creator']
+            for dat in types:
+                self._metadata[dat] = data[dat]
+
+        mf.close()
+        if self._metafile is 'temp':
+            os.remove('temp')
+
+    def run(self):
+
+        self._import_score()
+        self._open_file()
+        return self
