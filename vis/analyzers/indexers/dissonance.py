@@ -28,11 +28,9 @@
 """
 import pandas
 import numpy
+# import fractions as frac
 from numpy import nan  # pylint: disable=no-name-in-module
-from music21 import stream
 from vis.analyzers import indexer
-from fractions import Fraction as frac
-import pdb
 
 _d3q_label = 'Q'
 _pass_dp_label = 'D'
@@ -76,15 +74,13 @@ class DissonanceIndexer(indexer.Indexer):
     The score type must be a list of dataframes of the results of the following indexers (order 
     matters): beatstrength, duration, horizontal, vertical.
     """
-    required_score_type = 'pandas.DataFrame' # score is actually a list of dataframes
+    required_score_type = 'pandas.DataFrame'
 
     def __init__(self, score, settings=None):
         """
         :param score: The output from :class:`~vis.analyzers.indexers.interval.IntervalIndexer`.
-            You must include interval quality and use simple intervals. But the results from
-            :class:`~vis.analyzers.indexers.interval.HorizontalIntervalIndexer` should be calculated 
-            as compound diatonic intervals without quality and with horiz_attach_later set to False.
-        :type score: list of :class:`pandas.DataFrame`.
+            You must include interval quality and use simple intervals.
+        :type score:  :class:`pandas.DataFrame`.
         :param settings: This indexer uses no settings, so this is ignored.
         :type settings: NoneType
 
@@ -202,7 +198,7 @@ class DissonanceIndexer(indexer.Indexer):
         if prev_event not in _consonances: # The dissonance is can't be a passing tone.
             return (False,)
         elif (((dur_b == 2 and bs_b == .25) or (dur_b <= 1 and bs_b == .125) or 
-               (dur_b <= .5 and bs_b == .0625) or (dur_b == frac(4, 3) and bs_b == .5))
+               (dur_b <= .5 and bs_b == .0625)) # or (dur_b == frac(4, 3) and bs_b == .5))
               and dur_a >= dur_b and (y is nan or x == 1)):
             if b == 2:
                 if a == 2:
@@ -216,7 +212,7 @@ class DissonanceIndexer(indexer.Indexer):
                     return  (True, upper, _neigh_un_label, lower, _no_diss_label)
             
         elif (((dur_y == 2 and bs_y == .25) or (dur_y <= 1 and bs_y == .125) or 
-               (dur_y <= .5 and bs_y == .0625) or (dur_y == frac(4, 3) and bs_y == .5))
+               (dur_y <= .5 and bs_y == .0625)) # or (dur_y == frac(4, 3) and bs_y == .5))
               and dur_x >= dur_y and (b is nan or a == 1)):
             if y == 2:
                 if x == 2:
@@ -685,11 +681,11 @@ class DissonanceIndexer(indexer.Indexer):
                 z2_ind = numpy.where(self._score.index == z2_temp)[0][0]
                 dur_z2 = self._score.iat[z2_ind, d_lower_col]
 
-        if ((diss == 2 or diss == -7) and dur_b == 1 and ((y == -2 and dur_y > 2) or (x == -2 and y
-            is nan and int(z_ind) > float(indx + 2))) and a == -2 and b == -2 and c == 2 and dur_c == 1 and dur_d > 2):
+        if ((diss == 2 or diss == -7) and dur_b == 1 and ((y == -2 and dur_y > 2) or (y == 1 and dur_y == 2)) and
+            a == -2 and b == -2 and c == 2 and dur_c == 1 and dur_d >= 2):
             return (True, upper, _chan_idiom_label, lower, _no_diss_label) # Chanson idiom in upper voice
-        if ((diss == -2 or diss == 7) and dur_y == 1 and ((b == -2 and dur_b > 2) or (a == -2 and b
-            is nan and int(c_ind) > float(indx + 2))) and x == -2 and y == -2 and z == 2 and dur_z == 1 and dur_z2 > 2):
+        if ((diss == -2 or diss == 7) and dur_y == 1 and ((b == -2 and dur_b > 2) or (b == 1 and dur_b == 2)) and
+            x == -2 and y == -2 and z == 2 and dur_z == 1 and dur_z2 >= 2):
             return (True, upper, _no_diss_label, lower, _chan_idiom_label) # Chanson idiom in lower voice
         return (False,)
 
@@ -907,15 +903,14 @@ class DissonanceIndexer(indexer.Indexer):
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
         :rtype: :class:`pandas.DataFrame`
         """
-
-
         diss_ints = self._score[int_ind].copy(deep=True)
         simuls = diss_ints.ffill()
 
         iterables = [[diss_types], self._score[dur_ind].columns]
         d_types_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-        ret = pandas.DataFrame(index=self._score.index, columns=d_types_multi_index, dtype=str)
-
+        ret = pandas.DataFrame(index=self._score.index, columns=d_types_multi_index)
+        ret.fillna('n', inplace=True) # replace NaNs with 'n's so that they can be checked for more easily
+        
         for col, pair_title in enumerate(diss_ints.columns):
             voices = pair_title.split(',') # assign top and bottom voices as integers
             top_voice = int(min(voices))
