@@ -33,8 +33,10 @@ This model represents an indexed and analyzed piece of music.
 import os
 import six
 import json
+import requests
 import warnings
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+from six.moves import range, xrange
+# pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
@@ -43,6 +45,31 @@ from vis.analyzers.indexers import noterest
 
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
+
+
+def login_edb(username, password):
+    """Return csrf and session tokens for a login."""
+    ANON_CSRF_TOKEN = "pkYF0M7HQpBG4uZCfDaBKjvTNe6u1UTZ"
+    data = {"username": username, "password": password}
+    headers = {
+        "Cookie": "csrftoken={}; test_cookie=null".format(ANON_CSRF_TOKEN),
+        "X-CSRFToken": ANON_CSRF_TOKEN
+    }
+    resp = requests.post('http://database.elvisproject.ca/login/',
+                         data=data, headers=headers, allow_redirects=False)
+    if resp.status_code == 302:
+        return dict(resp.cookies)
+    else:
+        raise ValueError("Failed login.")
+
+
+def auth_get(url, csrftoken, sessionid):
+    """Use a csrftoken and sessionid to request a url on the elvisdatabase."""
+    headers = {
+        "Cookie": "test_cookie=null; csrftoken={}; sessionid={}".format(csrftoken, sessionid)
+    }
+    resp = requests.get(url, headers=headers)
+    return resp
 
 
 def _find_piece_title(the_score):
@@ -170,7 +197,7 @@ class IndexedPiece(object):
     _UNEXP_NONOPUS = ('You expected a music21.stream.Opus but {} is not an Opus (refer to the '
                       'IndexedPiece.get_data() documentation)')
 
-    def __init__(self, pathname, opus_id=None, metafile=None):
+    def __init__(self, pathname, opus_id=None, metafile=None, username=None, password=None):
         """
         :param str pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
@@ -195,10 +222,20 @@ class IndexedPiece(object):
             self._metafile = metafile
         self._imported = False
         self._noterest_results = None
-        self._metadata = {}
         self._pathname = pathname
+        self._metadata = {}
         self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
         init_metadata()
+
+        if 'http://database.elvisproject.ca/' in pathname:
+            if username is None or password is None:
+                raise RuntimeError('Username or password is missing for the elvis database.')
+            else:
+                logged = login_edb(username, password)
+                resp = auth_get(pathname, logged['csrftoken'], logged['sessionid'])
+                self._pathname = resp.text
+                print(resp.json())
+                self._metafile = resp.json
 
     def __repr__(self):
         return "vis.models.indexed_piece.IndexedPiece('{}')".format(self.metadata('pathname'))
@@ -227,9 +264,13 @@ class IndexedPiece(object):
             ``known_opus`` if ``False``, or if ``known_opus`` is ``True`` but the file does not
             import as an :class:`Opus`.
         """
-        score = converter.Converter()
-        score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
-        score = score.stream
+        if 'http://' in self.metadata('pathname'):
+            score = converter.parse(self._pathname)
+        else:
+            score = converter.Converter()
+            score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
+            score = score.stream
+
         if isinstance(score, stream.Opus):
             if known_opus is False and self._opus_id is None:
                 # unexpected Opus---can't continue
@@ -464,8 +505,11 @@ class IndexedPiece(object):
 
             lines = mf.readlines()
             exists = False
+            if '/' in self._pathname:
+                pth = self._pathname.split('/')
+                pth = pth[len(pth) - 1]
             for line in lines:
-                if self._pathname in line:
+                if self._pathname in line or pth in line:
                     exists = True
             if not exists:
                 warnings.warn('The meta file you have included does not seem to correspond to the file.')
@@ -514,6 +558,7 @@ class IndexedPiece(object):
 
     def run(self):
 
+        print(self._pathname)
         self._import_score()
         self._open_file()
         return self

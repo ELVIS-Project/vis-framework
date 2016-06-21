@@ -30,7 +30,9 @@ The model representing data from multiple :class:`~vis.models.indexed_piece.Inde
 
 import six
 import pandas
+import os
 from vis.analyzers import experimenter
+from vis.models import indexed_piece
 
 
 class AggregatedPieces(object):
@@ -48,8 +50,8 @@ class AggregatedPieces(object):
         """
         Used internally by :class:`AggregatedPieces` ... at least for now.
 
-        Hold aggregated metadata about the IndexedPieces in an AggregatedPiece. Every list has no
-        duplicate entries.
+        Hold aggregated metadata about the IndexedPieces in an AggregatedPiece.
+        Every list has no duplicate entries.
 
         - composers: list of all the composers in the IndexedPieces
         - dates: list of all the dates in the IndexedPieces
@@ -60,7 +62,7 @@ class AggregatedPieces(object):
         """
         __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
-    def __init__(self, pieces=None):
+    def __init__(self, pieces, metafile=None, username=None, password=None):
         """
         :param pieces: The IndexedPieces to collect.
         :type pieces: list of :class:`~vis.models.indexed_piece.IndexedPiece`
@@ -69,13 +71,68 @@ class AggregatedPieces(object):
             """
             Initialize valid metadata fields with a zero-length string.
             """
-            field_list = ['composers', 'dates', 'date_range', 'titles', 'locales',
-                          'pathnames']
+            field_list = ['composers', 'dates', 'date_range', 'titles',
+                          'locales', 'pathnames']
             for field in field_list:
                 self._metadata[field] = None
 
+        def walk_meta(pieces):
+            my_pieces = []
+            for root, dirs, files in os.walk(pieces, topdown=True):
+                if '.DS_Store' in files:
+                    files.remove('.DS_Store')
+                if files == []:
+                    pass
+                elif 'meta' in files:
+                    meta = root + '/meta'
+                    files.remove('meta')
+                    for file in files:
+                        file = root + '/' + file
+                        my_pieces.append((file, meta))
+                else:
+                    for file in files:
+                        file = root + '/' + file
+                        my_pieces.append((file))
+
+            return my_pieces
+
+        def create_pieces(pieces, metafile=None):
+            if type(pieces) is list:
+
+                if metafile is not None:
+                    if os.path.isdir(metafile):
+                        my_pieces = zip(*[pieces, metafile])
+                    elif os.path.isfile(metafile):
+                        my_pieces = [(x, metafile) for x in pieces]
+                else:
+                    my_pieces = [(x) for x in pieces]
+
+            elif os.path.isdir(pieces):
+                my_pieces = walk_meta(pieces)
+
+            else:
+                my_pieces = [pieces]
+
+            return my_pieces
+
         super(AggregatedPieces, self).__init__()
-        self._pieces = pieces if pieces is not None else []
+        if metafile is None:
+            my_pieces = create_pieces(pieces)
+        else:
+            my_pieces = create_pieces(pieces, metafile)
+
+        if isinstance(my_pieces[0], indexed_piece.IndexedPiece):
+            self._pieces = my_pieces
+        elif username is None and password is None:
+            if len(my_pieces[0]) == 2:
+                self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1]).run() for piece in my_pieces]
+            else:
+                self._pieces = [indexed_piece.IndexedPiece(piece[0]).run() for piece in my_pieces]
+        else:
+            if len(my_pieces[0]) == 2:
+                self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=username, password=password).run() for piece in my_pieces]
+            else:
+                self._pieces = [indexed_piece.IndexedPiece(piece[0], username=username, password=password).run() for piece in my_pieces]
         self._metadata = {}
         init_metadata()
         # set our "pathnames" metadata
@@ -262,3 +319,6 @@ class AggregatedPieces(object):
                                  aggregated_experiments[1:],
                                  settings,
                                  aggregated_experiments[0](data, settings).run())
+
+    def run(self):
+        return
