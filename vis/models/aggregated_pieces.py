@@ -25,14 +25,19 @@
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 
-The model representing data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
+The model representing data from multiple 
+    :class:`~vis.models.indexed_piece.IndexedPiece` instances.
 """
 
 import six
 import pandas
 import os
+import requests
+import json
+from pprint import pprint
 from vis.analyzers import experimenter
 from vis.models import indexed_piece
+
 
 def login_edb(username, password):
     """Return csrf and session tokens for a login."""
@@ -70,6 +75,15 @@ class AggregatedPieces(object):
     # When metadata() gets a 'field' argument that isn't a string
     _FIELD_STRING = "parameter 'field' must be of type 'string'"
 
+    _file_types = {1: '.mei',
+                   2: '.xml',
+                   3: '.mid',
+                   4: '.midi',
+                   5: '.nwc',
+                   6: '.MUS',
+                   7: '.krn',
+                   8: '.md'}
+
     class Metadata(object):
         """
         Used internally by :class:`AggregatedPieces` ... at least for now.
@@ -86,7 +100,114 @@ class AggregatedPieces(object):
         """
         __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
-    def __init__(self, pieces, metafile=None, username=None, password=None):
+    def file_loader(self):
+
+        # 3 kinds of lists for input
+        if type(self._input_pieces) is list:
+
+            # list of already indexed pieces
+            if isinstance(self._input_pieces[0], indexed_piece.IndexedPiece):
+                pass
+            # list of files
+            elif os.path.isfile(self._input_pieces[0]):
+                pass
+            # list of links
+            elif 'http' in self._input_pieces[0]:
+                pass
+            else:
+                # raise error
+                pass
+
+
+        # directory of pieces
+        elif os.path.isdir(self._input_pieces):
+            my_pieces = walk_meta(pieces)
+
+        # if the input is a single url
+        else:
+            my_pieces = [pieces]
+
+        return my_pieces
+
+    # def get_attach(self, attachments):
+    #     if len(attachments) > 1:
+    #         n = 1
+    #         while n < 8:
+    #             for file in attachments:
+    #                 if file['extension'] == self._file_types[n]:
+    #                     url = 'http://database.elvisproject.ca' + file['url']
+    #                     return (url, attachments)
+    #             n += 1
+    #     else:
+    #         url = 'http://database.elvisproject.ca' + attachments[0]['url']
+    #         return (url, attachments)
+    #     return attachments
+
+    # def from_piece(self, piece):
+    #     url = piece['url'] + '?format=json'
+    #     resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+    #     metafile = resp.json()
+    #     if 'attachments' in metafile:
+    #         return self.get_attach(metafile['attachments'])
+    #     elif 'movements' in metafile:
+    #         if 'attachments' in metafile['movements']:
+    #             return self.get_attach(metafile['movements']['attachments'])
+    #     else:
+    #         return ()
+
+    # def from_meta(self, pieces):
+    #     my_pieces = []
+    #     print(pieces)
+    #     if 'pieces' in pieces:
+    #         for piece in pieces['pieces']:
+    #             if 'movements' in piece:
+    #                 for movement in piece['movements']:
+    #                     meta = movement
+    #                     if 'attachments' in movement:
+    #                         attachments = movement['attachments']
+    #                         attachment = self.get_attach(attachments)
+    #                         my_pieces.append((attachment, meta))
+    #                     else:
+    #                         my_pieces.append((self.from_piece(movement), meta))
+    #             else:
+    #                 meta = piece
+    #                 if 'attachments' in piece:
+    #                     attachments = piece['attachments']
+    #                     attachment = self.get_attach(attachments)
+    #                     my_pieces.append((attachment, meta))
+    #                 else:
+    #                     my_pieces.append((self.from_piece(movement), meta))
+
+    #     if 'movements' in pieces:
+    #         for movement in pieces['movements']:
+    #             meta = movement
+    #             if 'attachments' in movement:
+    #                 pprint(movement)
+    #                 attachments = movement['attachments']
+    #                 attachment = self.get_attach(attachments)
+    #                 my_pieces.append((attachment, meta))
+    #             else:
+    #                 my_pieces.append((self.from_piece(movement), meta))
+
+    #     return my_pieces
+
+    # def from_search(self, pieces, word):
+    #     return pieces
+
+    # def from_collection(self):
+    #     return
+
+    # def get_url(self, url, username, password):
+        logged = login_edb(username, password)
+        self._logged = logged
+        resp = auth_get(url, logged['csrftoken'], logged['sessionid'])
+        metafile = resp.json()
+        if 'paginator' in metafile:
+            return self.from_search(metafile)
+        else:
+            return self.from_meta(metafile)
+
+    def __init__(self, pieces, metafile=None, username=None, password=None, file_types=None):
         """
         :param pieces: The IndexedPieces to collect.
         :type pieces: list of :class:`~vis.models.indexed_piece.IndexedPiece`
@@ -101,27 +222,34 @@ class AggregatedPieces(object):
             for field in field_list:
                 self._metadata[field] = None
 
-        def walk_meta(pieces):
-            my_pieces = []
-            for root, dirs, files in os.walk(pieces, topdown=True):
-                if '.DS_Store' in files:
-                    files.remove('.DS_Store')
-                if files == []:
-                    pass
-                elif 'meta' in files:
-                    meta = root + '/meta'
-                    files.remove('meta')
-                    for file in files:
-                        file = root + '/' + file
-                        my_pieces.append((file, meta))
-                else:
-                    for file in files:
-                        file = root + '/' + file
-                        my_pieces.append((file))
+        # def write_meta(meta):
+        #     target = open('temp', 'w')
+        #     print json.load(meta)
+        #     print('***********')
+        #     target.write(meta)
+        #     target.close()
 
-            return my_pieces
+        # def walk_meta(pieces):
+        #     my_pieces = []
+        #     for root, dirs, files in os.walk(pieces, topdown=True):
+        #         if '.DS_Store' in files:
+        #             files.remove('.DS_Store')
+        #         if files == []:
+        #             pass
+        #         elif 'meta' in files:
+        #             meta = root + '/meta'
+        #             files.remove('meta')
+        #             for file in files:
+        #                 file = root + '/' + file
+        #                 my_pieces.append((file, meta))
+        #         else:
+        #             for file in files:
+        #                 file = root + '/' + file
+        #                 my_pieces.append((file))
 
-        def create_pieces(pieces, metafile=None):
+        #     return my_pieces
+
+        # def create_pieces(pieces, metafile=None):
             if type(pieces) is list:
 
                 if metafile is not None:
@@ -140,30 +268,41 @@ class AggregatedPieces(object):
 
             return my_pieces
 
-        def get_meta(pieces):
-
-            print(pieces)
-            login_edb(username, password)
-
         super(AggregatedPieces, self).__init__()
-        if metafile is None:
-            my_pieces = create_pieces(pieces)
-        else:
-            my_pieces = create_pieces(pieces, metafile)
 
-        if isinstance(my_pieces[0], indexed_piece.IndexedPiece):
-            self._pieces = my_pieces
-        elif username is None and password is None:
-            if len(my_pieces[0]) == 2:
-                self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1]).run() for piece in my_pieces]
-            else:
-                self._pieces = [indexed_piece.IndexedPiece(piece[0]).run() for piece in my_pieces]
-        else:
-            if len(my_pieces[0]) == 2:
-                self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=username, password=password).run() for piece in my_pieces]
-            else:
-                my_pieces = get_meta(my_pieces)
-                self._pieces = my_pieces
+        self._input_pieces = pieces
+        if metafile is not None:
+            self._metafile = metafile
+        if username is not None:
+            self._username = username
+        if password is not None:
+            self._password = password
+        if file_types is not None:
+            self._file_types = file_types
+
+        self.file_loader()
+
+        # if metafile is None:
+        #     my_pieces = create_pieces(pieces)
+        # else:
+        #     my_pieces = create_pieces(pieces, metafile)
+
+        # if isinstance(my_pieces[0], indexed_piece.IndexedPiece):
+        #     self._pieces = my_pieces
+        # elif username is None and password is None:
+        #     if len(my_pieces[0]) == 2:
+        #         self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1]).run() for piece in my_pieces]
+        #     else:
+        #         self._pieces = [indexed_piece.IndexedPiece(piece[0]).run() for piece in my_pieces]
+        # else:
+        #     if len(my_pieces[0]) == 2:
+        #         self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=username, password=password).run() for piece in my_pieces]
+        #     else:
+        #         my_pieces = self.get_url(my_pieces[0], username, password)
+        #         self._pieces = []
+        #         for piece in my_pieces:
+        #             indexed_piece.IndexedPiece(piece[0],)
+                # self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=username, password=password).run() for piece in my_pieces]
                 # self._pieces = [indexed_piece.IndexedPiece(piece[0], username=username, password=password).run() for piece in my_pieces]
         self._metadata = {}
         init_metadata()
