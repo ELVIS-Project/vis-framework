@@ -75,6 +75,16 @@ class AggregatedPieces(object):
     # When metadata() gets a 'field' argument that isn't a string
     _FIELD_STRING = "parameter 'field' must be of type 'string'"
 
+    _UNKNOWN_INPUT = "The input is of an unknown type"
+
+    _NO_FILES = "There are no files in this directory!"
+
+    _UNKNOWN_URL = "This url is not a known type"
+
+    _MISSING_USERNAME = "Please input a username to log in to the elvis database"
+
+    _MISSING_PASSWORD = "Please input a password to log in to the elvis database"
+
     _file_types = {1: '.mei',
                    2: '.xml',
                    3: '.mid',
@@ -100,6 +110,73 @@ class AggregatedPieces(object):
         """
         __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
+    def load_url(self):
+        if self._username is None:
+            raise RuntimeError(self._MISSING_USERNAME)
+        elif self._password is None:
+            raise RuntimeError(self._MISSING_PASSWORD)
+        else:
+            self._logged = login_edb(self._username, self._password)
+        url = self._input_pieces
+        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+
+        try:
+            resp.json()
+        except ValueError:
+            if url[len(url)-1] == '/':
+                url = url + '?format=json'
+            else:
+                url = url + '&format=json'
+
+        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+
+        url = self._input_pieces
+        jason = resp.json()
+        return url, jason
+
+    def from_piece(self, url):
+        new_url, jason = self.load_url(url)
+        if len(jason['movements']) > 0:
+
+        else:
+            get_attach()
+
+    def from_search(self):
+        return
+
+    def from_url(self):
+        url, jason = self.load_url()
+
+        # check if the url is a collection
+        if 'collection' in url:
+            for piece in jason['pieces']:
+                self.from_piece(piece['url'])
+            for movement in jason['movements']:
+                self.from_piece(movement['url'])
+
+        # check if the url is a search result
+        elif 'search' in url:
+            self.from_search()
+
+        # check if the url is a download cart
+        elif 'cart' in url:
+            for piece in jason['pieces']:
+                self.from_piece(piece['url'])
+            for movement in jason['movements']:
+                self.from_piece(movement['url'])
+
+        # check if the url is a composer page
+        elif 'composer' in url:
+            for piece in jason['pieces']:
+                self.from_piece(piece['url'])
+
+        # check if the url is a piece
+        elif 'piece' in url:
+            self.from_piece(url)
+
+        else:
+            raise RuntimeError(self._UNKNOWN_URL)
+
     def file_loader(self):
 
         # 3 kinds of lists for input
@@ -107,27 +184,72 @@ class AggregatedPieces(object):
 
             # list of already indexed pieces
             if isinstance(self._input_pieces[0], indexed_piece.IndexedPiece):
-                pass
+                self._pieces = self._input_pieces
+
             # list of files
             elif os.path.isfile(self._input_pieces[0]):
-                pass
+                # adding metafiles to the indexed piece
+                if self._metafile is not None:
+                    # only one meta file
+                    if os.path.isfile(self._metafile):
+                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafile) for piece in self._input_pieces]
+                    # one meta file per music file
+                    elif type(self._metafile) is list:
+                        for n in len(self._input_pieces):
+                            indexed_piece.IndexedPiece(self._input_pieces[n], metafile=self._metafile[n])
+                # if no metafiles were attached
+                else:
+                    self._pieces = [indexed_piece.IndexedPiece(piece) for piece in self._input_pieces]
+
             # list of links
             elif 'http' in self._input_pieces[0]:
-                pass
-            else:
-                # raise error
-                pass
+                # adding metafiles to the indexed piece
+                if self._metafile is not None:
+                    # only one meta file
+                    if os.path.isfile(self._metafile):
+                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafile) for piece in self._input_pieces]
+                    # one meta file per music file
+                    elif type(self._metafile) is list:
+                        for n in len(self._input_pieces):
+                            indexed_piece.IndexedPiece(self._input_pieces[n], metafile=self._metafile[n])
+                # if no metafiles were attached
+                else:
+                    self._pieces = [indexed_piece.IndexedPiece(piece) for piece in self._input_pieces]
 
+            else:
+                raise RuntimeError(self._UNKNOWN_INPUT)
 
         # directory of pieces
         elif os.path.isdir(self._input_pieces):
-            my_pieces = walk_meta(pieces)
+
+            self._pieces = []
+            for root, dirs, files in os.walk(self._input_pieces, topdown=True):
+
+                if files == []:
+                    raise RuntimeError(self._NO_FILES)
+
+                # remove ds_stores
+                if '.DS_Store' in files:
+                    files.remove('.DS_Store')
+
+                # attach meta files if they exist
+                if 'meta' in files:
+                    meta = root + '/meta'
+                    files.remove('meta')
+                    for file in files:
+                        file = root + '/' + file
+                        self._pieces.append(indexed_piece.IndexedPiece(file, metafile=meta))
+
+                # indexed piece without meta files
+                else:
+                    for file in files:
+                        file = root + '/' + file
+                        self._pieces.append(indexed_piece.IndexedPiece(file))
 
         # if the input is a single url
         else:
-            my_pieces = [pieces]
+            self.from_url()
 
-        return my_pieces
 
     # def get_attach(self, attachments):
     #     if len(attachments) > 1:
@@ -198,14 +320,14 @@ class AggregatedPieces(object):
     #     return
 
     # def get_url(self, url, username, password):
-        logged = login_edb(username, password)
-        self._logged = logged
-        resp = auth_get(url, logged['csrftoken'], logged['sessionid'])
-        metafile = resp.json()
-        if 'paginator' in metafile:
-            return self.from_search(metafile)
-        else:
-            return self.from_meta(metafile)
+    #     logged = login_edb(username, password)
+    #     self._logged = logged
+    #     resp = auth_get(url, logged['csrftoken'], logged['sessionid'])
+    #     metafile = resp.json()
+    #     if 'paginator' in metafile:
+    #         return self.from_search(metafile)
+    #     else:
+    #         return self.from_meta(metafile)
 
     def __init__(self, pieces, metafile=None, username=None, password=None, file_types=None):
         """
@@ -222,52 +344,6 @@ class AggregatedPieces(object):
             for field in field_list:
                 self._metadata[field] = None
 
-        # def write_meta(meta):
-        #     target = open('temp', 'w')
-        #     print json.load(meta)
-        #     print('***********')
-        #     target.write(meta)
-        #     target.close()
-
-        # def walk_meta(pieces):
-        #     my_pieces = []
-        #     for root, dirs, files in os.walk(pieces, topdown=True):
-        #         if '.DS_Store' in files:
-        #             files.remove('.DS_Store')
-        #         if files == []:
-        #             pass
-        #         elif 'meta' in files:
-        #             meta = root + '/meta'
-        #             files.remove('meta')
-        #             for file in files:
-        #                 file = root + '/' + file
-        #                 my_pieces.append((file, meta))
-        #         else:
-        #             for file in files:
-        #                 file = root + '/' + file
-        #                 my_pieces.append((file))
-
-        #     return my_pieces
-
-        # def create_pieces(pieces, metafile=None):
-            if type(pieces) is list:
-
-                if metafile is not None:
-                    if os.path.isdir(metafile):
-                        my_pieces = zip(*[pieces, metafile])
-                    elif os.path.isfile(metafile):
-                        my_pieces = [(x, metafile) for x in pieces]
-                else:
-                    my_pieces = [(x) for x in pieces]
-
-            elif os.path.isdir(pieces):
-                my_pieces = walk_meta(pieces)
-
-            else:
-                my_pieces = [pieces]
-
-            return my_pieces
-
         super(AggregatedPieces, self).__init__()
 
         self._input_pieces = pieces
@@ -282,28 +358,6 @@ class AggregatedPieces(object):
 
         self.file_loader()
 
-        # if metafile is None:
-        #     my_pieces = create_pieces(pieces)
-        # else:
-        #     my_pieces = create_pieces(pieces, metafile)
-
-        # if isinstance(my_pieces[0], indexed_piece.IndexedPiece):
-        #     self._pieces = my_pieces
-        # elif username is None and password is None:
-        #     if len(my_pieces[0]) == 2:
-        #         self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1]).run() for piece in my_pieces]
-        #     else:
-        #         self._pieces = [indexed_piece.IndexedPiece(piece[0]).run() for piece in my_pieces]
-        # else:
-        #     if len(my_pieces[0]) == 2:
-        #         self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=username, password=password).run() for piece in my_pieces]
-        #     else:
-        #         my_pieces = self.get_url(my_pieces[0], username, password)
-        #         self._pieces = []
-        #         for piece in my_pieces:
-        #             indexed_piece.IndexedPiece(piece[0],)
-                # self._pieces = [indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=username, password=password).run() for piece in my_pieces]
-                # self._pieces = [indexed_piece.IndexedPiece(piece[0], username=username, password=password).run() for piece in my_pieces]
         self._metadata = {}
         init_metadata()
         # set our "pathnames" metadata
