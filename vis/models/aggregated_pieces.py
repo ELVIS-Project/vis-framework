@@ -110,14 +110,14 @@ class AggregatedPieces(object):
         """
         __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
-    def load_url(self):
+    def load_url(self, url):
+
         if self._username is None:
             raise RuntimeError(self._MISSING_USERNAME)
         elif self._password is None:
             raise RuntimeError(self._MISSING_PASSWORD)
         else:
             self._logged = login_edb(self._username, self._password)
-        url = self._input_pieces
         resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
 
         try:
@@ -130,29 +130,52 @@ class AggregatedPieces(object):
 
         resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
 
-        url = self._input_pieces
         jason = resp.json()
         return url, jason
 
+    def call_indexer(self, jason):
+        if 'attachments' in jason:
+            if len(jason['attachments']) == 1:
+                piece = 'http://database.elvisproject.ca/' + jason['attachments'][0]['url']
+            elif len(jason['attachments']) > 1:
+                n = 1
+                while n < len(self._file_types):
+                    for attach in jason['attachments']:
+                        if attach['extension'] == self._file_types[n]:
+                            piece = 'http://database.elvisproject.ca/' + attach['url']
+            else:
+                piece = ''
+
+        return piece
+
     def from_piece(self, url):
         new_url, jason = self.load_url(url)
-        if len(jason['movements']) > 0:
-
+        pieces = []
+        if 'movements' in jason and len(jason['movements']) > 0:
+            movements = []
+            for movement in jason['movements']:
+                url = movement['url']
+                url, jason = self.load_url(url)
+                movements.append((self.call_indexer(jason), url))
+            pieces.extend(movements)
         else:
-            get_attach()
+            pieces.append((self.call_indexer(jason), new_url))
+
+        return pieces
 
     def from_search(self):
         return
 
     def from_url(self):
-        url, jason = self.load_url()
+        url, jason = self.load_url(self._input_pieces)
+        pieces = []
 
         # check if the url is a collection
         if 'collection' in url:
             for piece in jason['pieces']:
-                self.from_piece(piece['url'])
+                pieces.extend(self.from_piece(piece['url']))
             for movement in jason['movements']:
-                self.from_piece(movement['url'])
+                pieces.extend(self.from_piece(movement['url']))
 
         # check if the url is a search result
         elif 'search' in url:
@@ -161,23 +184,61 @@ class AggregatedPieces(object):
         # check if the url is a download cart
         elif 'cart' in url:
             for piece in jason['pieces']:
-                self.from_piece(piece['url'])
+                pieces.extend(self.from_piece(piece['url']))
             for movement in jason['movements']:
-                self.from_piece(movement['url'])
+                pieces.extend(self.from_piece(movement['url']))
 
         # check if the url is a composer page
         elif 'composer' in url:
             for piece in jason['pieces']:
-                self.from_piece(piece['url'])
+                pieces.extend(self.from_piece(piece['url']))
 
         # check if the url is a piece
         elif 'piece' in url:
-            self.from_piece(url)
+            pieces.extend(self.from_piece(url))
 
         else:
             raise RuntimeError(self._UNKNOWN_URL)
 
+        self._pieces = []
+        for piece in pieces:
+            u = self._username
+            p = self._password
+            ind = indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=u, password=p).run()
+            self._pieces.append(ind)
+
+    def from_collection(self):
+        return
+
+    def from_cart(self):
+        return
+
+    def from_movement(self):
+        return
+
+    def from_composer(self):
+        return
+
     def file_loader(self):
+
+        def directory(directory):
+            # remove ds_stores
+            if '.DS_Store' in files:
+                files.remove('.DS_Store')
+
+            # attach meta files if they exist
+            if 'meta' in files:
+                meta = root + '/meta'
+                files.remove('meta')
+                for file in files:
+                    file = root + '/' + file
+                    self._pieces.append(indexed_piece.IndexedPiece(file, metafile=meta).run())
+
+            # indexed piece without meta files
+            else:
+                for file in files:
+                    file = root + '/' + file
+                    self._pieces.append(indexed_piece.IndexedPiece(file))
 
         # 3 kinds of lists for input
         if type(self._input_pieces) is list:
@@ -192,14 +253,14 @@ class AggregatedPieces(object):
                 if self._metafile is not None:
                     # only one meta file
                     if os.path.isfile(self._metafile):
-                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafile) for piece in self._input_pieces]
+                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafile).run() for piece in self._input_pieces]
                     # one meta file per music file
                     elif type(self._metafile) is list:
                         for n in len(self._input_pieces):
-                            indexed_piece.IndexedPiece(self._input_pieces[n], metafile=self._metafile[n])
+                            indexed_piece.IndexedPiece(self._input_pieces[n], metafile=self._metafile[n]).run()
                 # if no metafiles were attached
                 else:
-                    self._pieces = [indexed_piece.IndexedPiece(piece) for piece in self._input_pieces]
+                    self._pieces = [indexed_piece.IndexedPiece(piece).run() for piece in self._input_pieces]
 
             # list of links
             elif 'http' in self._input_pieces[0]:
@@ -207,14 +268,14 @@ class AggregatedPieces(object):
                 if self._metafile is not None:
                     # only one meta file
                     if os.path.isfile(self._metafile):
-                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafile) for piece in self._input_pieces]
+                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafile).run() for piece in self._input_pieces]
                     # one meta file per music file
                     elif type(self._metafile) is list:
                         for n in len(self._input_pieces):
-                            indexed_piece.IndexedPiece(self._input_pieces[n], metafile=self._metafile[n])
+                            indexed_piece.IndexedPiece(self._input_pieces[n], metafile=self._metafile[n]).run()
                 # if no metafiles were attached
                 else:
-                    self._pieces = [indexed_piece.IndexedPiece(piece) for piece in self._input_pieces]
+                    self._pieces = [indexed_piece.IndexedPiece(piece).run() for piece in self._input_pieces]
 
             else:
                 raise RuntimeError(self._UNKNOWN_INPUT)
@@ -222,112 +283,20 @@ class AggregatedPieces(object):
         # directory of pieces
         elif os.path.isdir(self._input_pieces):
 
+            is_empty = True
             self._pieces = []
-            for root, dirs, files in os.walk(self._input_pieces, topdown=True):
 
-                if files == []:
-                    raise RuntimeError(self._NO_FILES)
+            for root, dirs, files in os.walk(self._input_pieces):
+                if len(files) > 0:
+                    is_empty = False
+                    directory(files)
 
-                # remove ds_stores
-                if '.DS_Store' in files:
-                    files.remove('.DS_Store')
-
-                # attach meta files if they exist
-                if 'meta' in files:
-                    meta = root + '/meta'
-                    files.remove('meta')
-                    for file in files:
-                        file = root + '/' + file
-                        self._pieces.append(indexed_piece.IndexedPiece(file, metafile=meta))
-
-                # indexed piece without meta files
-                else:
-                    for file in files:
-                        file = root + '/' + file
-                        self._pieces.append(indexed_piece.IndexedPiece(file))
+            if is_empty:
+                raise RuntimeError(self._NO_FILES)
 
         # if the input is a single url
         else:
             self.from_url()
-
-
-    # def get_attach(self, attachments):
-    #     if len(attachments) > 1:
-    #         n = 1
-    #         while n < 8:
-    #             for file in attachments:
-    #                 if file['extension'] == self._file_types[n]:
-    #                     url = 'http://database.elvisproject.ca' + file['url']
-    #                     return (url, attachments)
-    #             n += 1
-    #     else:
-    #         url = 'http://database.elvisproject.ca' + attachments[0]['url']
-    #         return (url, attachments)
-    #     return attachments
-
-    # def from_piece(self, piece):
-    #     url = piece['url'] + '?format=json'
-    #     resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
-    #     metafile = resp.json()
-    #     if 'attachments' in metafile:
-    #         return self.get_attach(metafile['attachments'])
-    #     elif 'movements' in metafile:
-    #         if 'attachments' in metafile['movements']:
-    #             return self.get_attach(metafile['movements']['attachments'])
-    #     else:
-    #         return ()
-
-    # def from_meta(self, pieces):
-    #     my_pieces = []
-    #     print(pieces)
-    #     if 'pieces' in pieces:
-    #         for piece in pieces['pieces']:
-    #             if 'movements' in piece:
-    #                 for movement in piece['movements']:
-    #                     meta = movement
-    #                     if 'attachments' in movement:
-    #                         attachments = movement['attachments']
-    #                         attachment = self.get_attach(attachments)
-    #                         my_pieces.append((attachment, meta))
-    #                     else:
-    #                         my_pieces.append((self.from_piece(movement), meta))
-    #             else:
-    #                 meta = piece
-    #                 if 'attachments' in piece:
-    #                     attachments = piece['attachments']
-    #                     attachment = self.get_attach(attachments)
-    #                     my_pieces.append((attachment, meta))
-    #                 else:
-    #                     my_pieces.append((self.from_piece(movement), meta))
-
-    #     if 'movements' in pieces:
-    #         for movement in pieces['movements']:
-    #             meta = movement
-    #             if 'attachments' in movement:
-    #                 pprint(movement)
-    #                 attachments = movement['attachments']
-    #                 attachment = self.get_attach(attachments)
-    #                 my_pieces.append((attachment, meta))
-    #             else:
-    #                 my_pieces.append((self.from_piece(movement), meta))
-
-    #     return my_pieces
-
-    # def from_search(self, pieces, word):
-    #     return pieces
-
-    # def from_collection(self):
-    #     return
-
-    # def get_url(self, url, username, password):
-    #     logged = login_edb(username, password)
-    #     self._logged = logged
-    #     resp = auth_get(url, logged['csrftoken'], logged['sessionid'])
-    #     metafile = resp.json()
-    #     if 'paginator' in metafile:
-    #         return self.from_search(metafile)
-    #     else:
-    #         return self.from_meta(metafile)
 
     def __init__(self, pieces, metafile=None, username=None, password=None, file_types=None):
         """

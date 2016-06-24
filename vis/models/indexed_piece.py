@@ -234,7 +234,6 @@ class IndexedPiece(object):
                 logged = login_edb(username, password)
                 resp = auth_get(pathname, logged['csrftoken'], logged['sessionid'])
                 self._pathname = resp.text
-                print(resp.json())
                 self._metafile = resp.json
 
     def __repr__(self):
@@ -499,66 +498,95 @@ class IndexedPiece(object):
 
     def _open_file(self):
 
-        with open(self._metafile) as mf:
-            f = []
-            x = 0
+        if os.path.isfile(self._metafile):
+            with open(self._metafile) as mf:
+                f = []
+                x = 0
 
-            lines = mf.readlines()
-            exists = False
-            if '/' in self._pathname:
-                pth = self._pathname.split('/')
-                pth = pth[len(pth) - 1]
-            for line in lines:
-                if self._pathname in line or pth in line:
-                    exists = True
-            if not exists:
-                warnings.warn('The meta file you have included does not seem to correspond to the file.')
-                return
+                lines = mf.readlines()
+                exists = False
+                if '/' in self._pathname:
+                    pth = self._pathname.split('/')
+                    pth = pth[len(pth) - 1]
+                for line in lines:
+                    if self._pathname in line or pth in line:
+                        exists = True
+                if not exists:
+                    warnings.warn('The meta file you have included does not seem to correspond to the file.')
+                    return
 
-            for n, line in enumerate(lines):
-                if line.startswith('}'):
-                    line_range = [x, n]
-                    x = n + 1
-                    f.append(line_range)
+                for n, line in enumerate(lines):
+                    if line.startswith('}'):
+                        line_range = [x, n]
+                        x = n + 1
+                        f.append(line_range)
 
-            if len(f) == 1:
-                self._json_reader()
+                if len(f) == 1:
+                    self._json_reader()
 
-            for pair in f:
-                for line in lines[pair[0]: pair[1]]:
-                    if self._pathname in line:
-                        target = open('temp', 'w')
-                        for line1 in lines[pair[0]: pair[1]]:
-                            target.write(line1)
-                        target.write('}' + '\n')
-                        target.close()
-                        self._metafile = 'temp'
-                        self._json_reader()
+                for pair in f:
+                    for line in lines[pair[0]: pair[1]]:
+                        if self._pathname in line:
+                            target = open('temp', 'w')
+                            for line1 in lines[pair[0]: pair[1]]:
+                                target.write(line1)
+                            target.write('}' + '\n')
+                            target.close()
+                            self._metafile = 'temp'
+                            self._json_reader()
+        else:
+            self._json_reader()
+
+    def load_url(self, url):
+        if self._username is None:
+            raise RuntimeError(self._MISSING_USERNAME)
+        elif self._password is None:
+            raise RuntimeError(self._MISSING_PASSWORD)
+        else:
+            self._logged = login_edb(self._username, self._password)
+        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+
+        try:
+            resp.json()
+        except ValueError:
+            if url[len(url)-1] == '/':
+                url = url + '?format=json'
+            else:
+                url = url + '&format=json'
+
+        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+
+        jason = resp.json()
+        return url, jason
 
     def _json_reader(self):
 
-        with open(self._metafile) as mf:
-            data = json.load(mf)
-            self._metadata['composer'] = data['composer']['title']
-            for lang in data['languages']:
-                for title in lang:
-                    self._metadata['languages'].append(lang[title])
-            for tag in data['tags']:
-                for title in tag:
-                    self._metadata['tags'].append(tag[title])
-            self._metadata['title'] = data['piece']['title'] + ': ' + data['title']
-            self._metadata['composer'] = data['composer']['title']
-            types = ['vocalization', 'sources', 'religiosity', 'locations', 'instruments_voices', 'genres', 'creator']
-            for dat in types:
-                self._metadata[dat] = data[dat]
+        if os.path.isfile(self._metafile):
+            with open(self._metafile) as mf:
+                data = json.load(mf)
+                mf.close()
 
-        mf.close()
+        else:
+            url, data = self.load_url(self._metafile)
+
+        self._metadata['composer'] = data['composer']['title']
+        for lang in data['languages']:
+            for title in lang:
+                self._metadata['languages'].append(lang[title])
+        for tag in data['tags']:
+            for title in tag:
+                self._metadata['tags'].append(tag[title])
+        self._metadata['title'] = data['piece']['title'] + ': ' + data['title']
+        self._metadata['composer'] = data['composer']['title']
+        types = ['vocalization', 'sources', 'religiosity', 'locations', 'instruments_voices', 'genres', 'creator']
+        for dat in types:
+            self._metadata[dat] = data[dat]
+
         if self._metafile is 'temp':
             os.remove('temp')
 
     def run(self):
 
-        print(self._pathname)
         self._import_score()
         self._open_file()
         return self
