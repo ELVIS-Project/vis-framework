@@ -27,6 +27,13 @@ There are a number of options for downloading and installing the VIS Framework:
 - Run the pip install vis-framework command in the command line
 
 
+For developers:
+
+For a new release, you will want to create .exe and .tar.gz files for easy installation. To do so, simply run the following commands in the command line:
+python setup.py bdist --format=wininst
+python setup.py bdist --format=gztar
+
+
 Software Dependencies
 =====================
 
