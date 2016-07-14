@@ -25,18 +25,13 @@
 """
 .. codeauthor:: Jamie Klassen <michigan.j.frog@gmail.com>
 .. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
-
 This model represents an indexed and analyzed piece of music.
 """
 
 # Imports
 import os
 import six
-import json
-import requests
-import warnings
-from six.moves import range, xrange
-# pylint: disable=import-error,redefined-builtin
+from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
@@ -47,38 +42,11 @@ from vis.analyzers.indexers import noterest
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 
 
-def login_edb(username, password):
-    """Return csrf and session tokens for a login."""
-    ANON_CSRF_TOKEN = "pkYF0M7HQpBG4uZCfDaBKjvTNe6u1UTZ"
-    data = {"username": username, "password": password}
-    headers = {
-        "Cookie": "csrftoken={}; test_cookie=null".format(ANON_CSRF_TOKEN),
-        "X-CSRFToken": ANON_CSRF_TOKEN
-    }
-    resp = requests.post('http://database.elvisproject.ca/login/',
-                         data=data, headers=headers, allow_redirects=False)
-    if resp.status_code == 302:
-        return dict(resp.cookies)
-    else:
-        raise ValueError("Failed login.")
-
-
-def auth_get(url, csrftoken, sessionid):
-    """Use a csrftoken and sessionid to request a url on the elvisdatabase."""
-    headers = {
-        "Cookie": "test_cookie=null; csrftoken={}; sessionid={}".format(csrftoken, sessionid)
-    }
-    resp = requests.get(url, headers=headers)
-    return resp
-
-
 def _find_piece_title(the_score):
     """
     Find the title of a score. If there is none, return the filename without an extension.
-
     :param the_score: The score of which to find the title.
     :type the_score: :class:`music21.stream.Score`
-
     :returns: The title of the score.
     :rtype: str
     """
@@ -109,10 +77,8 @@ def _find_part_names(the_score):
     """
     Return a list of part names in a score. If the score does not have proper part names, return a
     list of enumerated parts.
-
     :param the_score: The score in which to find the part names.
     :type the_score: :class:`music21.stream.Score`
-
     :returns: The title of the score.
     :rtype: :obj:`list` of str
     """
@@ -157,10 +123,7 @@ def _find_part_ranges(the_score):
     for x in range(len(the_score.parts)):
         p = analysis.discrete.Ambitus()
         p_range = p.getPitchSpan(the_score.parts[x])
-        if p_range is None:
-            ranges.append((None, None))
-        else:
-            ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
+        ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
 
     return ranges
 
@@ -170,7 +133,6 @@ class OpusWarning(RuntimeWarning):
     The :class:`OpusWarning` is raised by :meth:`IndexedPiece.get_data` when ``known_opus`` is
     ``False`` but the file imports as a :class:`music21.stream.Opus` object, and when ``known_opus``
     is ``True`` but the file does not import as a :class:`music21.stream.Opus` object.
-
     Internally, the warning is actually raised by :meth:`IndexedPiece._import_score`.
     """
     pass
@@ -200,12 +162,11 @@ class IndexedPiece(object):
     _UNEXP_NONOPUS = ('You expected a music21.stream.Opus but {} is not an Opus (refer to the '
                       'IndexedPiece.get_data() documentation)')
 
-    def __init__(self, pathname, opus_id=None, metafile=None, username=None, password=None):
+    def __init__(self, pathname, opus_id=None):
         """
         :param str pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
             imports as a :class:`music21.stream.Opus`.
-
         :returns: A new :class:`IndexedPiece`.
         :rtype: :class:`IndexedPiece`
         """
@@ -221,22 +182,11 @@ class IndexedPiece(object):
             self._metadata['pathname'] = pathname
 
         super(IndexedPiece, self).__init__()
-        self._metafile = metafile
         self._imported = False
         self._noterest_results = None
-        self._pathname = pathname
         self._metadata = {}
         self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
         init_metadata()
-
-        if 'http://database.elvisproject.ca/' in pathname:
-            if username is None or password is None:
-                raise RuntimeError('Username or password is missing for the elvis database.')
-            else:
-                logged = login_edb(username, password)
-                resp = auth_get(pathname, logged['csrftoken'], logged['sessionid'])
-                self._pathname = resp.text
-                self._metafile = resp.json
 
     def __repr__(self):
         return "vis.models.indexed_piece.IndexedPiece('{}')".format(self.metadata('pathname'))
@@ -254,24 +204,17 @@ class IndexedPiece(object):
     def _import_score(self, known_opus=False):
         """
         Import the score to music21 format.
-
         :param known_opus: Whether you expect the file to import as a :class:`Opus`.
         :type known_opus: boolean
-
         :returns: the score
         :rtype: :class:`music21.stream.Score`
-
         :raises: :exc:`OpusWarning` if the file imports as a :class:`music21.stream.Opus` but
             ``known_opus`` if ``False``, or if ``known_opus`` is ``True`` but the file does not
             import as an :class:`Opus`.
         """
-        if 'http://' in self.metadata('pathname'):
-            score = converter.parse(self._pathname)
-        else:
-            score = converter.Converter()
-            score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
-            score = score.stream
-
+        score = converter.Converter()
+        score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
+        score = score.stream
         if isinstance(score, stream.Opus):
             if known_opus is False and self._opus_id is None:
                 # unexpected Opus---can't continue
@@ -294,41 +237,25 @@ class IndexedPiece(object):
             self._metadata['title'] = _find_piece_title(score)
             self._metadata['partRanges'] = _find_part_ranges(score)
             self._metadata['pieceRange'] = _find_piece_range(score)
-            self._metadata['religiosity'] = ''
-            self._metadata['creator'] = ''
-            self._metadata['genres'] = []
-            self._metadata['instruments_voices'] = []
-            self._metadata['languages'] = []
-            self._metadata['locations'] = []
-            self._metadata['sources'] = ''
-            self._metadata['tags'] = []
-            self._metadata['vocalization'] = ''
             self._imported = True
         return score
 
     def metadata(self, field, value=None):
         """
         Get or set metadata about the piece.
-
         .. note:: Some metadata fields may not be available for all pieces. The available metadata
             fields depend on the specific file imported. Unavailable fields return ``None``.
             We guarantee real values for ``pathname``, ``title``, and ``parts``.
-
         :param str field: The name of the field to be accessed or modified.
         :param value: If not ``None``, the value to be assigned to ``field``.
         :type value: object or ``None``
-
         :returns: The value of the requested field or ``None``, if assigning, or if accessing
             a non-existant field or a field that has not yet been initialized.
         :rtype: object or ``None`` (usually a string)
-
         :raises: :exc:`TypeError` if ``field`` is not a string.
         :raises: :exc:`AttributeError` if accessing an invalid ``field`` (see valid fields below).
-
         **Metadata Field Descriptions**
-
         All fields are taken directly from music21 unless otherwise noted.
-
         +---------------------+--------------------------------------------------------------------+
         | Metadata Field      | Description                                                        |
         +=====================+====================================================================+
@@ -365,9 +292,7 @@ class IndexedPiece(object):
         +---------------------+--------------------------------------------------------------------+
         | title               | The title of the piece. This is determined partially by music21.   |
         +---------------------+--------------------------------------------------------------------+
-
         **Examples**
-
         >>> piece = IndexedPiece('a_sibelius_symphony.mei')
         >>> piece.metadata('composer')
         'Jean Sibelius'
@@ -389,16 +314,13 @@ class IndexedPiece(object):
     def _get_note_rest_index(self, known_opus=False):
         """
         Return the results of the :class:`NoteRestIndexer` on this piece.
-
         This method is used automatically by :meth:`get_data` to cache results, which avoids having
         to re-import the music21 file for every Indexer or Experimenter that uses the
         :class:`NoteRestIndexer`.
-
         :param known_opus: Whether the caller knows this file will be imported as a
             :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" in the
             :meth:`get_data` docs.
         :type known_opus: boolean
-
         :returns: Results of the :class:`NoteRestIndexer`.
         :rtype: list of :class:`pandas.Series`
         """
@@ -414,14 +336,12 @@ class IndexedPiece(object):
         """
         Verify that all classes in the list are a subclass of :class:`vis.analyzers.indexer.Indexer`
         or :class:`~vis.analyzers.experimenter.Experimenter`.
-
         :param cls_list: A list of the classes to check.
         :type cls_list: list of class
         :returns: ``None``.
         :rtype: None
         :raises: :exc:`TypeError` if a class is not a subclass of :class:`Indexer` or
             :class:`Experimenter`.
-
         ..note:: This is a separate function so it can be replaced with a :class:`MagicMock` in
             testing.
         """
@@ -432,7 +352,6 @@ class IndexedPiece(object):
     def get_data(self, analyzer_cls, settings=None, data=None, known_opus=False):
         """
         Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
-
         :param analyzer_cls: The analyzers to run, in the order they should be run.
         :type analyzer_cls: list of type
         :param settings: Settings to be used with the analyzers.
@@ -443,10 +362,8 @@ class IndexedPiece(object):
         :param known_opus: Whether the caller knows this file will be imported as a
             :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" below.
         :type known_opus: boolean
-
         :returns: Results of the analyzer.
         :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
-
         :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
         :raises: :exc:`RuntimeError` if the first analyzer class in ``analyzer_cls`` does not use
             :class:`~music21.stream.Score` objects, and ``data`` is ``None``.
@@ -454,15 +371,11 @@ class IndexedPiece(object):
             :class:`music21.stream.Opus` object and ``known_opus`` is ``False``.
         :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if ``known_opus`` is ``True`` but the
             file does not import as an :class:`Opus`.
-
         **Note about Opus Objects**
-
         Correctly importing :class:`~music21.stream.Opus` objects is a little awkward because
         we only know a file imports to an :class:`Opus` *after* we import it, but an
         :class:`Opus` should be treated as multiple :class:`IndexedPiece` objects.
-
         We recommend you handle :class:`Opus` objects like this:
-
         #. Try to call :meth:`get_data` on the :class:`IndexedPiece`.
         #. If :meth:`get_data` raises an :exc:`OpusWarning`, the file contains an :class:`Opus`.
         #. Call :meth:`get_data` again with the ``known_opus`` parameter set to ``True``.
@@ -470,7 +383,6 @@ class IndexedPiece(object):
             corresponding to a :class:`~music21.stream.Score` held in the :class:`Opus`.
         #. Then call :meth:`get_data` on the new :class:`IndexedPiece` objects to get the results \
             initially desired.
-
         Refer to the source code for :meth:`vis.workflow.WorkflowManager.load` for an example
         implementation.
         """
@@ -497,99 +409,3 @@ class IndexedPiece(object):
                 return data
             else:
                 return analyzer_cls[0](data, settings).run()
-
-    def _open_file(self):
-
-        if os.path.isfile(self._metafile):
-            with open(self._metafile) as mf:
-                f = []
-                x = 0
-
-                lines = mf.readlines()
-                exists = False
-                if '/' in self._pathname:
-                    pth = self._pathname.split('/')
-                    pth = pth[len(pth) - 1]
-                for line in lines:
-                    if self._pathname in line or pth in line:
-                        exists = True
-                if not exists:
-                    warnings.warn('The meta file you have included does not seem to correspond to the file.')
-                    return
-
-                for n, line in enumerate(lines):
-                    if line.startswith('}'):
-                        line_range = [x, n]
-                        x = n + 1
-                        f.append(line_range)
-
-                if len(f) == 1:
-                    self._json_reader()
-
-                for pair in f:
-                    for line in lines[pair[0]: pair[1]]:
-                        if self._pathname in line:
-                            target = open('temp', 'w')
-                            for line1 in lines[pair[0]: pair[1]]:
-                                target.write(line1)
-                            target.write('}' + '\n')
-                            target.close()
-                            self._metafile = 'temp'
-                            self._json_reader()
-        else:
-            self._json_reader()
-
-    def load_url(self, url):
-        if self._username is None:
-            raise RuntimeError(self._MISSING_USERNAME)
-        elif self._password is None:
-            raise RuntimeError(self._MISSING_PASSWORD)
-        else:
-            self._logged = login_edb(self._username, self._password)
-        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
-
-        try:
-            resp.json()
-        except ValueError:
-            if url[len(url)-1] == '/':
-                url = url + '?format=json'
-            else:
-                url = url + '&format=json'
-
-        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
-
-        jason = resp.json()
-        return url, jason
-
-    def _json_reader(self):
-
-        if os.path.isfile(self._metafile):
-            with open(self._metafile) as mf:
-                data = json.load(mf)
-                mf.close()
-
-        else:
-            url, data = self.load_url(self._metafile)
-
-        self._metadata['composer'] = data['composer']['title']
-        for lang in data['languages']:
-            for title in lang:
-                self._metadata['languages'].append(lang[title])
-        for tag in data['tags']:
-            for title in tag:
-                self._metadata['tags'].append(tag[title])
-        self._metadata['title'] = data['piece']['title'] + ': ' + data['title']
-        self._metadata['composer'] = data['composer']['title']
-        types = ['vocalization', 'sources', 'religiosity', 'locations', 'instruments_voices', 'genres', 'creator']
-        for dat in types:
-            self._metadata[dat] = data[dat]
-
-        if self._metafile is 'temp':
-            os.remove('temp')
-
-    def run(self):
-
-        self._import_score()
-        if self._metafile is not None:
-            self._open_file()
-        return self
