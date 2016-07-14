@@ -157,7 +157,10 @@ def _find_part_ranges(the_score):
     for x in range(len(the_score.parts)):
         p = analysis.discrete.Ambitus()
         p_range = p.getPitchSpan(the_score.parts[x])
-        ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
+        if p_range is None:
+            ranges.append((None, None))
+        else:
+            ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
 
     return ranges
 
@@ -218,8 +221,7 @@ class IndexedPiece(object):
             self._metadata['pathname'] = pathname
 
         super(IndexedPiece, self).__init__()
-        if metafile is not None:
-            self._metafile = metafile
+        self._metafile = metafile
         self._imported = False
         self._noterest_results = None
         self._pathname = pathname
@@ -588,5 +590,6 @@ class IndexedPiece(object):
     def run(self):
 
         self._import_score()
-        self._open_file()
+        if self._metafile is not None:
+            self._open_file()
         return self
