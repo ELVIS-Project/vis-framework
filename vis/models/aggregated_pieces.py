@@ -24,44 +24,12 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-
-The model representing data from multiple 
-    :class:`~vis.models.indexed_piece.IndexedPiece` instances.
+The model representing data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
 """
 
 import six
 import pandas
-import os
-import requests
-import json
-from pprint import pprint
 from vis.analyzers import experimenter
-from vis.models import indexed_piece
-
-
-def login_edb(username, password):
-    """Return csrf and session tokens for a login."""
-    ANON_CSRF_TOKEN = "pkYF0M7HQpBG4uZCfDaBKjvTNe6u1UTZ"
-    data = {"username": username, "password": password}
-    headers = {
-        "Cookie": "csrftoken={}; test_cookie=null".format(ANON_CSRF_TOKEN),
-        "X-CSRFToken": ANON_CSRF_TOKEN
-    }
-    resp = requests.post('http://database.elvisproject.ca/login/',
-                         data=data, headers=headers, allow_redirects=False)
-    if resp.status_code == 302:
-        return dict(resp.cookies)
-    else:
-        raise ValueError("Failed login.")
-
-
-def auth_get(url, csrftoken, sessionid):
-    """Use a csrftoken and sessionid to request a url on the elvisdatabase."""
-    headers = {
-        "Cookie": "test_cookie=null; csrftoken={}; sessionid={}".format(csrftoken, sessionid)
-    }
-    resp = requests.get(url, headers=headers)
-    return resp
 
 
 class AggregatedPieces(object):
@@ -75,32 +43,11 @@ class AggregatedPieces(object):
     # When metadata() gets a 'field' argument that isn't a string
     _FIELD_STRING = "parameter 'field' must be of type 'string'"
 
-    _UNKNOWN_INPUT = "The input is of an unknown type"
-
-    _NO_FILES = "There are no files in this directory!"
-
-    _UNKNOWN_URL = "This url is not a known type"
-
-    _MISSING_USERNAME = "Please input a username to log in to the elvis database"
-
-    _MISSING_PASSWORD = "Please input a password to log in to the elvis database"
-
-    _file_types = {1: '.mei',
-                   2: '.xml',
-                   3: '.mid',
-                   4: '.midi',
-                   5: '.nwc',
-                   6: '.MUS',
-                   7: '.krn',
-                   8: '.md'}
-
     class Metadata(object):
         """
         Used internally by :class:`AggregatedPieces` ... at least for now.
-
-        Hold aggregated metadata about the IndexedPieces in an AggregatedPiece.
-        Every list has no duplicate entries.
-
+        Hold aggregated metadata about the IndexedPieces in an AggregatedPiece. Every list has no
+        duplicate entries.
         - composers: list of all the composers in the IndexedPieces
         - dates: list of all the dates in the IndexedPieces
         - date_range: 2-tuple with the earliest and latest dates in the IndexedPieces
@@ -110,244 +57,39 @@ class AggregatedPieces(object):
         """
         __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
-    def load_url(self, url):
-
-        if self._username is None:
-            raise RuntimeError(self._MISSING_USERNAME)
-        elif self._password is None:
-            raise RuntimeError(self._MISSING_PASSWORD)
-        else:
-            self._logged = login_edb(self._username, self._password)
-        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
-
-        try:
-            resp.json()
-        except ValueError:
-            if url[len(url)-1] == '/':
-                url = url + '?format=json'
-            else:
-                url = url + '&format=json'
-
-        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
-
-        jason = resp.json()
-        return url, jason
-
-    def call_indexer(self, jason):
-        if 'attachments' in jason:
-            if len(jason['attachments']) == 1:
-                piece = 'http://database.elvisproject.ca/' + jason['attachments'][0]['url']
-            elif len(jason['attachments']) > 1:
-                n = 1
-                while n < len(self._file_types):
-                    for attach in jason['attachments']:
-                        if attach['extension'] == self._file_types[n]:
-                            piece = 'http://database.elvisproject.ca/' + attach['url']
-            else:
-                piece = ''
-
-        return piece
-
-    def from_piece(self, url):
-        new_url, jason = self.load_url(url)
-        pieces = []
-        if 'movements' in jason and len(jason['movements']) > 0:
-            movements = []
-            for movement in jason['movements']:
-                url = movement['url']
-                url, jason = self.load_url(url)
-                movements.append((self.call_indexer(jason), url))
-            pieces.extend(movements)
-        else:
-            pieces.append((self.call_indexer(jason), new_url))
-
-        return pieces
-
-    def from_search(self):
-        return
-
-    def from_url(self):
-        url, jason = self.load_url(self._input_pieces)
-        pieces = []
-
-        # check if the url is a collection
-        if 'collection' in url:
-            for piece in jason['pieces']:
-                pieces.extend(self.from_piece(piece['url']))
-            for movement in jason['movements']:
-                pieces.extend(self.from_piece(movement['url']))
-
-        # check if the url is a search result
-        elif 'search' in url:
-            self.from_search()
-
-        # check if the url is a download cart
-        elif 'cart' in url:
-            for piece in jason['pieces']:
-                pieces.extend(self.from_piece(piece['url']))
-            for movement in jason['movements']:
-                pieces.extend(self.from_piece(movement['url']))
-
-        # check if the url is a composer page
-        elif 'composer' in url:
-            for piece in jason['pieces']:
-                pieces.extend(self.from_piece(piece['url']))
-
-        # check if the url is a piece
-        elif 'piece' in url:
-            pieces.extend(self.from_piece(url))
-
-        else:
-            raise RuntimeError(self._UNKNOWN_URL)
-
-        self._pieces = []
-        for piece in pieces:
-            u = self._username
-            p = self._password
-            ind = indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=u, password=p).run()
-            self._pieces.append(ind)
-
-    def from_collection(self):
-        return
-
-    def from_cart(self):
-        return
-
-    def from_movement(self):
-        return
-
-    def from_composer(self):
-        return
-
-    def file_loader(self):
-
-        def directory(directory):
-            # remove ds_stores
-            if '.DS_Store' in files:
-                files.remove('.DS_Store')
-
-            # attach meta files if they exist
-            if 'meta' in files:
-                meta = root + '/meta'
-                files.remove('meta')
-                for file in files:
-                    file = root + '/' + file
-                    self._pieces.append(indexed_piece.IndexedPiece(file, metafile=meta).run())
-
-            # indexed piece without meta files
-            else:
-                for file in files:
-                    file = root + '/' + file
-                    self._pieces.append(indexed_piece.IndexedPiece(file))
-
-        # 3 kinds of lists for input
-        if type(self._input_pieces) is list:
-
-            # list of already indexed pieces
-            if isinstance(self._input_pieces[0], indexed_piece.IndexedPiece):
-                self._pieces = self._input_pieces
-
-            # list of files
-            elif os.path.isfile(self._input_pieces[0]):
-                # adding metafiles to the indexed piece
-                if self._metafile is not None:
-                    # only one meta file
-                    if os.path.isfile(self._metafile):
-                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafile).run() for piece in self._input_pieces]
-                    # one meta file per music file
-                    elif type(self._metafile) is list:
-                        for n in len(self._input_pieces):
-                            indexed_piece.IndexedPiece(self._input_pieces[n], metafile=self._metafile[n]).run()
-                # if no metafiles were attached
-                else:
-                    self._pieces = [indexed_piece.IndexedPiece(piece).run() for piece in self._input_pieces]
-
-            # list of links
-            elif 'http' in self._input_pieces[0]:
-                # adding metafiles to the indexed piece
-                if self._metafile is not None:
-                    # only one meta file
-                    if os.path.isfile(self._metafile):
-                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafile).run() for piece in self._input_pieces]
-                    # one meta file per music file
-                    elif type(self._metafile) is list:
-                        for n in len(self._input_pieces):
-                            indexed_piece.IndexedPiece(self._input_pieces[n], metafile=self._metafile[n]).run()
-                # if no metafiles were attached
-                else:
-                    self._pieces = [indexed_piece.IndexedPiece(piece).run() for piece in self._input_pieces]
-
-            else:
-                raise RuntimeError(self._UNKNOWN_INPUT)
-
-        # directory of pieces
-        elif os.path.isdir(self._input_pieces):
-
-            is_empty = True
-            self._pieces = []
-
-            for root, dirs, files in os.walk(self._input_pieces):
-                if len(files) > 0:
-                    is_empty = False
-                    directory(files)
-
-            if is_empty:
-                raise RuntimeError(self._NO_FILES)
-
-        # if the input is a single url
-        else:
-            self.from_url()
-
-    def __init__(self, pieces, metafile=None, username=None, password=None, file_types=None):
+    def __init__(self, pieces=None):
         """
         :param pieces: The IndexedPieces to collect.
         :type pieces: list of :class:`~vis.models.indexed_piece.IndexedPiece`
         """
-
         def init_metadata():
             """
             Initialize valid metadata fields with a zero-length string.
             """
-            field_list = ['composers', 'dates', 'date_range', 'titles',
-                          'locales', 'pathnames']
+            field_list = ['composers', 'dates', 'date_range', 'titles', 'locales',
+                          'pathnames']
             for field in field_list:
                 self._metadata[field] = None
 
         super(AggregatedPieces, self).__init__()
-
-        self._input_pieces = pieces
-        if metafile is not None:
-            self._metafile = metafile
-        if username is not None:
-            self._username = username
-        if password is not None:
-            self._password = password
-        if file_types is not None:
-            self._file_types = file_types
-
-        self.file_loader()
-
+        self._pieces = pieces if pieces is not None else []
         self._metadata = {}
         init_metadata()
         # set our "pathnames" metadata
-        # self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
+        self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
 
     @staticmethod
     def _make_date_range(dates):
         """
         Find the earliest and latest years in a list of music21 date strings.
-
         Each string should use one of the following two formats:
         - "----/--/--"
         - "----/--/-- to ----/--/--"
         where each - is an integer.
-
         :param dates: The date strings to use.
         :type dates: list of basesetring
-
         :returns: The earliest and latest years in the list of dates.
         :rtype: 2-tuple of string
-
         **Examples**
         >>> ranges = ['1987/09/09', '1865/12/08', '1993/08/08']
         >>> AggregatedPieces._make_date_range(ranges)
@@ -375,10 +117,8 @@ class AggregatedPieces(object):
     def _fetch_metadata(self, field):
         """
         Collect metadata from the IndexedPieces and store it in our own Metadata object.
-
         :param field: The metadata field to return
         :type field: str
-
         :returns: The requested metadata field.
         :rtype: list of str or tuple of str
         """
@@ -406,29 +146,23 @@ class AggregatedPieces(object):
     def metadata(self, field):
         """
         Get a metadatum about the IndexedPieces stored in this AggregatedPieces.
-
         If only some of the stored IndexedPieces have had their metadata initialized, this method
         returns incompelete metadata. Missing data will be represented as ``None`` in the list,
         but it will not appear in ``date_range`` unless there are no dates. If you need full
         metadata, we recommend running an Indexer that requires a :class:`Score` object on all the
         IndexedPieces (like :class:`vis.analyzers.indexers.noterest.NoteRestIndexer`).
-
         Valid fields are:
-
         * ``'composers``: list of all the composers in the IndexedPieces
         * ``'dates``: list of all the dates in the IndexedPieces
         * ``'date_range``: 2-tuple with the earliest and latest dates in the IndexedPieces
         * ``'titles``: list of all the titles in the IndexedPieces
         * ``'locales``: list of all the locales in the IndexedPieces
         * ``'pathnames``: list of all the pathnames in the IndexedPieces
-
         :param field: The name of the field to be accessed or modified.
         :type field: str
-
         :returns: The value of the requested field or None, if accessing a non-existant field or a
             field that has not yet been initialized in the IndexedPieces.
         :rtype: object or None
-
         :raises: :exc:`TypeError` if ``field`` is not a str.
         """
         if not isinstance(field, str):
@@ -445,35 +179,23 @@ class AggregatedPieces(object):
         """
         Get the results of an :class:`Experimenter` run on all the :class:`IndexedPiece` objects.
         You must specify all indexers and experimenters to be run to get the results you want.
-
         The same settings dict will be given to all experiments and indexers.
-
         If you want the results from all :class:`IndexedPiece` objects separately, provide an empty
         list as the ``aggregated_experiments`` argument.
-
         Either the first analyzer in ``independent_analyzers`` should use a
         :class:`music21.stream.Score` or you must provide an argument for ``data`` that is the
         output from a previous call to this instance's :meth:`get_data` method.
-
         **Examples**
-
         Run analyzer A then B on each piece individually, then provide a list of those results to
         Experimenter C then D:::
-
             >>> pieces.get_data([A, B], [C, D])
-
         Run analyzer A then B on each piece individually, then return a list of those results:::
-
             >>> pieces.get_data([A, B])
-
         Run experimenter A then B on the results of a previous :meth:`get_data` call:::
-
             >>> piece.get_data([], [C, D], data=previous_results)
-
         .. note:: The analyzers in the ``independent_analyzers`` argument are run with
             :meth:`~vis.models.indexed_piece.IndexedPiece.get_data` from the :class:`IndexedPiece`
             objects themselves. Thus any exceptions raised there may also be raised here.
-
         :param independent_analyzers: The analyzers to run on each piece before aggregation, in the
             order you want to run them. For no independent analyzers, use ``[]`` or ``None``.
         :type independent_analyzers: list of types
@@ -484,10 +206,8 @@ class AggregatedPieces(object):
         :param data: Input data for the first analyzer to run. If this argument is not ``None``,
             you must provide the output from a previous call to :meth:`get_data` of this instance.
         :type data: :class:`pandas.DataFrame` or list of :class:`DataFrame`
-
         :return: Either one :class:`pandas.DataFrame` with all experimental results or a list of
             :class:`DataFrame` objects, each with the experimental results for one piece.
-
         :raises: :exc:`TypeError` if an analyzer is invalid or cannot be found.
         """
         if [] == self._pieces:
@@ -513,6 +233,3 @@ class AggregatedPieces(object):
                                  aggregated_experiments[1:],
                                  settings,
                                  aggregated_experiments[0](data, settings).run())
-
-    def run(self):
-        return
