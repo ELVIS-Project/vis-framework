@@ -15,6 +15,18 @@ Copyright Information:
 * All other content is subject to the CC-BY-SA Unported 3.0 Licence. A copy of this licence is included as doc/CC-BY-SA.txt
 * All content in the test_corpus directory is subject to the licence in the file test_corpus/test_corpus_licence.txt
 
+
+Installation
+=====================
+
+There are a number of options for downloading and installing the VIS Framework:
+
+- Clone this GitHub repository
+- Download the windows executable file from the latest release
+- Download the tar.gz file from the latest release
+- Run the pip install vis-framework command in the command line
+
+
 Software Dependencies
 =====================
 
