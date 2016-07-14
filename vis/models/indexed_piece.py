@@ -31,6 +31,7 @@ This model represents an indexed and analyzed piece of music.
 # Imports
 import os
 import six
+import requests
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
@@ -40,6 +41,31 @@ from vis.analyzers.indexers import noterest
 
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
+
+
+def login_edb(username, password):
+    """Return csrf and session tokens for a login."""
+    ANON_CSRF_TOKEN = "pkYF0M7HQpBG4uZCfDaBKjvTNe6u1UTZ"
+    data = {"username": username, "password": password}
+    headers = {
+        "Cookie": "csrftoken={}; test_cookie=null".format(ANON_CSRF_TOKEN),
+        "X-CSRFToken": ANON_CSRF_TOKEN
+    }
+    resp = requests.post('http://database.elvisproject.ca/login/',
+                         data=data, headers=headers, allow_redirects=False)
+    if resp.status_code == 302:
+        return dict(resp.cookies)
+    else:
+        raise ValueError("Failed login.")
+
+
+def auth_get(url, csrftoken, sessionid):
+    """Use a csrftoken and sessionid to request a url on the elvisdatabase."""
+    headers = {
+        "Cookie": "test_cookie=null; csrftoken={}; sessionid={}".format(csrftoken, sessionid)
+    }
+    resp = requests.get(url, headers=headers)
+    return resp
 
 
 def _find_piece_title(the_score):
@@ -114,7 +140,10 @@ def _find_piece_range(the_score):
     p = analysis.discrete.Ambitus()
     p_range = p.getPitchSpan(the_score)
 
-    return p_range[0].nameWithOctave, p_range[1].nameWithOctave
+    if p_range is None:
+        return (None, None)
+    else:
+        return (p_range[0].nameWithOctave, p_range[1].nameWithOctave)
 
 
 def _find_part_ranges(the_score):
@@ -123,7 +152,10 @@ def _find_part_ranges(the_score):
     for x in range(len(the_score.parts)):
         p = analysis.discrete.Ambitus()
         p_range = p.getPitchSpan(the_score.parts[x])
-        ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
+        if p_range is None:
+            ranges.append((None, None))
+        else:
+            ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
 
     return ranges
 
