@@ -99,6 +99,7 @@ THE_TESTS = (  # Indexer and Subclasses
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_SUITE_B,
              test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
+             test_indexed_piece.INDEXED_PIECE_DATABASE,
              test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
              # WorkflowManager
              test_workflow.WORKFLOW_TESTS,
