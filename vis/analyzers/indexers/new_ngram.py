@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/ngram.py
+# Filename:               analyzers/indexers/ngram.py
 # Purpose:                k-part anything n-gram Indexer
 #
 # Copyright (C) 2013-2016 Alexander Morgan, Christopher Antila
@@ -34,6 +34,7 @@ of the previous ngram_indexer.py file.
 
 import pandas
 from vis.analyzers import indexer
+
 
 class NewNGramIndexer(indexer.Indexer):
     """
@@ -212,6 +213,21 @@ class NewNGramIndexer(indexer.Indexer):
 
         :returns: A new index of the piece in the form of a class:`~pandas.DataFrame` with as many 
             columns as there are tuples in the 'vertical' setting of the passed settings.
+
+        **Example:**
+
+        import music21
+        from vis.analyzers.indexers import noterest, interval, new_ngram
+
+        piece = music21.converter.parse('example.xml')
+        score = noterest.NoteRestIndexer(piece).run()
+
+        hints = interval.HorizontalIntervalIndexer(score).run()
+        vints = interval.IntervalIndexer(score).run()
+
+        settings = {'n': 3, 'vertical': '3'}
+        ngrams = new_ngram.NewNGramIndexer([hints, vints], settings).run()
+        print(ngrams)
         """
         n = self._settings['n']        
         post = []

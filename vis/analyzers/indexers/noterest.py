@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/noterest.py
+# Filename:               analyzers/indexers/noterest.py
 # Purpose:                Index note and rest objects.
 #
 # Copyright (C) 2013, 2014, 2015 Christopher Antila, and Alexander Morgan
@@ -30,8 +30,9 @@ Index note and rest objects.
 """
 
 import six
-from music21 import stream, note
+from music21 import note
 from vis.analyzers import indexer
+
 
 def indexer_func(obj):
     """
@@ -48,14 +49,6 @@ def indexer_func(obj):
         ``u'Rest'``; otherwise the :attr:`~music21.note.Note.nameWithOctave` attribute, which is
         the pitch class and octave of the :class:`Note`.
     :rtype: str
-
-    **Examples:**
-
-    >>> from music21 import note
-    >>> indexer_func((note.Note('C4'), []))
-    u'C4'
-    >>> indexer_func((note.Rest(), []))
-    u'Rest'
     """
     return 'Rest' if isinstance(obj[0], note.Rest) else six.u(str(obj[0].nameWithOctave))
 
@@ -91,12 +84,17 @@ class NoteRestIndexer(indexer.Indexer):
 
         **Example:**
 
-        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-        >>> the_score.parts[5]
-        (the first clarinet Part)
-        >>> the_notes = NoteRestIndexer(the_score).run()
-        >>> the_notes['noterest.NoteRestIndexer']['5']
-        (the first clarinet Series)
+        import music21
+        from vis.analyzers.indexers import noterest
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        # to see all the results
+        print(notes)
+
+        # to see only one part
+        print(notes['noterest.NoteRestIndexer']['3'])
         """
         combinations = [[x] for x in range(len(self._score))]  # calculate each voice separately
         results = self._do_multiprocessing(combinations)

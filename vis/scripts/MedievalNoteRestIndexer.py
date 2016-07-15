@@ -15,7 +15,7 @@ import os
 import pandas as pd
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import interval, dissonance, metre, noterest, ngram
+from vis.analyzers.indexers import interval, dissonance, meter, noterest, ngram
 from vis.analyzers.experimenters import frequency
 from vis import workflow
 from numpy import nan, isnan
@@ -124,9 +124,9 @@ n_setts = {'n': 3, 'horizontal': [('interval.HorizontalIntervalIndexer', '1'), (
 test_parts = test_piece.parts
 # stream indexers
 nr = noterest.NoteRestIndexer(test_parts).run()
-dur = metre.DurationIndexer(test_parts).run()
-beat_sth = metre.NoteBeatStrengthIndexer(test_parts).run()
-measures = metre.MeasureIndexer(test_parts).run()
+dur = meter.DurationIndexer(test_parts).run()
+beat_sth = meter.NoteBeatStrengthIndexer(test_parts).run()
+measures = meter.MeasureIndexer(test_parts).run()
 
 # series indexers
 horiz = interval.HorizontalIntervalIndexer(nr, h_setts).run()
@@ -149,7 +149,7 @@ ngrams = test_wm.run('interval n-grams')[0]
 dur_ngram_list = []
 dur_strings = dur.applymap(str)
 for x in range(3):
-    n_setts = {'n': 3, 'vertical': [('metre.DurationIndexer', str(x))], 'mark_singles': False}
+    n_setts = {'n': 3, 'vertical': [('meter.DurationIndexer', str(x))], 'mark_singles': False}
     dur_ngram_list.append(ngram.NGramIndexer(pd.concat([dur_strings.iloc[:,x]], axis=1), n_setts).run())
 dur_ngrams = pd.concat(dur_ngram_list, axis=1)
 

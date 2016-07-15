@@ -26,10 +26,9 @@
 import os
 from unittest import TestCase, TestLoader
 import pandas
-from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
+from six.moves import range  # pylint: disable=import-error,redefined-builtin
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import fermata
-from vis import workflow
 from numpy import isnan, NaN
 
 # get the path to the 'vis' directory

@@ -24,7 +24,6 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-
 The model representing data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
 """
 
@@ -47,10 +46,8 @@ class AggregatedPieces(object):
     class Metadata(object):
         """
         Used internally by :class:`AggregatedPieces` ... at least for now.
-
         Hold aggregated metadata about the IndexedPieces in an AggregatedPiece. Every list has no
         duplicate entries.
-
         - composers: list of all the composers in the IndexedPieces
         - dates: list of all the dates in the IndexedPieces
         - date_range: 2-tuple with the earliest and latest dates in the IndexedPieces
@@ -85,18 +82,14 @@ class AggregatedPieces(object):
     def _make_date_range(dates):
         """
         Find the earliest and latest years in a list of music21 date strings.
-
         Each string should use one of the following two formats:
         - "----/--/--"
         - "----/--/-- to ----/--/--"
         where each - is an integer.
-
         :param dates: The date strings to use.
         :type dates: list of basesetring
-
         :returns: The earliest and latest years in the list of dates.
         :rtype: 2-tuple of string
-
         **Examples**
         >>> ranges = ['1987/09/09', '1865/12/08', '1993/08/08']
         >>> AggregatedPieces._make_date_range(ranges)
@@ -124,10 +117,8 @@ class AggregatedPieces(object):
     def _fetch_metadata(self, field):
         """
         Collect metadata from the IndexedPieces and store it in our own Metadata object.
-
         :param field: The metadata field to return
         :type field: str
-
         :returns: The requested metadata field.
         :rtype: list of str or tuple of str
         """
@@ -155,29 +146,23 @@ class AggregatedPieces(object):
     def metadata(self, field):
         """
         Get a metadatum about the IndexedPieces stored in this AggregatedPieces.
-
         If only some of the stored IndexedPieces have had their metadata initialized, this method
         returns incompelete metadata. Missing data will be represented as ``None`` in the list,
         but it will not appear in ``date_range`` unless there are no dates. If you need full
         metadata, we recommend running an Indexer that requires a :class:`Score` object on all the
         IndexedPieces (like :class:`vis.analyzers.indexers.noterest.NoteRestIndexer`).
-
         Valid fields are:
-
         * ``'composers``: list of all the composers in the IndexedPieces
         * ``'dates``: list of all the dates in the IndexedPieces
         * ``'date_range``: 2-tuple with the earliest and latest dates in the IndexedPieces
         * ``'titles``: list of all the titles in the IndexedPieces
         * ``'locales``: list of all the locales in the IndexedPieces
         * ``'pathnames``: list of all the pathnames in the IndexedPieces
-
         :param field: The name of the field to be accessed or modified.
         :type field: str
-
         :returns: The value of the requested field or None, if accessing a non-existant field or a
             field that has not yet been initialized in the IndexedPieces.
         :rtype: object or None
-
         :raises: :exc:`TypeError` if ``field`` is not a str.
         """
         if not isinstance(field, str):
@@ -194,35 +179,23 @@ class AggregatedPieces(object):
         """
         Get the results of an :class:`Experimenter` run on all the :class:`IndexedPiece` objects.
         You must specify all indexers and experimenters to be run to get the results you want.
-
         The same settings dict will be given to all experiments and indexers.
-
         If you want the results from all :class:`IndexedPiece` objects separately, provide an empty
         list as the ``aggregated_experiments`` argument.
-
         Either the first analyzer in ``independent_analyzers`` should use a
         :class:`music21.stream.Score` or you must provide an argument for ``data`` that is the
         output from a previous call to this instance's :meth:`get_data` method.
-
         **Examples**
-
         Run analyzer A then B on each piece individually, then provide a list of those results to
         Experimenter C then D:::
-
             >>> pieces.get_data([A, B], [C, D])
-
         Run analyzer A then B on each piece individually, then return a list of those results:::
-
             >>> pieces.get_data([A, B])
-
         Run experimenter A then B on the results of a previous :meth:`get_data` call:::
-
             >>> piece.get_data([], [C, D], data=previous_results)
-
         .. note:: The analyzers in the ``independent_analyzers`` argument are run with
             :meth:`~vis.models.indexed_piece.IndexedPiece.get_data` from the :class:`IndexedPiece`
             objects themselves. Thus any exceptions raised there may also be raised here.
-
         :param independent_analyzers: The analyzers to run on each piece before aggregation, in the
             order you want to run them. For no independent analyzers, use ``[]`` or ``None``.
         :type independent_analyzers: list of types
@@ -233,10 +206,8 @@ class AggregatedPieces(object):
         :param data: Input data for the first analyzer to run. If this argument is not ``None``,
             you must provide the output from a previous call to :meth:`get_data` of this instance.
         :type data: :class:`pandas.DataFrame` or list of :class:`DataFrame`
-
         :return: Either one :class:`pandas.DataFrame` with all experimental results or a list of
             :class:`DataFrame` objects, each with the experimental results for one piece.
-
         :raises: :exc:`TypeError` if an analyzer is invalid or cannot be found.
         """
         if [] == self._pieces:

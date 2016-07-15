@@ -23,11 +23,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
-import os
 from unittest import TestCase, TestLoader
 import pandas
 from vis.analyzers.indexers import cadence
-import vis
 
 
 def make_dataframe(labels, indices, name):
@@ -117,6 +115,11 @@ class TestCadenceIndexer(TestCase):
     def test_cadence(self):
         """tests that running the cadence indexer returns the expected results"""
         settings = {'length': 2}
+        actual = cadence.CadenceIndexer(df, settings).run()
+        self.assertTrue(actual.equals(CADENCE))
+
+    def test_cadence2(self):
+        settings = {'length': 2, 'voice': 0}
         actual = cadence.CadenceIndexer(df, settings).run()
         self.assertTrue(actual.equals(CADENCE))
 
