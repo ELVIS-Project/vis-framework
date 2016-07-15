@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/ngram.py
 # Purpose:                k-part anything n-gram Indexer
 #
-# Copyright (C) 2016 Alexander Morgan, Christopher Antila
+# Copyright (C) 2013-2016 Alexander Morgan, Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -26,7 +26,8 @@
 .. codeauthor:: Alexander Morgan
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 
-Indexer to find k-part any-object n-grams.
+Indexer to find k-part any-object n-grams. This file is a reimplimentation 
+of the previous ngram_indexer.py file.
 """
 
 # pylint: disable=pointless-string-statement
@@ -231,32 +232,39 @@ class NewNGramIndexer(indexer.Indexer):
         n = self._settings['n']        
         post = []
         cols = []
-        for j, verts in enumerate(self._settings['vertical']):
+        # Each i in this loop will be a dataframe column of ngrams for a voice combination passed by the user
+        for i, verts in enumerate(self._settings['vertical']):
             events = {}
-            if self._settings['brackets']: events[('v', 'v0')] = '['
             col_label = []
-            for i, name in enumerate(verts):
-                if i == 0:
+            if self._settings['brackets']:
+                events[('v', 'v0')] = '['
+
+            for j, name in enumerate(verts):
+                if j == 0:
                     events[('v', 'v1')] = self._score[0].loc[:, (self._vertical_indexer_name, name)].dropna()
                     col_label.append(name)
                 else:
-                    events[('v', 'v' + str(i + 1))] = ' ' + self._score[0].loc[:, (self._vertical_indexer_name, name)].dropna()
+                    events[('v', 'v' + str(j + 1))] = ' ' + self._score[0].loc[:, (self._vertical_indexer_name, name)].dropna()
                     col_label.append(name)
+
             if self._settings['brackets']:
                 events[('v', 'v' + str(len(verts) + 1))] = '] '
             else:
                 events[('v', 'v' + str(len(verts) + 1))] = ' '
 
             if self._settings['horizontal']: # NB: the bool value of an empty list is False.
-                horizs = self._settings['horizontal'][j]
-                if self._settings['brackets']: events[('h', 'h0')] = '('
-                for i, name in enumerate(horizs):
-                    if i == 0:
+                horizs = self._settings['horizontal'][i]
+                if self._settings['brackets']:
+                    events[('h', 'h0')] = '('
+
+                for j, name in enumerate(horizs):
+                    if j == 0:
                         events[('h', 'h1')] = self._score[1].loc[:, (self._horizontal_indexer_name, name)].dropna()
                         col_label.extend((':', name))
                     else:
-                        events[('h', 'h' + str(i + 1))] = ' ' + self._score[1].loc[:, (self._horizontal_indexer_name, name)].dropna()
+                        events[('h', 'h' + str(j + 1))] = ' ' + self._score[1].loc[:, (self._horizontal_indexer_name, name)].dropna()
                         col_label.append(name)
+
                 if self._settings['brackets']:
                     events[('h', 'h' + str(len(horizs) + 1))] = ') '
                 else:
@@ -265,7 +273,7 @@ class NewNGramIndexer(indexer.Indexer):
             cols.append(' '.join(col_label))
             events = pandas.DataFrame.from_dict(events)
 
-            # Ffill all the "vertical" events
+            # Forward fill all the "vertical" events
             v_filled = events.loc[:, 'v'].fillna(method='ffill')
             # Fill in all "horizontal" NaN values with the continuer
             if 'h' in events:
@@ -274,12 +282,15 @@ class NewNGramIndexer(indexer.Indexer):
                 chunks = [v_filled]
                 if n > 1:
                     chunks.extend([ffilled_events.shift(-x) for x in range(1, n)])
+            # If there were no "horizontal" events set the chunks to the vertical slices
             else:
                 chunks = [v_filled.shift(-x) for x in range(n)]
 
+            # Add a column of horizontal events if 'open-ended' setting is True
             if self._settings['open-ended']:
                 chunks.append(h_filled.shift(-n))
 
+            # Make a dataframe which each vertical or horizontal component of the ngrams as a column
             ngram_df = pandas.concat(chunks, axis=1)
 
             # Concatenate strings of each row to turn df into a series and also remove the last n-1
@@ -292,11 +303,11 @@ class NewNGramIndexer(indexer.Indexer):
             
             # Get rid of the observations that contain any of the terminators
             if self._settings['terminator']:
-                for arnie in self._settings['terminator']:
-                    terminated = res.apply(lambda r : any([arnie in e for e in r]))
+                for term in self._settings['terminator']:
+                    terminated = res.apply(lambda r : any([term in e for e in r]))
                     res = res[~terminated]
 
-            # Get rid of the trailing space in each ngram and add this combo to post
+            # Get rid of the trailing space in each ngram and add this combination to post
             post.append(res.str.rstrip())
 
         return self.make_return(cols, post)
