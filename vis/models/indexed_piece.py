@@ -32,6 +32,7 @@ This model represents an indexed and analyzed piece of music.
 import os
 import six
 import requests
+import music21
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
@@ -246,6 +247,8 @@ class IndexedPiece(object):
         """
         score = converter.Converter()
         score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
+        # piece = self.metadata('pathname')
+        # score = music21.converter.parse(piece)
         score = score.stream
         if isinstance(score, stream.Opus):
             if known_opus is False and self._opus_id is None:
