@@ -41,8 +41,7 @@ from music21 import converter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
 from vis.analyzers.experimenter import Experimenter
-from vis.models.indexed_piece import IndexedPiece, _find_piece_title, _find_part_names, OpusWarning
-
+from vis.models.indexed_piece import IndexedPiece, _find_piece_title, _find_part_names, OpusWarning, _find_piece_range, _find_part_ranges, login_edb, auth_get
 # find pathname to the 'vis' directory
 import vis
 VIS_PATH = vis.__path__[0]
@@ -405,7 +404,7 @@ class TestIndexedPieceA(TestCase):
 
 
 class TestIndexedPieceB(TestCase):
-    """The 'A' part of tests for IndexedPiece."""
+    """The 'B' part of tests for IndexedPiece."""
 
     def setUp(self):
         """Set up some stuff."""
@@ -554,6 +553,31 @@ class TestPartsAndTitles(TestCase):
         self.assertEqual(expected_title, actual_title)
         self.assertSequenceEqual(expected_parts, actual_parts)
 
+    def test_piece_range(self):
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')
+        score = music21.converter.parse(path)
+        expected_range = ('A2', 'E5')
+        actual_range = _find_piece_range(score)
+        self.assertEqual(expected_range, actual_range)
+
+    def test_part_ranges(self):
+        path = os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')
+        score = music21.converter.parse(path)
+        expected_range = [('E4', 'E5'), ('E3', 'B4'), ('F#3', 'A4'), ('A2', 'C4')]
+        actual_range = _find_part_ranges(score)
+        self.assertEqual(expected_range, actual_range)
+
+
+class TestIndexedPieceEDB(TestCase):
+
+    def test_login(self):
+        username = 'mborsodi'
+        password = 'lalalalala'
+        url = 'http://database.elvisproject.ca/media/attachments/84/34/000000000008434/Missa-Fortuna-desperata_Sanctus_Josquin-Des-Prez_file6.xml'
+
+        logged = login_edb(username, password)
+        resp = auth_get(url, logged['csrftoken'], logged['sessionid'])
+        # how to test if accurate??
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
@@ -561,3 +585,4 @@ class TestPartsAndTitles(TestCase):
 INDEXED_PIECE_SUITE_A = TestLoader().loadTestsFromTestCase(TestIndexedPieceA)
 INDEXED_PIECE_SUITE_B = TestLoader().loadTestsFromTestCase(TestIndexedPieceB)
 INDEXED_PIECE_PARTS_TITLES = TestLoader().loadTestsFromTestCase(TestPartsAndTitles)
+INDEXED_PIECE_DATABASE = TestLoader().loadTestsFromTestCase(TestIndexedPieceEDB)

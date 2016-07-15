@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/interval.py
+# Filename:               analyzers/indexers/interval.py
 # Purpose:                Index vertical intervals.
 #
 # Copyright (C) 2013, 2014 Christopher Antila

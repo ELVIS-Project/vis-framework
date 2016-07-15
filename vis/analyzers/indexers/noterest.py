@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/noterest.py
+# Filename:               analyzers/indexers/noterest.py
 # Purpose:                Index note and rest objects.
 #
 # Copyright (C) 2013, 2014, 2015 Christopher Antila, and Alexander Morgan
@@ -30,8 +30,9 @@ Index note and rest objects.
 """
 
 import six
-from music21 import stream, note
+from music21 import note
 from vis.analyzers import indexer
+
 
 def indexer_func(obj):
     """
@@ -91,7 +92,7 @@ class NoteRestIndexer(indexer.Indexer):
 
         # to see all the results
         print(notes)
-        
+
         # to see only one part
         print(notes['noterest.NoteRestIndexer']['3'])
         """

@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/fermata.py
+# Filename:               analyzers/indexers/fermata.py
 # Purpose:                Index fermattas.
 #
 # Copyright (C) 2013, 2014 Christopher Antila, Ryan Bannon

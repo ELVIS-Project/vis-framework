@@ -54,12 +54,12 @@ class AnnotationIndexer(indexer.Indexer):
     required_score_type = 'pandas.Series'
     possible_settings = ['mp']
     default_settings = {'mp': True}
-    
+
     """
     :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
     :type 'mp': boolean
     """
-    
+
     def __init__(self, score, settings=None):
         """
         :param score: The input from which to produce a new index.
@@ -72,7 +72,7 @@ class AnnotationIndexer(indexer.Indexer):
         """
         super(AnnotationIndexer, self).__init__(score, None)
         self._indexer_func = annotation_func
-        
+
         if settings is not None and 'mp' in settings:
             self._settings['mp'] = settings['mp']
         else:

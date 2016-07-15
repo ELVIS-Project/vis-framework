@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/contour.py
+# Filename:               analyzers/indexers/contour.py
 # Purpose:                Contour Indexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson
@@ -34,7 +34,7 @@ import pandas
 
 def COM_matrix(contour):
     """
-    Returns matrix representing the contour given
+    Creates a matrix representing the contour given.
     """
     com = []
 
@@ -59,7 +59,7 @@ def COM_matrix(contour):
 
 def getContour(notes):
     """
-    Method used by the ContourIndexer to convert pitches into contour numbers
+    Method used by the ContourIndexer to convert pitches into contour numbers.
     """
 
     contour = list(map(music21.note.Note, notes))
@@ -79,7 +79,7 @@ def getContour(notes):
 
 def compare(contour1, contour2):
     """
-    Additional method to compare COM_matrices
+    Additional method to compare COM_matrices.
     """
 
     count = 0
@@ -96,15 +96,16 @@ def compare(contour1, contour2):
 
 class ContourIndexer(indexer.Indexer):
     """
-    Contour indexer class
+    Indexes the contours of a given length in a piece, where contour is a
+    way of numbering the relative heights of pitches, beginning at 0 for the
+    lowest pitch.
+
+    :keyword 'length': This is the length of the contour you want to look at.
+    :type 'length': int
     """
 
     required_score_type = 'pandas.DataFrame'
     possible_settings = ['length']
-    """
-    :keyword 'length': This is the length of the contour you want to look at.
-    :type 'length': int
-    """
 
     _MISSING_LENGTH = 'ContourIndexer requires "length" setting.'
     _LOW_LENGTH = 'Setting "length" must have a value of at least 1.'

@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/repeat.py
+# Filename:               analyzers/indexers/repeat.py
 # Purpose:                Indexers that somehow consider repetition.
 #
 # Copyright (C) 2013, 2014 Christopher Antila
@@ -30,7 +30,6 @@ Indexers that consider repetition in any way.
 
 import six
 from numpy import nan
-import pandas
 from vis.analyzers import indexer
 
 

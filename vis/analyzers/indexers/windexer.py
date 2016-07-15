@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/windexer.py
+# Filename:               analyzers/indexers/windexer.py
 # Purpose:                Windexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson
@@ -26,8 +26,6 @@
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
 """
 
-import six
-from music21 import stream
 from vis.analyzers import indexer
 import pandas
 
@@ -35,15 +33,14 @@ import pandas
 class Windexer(indexer.Indexer):
     """
     Indexer that creates new a new windowed version of other indexer results.
+
+    :keyword 'window_size': The size of the window of the DataFrame that you
+        would like to look at. The default setting is 4.
+    :type 'window_size': integer
     """
 
     required_score_type = 'pandas.DataFrame'
-
     possible_settings = ['window_size']
-    """
-    :keyword 'window_size': The size of the window of the DataFrame that you would like to look at. The default setting is 4.
-    :type 'window_size': integer
-    """
 
     default_settings = {'window_size': 4}
 
@@ -69,7 +66,6 @@ class Windexer(indexer.Indexer):
             self._settings = settings
 
         super(Windexer, self).__init__(score, None)
-
 
     def run(self):
         """
