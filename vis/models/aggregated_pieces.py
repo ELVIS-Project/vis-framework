@@ -233,3 +233,6 @@ class AggregatedPieces(object):
                                  aggregated_experiments[1:],
                                  settings,
                                  aggregated_experiments[0](data, settings).run())
+
+    def run(self):
+        return self
