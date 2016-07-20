@@ -45,6 +45,8 @@ class AggregatedPieces(object):
     # When metadata() gets a 'field' argument that isn't a string
     _FIELD_STRING = "parameter 'field' must be of type 'string'"
 
+    _UNKNOWN_INPUT = "The input type is not one of the supported options"
+
     class Metadata(object):
         """
         Used internally by :class:`AggregatedPieces` ... at least for now.
@@ -78,6 +80,7 @@ class AggregatedPieces(object):
         self._metafiles = metafiles if metafiles is not None else []
         self._metadata = {}
         init_metadata()
+
 
     @staticmethod
     def _make_date_range(dates):
@@ -272,18 +275,19 @@ class AggregatedPieces(object):
             elif os.path.isfile(self._pieces[0]):
 
                 # if only one metafile was attached
-                if os.path.isfile(self._metafiles):
-                    self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafiles).run() for piece in self._pieces]
-                    return
+                if self._metafiles != []:
 
-                # one metafile per music file:
-                elif type(self._metafiles) is list and len(self._metafiles) == len(self._pieces):
-                    temp = []
-                    for n in len(self._pieces):
-                        temp.append(indexed_piece.IndexedPiece(self._pieces[n], metafile=self._metafiles[n]).run())
+                    # one metafile per music file:
+                    if type(self._metafiles) is list and len(self._metafiles) == len(self._pieces):
+                        temp = []
+                        for n in range(len(self._pieces)):
+                            temp.append(indexed_piece.IndexedPiece(self._pieces[n], metafile=self._metafiles[n]).run())
                         self._pieces = temp
-                    return
+                        return
 
+                    elif os.path.isfile(self._metafiles):
+                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafiles).run() for piece in self._pieces]
+                        return
                 # if no metafiles were given
                 else:
                     self._pieces = [indexed_piece.IndexedPiece(piece).run() for piece in self._pieces]
@@ -308,5 +312,6 @@ class AggregatedPieces(object):
     def run(self):
         if self._pieces != []:
             self._file_loader()
+        self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
 
         return self

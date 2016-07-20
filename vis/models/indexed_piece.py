@@ -197,7 +197,9 @@ class IndexedPiece(object):
     _UNEXP_NONOPUS = ('You expected a music21.stream.Opus but {} is not an Opus (refer to the '
                       'IndexedPiece.get_data() documentation)')
 
-    def __init__(self, pathname, metafile=None, opus_id=None):
+    _MISSING_USERNAME = ('You must enter a username to access the elvis database')
+    _MISSING_PASSWORD = ('You must enter a password to access the elvis database')
+    def __init__(self, pathname, opus_id=None, metafile=None, username=None, password=None):
         """
         :param str pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
@@ -222,6 +224,8 @@ class IndexedPiece(object):
         self._noterest_results = None
         self._pathname = pathname
         self._metadata = {}
+        self._username = username
+        self._password = password
         init_metadata()
         if metafile is not None:
             self._metafile = metafile
@@ -537,7 +541,10 @@ class IndexedPiece(object):
         for tag in data['tags']:
             for title in tag:
                 self._metadata['tags'].append(tag[title])
-        self._metadata['title'] = data['piece']['title'] + ': ' + data['title']
+        if 'piece' in data:
+            self._metadata['title'] = data['piece']['title'] + ': ' + data['title']
+        else:
+            self._metadata['title'] = data['title']
         self._metadata['composer'] = data['composer']['title']
         types = ['vocalization', 'sources', 'religiosity', 'locations', 'instruments_voices', 'genres', 'creator']
         for dat in types:
