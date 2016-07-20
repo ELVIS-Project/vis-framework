@@ -567,17 +567,51 @@ class TestPartsAndTitles(TestCase):
         actual_range = _find_part_ranges(score)
         self.assertEqual(expected_range, actual_range)
 
+class TestIndexedPieceC(TestCase):
 
-class TestIndexedPieceEDB(TestCase):
+    def test_meta(self):
+        meta = os.path.join(VIS_PATH, 'tests', 'corpus', 'meta')
+        piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
+        ind = IndexedPiece(piece, metafile=meta)
+        self.assertEqual('Sacred', ind.metadata('religiosity'))
 
-    def test_login(self):
+    def test_run(self):
+        piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
+        ind = IndexedPiece(piece).run()
+        self.assertTrue(isinstance(ind, IndexedPiece))
+
+    def test_json(self):
+        meta = 'http://database.elvisproject.ca/piece/1971/?format=json'
         username = 'mborsodi'
         password = 'lalalalala'
-        url = 'http://database.elvisproject.ca/media/attachments/84/34/000000000008434/Missa-Fortuna-desperata_Sanctus_Josquin-Des-Prez_file6.xml'
+        piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
+        ind = IndexedPiece(piece, metafile=meta, username=username, password=password)
+        self.assertEqual('Missa Fortuna desperata', ind.metadata('title'))
 
-        logged = login_edb(username, password)
-        resp = auth_get(url, logged['csrftoken'], logged['sessionid'])
-        # how to test if accurate??
+    def test_json2(self):
+        meta = 'http://database.elvisproject.ca/piece/1971/'
+        username = 'mborsodi'
+        password = 'lalalalala'
+        piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
+        ind = IndexedPiece(piece, metafile=meta, username=username, password=password)
+        self.assertEqual('Missa Fortuna desperata', ind.metadata('title'))
+
+    def test_missing_usrn(self):
+        meta = 'http://database.elvisproject.ca/piece/1971/'
+        piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
+        try:
+            IndexedPiece(piece, metafile=meta)
+        except RuntimeError as run_err:
+            self.assertEqual(IndexedPiece._MISSING_USERNAME, run_err.args[0])
+
+    def test_missing_pswrd(self):
+        meta = 'http://database.elvisproject.ca/piece/1971/'
+        piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
+        try:
+            IndexedPiece(piece, metafile=meta, username='mborsodi')
+        except RuntimeError as run_err:
+            self.assertEqual(IndexedPiece._MISSING_PASSWORD, run_err.args[0])
+
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
@@ -585,4 +619,4 @@ class TestIndexedPieceEDB(TestCase):
 INDEXED_PIECE_SUITE_A = TestLoader().loadTestsFromTestCase(TestIndexedPieceA)
 INDEXED_PIECE_SUITE_B = TestLoader().loadTestsFromTestCase(TestIndexedPieceB)
 INDEXED_PIECE_PARTS_TITLES = TestLoader().loadTestsFromTestCase(TestPartsAndTitles)
-INDEXED_PIECE_DATABASE = TestLoader().loadTestsFromTestCase(TestIndexedPieceEDB)
+INDEXED_PIECE_SUITE_C = TestLoader().loadTestsFromTestCase(TestIndexedPieceC)
