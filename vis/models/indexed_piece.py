@@ -227,6 +227,15 @@ class IndexedPiece(object):
         self._username = username
         self._password = password
         init_metadata()
+        if 'http://database.elvisproject.ca/' in pathname:
+            if username is None or password is None:
+                raise RuntimeError('Username or password is missing for the elvis database.')
+            else:
+                logged = login_edb(username, password)
+                resp = auth_get(pathname, logged['csrftoken'], logged['sessionid'])
+                self._pathname = resp.text
+                self._metafile = resp.json
+
         if metafile is not None:
             self._metafile = metafile
             self._open_file()
@@ -256,8 +265,12 @@ class IndexedPiece(object):
             ``known_opus`` if ``False``, or if ``known_opus`` is ``True`` but the file does not
             import as an :class:`Opus`.
         """
-        score = converter.Converter()
-        score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
+        if 'http://' in self.metadata('pathname'):
+            score = converter.parse(self._pathname)
+        else:
+            score = converter.Converter()
+            score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
+            score = score.stream
         # piece = self.metadata('pathname')
         # score = music21.converter.parse(piece)
         score = score.stream

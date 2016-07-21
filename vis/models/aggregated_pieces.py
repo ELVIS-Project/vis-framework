@@ -61,7 +61,116 @@ class AggregatedPieces(object):
         """
         __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
-    def __init__(self, pieces=None, metafiles=None):
+    def load_url(self, url):
+
+        if self._username is None:
+            raise RuntimeError(self._MISSING_USERNAME)
+        elif self._password is None:
+            raise RuntimeError(self._MISSING_PASSWORD)
+        else:
+            self._logged = login_edb(self._username, self._password)
+        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+
+        try:
+            resp.json()
+        except ValueError:
+            if url[len(url)-1] == '/':
+                url = url + '?format=json'
+            else:
+                url = url + '&format=json'
+
+        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+
+        jason = resp.json()
+        return url, jason
+
+    def call_indexer(self, jason):
+        if 'attachments' in jason:
+            if len(jason['attachments']) == 1:
+                piece = 'http://database.elvisproject.ca/' + jason['attachments'][0]['url']
+            elif len(jason['attachments']) > 1:
+                n = 1
+                while n < len(self._file_types):
+                    for attach in jason['attachments']:
+                        if attach['extension'] == self._file_types[n]:
+                            piece = 'http://database.elvisproject.ca/' + attach['url']
+            else:
+                piece = ''
+
+        return piece
+
+    def from_piece(self, url):
+        new_url, jason = self.load_url(url)
+        pieces = []
+        if 'movements' in jason and len(jason['movements']) > 0:
+            movements = []
+            for movement in jason['movements']:
+                url = movement['url']
+                url, jason = self.load_url(url)
+                movements.append((self.call_indexer(jason), url))
+            pieces.extend(movements)
+        else:
+            pieces.append((self.call_indexer(jason), new_url))
+
+        return pieces
+
+    def from_search(self):
+        return
+
+    def from_url(self):
+        url, jason = self.load_url(self._input_pieces)
+        pieces = []
+
+        # check if the url is a collection
+        if 'collection' in url:
+            for piece in jason['pieces']:
+                pieces.extend(self.from_piece(piece['url']))
+            for movement in jason['movements']:
+                pieces.extend(self.from_piece(movement['url']))
+
+        # check if the url is a search result
+        elif 'search' in url:
+            self.from_search()
+
+        # check if the url is a download cart
+        elif 'cart' in url:
+            for piece in jason['pieces']:
+                pieces.extend(self.from_piece(piece['url']))
+            for movement in jason['movements']:
+                pieces.extend(self.from_piece(movement['url']))
+
+        # check if the url is a composer page
+        elif 'composer' in url:
+            for piece in jason['pieces']:
+                pieces.extend(self.from_piece(piece['url']))
+
+        # check if the url is a piece
+        elif 'piece' in url:
+            pieces.extend(self.from_piece(url))
+
+        else:
+            raise RuntimeError(self._UNKNOWN_URL)
+
+        self._pieces = []
+        for piece in pieces:
+            u = self._username
+            p = self._password
+            ind = indexed_piece.IndexedPiece(piece[0], metafile=piece[1], username=u, password=p).run()
+            self._pieces.append(ind)
+
+    def from_collection(self):
+        return
+
+    def from_cart(self):
+        return
+
+    def from_movement(self):
+        return
+
+    def from_composer(self):
+        return
+
+    def __init__(self, pieces=None, metafiles=None, file_types=None):
         """
         :param pieces: The IndexedPieces to collect.
         :type pieces: list of :class:`~vis.models.indexed_piece.IndexedPiece`
@@ -75,10 +184,20 @@ class AggregatedPieces(object):
             for field in field_list:
                 self._metadata[field] = None
 
+        types = {1: '.mei',
+                 2: '.xml',
+                 3: '.mid',
+                 4: '.midi',
+                 5: '.nwc',
+                 6: '.MUS',
+                 7: '.krn',
+                 8: '.md'}
+
         super(AggregatedPieces, self).__init__()
         self._pieces = pieces if pieces is not None else []
         self._metafiles = metafiles if metafiles is not None else []
         self._metadata = {}
+        self._file_types = file_types if file_types is not None else types
         init_metadata()
 
 
