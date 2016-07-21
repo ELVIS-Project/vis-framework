@@ -120,6 +120,14 @@ class TestFrequency(unittest.TestCase):
             else:
                 self.assertEqual(self.freq_d[each], right_df['d'][each])
 
+    def test_mp(self):
+        def fake_func(dataframe, my):
+            return dataframe
+
+        freq = FrequencyExperimenter(self.in_a)
+        result = freq._do_multiprocessing(fake_func, [[2, 1]])
+        self.assertEqual([2], result)
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
