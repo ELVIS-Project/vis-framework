@@ -32,6 +32,8 @@ This model represents an indexed and analyzed piece of music.
 import os
 import six
 import requests
+import warnings
+import json
 import music21
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
@@ -195,7 +197,9 @@ class IndexedPiece(object):
     _UNEXP_NONOPUS = ('You expected a music21.stream.Opus but {} is not an Opus (refer to the '
                       'IndexedPiece.get_data() documentation)')
 
-    def __init__(self, pathname, opus_id=None):
+    _MISSING_USERNAME = ('You must enter a username to access the elvis database')
+    _MISSING_PASSWORD = ('You must enter a password to access the elvis database')
+    def __init__(self, pathname, opus_id=None, metafile=None, username=None, password=None):
         """
         :param str pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
@@ -203,6 +207,7 @@ class IndexedPiece(object):
         :returns: A new :class:`IndexedPiece`.
         :rtype: :class:`IndexedPiece`
         """
+
         def init_metadata():
             """
             Initialize valid metadata fields with a zero-length string.
@@ -217,9 +222,15 @@ class IndexedPiece(object):
         super(IndexedPiece, self).__init__()
         self._imported = False
         self._noterest_results = None
+        self._pathname = pathname
         self._metadata = {}
-        self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
+        self._username = username
+        self._password = password
         init_metadata()
+        if metafile is not None:
+            self._metafile = metafile
+            self._open_file()
+        self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
 
     def __repr__(self):
         return "vis.models.indexed_piece.IndexedPiece('{}')".format(self.metadata('pathname'))
@@ -444,3 +455,104 @@ class IndexedPiece(object):
                 return data
             else:
                 return analyzer_cls[0](data, settings).run()
+
+    def _open_file(self):
+
+        if os.path.isfile(self._metafile):
+            with open(self._metafile) as mf:
+                f = []
+                x = 0
+
+                lines = mf.readlines()
+                exists = False
+                if '/' in self._pathname:
+                    pth = self._pathname.split('/')
+                    pth = pth[len(pth) - 1]
+                else:
+                    pth = self._pathname
+                for line in lines:
+                    if self._pathname in line or pth in line:
+                        exists = True
+                if not exists:
+                    warnings.warn('The meta file you have included does not seem to correspond to the file.')
+                    return
+
+                for n, line in enumerate(lines):
+                    if line.startswith('}'):
+                        line_range = [x, n]
+                        x = n + 1
+                        f.append(line_range)
+
+                if len(f) == 1:
+                    self._json_reader()
+
+                for pair in f:
+                    for line in lines[pair[0]: pair[1]]:
+                        if self._pathname in line:
+                            target = open('temp', 'w')
+                            for line1 in lines[pair[0]: pair[1]]:
+                                target.write(line1)
+                            target.write('}' + '\n')
+                            target.close()
+                            self._metafile = 'temp'
+                            self._json_reader()
+        else:
+            self._json_reader()
+
+    def load_url(self, url):
+
+        if self._username is None:
+            raise RuntimeError(self._MISSING_USERNAME)
+        elif self._password is None:
+            raise RuntimeError(self._MISSING_PASSWORD)
+        else:
+            self._logged = login_edb(self._username, self._password)
+        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+
+        try:
+            resp.json()
+        except ValueError:
+            if url[len(url) - 1] == '/':
+                url = url + '?format=json'
+            else:
+                url = url + '&format=json'
+
+        resp = auth_get(url, self._logged['csrftoken'], self._logged['sessionid'])
+
+        jason = resp.json()
+        return url, jason
+
+    def _json_reader(self):
+
+        if os.path.isfile(self._metafile):
+            with open(self._metafile) as mf:
+                data = json.load(mf)
+                mf.close()
+
+        else:
+            url, data = self.load_url(self._metafile)
+
+        self._metadata['composer'] = data['composer']['title']
+        self._metadata['languages'] = []
+        for lang in data['languages']:
+            for title in lang:
+                self._metadata['languages'].append(lang[title])
+        self._metadata['tags'] = []
+        for tag in data['tags']:
+            for title in tag:
+                self._metadata['tags'].append(tag[title])
+        if 'piece' in data:
+            self._metadata['title'] = data['piece']['title'] + ': ' + data['title']
+        else:
+            self._metadata['title'] = data['title']
+        self._metadata['composer'] = data['composer']['title']
+        types = ['vocalization', 'sources', 'religiosity', 'locations', 'instruments_voices', 'genres', 'creator']
+        for dat in types:
+            self._metadata[dat] = data[dat]
+
+        if self._metafile is 'temp':
+            os.remove('temp')
+
+    def run(self):
+        self._import_score()
+        return self

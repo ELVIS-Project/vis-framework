@@ -28,8 +28,10 @@ The model representing data from multiple :class:`~vis.models.indexed_piece.Inde
 """
 
 import six
+import os
 import pandas
 from vis.analyzers import experimenter
+from vis.models import indexed_piece
 
 
 class AggregatedPieces(object):
@@ -42,6 +44,8 @@ class AggregatedPieces(object):
 
     # When metadata() gets a 'field' argument that isn't a string
     _FIELD_STRING = "parameter 'field' must be of type 'string'"
+
+    _UNKNOWN_INPUT = "The input type is not one of the supported options"
 
     class Metadata(object):
         """
@@ -57,7 +61,7 @@ class AggregatedPieces(object):
         """
         __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
-    def __init__(self, pieces=None):
+    def __init__(self, pieces=None, metafiles=None):
         """
         :param pieces: The IndexedPieces to collect.
         :type pieces: list of :class:`~vis.models.indexed_piece.IndexedPiece`
@@ -73,10 +77,10 @@ class AggregatedPieces(object):
 
         super(AggregatedPieces, self).__init__()
         self._pieces = pieces if pieces is not None else []
+        self._metafiles = metafiles if metafiles is not None else []
         self._metadata = {}
         init_metadata()
-        # set our "pathnames" metadata
-        self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
+
 
     @staticmethod
     def _make_date_range(dates):
@@ -233,3 +237,81 @@ class AggregatedPieces(object):
                                  aggregated_experiments[1:],
                                  settings,
                                  aggregated_experiments[0](data, settings).run())
+
+    def _file_loader(self):
+        """Loads the piece files given, whether they are lists or directories or websites."""
+
+        def directory(directory):
+            # remove ds_stores
+            if '.DS_Store' in files:
+                files.remove('.DS_Store')
+
+            # attach meta files if they exist
+            if 'meta' in files:
+                temp = []
+                meta = root + '/meta'
+                files.remove('meta')
+                for file in files:
+                    file = root + '/' + file
+                    temp.append(indexed_piece.IndexedPiece(file, metafile=meta).run())
+                return temp
+
+            # indexed piece without meta files
+            else:
+                temp = []
+                for file in files:
+                    file = root + '/' + file
+                    temp.append(indexed_piece.IndexedPiece(file))
+                return temp
+
+        # there are 3 options if the input is a list
+        if type(self._pieces) is list:
+
+            # return immediately if the input is already indexed
+            if isinstance(self._pieces[0], indexed_piece.IndexedPiece):
+                return
+
+            # index pieces if files or links
+            elif os.path.isfile(self._pieces[0]):
+
+                # if only one metafile was attached
+                if self._metafiles != []:
+
+                    # one metafile per music file:
+                    if type(self._metafiles) is list and len(self._metafiles) == len(self._pieces):
+                        temp = []
+                        for n in range(len(self._pieces)):
+                            temp.append(indexed_piece.IndexedPiece(self._pieces[n], metafile=self._metafiles[n]).run())
+                        self._pieces = temp
+                        return
+
+                    elif os.path.isfile(self._metafiles):
+                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafiles).run() for piece in self._pieces]
+                        return
+                # if no metafiles were given
+                else:
+                    self._pieces = [indexed_piece.IndexedPiece(piece).run() for piece in self._pieces]
+                    return
+
+            else:
+                raise RuntimeError(self._UNKNOWN_INPUT)
+
+        # load directory of pieces
+        elif os.path.isdir(self._pieces):
+
+            for root, dirs, files in os.walk(self._pieces):
+                if len(files) == 0:
+                    raise RuntimeError(self._NO_FILES)
+
+                elif len(files) > 0:
+                    self._pieces = directory(files)
+
+        else:
+            raise RuntimeError(self._UNKNOWN_INPUT)
+
+    def run(self):
+        if self._pieces != []:
+            self._file_loader()
+        self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
+
+        return self
