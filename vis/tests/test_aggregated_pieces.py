@@ -362,6 +362,11 @@ class TestAggregatedPieces(TestCase):
         agg = AggregatedPieces(new_f, metafiles=[meta, meta, meta]).run()
         self.assertTrue(isinstance(agg, AggregatedPieces))
 
+    # def test_date(self):
+    #     date = ['----/--/-- to ----/--/--']
+    #     agg = AggregatedPieces()._make_date_range(date)
+    #     self.assertEqual(agg, None)
+
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
