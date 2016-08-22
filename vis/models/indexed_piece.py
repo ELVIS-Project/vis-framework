@@ -316,6 +316,27 @@ class IndexedPiece(object):
             self._analyses['part_streams'] = self._import_score(known_opus=self._known_opus).parts
         return self._analyses['part_streams']
 
+    def _get_m21_objs(self):
+        """
+        Return the all the music21 objects found in the piece. This is a list of pandas.Series 
+        where each series contains the events in one voice. It is not concatenated into a 
+        dataframe at this stage because this step should be done after filtering for a certain
+        type of event in order to get the proper index.
+
+        This list of voices with their events can easily be turned into a dataframe of music21 
+        objects that can be filtered to contain, for example, just the note and rest objects.
+        Filtered dataframes of music21 objects like this can then have an indexer_func applied 
+        to them all at once using df.applymap(indexer_func).
+
+        :returns: All the objects found in the music21 voice streams. These streams are made 
+            into pandas.Series and collected in a list.
+        :rtype: list of :class:`pandas.Series`
+        """
+        if 'm21_objs' not in self._analyses:
+            # save the results as a list of series in the indexed_piece attributes
+            self._analyses['m21_objs'] = [pandas.Series(x.recurse()) for x in self._get_part_streams()]
+        return self._analyses['m21_objs']
+
     def _get_note_rest_index(self, known_opus=False):
         """
         Return the results of the :class:`NoteRestIndexer` on this piece.
