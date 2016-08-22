@@ -32,23 +32,16 @@ This model represents an indexed and analyzed piece of music.
 # Imports
 import os
 import six
-import numpy
-import pandas
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
-from music21 import converter, stream, analysis
-from music21 import interval as m21int
+from music21 import converter, stream
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest, meter, interval, dissonance
-from itertools import combinations
-import pdb
+from vis.analyzers.indexers import noterest
 
 
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 
-_names = ('Indexer', 'Parts')
-_default_interval_setts = {'quality':True, 'directed':True, 'simple or compound':'compound', 'horiz_attach_later':True}
 
 def _find_piece_title(the_score):
     """
@@ -82,11 +75,6 @@ def _find_piece_title(the_score):
 
     return post
 
-
-def _get_offset(event):
-    # The first is the offset of the beginning of the containing measure, 
-    # the second is the offset from the beginning of that measure to the event.
-    return (event.sites.getAttrByName('offset') + event.offset)
 
 def _find_part_names(the_score):
     """
@@ -124,94 +112,6 @@ def _find_part_names(the_score):
             post[i] = 'Part {}'.format(i + 1)
 
     return post
-
-def _type_func_noterest(event):
-    if any([typ in event.classes for typ in ('Note', 'Rest')]):
-        return event
-    return float('nan')
-
-def _type_func_measure(event):
-    if 'Measure' in event.classes:
-        return event
-    return float('nan')
-
-def _eliminate_ties(event):
-    """Serves to get rid of the notes and rests that have non-start ties. This should be used 
-    for the noterest, and beatstrength indexers.
-    """
-    if hasattr(event, 'tie') and event.tie is not None and event.tie.type != 'start':
-        return float('nan')
-    return event
-
-def _int_func(ev1, ev2):
-    if ev1.isRest or ev2.isRest:
-        return 'Rest'
-    else:
-        ntrvl = m21int.Interval(ev1, ev2)
-        post = '-' if ntrvl.direction == -1 else ''
-        return post + ntrvl.name
-
-def _attach_before(df):
-    re_indexed = []
-    for x in range(len(df.columns)):
-        ser = df.iloc[:, x].dropna()
-        ser.index = numpy.insert(ser.index, 0, 0.0)[:-1]
-        re_indexed.append(ser)
-    return pandas.concat(re_indexed, axis=1)
-
-def _dur_func(event):
-    if isinstance(event, float):
-        return event
-    return event.quarterLength
-
-def _combine_tied(df1, df2):
-    cols1 = [df1.iloc[:, x].dropna() for x in range(len(df1.columns))]
-    cols2 = [df2.iloc[:, x].dropna() for x in range(len(df2.columns))]
-
-    for i, ser2 in enumerate(cols2):
-        for j, val2 in enumerate(ser2):
-            if ser2.index[j] not in cols1[i].index:
-                ser2.at[ser2.iloc[:j].last_valid_index()] += val2
-                ser2.iat[j] = float('nan')
-        ser2 = ser2.dropna()
-    return pandas.concat(cols2, axis=1).dropna(how='all')
-
-def series_method(val, int_type=None):
-    if val == 'Rest':
-        return val
-    # if isinstance(val, float):
-    #     return val
-    return int_type(m21int.Interval(val))
-
-def _m21int_maker(ser, int_type=None):
-    ser.dropna().apply(series_method, int_type=int_type)
-    return ser
-
-_bsMemos = {}
-def _bsTest(event):
-    if isinstance(event, float):
-        return event
-    offset = (event.sites.getAttrByName('offset') + event.offset)
-    if offset not in _bsMemos:
-        _bsMemos[offset] = event.beatStrength
-    return _bsMemos[offset]
-
-def _find_piece_range(the_score):
-
-    p = analysis.discrete.Ambitus()
-    p_range = p.getPitchSpan(the_score)
-
-    return p_range[0].nameWithOctave, p_range[1].nameWithOctave
-
-def _find_part_ranges(the_score):
-
-    ranges = []
-    for x in range(len(the_score.parts)):
-        p = analysis.discrete.Ambitus()
-        p_range = p.getPitchSpan(the_score.parts[x])
-        ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
-
-    return ranges
 
 
 class OpusWarning(RuntimeWarning):
@@ -264,14 +164,14 @@ class IndexedPiece(object):
             """
             field_list = ['opusNumber', 'movementName', 'composer', 'number', 'anacrusis',
                 'movementNumber', 'date', 'composers', 'alternativeTitle', 'title',
-                'localeOfComposition', 'parts', 'pieceRange', 'partRanges']
+                'localeOfComposition', 'parts']
             for field in field_list:
                 self._metadata[field] = ''
             self._metadata['pathname'] = pathname
 
         super(IndexedPiece, self).__init__()
         self._imported = False
-        self._analyses = {}
+        self._noterest_results = None
         self._metadata = {}
         self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
         init_metadata()
@@ -326,8 +226,6 @@ class IndexedPiece(object):
                         self._metadata[field] = '???'
             self._metadata['parts'] = _find_part_names(score)
             self._metadata['title'] = _find_piece_title(score)
-            self._metadata['partRanges'] = _find_part_ranges(score)
-            self._metadata['pieceRange'] = _find_piece_range(score)
             self._imported = True
         return score
 
@@ -411,122 +309,28 @@ class IndexedPiece(object):
         else:
             self._metadata[field] = value
 
-    def _get_part_streams(self, known_opus=False):
-        if 'part_streams' not in self._analyses:
-            self._analyses['part_streams'] = self._import_score(known_opus=known_opus).parts
-        return self._analyses['part_streams']
-
-    def _get_m21_objs(self, known_opus=False):
+    def _get_note_rest_index(self, known_opus=False):
         """
-        Return the all the music21 objects found in the piece. This is a list of pandas.Series 
-        where each series contains the events in one voice. It is not concatenated into a 
-        dataframe at this stage because this step should be done after filtering for a certain
-        type of event in order to get the proper index.
+        Return the results of the :class:`NoteRestIndexer` on this piece.
 
-        This list of voices with their event can easily be turned into a dataframe of music21 
-        objects that can be filtered to contain, for example, just the note and rest objects.
-        Filtered dataframes of music21 objects like this can then have an indexer_func applied 
-        to them all at once using df.applymap(indexer_func).
+        This method is used automatically by :meth:`get_data` to cache results, which avoids having
+        to re-import the music21 file for every Indexer or Experimenter that uses the
+        :class:`NoteRestIndexer`.
 
         :param known_opus: Whether the caller knows this file will be imported as a
             :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" in the
             :meth:`get_data` docs.
         :type known_opus: boolean
 
-        :returns: All the objects found in the music21 voice streams. These streams are made 
-            into pandas.Series and collected in a list.
+        :returns: Results of the :class:`NoteRestIndexer`.
         :rtype: list of :class:`pandas.Series`
         """
-        if 'm21_objs' not in self._analyses:
-            # save the results as a list of series in the indexed_piece attributes
-            streams = self._get_part_streams()
-            pdb.set_trace()
-            self._analyses['m21_objs'] = [pandas.Series(x.recurse()) for x in self._get_part_streams(known_opus)]
-        return self._analyses['m21_objs']
-
-    def _get_m21_nr_objs(self, known_opus=False):
-        if 'm21_noterest' not in self._analyses:
-            # get rid of all m21 objects that aren't notes or rests
-            sers = [s.apply(_type_func_noterest).dropna() for s in self._get_m21_objs(known_opus)]
-            # add the index to each part
-            for ser in sers:
-                ser.index = ser.apply(_get_offset)
-            self._analyses['m21_noterest'] = pandas.concat(sers, axis=1)
-        return self._analyses['m21_noterest']
-
-    def _get_m21_nr_no_tied(self, known_opus=False):
-        if 'm21_noterest_no_tied' not in self._analyses:
-            self._analyses['m21_noterest_no_tied'] = self._get_m21_nr_objs(known_opus).applymap(_eliminate_ties).dropna(how='all')
-        return self._analyses['m21_noterest_no_tied']
-
-    def _get_h_ints(self, settings=None, known_opus=False):
-        if 'h_ints' not in self._analyses:
-            self._analyses['h_ints'] = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts.copy()).run()
-        if settings is not None and not ('directed' in settings and settings['directed'] == True and
-                'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
-                'simple or compound' in settings and settings['simple or compound'] == 'compound'):
-            post = interval.IntervalReindexer(self._analyses['h_ints'], settings).run()
-            if 'horiz_attach_later' not in settings or not settings['horiz_attach_later']:
-                post = _attach_before(post)
-            return post
-        return self._analyses['h_ints']
-
-    def _get_v_ints(self, settings=None, known_opus=False):
-        if 'v_ints' not in self._analyses:
-            self._analyses['v_ints'] = interval.IntervalIndexer(self._get_noterest(), settings=_default_interval_setts.copy()).run()
-        if settings is not None and not ('directed' in settings and settings['directed'] == True and
-                'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
-                'simple or compound' in settings and settings['simple or compound'] == 'compound'):
-            temp = _default_interval_setts.copy().update(settings)
-            return interval.IntervalReindexer(self._analyses['v_ints'], temp).run()
-        return self._analyses['v_ints']
-
-    def _get_dissonance(self, known_opus=False):
-        if 'dissonance' not in self._analyses:
-            h_setts = {'quality': False, 'simple or compound': 'compound'}
-            v_setts = setts = {'quality': True, 'simple or compound': 'simple'}
-            in_dfs = [self._get_beatstrength(), self._get_duration(), self._get_h_ints(h_setts), self._get_v_ints(v_setts)]
-            self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
-        return self._analyses['dissonance']
-
-    def _get_m21_measure_objs(self, known_opus=False):
-        """Makes a dataframe of the measure objects in the indexed_piece. Note that midi files do not have 
-        measures."""
-        if 'm21_measure_objs' not in self._analyses:
-            # filter for just the measure objects in each part of this indexed piece
-            sers = [s.apply(_type_func_measure).dropna() for s in self._get_m21_objs(known_opus)]
-            # add the index to each part
-            for ser in sers:
-                ser.index = ser.apply(_get_offset)         
-            self._analyses['m21_measure_objs'] = pandas.concat(sers, axis=1)
-        return self._analyses['m21_measure_objs']
-
-    def _get_noterest(self, known_opus=False):
-        if 'noterest' not in self._analyses:
-            result = self._get_m21_nr_no_tied().applymap(noterest.test)
-            result.columns = pandas.MultiIndex.from_product((('NoteRestIndexer',), [str(x) for x in range(len(result.columns))]), names=_names)
-            self._analyses['noterest'] = result
-        return self._analyses['noterest']
-
-    def _get_duration(self):
-        if 'duration' not in self._analyses:
-            post = self._get_m21_nr_objs().applymap(_dur_func)
-            post = _combine_tied(self._get_noterest(), post)
-            post.columns = pandas.MultiIndex.from_product((('meter.DurationIndexer',), [str(x) for x in range(len(post.columns))]), names=_names)
-            self._analyses['duration'] = post
-        return self._analyses['duration']
-
-    def _get_beatstrength(self, known_opus=False):
-        if 'beatstrength' not in self._analyses:
-            post = self._get_m21_nr_no_tied().applymap(_bsTest)
-            post.columns = pandas.MultiIndex.from_product((('meter.NoteBeatStrengthIndexer',), [str(x) for x in range(len(post.columns))]), names=_names)
-            self._analyses['beatstrength'] = post
-        return self._analyses['beatstrength']
-
-    def _get_measure(self, known_opus=False):
-        if 'measure' not in self._analyses:
-            self._analyses['measure'] = self._get_m21_measure_objs().applymap(meter.msTest)
-        return self._analyses['measure']
+        if known_opus is True:
+            return self._import_score(known_opus=known_opus)
+        elif self._noterest_results is None:
+            data = [x for x in self._import_score().parts]
+            self._noterest_results = noterest.NoteRestIndexer(data).run()
+        return self._noterest_results
 
     @staticmethod
     def _type_verifier(cls_list):
