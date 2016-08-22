@@ -311,6 +311,11 @@ class IndexedPiece(object):
         else:
             self._metadata[field] = value
 
+    def _get_part_streams(self):
+        if 'part_streams' not in self._analyses:
+            self._analyses['part_streams'] = self._import_score(known_opus=self._known_opus).parts
+        return self._analyses['part_streams']
+
     def _get_note_rest_index(self, known_opus=False):
         """
         Return the results of the :class:`NoteRestIndexer` on this piece.
