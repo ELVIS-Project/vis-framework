@@ -171,6 +171,7 @@ class IndexedPiece(object):
 
         super(IndexedPiece, self).__init__()
         self._imported = False
+        self._analyses = {}
         self._noterest_results = None
         self._metadata = {}
         self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
