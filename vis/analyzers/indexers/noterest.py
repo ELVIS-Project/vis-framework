@@ -33,12 +33,16 @@ import six
 from music21 import stream, note
 from vis.analyzers import indexer
 
-def test(event):
-    if isinstance(event, float):
-        return float('nan')
-    if isinstance(event, note.Note):
-        return six.u(str(event.nameWithOctave))
-    return 'Rest'
+_types = ('Note', 'Rest', 'Chord')
+
+def _type_func(event):
+    """
+    This method takes a music21 object and returns it unchanged if it is a note, rest, or chord
+    object, or else it returns a NaN. This method is called internally by VIS indexed_piece objects.
+    """
+    if any([typ in event.classes for typ in _types]):
+        return event
+    return float('nan')
 
 def indexer_func(obj):
     """

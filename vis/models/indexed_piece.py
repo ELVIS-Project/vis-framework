@@ -113,6 +113,14 @@ def _find_part_names(the_score):
 
     return post
 
+def _get_offset(event):
+    """
+    This method finds the offset of a music21 event. The first part of this equation is the offset 
+    of the beginning of the event's containing measure, and the second is the offset from the 
+    beginning of that measure to the event.
+    """
+    return (event.sites.getAttrByName('offset') + event.offset)
+
 
 class OpusWarning(RuntimeWarning):
     """
@@ -336,6 +344,24 @@ class IndexedPiece(object):
             # save the results as a list of series in the indexed_piece attributes
             self._analyses['m21_objs'] = [pandas.Series(x.recurse()) for x in self._get_part_streams()]
         return self._analyses['m21_objs']
+
+    def _get_m21_nr_objs(self):
+        """
+        This method takes a list of pandas.Series of music21 objects in each part in a piece and
+        filters them to reveal just the 'Note', 'Rest', and 'Chord' objects. It then aligns these
+        events with their offsets, and returns a list of the altered series. In the list 
+        comprehension, the variable sers is the resultant list of series, and s corresponds to each 
+        series in that list.
+
+        :returns: The note, rest, and chord music21 objects in each part of a piece.
+        :rtype: A list of pandas.Series of music21 note, rest, and chord objects.
+        """
+        if 'm21_noterest' not in self._analyses:
+            # get rid of all m21 objects that aren't notes, rests, or chords and index  the offsets
+            sers = [s.apply(noterest._type_func).dropna().apply(_get_offset)
+                    for s in self._get_m21_objs(self._known_opus)]
+            self._analyses['m21_noterest'] = pandas.concat(sers, axis=1)
+        return self._analyses['m21_noterest']
 
     def _get_note_rest_index(self, known_opus=False):
         """
