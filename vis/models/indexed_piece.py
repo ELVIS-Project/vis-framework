@@ -374,7 +374,7 @@ class IndexedPiece(object):
             self._analyses['m21_noterest'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_noterest']
 
-    def _get_m21_nrc_no_tied(self):
+    def _get_m21_nrc_objs_no_tied(self):
         if 'm21_noterest_no_tied' not in self._analyses:
             self._analyses['m21_noterest_no_tied'] = self._get_m21_nrc_objs(self._known_opus).applymap(_eliminate_ties).dropna(how='all')
         return self._analyses['m21_noterest_no_tied']
