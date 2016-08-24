@@ -30,45 +30,56 @@ Index note and rest objects.
 """
 
 import six
-from music21 import stream, note
+import pandas
+from music21 import note, pitch, chord
 from vis.analyzers import indexer
 
-_types = ('Note', 'Rest', 'Chord')
-
-def _type_func(event):
+def _unpack_chords(df):
     """
-    This method takes a music21 object and returns it unchanged if it is a note, rest, or chord
-    object, or else it returns a NaN. This method is called internally by VIS indexed_piece objects.
+    The c in nrc in methods like _get_m21_nrc_objs() stands for chord. This method unpacks music21 
+    chords into a list of their constituent pitch objects. These pitch objects can be queried for 
+    their nameWithOctave in the same way that note objects can in music21.
+    This works by broadcasting the list of pitches in each chord object in each part's elements to 
+    a dataframe of note, pitch, and rest objects. So each part that had chord objects in it gets 
+    represented as a dataframe instead of just a series. Then the series from the parts that didn't 
+    have chords in them get concatenated with the parts that did, resulting in potentially more 
+    columns in the final dataframe then there are parts in the score.
     """
-    if any([typ in event.classes for typ in _types]):
-        return event
-    return float('nan')
+    return pandas.concat([pandas.DataFrame(df.iloc[:,x].tolist()) for x in range(len(df.columns))], axis=1)
 
-def indexer_func(obj):
+def indexer_func(event):
     """
     Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
-    :class:`~music21.note.Rest` objects into a string.
+    :class:`~music21.note.Rest` objects into a string and convert the :class:`~music21.chord.Chord` 
+    objects into a list of the strings of their consituent pitch objects. The results must be 
+    contained in a tuple or a list so that chords can later be unpacked into different 1-voice 
+    strands.
 
-    :param obj: An 2-tuple with an object to convert. Only the first object in the iterable is
-        processed in this function.
-    :type obj: a 2-tuple containing either a :class:`music21.note.Note` or a
-        :class:`music21.note.Rest` as its first element and a list of the running results of this
-        indexer_func as the second element.
+    :param event: A music21 note, rest, or chord object which get queried for their names.
+    :type event: A music21 note, rest, or chord object.
 
-    :returns: If the first object in the list is a :class:`music21.note.Rest`, the string
-        ``u'Rest'``; otherwise the :attr:`~music21.note.Note.nameWithOctave` attribute, which is
-        the pitch class and octave of the :class:`Note`.
-    :rtype: str
+    :returns: A one-tuple containing a string representation of the note or rest, or if the event 
+        is a chord, a list of the strings of the names of its constituent pitches.
+    :rtype: 1-tuple of str or list of strings
 
     **Examples:**
-
-    >>> from music21 import note
-    >>> indexer_func((note.Note('C4'), []))
-    u'C4'
-    >>> indexer_func((note.Rest(), []))
-    u'Rest'
+    >>> from noterest.py import indexer_func
+    >>> from music21 import note, 
+    >>> indexer_func(note.Note('C4'))
+    (u'C4',)
+    >>> indexer_func(note.Rest())
+    (u'Rest',)
+    >>> indexer_func(chord.Chord([note.Note('C4'), note.Note('E5')]))
+    [u'C4', u'E5']
     """
-    return 'Rest' if isinstance(obj[0], note.Rest) else six.u(str(obj[0].nameWithOctave))
+    if isinstance(event, float):
+        return event
+    elif event.isNote:
+        return (six.u(event.nameWithOctave),)
+    elif event.isRest:
+        return (u'Rest',)
+    else: # The event is a chord
+        return [six.u(p.nameWithOctave) for p in event.pitches]
 
 
 class NoteRestIndexer(indexer.Indexer):
@@ -80,35 +91,31 @@ class NoteRestIndexer(indexer.Indexer):
     version of their :attr:`~music21.note.Note.nameWithOctave` attribute.
     """
 
-    required_score_type = 'stream.Part'
+    required_score_type = 'pandas.DataFrame'
 
     def __init__(self, score):
         """
-        :param score: A list of all the Parts to index.
-        :type score: list of :class:`music21.stream.Part`
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the right type.
+        :param score: A dataframe of the note, rest, and chord objects in a piece.
+        :type score: pandas Dataframe
+        :raises: :exc:`RuntimeError` if ``score`` is not a pandas Dataframe.
         """
         super(NoteRestIndexer, self).__init__(score, None)
-        self._types = ('Note', 'Rest')
+        self._types = ('Note', 'Rest', 'Chord')
         self._indexer_func = indexer_func
 
     def run(self):
         """
-        Make a new index of the piece.
+        Make a new index of the note and rest names in the piece. When a single part has chord 
+        objects, those chords get separated out into as many columns as there are notes in the 
+        chord with the greatest number of notes. This means that there can be more columns in 
+        this dataframe than there are parts in the piece.
 
-        :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`;
-            refer to the example below for more details.
+        :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
         :rtype: :class:`pandas.DataFrame`
-
-        **Example:**
-
-        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-        >>> the_score.parts[5]
-        (the first clarinet Part)
-        >>> the_notes = NoteRestIndexer(the_score).run()
-        >>> the_notes['noterest.NoteRestIndexer']['5']
-        (the first clarinet Series)
         """
-        combinations = [[x] for x in range(len(self._score))]  # calculate each voice separately
-        results = self._do_multiprocessing(combinations)
-        return self.make_return([six.u(str(x))[1:-1] for x in combinations], results)
+        temp = self._score.applymap(_indexer_func) # Do indexing.
+        result = _unpack_chords(temp) # Unpack chords into individual pitches.
+        axis_labels = ('Indexer', 'Parts') # Axis names for resultant dataframe.
+        result.columns = pandas.MultiIndex.from_product((('NoteRestIndexer',), # Apply multi-index to df.
+            [str(x) for x in range(len(result.columns))]), names=axis_labels)
+        return result

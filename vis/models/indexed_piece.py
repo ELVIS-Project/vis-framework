@@ -130,19 +130,6 @@ def _eliminate_ties(event):
         return float('nan')
     return event
 
-def _unpack_chords(df):
-    """
-    The c in nrc in methods like _get_m21_nrc_objs() stands for chord. This method unpacks music21 
-    chords into a list of their constituent pitch objects. These pitch objects can be queried for 
-    their nameWithOctave in the same way that note objects can in music21.
-    This works by broadcasting the list of pitches in each chord object in each part's elements to 
-    a dataframe of note, pitch, and rest objects. So each part that had chord objects in it gets 
-    represented as a dataframe instead of just a series. Then the series from the parts that didn't 
-    have chords in them get concatenated with the parts that did, resulting in potentially more 
-    columns in the final dataframe then there are parts in the score.
-    """
-    return pandas.concat([pandas.DataFrame(df.iloc[:,x].tolist()) for x in range(len(df.columns))], axis=1)
-
 
 class OpusWarning(RuntimeWarning):
     """
@@ -392,30 +379,10 @@ class IndexedPiece(object):
             self._analyses['m21_noterest_no_tied'] = self._get_m21_nrc_objs(self._known_opus).applymap(_eliminate_ties).dropna(how='all')
         return self._analyses['m21_noterest_no_tied']
 
-
-
-    def _get_note_rest_index(self, known_opus=False):
-        """
-        Return the results of the :class:`NoteRestIndexer` on this piece.
-
-        This method is used automatically by :meth:`get_data` to cache results, which avoids having
-        to re-import the music21 file for every Indexer or Experimenter that uses the
-        :class:`NoteRestIndexer`.
-
-        :param known_opus: Whether the caller knows this file will be imported as a
-            :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" in the
-            :meth:`get_data` docs.
-        :type known_opus: boolean
-
-        :returns: Results of the :class:`NoteRestIndexer`.
-        :rtype: list of :class:`pandas.Series`
-        """
-        if known_opus is True:
-            return self._import_score(known_opus=known_opus)
-        elif self._noterest_results is None:
-            data = [x for x in self._import_score().parts]
-            self._noterest_results = noterest.NoteRestIndexer(data).run()
-        return self._noterest_results
+    def _get_noterest(self):
+        if 'noterest' not in self._analyses:
+            self._analyses['noterest'] = noterest.NoteRestIndexer(self._get_m21_nrc_objs_no_tied()).run()
+        return self._analyses['noterest']
 
     @staticmethod
     def _type_verifier(cls_list):
