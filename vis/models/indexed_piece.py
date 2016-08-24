@@ -121,6 +121,15 @@ def _get_offset(event):
     """
     return (event.sites.getAttrByName('offset') + event.offset)
 
+def _eliminate_ties(event):
+    """
+    Gets rid of the notes and rests that have non-start ties. This should be used for the noterest, 
+    and beatstrength indexers.
+    """
+    if hasattr(event, 'tie') and event.tie is not None and event.tie.type != 'start':
+        return float('nan')
+    return event
+
 
 class OpusWarning(RuntimeWarning):
     """
@@ -364,6 +373,11 @@ class IndexedPiece(object):
                     for s in self._get_m21_objs(self._known_opus)]
             self._analyses['m21_noterest'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_noterest']
+
+    def _get_m21_nrc_no_tied(self):
+        if 'm21_noterest_no_tied' not in self._analyses:
+            self._analyses['m21_noterest_no_tied'] = self._get_m21_nrc_objs(self._known_opus).applymap(_eliminate_ties).dropna(how='all')
+        return self._analyses['m21_noterest_no_tied']
 
     def _get_note_rest_index(self, known_opus=False):
         """
