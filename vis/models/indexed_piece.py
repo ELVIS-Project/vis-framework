@@ -345,13 +345,15 @@ class IndexedPiece(object):
             self._analyses['m21_objs'] = [pandas.Series(x.recurse()) for x in self._get_part_streams()]
         return self._analyses['m21_objs']
 
-    def _get_m21_nr_objs(self):
+    def _get_m21_nrc_objs(self):
         """
         This method takes a list of pandas.Series of music21 objects in each part in a piece and
         filters them to reveal just the 'Note', 'Rest', and 'Chord' objects. It then aligns these
         events with their offsets, and returns a list of the altered series. In the list 
         comprehension, the variable sers is the resultant list of series, and s corresponds to each 
-        series in that list.
+        series in that list. The difference between this method and the _get_m21_nr_objs() method is 
+        that the result of this one still has the chord objects, whereas the other method unpacks 
+        them into their containing objects.
 
         :returns: The note, rest, and chord music21 objects in each part of a piece.
         :rtype: A list of pandas.Series of music21 note, rest, and chord objects.
