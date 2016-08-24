@@ -130,6 +130,19 @@ def _eliminate_ties(event):
         return float('nan')
     return event
 
+def _unpack_chords(df):
+    """
+    The c in nrc in methods like _get_m21_nrc_objs() stands for chord. This method unpacks music21 
+    chords into a list of their constituent pitch objects. These pitch objects can be queried for 
+    their nameWithOctave in the same way that note objects can in music21.
+    This works by broadcasting the list of pitches in each chord object in each part's elements to 
+    a dataframe of note, pitch, and rest objects. So each part that had chord objects in it gets 
+    represented as a dataframe instead of just a series. Then the series from the parts that didn't 
+    have chords in them get concatenated with the parts that did, resulting in potentially more 
+    columns in the final dataframe then there are parts in the score.
+    """
+    return pandas.concat([pandas.DataFrame(df.iloc[:,x].tolist()) for x in range(len(df.columns))], axis=1)
+
 
 class OpusWarning(RuntimeWarning):
     """
@@ -378,6 +391,8 @@ class IndexedPiece(object):
         if 'm21_noterest_no_tied' not in self._analyses:
             self._analyses['m21_noterest_no_tied'] = self._get_m21_nrc_objs(self._known_opus).applymap(_eliminate_ties).dropna(how='all')
         return self._analyses['m21_noterest_no_tied']
+
+
 
     def _get_note_rest_index(self, known_opus=False):
         """
