@@ -24,7 +24,7 @@ def main():
     # piece_path = "/home/amor/Code/vis-framework/vis/tests/corpus/bach.xml"
     # piece_path = "/home/amor/Code/vis-framework/vis/tests/corpus/bwv603.xml"
     # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Reimenschnieder/1-026900B_.xml'
-    # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos2308.mei'
+    #piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos2308.mei'
     # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Sanctus.krn'
     ind_piece = IndexedPiece(piece_path)
     test_piece = ind_piece._import_score()
@@ -37,7 +37,7 @@ def main():
     horiz_setts = {'quality': False, 'simple or compound': 'compound'}
 
     t0 = time.time()
-    actual = noterest.NoteRestIndexer(test_parts).run()  
+    actual = noterest.NoteRestIndexer(test_parts).run()
     
     # filter_setts = {'quarterLength': 2.0, 'method':None}
     # filtered_results = offset.FilterByOffsetIndexer(actual, filter_setts).run()
@@ -45,39 +45,24 @@ def main():
     dur_ind = meter.DurationIndexer(test_parts).run()
     bs_ind = meter.NoteBeatStrengthIndexer(test_parts).run()
     horiz = interval.HorizontalIntervalIndexer(actual, horiz_setts).run()
+    # ind_piece._analyses['noterest'] = actual
+    # h_df = ind_piece._get_h_ints(settings=horiz_setts)
     vert_ints = interval.IntervalIndexer(actual, setts).run()
     dissonances = dissonance.DissonanceIndexer([bs_ind, dur_ind, horiz, vert_ints]).run()
 
 
 
     t1 = time.time()
-    print 'Time taken to run all indexers: '
-    print t1 - t0
+    print('Time taken to run all indexers: ')
+    print(t1 - t0)
 
     pdb.set_trace()
-
-
-    # t2 = time.time()
-
-    # workm = WorkflowManager([piece_path])
-    # workm.settings(None, 'voice combinations', '[[0, 1]]')
-    # workm.settings(None, 'count frequency', False)
-
-    # iterables = [[''], basic_nr['basic.NoteRestIndexer'].columns]
-    # d_types_multi_index_for_LilyPond = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-    # dissonances.columns = d_types_multi_index_for_LilyPond
-
-    # workm._result = [dissonances]
-    # workm.output('LilyPond', '/Users/amor/Documents/Code/VIS/test_output/combined_dissonances')
-
-    # t3 = time.time()
-    # print 'Time to produce score output: '
-    # print t3 - t2
 
 if __name__ == "__main__":
     main()
 
 
+<<<<<<< Updated upstream
     # nr1 = time.clock()
     # note_rest = ind_piece.get_data([noterest.NoteRestIndexer], setts)
     # nr2 = time.clock()
@@ -324,3 +309,5 @@ if __name__ == "__main__":
     # fa4 = time.clock()
     # print "New Fermata indexer runtime: " + str(fa4 - fa3)
 
+=======
+>>>>>>> Stashed changes

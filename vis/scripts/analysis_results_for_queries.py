@@ -10,11 +10,11 @@ VIS_PATH = vis.__path__[0]
 
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos2308.mei'
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/bwv2.xml'
-piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn'
-# piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos0303a-Missa_De_beata_virgine-Kyrie.mid"
+# piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn'
+piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos0303a-Missa_De_beata_virgine-Kyrie.mei'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Lassus_Duets/Lassus_1_Beatus_Vir.xml'
 ind_piece = IndexedPiece(piece_path)
-parts = ind_piece._import_score().parts
+# parts = ind_piece._import_score().parts
 
 av_setts = {'show_all': True}
 v_setts = {'quality': True, 'simple or compound': 'simple', 'directed': True, 'mp': False}
@@ -28,7 +28,7 @@ n_setts_3 = {'n': 2, 'continuer': 'P1', 'vertical': [('0,4',)],
 
 # pieces = (IndexedPiece(piece_path2), ind_piece)
 # corpus = AggregatedPieces(pieces)
-# pdb.set_trace()
+pdb.set_trace()
 
 nr = noterest.NoteRestIndexer(parts).run()
 dr = meter.DurationIndexer(parts).run()
