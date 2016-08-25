@@ -58,18 +58,17 @@ from vis.tests import test_over_bass
 from vis.tests import test_cadence
 from vis.tests import test_contour
 from vis.tests import test_active_voices
-from vis.tests import test_windexer
 
 
-THE_TESTS = (  # Indexer and Subclasses
+THE_TESTS = (# Indexer and Subclasses
              test_fermata_indexer.FERMATA_INDEXER_SUITE,
              test_indexer.INDEXER_INIT_SUITE,
              test_indexer.INDEXER_1_PART_SUITE,
-             test_indexer.INDEXER_MULTI_EVENT_SUITE,  # no tests run
-             # test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
+             test_indexer.INDEXER_MULTI_EVENT_SUITE,
+             test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_duration_indexer.DURATION_INDEXER_SUITE,
-             test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,  # 'module' object has no attribute 'TimeSignature'
+             test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,
              test_measure_indexer.MEASURE_INDEXER_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE,
@@ -78,7 +77,7 @@ THE_TESTS = (  # Indexer and Subclasses
              test_repeat.REPEAT_INDEXER_SUITE,
              test_ngram.NGRAM_INDEXER_SUITE,
              test_new_ngram.NEW_NGRAM_INDEXER_SUITE,
-             test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,  # AssertionError: Attributes are different (3x)
+             test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,
              test_offset.OFFSET_INDEXER_SINGLE_SUITE,
              test_offset.OFFSET_INDEXER_MULTI_SUITE,
              test_lilypond.ANNOTATION_SUITE,
@@ -89,20 +88,18 @@ THE_TESTS = (  # Indexer and Subclasses
              test_cadence.CADENCE_INDEXER_SUITE,
              test_contour.CONTOUR_INDEXER_SUITE,
              test_active_voices.ACTIVE_VOICES_INDEXER_SUITE,
-             test_windexer.WINDEXER_SUITE,
              # Experimenter and Subclasses
              test_frequency_experimenter.FREQUENCY_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
              test_barchart.R_BAR_CHART_SUITE,
-             test_dendrogram.DENDROGRAM_SUITE,  # dendrogram() got an unexpected keyword argument 'no_leaves'
+             test_dendrogram.DENDROGRAM_SUITE,
              # IndexedPiece and AggregatedPieces
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_SUITE_B,
              test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
-             test_indexed_piece.INDEXED_PIECE_SUITE_C,
              test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
              # WorkflowManager
-             test_workflow.WORKFLOW_TESTS,  # FutureWarning: sort(columns) is depracated, use sort_values(by=...)
+             test_workflow.WORKFLOW_TESTS,
              test_workflow.FILTER_DATA_FRAME,
              test_workflow.MAKE_TABLE,
              test_workflow.EXTRA_PAIRS,
@@ -124,5 +121,5 @@ THE_TESTS = (  # Indexer and Subclasses
 if __name__ == '__main__':
     for each_test in THE_TESTS:
         result = TextTestRunner(verbosity=VERBOSITY, descriptions=False).run(each_test)
-        # if not result.wasSuccessful():
-        #     raise RuntimeError('Test failure')
+        if not result.wasSuccessful():
+            raise RuntimeError('Test failure')
