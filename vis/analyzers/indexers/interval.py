@@ -340,7 +340,6 @@ class IntervalIndexer(indexer.Indexer):
 
         # to see only one pair
         print(v_ints['interval.IntervalIndexer']['0,1'])
-
         """
         combos = [pandas.concat((self._score.iloc[:,x[0]], self._score.iloc[:,x[1]]), axis=1).fillna(method='ffill')
                   for x in combinations(range(len(self._score.columns)), 2)]
