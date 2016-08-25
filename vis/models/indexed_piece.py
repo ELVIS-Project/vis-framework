@@ -36,7 +36,7 @@ import warnings
 import json
 import music21
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
-from music21 import converter, stream
+from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
