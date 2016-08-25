@@ -327,8 +327,6 @@ class IntervalIndexer(indexer.Indexer):
             refer to the example below for more details.
         :rtype: :class:`pandas.DataFrame`
         **Example:**
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 
         import music21
         from vis.analyzers.indexers import noterest, interval
@@ -343,19 +341,6 @@ class IntervalIndexer(indexer.Indexer):
         # to see only one pair
         print(v_ints['interval.IntervalIndexer']['0,1'])
 
-=======
-=======
->>>>>>> Stashed changes
-        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-        >>> the_score.parts[5]
-        (the first clarinet Part)
-        >>> the_notes = NoteRestIndexer(the_score).run()
-        >>> the_notes['noterest.NoteRestIndexer']['5']
-        (the first clarinet Series)
-        >>> the_intervals = IntervalIndexer(the_notes).run()
-        >>> the_intervals['interval.IntervalIndexer']['5,6']
-        (Series with vertical intervals between first and second clarinet)
->>>>>>> Stashed changes
         """
         combos = [pandas.concat((self._score.iloc[:,x[0]], self._score.iloc[:,x[1]]), axis=1).fillna(method='ffill')
                   for x in combinations(range(len(self._score.columns)), 2)]
@@ -412,9 +397,6 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         :returns: The new indices. Refer to the example below.
         :rtype: :class:`pandas.DataFrame`
         **Example:**
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
         import music21
         from vis.analyzers.indexers import noterest, interval
 
@@ -427,19 +409,6 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
         # to see only one part's intervals
         print(h_ints['interval.HorizontalIntervalIndexer']['0'])
-=======
-=======
->>>>>>> Stashed changes
-        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-        >>> the_score.parts[5]
-        (the first clarinet Part)
-        >>> the_notes = NoteRestIndexer(the_score).run()
-        >>> the_notes['noterest.NoteRestIndexer']['5']
-        (the first clarinet Series)
-        >>> the_intervals = HorizontalIntervalIndexer(the_notes).run()
-        >>> the_intervals['interval.HorizontalIntervalIndexer']['5']
-        (Series with melodic intervals of the first clarinet)
->>>>>>> Stashed changes
         """
         # This indexer is a little tricky, since we must fake "horizontality" so we can use the
         # same _do_multiprocessing() method as in the IntervalIndexer.
