@@ -145,7 +145,6 @@ def _get_offset(event):
     """
     return (event.sites.getAttrByName('offset') + event.offset)
 
-<<<<<<< HEAD
 def _eliminate_ties(event):
     """
     Gets rid of the notes and rests that have non-start ties. This should be used for the noterest, 
@@ -154,7 +153,7 @@ def _eliminate_ties(event):
     if hasattr(event, 'tie') and event.tie is not None and event.tie.type != 'start':
         return float('nan')
     return event
-=======
+
 def _find_piece_range(the_score):
 
     p = analysis.discrete.Ambitus()
@@ -178,7 +177,6 @@ def _find_part_ranges(the_score):
             ranges.append((p_range[0].nameWithOctave, p_range[1].nameWithOctave))
 
     return ranges
->>>>>>> origin/marina_devel
 
 
 class OpusWarning(RuntimeWarning):
@@ -243,13 +241,10 @@ class IndexedPiece(object):
         self._noterest_results = None
         self._pathname = pathname
         self._metadata = {}
-<<<<<<< HEAD
         self._known_opus = False
         self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
-=======
         self._username = username
         self._password = password
->>>>>>> origin/marina_devel
         init_metadata()
         if metafile is not None:
             self._metafile = metafile
@@ -305,11 +300,8 @@ class IndexedPiece(object):
                         self._metadata[field] = '???'
             self._metadata['parts'] = _find_part_names(score)
             self._metadata['title'] = _find_piece_title(score)
-<<<<<<< HEAD
-=======
             self._metadata['partRanges'] = _find_part_ranges(score)
             self._metadata['pieceRange'] = _find_piece_range(score)
->>>>>>> origin/marina_devel
             self._imported = True
         return score
 
@@ -384,7 +376,6 @@ class IndexedPiece(object):
         else:
             self._metadata[field] = value
 
-<<<<<<< HEAD
     def _get_part_streams(self):
         if 'part_streams' not in self._analyses:
             self._analyses['part_streams'] = self._import_score(known_opus=self._known_opus).parts
@@ -404,19 +395,6 @@ class IndexedPiece(object):
 
         :returns: All the objects found in the music21 voice streams. These streams are made 
             into pandas.Series and collected in a list.
-=======
-    def _get_note_rest_index(self, known_opus=False):
-        """
-        Return the results of the :class:`NoteRestIndexer` on this piece.
-        This method is used automatically by :meth:`get_data` to cache results, which avoids having
-        to re-import the music21 file for every Indexer or Experimenter that uses the
-        :class:`NoteRestIndexer`.
-        :param known_opus: Whether the caller knows this file will be imported as a
-            :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" in the
-            :meth:`get_data` docs.
-        :type known_opus: boolean
-        :returns: Results of the :class:`NoteRestIndexer`.
->>>>>>> origin/marina_devel
         :rtype: list of :class:`pandas.Series`
         """
         if 'm21_objs' not in self._analyses:
