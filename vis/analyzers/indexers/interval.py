@@ -328,6 +328,7 @@ class IntervalIndexer(indexer.Indexer):
         :rtype: :class:`pandas.DataFrame`
         **Example:**
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
         import music21
         from vis.analyzers.indexers import noterest, interval
@@ -343,6 +344,8 @@ class IntervalIndexer(indexer.Indexer):
         print(v_ints['interval.IntervalIndexer']['0,1'])
 
 =======
+=======
+>>>>>>> Stashed changes
         >>> the_score = music21.converter.parse('sibelius_5-i.mei')
         >>> the_score.parts[5]
         (the first clarinet Part)
@@ -410,6 +413,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         :rtype: :class:`pandas.DataFrame`
         **Example:**
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
         import music21
         from vis.analyzers.indexers import noterest, interval
@@ -424,6 +428,8 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # to see only one part's intervals
         print(h_ints['interval.HorizontalIntervalIndexer']['0'])
 =======
+=======
+>>>>>>> Stashed changes
         >>> the_score = music21.converter.parse('sibelius_5-i.mei')
         >>> the_score.parts[5]
         (the first clarinet Part)

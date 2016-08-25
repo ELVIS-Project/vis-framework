@@ -63,6 +63,7 @@ if __name__ == "__main__":
 
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     # nr1 = time.clock()
     # note_rest = ind_piece.get_data([noterest.NoteRestIndexer], setts)
     # nr2 = time.clock()
@@ -309,5 +310,7 @@ if __name__ == "__main__":
     # fa4 = time.clock()
     # print "New Fermata indexer runtime: " + str(fa4 - fa3)
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
