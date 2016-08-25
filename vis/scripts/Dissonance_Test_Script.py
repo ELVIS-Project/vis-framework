@@ -3,7 +3,7 @@ import os
 import pandas
 from vis.workflow import WorkflowManager
 from vis.models.indexed_piece import IndexedPiece
-from vis.analyzers.indexers import interval, dissonance, metre, noterest, offset
+from vis.analyzers.indexers import interval, dissonance, meter, noterest, offset
 from vis.analyzers.experimenters import frequency
 from vis import workflow
 from numpy import nan, isnan
@@ -42,10 +42,116 @@ def main():
     # filter_setts = {'quarterLength': 2.0, 'method':None}
     # filtered_results = offset.FilterByOffsetIndexer(actual, filter_setts).run()
     # pdb.set_trace()
-    dur_ind = metre.DurationIndexer(test_parts).run()
-    bs_ind = metre.NoteBeatStrengthIndexer(test_parts).run()
+    dur_ind = meter.DurationIndexer(test_parts).run()
+    bs_ind = meter.NoteBeatStrengthIndexer(test_parts).run()
     horiz = interval.HorizontalIntervalIndexer(actual, horiz_setts).run()
     vert_ints = interval.IntervalIndexer(actual, setts).run()
+<<<<<<< HEAD
+=======
+
+    # actual2 = actual.T
+    # # actual = ind_piece.get_data([noterest.NoteRestIndexer]) #dur_indexer.run()['meter.DurationIndexer']
+    # # actual = ind_piece.get_data([meter.NoteBeatStrengthIndexer]) #dur_indexer.run()['meter.DurationIndexer']
+    # t1 = time.time()
+    # print 'Noterest Indexer Runtime: ' + str(t1-t0)
+    # pdb.set_trace()
+
+
+
+
+    # basic1 = time.time()
+    # parts_fm = []
+    # parts_nr = []
+    # # parts_dur = []
+    # parts_bs = []
+    # parts_ms = []
+    # test_piece = converter.parse(piece_path)
+    # part_numbers = range(len(test_piece.parts))
+    # from vis.analyzers.indexers.noterest import indexer_func as nr_ind_func
+    # from vis.analyzers.indexers.meter import duration_ind_func as dur_ind_func
+    # from vis.analyzers.indexers.meter import beatstrength_ind_func as bs_ind_func
+    # from vis.analyzers.indexers.fermata import indexer_func as fm_ind_func
+    # for x in part_numbers:
+    #     temp_part = test_piece.parts[x]
+    #     fm = []
+    #     fermata_index = []
+    #     nr = []
+    #     # dur = []
+    #     bs = []
+    #     part_index = []
+    #     ms = []
+    #     measure_index = []
+    #     for event in temp_part.recurse():
+    #         # pdb.set_trace()
+    #         if 'GeneralNote' in event.classes:
+    #             found_fm = False
+    #             for expression in event.expressions:
+    #                 if isinstance(expression, expressions.Fermata):
+    #                     fm.append('Fermata')
+    #                     found_fm = True
+    #                     break
+    #             if not found_fm:
+    #                 fm.append(nan)
+    #             # fm.append(fm_ind_func((event,)))
+    #             for y in event.contextSites():
+    #                 if y[0] is temp_part:
+    #                     fermata_index.append(y[1])
+    #             if hasattr(event, 'tie') and event.tie is not None and event.tie.type in ('stop', 'continue'):
+    #                 # dur[-1] += event.quarterLength
+    #                 continue
+    #             nr.append(nr_ind_func((event,)))
+    #             part_index.append(fermata_index[-1])
+    #             # dur.append(dur_ind_func((event,)))
+    #             bs.append(event.beatStrength)
+    #             bs.append(bs_ind_func((event,)))
+    #         elif 'Measure' in event.classes:
+    #             ms.append(event.measureNumber)
+    #             measure_index.append(event.offset)   
+
+    #     parts_nr.append(pandas.Series(nr, index=part_index))
+    #     # parts_dur.append(pandas.Series(dur, index=part_index))
+    #     parts_bs.append(pandas.Series(bs, index=part_index))
+    #     parts_ms.append(pandas.Series(ms, index=measure_index))
+    #     parts_fm.append(pandas.Series(fm, index=fermata_index))
+
+    # basic_nr = pandas.concat([s for s in parts_nr], axis=1)
+    # # basic_dur = pandas.concat([s for s in parts_dur], axis=1)
+    # basic_bs = pandas.concat([s for s in parts_bs], axis=1)
+    # basic_ms = pandas.concat([s for s in parts_ms], axis=1)
+    # basic_fm = pandas.concat([s for s in parts_fm], axis=1)
+    
+    # part_strings = []
+    # for num in part_numbers:
+    #     part_strings.append(str(num))
+    
+    # iterables = [['basic.NoteRestIndexer'], part_strings]
+    # basic_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # basic_nr.columns = basic_nr_multi_index
+
+    # # iterables = [['basic.DurationIndexer'], part_strings]
+    # # basic_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # # basic_dur.columns = basic_dur_multi_index
+
+    # iterables = [['basic.NoteBeatStrengthIndexer'], part_strings]
+    # basic_bs_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # basic_bs.columns = basic_bs_multi_index
+
+    # iterables = [['basic.MeasureIndexer'], part_strings]
+    # basic_ms_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # basic_ms.columns = basic_ms_multi_index
+
+    # iterables = [['fermata.FermataIndexer'], part_strings]
+    # basic_fm_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
+    # basic_fm.columns = basic_fm_multi_index
+
+
+    # basic2 = time.time()
+    # print 'Basic-Indexer Runtime: ' + str(basic2 - basic1)
+
+
+    # horiz = interval.HorizontalIntervalIndexer(basic_nr, horiz_setts).run()
+    # vert_ints = interval.IntervalIndexer(basic_nr, setts).run()
+>>>>>>> origin/marina_devel
     dissonances = dissonance.DissonanceIndexer([bs_ind, dur_ind, horiz, vert_ints]).run()
 
 
@@ -130,7 +236,7 @@ if __name__ == "__main__":
     # part_strings = []
     # for num in part_numbers:
     #     part_strings.append(str(num))
-    # iterables = [['metre.DurationIndexer'], part_strings]
+    # iterables = [['meter.DurationIndexer'], part_strings]
     # new_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # new_dur.columns = new_dur_multi_index
     # print 'New Duration Indexer Runtime: ' + str(newdur2 - newdur1)
@@ -204,7 +310,7 @@ if __name__ == "__main__":
     # double_nr_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # double_nr.columns = double_nr_multi_index
 
-    # iterables = [['metre.DurationIndexer'], part_strings]
+    # iterables = [['meter.DurationIndexer'], part_strings]
     # double_dur_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # double_dur.columns = double_dur_multi_index
 
@@ -233,7 +339,7 @@ if __name__ == "__main__":
     # part_strings = []
     # for num in part_numbers:
     #     part_strings.append(str(num))
-    # iterables = [['metre.NoteBeatStrengthIndexer'], part_strings]
+    # iterables = [['meter.NoteBeatStrengthIndexer'], part_strings]
     # new_bs.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # newbs2 = time.clock()
     # print 'New BeatStrength Indexer Runtime: ' + str(newbs2 - newbs1)
@@ -249,11 +355,11 @@ if __name__ == "__main__":
     #     for z in group_strengths.index:
     #         strengths = [0] # Dummy zero is a hack to get around issues using max or nanmax with nans.
     #         for v in voices_in_group:
-    #             if beat_strengths['metre.NoteBeatStrengthIndexer'][v].loc[z] is not nan:
-    #                 strengths.append(beat_strengths['metre.NoteBeatStrengthIndexer'][v].loc[z])
+    #             if beat_strengths['meter.NoteBeatStrengthIndexer'][v].loc[z] is not nan:
+    #                 strengths.append(beat_strengths['meter.NoteBeatStrengthIndexer'][v].loc[z])
     #         group_data.append(max(strengths))
     #     group_strengths[y] = group_data
-    # iterables = [['metre.GroupBeatStrengthIndexer'], group_strengths.columns]
+    # iterables = [['meter.GroupBeatStrengthIndexer'], group_strengths.columns]
     # group_strengths.columns = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
     # # print group_strengths
 
@@ -277,7 +383,7 @@ if __name__ == "__main__":
 
 
     # mi4 = time.clock()
-    # vis_m_ind = metre.MeasureIndexer(test_piece.parts[0]).run()
+    # vis_m_ind = meter.MeasureIndexer(test_piece.parts[0]).run()
     # mi5 = time.clock()
     # print "Time taken to run old measure indexer: " + str(mi5-mi4)
     # pdb.set_trace()

@@ -23,83 +23,89 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
-import os
 from unittest import TestCase, TestLoader
 import pandas
 from vis.analyzers.indexers import active_voices
-import vis
-
-
-def make_dataframe(labels, indices, name):
-    ret = pandas.concat(indices, levels=labels, axis=1)
-    iterables = (name, labels)
-    multi_index = pandas.MultiIndex.from_product(iterables, names=('Indexer', 'Parts'))
-    ret.columns = multi_index
-    return ret
-
-indices = [[0.0, 1.0, 1.5, 3.0, 3.5, 4.0, 7.5], 
-		   [0.0, 1.0, 1.5, 2.5, 3.5, 4.0, 4.5, 6.0], 
-		   [0.5, 1.5, 3.0, 3.5, 4.0, 5.0, 6.0], 
-		   [0.0, 2.5, 4.0, 7.5]]
-notes = [['G4', 'D4', 'G4', 'Rest', 'B4', 'D5', 'C5'], 
-		 ['G4', 'D4', 'Rest', 'B4', 'D5', 'C5', 'Rest', 'Rest'], 
-		 ['B4', 'D5', 'C5', 'Rest', 'Rest', 'D3', 'F3'],
-		 ['B4', 'D5', 'C5', 'Rest']]
-
-name = 'noterest.NoteRestIndexer'
-results = []
-for x in range(len(indices)):
-	results.append(pandas.Series(notes[x], index=indices[x], name=str(x)))
-result = pandas.concat(results, axis=1)
-NOTES = make_dataframe(result.columns.values, [result[nam] for nam in result.columns], name)
-
-indices = [0.0, 1.5, 2.5, 3.0, 5.0, 6.0]
-show_indices = [0.0, 0.5, 1.0, 1.5, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.5]
-att_indices = [0.0, 0.5, 1.0, 3.0, 3.5, 4.0, 4.5, 5.0]
-att_voices = [3, 1, 2, 1, 2, 3, 0, 1]
-voices = [4, 3, 4, 3, 4, 3]
-show_voices = [4, 4, 4, 3, 4, 3, 3, 3, 3, 4, 3, 3]
-title = 'active_voices.ActiveVoicesIndexer'
-
-result = pandas.DataFrame(pandas.Series(voices, indices, name='Active Voices'))
-EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
-
-result = pandas.DataFrame(pandas.Series(att_voices, att_indices, name='Active Voices'))
-ATT_EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
-
-result = pandas.DataFrame(pandas.Series(show_voices, show_indices, name='Active Voices'))
-SHOW_EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
-
 
 
 class TestActiveVoicesIndexer(TestCase):
 
-	def test_init1(self):
-		"""tests that __init__() works with no settings given"""
-		actual = active_voices.ActiveVoicesIndexer(NOTES)
-		self.assertEqual(actual._settings, {'attacked': False, 'show_all': False})
+    def setUp(self):
 
-	def test_init2(self):
-		"""test that __init__() works with all settings given"""
-		settings = {'attacked': True, 'show_all': True}
-		actual = active_voices.ActiveVoicesIndexer(NOTES, settings)
-		self.assertEqual(actual._settings, settings)
+        def make_dataframe(labels, indices, name):
+            ret = pandas.concat(indices, levels=labels, axis=1)
+            iterables = (name, labels)
+            multi_index = pandas.MultiIndex.from_product(iterables, names=('Indexer', 'Parts'))
+            ret.columns = multi_index
+            return ret
 
-	def test_active(self):
-		"""tests that it gives the right results with no settings"""
-		actual = active_voices.ActiveVoicesIndexer(NOTES).run()
-		self.assertTrue(actual.equals(EXPECTED))
+        indices = [[0.0, 1.0, 1.5, 3.0, 3.5, 4.0, 7.5],
+                   [0.0, 1.0, 1.5, 2.5, 3.5, 4.0, 4.5, 6.0],
+                   [0.5, 1.5, 3.0, 3.5, 4.0, 5.0, 6.0],
+                   [0.0, 2.5, 4.0, 7.5]]
+        notes = [['G4', 'D4', 'G4', 'Rest', 'B4', 'D5', 'C5'],
+                 ['G4', 'D4', 'Rest', 'B4', 'D5', 'C5', 'Rest', 'Rest'],
+                 ['B4', 'D5', 'C5', 'Rest', 'Rest', 'D3', 'F3'],
+                 ['B4', 'D5', 'C5', 'Rest']]
 
-	def test_attacked(self):
-		"""tests that it gives the right results with attacked set to true"""
-		settings = {'attacked': True}
-		actual = active_voices.ActiveVoicesIndexer(NOTES, settings).run()
-		self.assertTrue(actual.equals(ATT_EXPECTED))
+        name = 'noterest.NoteRestIndexer'
+        results = []
+        for x in range(len(indices)):
+            results.append(pandas.Series(notes[x], index=indices[x], name=str(x)))
+        result = pandas.concat(results, axis=1)
+        self.NOTES = make_dataframe(result.columns.values, [result[nam] for nam in result.columns], name)
 
-	def test_show(self):
-		settings = {'show_all': True}
-		actual = active_voices.ActiveVoicesIndexer(NOTES, settings).run()
-		self. assertTrue(actual.equals(SHOW_EXPECTED))
+        indices = [0.0, 0.5, 1.5, 2.5, 3.0, 4.5, 5.0, 7.5]
+        show_indices = [0.0, 0.5, 1.0, 1.5, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 6.0, 7.5]
+        att_indices = [0.0, 0.5, 1.0, 3.0, 3.5, 4.0, 4.5, 5.0]
+        att_voices = [3, 1, 2, 1, 2, 3, 0, 1]
+        voices = [3, 4, 3, 4, 3, 2, 3, 2]
+        show_voices = [3, 4, 4, 3, 4, 3, 3, 3, 2, 3, 3, 2]
+        title = 'active_voices.ActiveVoicesIndexer'
+
+        result = pandas.DataFrame(pandas.Series(voices, indices, name='Active Voices'))
+        self.EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
+
+        result = pandas.DataFrame(pandas.Series(att_voices, att_indices, name='Active Voices'))
+        self.ATT_EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
+
+        result = pandas.DataFrame(pandas.Series(show_voices, show_indices, name='Active Voices'))
+        self.SHOW_EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], title)
+
+    def tearDown(self):
+
+        self.NOTES = None
+        self.EXPECTED = None
+        self.ATT_EXPECTED = None
+        self.SHOW_EXPECTED = None
+
+    def test_init1(self):
+        """tests that __init__() works with no settings given"""
+        actual = active_voices.ActiveVoicesIndexer(self.NOTES)
+        self.assertEqual(actual._settings, {'attacked': False, 'show_all': False})
+
+    def test_init2(self):
+        """test that __init__() works with all settings given"""
+        settings = {'attacked': True, 'show_all': True}
+        actual = active_voices.ActiveVoicesIndexer(self.NOTES, settings)
+        self.assertEqual(actual._settings, settings)
+
+    def test_active(self):
+        """tests that it gives the right results with no settings"""
+        actual = active_voices.ActiveVoicesIndexer(self.NOTES).run()
+        self.assertTrue(actual.equals(self.EXPECTED))
+
+    def test_attacked(self):
+        """tests that it gives the right results with attacked set to true"""
+        settings = {'attacked': True}
+        actual = active_voices.ActiveVoicesIndexer(self.NOTES, settings).run()
+        self.assertTrue(actual.equals(self.ATT_EXPECTED))
+
+    def test_show(self):
+        # pdb.set_trace()
+        settings = {'show_all': True}
+        actual = active_voices.ActiveVoicesIndexer(self.NOTES, settings).run()
+        self.assertTrue(actual.equals(self.SHOW_EXPECTED))
 
 
 ACTIVE_VOICES_INDEXER_SUITE = TestLoader().loadTestsFromTestCase(TestActiveVoicesIndexer)

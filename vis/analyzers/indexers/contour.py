@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/contour.py
+# Filename:               analyzers/indexers/contour.py
 # Purpose:                Contour Indexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson
@@ -30,18 +30,21 @@
 from vis.analyzers import indexer
 import music21
 import pandas
-import pprint as pp
-import pdb
 
 
 def COM_matrix(contour):
     """
-    Returns matrix representing the contour given
+    Creates a matrix representing the contour given.
     """
     com = []
+
+    contour = contour.replace(' ', '')
+    contour = contour.replace('[', '')
+    contour = contour.replace(']', '')
+    contour = contour.split(',')
+
     for x in contour:
         com.append([])
-
     for i in range(len(contour)):
         for x in range(len(contour)):
             if contour[i] == contour[x]:
@@ -56,15 +59,16 @@ def COM_matrix(contour):
 
 def getContour(notes):
     """
-    Method used by the ContourIndexer to convert pitches into contour numbers
+    Method used by the ContourIndexer to convert pitches into contour numbers.
     """
 
     contour = list(map(music21.note.Note, notes))
-    
+
     cseg = [0] * len(contour)
 
     for i in range(len(contour)):
         notes = []
+
         for x in range(len(contour)):
             if (music21.interval.getAbsoluteHigherNote(contour[i], contour[x]) == contour[i]) and (contour[i].nameWithOctave != contour[x].nameWithOctave) and (contour[x].nameWithOctave not in notes):
                 notes.append(contour[x].nameWithOctave)
@@ -75,7 +79,7 @@ def getContour(notes):
 
 def compare(contour1, contour2):
     """
-    Additional method to compare COM_matrices
+    Additional method to compare COM_matrices.
     """
 
     count = 0
@@ -85,22 +89,23 @@ def compare(contour1, contour2):
             if c1 == c2:
                 count += 1
 
-    count = (count-l)/2
-    total = (l*(l-1))/2
-    return count/total
+    count = float((count - l) / 2)
+    total = float((l * (l - 1)) / 2)
+    return count / total
 
 
 class ContourIndexer(indexer.Indexer):
     """
-    Contour indexer class
+    Indexes the contours of a given length in a piece, where contour is a
+    way of numbering the relative heights of pitches, beginning at 0 for the
+    lowest pitch.
+
+    :keyword 'length': This is the length of the contour you want to look at.
+    :type 'length': int
     """
 
     required_score_type = 'pandas.DataFrame'
     possible_settings = ['length']
-    """
-    :keyword 'length': This is the length of the contour you want to look at.
-    :type 'length': int
-    """
 
     _MISSING_LENGTH = 'ContourIndexer requires "length" setting.'
     _LOW_LENGTH = 'Setting "length" must have a value of at least 1.'
@@ -125,7 +130,7 @@ class ContourIndexer(indexer.Indexer):
         else:
             self.settings = settings
 
-        self.score = score.dropna()
+        self.score = score
         self.parts = len(self.score.columns.values)
         super(ContourIndexer, self).__init__(score, None)
 
@@ -136,42 +141,49 @@ class ContourIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the contours.
         :rtype: :class:`pandas.DataFrame`
-        """
-        
-        contours = []
-        indices = []
 
-        # for each voice
-        for voice in self.score.columns.values:
+        **Example:**
+
+        import music21
+        from vis.analyzers.indexers import noterest, contour
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        settings = {'length': 3}
+        contours = contour.ContourIndexer(notes).run()
+        print(contours)
+        """
+
+        contours = []
+
+        for v, voice in enumerate(self.score.columns.values):
 
             part = self.score[voice].tolist()
             index = self.score.index.tolist()
-
+            new_index = []
             voice_con = []
-            
-            # remove rests and corresponding indices            
-            for n in range(len(part)-1, 0, -1):
-                if part[n] == 'Rest':
-                    index.pop(n)
-            while 'Rest' in part:
-                part.remove('Rest')
-
-            # get all the contours for this part
-            for x in range(len(part)-(self.settings['length']-1)):
-                y = 0
+            for x in range(len(part)-self.settings['length']+1):
                 cont = []
-                while len(cont) < self.settings['length']:
-                    cont.append(part[x+y])
-                    y += 1
-                voice_con.append(cont)
 
-            contours.append(voice_con)
-            indices.append(index[:len(index)-self.settings['length']+1])
-        column = []
+                if part[x] == 'Rest' or type(part[x]) == float:
+                    pass
+                else:
+                    cont.append(part[x])
+                    y = 1
+                    while (len(cont) < self.settings['length']) and (x+y < len(part)):
+                        if part[x+y] == 'Rest' or type(part[x+y]) == float:
+                            pass
+                        else:
+                            cont.append(part[x+y])
+                        y+=1
+                if len(cont) == self.settings['length']:
+                    voice_con.append(getContour(cont))
+                    new_index.append(index[x])
 
-        for x in range(len(contours)):
-            column.append(pandas.Series([getContour(contour) for contour in contours[x]], index=indices[x], name=str(x)))
+            voice = pandas.Series(voice_con, index=new_index, name=str(v))
+            contours.append(voice)
 
-        result = pandas.concat(column, axis=1)
+        result = pandas.concat(contours, axis=1)
 
         return self.make_return(result.columns, [result[name] for name in result.columns])

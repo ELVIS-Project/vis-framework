@@ -1,0 +1,72 @@
+{
+    "religiosity":"Sacred",
+    "piece":{
+        "title":"Missa Fortuna desperata"
+    },
+    "locations":[
+
+    ],
+    "composer":{
+        "title":"Josquin Des Prez"
+    },
+    "title":"Kyrie",
+    "sources":[
+        {
+            "title":"JRP"
+        }
+    ],
+    "vocalization":"Unknown",
+    "languages":[
+        {
+            "title":"Greek"
+        }
+    ],
+    "creator":"Natasha",
+    "attachments":[
+        {
+            "extension":".krn",
+            "file_name":"Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file1.krn",
+            "source":null
+        },
+        {
+            "extension":".md",
+            "file_name":"Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file2.md",
+            "source":null
+        },
+        {
+            "extension":".mei",
+            "file_name":"Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file3.mei",
+            "source":null
+        },
+        {
+            "extension":".midi",
+            "file_name":"Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file4.midi",
+            "source":null
+        },
+        {
+            "extension":".pdf",
+            "file_name":"Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file5.pdf",
+            "source":null
+        },
+        {
+            "extension":".xml",
+            "file_name":"Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml",
+            "source":null
+        }
+    ],
+    "instruments_voices":[
+        {
+            "title":"SATB"
+        }
+    ],
+    "genres":[
+        {
+            "title":"Mass, Parody"
+        }
+    ],
+    "tags":[
+        {
+            "title":"kyrie"
+        }
+    ]
+}

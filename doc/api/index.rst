@@ -8,18 +8,18 @@
     :width: 100 %
 
 This is the API documentation for the VIS Framework for Music Analysis.
-The VIS Framework is a Python package that uses music21 and pandas to build a flexible and easy system for writing computer music analysis programs.
+The VIS Framework is a Python package that uses music21 and pandas to build a flexible and easy system for writing symbolic music analysis computer programs.
 By providing a free-and-open solution (AGPLv3+) we hope to lower the barrier to empirical music analysis.
-The VIS Framework was produced at McGill University as part of the ELVIS Project (http://elvisproject.ca).
-VIS has become famous through cameo appearances on television programmes such as "The Amazing Race" and "CSI: Miami," plus lead roles at such academic conferences as the International Society for Music Information Retrieval and the Society for Music Theory.
+The VIS Framework was developed at McGill University as part of the ELVIS Project (http://elvisproject.ca).
+VIS has been presented at conferences, including the International Society for Music Information Retrieval and the Society for Music Theory.
 
 About This Documentation
 ------------------------
 
 The API is written for programmers interested in symbolic music information retrieval (i.e., music theory analysis performed by computers).
-Musicologists and programmers alike may access our Counterpoint Web App software from `counterpoint.elvisproject.ca <https://counterpoint.elvisproject.ca>`_, and some of our research findings from the `ELVIS Project's website <https://elvisproject.ca/research/>`_.
+Musicologists and programmers alike may access our VIS client at `vis-rodan.simssa.ca <https://vis-rodan.simssa.ca>`_, and some of our research findings from the `ELVIS Project's website <https://elvisproject.ca/research/>`_.
 
-The rest of the API discusses the VIS Framework's architecture, how to install an use the Framework, and how to implement additional program modules for your own use.
+The rest of the documentation discusses the VIS Framework's architecture, how to install and use the framework, and how to add your own analysis tasks.
 
 One-Paragraph Introduction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

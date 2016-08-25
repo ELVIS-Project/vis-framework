@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/active_voices.py
+# Filename:               analyzers/indexers/active_voices.py
 # Purpose:                Active voices indexer
 #
 # Copyright (C) 2016 Marina Borsodi-Benson
@@ -27,27 +27,38 @@
 
 """
 
-import music21
 from vis.analyzers import indexer
-import numpy
 import pandas
+
+
+def indexer1(x):
+    """
+    Used internally by the :class:`ActiveVoicesIndexer` to count individual
+    events.
+    """
+    if x == 'Rest' or isinstance(x, float):
+        return 0
+    else:
+        return 1
 
 
 class ActiveVoicesIndexer(indexer.Indexer):
     """
-    Class that indexer the number of voices active at each offset.
+    Indexer that counts the number of voices active at each offset. It can
+    either find all voices sounding, or only the voices that are attacking.
+
+    :keyword 'attacked': When true, only counts the voices that are attacking
+        at each offset. Defaults to false.
+    :type 'attacked': boolean
+    :keyword 'show_all': When true, shows the results at all offsets, even if
+        there is not change. Defaults to false.
+    :type 'show_all': boolean
     """
 
     required_score_type = 'pandas.DataFrame'
     possible_settings = ['attacked', 'show_all']
-    """
-    :keyword 'attacked': When true, only counts the voices that are attacking at each offset. Defaults to false.
-    :type 'attacked': boolean
-    :keyword 'show_all': When true, shows the results at all offsets, even if there is not change. Defaults to false.
-    :type 'show_all': boolean
-    """
-    default_settings = {'attacked': False, 'show_all': False}
 
+    default_settings = {'attacked': False, 'show_all': False}
 
     def __init__(self, score, settings=None):
         """
@@ -58,51 +69,42 @@ class ActiveVoicesIndexer(indexer.Indexer):
 
         :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
         """
-        if settings is None:
-            self._settings = self.default_settings
+        self._settings = self.default_settings.copy()
+        if settings is not None:
+            self._settings.update(settings)
+
+        if self._settings['attacked']:
+            self.score = score
         else:
-            self._settings = {}
-            if 'attacked' in settings:
-                self._settings['attacked'] = settings['attacked']
-            else:
-                self._settings['attacked'] = self.default_settings['attacked']
-            if 'show_all' in settings:
-                self._settings['show_all'] = settings['show_all']
-            else:
-                self._settings['show_all'] = self.default_settings['show_all']
-
-
-        self.score = score
+            self.score = score.fillna(method='ffill')
 
         super(ActiveVoicesIndexer, self).__init__(score, None)
-
 
     def run(self):
         """
         :returns: Make a new index of the active voices in the piece.
         :rtype: :class:`pandas.DataFrame`
+
+        **Example:**
+
+        import music21
+        from vis.analyzers.indexers import noterest, active_voices
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        av = active_voices.ActiveVoicesIndexer(notes).run()
+        print(av)
         """
 
-        num_voices = []
+        post = self.score.applymap(indexer1)
+        most = post.sum(axis=1)
 
-        for x in range(len(self.score.index)):
-            voices = []
-
-            for name in self.score.columns.values:
-                voices.append(self.score[name].tolist()[x])
-
-            if self._settings['attacked']:
-                voices = [voice for voice in voices if type(voice) is not float]
-
-            voices = [voice for voice in voices if voice is not 'Rest']
-            num_voices.append(len(voices))
-
-        indices = self.score.index.tolist()
+        indices = most.index.tolist()
         if not self._settings['show_all']:
-            for n in range(len(num_voices)-1, 0, -1):
-                if num_voices[n] == num_voices[n-1]:
-                    indices.pop(n)
-                    num_voices.pop(n)
+            for n, ind in reversed(list(enumerate(most))):
+                if ind == most.iloc[n - 1]:
+                    most = most.drop(indices[n])
 
-        result = pandas.DataFrame({'Active Voices': pandas.Series(num_voices, index=indices)})
+        result = pandas.DataFrame({'Active Voices': most})
         return self.make_return(result.columns.values, [result[name] for name in result.columns])

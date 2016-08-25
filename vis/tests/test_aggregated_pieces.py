@@ -26,6 +26,7 @@
 Tests for :py:class:`~vis.models.aggregated_pieces.AggregatedPieces`.
 """
 
+import os
 from unittest import TestCase, TestLoader
 import six
 if six.PY3:
@@ -49,7 +50,7 @@ class TestAggregatedPieces(TestCase):
         self.ind_pieces = [MagicMock(spec=IndexedPiece) for _ in range(len(self.pathnames))]
         for i, ind_p in enumerate(self.ind_pieces):
             ind_p.metadata.return_value = self.pathnames[i]
-        self.agg_p = AggregatedPieces(self.ind_pieces)
+        self.agg_p = AggregatedPieces(self.ind_pieces).run()
 
     def test_metadata_1(self):
         """access the field automatically set"""
@@ -310,6 +311,62 @@ class TestAggregatedPieces(TestCase):
         for i, piece in enumerate(self.ind_pieces):
             piece.get_data.assert_called_once_with([ind_experimenter], {}, prev_data[i])
         agg_experimenter.run.assert_called_once_with()
+
+    def test_run(self):
+        directory = 'vis/tests/corpus/elvisdownload'
+        agg = AggregatedPieces(directory).run()
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_run2(self):
+        directory = 'vis/tests/corpus/elvisdownload2'
+        agg = AggregatedPieces(directory).run()
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_run3(self):
+        path = 'vis/tests/corpus/elvisdownload/'
+        folder = os.listdir(path)
+        folder.remove('.DS_Store')
+        folder.remove('meta')
+        new_f = []
+        for f in folder:
+            new_f.append(path + f)
+        agg = AggregatedPieces(new_f).run()
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_run4(self):
+        path = 'vis/tests/corpus/elvisdownload/'
+        folder = os.listdir(path)
+        folder.remove('.DS_Store')
+        folder.remove('meta')
+        new_f = []
+        for f in folder:
+            new_f.append(path + f)
+        meta = path + 'meta'
+        agg = AggregatedPieces(new_f, metafiles=meta).run()
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_run5(self):
+        path = 'vis/tests/corpus/elvisdownload'
+        agg = AggregatedPieces(path).run()
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_run6(self):
+        path = 'vis/tests/corpus/elvisdownload/'
+        folder = os.listdir(path)
+        folder.remove('.DS_Store')
+        folder.remove('meta')
+        new_f = []
+        for f in folder:
+            new_f.append(path + f)
+        meta = path + 'meta'
+        agg = AggregatedPieces(new_f, metafiles=[meta, meta, meta]).run()
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_date(self):
+        date = ['----/--/-- to ----/--/--']
+        agg = AggregatedPieces()._make_date_range(date)
+        self.assertEqual(agg, None)
+
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #

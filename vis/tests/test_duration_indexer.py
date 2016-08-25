@@ -33,8 +33,8 @@ import unittest
 import six
 import pandas
 from music21 import converter, stream, clef, bar, note
-from vis.analyzers.indexers import metre
-from numpy import nan, isnan
+from vis.analyzers.indexers import meter
+from numpy import isnan
 
 # find the pathname of the 'vis' directory
 import vis
@@ -99,8 +99,8 @@ class TestDurationIndexer(unittest.TestCase):
         # When the parts are empty
         expected = {'0': pandas.Series(), '1': pandas.Series()}
         test_part = [stream.Part(), stream.Part()]
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
+        dur_indexer = meter.DurationIndexer(test_part)
+        actual = dur_indexer.run()['meter.DurationIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
@@ -121,8 +121,8 @@ class TestDurationIndexer(unittest.TestCase):
             test_part.append(add_me)
         test_part = [test_part]
         # finished adding stuff to the test_part
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
+        dur_indexer = meter.DurationIndexer(test_part)
+        actual = dur_indexer.run()['meter.DurationIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
@@ -141,8 +141,8 @@ class TestDurationIndexer(unittest.TestCase):
             test_part.append(add_me)
         test_part = [test_part]
         # finished adding stuff to the test_part
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
+        dur_indexer = meter.DurationIndexer(test_part)
+        actual = dur_indexer.run()['meter.DurationIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
@@ -153,8 +153,8 @@ class TestDurationIndexer(unittest.TestCase):
         # Soprano part of bwv77.mxl which is a part with no ties
         expected = {'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv77_soprano)}
         test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
+        dur_indexer = meter.DurationIndexer(test_part)
+        actual = dur_indexer.run()['meter.DurationIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
@@ -165,8 +165,8 @@ class TestDurationIndexer(unittest.TestCase):
         # Alto part of bwv603.mxl which is a part with ties
         expected = {'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_alto)}
         test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml')).parts[1]]
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
+        dur_indexer = meter.DurationIndexer(test_part)
+        actual = dur_indexer.run()['meter.DurationIndexer']
         self.assertEqual(len(expected), len(actual.columns))
         for key in six.iterkeys(expected):
             self.assertTrue(key in actual)
@@ -185,8 +185,8 @@ class TestDurationIndexer(unittest.TestCase):
                     '3': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_bass)}
         bwv603 = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
         test_part = [bwv603.parts[0], bwv603.parts[1], bwv603.parts[2], bwv603.parts[3]]
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
+        dur_indexer = meter.DurationIndexer(test_part)
+        actual = dur_indexer.run()['meter.DurationIndexer']
         self.assertEqual(4, len(actual.columns))
         for key in six.iterkeys(expected):
             # Calling .dropna() on actual[key] would remove the NaN values; these appear for offsets

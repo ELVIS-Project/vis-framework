@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/template.py
+# Filename:               analyzers/indexers/template.py
 # Purpose:                Template indexer
 #
 # Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan
@@ -902,6 +902,28 @@ class DissonanceIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
         :rtype: :class:`pandas.DataFrame`
+
+        **Example:**
+
+        import music21
+        from vis.analyzers.indexers import noterest, interval, meter, dissonance
+
+
+        piece = music21.converter.parse('example.xml')
+
+        meters = meter.DurationIndexer(piece).run()
+        bs = meter.NoteBeatStrengthIndexer(piece).run()
+
+        score = noterest.NoteRestIndexer(piece).run()
+
+        v_setts = {'simple or compound': 'compound', 'quality': True}
+        vints = interval.IntervalIndexer(score, v_setts).run()
+
+        h_setts = {'simple or compound': 'compound', 'quality': False}
+        hints = interval.HorizontalIntervalIndexer(score, h_setts).run()
+
+        diss = dissonance.DissonanceIndexer([bs, meters, hints, vints]).run()
+        print(diss)
         """
         diss_ints = self._score[int_ind].copy(deep=True)
         simuls = diss_ints.ffill()
