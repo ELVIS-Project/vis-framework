@@ -89,10 +89,7 @@ THE_TESTS = (  # Indexer and Subclasses
              test_cadence.CADENCE_INDEXER_SUITE,
              test_contour.CONTOUR_INDEXER_SUITE,
              test_active_voices.ACTIVE_VOICES_INDEXER_SUITE,
-<<<<<<< HEAD
-=======
              test_windexer.WINDEXER_SUITE,
->>>>>>> origin/marina_devel
              # Experimenter and Subclasses
              test_frequency_experimenter.FREQUENCY_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
