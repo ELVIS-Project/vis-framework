@@ -34,6 +34,7 @@ import six
 import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers.indexers import noterest
+import pdb
 
 # find the pathname of the 'vis' directory
 import vis
@@ -120,26 +121,17 @@ class TestNoteRestIndexer(unittest.TestCase):
 
     def test_note_rest_indexer_3(self):
         # When there are a bunch of notes
-        expected = {'0': pandas.Series([u'C4' for _ in range(10)],
-                                       index=[float(x) for x in range(10)])}
-        test_part = stream.Part()
-        # add stuff to the test_part
-        for i in range(10):
-            add_me = note.Note(u'C4', quarterLength=1.0)
-            add_me.offset = i
-            test_part.append(add_me)
-        test_part = [test_part]
-        # finished adding stuff to the test_part
-        nr_indexer = noterest.NoteRestIndexer(test_part)
+        expected = pandas.DataFrame({'0': pandas.Series([u'C4' for _ in range(10)])})
+        test_score = pandas.DataFrame({'0': pandas.Series([note.Note('C4') for i in range(10)])})
+        nr_indexer = noterest.NoteRestIndexer(test_score)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        self.assertTrue(actual.equals(expected))
+        pdb.set_trace()
+
 
     def test_note_rest_indexer_4(self):
         # Soprano part of bwv77.mxl
+
         expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)}
         test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
         nr_indexer = noterest.NoteRestIndexer(test_part)
