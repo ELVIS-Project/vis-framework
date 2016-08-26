@@ -35,6 +35,7 @@ import requests
 import warnings
 import json
 import music21
+import pandas
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
@@ -418,13 +419,13 @@ class IndexedPiece(object):
         if 'm21_nrc_objs' not in self._analyses:
             # get rid of all m21 objects that aren't notes, rests, or chords and index  the offsets
             sers = [s.apply(noterest._type_func).dropna().apply(_get_offset)
-                    for s in self._get_m21_objs(self._known_opus)]
+                    for s in self._get_m21_objs()]
             self._analyses['m21_nrc_objs'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_nrc_objs']
 
     def _get_m21_nrc_objs_no_tied(self):
-        if 'm21_noterest_no_tied' not in self._analyses:
-            self._analyses['m21_nrc_objs_no_tied'] = self._get_m21_nrc_objs(self._known_opus).applymap(_eliminate_ties).dropna(how='all')
+        if 'm21_nrc_objs_no_tied' not in self._analyses:
+            self._analyses['m21_nrc_objs_no_tied'] = self._get_m21_nrc_objs().applymap(_eliminate_ties).dropna(how='all')
         return self._analyses['m21_nrc_objs_no_tied']
 
     def _get_noterest(self):
