@@ -45,7 +45,9 @@ def _unpack_chords(df):
     have chords in them get concatenated with the parts that did, resulting in potentially more 
     columns in the final dataframe then there are parts in the score.
     """
-    return pandas.concat([pandas.DataFrame(df.iloc[:,x].tolist()) for x in range(len(df.columns))], axis=1)
+    temp = pandas.concat([pandas.DataFrame(df.iloc[:,x].tolist()) for x in range(len(df.columns))], axis=1)
+    temp.index = df.index
+    return temp
 
 def indexer_func(event):
     """
