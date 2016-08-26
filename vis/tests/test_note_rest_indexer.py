@@ -30,12 +30,10 @@
 
 import os
 import unittest
-import six
 import pandas
-from music21 import converter, stream, clef, bar, note
+from music21 import note, chord
 from vis.analyzers.indexers import noterest
 from vis.models.indexed_piece import IndexedPiece
-import pdb
 
 # find the pathname of the 'vis' directory
 import vis
@@ -89,6 +87,27 @@ class TestNoteRestIndexer(unittest.TestCase):
         vals = [x[1] for x in lotuples]
         return pandas.Series(vals, index=new_index)
 
+    def test_note_rest_indexer_func_1(self):
+        # Check the indexer_func on note, rest, and chord objects
+        expected = pandas.Series((('A-4',), ('Rest',), ['A-4', 'D#5', 'F#5']))
+        n1 = note.Note('A-4')
+        n2 = note.Note('D#5')
+        n3 = note.Note('F#5')
+        r1 = note.Rest()
+        c1 = chord.Chord([n1, n2, n3])
+        temp = pandas.Series((n1, r1, c1))
+        actual = temp.apply(noterest.indexer_func)
+        self.assertTrue(actual.equals(expected))
+
+    def test_note_rest_unpack_chords_1(self):
+        # Make sure that unpack_chords expands chords the right way.
+        expected = pandas.concat((pandas.Series(('A-4', 'Rest', 'A-4')),
+                                 pandas.Series((None, None, 'D#5')),
+                                 pandas.Series((None, None, 'F#5'))), axis=1)
+        temp = pandas.concat((pandas.Series((('A-4',), ('Rest',), ['A-4', 'D#5', 'F#5'])),), axis=1)
+        actual = noterest.unpack_chords(temp)
+        self.assertTrue(actual.equals(expected))
+
     def test_note_rest_indexer_1(self):
         # When the parts are empty
         expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
@@ -120,7 +139,7 @@ class TestNoteRestIndexer(unittest.TestCase):
     #         self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
     #         self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-    def test_note_rest_indexer_3(self):
+    def test_note_rest_indexer_2(self):
         # When there are a bunch of notes
         expected = pandas.DataFrame({'0': pandas.Series([u'C4' for _ in range(10)])})
         test_score = pandas.DataFrame({'0': pandas.Series([note.Note('C4') for i in range(10)])})
@@ -128,7 +147,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
 
-    def test_note_rest_indexer_4(self):
+    def test_note_rest_indexer_3(self):
         # Combine three previous tests to avoid re-importing the same piece multiple times.
         # Soprano part of bwv77.mxl
         expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)})
