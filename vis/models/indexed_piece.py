@@ -415,17 +415,17 @@ class IndexedPiece(object):
         :returns: The note, rest, and chord music21 objects in each part of a piece.
         :rtype: A list of pandas.Series of music21 note, rest, and chord objects.
         """
-        if 'm21_noterest' not in self._analyses:
+        if 'm21_nrc_objs' not in self._analyses:
             # get rid of all m21 objects that aren't notes, rests, or chords and index  the offsets
             sers = [s.apply(noterest._type_func).dropna().apply(_get_offset)
                     for s in self._get_m21_objs(self._known_opus)]
-            self._analyses['m21_noterest'] = pandas.concat(sers, axis=1)
-        return self._analyses['m21_noterest']
+            self._analyses['m21_nrc_objs'] = pandas.concat(sers, axis=1)
+        return self._analyses['m21_nrc_objs']
 
     def _get_m21_nrc_objs_no_tied(self):
         if 'm21_noterest_no_tied' not in self._analyses:
-            self._analyses['m21_noterest_no_tied'] = self._get_m21_nrc_objs(self._known_opus).applymap(_eliminate_ties).dropna(how='all')
-        return self._analyses['m21_noterest_no_tied']
+            self._analyses['m21_nrc_objs_no_tied'] = self._get_m21_nrc_objs(self._known_opus).applymap(_eliminate_ties).dropna(how='all')
+        return self._analyses['m21_nrc_objs_no_tied']
 
     def _get_noterest(self):
         if 'noterest' not in self._analyses:
