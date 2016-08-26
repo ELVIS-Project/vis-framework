@@ -45,7 +45,8 @@ from vis.analyzers.indexers import noterest
 
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
-
+# Types for noterest indexing
+_noterest_types = ('Note', 'Rest', 'Chord')
 
 def login_edb(username, password):
     """Return csrf and session tokens for a login."""
@@ -154,6 +155,16 @@ def _eliminate_ties(event):
     if hasattr(event, 'tie') and event.tie is not None and event.tie.type != 'start':
         return float('nan')
     return event
+
+def _type_func_noterest(event):
+    if any([typ in event.classes for typ in _noterest_types]):
+        return event
+    return float('nan')
+
+def _type_func_measure(event):
+    if 'Measure' in event.classes:
+        return event
+    return float('nan')
 
 def _find_piece_range(the_score):
 
@@ -417,9 +428,10 @@ class IndexedPiece(object):
         :rtype: A list of pandas.Series of music21 note, rest, and chord objects.
         """
         if 'm21_nrc_objs' not in self._analyses:
-            # get rid of all m21 objects that aren't notes, rests, or chords and index  the offsets
-            sers = [s.apply(noterest._type_func).dropna().apply(_get_offset)
-                    for s in self._get_m21_objs()]
+            # get rid of all m21 objects that aren't notes, rests, or chords
+            sers = [s.apply(_type_func_noterest).dropna() for s in self._get_m21_objs()]
+            for ser in sers: # and index  the offsets
+                ser.index = ser.apply(_get_offset)
             self._analyses['m21_nrc_objs'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_nrc_objs']
 
