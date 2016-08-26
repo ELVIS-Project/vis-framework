@@ -94,28 +94,29 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
 
-    def test_note_rest_indexer_2(self):
-        # When the part has no Note or Rest objects in it
-        pdb.set_trace()
-        expected = {'0': pandas.Series()}
-        test_part = stream.Part()
-        # add stuff to the test_part
-        for i in range(1000):
-            add_me = clef.BassClef()
-            add_me.offset = i
-            test_part.append(add_me)
-            add_me = bar.Barline()
-            add_me.offset = i
-            test_part.append(add_me)
-        test_part = [test_part]
-        # finished adding stuff to the test_part
-        nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()['noterest.NoteRestIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+    # This test should be run on the indexed_piece method _get_m21_nrc_objs(), not the noterest indexer.
+    # def test_note_rest_indexer_2(self):
+    #     # When the part has no Note or Rest objects in it
+    #     pdb.set_trace()
+    #     expected = {'0': pandas.Series()}
+    #     test_part = stream.Part()
+    #     # add stuff to the test_part
+    #     for i in range(1000):
+    #         add_me = clef.BassClef()
+    #         add_me.offset = i
+    #         test_part.append(add_me)
+    #         add_me = bar.Barline()
+    #         add_me.offset = i
+    #         test_part.append(add_me)
+    #     test_part = [test_part]
+    #     # finished adding stuff to the test_part
+    #     nr_indexer = noterest.NoteRestIndexer(test_part)
+    #     actual = nr_indexer.run()['noterest.NoteRestIndexer']
+    #     self.assertEqual(len(expected), len(actual.columns))
+    #     for key in six.iterkeys(expected):
+    #         self.assertTrue(key in actual)
+    #         self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
+    #         self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
     def test_note_rest_indexer_3(self):
         # When there are a bunch of notes
