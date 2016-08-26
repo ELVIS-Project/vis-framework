@@ -34,6 +34,7 @@ import six
 import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers.indexers import noterest
+from vis.models.indexed_piece import IndexedPiece
 import pdb
 
 # find the pathname of the 'vis' directory
@@ -126,51 +127,23 @@ class TestNoteRestIndexer(unittest.TestCase):
         nr_indexer = noterest.NoteRestIndexer(test_score)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
-        pdb.set_trace()
-
 
     def test_note_rest_indexer_4(self):
+        # Combine three previous tests to avoid re-importing the same piece multiple times.
         # Soprano part of bwv77.mxl
+        expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)})
+        ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
+        all_parts = ip._get_part_streams().parts
+        ip._analyses['part_streams'] = all_parts[:1]
+        actual = ip._get_noterest()['noterest.NoteRestIndexer']
+        self.assertTrue(actual.equals(expected))
 
-        expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)}
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
-        nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()['noterest.NoteRestIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
-
-    def test_note_rest_indexer_5(self):
-        # Bass part of bwv77.mxl
-        expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)}
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[3]]
-        nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()['noterest.NoteRestIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
-
-    def test_note_rest_indexer_6(self):
-        # Soprano and Bass parts of bwv77.mxl
-        # We won't verify all the parts, but we'll submit them all for analysis.
-        expected = {'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano),
-                    '3': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)}
-        bwv77 = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
-        test_part = [bwv77.parts[0], bwv77.parts[1], bwv77.parts[2], bwv77.parts[3]]
-        nr_indexer = noterest.NoteRestIndexer(test_part)
-        actual = nr_indexer.run()['noterest.NoteRestIndexer']
-        self.assertEqual(4, len(actual.columns))
-        for key in six.iterkeys(expected):
-            # We have to call dropna() to remove the NaN values; these appear for offsets that have
-            # an event in one part, but not necessarily all the others.
-            this_actual = actual[key].dropna(inplace=False)
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(this_actual.index))
-            self.assertSequenceEqual(list(expected[key]), list(this_actual))
+        # Reset analysis dictionary and make the part just the score just the bass part and do the same test.
+        expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)})
+        ip._analyses = {}
+        ip._analyses['part_streams'] = all_parts[3:]
+        actual = ip._get_noterest()['noterest.NoteRestIndexer']
+        self.assertTrue(actual.equals(expected))
 
 
 #--------------------------------------------------------------------------------------------------#
