@@ -113,9 +113,14 @@ class NoteRestIndexer(indexer.Indexer):
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
         :rtype: :class:`pandas.DataFrame`
         """
-        temp = self._score.applymap(_indexer_func) # Do indexing.
-        result = _unpack_chords(temp) # Unpack chords into individual pitches.
+        # This if statement is necessary because of a pandas bug, see pandas issue #8222.
+        if len(self._score.index) == 0: # If parts have no note, rest, or chord events in them
+            result = self._score.copy()
+        else: # This is the normal case
+            temp = self._score.applymap(self._indexer_func) # Do indexing.
+            result = _unpack_chords(temp) # Unpack chords into individual pitches.
         axis_labels = ('Indexer', 'Parts') # Axis names for resultant dataframe.
-        result.columns = pandas.MultiIndex.from_product((('NoteRestIndexer',), # Apply multi-index to df.
+        result.columns = pandas.MultiIndex.from_product((('noterest.NoteRestIndexer',), # Apply multi-index to df.
             [str(x) for x in range(len(result.columns))]), names=axis_labels)
+
         return result
