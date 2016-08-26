@@ -89,18 +89,14 @@ class TestNoteRestIndexer(unittest.TestCase):
 
     def test_note_rest_indexer_1(self):
         # When the parts are empty
-        expected = {'0': pandas.Series(), '1': pandas.Series()}
-        test_part = [stream.Part(), stream.Part()]
-        nr_indexer = noterest.NoteRestIndexer(test_part)
+        expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
+        nr_indexer = noterest.NoteRestIndexer(expected)
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        self.assertTrue(actual.equals(expected))
 
     def test_note_rest_indexer_2(self):
         # When the part has no Note or Rest objects in it
+        pdb.set_trace()
         expected = {'0': pandas.Series()}
         test_part = stream.Part()
         # add stuff to the test_part
