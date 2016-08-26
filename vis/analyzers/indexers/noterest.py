@@ -34,7 +34,7 @@ import pandas
 from music21 import pitch, note, chord
 from vis.analyzers import indexer
 
-def _unpack_chords(df):
+def unpack_chords(df):
     """
     The c in nrc in methods like _get_m21_nrc_objs() stands for chord. This method unpacks music21 
     chords into a list of their constituent pitch objects. These pitch objects can be queried for 
@@ -120,7 +120,7 @@ class NoteRestIndexer(indexer.Indexer):
             result = self._score.copy()
         else: # This is the normal case
             temp = self._score.applymap(self._indexer_func) # Do indexing.
-            result = _unpack_chords(temp) # Unpack chords into individual pitches.
+            result = unpack_chords(temp) # Unpack chords into individual pitches.
         axis_labels = ('Indexer', 'Parts') # Axis names for resultant dataframe.
         result.columns = pandas.MultiIndex.from_product((('noterest.NoteRestIndexer',), # Apply multi-index to df.
             [str(x) for x in range(len(result.columns))]), names=axis_labels)
