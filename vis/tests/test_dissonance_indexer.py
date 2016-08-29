@@ -176,7 +176,7 @@ class TestDissonanceIndexer(unittest.TestCase):
         """
         expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
         ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn'))
-        actual = ip._analyses['dissonance']
+        actual = ip._get_dissonance()
         assert_frame_equal(expected, actual)
 
 
