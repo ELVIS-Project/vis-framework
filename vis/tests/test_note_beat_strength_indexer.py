@@ -32,13 +32,13 @@ import os
 import unittest
 import six
 import pandas
-from music21 import converter, stream, clef, bar, note, meter
+from music21 import converter, stream, clef, bar, note
+from music21 import meter as m21_meter
 from vis.analyzers.indexers import meter
 from numpy import nan, isnan
 
 # find the pathname of the 'vis' directory
 import vis
-import pdb
 VIS_PATH = vis.__path__[0]
 
 
@@ -138,7 +138,7 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
         measure = stream.Measure()
         # In music21 beginning time signatures are preferably inserted in the first measure and a
         # timeSignature is needed to be able to calculate beatStrength
-        measure.insert(0, meter.TimeSignature('3/4'))
+        measure.insert(0, m21_meter.TimeSignature('3/4'))
         for i in range(6):
             add_me = note.Note(u'C4', quarterLength=1.0)
             add_me.offset = i
