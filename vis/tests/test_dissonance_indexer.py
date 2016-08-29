@@ -31,8 +31,8 @@
 import os
 import unittest
 import pandas as pd
-from music21 import converter
 from vis.analyzers.indexers import dissonance, noterest, meter, interval
+from vis.models.indexed_piece import IndexedPiece
 from pandas.util.testing import assert_frame_equal
 
 # find the pathname of the 'vis' directory
@@ -174,20 +174,9 @@ class TestDissonanceIndexer(unittest.TestCase):
         and covers almost all of the logic, namely the "Kyrie" in the test corpus. NB: perhaps 
         this test should get moved to the integration tests file.
         """
-        pathname = os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn')
-        test_piece = converter.parse(pathname)
-        parts = test_piece.parts
-        nr = noterest.NoteRestIndexer(parts).run()
-        bs = meter.NoteBeatStrengthIndexer(parts).run()
-        dur = meter.DurationIndexer(parts).run()
-        horiz_setts = {'quality': False, 'simple or compound': 'compound'}
-        horiz = interval.HorizontalIntervalIndexer(nr, horiz_setts).run()
-        vert_setts = {'quality': True, 'simple or compound': 'simple'}
-        vert = interval.IntervalIndexer(nr, vert_setts).run()
-
-        in_dfs = [bs, dur, horiz, vert]
         expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
-        actual = dissonance.DissonanceIndexer(in_dfs).run()
+        ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn'))
+        actual = ip._analyses['dissonance']
         assert_frame_equal(expected, actual)
 
 
