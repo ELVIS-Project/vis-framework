@@ -40,7 +40,7 @@ from six.moves import range, xrange  # pylint: disable=import-error,redefined-bu
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest
+from vis.analyzers.indexers import noterest, meter
 
 
 # the title given to a piece when we cannot determine its title
@@ -445,11 +445,16 @@ class IndexedPiece(object):
             self._analyses['noterest'] = noterest.NoteRestIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['noterest']
 
-    def _get_dissonance(self, known_opus=False):
+    def _get_beat_strength(self):
+        if 'beatstrength' not in self._analyses:
+            self._analyses['beatstrength'] = meter.NoteBeatStrengthIndexer(self._get_m21_nrc_objs_no_tied()).run()
+        return self._analyses['beatstrength']
+
+    def _get_dissonance(self):
         if 'dissonance' not in self._analyses:
             h_setts = {'quality': False, 'simple or compound': 'compound'}
             v_setts = setts = {'quality': True, 'simple or compound': 'simple'}
-            in_dfs = [self._get_beatstrength(), self._get_duration(), self._get_h_ints(h_setts), self._get_v_ints(v_setts)]
+            in_dfs = [self._get_beat_strength(), self._get_duration(), self._get_h_ints(h_setts), self._get_v_ints(v_setts)]
             self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
         return self._analyses['dissonance']
 
