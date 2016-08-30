@@ -36,17 +36,20 @@ import warnings
 import json
 import music21
 import pandas
+import numpy
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest, meter
+from vis.analyzers.indexers import noterest, meter, interval, dissonance
 
 
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 # Types for noterest indexing
 _noterest_types = ('Note', 'Rest', 'Chord')
+_default_interval_setts = {'quality':True, 'directed':True, 'simple or compound':'compound', 'horiz_attach_later':True}
+
 
 def login_edb(username, password):
     """Return csrf and session tokens for a login."""
@@ -167,6 +170,14 @@ def _type_func_measure(event):
     if 'Measure' in event.classes:
         return event
     return float('nan')
+
+def _attach_before(df):
+    re_indexed = []
+    for x in range(len(df.columns)):
+        ser = df.iloc[:, x].dropna()
+        ser.index = numpy.insert(ser.index, 0, 0.0)[:-1]
+        re_indexed.append(ser)
+    return pandas.concat(re_indexed, axis=1)
 
 def _find_piece_range(the_score):
 
@@ -457,11 +468,37 @@ class IndexedPiece(object):
             self._analyses['beatstrength'] = meter.NoteBeatStrengthIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['beatstrength']
 
+    def _get_vertical_interval(self, settings=None):
+        if 'vertical_interval' not in self._analyses:
+            self._analyses['vertical_interval'] = interval.IntervalIndexer(self._get_noterest(), settings=_default_interval_setts.copy()).run()
+        if settings is not None and not ('directed' in settings and settings['directed'] == True and
+                'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
+                'simple or compound' in settings and settings['simple or compound'] == 'compound'):
+            temp = _default_interval_setts.copy().update(settings)
+            return interval.IntervalReindexer(self._analyses['vertical_interval'], temp).run()
+        return self._analyses['vertical_interval']
+
+    def _get_horizontal_interval(self, settings=None):
+        # No matter what settings the user specifies, calculate the intervals in the most complete way.
+        if 'horizontal_interval' not in self._analyses:
+            self._analyses['horizontal_interval'] = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts.copy()).run()
+        # If the user's settings were different, reindex the stored intervals.
+        if settings is not None and not ('directed' in settings and settings['directed'] == True and
+                'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
+                'simple or compound' in settings and settings['simple or compound'] == 'compound'):
+            post = interval.IntervalReindexer(self._analyses['horizontal_interval'], settings).run()
+            # Switch to 'attach before' if necessary.
+            if 'horiz_attach_later' not in settings or not settings['horiz_attach_later']:
+                post = _attach_before(post)
+            return post
+        return self._analyses['horizontal_interval']
+
     def _get_dissonance(self):
         if 'dissonance' not in self._analyses:
             h_setts = {'quality': False, 'simple or compound': 'compound'}
             v_setts = setts = {'quality': True, 'simple or compound': 'simple'}
-            in_dfs = [self._get_beat_strength(), self._get_duration(), self._get_h_ints(h_setts), self._get_v_ints(v_setts)]
+            in_dfs = [self._get_beat_strength(), self._get_duration(),
+                      self._get_horizontal_interval(h_setts), self._get_vertical_interval(v_setts)]
             self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
         return self._analyses['dissonance']
 
@@ -470,16 +507,16 @@ class IndexedPiece(object):
         measures."""
         if 'm21_measure_objs' not in self._analyses:
             # filter for just the measure objects in each part of this indexed piece
-            sers = [s.apply(_type_func_measure).dropna() for s in self._get_m21_objs(known_opus)]
+            sers = [s.apply(_type_func_measure).dropna() for s in self._get_m21_objs()]
             # add the index to each part
-            for ser in sers:
-                ser.index = ser.apply(_get_offset)         
+            for part_number, ser in enumerate(sers): # and index  the offsets
+                ser.index = ser.apply(_get_offset, args=(self._get_part_streams()[part_number],))
             self._analyses['m21_measure_objs'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_measure_objs']
 
-    def _get_measure(self, known_opus=False):
+    def _get_measure(self):
         if 'measure' not in self._analyses:
-            self._analyses['measure'] = self._get_m21_measure_objs().applymap(meter.msTest)
+            self._analyses['measure'] = meter.MeasureIndexer(self._get_m21_measure_objs()).run()
         return self._analyses['measure']
 
     @staticmethod
