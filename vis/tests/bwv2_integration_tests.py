@@ -187,64 +187,14 @@ class AllVoiceIntervalNGrams(TestCase):
             post_vals.append(each[1])
         return pandas.Series(post_vals, index=post_ind)
 
-    def assertDataFramesEqual(self, exp, act):
-        """Ensure that two DataFrame objects, ``exp`` and ``act``, are equal."""
-        self.assertSequenceEqual(list(exp.columns), list(act.columns))
-        for col_name in exp.columns:
-            for loc_val in exp[col_name].index:
-                self.assertTrue(loc_val in act.index)
-                if exp[col_name].loc[loc_val] != act[col_name].loc[loc_val]:
-                    msg = '"{}" is {} but we expected {}'
-                    raise AssertionError(msg.format(loc_val,
-                                                    exp[col_name].loc[loc_val],
-                                                    act[col_name].loc[loc_val]))
-
-    def test_ngrams_1(self):
-        """all-voice interval 2-grams; no WorkflowManager"""
-        expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.twograms)
-        expected = pandas.DataFrame({('ngram.NGramIndexer', '[0,3 1,3 2,3] 3'): expected})
-        ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
-        setts = {'quality': False, 'simple': False, 'horiz_attach_later': True}
-        horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
-                                         interval.HorizontalIntervalIndexer],
-                                        setts)
-        vert_ints = ind_piece.get_data([noterest.NoteRestIndexer,
-                                        interval.IntervalIndexer],
-                                        setts)
-        all_ints = pandas.concat([horiz_ints, vert_ints], axis=1)
-        setts = {'mark singles': False, 'continuer': '1', 'n': 2}
-        setts['horizontal'] = [('interval.HorizontalIntervalIndexer', '3')]
-        setts['vertical'] = [('interval.IntervalIndexer', '0,3'),
-                             ('interval.IntervalIndexer', '1,3'),
-                             ('interval.IntervalIndexer', '2,3')]
-        actual = ind_piece.get_data([ngram.NGramIndexer], setts, all_ints)
-        self.assertDataFramesEqual(expected, actual)
-
-    def test_ngrams_2(self):
-        """same as test_ngrams_1() *but* with WorkflowManager"""
-        expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.twograms)
-        expected = pandas.DataFrame({('ngram.NGramIndexer', '[0,3 1,3 2,3] 3'): expected})
-        workm = workflow.WorkflowManager([os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')])
-        workm.load()
-        workm.settings(None, 'interval quality', False)
-        workm.settings(None, 'n', 2)
-        workm.settings(None, 'count frequency', False)
-        workm.settings(0, 'voice combinations', 'all')
-        actual = workm.run('interval n-grams')[0]
-        self.assertDataFramesEqual(expected, actual)
-
-    def test_new_ngrams_2(self):
+    def test_new_ngrams_1(self):
         """Same as test_ngrams_1() but uses new_ngram indexer."""
         expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.new_two_grams)
         expected = pandas.DataFrame({('new_ngram.NewNGramIndexer', '0,3 1,3 2,3 : 3'): expected})
         ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
         setts = {'quality': False, 'simple': False, 'horiz_attach_later': True}
-        horiz_ints = ind_piece.get_data([noterest.NoteRestIndexer,
-                                         interval.HorizontalIntervalIndexer],
-                                        setts)
-        vert_ints = ind_piece.get_data([noterest.NoteRestIndexer,
-                                        interval.IntervalIndexer],
-                                        setts)
+        horiz_ints = ind_piece._get_horizontal_interval(setts)
+        vert_ints = ind_piece._get_vertical_interval(setts)
         setts = {'n': 2, 'continuer': '1', 'horizontal': 'lowest', 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True,}
         actual = new_ngram.NewNGramIndexer([vert_ints, horiz_ints], setts).run()
         self.assertTrue(actual.equals(expected))
