@@ -60,39 +60,6 @@ def beatstrength_ind_func(event):
         return event
     return event.beatStrength
 
-
-def duration_ind_func(obj):
-    """
-    The function that indexes the duration of whatever it's given. If the note
-    or rest is a non-first element of a group of notes or rests that are tied
-    together, it will add the duration value of the non-first tied element to
-    the previous one instead of returning a new reading to be added to the
-    list of results.
-
-    Used internally by :class:`DurationIndexer`. Convert
-        :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects
-        into a floats of their durations.
-
-    :param obj: An 2-tuple with an object to analyze and a list of the running
-        results.
-    :type obj: a 2-tuple containing either a :class:`music21.note.Note` or a
-        :class:`music21.note.Rest` as its first element and a list of the
-        running results of this indexer_func as the second element.
-
-    :returns: The :attr:`~music21.base.Music21Object.duration` of obj[0] or
-        None if that event is tied to a preceding event. In this case obj[0]'s
-        duration is added to the last observation.
-    :rtype: float or None
-    """
-    if hasattr(obj[0], 'tie') and obj[0].tie is not None:
-        if obj[0].tie.type == 'start': # Note or Rest object has a tie with a 'start' label
-            return obj[0].duration.quarterLength
-        else: # Note or Rest object has a tie with a 'continue' or a 'stop' label
-            obj[1][-1] += obj[0].duration.quarterLength
-            return None
-    else: # The Note or Rest object has no tie or has a tie of type None
-        return obj[0].duration.quarterLength
-
 def measure_ind_func(obj):
     """
     The function that indexes the measure numbers of each part in a piece. Unlike most other 
@@ -158,7 +125,8 @@ class DurationIndexer(indexer.Indexer):
     :class:`Note` and :class:`Rest` objects.
 
     .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
-    objects rather than ``unicode`` objects.
+    objects rather than ``unicode`` objects. Also unlike most other indexers, this indexer does not 
+    have an indexer func.
     """
 
     required_score_type = 'stream.Part'
@@ -174,7 +142,6 @@ class DurationIndexer(indexer.Indexer):
 
         super(DurationIndexer, self).__init__(score, None)
         self._types = ('Note', 'Rest')
-        self._indexer_func = duration_ind_func
         self._part_streams = part_streams
 
     def run(self):
