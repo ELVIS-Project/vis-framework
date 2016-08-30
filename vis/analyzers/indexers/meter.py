@@ -33,12 +33,14 @@ Indexers for metric concerns.
 # with Sphinx!
 # pylint: disable=W0105
 
+import pandas
 from vis.analyzers import indexer
 # import pandas # This is only needed for the measure indexer which is still
 # experimental
 
+axis_labels = ('Indexer', 'Parts') # Axis names for resultant dataframe.
 
-def beatstrength_ind_func(obj):
+def beatstrength_ind_func(event):
     """
     Used internally by :class:`NoteBeatStrengthIndexer`. Convert
     :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects
@@ -54,7 +56,9 @@ def beatstrength_ind_func(obj):
         which is dependent on the prevailing time signature.
     :rtype: float
     """
-    return obj[0].beatStrength
+    if isinstance(event, float):
+        return event
+    return event.beatStrength
 
 
 def duration_ind_func(obj):
@@ -139,10 +143,13 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         notebeat = meter.NoteBeatStrengthIndexer(score).run()
         print(notebeat)
         """
-
-        combinations = [[x] for x in range(len(self._score))]
-        results = self._do_multiprocessing(combinations)
-        return self.make_return([str(x)[1:-1] for x in combinations], results)
+        if len(self._score.index) == 0: # If parts have no note, rest, or chord events in them
+            result = self._score.copy()
+        else: # This is the normal case
+            result = self._score.applymap(self._indexer_func) # Do indexing.
+        result.columns = pandas.MultiIndex.from_product((('meter.NoteBeatStrengthIndexer',), # Apply multi-index to df.
+            [str(x) for x in range(len(result.columns))]), names=axis_labels)
+        return result
 
 
 class DurationIndexer(indexer.Indexer):
@@ -156,7 +163,7 @@ class DurationIndexer(indexer.Indexer):
 
     required_score_type = 'stream.Part'
 
-    def __init__(self, score):
+    def __init__(self, score, part_streams):
         """
         :param score: A list of the :class:`Part` objects to use for producing this index.
         :type score: list of :class:`music21.stream.Part`
@@ -168,6 +175,7 @@ class DurationIndexer(indexer.Indexer):
         super(DurationIndexer, self).__init__(score, None)
         self._types = ('Note', 'Rest')
         self._indexer_func = duration_ind_func
+        self._part_streams = part_streams
 
     def run(self):
         """
@@ -186,10 +194,15 @@ class DurationIndexer(indexer.Indexer):
         durations = meter.DurationIndexer(score).run()
         print(durations)
         """
-
-        combinations = [[x] for x in range(len(self._score))]
-        results = self._do_multiprocessing(combinations, True)
-        return self.make_return([str(x)[1:-1] for x in combinations], results)
+        durations = []
+        for part in range(len(self._score.columns)):
+            indx = self._score.iloc[:, part].dropna().index
+            new = indx.insert(len(indx), self._part_streams[part].highestTime)
+            durations.append(pandas.Series((new[1:] - indx), index=indx))
+        result = pandas.concat(durations, axis=1)
+        result.columns = pandas.MultiIndex.from_product((('meter.DurationIndexer',), # Apply multi-index to df.
+            [str(x) for x in range(len(result.columns))]), names=axis_labels)
+        return result
 
 
 class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
