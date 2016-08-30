@@ -465,6 +465,23 @@ class IndexedPiece(object):
             self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
         return self._analyses['dissonance']
 
+    def _get_m21_measure_objs(self):
+        """Makes a dataframe of the measure objects in the indexed_piece. Note that midi files do not have 
+        measures."""
+        if 'm21_measure_objs' not in self._analyses:
+            # filter for just the measure objects in each part of this indexed piece
+            sers = [s.apply(_type_func_measure).dropna() for s in self._get_m21_objs(known_opus)]
+            # add the index to each part
+            for ser in sers:
+                ser.index = ser.apply(_get_offset)         
+            self._analyses['m21_measure_objs'] = pandas.concat(sers, axis=1)
+        return self._analyses['m21_measure_objs']
+
+    def _get_measure(self, known_opus=False):
+        if 'measure' not in self._analyses:
+            self._analyses['measure'] = self._get_m21_measure_objs().applymap(meter.msTest)
+        return self._analyses['measure']
+
     @staticmethod
     def _type_verifier(cls_list):
         """

@@ -35,8 +35,6 @@ Indexers for metric concerns.
 
 import pandas
 from vis.analyzers import indexer
-# import pandas # This is only needed for the measure indexer which is still
-# experimental
 
 axis_labels = ('Indexer', 'Parts') # Axis names for resultant dataframe.
 
@@ -60,13 +58,15 @@ def beatstrength_ind_func(event):
         return event
     return event.beatStrength
 
-def measure_ind_func(obj):
+def measure_ind_func(event):
     """
     The function that indexes the measure numbers of each part in a piece. Unlike most other 
     indexers, this one returns int values. Measure numbering starts from 1 unless there is a pick-up 
     measure which gets the number 0. This can handle changes in time signature without problems.
     """
-    return obj[0].measureNumber
+    if isinstance(event, float):
+        return event
+    return event.measureNumber
 
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
@@ -208,6 +208,11 @@ class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
             offsets at which the observed measures begin.
         :rtype: :class:`pandas.DataFrame`
         """
-        combinations = [[x] for x in range(len(self._score))]
-        results = self._do_multiprocessing(combinations, True)
-        return self.make_return([str(x)[1:-1] for x in combinations], results)
+        if len(self._score.index) == 0: # If parts have no measure objects in them
+            result = self._score.copy()
+        else: # This is the normal case
+            result = self._score.applymap(self._indexer_func) # Do indexing.
+        result.columns = pandas.MultiIndex.from_product((('meter.MeasureIndexer',), # Apply multi-index to df.
+            [str(x) for x in range(len(result.columns))]), names=axis_labels)
+
+        return result
