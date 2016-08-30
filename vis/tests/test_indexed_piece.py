@@ -232,19 +232,19 @@ class TestIndexedPieceA(TestCase):
         self.assertRaises(TypeError, self.ind_piece.get_data, [TestIndexedPieceB])
 
     def test_get_data_8(self):
-        """That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer."""
-        with patch.object(IndexedPiece, '_get_note_rest_index') as mock_gnri:
+        """That get_data() calls _get_noterest() if asked for NoteRestIndexer."""
+        with patch.object(IndexedPiece, '_get_noterest') as mock_gnri:
             self.ind_piece.get_data([noterest.NoteRestIndexer])
-            mock_gnri.assert_called_once_with(known_opus=False)
+            mock_gnri.assert_called_once_with()
 
     def test_get_data_9(self):
         """
-        That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer, and another
+        That get_data() calls _get_noterest() if asked for NoteRestIndexer, and another
         test Indexer is also called. This is a regression test to monitor a bug found after
         implementing caching of NoteRestIndexer results. Also ensure that NoteRestIndexer is only
         instantiated once.
         """
-        with patch.object(IndexedPiece, '_get_note_rest_index') as mock_gnri:
+        with patch.object(IndexedPiece, '_get_noterest') as mock_gnri:
             mock_gnri.return_value = 42
             with patch.object(IndexedPiece, '_type_verifier') as mock_tv:
                 # we'll mock _type_verifier() to avoid getting a TypeError when mock_nri_cls isn't
@@ -259,41 +259,41 @@ class TestIndexedPieceA(TestCase):
                 self.assertEqual(2, mock_tv.call_count)
                 mock_tv.assert_has_calls([call([noterest.NoteRestIndexer, mock_indexer_cls]),
                                             call([mock_indexer_cls])])
-                mock_gnri.assert_called_once_with(known_opus=False)
+                mock_gnri.assert_called_once_with()
                 mock_indexer_cls.__init__.assert_called_once_with(mock_gnri.return_value, None)
                 mock_indexer_cls.run.assert_called_once_with()
                 self.assertEqual(expected, actual)
 
     def test_get_data_10(self):
         """
-        # That get_data() calls _get_note_rest_index() if asked for NoteRestIndexer. This is a
+        # That get_data() calls _get_noterest() if asked for NoteRestIndexer. This is a
         # regression test to monitor a bug found after implementing caching of NoteRestIndexer
         # results. Also ensure that NoteRestIndexer is only instantiated once
         """
-        with patch.object(IndexedPiece, '_get_note_rest_index') as mock_gnri:
+        with patch.object(IndexedPiece, '_get_noterest') as mock_gnri:
             mock_gnri.return_value = 42
             with patch.object(IndexedPiece, '_type_verifier') as mock_tv:
                 # we'll mock _type_verifier() to avoid getting a TypeError when mock_nri_cls isn't
                 # a proper subclass of Indexer
                 actual = self.ind_piece.get_data([noterest.NoteRestIndexer])
                 mock_tv.assert_called_once_with([noterest.NoteRestIndexer])
-                mock_gnri.assert_called_once_with(known_opus=False)
                 self.assertEqual(mock_gnri.return_value, actual)
 
-    def test_get_data_11(self):
-        """
-        # That get_data() correctly passes its "known_opus" parameter to _get_note_rest_indexer()
-        # and _import_score()
-        """
-        with patch.object(IndexedPiece, '_get_note_rest_index') as mock_gnri:
-            self.ind_piece.get_data([noterest.NoteRestIndexer], known_opus='battery')
-            mock_gnri.assert_called_once_with(known_opus='battery')
-        with patch.object(IndexedPiece, '_import_score') as mock_is:
-            with patch.object(IndexedPiece, '_type_verifier') as mock_tv:
-                mock_ind = MagicMock()
-                mock_ind.required_score_type = 'stream.Part'
-                self.ind_piece.get_data([mock_ind], known_opus='horse')
-                mock_is.assert_called_once_with(known_opus='horse')
+    # This is no longer how known_opus is passed.
+    # def test_get_data_11(self):
+    #     """
+    #     # That get_data() correctly passes its "known_opus" parameter to _get_noterest()
+    #     # and _import_score()
+    #     """
+    #     with patch.object(IndexedPiece, '_get_noterest') as mock_gnri:
+    #         self.ind_piece.get_data([noterest.NoteRestIndexer], known_opus='battery')
+    #         mock_gnri.assert_called_once_with(known_opus='battery')
+    #     with patch.object(IndexedPiece, '_import_score') as mock_is:
+    #         with patch.object(IndexedPiece, '_type_verifier') as mock_tv:
+    #             mock_ind = MagicMock()
+    #             mock_ind.required_score_type = 'stream.Part'
+    #             self.ind_piece.get_data([mock_ind], known_opus='horse')
+    #             mock_is.assert_called_once_with(known_opus='horse')
 
     def test_get_data_12(self):
         """get data for an Experimenter requiring other data; this is test 2, slightly modified"""
@@ -339,38 +339,19 @@ class TestIndexedPieceA(TestCase):
         self.assertRaises(TypeError, IndexedPiece._type_verifier, [cls_1, cls_2, cls_3])
 
     def test_get_nrindex_1(self):
-        """That _get_note_rest_index() returns self._noterest_results if it's not None."""
+        """That _get_noterest() returns self._analyses['noterest'] if it's not None."""
         # pylint: disable=W0212
-        self.ind_piece._noterest_results = 42
-        self.assertEqual(42, self.ind_piece._get_note_rest_index())
+        self.ind_piece._analyses['noterest'] = 42
+        self.assertEqual(42, self.ind_piece._get_noterest())
 
-    @mock.patch('vis.models.indexed_piece.converter')
-    def test_get_nrindex_2(self, mock_conv):
-        """That we run the NoteRestIndexer and store results in self._note_rest_results if is None."""
-        # pylint: disable=W0212
-        # set up the mock converter
-        mock_con_class = mock.MagicMock(spec_set=converter.Converter())
-        mock_con_class.parseFile = mock.MagicMock(return_value=None)
-        mock_conv.Converter.return_value = mock_con_class
-        # the rest
-        with patch('vis.models.indexed_piece.noterest.NoteRestIndexer') as mock_nri_cls:
-            mock_nri = MagicMock(return_value=[14])
-            mock_nri.run = MagicMock()
-            mock_nri.run.return_value = [14]
-            mock_nri_cls.return_value = mock_nri
-            expected = [14]
-            actual = self.ind_piece._get_note_rest_index()
-            mock_nri.run.assert_called_once_with()
-            self.assertEqual(expected, actual)
-            self.assertEqual(expected, self.ind_piece._noterest_results)
-
-    def test_get_nrindex_3(self):
-        """That _get_note_rest_index() just flat-out calls _import_score() when "known_opus" is True"""
-        with patch.object(IndexedPiece, '_import_score') as mock_is:
-            with patch.object(noterest.NoteRestIndexer, 'run') as mock_nri:
-                self.ind_piece._get_note_rest_index(known_opus=True)
-                mock_is.assert_called_once_with(known_opus=True)
-                self.assertEqual(0, mock_nri.call_count)
+    # This is no longer how known_opus is passed.
+    # def test_get_nrindex_3(self):
+    #     """That _get_noterest() just flat-out calls _import_score() when "known_opus" is True"""
+    #     with patch.object(IndexedPiece, '_import_score') as mock_is:
+    #         with patch.object(noterest.NoteRestIndexer, 'run') as mock_nri:
+    #             self.ind_piece._get_noterest()
+    #             mock_is.assert_called_once_with()
+    #             self.assertEqual(0, mock_nri.call_count)
 
     def test_str_1(self):
         """__str__() without having imported yet"""
