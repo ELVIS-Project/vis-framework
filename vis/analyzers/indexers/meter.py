@@ -66,7 +66,7 @@ def measure_ind_func(event):
     """
     if isinstance(event, float):
         return event
-    return event.measureNumber
+    return event.number
 
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
@@ -211,7 +211,7 @@ class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
         if len(self._score.index) == 0: # If parts have no measure objects in them
             result = self._score.copy()
         else: # This is the normal case
-            result = self._score.applymap(self._indexer_func) # Do indexing.
+            result = self._score.dropna(how='all').applymap(self._indexer_func) # Do indexing.
         result.columns = pandas.MultiIndex.from_product((('meter.MeasureIndexer',), # Apply multi-index to df.
             [str(x) for x in range(len(result.columns))]), names=axis_labels)
 
