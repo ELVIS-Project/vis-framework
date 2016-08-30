@@ -139,13 +139,15 @@ def _find_part_names(the_score):
 
     return post
 
-def _get_offset(event):
+def _get_offset(event, part):
     """
     This method finds the offset of a music21 event. The first part of this equation is the offset 
     of the beginning of the event's containing measure, and the second is the offset from the 
     beginning of that measure to the event.
     """
-    return (event.sites.getAttrByName('offset') + event.offset)
+    for y in event.contextSites():
+        if y[0] is part:
+            return y[1]
 
 def _eliminate_ties(event):
     """
@@ -430,8 +432,8 @@ class IndexedPiece(object):
         if 'm21_nrc_objs' not in self._analyses:
             # get rid of all m21 objects that aren't notes, rests, or chords
             sers = [s.apply(_type_func_noterest).dropna() for s in self._get_m21_objs()]
-            for ser in sers: # and index  the offsets
-                ser.index = ser.apply(_get_offset)
+            for part_number, ser in enumerate(sers): # and index  the offsets
+                ser.index = ser.apply(_get_offset, args=(self._get_part_streams()[part_number],))
             self._analyses['m21_nrc_objs'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_nrc_objs']
 
@@ -444,6 +446,11 @@ class IndexedPiece(object):
         if 'noterest' not in self._analyses:
             self._analyses['noterest'] = noterest.NoteRestIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['noterest']
+
+    def _get_duration(self):
+        if 'duration' not in self._analyses:
+            self._analyses['duration'] = meter.DurationIndexer(self._get_noterest(), self._get_part_streams()).run()
+        return self._analyses['duration']
 
     def _get_beat_strength(self):
         if 'beatstrength' not in self._analyses:
