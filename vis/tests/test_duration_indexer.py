@@ -35,6 +35,8 @@ import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers.indexers import meter
 from numpy import isnan
+from vis.models.indexed_piece import IndexedPiece
+import pdb
 
 # find the pathname of the 'vis' directory
 import vis
@@ -109,7 +111,7 @@ class TestDurationIndexer(unittest.TestCase):
 
     def test_duration_indexer_2(self):
         # When the part has no Note or Rest objects in it
-        expected = {'0': pandas.Series()}
+        expected = pandas.DataFrame({'0': pandas.Series()})
         test_part = stream.Part()
         # add stuff to the test_part
         for i in range(1000):
@@ -120,14 +122,13 @@ class TestDurationIndexer(unittest.TestCase):
             add_me.offset = i
             test_part.append(add_me)
         test_part = [test_part]
+        # ip = IndexedPiece('phony_file_location')
+        # ip._analyses = {'part_streams': [test_part]}
+
         # finished adding stuff to the test_part
-        dur_indexer = meter.DurationIndexer(test_part)
+        dur_indexer = meter.DurationIndexer(expected, test_part)
         actual = dur_indexer.run()['meter.DurationIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_3(self):
         # When there are a bunch of notes

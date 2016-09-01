@@ -161,12 +161,15 @@ class DurationIndexer(indexer.Indexer):
         durations = meter.DurationIndexer(score).run()
         print(durations)
         """
-        durations = []
-        for part in range(len(self._score.columns)):
-            indx = self._score.iloc[:, part].dropna().index
-            new = indx.insert(len(indx), self._part_streams[part].highestTime)
-            durations.append(pandas.Series((new[1:] - indx), index=indx))
-        result = pandas.concat(durations, axis=1)
+        if len(self._score) == 0: # if there are no notes or rests
+            result = self._score.copy()
+        else:
+            durations = []
+            for part in range(len(self._score.columns)):
+                indx = self._score.iloc[:, part].dropna().index
+                new = indx.insert(len(indx), self._part_streams[part].highestTime)
+                durations.append(pandas.Series((new[1:] - indx), index=indx))
+            result = pandas.concat(durations, axis=1)
         result.columns = pandas.MultiIndex.from_product((('meter.DurationIndexer',), # Apply multi-index to df.
             [str(x) for x in range(len(result.columns))]), names=axis_labels)
         return result
