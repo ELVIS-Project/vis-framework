@@ -7,7 +7,7 @@
 # Filename:               models/indexed_piece.py
 # Purpose:                Hold the model representing an indexed and analyzed piece of music.
 #
-# Copyright (C) 2013, 2014 Christopher Antila, Jamie Klassen
+# Copyright (C) 2013, 2014, 2016 Christopher Antila, Jamie Klassen, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -25,6 +25,7 @@
 """
 .. codeauthor:: Jamie Klassen <michigan.j.frog@gmail.com>
 .. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
+.. codeauthor:: Alexander Morgan
 This model represents an indexed and analyzed piece of music.
 """
 
@@ -42,6 +43,7 @@ from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, meter, interval, dissonance
+import pdb
 
 
 # the title given to a piece when we cannot determine its title
@@ -450,7 +452,12 @@ class IndexedPiece(object):
 
     def _get_m21_nrc_objs_no_tied(self):
         if 'm21_nrc_objs_no_tied' not in self._analyses:
-            self._analyses['m21_nrc_objs_no_tied'] = self._get_m21_nrc_objs().applymap(_eliminate_ties).dropna(how='all')
+           # This if statement is necessary because of a pandas bug, see pandas issue #8222.
+            nrc_objs = self._get_m21_nrc_objs()
+            if len(self._get_m21_nrc_objs()) == 0: # If parts have no note, rest, or chord events in them
+                self._analyses['m21_nrc_objs_no_tied'] = nrc_objs.copy()
+            else:
+                self._analyses['m21_nrc_objs_no_tied'] = nrc_objs.applymap(_eliminate_ties).dropna(how='all')
         return self._analyses['m21_nrc_objs_no_tied']
 
     def _get_noterest(self):
@@ -474,8 +481,7 @@ class IndexedPiece(object):
         if settings is not None and not ('directed' in settings and settings['directed'] == True and
                 'quality' in settings and settings['quality'] in (True, 'diatonic with quality') and
                 'simple or compound' in settings and settings['simple or compound'] == 'compound'):
-            temp = _default_interval_setts.copy().update(settings)
-            return interval.IntervalReindexer(self._analyses['vertical_interval'], temp).run()
+            return interval.IntervalReindexer(self._analyses['vertical_interval'], settings).run()
         return self._analyses['vertical_interval']
 
     def _get_horizontal_interval(self, settings=None):
@@ -495,8 +501,8 @@ class IndexedPiece(object):
 
     def _get_dissonance(self):
         if 'dissonance' not in self._analyses:
-            h_setts = {'quality': False, 'simple or compound': 'compound'}
-            v_setts = setts = {'quality': True, 'simple or compound': 'simple'}
+            h_setts = {'quality': False, 'simple or compound': 'compound', 'horiz_attach_later': False}
+            v_setts = setts = {'quality': True, 'simple or compound': 'simple', 'directed': True}
             in_dfs = [self._get_beat_strength(), self._get_duration(),
                       self._get_horizontal_interval(h_setts), self._get_vertical_interval(v_setts)]
             self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
@@ -577,7 +583,7 @@ class IndexedPiece(object):
         IndexedPiece._type_verifier(analyzer_cls)
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
-                data = self._get_note_rest_index(known_opus=known_opus)
+                data = self._get_noterest()
             # NB: Experimenter subclasses don't have "required_score_type"
             elif (hasattr(analyzer_cls[0], 'required_score_type') and
                   analyzer_cls[0].required_score_type == 'stream.Part'):
