@@ -70,7 +70,7 @@ class TestNewNGramIndexer(unittest.TestCase):
     def test_init_1(self):
         """that __init__() works properly (only required settings given)"""
         # pylint: disable=protected-access
-        setts = {'n': 1, 'vertical': ['0,1']}
+        setts = {'n': 1, 'vertical': [('0,1',)]}
         actual = new_ngram.NewNGramIndexer((VERT_DF,), setts)
         for setting in ('n', 'vertical'):
             self.assertEqual(setts[setting], actual._settings[setting])
@@ -80,7 +80,7 @@ class TestNewNGramIndexer(unittest.TestCase):
     def test_init_2(self):
         """that __init__() works properly (all settings given)"""
         # pylint: disable=protected-access
-        setts = {'n': 2, 'vertical': ['0,1'], 'horizontal': 'banana', 'brackets': True,
+        setts = {'n': 2, 'vertical': [('0,1',)], 'horizontal': [('1',)], 'brackets': True,
                  'terminator': 'RoboCop', 'continuer': 'Alex Murphy', 'open-ended': True}
         actual = new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
         for setting in ('n', 'vertical', 'horizontal', 'brackets', 'terminator', 'continuer', 'open-ended'):
@@ -89,7 +89,7 @@ class TestNewNGramIndexer(unittest.TestCase):
     def test_init_3(self):
         """that __init__() fails when 'n' is too short"""
         # pylint: disable=protected-access
-        setts = {'n': 0, 'vertical': ['0,1']}  # n is too short
+        setts = {'n': 0, 'vertical': [('0,1',)]}  # n is too short
         self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
         try:
             new_ngram.NewNGramIndexer((VERT_DF,), setts)
@@ -99,7 +99,7 @@ class TestNewNGramIndexer(unittest.TestCase):
     def test_init_4(self):
         """that __init__() fails when there are no 'vertical' events"""
         # pylint: disable=protected-access
-        setts = {'n': 14, 'horizontal': [0]}  # no "vertical" parts
+        setts = {'n': 14, 'horizontal': [('1',)]}  # no "vertical" parts
         self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, 'a DataFrame', setts)
         try:
             new_ngram.NewNGramIndexer('a DataFrame', setts)
@@ -110,7 +110,7 @@ class TestNewNGramIndexer(unittest.TestCase):
         """that __init__() fails when horizontal observations are provided and 'n' equals 1
         and 'open-ended' is False."""
         # pylint: disable=protected-access
-        setts = {'n': 1, 'vertical': ['0,1'], 'horizontal': ['0'], 'open-ended': True}
+        setts = {'n': 1, 'vertical': [('0,1',)], 'horizontal': [('1',)], 'open-ended': True}
         self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
         try:
             new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
@@ -158,6 +158,27 @@ class TestNewNGramIndexer(unittest.TestCase):
         except RuntimeWarning as run_err:
             self.assertEqual(new_ngram.NewNGramIndexer._N_VALUE_TOO_HIGH, run_err.args[0])
 
+    def test_init_8a(self):
+        """That __init__() raises a RuntimeError when not all of the columns designated in the 
+        'vertical' settings are found in the DataFrame of vertical observations. Note that there 
+        is only one column in the VERT_DF DataFrame."""
+        setts = {'n': 2, 'vertical': [('0,1', '0,2')], 'open-ended': True}
+        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
+        try:
+            new_ngram.NewNGramIndexer((VERT_DF,), setts)
+        except RuntimeError as run_err:
+            self.assertEqual(new_ngram.NewNGramIndexer._VERTICAL_OUT_OF_RANGE, run_err.args[0])
+
+    def test_init_8b(self):
+        """Same as test_init_8a but for horizontal observations. Note that there is only one 
+        column in the HORIZ_DF DataFrame."""
+        setts = {'n': 2, 'horizontal': [('1', '2')], 'vertical': [('0,1',)]}
+        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
+        try:
+            new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
+        except RuntimeError as run_err:
+            self.assertEqual(new_ngram.NewNGramIndexer._HORIZONTAL_OUT_OF_RANGE, run_err.args[0])
+
     def test_ngram_1a(self):
         """most basic test"""
         vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
@@ -171,7 +192,7 @@ class TestNewNGramIndexer(unittest.TestCase):
     def test_ngram_1b(self): # Perhaps we just don't need this test.
         """like test _1a but with an extra element in "scores" and no "horizontal" assignment"""
         vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
-        horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
+        # horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 2, 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A B', 'B C', 'C D'])],
                                     index=[['new_ngram.NewNGramIndexer'], ['0,1']]).T
