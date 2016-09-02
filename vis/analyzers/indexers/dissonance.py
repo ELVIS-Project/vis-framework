@@ -71,7 +71,17 @@ class DissonanceIndexer(indexer.Indexer):
     each offset. This last step is the DataFrame that gets returned.
 
     The score type must be a list of dataframes of the results of the following indexers (order 
-    matters): beatstrength, duration, horizontal, vertical.
+    matters): beatstrength, duration, horizontal, vertical. To simplify things, however, it is 
+    better to use the get_data() on an indexed_piece object to get results from the dissonance 
+    indexer as per the example below.
+    
+    **Example:**
+
+    from vis.models.indexed_piece import IndexedPiece
+
+    ip = IndexedPiece('symbolic_notation_file_location.xml')
+    diss = ip.get_data([dissonance.DissonanceIndexer])
+    print(diss)
     """
     required_score_type = 'pandas.DataFrame'
 
@@ -899,28 +909,6 @@ class DissonanceIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
         :rtype: :class:`pandas.DataFrame`
-
-        **Example:**
-
-        import music21
-        from vis.analyzers.indexers import noterest, interval, meter, dissonance
-
-
-        piece = music21.converter.parse('example.xml')
-
-        meters = meter.DurationIndexer(piece).run()
-        bs = meter.NoteBeatStrengthIndexer(piece).run()
-
-        score = noterest.NoteRestIndexer(piece).run()
-
-        v_setts = {'simple or compound': 'simple', 'quality': True}
-        vints = interval.IntervalIndexer(score, v_setts).run()
-
-        h_setts = {'simple or compound': 'compound', 'quality': False}
-        hints = interval.HorizontalIntervalIndexer(score, h_setts).run()
-
-        diss = dissonance.DissonanceIndexer([bs, meters, hints, vints]).run()
-        print(diss)
         """
         diss_ints = self._score[int_ind].copy(deep=True)
         simuls = diss_ints.ffill()
