@@ -152,8 +152,9 @@ class NewNGramIndexer(indexer.Indexer):
     _MISSING_SETTINGS = 'NewNGramIndexer requires "vertical" and "n" settings.'
     _MISSING_HORIZONTAL_DATA = 'NewNGramIndexer needs a dataframe of horizontal observations if you want \
         to include a horizontal dimension in your ngrams.'
-    _SUPERFLUOUS_HORIZONTAL_DATA = 'If n is set to 1, no horizontal observations will be included in ngrams \
-        so you should leave the "horizontal" setting blank.'
+    _SUPERFLUOUS_HORIZONTAL_DATA = 'If n is set to 1 and the "open_ended" setting is set to False, no \
+        horizontal observations will be included in ngrams so you should leave the "horizontal" setting \
+        blank.'
     _N_VALUE_TOO_LOW = 'NewNGramIndexer requires an "n" value of at least 1.'
     _N_VALUE_TOO_HIGH = 'NewNGramIndexer is unlikely to return results when the value of n is greater than \
         the number of passed observations in either of the passed dataframes.'
@@ -193,7 +194,7 @@ class NewNGramIndexer(indexer.Indexer):
             if len(self._score) != 2:
                 raise RuntimeError(NewNGramIndexer._MISSING_HORIZONTAL_DATA)
             if self._settings['n'] == 1 and not self._settings['open-ended']:
-                raise RuntimeError(NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
+                raise RuntimeWarning(NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
 
         if self._settings['vertical'] == 'all':
