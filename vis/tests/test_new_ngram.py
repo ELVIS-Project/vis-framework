@@ -179,6 +179,17 @@ class TestNewNGramIndexer(unittest.TestCase):
         except RuntimeError as run_err:
             self.assertEqual(new_ngram.NewNGramIndexer._HORIZONTAL_OUT_OF_RANGE, run_err.args[0])
 
+    def test_init_9(self):
+        """That __init__() raises a RuntimeError when 'horizontal' observations are provided but
+        no columns are specified in the settings['horizontal']."""
+        setts = {'n': 2, 'vertical': [('0,1',)], 'brackets': False}
+        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
+        try:
+            new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
+        except RuntimeError as run_err:
+            self.assertEqual(new_ngram.NewNGramIndexer._MISSING_HORIZONTAL_SETTING, run_err.args[0])
+
+
     def test_ngram_1a(self):
         """most basic test"""
         vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
@@ -189,17 +200,7 @@ class TestNewNGramIndexer(unittest.TestCase):
         actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
-    def test_ngram_1b(self): # Perhaps we just don't need this test.
-        """like test _1a but with an extra element in "scores" and no "horizontal" assignment"""
-        vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
-        # horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
-        setts = {'n': 2, 'vertical': [('0,1',)], 'brackets': False}
-        expected = pandas.DataFrame([pandas.Series(['A B', 'B C', 'C D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
-        self.assertTrue(actual.equals(expected))
-
-    def test_ngram_1c(self):
+    def test_ngram_1b(self):
         """like test _1a but with self._settings['open-ended'] set to True."""
         vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
@@ -210,7 +211,7 @@ class TestNewNGramIndexer(unittest.TestCase):
         actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
-    def test_ngram_1d(self):
+    def test_ngram_1c(self):
         """like test _1c but with n set to 2."""
         vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
