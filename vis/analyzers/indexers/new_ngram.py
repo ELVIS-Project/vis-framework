@@ -150,6 +150,8 @@ class NewNGramIndexer(indexer.Indexer):
                         'vertical': 'all', 'continuer': '_'}
 
     _MISSING_SETTINGS = 'NewNGramIndexer requires "vertical" and "n" settings.'
+    _MISSING_HORIZONTAL_SETTING = 'If you provide a list of two DataFrames as the score, you must also \
+        specify the columns to examine in the second DataFrame with the \'horizontal\' setting.'
     _MISSING_HORIZONTAL_DATA = 'NewNGramIndexer needs a dataframe of horizontal observations if you want \
         to include a horizontal dimension in your ngrams.'
     _SUPERFLUOUS_HORIZONTAL_DATA = 'If n is set to 1 and the "open_ended" setting is set to False, no \
@@ -208,6 +210,9 @@ class NewNGramIndexer(indexer.Indexer):
                            tup in settings['horizontal'] for col_name in tup])):
                 raise RuntimeError(NewNGramIndexer._HORIZONTAL_OUT_OF_RANGE)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
+        elif len(self._score) != 1: # there is a df of horizontal observations,
+                                    # but no horizontal columns specified in settings.
+            raise RuntimeError(NewNGramIndexer._MISSING_HORIZONTAL_SETTING)
 
         if self._settings['vertical'] != 'all':
             if not all([col_name in self._score[0].columns.levels[1] for 
