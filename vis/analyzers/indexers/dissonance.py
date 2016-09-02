@@ -28,7 +28,6 @@
 """
 import pandas
 import numpy
-# import fractions as frac
 from numpy import nan  # pylint: disable=no-name-in-module
 from vis.analyzers import indexer
 
@@ -198,8 +197,7 @@ class DissonanceIndexer(indexer.Indexer):
         if prev_event not in _consonances: # The dissonance is can't be a passing tone.
             return (False,)
         elif (((dur_b == 2 and bs_b == .25) or (dur_b <= 1 and bs_b == .125) or 
-               (dur_b <= .5 and bs_b == .0625)) # or (dur_b == frac(4, 3) and bs_b == .5))
-              and dur_a >= dur_b and (y is nan or x == 1)):
+               (dur_b <= .5 and bs_b == .0625)) and dur_a >= dur_b and (y is nan or x == 1)):
             if b == 2:
                 if a == 2:
                     return (True, upper, _pass_rp_label, lower, _no_diss_label)
@@ -211,9 +209,8 @@ class DissonanceIndexer(indexer.Indexer):
                 elif a == 2:
                     return  (True, upper, _neigh_un_label, lower, _no_diss_label)
             
-        elif (((dur_y == 2 and bs_y == .25) or (dur_y <= 1 and bs_y == .125) or 
-               (dur_y <= .5 and bs_y == .0625)) # or (dur_y == frac(4, 3) and bs_y == .5))
-              and dur_x >= dur_y and (b is nan or a == 1)):
+        elif (((dur_y == 2 and bs_y == .25) or (dur_y <= 1 and bs_y == .125) 
+               or (dur_y <= .5 and bs_y == .0625)) and dur_x >= dur_y and (b is nan or a == 1)):
             if y == 2:
                 if x == 2:
                     return (True, upper, _no_diss_label, lower, _pass_rp_label)
@@ -916,7 +913,7 @@ class DissonanceIndexer(indexer.Indexer):
 
         score = noterest.NoteRestIndexer(piece).run()
 
-        v_setts = {'simple or compound': 'compound', 'quality': True}
+        v_setts = {'simple or compound': 'simple', 'quality': True}
         vints = interval.IntervalIndexer(score, v_setts).run()
 
         h_setts = {'simple or compound': 'compound', 'quality': False}
