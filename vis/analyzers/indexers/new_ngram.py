@@ -155,6 +155,14 @@ class NewNGramIndexer(indexer.Indexer):
     _SUPERFLUOUS_HORIZONTAL_DATA = 'If n is set to 1 and the "open_ended" setting is set to False, no \
         horizontal observations will be included in ngrams so you should leave the "horizontal" setting \
         blank.'
+    _HORIZONTAL_OUT_OF_RANGE = 'Not all of the specified \"horizontal\" columns are in the DataFrame of \
+        horizontal observations. If you\'re doing a query on multiple pieces, it can be convenient to pass \
+        \"all\" as the \"horizontal\" setting which dynamically selects all of the columns of the DataFrame \
+        of horizontal observations.'
+    _VERTICAL_OUT_OF_RANGE = 'Not all of the specified \"vertical\" columns are in the DataFrame of \
+        vertical observations. If you\'re doing a query on multiple pieces, it can be convenient to pass \
+        \"all\" as the \"vertical\" setting which dynamically selects all of the columns of the DataFrame \
+        of vertical observations.'
     _N_VALUE_TOO_LOW = 'NewNGramIndexer requires an "n" value of at least 1.'
     _N_VALUE_TOO_HIGH = 'NewNGramIndexer is unlikely to return results when the value of n is greater than \
         the number of passed observations in either of the passed dataframes.'
@@ -193,12 +201,20 @@ class NewNGramIndexer(indexer.Indexer):
         if self._settings['horizontal']:
             if len(self._score) != 2:
                 raise RuntimeError(NewNGramIndexer._MISSING_HORIZONTAL_DATA)
-            if self._settings['n'] == 1 and not self._settings['open-ended']:
+            elif self._settings['n'] == 1 and not self._settings['open-ended']:
                 raise RuntimeWarning(NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
+            elif (self._settings['horizontal'] not in ('lowest', 'highest') and 
+                  not all([col_name in self._score[1].columns.levels[1] for 
+                           tup in settings['horizontal'] for col_name in tup])):
+                raise RuntimeError(NewNGramIndexer._HORIZONTAL_OUT_OF_RANGE)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
 
-        if self._settings['vertical'] == 'all':
-            self._settings['vertical'] = [(x,) for x in self._score[0][self._vertical_indexer_name].columns]
+        if self._settings['vertical'] != 'all':
+            if not all([col_name in self._score[0].columns.levels[1] for 
+                        tup in settings['vertical'] for col_name in tup]):
+                raise RuntimeError(NewNGramIndexer._VERTICAL_OUT_OF_RANGE)
+        else: # i.e. self._settings['vertical'] == 'all'
+            self._settings['vertical'] = [(x,) for x in self._score[0].columns.levels[1]]
 
         if self._settings['horizontal'] == 'lowest':
             temp = [list(map(int, x[0].split(','))) for x in self._settings['vertical']]
