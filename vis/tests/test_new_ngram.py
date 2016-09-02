@@ -107,15 +107,15 @@ class TestNewNGramIndexer(unittest.TestCase):
             self.assertEqual(new_ngram.NewNGramIndexer._MISSING_SETTINGS, run_err.args[0])
 
     def test_init_5(self):
-        """that __init__() fails when horizontal observations are provided and 'n' equals 1."""
+        """that __init__() fails when horizontal observations are provided and 'n' equals 1
+        and 'open-ended' is False."""
         # pylint: disable=protected-access
-        setts = {'n': 1, 'vertical': ['0,1'], 'horizontal': 'banana', 'brackets': True,
-                 'terminator': 'RoboCop', 'continuer': 'Alex Murphy', 'open-ended': True}
+        setts = {'n': 1, 'vertical': ['0,1'], 'horizontal': ['0'], 'open-ended': True}
         self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
         try:
             new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
-        except RuntimeError as run_err:
-            self.assertEqual(new_ngram.NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA, run_err.args[0])
+        except RuntimeWarning as run_warn:
+            self.assertEqual(new_ngram.NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA, run_warn.args[0])
 
     def test_init_6a(self):
         """that __init__() manages the horizontal setting set to 'highest' correctly."""
