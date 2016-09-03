@@ -144,8 +144,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         self.assertRaises(RuntimeWarning, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
         try:
             new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
-        except RuntimeWarning as run_err:
-            self.assertEqual(new_ngram.NewNGramIndexer._N_VALUE_TOO_HIGH, run_err.args[0])
+        except RuntimeWarning as run_warn:
+            self.assertEqual(new_ngram.NewNGramIndexer._N_VALUE_TOO_HIGH, run_warn.args[0])
 
     def test_init_7b(self):
         """that __init__() raises a RuntimeWarning when n (+1 if 'open-ended' setting is True) is 
@@ -188,6 +188,15 @@ class TestNewNGramIndexer(unittest.TestCase):
             new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
         except RuntimeError as run_err:
             self.assertEqual(new_ngram.NewNGramIndexer._MISSING_HORIZONTAL_SETTING, run_err.args[0])
+
+    def test_init_10(self):
+        """That __init__() raises a RuntimeWarning when 'align' setting is improperly set."""
+        setts = {'n': 2, 'vertical': [('0,1',)], 'align': 'saperlipopette'}
+        self.assertRaises(RuntimeWarning, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
+        try:
+            new_ngram.NewNGramIndexer((VERT_DF,), setts)
+        except RuntimeWarning as run_warn:
+            self.assertEqual(new_ngram.NewNGramIndexer._WRONG_ALIGN_SETTING, run_warn.args[0])
 
 
     def test_ngram_1a(self):
@@ -233,12 +242,22 @@ class TestNewNGramIndexer(unittest.TestCase):
         actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
-    def test_ngram_3(self):
+    def test_ngram_3a(self):
         """test _1 but n=3"""
         vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 3, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a B b C', 'B b C c D'])],
+                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
+        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+        self.assertTrue(actual.equals(expected))
+
+    def test_ngram_3b(self):
+        """test _3a but 'align' == 'right'"""
+        vertical = df_maker([pandas.Series(['A', 'B', 'C', 'D'])], VERT_DF.columns) 
+        horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
+        setts = {'n': 3, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False, 'align': 'r'}
+        expected = pandas.DataFrame([pandas.Series(['A a B b C', 'B b C c D'], index=[2, 3])],
                                     index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
         actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))

@@ -121,7 +121,8 @@ class NewNGramIndexer(indexer.Indexer):
 
     required_score_type = 'pandas.DataFrame'
 
-    possible_settings = ['horizontal', 'vertical', 'n', 'open-ended', 'brackets', 'terminator', 'continuer']
+    possible_settings = ['horizontal', 'vertical', 'n', 'open-ended', 'brackets', 'terminator',
+                         'continuer', 'align']
     """
     A list of possible settings for the :class:`NewNGramIndexer`.
 
@@ -147,7 +148,7 @@ class NewNGramIndexer(indexer.Indexer):
     """
 
     default_settings = {'brackets': True, 'horizontal': [], 'open-ended': False, 'terminator': [], 
-                        'vertical': 'all', 'continuer': '_'}
+                        'vertical': 'all', 'continuer': '_', 'align': 'left'}
 
     _MISSING_SETTINGS = 'NewNGramIndexer requires "vertical" and "n" settings.'
     _MISSING_HORIZONTAL_SETTING = 'If you provide a list of two DataFrames as the score, you must also \
@@ -168,6 +169,7 @@ class NewNGramIndexer(indexer.Indexer):
     _N_VALUE_TOO_LOW = 'NewNGramIndexer requires an "n" value of at least 1.'
     _N_VALUE_TOO_HIGH = 'NewNGramIndexer is unlikely to return results when the value of n is greater than \
         the number of passed observations in either of the passed dataframes.'
+    _WRONG_ALIGN_SETTING = 'Incorrect \'align\' setting passed. Please use \'left\', \'right\', \'l\', or \'r\'.'
 
     def __init__(self, score, settings=None):
         """
@@ -227,6 +229,10 @@ class NewNGramIndexer(indexer.Indexer):
         elif self._settings['horizontal'] == 'highest':
             temp = [list(map(int, x[0].split(','))) for x in self._settings['vertical']]
             self._settings['horizontal'] = [(str(min(y)),) for y in temp]
+
+        if self._settings['align'] not in ('left', 'right', 'L', 'R', 'l', 'r', 'Left',
+                                           'Right', 'LEFT', 'RIGHT'):
+            raise RuntimeWarning(NewNGramIndexer._WRONG_ALIGN_SETTING)
 
     def run(self):
         """
@@ -310,6 +316,13 @@ class NewNGramIndexer(indexer.Indexer):
 
             # Make a dataframe which each vertical or horizontal component of the ngrams is a column
             ngram_df = pandas.concat(chunks, axis=1)
+
+            # Apply the right alignment if the user asked for it.
+            if (n > 1 and self._settings['align'] in ('right', 'Right', 'RIGHT', 'r', 'R')):
+                new_index = ngram_df.index[n-1:]
+                # It doesn't really matter what we put on the end because this will get cut off anyway,
+                # but the values do always have to increase.
+                ngram_df.index = new_index.append(pandas.Index([new_index[-1] + x for x in range(1, n)]))
 
             # Get rid of the observations that contain any of the terminators and trim the trailing rows that contain nans
             if self._settings['terminator']:
