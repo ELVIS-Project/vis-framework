@@ -282,7 +282,11 @@ class Indexer(object):
             from release 1.1.0, this is no longer necessary, and you should avoid it. In a future
             release, the :class:`IndexedPiece` class will depend on indexers following these rules.
         """
-        result = self._score.applymap(self._indexer_func)
+        # This if statement is necessary because of a pandas bug, see pandas issue #8222.
+        if len(self._score.index) == 0: # If parts have no note, rest, or chord events in them
+            result = self._score.copy()
+        else: # This is the regular case.
+            result = self._score.applymap(self._indexer_func)
         labels = [six.u(str(x)) for x in range(len(result.columns))]
         return self.make_return(labels, result)
 
