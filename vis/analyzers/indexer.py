@@ -282,7 +282,10 @@ class Indexer(object):
             from release 1.1.0, this is no longer necessary, and you should avoid it. In a future
             release, the :class:`IndexedPiece` class will depend on indexers following these rules.
         """
-        pass
+        result = self._score.applymap(self._indexer_func)
+        labels = [six.u(str(x)) for x in range(len(result.columns))]
+        return self.make_return(labels, result)
+
 
     def _do_multiprocessing(self, combos, index_tied=False, on=True):
         """
@@ -347,7 +350,7 @@ class Indexer(object):
             as described in the indexer subclass documentation.
         :type labels: list of six.string_types
         :param indices: The results of the indexer.
-        :type indices: list of :class:`pandas.Series`.
+        :type indices: list of :class:`pandas.Series` or a :class:`pandas.DataFrame`
 
         :returns: A :class:`DataFrame` with the appropriate :class:`~pandas.MultiIndex` required
             by the :meth:`Indexer.run` method signature.
@@ -355,16 +358,20 @@ class Indexer(object):
 
         :raises: :exc:`IndexError` if the number of labels and indices does not match.
         """
-        if len(labels) != len(indices):
-            raise IndexError(Indexer._MAKE_RETURN_INDEX_ERR)
+        if isinstance(indices, pandas.DataFrame):
+            ret = indices
+        else:
+            if len(labels) != len(indices):
+                raise IndexError(Indexer._MAKE_RETURN_INDEX_ERR)
+            # the levels argument is necessary below even though it just gets written over by the 
+            # multi_index because it ensures that even empty series will be included in the dataframe.
+            ret = pandas.concat(indices, levels=labels, axis=1)
+
         # make the indexer's name using filename and classname (but not full class name)
         my_mod = six.u(str(self.__module__))[six.u(str(self.__module__)).rfind('.') + 1:]
         my_class = six.u(str(self.__class__))[six.u(str(self.__class__)).rfind('.'):-2]
         my_name = my_mod + my_class
 
-        # the levels argument is necessary below even though it just gets written over by the 
-        # multi_index because it ensures that even empty series will be included in the dataframe.
-        ret = pandas.concat(indices, levels=labels, axis=1)
         # Apply the multi_index as the column labels.
         iterables = (my_name, labels)
         multi_index = pandas.MultiIndex.from_product(iterables, names = ('Indexer', 'Parts'))
