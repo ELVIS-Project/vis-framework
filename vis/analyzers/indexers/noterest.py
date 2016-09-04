@@ -34,23 +34,41 @@ import pandas
 from music21 import pitch, note, chord
 from vis.analyzers import indexer
 
-def unpack_chords(df):
+def noterest_ind_func(event):
     """
-    The c in nrc in methods like _get_m21_nrc_objs() stands for chord. This method unpacks music21 
-    chords into a list of their constituent pitch objects. These pitch objects can be queried for 
-    their nameWithOctave in the same way that note objects can in music21.
-    This works by broadcasting the list of pitches in each chord object in each part's elements to 
-    a dataframe of note, pitch, and rest objects. So each part that had chord objects in it gets 
-    represented as a dataframe instead of just a series. Then the series from the parts that didn't 
-    have chords in them get concatenated with the parts that did, resulting in potentially more 
-    columns in the final dataframe then there are parts in the score.
-    """
-    post = pandas.concat([pandas.DataFrame(df.iloc[:,x].dropna().tolist(),
-                                           index=df.iloc[:,x].dropna().index)
-                         for x in range(len(df.columns))], axis=1)
-    return post
+    Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
+    :class:`~music21.note.Rest` objects into a string and convert the :class:`~music21.chord.Chord` 
+    objects into a list of the strings of their consituent pitch objects. The results must be 
+    contained in a tuple or a list so that chords can later be unpacked into different 1-voice 
+    strands.
 
-def indexer_func(event):
+    :param event: A music21 note, rest, or chord object which get queried for their names.
+    :type event: A music21 note, rest, or chord object.
+
+    :returns: A one-tuple containing a string representation of the note or rest, or if the event 
+        is a chord, a list of the strings of the names of its constituent pitches.
+    :rtype: 1-tuple of str or list of strings
+
+    **Examples:**
+    >>> from noterest.py import indexer_func
+    >>> from music21 import note, 
+    >>> indexer_func(note.Note('C4'))
+    (u'C4',)
+    >>> indexer_func(note.Rest())
+    (u'Rest',)
+    >>> indexer_func(chord.Chord([note.Note('C4'), note.Note('E5')]))
+    [u'C4', u'E5']
+    """
+    if isinstance(event, float):
+        return event
+    elif event.isNote:
+        return six.u(event.nameWithOctave)
+    elif event.isRest:
+        return u'Rest'
+    else: # The event is a chord
+        return six.u(event.pitches[0].nameWithOctave)
+
+def multistop_ind_func(event):
     """
     Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
     :class:`~music21.note.Rest` objects into a string and convert the :class:`~music21.chord.Chord` 
@@ -84,6 +102,22 @@ def indexer_func(event):
     else: # The event is a chord
         return [six.u(p.nameWithOctave) for p in event.pitches]
 
+def unpack_chords(df):
+    """
+    The c in nrc in methods like _get_m21_nrc_objs() stands for chord. This method unpacks music21 
+    chords into a list of their constituent pitch objects. These pitch objects can be queried for 
+    their nameWithOctave in the same way that note objects can in music21.
+    This works by broadcasting the list of pitches in each chord object in each part's elements to 
+    a dataframe of note, pitch, and rest objects. So each part that had chord objects in it gets 
+    represented as a dataframe instead of just a series. Then the series from the parts that didn't 
+    have chords in them get concatenated with the parts that did, resulting in potentially more 
+    columns in the final dataframe then there are parts in the score.
+    """
+    post = pandas.concat([pandas.DataFrame(df.iloc[:,x].dropna().tolist(),
+                                           index=df.iloc[:,x].dropna().index)
+                         for x in range(len(df.columns))], axis=1)
+    return post
+
 
 class NoteRestIndexer(indexer.Indexer):
     """
@@ -104,7 +138,30 @@ class NoteRestIndexer(indexer.Indexer):
         """
         super(NoteRestIndexer, self).__init__(score, None)
         self._types = ('Note', 'Rest', 'Chord')
-        self._indexer_func = indexer_func
+        self._indexer_func = noterest_ind_func
+
+    # NB: The noterest indexer inherits the run() method from indexer.py
+
+class MultiStopIndexer(indexer.Indexer):
+    """
+    Index :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects in a
+    :class:`~music21.stream.Part`.
+
+    :class:`Rest` objects become ``'Rest'``, and :class:`Note` objects become the string-format
+    version of their :attr:`~music21.note.Note.nameWithOctave` attribute.
+    """
+
+    required_score_type = 'pandas.DataFrame'
+
+    def __init__(self, score):
+        """
+        :param score: A dataframe of the note, rest, and chord objects in a piece.
+        :type score: pandas Dataframe
+        :raises: :exc:`RuntimeError` if ``score`` is not a pandas Dataframe.
+        """
+        super(MultiStopIndexer, self).__init__(score, None)
+        self._types = ('Note', 'Rest', 'Chord')
+        self._indexer_func = multistop_ind_func
 
     def run(self):
         """
@@ -125,5 +182,4 @@ class NoteRestIndexer(indexer.Indexer):
         axis_labels = ('Indexer', 'Parts') # Axis names for resultant dataframe.
         result.columns = pandas.MultiIndex.from_product((('noterest.NoteRestIndexer',), # Apply multi-index to df.
             [str(x) for x in range(len(result.columns))]), names=axis_labels)
-
         return result
