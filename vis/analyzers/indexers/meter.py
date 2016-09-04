@@ -36,7 +36,6 @@ Indexers for metric concerns.
 import pandas
 from vis.analyzers import indexer
 
-axis_labels = ('Indexer', 'Parts') # Axis names for resultant dataframe.
 
 def beatstrength_ind_func(event):
     """
@@ -147,9 +146,7 @@ class DurationIndexer(indexer.Indexer):
                 new = indx.insert(len(indx), self._part_streams[part].highestTime)
                 durations.append(pandas.Series((new[1:] - indx), index=indx))
             result = pandas.concat(durations, axis=1)
-        result.columns = pandas.MultiIndex.from_product((('meter.DurationIndexer',), # Apply multi-index to df.
-            [str(x) for x in range(len(result.columns))]), names=axis_labels)
-        return result
+        return self.make_return([str(x) for x in range(len(result.columns))], result)
 
 
 class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
