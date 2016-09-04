@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/meter.py
 # Purpose:                Indexers for metric concerns.
 #
-# Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan
+# Copyright (C) 2013-2016 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -93,30 +93,7 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
         self._types = ('Note', 'Rest')
         self._indexer_func = beatstrength_ind_func
 
-    def run(self):
-        """
-        Make a new index of the piece.
-
-        :returns: The new indices. Refer to the example below. Note that each item is a float,
-        rather than the usual basestring.
-        :rtype: :class:`pandas.DataFrame`
-
-        **Example:**
-
-        import music21
-        from vis.analyzers.indexers import meter
-
-        score = music21.converter.parse('example.xml')
-        notebeat = meter.NoteBeatStrengthIndexer(score).run()
-        print(notebeat)
-        """
-        if len(self._score.index) == 0: # If parts have no note, rest, or chord events in them
-            result = self._score.copy()
-        else: # This is the normal case
-            result = self._score.applymap(self._indexer_func) # Do indexing.
-        result.columns = pandas.MultiIndex.from_product((('meter.NoteBeatStrengthIndexer',), # Apply multi-index to df.
-            [str(x) for x in range(len(result.columns))]), names=axis_labels)
-        return result
+    # NB: This indexer inherits its run() method from indexer.py
 
 
 class DurationIndexer(indexer.Indexer):
@@ -201,21 +178,4 @@ class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
         self._types = ('Measure',)
         self._indexer_func = measure_ind_func
 
-    def run(self):
-        """
-        Make a new index of the piece where the values are the measure numbers in each part and the 
-        index contains the offsets at which those measures begin.
-
-        :returns: The measure number of each measure in each part in a score. Note that
-            each item is an integer, rather than the usual basestring. The index contains the
-            offsets at which the observed measures begin.
-        :rtype: :class:`pandas.DataFrame`
-        """
-        if len(self._score.index) == 0: # If parts have no measure objects in them
-            result = self._score.copy()
-        else: # This is the normal case
-            result = self._score.dropna(how='all').applymap(self._indexer_func) # Do indexing.
-        result.columns = pandas.MultiIndex.from_product((('meter.MeasureIndexer',), # Apply multi-index to df.
-            [str(x) for x in range(len(result.columns))]), names=axis_labels)
-
-        return result
+    # NB: This indexer inherits its run() method from indexer.py
