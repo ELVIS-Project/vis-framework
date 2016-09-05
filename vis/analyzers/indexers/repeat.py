@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/repeat.py
 # Purpose:                Indexers that somehow consider repetition.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014, 2016 Christopher Antila and Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,12 +24,12 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
+.. codeauthor:: Alexander Morgan
 
 Indexers that consider repetition in any way.
 """
 
 import six
-from numpy import nan
 from vis.analyzers import indexer
 
 
