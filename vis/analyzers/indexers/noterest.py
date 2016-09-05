@@ -115,8 +115,8 @@ def unpack_chords(df):
     """
     post = pandas.concat([pandas.DataFrame(df.iloc[:,x].dropna().tolist(),
                                            index=df.iloc[:,x].dropna().index)
-                         for x in range(len(df.columns))], axis=1)
-    return post
+                          for x in range(len(df.columns))], axis=1)
+    return post.fillna(float('nan')) # without this fillna call, some na values are None's.
 
 
 class NoteRestIndexer(indexer.Indexer):
