@@ -260,5 +260,5 @@ class FilterByOffsetIndexer(indexer.Indexer):
                     step = int(self._settings[u'quarterLength'] * 1000)
                     off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
                     post.append(part.reindex(index=off_list, method=self._settings['method']))
-        post = self.make_return([six.u(str(x)) for x in range(len(post))], [x for x in post])
+        post = self.make_return([six.u(str(x)) for x in range(len(post))], post)
         return post
