@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/active_voices.py
 # Purpose:                Active voices indexer
 #
-# Copyright (C) 2016 Marina Borsodi-Benson
+# Copyright (C) 2016 Marina Borsodi-Benson, and Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
+.. codeauthor:: Alexander Morgan
 
 """
 
@@ -73,12 +74,10 @@ class ActiveVoicesIndexer(indexer.Indexer):
         if settings is not None:
             self._settings.update(settings)
 
-        if self._settings['attacked']:
-            self.score = score
-        else:
-            self.score = score.fillna(method='ffill')
-
         super(ActiveVoicesIndexer, self).__init__(score, None)
+
+        if not self._settings['attacked']:
+            self._score = score.fillna(method='ffill')
 
     def run(self):
         """
@@ -97,14 +96,9 @@ class ActiveVoicesIndexer(indexer.Indexer):
         print(av)
         """
 
-        post = self.score.applymap(indexer1)
+        post = self._score.applymap(indexer1)
         most = post.sum(axis=1)
-
-        indices = most.index.tolist()
         if not self._settings['show_all']:
-            for n, ind in reversed(list(enumerate(most))):
-                if ind == most.iloc[n - 1]:
-                    most = most.drop(indices[n])
+            most = most[most != most.shift(1)]
 
-        result = pandas.DataFrame({'Active Voices': most})
-        return self.make_return(result.columns.values, [result[name] for name in result.columns])
+        return self.make_return(('Active Voices',), (most,))
