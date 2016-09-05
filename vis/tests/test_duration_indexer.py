@@ -110,7 +110,7 @@ class TestDurationIndexer(unittest.TestCase):
         expected = pandas.DataFrame({'0': pandas.Series()})
         test_part = stream.Part()
         # add stuff to the test_part
-        for i in range(1000):
+        for i in range(10):
             add_me = clef.BassClef()
             add_me.offset = i
             test_part.append(add_me)
