@@ -79,23 +79,7 @@ class FilterByRepeatIndexer(indexer.Indexer):
         repeats = repeat.FilterByRepeatIndexer(notes).run()
         print(repeats)
         """
-        # I'm relying on pandas' efficiency. In the future, maybe we should use multiprocessing?
-        post = []
-        for part in self._score:
-            if len(part.index) < 2:
-                post.append(part)
-                continue
-            axe_me = []
-            prev_off = None
-            for offset in list(part.index):
-                if prev_off is None:
-                    pass  # prevent the other tests from being tried
-                elif part[offset] == part[prev_off]:
-                    axe_me.append(offset)
-                prev_off = offset
-            for axed in axe_me:
-                part[axed] = nan
-            post.append(part.dropna())
+        post = [part[part != part.shift(1)] for part in self._score]
 
         # prepare the proper return type
         combinations = [[x] for x in range(len(self._score))]
