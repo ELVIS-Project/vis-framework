@@ -70,9 +70,9 @@ def getContour(notes):
         notes = []
 
         for x in range(len(contour)):
-            if (music21.interval.getAbsoluteHigherNote(contour[i], contour[x]) == contour[i]) and 
+            if ((music21.interval.getAbsoluteHigherNote(contour[i], contour[x]) == contour[i]) and 
                 (contour[i].nameWithOctave != contour[x].nameWithOctave) and 
-                (contour[x].nameWithOctave not in notes):
+                (contour[x].nameWithOctave not in notes)):
                 notes.append(contour[x].nameWithOctave)
                 cseg[i] += 1
 
