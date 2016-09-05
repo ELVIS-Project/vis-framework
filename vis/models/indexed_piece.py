@@ -36,6 +36,7 @@ import requests
 import warnings
 import json
 import music21
+import music21.chord as chord
 import pandas
 import numpy
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
@@ -172,6 +173,50 @@ def _type_func_measure(event):
     if 'Measure' in event.classes:
         return event
     return float('nan')
+
+def _type_func_voice(event):
+    if 'Voice' in event.classes:
+        return event
+    return float('nan')
+
+def _note_str(event):
+    if isinstance(event, float):
+        return event
+    elif event.isNote:
+        return ((event.nameWithOctave),)
+    elif event.isRest:
+        return float('nan')
+    else: # The event is a chord
+        return [(p.nameWithOctave) for p in event.pitches]
+
+def _reinsert_rests(event):
+    if isinstance(event, float):
+        return music21.note.Rest()
+    return event
+
+# def _sort_descending(ch):
+#     ch.pitches = reversed(ch.sortAscending().pitches)
+#     return ch
+
+def _combine_voices(ser, part):
+    temp = []
+    indecies = [0]
+    voices = part.apply(_type_func_voice).dropna()
+    if len(voices.index) <= 1:
+        return ser
+    for voice in voices:
+        indecies.append(len(voice) + indecies[-1])
+        temp.append(ser.iloc[indecies[-2] : indecies[-1]])
+    df1 = pandas.concat(temp, axis=1)
+    df2 = df1.applymap(_note_str)
+    res = [chord.Chord(reversed(chord.Chord([note for lyst in df2.ix[x].dropna() for note in 
+                                            lyst]).sortAscending().pitches)) for x in df2.index]
+    # res = [chord.Chord([note for lyst in df2.ix[x].dropna() for note in lyst]) for x in df2.index]
+    res = pandas.Series(res, index=df2.index)
+    # res = res.apply(_sort_descending)
+    # res = res.apply(reversed)
+    # res = res.apply(chord.Chord)
+    return res.apply(_reinsert_rests)
 
 def _attach_before(df):
     re_indexed = []
@@ -447,6 +492,8 @@ class IndexedPiece(object):
             sers = [s.apply(_type_func_noterest).dropna() for s in self._get_m21_objs()]
             for part_number, ser in enumerate(sers): # and index  the offsets
                 ser.index = ser.apply(_get_offset, args=(self._get_part_streams()[part_number],))
+                if not ser.index.is_unique: # the index is often not unique if there is an embedded voice
+                    sers[part_number] = _combine_voices(ser, self._get_m21_objs()[part_number])
             self._analyses['m21_nrc_objs'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_nrc_objs']
 
@@ -464,6 +511,11 @@ class IndexedPiece(object):
         if 'noterest' not in self._analyses:
             self._analyses['noterest'] = noterest.NoteRestIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['noterest']
+
+    def _get_multistop(self):
+        if 'multistop' not in self._analyses:
+            self._analyses['multistop'] = noterest.MultiStopIndexer(self._get_m21_nrc_objs_no_tied()).run()
+        return self._analyses['multistop']
 
     def _get_duration(self):
         if 'duration' not in self._analyses:
