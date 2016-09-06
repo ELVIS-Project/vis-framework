@@ -183,39 +183,33 @@ def _note_str(event):
     if isinstance(event, float):
         return event
     elif event.isNote:
-        return ((event.nameWithOctave),)
+        return (music21.pitch.Pitch(event.nameWithOctave),)
     elif event.isRest:
         return float('nan')
     else: # The event is a chord
-        return [(p.nameWithOctave) for p in event.pitches]
+        return event.pitches
 
 def _reinsert_rests(event):
     if isinstance(event, float):
         return music21.note.Rest()
     return event
 
-# def _sort_descending(ch):
-#     ch.pitches = reversed(ch.sortAscending().pitches)
-#     return ch
-
 def _combine_voices(ser, part):
     temp = []
     indecies = [0]
     voices = part.apply(_type_func_voice).dropna()
-    if len(voices.index) <= 1:
+    if len(voices.index) < 1:
         return ser
     for voice in voices:
         indecies.append(len(voice) + indecies[-1])
         temp.append(ser.iloc[indecies[-2] : indecies[-1]])
-    df1 = pandas.concat(temp, axis=1)
-    df2 = df1.applymap(_note_str)
-    res = [chord.Chord(reversed(chord.Chord([note for lyst in df2.ix[x].dropna() for note in 
-                                            lyst]).sortAscending().pitches)) for x in df2.index]
-    # res = [chord.Chord([note for lyst in df2.ix[x].dropna() for note in lyst]) for x in df2.index]
-    res = pandas.Series(res, index=df2.index)
-    # res = res.apply(_sort_descending)
-    # res = res.apply(reversed)
-    # res = res.apply(chord.Chord)
+    # Put each voice in separate columns in a dataframe.
+    pdb.set_trace()
+    df = pandas.concat(temp, axis=1).applymap(_get_pitches)
+    # Condense the voices (df's columns) into chord objects in a series.
+    res = df.apply(lambda x: chord.Chord(sorted([pitch for lyst in x.dropna() for pitch in lyst], reverse=True)), axis=1)
+    # Note that if a part has two voices, and one voice has a note or a chord, and the other a rest, 
+    # only the rest will be lost even after calling _reinsert_rests().
     return res.apply(_reinsert_rests)
 
 def _attach_before(df):
