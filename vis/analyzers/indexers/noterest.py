@@ -36,11 +36,10 @@ from vis.analyzers import indexer
 
 def noterest_ind_func(event):
     """
-    Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
-    :class:`~music21.note.Rest` objects into a string and convert the :class:`~music21.chord.Chord` 
-    objects into a list of the strings of their consituent pitch objects. The results must be 
-    contained in a tuple or a list so that chords can later be unpacked into different 1-voice 
-    strands.
+    Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note`, 
+    :class:`~music21.note.Rest`, and :class:`~music21.chord.Chord`objects into strings. For the 
+    chords, only the first pitch of the chord is kept which is usually the highest pitch. If you 
+    want to keep all the pitches in chords, consider using the :class:`MultiStopIndexer` instead.
 
     :param event: A music21 note, rest, or chord object which get queried for their names.
     :type event: A music21 note, rest, or chord object.
@@ -53,11 +52,11 @@ def noterest_ind_func(event):
     >>> from noterest.py import indexer_func
     >>> from music21 import note, 
     >>> indexer_func(note.Note('C4'))
-    (u'C4',)
+    u'C4'
     >>> indexer_func(note.Rest())
-    (u'Rest',)
-    >>> indexer_func(chord.Chord([note.Note('C4'), note.Note('E5')]))
-    [u'C4', u'E5']
+    u'Rest'
+    >>> indexer_func(chord.Chord([note.Note('E5'), note.Note('C4')]))
+    u'E5'
     """
     if isinstance(event, float):
         return event
@@ -70,7 +69,7 @@ def noterest_ind_func(event):
 
 def multistop_ind_func(event):
     """
-    Used internally by :class:`NoteRestIndexer`. Convert :class:`~music21.note.Note` and
+    Used internally by :class:`MultiStopIndexer`. Convert :class:`~music21.note.Note` and
     :class:`~music21.note.Rest` objects into a string and convert the :class:`~music21.chord.Chord` 
     objects into a list of the strings of their consituent pitch objects. The results must be 
     contained in a tuple or a list so that chords can later be unpacked into different 1-voice 
@@ -126,6 +125,13 @@ class NoteRestIndexer(indexer.Indexer):
 
     :class:`Rest` objects become ``'Rest'``, and :class:`Note` objects become the string-format
     version of their :attr:`~music21.note.Note.nameWithOctave` attribute.
+
+    This indexer is meant to be called indirectly with a call to get_data on an indexed piece in the 
+    manner of the following example.
+
+    **Example:**
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ip.get_data([noterest.NoteRestIndexer])
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -144,11 +150,19 @@ class NoteRestIndexer(indexer.Indexer):
 
 class MultiStopIndexer(indexer.Indexer):
     """
-    Index :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects in a
-    :class:`~music21.stream.Part`.
+    Index :class:`~music21.note.Note`, :class:`~music21.note.Rest`, and 
+    :class:`~music21.chord.Chord` objects in a :class:`~pandas.DataFrame`.
 
     :class:`Rest` objects become ``'Rest'``, and :class:`Note` objects become the string-format
     version of their :attr:`~music21.note.Note.nameWithOctave` attribute.
+    :class:`~music21.chord.Chord` objects get unpacked into their constituent pitches.
+
+    This indexer is meant to be called indirectly with a call to get_data on an indexed piece in the 
+    manner of the following example.
+
+    **Example:**
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ip.get_data([noterest.MultiStopIndexer])
     """
 
     required_score_type = 'pandas.DataFrame'
