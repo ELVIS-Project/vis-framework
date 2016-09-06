@@ -606,9 +606,6 @@ class IndexedPiece(object):
         if 'm21_measure_objs' not in self._analyses:
             # filter for just the measure objects in each part of this indexed piece
             sers = [s.apply(_type_func_measure).dropna() for s in self._get_m21_objs()]
-            # add the index to each part
-            for part_number, ser in enumerate(sers): # and index  the offsets
-                ser.index = ser.apply(_get_offset, args=(self._get_part_streams()[part_number],))
             self._analyses['m21_measure_objs'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_measure_objs']
 
