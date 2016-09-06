@@ -45,6 +45,7 @@ from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, meter, interval, dissonance
 import pdb
+import time
 
 
 # the title given to a piece when we cannot determine its title
@@ -146,40 +147,47 @@ def _find_part_names(the_score):
     return post
 
 def _get_offset(event, part):
-    """
-    This method finds the offset of a music21 event. The first part of this equation is the offset 
-    of the beginning of the event's containing measure, and the second is the offset from the 
-    beginning of that measure to the event.
+    """This method finds the offset of a music21 event. There are other ways to get the offset of a 
+    music21 object, but this is the fastest and most reliable.
+
+    :param event: music21 object contained in a music21 part stream.
+    :param part: music21 part stream.
     """
     for y in event.contextSites():
         if y[0] is part:
             return y[1]
 
 def _eliminate_ties(event):
-    """
-    Gets rid of the notes and rests that have non-start ties. This should be used for the noterest, 
-    and beatstrength indexers.
-    """
+    """Gets rid of the notes and rests that have non-start ties. This is used internally for 
+    noterest and beatstrength indexing."""
     if hasattr(event, 'tie') and event.tie is not None and event.tie.type != 'start':
         return float('nan')
     return event
 
 def _type_func_noterest(event):
+    """Used internally by _get_m21_nrc_objs() to filter for just the 'Note', 'Rest', and 'Chord' 
+    objects in a piece."""
     if any([typ in event.classes for typ in _noterest_types]):
         return event
     return float('nan')
 
 def _type_func_measure(event):
+    """Used internally by _get_m21_measure_objs() to filter for just the 'Measure' objects in a 
+    piece."""
     if 'Measure' in event.classes:
         return event
     return float('nan')
 
 def _type_func_voice(event):
+    """Used internally by _combine_voices() to filter for just the 'Voice' objects in a part."""
     if 'Voice' in event.classes:
         return event
     return float('nan')
 
-def _note_str(event):
+def _get_pitches(event):
+    """Used internally by _combine_voices() to represent all the note and chord objects of a part as 
+    music21 pitches. Rests get discarded in this stage, but later re-instated with 
+    _reinsert_rests()."""
     if isinstance(event, float):
         return event
     elif event.isNote:
@@ -190,11 +198,15 @@ def _note_str(event):
         return event.pitches
 
 def _reinsert_rests(event):
+    """Used internally by _combine_voices() to put rests back into its intermediate representation 
+    of a piece which had to temporarily remove the rests."""
     if isinstance(event, float):
         return music21.note.Rest()
     return event
 
 def _combine_voices(ser, part):
+    """Used internally by _get_m21_nrc_objs() to combine the voices of a single part into one 
+    pandas.Series of music21 chord objects."""
     temp = []
     indecies = [0]
     voices = part.apply(_type_func_voice).dropna()
@@ -213,6 +225,10 @@ def _combine_voices(ser, part):
     return res.apply(_reinsert_rests)
 
 def _attach_before(df):
+    """Used internally by _get_horizontal_interval() to change the index values of the cached 
+    results of the interval.HorizontalIntervalIndexer so that they start on 0.0 instead of whatever 
+    value they start on. This shift makes the index values correspond to the first of two notes in 
+    a horizontal interval in any given voice rather than that of the second."""
     re_indexed = []
     for x in range(len(df.columns)):
         ser = df.iloc[:, x].dropna()
@@ -443,6 +459,7 @@ class IndexedPiece(object):
             self._metadata[field] = value
 
     def _get_part_streams(self):
+        """Returns a list of the part streams in this indexed_piece."""
         if 'part_streams' not in self._analyses:
             self._analyses['part_streams'] = self._import_score(known_opus=self._known_opus).parts
         return self._analyses['part_streams']
@@ -450,7 +467,7 @@ class IndexedPiece(object):
     def _get_m21_objs(self):
         """
         Return the all the music21 objects found in the piece. This is a list of pandas.Series 
-        where each series contains the events in one voice. It is not concatenated into a 
+        where each series contains the events in one part. It is not concatenated into a 
         dataframe at this stage because this step should be done after filtering for a certain
         type of event in order to get the proper index.
 
@@ -465,63 +482,82 @@ class IndexedPiece(object):
         """
         if 'm21_objs' not in self._analyses:
             # save the results as a list of series in the indexed_piece attributes
-            self._analyses['m21_objs'] = [pandas.Series(x.recurse()) for x in self._get_part_streams()]
+            sers =[]
+            for p in self._get_part_streams():
+                ser = pandas.Series(p.recurse())
+                ser.index = ser.apply(_get_offset, args=(p,))
+                sers.append(ser)
+            self._analyses['m21_objs'] = sers
         return self._analyses['m21_objs']
 
     def _get_m21_nrc_objs(self):
         """
         This method takes a list of pandas.Series of music21 objects in each part in a piece and
         filters them to reveal just the 'Note', 'Rest', and 'Chord' objects. It then aligns these
-        events with their offsets, and returns a list of the altered series. In the list 
-        comprehension, the variable sers is the resultant list of series, and s corresponds to each 
-        series in that list. The difference between this method and the _get_m21_nr_objs() method is 
-        that the result of this one still has the chord objects, whereas the other method unpacks 
-        them into their containing objects.
+        events with their offsets, and returns a pandas dataframe where each column has the events 
+        of a single part.
 
-        :returns: The note, rest, and chord music21 objects in each part of a piece.
-        :rtype: A list of pandas.Series of music21 note, rest, and chord objects.
+        :returns: The note, rest, and chord music21 objects in each part of a piece, aligned with 
+            their offsets.
+        :rtype: A pandas.DataFrame of music21 note, rest, and chord objects and NaNs.
         """
         if 'm21_nrc_objs' not in self._analyses:
-            # get rid of all m21 objects that aren't notes, rests, or chords
+            # get rid of all m21 objects that aren't notes, rests, or chords in each part series
             sers = [s.apply(_type_func_noterest).dropna() for s in self._get_m21_objs()]
-            for part_number, ser in enumerate(sers): # and index  the offsets
-                ser.index = ser.apply(_get_offset, args=(self._get_part_streams()[part_number],))
+            for i, ser in enumerate(sers): # and index  the offsets
                 if not ser.index.is_unique: # the index is often not unique if there is an embedded voice
-                    sers[part_number] = _combine_voices(ser, self._get_m21_objs()[part_number])
+                    sers[i] = _combine_voices(ser, self._get_m21_objs()[i])
             self._analyses['m21_nrc_objs'] = pandas.concat(sers, axis=1)
         return self._analyses['m21_nrc_objs']
 
     def _get_m21_nrc_objs_no_tied(self):
+        """Used internally by _get_noterest() and _get_multistop(). Returns a pandas dataframe where 
+        each column corresponds to one part in the score. Each part has the note, rest, and chord 
+        objects as the elements in its column as long as they don't have a non-start tie, otherwise 
+        they are omitted."""
         if 'm21_nrc_objs_no_tied' not in self._analyses:
            # This if statement is necessary because of a pandas bug, see pandas issue #8222.
-            nrc_objs = self._get_m21_nrc_objs()
             if len(self._get_m21_nrc_objs()) == 0: # If parts have no note, rest, or chord events in them
-                self._analyses['m21_nrc_objs_no_tied'] = nrc_objs.copy()
-            else:
-                self._analyses['m21_nrc_objs_no_tied'] = nrc_objs.applymap(_eliminate_ties).dropna(how='all')
+                self._analyses['m21_nrc_objs_no_tied'] = self._get_m21_nrc_objs()
+            else: # This is the normal case.
+                self._analyses['m21_nrc_objs_no_tied'] = self._get_m21_nrc_objs().applymap(_eliminate_ties).dropna(how='all')
         return self._analyses['m21_nrc_objs_no_tied']
 
     def _get_noterest(self):
+        """Used internally by get_data() to cache and retrieve results from the 
+        noterest.NoterestIndexer."""
         if 'noterest' not in self._analyses:
             self._analyses['noterest'] = noterest.NoteRestIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['noterest']
 
     def _get_multistop(self):
+        """Used internally by get_data() to cache and retrieve results from the 
+        noterest.MultiStopIndexer."""
         if 'multistop' not in self._analyses:
             self._analyses['multistop'] = noterest.MultiStopIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['multistop']
 
     def _get_duration(self):
+        """Used internally by get_data() to cache and retrieve results from the 
+        meter.DurationIndexer."""
         if 'duration' not in self._analyses:
             self._analyses['duration'] = meter.DurationIndexer(self._get_noterest(), self._get_part_streams()).run()
         return self._analyses['duration']
 
     def _get_beat_strength(self):
+        """Used internally by get_data() to cache and retrieve results from the 
+        meter.NoteBeatStrengthIndexer."""
         if 'beatstrength' not in self._analyses:
             self._analyses['beatstrength'] = meter.NoteBeatStrengthIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['beatstrength']
 
     def _get_vertical_interval(self, settings=None):
+        """Used internally by get_data() to cache and retrieve results from the 
+        interval.IntervalIndexer. Since there are many possible settings for intervals, no matter 
+        what the user asks for intervals are calculated as compound, directed, and diatonic with 
+        quality. The results with these settings are stored and if the user asked for different 
+        settings, they are recalculated from these 'complete' cached results. This reindexing is 
+        done with the interval.IntervalReindexer."""
         if 'vertical_interval' not in self._analyses:
             self._analyses['vertical_interval'] = interval.IntervalIndexer(self._get_noterest(), settings=_default_interval_setts.copy()).run()
         if settings is not None and not ('directed' in settings and settings['directed'] == True and
@@ -531,6 +567,15 @@ class IndexedPiece(object):
         return self._analyses['vertical_interval']
 
     def _get_horizontal_interval(self, settings=None):
+        """Used internally by get_data() to cache and retrieve results from the 
+        interval.IntervalIndexer. Since there are many possible settings for intervals, no matter 
+        what the user asks for intervals are calculated as compound, directed, and diatonic with 
+        quality. The results with these settings are stored and if the user asked for different 
+        settings, they are recalculated from these 'complete' cached results. This reindexing is 
+        done with the interval.IntervalReindexer. Those details are the same as for the 
+        _get_vertical_interval() method, but this method has an added check to see if the user asked 
+        for horiz_attach_later == False. In this case the index of each part's horizontal intervals 
+        is shifted forward one element and 0.0 is assigned as the first element."""
         # No matter what settings the user specifies, calculate the intervals in the most complete way.
         if 'horizontal_interval' not in self._analyses:
             self._analyses['horizontal_interval'] = interval.HorizontalIntervalIndexer(self._get_noterest(), _default_interval_setts.copy()).run()
@@ -546,6 +591,10 @@ class IndexedPiece(object):
         return self._analyses['horizontal_interval']
 
     def _get_dissonance(self):
+        """Used internally by get_data() to cache and retrieve results from the 
+        dissonance.DissonanceIndexer. This method automatically supplies the input dataframes from 
+        the indexed_piece that is the self argument. If you want to call this with indexer results 
+        other than those associated with self, you can call the indexer directly."""
         if 'dissonance' not in self._analyses:
             h_setts = {'quality': False, 'simple or compound': 'compound', 'horiz_attach_later': False}
             v_setts = setts = {'quality': True, 'simple or compound': 'simple', 'directed': True}
@@ -555,8 +604,8 @@ class IndexedPiece(object):
         return self._analyses['dissonance']
 
     def _get_m21_measure_objs(self):
-        """Makes a dataframe of the measure objects in the indexed_piece. Note that midi files do not have 
-        measures."""
+        """Makes a dataframe of the music21 measure objects in the indexed_piece. Note that midi 
+        files do not have measures."""
         if 'm21_measure_objs' not in self._analyses:
             # filter for just the measure objects in each part of this indexed piece
             sers = [s.apply(_type_func_measure).dropna() for s in self._get_m21_objs()]
