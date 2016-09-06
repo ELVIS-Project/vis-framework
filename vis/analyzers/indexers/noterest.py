@@ -193,7 +193,4 @@ class MultiStopIndexer(indexer.Indexer):
         else: # This is the normal case
             temp = self._score.applymap(self._indexer_func) # Do indexing.
             result = unpack_chords(temp) # Unpack chords into individual pitches.
-        axis_labels = ('Indexer', 'Parts') # Axis names for resultant dataframe.
-        result.columns = pandas.MultiIndex.from_product((('noterest.NoteRestIndexer',), # Apply multi-index to df.
-            [str(x) for x in range(len(result.columns))]), names=axis_labels)
-        return result
+        return self.make_return([str(x) for x in range(len(result.columns))], result)
