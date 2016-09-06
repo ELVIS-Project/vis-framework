@@ -429,6 +429,14 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
 
 class IntervalReindexer(HorizontalIntervalIndexer):
+    """
+    This indexer is only meant to ever be called indirectly to simplify caching of the results of 
+    the IntervalIndexer and the HorizontalIntervalIndexer. It takes the most information-rich 
+    type of interval analysis we offer (i.e. compound, directed intervals with diatonic quality) and 
+    re-indexes them to match whatever settings the user has requested. This is much faster because 
+    it takes an entire interval as its input, rather than two notes, and therefore there are 
+    considerably fewer memos in its memoization scheme.
+    """
 
     def __init__(self, score, settings=None):
         self._settings = HorizontalIntervalIndexer.default_settings.copy()
