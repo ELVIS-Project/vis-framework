@@ -44,8 +44,6 @@ from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, meter, interval, dissonance
-import pdb
-import time
 
 
 # the title given to a piece when we cannot determine its title
@@ -216,7 +214,6 @@ def _combine_voices(ser, part):
         indecies.append(len(voice) + indecies[-1])
         temp.append(ser.iloc[indecies[-2] : indecies[-1]])
     # Put each voice in separate columns in a dataframe.
-    pdb.set_trace()
     df = pandas.concat(temp, axis=1).applymap(_get_pitches)
     # Condense the voices (df's columns) into chord objects in a series.
     res = df.apply(lambda x: chord.Chord(sorted([pitch for lyst in x.dropna() for pitch in lyst], reverse=True)), axis=1)
