@@ -273,7 +273,13 @@ class IntervalIndexer(indexer.Indexer):
         If True (default), prepends a '-' before everything else if the first note passed is higher \
         than the second.
     :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
-    """
+ 
+     **Example:**
+
+    settings = {'quality': 'chromatic', 'simple or compound': 'simple', 'directed': True}
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ip.get_data([interval.IntervalIndexer], settings)
+   """
     required_score_type = 'pandas.DataFrame'
     default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 'mp': True}
     "A dict of default settings for the :class:`IntervalIndexer`."
@@ -326,20 +332,6 @@ class IntervalIndexer(indexer.Indexer):
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`;
             refer to the example below for more details.
         :rtype: :class:`pandas.DataFrame`
-        **Example:**
-
-        import music21
-        from vis.analyzers.indexers import noterest, interval
-
-        score = music21.converter.parse('example.xml')
-        notes = noterest.NoteRestIndexer(score).run()
-        v_ints = interval.IntervalIndexer(notes).run()
-
-        # to see all the intervals 
-        print(v_ints)
-
-        # to see only one pair
-        print(v_ints['interval.IntervalIndexer']['0,1'])
         """
         combos = [pandas.concat((self._score.iloc[:,x[0]], self._score.iloc[:,x[1]]), axis=1).fillna(method='ffill')
                   for x in combinations(range(len(self._score.columns)), 2)]
@@ -373,6 +365,12 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         the offset of the later note in the interval. The default is ``False``, which gives \
         horizontal intervals the offset of the first note in the interval.
     :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
+
+     **Example:**
+     
+    settings = {'quality': 'interval class', 'simple or compound': 'simple', 'directed': False}
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ip.get_data([interval.HorizontalIntervalIndexer], settings)
     """
 
     default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 
@@ -395,19 +393,6 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         Make a new index of the piece.
         :returns: The new indices. Refer to the example below.
         :rtype: :class:`pandas.DataFrame`
-        **Example:**
-        import music21
-        from vis.analyzers.indexers import noterest, interval
-
-        score = music21.converter.parse('example.xml')
-        notes = noterest.NoteRestIndexer(score).run()
-        h_ints = interval.HorizontalIntervalIndexer(notes).run()
-
-        # to see all the intervals
-        print(h_ints)
-
-        # to see only one part's intervals
-        print(h_ints['interval.HorizontalIntervalIndexer']['0'])
         """
         # This indexer is a little tricky, since we must fake "horizontality" so we can use the
         # same _do_multiprocessing() method as in the IntervalIndexer.
