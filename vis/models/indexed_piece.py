@@ -43,7 +43,7 @@ from six.moves import range, xrange  # pylint: disable=import-error,redefined-bu
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest, meter, interval, dissonance
+from vis.analyzers.indexers import noterest, meter, interval, dissonance, fermata
 
 
 # the title given to a piece when we cannot determine its title
@@ -496,7 +496,7 @@ class IndexedPiece(object):
 
         :returns: The note, rest, and chord music21 objects in each part of a piece, aligned with 
             their offsets.
-        :rtype: A pandas.DataFrame of music21 note, rest, and chord objects and NaNs.
+        :rtype: A pandas.DataFrame of music21 note, rest, and chord objects.
         """
         if 'm21_nrc_objs' not in self._analyses:
             # get rid of all m21 objects that aren't notes, rests, or chords in each part series
@@ -547,6 +547,13 @@ class IndexedPiece(object):
         if 'beatstrength' not in self._analyses:
             self._analyses['beatstrength'] = meter.NoteBeatStrengthIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['beatstrength']
+
+    def _get_fermata(self):
+        """Used internally by get_data() to cache and retrieve results from the 
+        fermata.FermataIndexer."""
+        if 'fermata' not in self._analyses:
+            self._analyses['fermata'] = fermata.FermataIndexer(self._get_m21_nrc_objs_no_tied()).run()
+        return self._analyses['fermata']
 
     def _get_vertical_interval(self, settings=None):
         """Used internally by get_data() to cache and retrieve results from the 
