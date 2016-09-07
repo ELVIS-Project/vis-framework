@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/fermata.py
 # Purpose:                Index fermattas.
 #
-# Copyright (C) 2013, 2014 Christopher Antila, Ryan Bannon
+# Copyright (C) 2013, 2014, 2016 Christopher Antila, Ryan Bannon, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Ryan Bannon <ryan.bannon@gmail.com>
+.. codeauthor:: Alexander Morgan
 
 Index fermatas.
 """
@@ -33,20 +34,20 @@ from numpy import NaN  # pylint: disable=no-name-in-module
 from music21 import expressions
 from vis.analyzers import indexer
 
-def indexer_func(obj):
+def indexer_func(event):
     """
     Used internally by :class:`FermataIndexer`. Inspects :class:`~music21.note.Note` and
     :class:`~music21.note.Rest` and returns ``u'Fermata'`` if a fermata is associated, else NaN.
 
-    :param obj: An iterable (nominally a :class:`~pandas.Series`) with an object to convert. Only
+    :param event: An iterable (nominally a :class:`~pandas.Series`) with an object to convert. Only
         the first object in the iterable is processed.
-    :type obj: iterable of :class:`music21.note.Note` or :class:`music21.note.Rest`
+    :type event: iterable of :class:`music21.note.Note` or :class:`music21.note.Rest`
 
     :returns: If the first object in the list is a contains a :class:`~music21.expressions.Fermata`,
     string ``u'Fermata'`` is returned. Else, NaN.
     :rtype: str
     """
-    for expression in obj[0].expressions:
+    for expression in event.expressions:
         if isinstance(expression, expressions.Fermata):
             return 'Fermata'
     return NaN
@@ -57,40 +58,23 @@ class FermataIndexer(indexer.Indexer):
     Index :class:`~music21.expressions.Fermata`.
 
     Finds :class:`~music21.expressions.Fermata`s.
+
+    **Example:**
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ip.get_data([fermata.FermataIndexer])
     """
 
     required_score_type = 'stream.Part'
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score):
         """
-        :param score: A list of all the Parts to index.
-        :type score: list of :class:`music21.stream.Part`
-        :param settings: This indexer uses no settings, so this is ignored.
-        :type settings: NoneType
-
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the right type.
+        :param score: A dataframe of the note, rest, and chord objects in a piece.
+        :type score: pandas Dataframe
+        :raises: :exc:`RuntimeError` if ``score`` is not a pandas Dataframe.
         """
         super(FermataIndexer, self).__init__(score, None)
-        self._types = ('Note', 'Rest')
+        self._types = ('Note', 'Rest', 'Chord')
         self._indexer_func = indexer_func
 
-    def run(self):
-        """
-        Make a new index of the piece.
+    # NB: The noterest indexer inherits the run() method from indexer.py
 
-        :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`;
-            refer to the example below for more details.
-        :rtype: :class:`pandas.DataFrame`
-
-        **Example:**
-
-        import music21
-        from vis.analyzers.indexers import fermata
-
-        score = music21.converter.parse('example.xml')
-        fermatas = fermata.FermataIndexer(score).run()
-        print(fermatas)
-        """
-        combinations = [[x] for x in range(len(self._score))]  # calculate each voice separately
-        results = self._do_multiprocessing(combinations)
-        return self.make_return([six.u(str(x))[1:-1] for x in combinations], results)
