@@ -394,9 +394,6 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         :returns: The new indices. Refer to the example below.
         :rtype: :class:`pandas.DataFrame`
         """
-        # This indexer is a little tricky, since we must fake "horizontality" so we can use the
-        # same _do_multiprocessing() method as in the IntervalIndexer.
-
         # First we'll make two copies of each part's NoteRest index. One copy will be missing the
         # first element, and the other will be missing the last element. We'll also use the index
         # values starting at the second element, so that each "horizontal" interval is presented
