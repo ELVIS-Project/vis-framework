@@ -114,7 +114,6 @@ class FrequencyExperimenter(experimenter.Experimenter):
             uncounted = [df.select(select_func, axis=1) for df in uncounted]
 
         # get the value_counts() on every Series
-        # NOTE: in the future, if _do_multiprocessing() uses multiprocessing, use that instead
         counted = []
         for each_df in uncounted:
             each_df_results = {}
