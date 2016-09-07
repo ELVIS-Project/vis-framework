@@ -116,7 +116,22 @@ class NewNGramIndexer(indexer.Indexer):
     this by passing a list of strings as the ``'terminator'`` setting.
 
     To show that a horizontal event continues, we use ``'_'`` by default, but you can set this
-    separately, for example to ``'P1'`` ``'0'``, as seems appropriate. 
+    separately, for example to ``'P1'`` ``'0'``, as seems appropriate.
+
+    Once you've chosen the appropriate settings, to actually run the indexer call it like this:
+
+     **Example:**
+
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ngram_settings = {'n': 2, 'vertical': 'all', 'horizontal': 'lowest'}
+    vert_settings = {'quality': 'chromatic', 'simple or compound': 'simple', 'directed': True}
+    horiz_settings = {'quality': 'diatonic with quality', 'simple or compound': 'simple', 
+                      'directed': True, 'horiz_attach_later': True}
+
+    vert_ints = ip.get_data([interval.IntervalIndexer], settings=vert_settings)
+    horiz_ints = ip.get_data([interval.HorizontalIntervalIndexer], settings=horiz_settings)
+    ngrams = ip.get_data([interval.IntervalIndexer], settings=ngram_settings,
+                         data=[vert_ints, horiz_ints])
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -240,21 +255,6 @@ class NewNGramIndexer(indexer.Indexer):
 
         :returns: A new index of the piece in the form of a class:`~pandas.DataFrame` with as many 
             columns as there are tuples in the 'vertical' setting of the passed settings.
-
-        **Example:**
-
-        import music21
-        from vis.analyzers.indexers import noterest, interval, new_ngram
-
-        piece = music21.converter.parse('example.xml')
-        score = noterest.NoteRestIndexer(piece).run()
-
-        hints = interval.HorizontalIntervalIndexer(score).run()
-        vints = interval.IntervalIndexer(score).run()
-
-        settings = {'n': 3, 'vertical': '3'}
-        ngrams = new_ngram.NewNGramIndexer([hints, vints], settings).run()
-        print(ngrams)
         """
         n = self._settings['n']        
         post = []
