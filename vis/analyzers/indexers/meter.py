@@ -43,14 +43,11 @@ def beatstrength_ind_func(event):
     :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects
     into a string.
 
-    :param obj: An 2-tuple with an object to convert. Only the first object
-        in the iterable is processed in this function.
-    :type obj: a 2-tuple containing either a :class:`music21.note.Note` or a
-        :class:`music21.note.Rest` as its first element and a list of the
-        running results of this indexer_func as the second element.
+    :param event: A music21 note, rest, or chord object which get queried for its beat strength.
+    :type event: A music21 note, rest, or chord object or NaN.
 
-    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of obj[0]
-        which is dependent on the prevailing time signature.
+    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of the event which is dependent 
+        on the prevailing time signature.
     :rtype: float
     """
     if isinstance(event, float):
@@ -62,6 +59,12 @@ def measure_ind_func(event):
     The function that indexes the measure numbers of each part in a piece. Unlike most other 
     indexers, this one returns int values. Measure numbering starts from 1 unless there is a pick-up 
     measure which gets the number 0. This can handle changes in time signature without problems.
+
+    :param event: A music21 measure object which get queried for its "number" attribute.
+    :type event: A music21 measure object or NaN.
+
+    :returns: The number attribute of the passed music21 measure.
+    :rtype: int
     """
     if isinstance(event, float):
         return event
@@ -70,26 +73,29 @@ def measure_ind_func(event):
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
     """
-    Make an index of the :attr:`~music21.base.Music21Object.beatStrength` for all :class:`Note`
-    and :class:`Rest` objects.
+    Make an index of the :attr:`~music21.base.Music21Object.beatStrength` for all :class:`Note`, 
+    :class:`Rest`, and :class:`Chord` objects.
 
     .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
     objects rather than ``unicode`` objects.
+    
+    **Example:**
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ip.get_data([meter.NoteBestStrengthIndexer])
     """
 
-    required_score_type = 'stream.Part'
+    required_score_type = 'pandas.DataFrame'
 
     def __init__(self, score):
         """
-        :param score: A list of the :class:`Part` objects to use for producing this index.
-        :type score: list of :class:`music21.stream.Part`
+        :param score: A dataframe of the note, rest, and chord objects in a piece.
+        :type score: pandas Dataframe
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
 
         super(NoteBeatStrengthIndexer, self).__init__(score, None)
-        self._types = ('Note', 'Rest')
+        self._types = ('Note', 'Rest', 'Chord')
         self._indexer_func = beatstrength_ind_func
 
     # NB: This indexer inherits its run() method from indexer.py
@@ -97,27 +103,30 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
 
 class DurationIndexer(indexer.Indexer):
     """
-    Make an index of the :attr:`~music21.base.Music21Object.duration.quarterLength` for all
-    :class:`Note` and :class:`Rest` objects.
+    Make an index of the durations of all :class:`Note`, :class:`Rest`, and :class:`Chord` objects. 
+    These are calculated based on the difference in index positions of consecutive events.
 
     .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
     objects rather than ``unicode`` objects. Also unlike most other indexers, this indexer does not 
     have an indexer func.
+
+    **Example:**
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ip.get_data([meter.DurationIndexer])
     """
 
-    required_score_type = 'stream.Part'
+    required_score_type = 'pandas.DataFrame'
 
     def __init__(self, score, part_streams):
         """
-        :param score: A list of the :class:`Part` objects to use for producing this index.
-        :type score: list of :class:`music21.stream.Part`
+        :param score: A :class:`pandas.DataFrame` of the note, rest, and chord objects in a piece.
+        :type score: :class:`pandas.DataFrame`
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
 
         super(DurationIndexer, self).__init__(score, None)
-        self._types = ('Note', 'Rest')
+        self._types = ('Note', 'Rest', 'Chord')
         self._part_streams = part_streams
 
     def run(self):
@@ -127,15 +136,6 @@ class DurationIndexer(indexer.Indexer):
         :returns: The new indices of the durations of each note or rest event in a score. Note that
             each item is a float, rather than the usual basestring.
         :rtype: :class:`pandas.DataFrame`
-
-        **Example:**
-
-        import music21
-        from vis.analyzers.indexers import meter
-
-        score = music21.converter.parse('example.xml')
-        durations = meter.DurationIndexer(score).run()
-        print(durations)
         """
         if len(self._score) == 0: # if there are no notes or rests
             result = self._score.copy()
@@ -156,20 +156,20 @@ class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
     part.measureTemplate() function is an alternative but it turned out to be much less efficient 
     to looping over the piece and doing it this way makes this indexer just like all the other 
     stream indexers in VIS. 
+
+    **Example:**
+    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    ip.get_data([meter.MeasureIndexer])
     """
 
-    required_score_type = 'stream.Part'
+    required_score_type = 'pandas.DataFrame'
 
-    def __init__(self, score, settings=None):
+    def __init__(self, score):
         """
-        :param score: :class:`Part` object to use for producing this index. It should be the highest
-            part in the score.
-        :type score: :class:`music21.stream.Part`
-        :param settings: This indexer requires no settings so this parameter is ignored.
-        :type settings: None
+        :param score: :class:`pandas.DataFrame` of music21 measure objects.
+        :type score: :class:`pandas.DataFrame`
         
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
         """
         super(MeasureIndexer, self).__init__(score, None)
         self._types = ('Measure',)
