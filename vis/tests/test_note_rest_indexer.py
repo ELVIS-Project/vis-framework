@@ -89,12 +89,12 @@ class TestNoteRestIndexer(unittest.TestCase):
 
     def test_note_rest_indexer_func_1(self):
         # Check the indexer_func on note, rest, and chord objects
-        expected = pandas.Series((('A-4',), ('Rest',), ['A-4', 'D#5', 'F#5']))
+        expected = pandas.Series(('A-4', 'Rest', 'F#5'))
         n1 = note.Note('A-4')
         n2 = note.Note('D#5')
         n3 = note.Note('F#5')
         r1 = note.Rest()
-        c1 = chord.Chord([n1, n2, n3])
+        c1 = chord.Chord([n3, n2, n1])
         temp = pandas.Series((n1, r1, c1))
         actual = temp.apply(noterest.noterest_ind_func)
         self.assertTrue(actual.equals(expected))
