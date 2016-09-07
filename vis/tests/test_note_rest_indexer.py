@@ -96,7 +96,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         r1 = note.Rest()
         c1 = chord.Chord([n1, n2, n3])
         temp = pandas.Series((n1, r1, c1))
-        actual = temp.apply(noterest.indexer_func)
+        actual = temp.apply(noterest.noterest_ind_func)
         self.assertTrue(actual.equals(expected))
 
     def test_note_rest_unpack_chords_1(self):
@@ -157,7 +157,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = ip._get_noterest()['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
 
-        # Reset analysis dictionary and make the part just the score just the bass part and do the same test.
+        # Reset analysis dictionary and make the score just the bass part and do the same test.
         expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)})
         ip._analyses = {}
         ip._analyses['part_streams'] = all_parts[3:]
