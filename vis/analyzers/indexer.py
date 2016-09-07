@@ -36,49 +36,6 @@ from music21 import stream, converter
 import multiprocessing as mp
 from functools import partial
 
-def stream_indexer(part, indexer_func, types=None, index_tied=False):
-    """
-    Perform the indexation of a :class:`Part`. This is a module-level function designed to ease
-    implementation of multiprocessing, though music21 streams cannot be multiprocessed in python so
-    execution still happens serially.
-
-    If your :class:`Indexer` subclass has settings, use the :func:`indexer_func` to adjust for them.
-
-    If an offset has multiple events of the correct type, only the "first" discovered results will
-    be included in the output. This may produce misleading results when, for example, a double-stop
-    was imported as two :class:`Note` objects in the same :class:`Part`, rather than as a
-    :class:`Chord`.
-
-    :param part: A list one :class:`Stream` object.
-    :type part: a singleton list with one :class:`music21.stream.Stream`
-    :param function indexer_func: Transforms events found in part into strings, ints, or floats.
-    :param types: Only objects of a type in this list will be passed to the
-        :func:`~vis.analyzers.indexers.template.indexer_func` for inclusion in the resulting index.
-    :type types: Tuple of relevent types.
-
-    :returns: The new index is a :class:`pandas.Series` where every element is a string, int, or
-        float depending on the indexer_func passed. The :class:`~pandas.core.index.Index` of the
-        :class:`Series` corresponds to the ``quarterLength`` offset of the events of relevent type
-        in the part.
-    :rtype: :class:`pandas.Series`
-    """
-    temp_part = part[0].recurse()
-    series_data = []
-    offsets = []
-    for event in temp_part[1:]: # the [1:] gets rid of the leading stream in this part stream
-        if not (types == None or any([typ in event.classes for typ in types])):
-            continue
-        if not index_tied and hasattr(event, 'tie') and event.tie is not None and event.tie.type != 'start':
-            continue
-        result = indexer_func((event, series_data))
-        if result == None:
-            continue
-        series_data.append(result)
-        for y in event.contextSites():
-            if y[0] is part[0]: # Check to see if we're examining the correct voice
-                offsets.append(y[1]) # The second element in y is the event's offset
-
-    return pandas.Series(series_data, index=offsets)
 
 def series_indexer(parts, indexer_func):
     """
@@ -320,13 +277,10 @@ class Indexer(object):
         for each_combo in combos:
             # voices holds the music21 Part objects indicated by each_combo
             voices = [self._score[x] for x in each_combo]
-            if isinstance(self._score[0], stream.Stream):
-                post.append(stream_indexer(voices, self._indexer_func, self._types, index_tied))
-            else:
-                jobs.append(voices)
-                if not on and len(jobs) > 0:
-                    post.append(series_indexer(voices, self._indexer_func))
-        
+            jobs.append(voices)
+            if not on and len(jobs) > 0:
+                post.append(series_indexer(voices, self._indexer_func))
+    
         if on and len(jobs) > 0:
             # Determine an appropriate number of cores to use.
             tasks = len(combos)
