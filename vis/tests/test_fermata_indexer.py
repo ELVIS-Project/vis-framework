@@ -29,8 +29,6 @@ import pandas
 from six.moves import range  # pylint: disable=import-error,redefined-builtin
 from vis.models.indexed_piece import IndexedPiece
 from vis.analyzers.indexers import fermata
-from numpy import isnan, NaN
-
 # get the path to the 'vis' directory
 import vis
 VIS_PATH = vis.__path__[0]
@@ -40,67 +38,31 @@ VIS_PATH = vis.__path__[0]
 # pylint: disable=C0111
 class AllVoiceFermatas(TestCase):
 
-    def createExpectedFermataIndexerResult(self, number_of_parts, number_of_indices):
-        """
-        Returns blank data-frame (in the fermata.FermataIndexer 'style').
-        """
-        expected_data = [[NaN] * number_of_indices] * number_of_parts
-        tuples = [(u'fermata.FermataIndexer', str(i)) for i in range(number_of_parts)]
-        multiindex = pandas.MultiIndex.from_tuples(tuples, names=['Indexer', 'Parts'])
-        return pandas.DataFrame(data = expected_data, index = multiindex, dtype = object).T
-
-    def assertDataFramesEqual(self, exp, act):
-        """Ensure that two DataFrame objects, ``exp`` and ``act``, are equal."""
-        self.assertSequenceEqual(list(exp.columns), list(act.columns))
-        for col_name in exp.columns:
-            for loc_val in exp[col_name].index:
-                self.assertTrue(loc_val in act.index)
-
-                # Value check.
-                if exp[col_name].loc[loc_val] != act[col_name].loc[loc_val]:
-
-                    # Might be NaNs. Check.
-                    if isnan(exp[col_name].loc[loc_val]) and isnan(act[col_name].loc[loc_val]):
-                        continue
-
-                    msg = '"{}" is {} but we expected {}'
-                    raise AssertionError(msg.format(loc_val,
-                                                    exp[col_name].loc[loc_val],
-                                                    act[col_name].loc[loc_val]))
-
     def test_fermata_indexer_1(self):
         """all-voice fermatas; no WorkflowManager"""
-
         # Create expected.
-        expected = self.createExpectedFermataIndexerResult(4, 47)
-        expected.set_value(10, ('fermata.FermataIndexer', '0'), 'Fermata')
-        expected.set_value(10, ('fermata.FermataIndexer', '3'), 'Fermata')
-        expected.set_value(19, ('fermata.FermataIndexer', '0'), 'Fermata')
-        expected.set_value(19, ('fermata.FermataIndexer', '3'), 'Fermata')
-        expected.set_value(31, ('fermata.FermataIndexer', '0'), 'Fermata')
-        expected.set_value(31, ('fermata.FermataIndexer', '3'), 'Fermata')
-        expected.set_value(46, ('fermata.FermataIndexer', '0'), 'Fermata')
-        expected.set_value(46, ('fermata.FermataIndexer', '3'), 'Fermata')
-        expected = expected.drop(expected.index[[11, 12, 20, 32]])
+        parts = [pandas.Series(['Fermata']*4, index=[10,19,31,46], name='0'),
+                 pandas.Series(name='1'), pandas.Series(name='2'),
+                 pandas.Series(['Fermata']*4, index=[10,19,31,46], name='3')]        
+        expected = pandas.concat(parts, axis=1)
+        indx = pandas.Index(range(47))
+        expected = expected.reindex(index=indx)
+        expected.drop([11, 12, 20, 32], inplace=True)
 
         # Test.
         ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
-        actual = ind_piece.get_data([fermata.FermataIndexer])
-        self.assertDataFramesEqual(expected, actual)
+        actual = ind_piece._get_fermata()
+        self.assertTrue(actual['fermata.FermataIndexer'].equals(expected))
 
     def test_fermata_indexer_2(self):
         """rest fermatas; no WorkflowManager"""
-
         # Create expected.
-        expected = self.createExpectedFermataIndexerResult(2, 8)
-        expected.set_value(6, ('fermata.FermataIndexer', '0'), 'Fermata')
-        expected.set_value(6, ('fermata.FermataIndexer', '1'), 'Fermata')
-        expected = expected.drop(expected.index[[5, 7]])
-
+        temp = [pandas.Series(['Fermata'], index=[6], name='0'), pandas.Series(['Fermata'], index=[6], name='1')]
+        expected = pandas.concat(temp, axis=1).reindex(pandas.Index([0,1,2,3,4,6]))
         # Test.
         ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_fermata_rest.xml'))
-        actual = ind_piece.get_data([fermata.FermataIndexer])
-        self.assertDataFramesEqual(expected, actual)
+        actual = ind_piece._get_fermata()
+        self.assertTrue(actual['fermata.FermataIndexer'].equals(expected))
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #

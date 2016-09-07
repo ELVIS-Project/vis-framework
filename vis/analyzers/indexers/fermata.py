@@ -47,10 +47,11 @@ def indexer_func(event):
     string ``u'Fermata'`` is returned. Else, NaN.
     :rtype: str
     """
+    if isinstance(event, float):
+        return event
     for expression in event.expressions:
         if isinstance(expression, expressions.Fermata):
             return 'Fermata'
-    return NaN
 
 
 class FermataIndexer(indexer.Indexer):
@@ -66,10 +67,13 @@ class FermataIndexer(indexer.Indexer):
 
     required_score_type = 'stream.Part'
 
-    def __init__(self, score):
+    def __init__(self, score, settings=None):
         """
         :param score: A dataframe of the note, rest, and chord objects in a piece.
         :type score: pandas Dataframe
+        :param settings: This indexer does not have any settings, so this is just a place holder.
+        :type settings: None
+
         :raises: :exc:`RuntimeError` if ``score`` is not a pandas Dataframe.
         """
         super(FermataIndexer, self).__init__(score, None)
