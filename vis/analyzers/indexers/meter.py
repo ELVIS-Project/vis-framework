@@ -81,7 +81,7 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
     
     **Example:**
     ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([meter.NoteBestStrengthIndexer])
+    ip.get_data([meter.NoteBeatStrengthIndexer])
     """
 
     required_score_type = 'pandas.DataFrame'
