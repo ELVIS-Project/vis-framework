@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers_tests/test_new_ngram.py
+# Filename:               analyzers_tests/test_ngram.py
 # Purpose:                Test the NGram Indexer
 #
 # Copyright (C) 2013, 2014 Christopher Antila, Alexander Morgan
@@ -29,7 +29,7 @@
 import os
 import unittest
 import pandas
-from vis.analyzers.indexers import new_ngram
+from vis.analyzers.indexers import ngram
 
 # find pathname of the 'vis' directory
 import vis
@@ -39,11 +39,12 @@ VIS_PATH = vis.__path__[0]
 V_IND = 'interval.IntervalIndexer'
 H_IND = 'interval.HorizontalIntervalIndexer'
 
-VERT_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'new_ngram_1.pickle'))
+VERT_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'ngram_1.pickle'))
 
-HORIZ_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'new_ngram_2.pickle'))
+HORIZ_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'ngram_2.pickle'))
 
-EXPECTED_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'new_ngram_3.pickle'))
+EXPECTED_DF = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'ngram_3.pickle'))
+
 
 def series_maker(lotuples):
     """Turn a List Of TUPLES (offset, 'value') into a Series."""
@@ -64,25 +65,25 @@ def df_maker(series, cols):
     df.columns = cols
     return df
 
-class TestNewNGramIndexer(unittest.TestCase):
-    """Tests for the NewNGramIndexer and its helper functions."""
+class TestNGramIndexer(unittest.TestCase):
+    """Tests for the NGramIndexer and its helper functions."""
 
     def test_init_1(self):
         """that __init__() works properly (only required settings given)"""
         # pylint: disable=protected-access
         setts = {'n': 1, 'vertical': [('0,1',)]}
-        actual = new_ngram.NewNGramIndexer((VERT_DF,), setts)
+        actual = ngram.NGramIndexer((VERT_DF,), setts)
         for setting in ('n', 'vertical'):
             self.assertEqual(setts[setting], actual._settings[setting])
         for setting in ('horizontal', 'brackets', 'terminator', 'continuer'):
-            self.assertEqual(new_ngram.NewNGramIndexer.default_settings[setting], actual._settings[setting])
+            self.assertEqual(ngram.NGramIndexer.default_settings[setting], actual._settings[setting])
 
     def test_init_2(self):
         """that __init__() works properly (all settings given)"""
         # pylint: disable=protected-access
         setts = {'n': 2, 'vertical': [('0,1',)], 'horizontal': [('1',)], 'brackets': True,
                  'terminator': 'RoboCop', 'continuer': 'Alex Murphy', 'open-ended': True}
-        actual = new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
+        actual = ngram.NGramIndexer((VERT_DF, HORIZ_DF), setts)
         for setting in ('n', 'vertical', 'horizontal', 'brackets', 'terminator', 'continuer', 'open-ended'):
             self.assertEqual(setts[setting], actual._settings[setting])
 
@@ -90,32 +91,32 @@ class TestNewNGramIndexer(unittest.TestCase):
         """that __init__() fails when 'n' is too short"""
         # pylint: disable=protected-access
         setts = {'n': 0, 'vertical': [('0,1',)]}  # n is too short
-        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
+        self.assertRaises(RuntimeError, ngram.NGramIndexer, (VERT_DF,), setts)
         try:
-            new_ngram.NewNGramIndexer((VERT_DF,), setts)
+            ngram.NGramIndexer((VERT_DF,), setts)
         except RuntimeError as run_err:
-            self.assertEqual(new_ngram.NewNGramIndexer._N_VALUE_TOO_LOW, run_err.args[0])
+            self.assertEqual(ngram.NGramIndexer._N_VALUE_TOO_LOW, run_err.args[0])
 
     def test_init_4(self):
         """that __init__() fails when there are no 'vertical' events"""
         # pylint: disable=protected-access
         setts = {'n': 14, 'horizontal': [('1',)]}  # no "vertical" parts
-        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, 'a DataFrame', setts)
+        self.assertRaises(RuntimeError, ngram.NGramIndexer, 'a DataFrame', setts)
         try:
-            new_ngram.NewNGramIndexer('a DataFrame', setts)
+            ngram.NGramIndexer('a DataFrame', setts)
         except RuntimeError as run_err:
-            self.assertEqual(new_ngram.NewNGramIndexer._MISSING_SETTINGS, run_err.args[0])
+            self.assertEqual(ngram.NGramIndexer._MISSING_SETTINGS, run_err.args[0])
 
     def test_init_5(self):
         """that __init__() fails when horizontal observations are provided and 'n' equals 1
         and 'open-ended' is False."""
         # pylint: disable=protected-access
         setts = {'n': 1, 'vertical': [('0,1',)], 'horizontal': [('1',)], 'open-ended': True}
-        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
+        self.assertRaises(RuntimeError, ngram.NGramIndexer, (VERT_DF,), setts)
         try:
-            new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
+            ngram.NGramIndexer((VERT_DF, HORIZ_DF), setts)
         except RuntimeWarning as run_warn:
-            self.assertEqual(new_ngram.NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA, run_warn.args[0])
+            self.assertEqual(ngram.NGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA, run_warn.args[0])
 
     def test_init_6a(self):
         """that __init__() manages the horizontal setting set to 'highest' correctly."""
@@ -124,7 +125,7 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['z', 'x', 'y']),
                                pandas.Series(['a', 'b', 'c'])], mi)
         setts = {'n': 2, 'horizontal': 'highest', 'vertical': [('0,1',)], 'brackets': False}
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts)
+        actual = ngram.NGramIndexer([vertical, horizontal], setts)
         self.assertEqual([('0',)], actual._settings['horizontal'])
 
     def test_init_6b(self):
@@ -134,69 +135,69 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['z', 'x', 'y']),
                                pandas.Series(['a', 'b', 'c'])], mi)
         setts = {'n': 2, 'horizontal': 'lowest', 'vertical': [('0,1',)], 'brackets': False}
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts)
+        actual = ngram.NGramIndexer([vertical, horizontal], setts)
         self.assertEqual([('1',)], actual._settings['horizontal'])
 
     def test_init_7a(self):
         """that __init__() raises a RuntimeWarning when n (+1 if 'open-ended' setting is True) is 
         set higher than the number of observations in either of the passed dataframes."""
         setts = {'n': 16, 'horizontal': [('1',)], 'vertical': [('0,1',)]}
-        self.assertRaises(RuntimeWarning, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
+        self.assertRaises(RuntimeWarning, ngram.NGramIndexer, (VERT_DF, HORIZ_DF), setts)
         try:
-            new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
+            ngram.NGramIndexer((VERT_DF, HORIZ_DF), setts)
         except RuntimeWarning as run_warn:
-            self.assertEqual(new_ngram.NewNGramIndexer._N_VALUE_TOO_HIGH, run_warn.args[0])
+            self.assertEqual(ngram.NGramIndexer._N_VALUE_TOO_HIGH, run_warn.args[0])
 
     def test_init_7b(self):
         """that __init__() raises a RuntimeWarning when n (+1 if 'open-ended' setting is True) is 
         set higher than the number of observations in either of the passed dataframes. Same as
         _7a but n = 15 and open-ended is True."""
         setts = {'n': 15, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'open-ended': True}
-        self.assertRaises(RuntimeWarning, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
+        self.assertRaises(RuntimeWarning, ngram.NGramIndexer, (VERT_DF, HORIZ_DF), setts)
         try:
-            new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
+            ngram.NGramIndexer((VERT_DF, HORIZ_DF), setts)
         except RuntimeWarning as run_err:
-            self.assertEqual(new_ngram.NewNGramIndexer._N_VALUE_TOO_HIGH, run_err.args[0])
+            self.assertEqual(ngram.NGramIndexer._N_VALUE_TOO_HIGH, run_err.args[0])
 
     def test_init_8a(self):
         """That __init__() raises a RuntimeError when not all of the columns designated in the 
         'vertical' settings are found in the DataFrame of vertical observations. Note that there 
         is only one column in the VERT_DF DataFrame."""
         setts = {'n': 2, 'vertical': [('0,1', '0,2')], 'open-ended': True}
-        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
+        self.assertRaises(RuntimeError, ngram.NGramIndexer, (VERT_DF,), setts)
         try:
-            new_ngram.NewNGramIndexer((VERT_DF,), setts)
+            ngram.NGramIndexer((VERT_DF,), setts)
         except RuntimeError as run_err:
-            self.assertEqual(new_ngram.NewNGramIndexer._VERTICAL_OUT_OF_RANGE, run_err.args[0])
+            self.assertEqual(ngram.NGramIndexer._VERTICAL_OUT_OF_RANGE, run_err.args[0])
 
     def test_init_8b(self):
         """Same as test_init_8a but for horizontal observations. Note that there is only one 
         column in the HORIZ_DF DataFrame."""
         setts = {'n': 2, 'horizontal': [('1', '2')], 'vertical': [('0,1',)]}
-        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
+        self.assertRaises(RuntimeError, ngram.NGramIndexer, (VERT_DF, HORIZ_DF), setts)
         try:
-            new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
+            ngram.NGramIndexer((VERT_DF, HORIZ_DF), setts)
         except RuntimeError as run_err:
-            self.assertEqual(new_ngram.NewNGramIndexer._HORIZONTAL_OUT_OF_RANGE, run_err.args[0])
+            self.assertEqual(ngram.NGramIndexer._HORIZONTAL_OUT_OF_RANGE, run_err.args[0])
 
     def test_init_9(self):
         """That __init__() raises a RuntimeError when 'horizontal' observations are provided but
         no columns are specified in the settings['horizontal']."""
         setts = {'n': 2, 'vertical': [('0,1',)], 'brackets': False}
-        self.assertRaises(RuntimeError, new_ngram.NewNGramIndexer, (VERT_DF, HORIZ_DF), setts)
+        self.assertRaises(RuntimeError, ngram.NGramIndexer, (VERT_DF, HORIZ_DF), setts)
         try:
-            new_ngram.NewNGramIndexer((VERT_DF, HORIZ_DF), setts)
+            ngram.NGramIndexer((VERT_DF, HORIZ_DF), setts)
         except RuntimeError as run_err:
-            self.assertEqual(new_ngram.NewNGramIndexer._MISSING_HORIZONTAL_SETTING, run_err.args[0])
+            self.assertEqual(ngram.NGramIndexer._MISSING_HORIZONTAL_SETTING, run_err.args[0])
 
     def test_init_10(self):
         """That __init__() raises a RuntimeWarning when 'align' setting is improperly set."""
         setts = {'n': 2, 'vertical': [('0,1',)], 'align': 'saperlipopette'}
-        self.assertRaises(RuntimeWarning, new_ngram.NewNGramIndexer, (VERT_DF,), setts)
+        self.assertRaises(RuntimeWarning, ngram.NGramIndexer, (VERT_DF,), setts)
         try:
-            new_ngram.NewNGramIndexer((VERT_DF,), setts)
+            ngram.NGramIndexer((VERT_DF,), setts)
         except RuntimeWarning as run_warn:
-            self.assertEqual(new_ngram.NewNGramIndexer._WRONG_ALIGN_SETTING, run_warn.args[0])
+            self.assertEqual(ngram.NGramIndexer._WRONG_ALIGN_SETTING, run_warn.args[0])
 
 
     def test_ngram_1a(self):
@@ -205,8 +206,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a B', 'B b C', 'C c D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_1b(self):
@@ -216,8 +217,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 1, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False,
                  'open-ended': True}
         expected = pandas.DataFrame([pandas.Series(['A a', 'B b', 'C c'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_1c(self):
@@ -227,8 +228,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False,
                  'open-ended': True}
         expected = pandas.DataFrame([pandas.Series(['A a B b', 'B b C c'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_2(self):
@@ -238,8 +239,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)],
                  'brackets': True}
         expected = pandas.DataFrame([pandas.Series(['[A] (a) [B]', '[B] (b) [C]', '[C] (c) [D]'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_3a(self):
@@ -248,8 +249,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 3, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a B b C', 'B b C c D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_3b(self):
@@ -258,8 +259,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 3, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False, 'align': 'r'}
         expected = pandas.DataFrame([pandas.Series(['A a B b C', 'B b C c D'], index=[2, 3])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_4a(self):
@@ -270,8 +271,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1', '0,2')], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A Z a B X', 'B X b C Y', 'C Y c D W'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_4b(self):
@@ -282,8 +283,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1', '0,2')], 'brackets': True}
         expected = pandas.DataFrame([pandas.Series(['[A Z] (a) [B X]', '[B X] (b) [C Y]', '[C Y] (c) [D W]'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_5a(self):
@@ -294,8 +295,8 @@ class TestNewNGramIndexer(unittest.TestCase):
                                pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], mi)
         setts = {'n': 2, 'horizontal': [('0', '1')], 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a z B', 'B b x C', 'C c y D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 0 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 0 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_5b(self):
@@ -306,8 +307,8 @@ class TestNewNGramIndexer(unittest.TestCase):
                                pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], mi)
         setts = {'n': 2, 'horizontal': [('0', '1')], 'vertical': [('0,1',)], 'brackets': True}
         expected = pandas.DataFrame([pandas.Series(['[A] (a z) [B]', '[B] (b x) [C]', '[C] (c y) [D]'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 0 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 0 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_5c(self):
@@ -318,8 +319,8 @@ class TestNewNGramIndexer(unittest.TestCase):
                                pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], mi)
         setts = {'n': 2, 'horizontal': [('0', '1')], 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a z B', 'B b x C', 'C c y D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 0 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 0 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_6(self):
@@ -334,8 +335,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         expected = pandas.DataFrame([pandas.Series(['[A Z] (a z) [B X]',
                                                     '[B X] (b x) [C Y]',
                                                     '[C Y] (c y) [D W]'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 : 1 2']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 : 1 2']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_7(self):
@@ -345,8 +346,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': True,
                  'terminator': ['C']}
         expected = pandas.DataFrame([pandas.Series(['[A] (a) [B]'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_8(self):
@@ -360,8 +361,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': [('1', '2')], 'vertical': [('0,1', '0,2')], 'brackets': True,
                  'terminator': ['X']}
         expected = pandas.DataFrame([pandas.Series(['[C Y] (c y) [D W]'], index=[2])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 : 1 2']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 : 1 2']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_9(self):
@@ -376,8 +377,8 @@ class TestNewNGramIndexer(unittest.TestCase):
                  'terminator': ['C']}
         expected = pandas.DataFrame([pandas.Series(['[A Z] (a z) [B X]', '[D W] (d w) [E V]'],
                                                    index=[0, 3])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 : 1 2']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 : 1 2']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_10(self):
@@ -389,8 +390,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)],
                  'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a B', 'B b C', 'C _ D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
 
         self.assertTrue(actual.equals(expected))
 
@@ -403,8 +404,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)],
                  'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A _ B', 'B _ C', 'C z D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
 
         self.assertTrue(actual.equals(expected))
 
@@ -417,8 +418,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)],
                  'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a B', 'B _ C', 'C z D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_13(self):
@@ -427,8 +428,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a B', 'B b C', 'C c C'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_14(self):
@@ -437,15 +438,15 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 2, 3])], HORIZ_DF.columns) 
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a A', 'A b B', 'B c C'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_15(self):
         """longer test, inspired by the first five measures of "Kyrie.krn" parts 1 and 3"""
         setts = {'n': 4, 'horizontal': [('1',)], 'vertical': [('0,1',)],
                  'continuer': 'P1', 'terminator': 'Rest', 'brackets': True}
-        actual = new_ngram.NewNGramIndexer([VERT_DF, HORIZ_DF], setts).run()
+        actual = ngram.NGramIndexer([VERT_DF, HORIZ_DF], setts).run()
         self.assertTrue(actual.equals(EXPECTED_DF))
 
     def test_ngram_16a(self):
@@ -461,8 +462,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         expected = pandas.DataFrame([pandas.Series(['[A Z Q] (a z) [B X R]', '[B X R] (b x) [C Y S]',
                                                     '[C Y S] (c y) [D W T]', '[D W T] (d w) [E V U]'],
                                                    index=[0, 1, 2, 3])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 0,3 : 2 3']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 0,3 : 2 3']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_17(self):
@@ -481,8 +482,8 @@ class TestNewNGramIndexer(unittest.TestCase):
                                                     '[C Y S L] (c y) [D W T M]',
                                                     '[D W T M] (d w) [E V U N]'],
                                                    index=[0, 1, 2, 3])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 0,3 0,4 : 3 4']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 0,3 0,4 : 3 4']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_18(self):
@@ -496,9 +497,9 @@ class TestNewNGramIndexer(unittest.TestCase):
         expected = pandas.DataFrame([pandas.Series(['[A Z Q J]', '[B X R K]', '[C Y S L]',
                                                     '[D W T M]', '[E V U N]'],
                                                    index=[0, 1, 2, 3, 4])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 0,3 0,4']]).T
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 0,3 0,4']]).T
 
-        actual = new_ngram.NewNGramIndexer([vertical], setts).run()
+        actual = ngram.NGramIndexer([vertical], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_19(self):
@@ -518,8 +519,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         horizontal = df_maker([pandas.Series(['a', 'b', 'c'], index=[1, 3, 4])], HORIZ_DF.columns) 
         setts = {'n': 2, 'horizontal': [('1',)], 'vertical': [('0,1',)], 'brackets': False}
         expected = pandas.DataFrame([pandas.Series(['A a B', 'B _ C', 'C b C', 'C c D'])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 : 1']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 : 1']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_20(self):
@@ -545,8 +546,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'vertical': [('0,1', '0,2',)]}
         expected = ['[A Q] [A W]', '[A W] [B W]', '[B W] [C E]', '[C E] [C R]', '[C R] [D R]']
         expected = pandas.DataFrame([pandas.Series(expected, index=[0.0, 0.5, 1.0, 2.0, 2.5])],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2']]).T
-        actual = new_ngram.NewNGramIndexer([vertical], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2']]).T
+        actual = ngram.NGramIndexer([vertical], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_21a(self):
@@ -565,8 +566,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': 'highest', 'vertical': [('0,1', '0,2', '0,3')], 'brackets': True,}
         expected = pandas.DataFrame([pandas.Series(['[A Z Q] (a) [B X R]', '[B X R] (b) [C Y S]',
                                                     '[C Y S] (c) [D W T]', '[D W T] (d) [E V U]'], )],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,1 0,2 0,3 : 0']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,1 0,2 0,3 : 0']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_21b(self):
@@ -585,8 +586,8 @@ class TestNewNGramIndexer(unittest.TestCase):
         setts = {'n': 2, 'horizontal': 'lowest', 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True,}
         expected = pandas.DataFrame([pandas.Series(['[A Z Q] (z2) [B X R]', '[B X R] (x2) [C Y S]',
                                                     '[C Y S] (y2) [D W T]', '[D W T] (w2) [E V U]']) ],
-                                    index=[['new_ngram.NewNGramIndexer'], ['0,3 1,3 2,3 : 3']]).T
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+                                    index=[['ngram.NGramIndexer'], ['0,3 1,3 2,3 : 3']]).T
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_21c(self):
@@ -601,11 +602,11 @@ class TestNewNGramIndexer(unittest.TestCase):
                                pandas.Series(['a2', 'b2', 'c2', 'd2'], index=[1, 2, 3, 4]),
                                pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4])], mi)
         setts = {'n': 2, 'horizontal': 'lowest', 'vertical': [('0,1',), ('0,2',), ('1,2',)], 'brackets': False,}
-        mi = mi_maker(['new_ngram.NewNGramIndexer'], ['0,1 : 1', '0,2 : 2', '1,2 : 2'])
+        mi = mi_maker(['ngram.NGramIndexer'], ['0,1 : 1', '0,2 : 2', '1,2 : 2'])
         expected = df_maker([pandas.Series(['A a2 B', 'B b2 C', 'C c2 D', 'D d2 E']),
                              pandas.Series(['Z z X', 'X x Y', 'Y y W', 'W w V']),
                              pandas.Series(['Q z R', 'R x S', 'S y T', 'T w U']) ], mi)
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
     def test_ngram_21d(self):
@@ -620,14 +621,14 @@ class TestNewNGramIndexer(unittest.TestCase):
                                pandas.Series(['a2', 'b2', 'c2', 'd2'], index=[1, 2, 3, 4]),
                                pandas.Series(['z', 'x', 'y', 'w'], index=[1, 2, 3, 4]) ], mi)
         setts = {'n': 2, 'horizontal': 'highest', 'vertical': [('0,1',), ('0,2',), ('1,2',)], 'brackets': True,}
-        mi = mi_maker(['new_ngram.NewNGramIndexer'], ['0,1 : 0', '0,2 : 0', '1,2 : 1'])
+        mi = mi_maker(['ngram.NGramIndexer'], ['0,1 : 0', '0,2 : 0', '1,2 : 1'])
         expected = df_maker([pandas.Series(['[A] (a) [B]', '[B] (b) [C]', '[C] (c) [D]', '[D] (d) [E]']),
                              pandas.Series(['[Z] (a) [X]', '[X] (b) [Y]', '[Y] (c) [W]', '[W] (d) [V]']),
                              pandas.Series(['[Q] (a2) [R]', '[R] (b2) [S]', '[S] (c2) [T]', '[T] (d2) [U]']) ], mi)
-        actual = new_ngram.NewNGramIndexer([vertical, horizontal], setts).run()
+        actual = ngram.NGramIndexer([vertical, horizontal], setts).run()
         self.assertTrue(actual.equals(expected))
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-NEW_NGRAM_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNewNGramIndexer)
+NGRAM_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNGramIndexer)

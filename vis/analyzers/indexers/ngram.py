@@ -36,7 +36,7 @@ import pandas
 from vis.analyzers import indexer
 
 
-class NewNGramIndexer(indexer.Indexer):
+class NGramIndexer(indexer.Indexer):
     """
     Indexer that finds k-part n-grams from other indices.
 
@@ -130,7 +130,7 @@ class NewNGramIndexer(indexer.Indexer):
 
     vert_ints = ip.get_data([interval.IntervalIndexer], settings=vert_settings)
     horiz_ints = ip.get_data([interval.HorizontalIntervalIndexer], settings=horiz_settings)
-    ngrams = ip.get_data([interval.IntervalIndexer], settings=ngram_settings,
+    ngrams = ip.get_data([ngram.NGramIndexer], settings=ngram_settings,
                          data=[vert_ints, horiz_ints])
     """
 
@@ -139,7 +139,7 @@ class NewNGramIndexer(indexer.Indexer):
     possible_settings = ['horizontal', 'vertical', 'n', 'open-ended', 'brackets', 'terminator',
                          'continuer', 'align']
     """
-    A list of possible settings for the :class:`NewNGramIndexer`.
+    A list of possible settings for the :class:`NGramIndexer`.
 
     :keyword 'horizontal': Selectors for the columns to consider as "horizontal."
     :type 'horizontal': list of tuples of strings, default [].
@@ -165,10 +165,10 @@ class NewNGramIndexer(indexer.Indexer):
     default_settings = {'brackets': True, 'horizontal': [], 'open-ended': False, 'terminator': [], 
                         'vertical': 'all', 'continuer': '_', 'align': 'left'}
 
-    _MISSING_SETTINGS = 'NewNGramIndexer requires "vertical" and "n" settings.'
+    _MISSING_SETTINGS = 'NGramIndexer requires "vertical" and "n" settings.'
     _MISSING_HORIZONTAL_SETTING = 'If you provide a list of two DataFrames as the score, you must also \
         specify the columns to examine in the second DataFrame with the \'horizontal\' setting.'
-    _MISSING_HORIZONTAL_DATA = 'NewNGramIndexer needs a dataframe of horizontal observations if you want \
+    _MISSING_HORIZONTAL_DATA = 'NGramIndexer needs a dataframe of horizontal observations if you want \
         to include a horizontal dimension in your ngrams.'
     _SUPERFLUOUS_HORIZONTAL_DATA = 'If n is set to 1 and the "open_ended" setting is set to False, no \
         horizontal observations will be included in ngrams so you should leave the "horizontal" setting \
@@ -181,8 +181,8 @@ class NewNGramIndexer(indexer.Indexer):
         vertical observations. If you\'re doing a query on multiple pieces, it can be convenient to pass \
         \"all\" as the \"vertical\" setting which dynamically selects all of the columns of the DataFrame \
         of vertical observations.'
-    _N_VALUE_TOO_LOW = 'NewNGramIndexer requires an "n" value of at least 1.'
-    _N_VALUE_TOO_HIGH = 'NewNGramIndexer is unlikely to return results when the value of n is greater than \
+    _N_VALUE_TOO_LOW = 'NGramIndexer requires an "n" value of at least 1.'
+    _N_VALUE_TOO_HIGH = 'NGramIndexer is unlikely to return results when the value of n is greater than \
         the number of passed observations in either of the passed dataframes.'
     _WRONG_ALIGN_SETTING = 'Incorrect \'align\' setting passed. Please use \'left\', \'right\', \'l\', or \'r\'.'
 
@@ -202,39 +202,39 @@ class NewNGramIndexer(indexer.Indexer):
         """
         # Check all required settings are present in the "settings" argument.
         if settings is None or 'vertical' not in settings or 'n' not in settings:
-            raise RuntimeError(NewNGramIndexer._MISSING_SETTINGS)
+            raise RuntimeError(NGramIndexer._MISSING_SETTINGS)
         elif settings['n'] < 1:
-            raise RuntimeError(NewNGramIndexer._N_VALUE_TOO_LOW)
+            raise RuntimeError(NGramIndexer._N_VALUE_TOO_LOW)
         else:
-            self._settings = NewNGramIndexer.default_settings.copy()
+            self._settings = NGramIndexer.default_settings.copy()
             self._settings.update(settings)
         
         self._cut_off = self._settings['n'] if not self._settings['open-ended'] else self._settings['n'] + 1
         if all(self._cut_off > len(df) for df in score):
-            raise RuntimeWarning(NewNGramIndexer._N_VALUE_TOO_HIGH)
+            raise RuntimeWarning(NGramIndexer._N_VALUE_TOO_HIGH)
 
-        super(NewNGramIndexer, self).__init__(score, None)
+        super(NGramIndexer, self).__init__(score, None)
 
         self._vertical_indexer_name = self._score[0].columns[0][0]
 
         if self._settings['horizontal']:
             if len(self._score) != 2:
-                raise RuntimeError(NewNGramIndexer._MISSING_HORIZONTAL_DATA)
+                raise RuntimeError(NGramIndexer._MISSING_HORIZONTAL_DATA)
             elif self._settings['n'] == 1 and not self._settings['open-ended']:
-                raise RuntimeWarning(NewNGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
+                raise RuntimeWarning(NGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
             elif (self._settings['horizontal'] not in ('lowest', 'highest') and 
                   not all([col_name in self._score[1].columns.levels[1] for 
                            tup in settings['horizontal'] for col_name in tup])):
-                raise RuntimeError(NewNGramIndexer._HORIZONTAL_OUT_OF_RANGE)
+                raise RuntimeError(NGramIndexer._HORIZONTAL_OUT_OF_RANGE)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
         elif len(self._score) != 1: # there is a df of horizontal observations,
                                     # but no horizontal columns specified in settings.
-            raise RuntimeError(NewNGramIndexer._MISSING_HORIZONTAL_SETTING)
+            raise RuntimeError(NGramIndexer._MISSING_HORIZONTAL_SETTING)
 
         if self._settings['vertical'] != 'all':
             if not all([col_name in self._score[0].columns.levels[1] for 
                         tup in settings['vertical'] for col_name in tup]):
-                raise RuntimeError(NewNGramIndexer._VERTICAL_OUT_OF_RANGE)
+                raise RuntimeError(NGramIndexer._VERTICAL_OUT_OF_RANGE)
         else: # i.e. self._settings['vertical'] == 'all'
             self._settings['vertical'] = [(x,) for x in self._score[0].columns.levels[1]]
 
@@ -247,7 +247,7 @@ class NewNGramIndexer(indexer.Indexer):
 
         if self._settings['align'] not in ('left', 'right', 'L', 'R', 'l', 'r', 'Left',
                                            'Right', 'LEFT', 'RIGHT'):
-            raise RuntimeWarning(NewNGramIndexer._WRONG_ALIGN_SETTING)
+            raise RuntimeWarning(NGramIndexer._WRONG_ALIGN_SETTING)
 
     def run(self):
         """
