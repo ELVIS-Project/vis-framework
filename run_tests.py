@@ -35,7 +35,6 @@ from vis.tests import test_duration_indexer
 from vis.tests import test_note_beat_strength_indexer
 from vis.tests import test_measure_indexer
 from vis.tests import test_note_rest_indexer
-from vis.tests import test_ngram
 from vis.tests import test_new_ngram
 from vis.tests import test_dissonance_indexer
 from vis.tests import test_repeat
@@ -76,7 +75,6 @@ THE_TESTS = (  # Indexer and Subclasses
              test_interval_indexer.INT_IND_INDEXER_SUITE,
              test_interval_indexer.HORIZ_INT_IND_LONG_SUITE,
              test_repeat.REPEAT_INDEXER_SUITE,
-             test_ngram.NGRAM_INDEXER_SUITE,
              test_new_ngram.NEW_NGRAM_INDEXER_SUITE,
              test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,  # AssertionError: Attributes are different (3x)
              test_offset.OFFSET_INDEXER_SINGLE_SUITE,
@@ -111,13 +109,11 @@ THE_TESTS = (  # Indexer and Subclasses
              test_workflow.MAKE_HISTOGRAM,
              test_workflow.MAKE_LILYPOND,
              test_workflow.AUX_METHODS,
-             test_workflow_experiments.INTERVAL_NGRAMS,
              test_workflow_experiments.INTERVALS,
              # Integration Tests
              bwv2.ALL_VOICE_INTERVAL_NGRAMS,
              bwv603.ALL_VOICE_INTERVAL_NGRAMS,
              test_workflow_integration.INTERVALS_TESTS,
-             test_workflow_integration.NGRAMS_TESTS,
         )
 
 
