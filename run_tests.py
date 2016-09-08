@@ -43,7 +43,7 @@ from vis.tests import test_interval_indexer
 from vis.tests import test_frequency_experimenter
 from vis.tests import test_aggregator
 from vis.tests import test_barchart
-from vis.tests import test_dendrogram
+# from vis.tests import test_dendrogram
 from vis.tests import test_offset
 from vis.tests import test_lilypond
 from vis.tests import test_indexed_piece
@@ -94,7 +94,7 @@ THE_TESTS = (  # Indexer and Subclasses
              test_frequency_experimenter.FREQUENCY_SUITE,
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
              test_barchart.R_BAR_CHART_SUITE,
-             test_dendrogram.DENDROGRAM_SUITE,  # dendrogram() got an unexpected keyword argument 'no_leaves'
+             # test_dendrogram.DENDROGRAM_SUITE, # This test suite is commented out so that we can remove our SciPy dependency.
              # IndexedPiece and AggregatedPieces
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_SUITE_B,

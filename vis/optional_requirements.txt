@@ -14,8 +14,9 @@ openpyxl>=1.6.2
 pylint
 
 # Plotting tools.
-scipy==0.16.0
-matplotlib==1.5.1
+# scipy==0.16.0
+# matplotlib==1.5.1
+# NB: commenting out scipy and matplotlib to lighten installation.
 
 # For testing, coverage, stuff like that.
 mock==1.0.1
