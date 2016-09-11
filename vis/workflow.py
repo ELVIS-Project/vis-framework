@@ -24,6 +24,12 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
+.. deprecated:: 3.0.0
+    The WorkflowManager is deprecated as of VIS 3.0.0 and will be entirely removed in VIS 4.0. It 
+    was an important part of VIS in earlier versions but the iterative caching strategy implemented 
+    in VIS 3.0 obviates the need for the WorkflowManager and so it is being phased out for 
+    simplicity. Most of its functionality still works with VIS 3.0, however, it is no longer being 
+    maintained or supported.
 
 The ``workflow`` module holds the :class:`WorkflowManager`, which automates several common music
 analysis patterns for counterpoint. The :class:`TemplateWorkflow` class is a template for writing
@@ -65,6 +71,10 @@ def split_part_combo(key):
 
 class WorkflowManager(object):
     """
+    Warning: The WorkflowManager is deprecated as of VIS 3.0 and will be entirely removed in 
+    VIS 4.0. Most of its functionality still works with VIS 3.0 but this is not guaranteed and it 
+    is no longer being supported in development.
+    
     :parameter pathnames: A list of pathnames.
     :type pathnames: list or tuple of string or :class:`~vis.models.indexed_piece.IndexedPiece`
 
