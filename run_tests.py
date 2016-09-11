@@ -49,9 +49,9 @@ from vis.tests import test_indexed_piece
 from vis.tests import test_aggregated_pieces
 from vis.tests import bwv2_integration_tests as bwv2
 from vis.tests import bwv603_integration_tests as bwv603
-from vis.tests import test_workflow
-from vis.tests import test_workflow_integration
-from vis.tests import test_workflow_experiments
+# from vis.tests import test_workflow
+# from vis.tests import test_workflow_integration
+# from vis.tests import test_workflow_experiments
 from vis.tests import test_fermata_indexer
 from vis.tests import test_over_bass
 from vis.tests import test_cadence
@@ -99,21 +99,23 @@ THE_TESTS = (  # Indexer and Subclasses
              test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
              test_indexed_piece.INDEXED_PIECE_SUITE_C,
              test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
-             # WorkflowManager
-             test_workflow.WORKFLOW_TESTS,  # FutureWarning: sort(columns) is depracated, use sort_values(by=...)
-             test_workflow.FILTER_DATA_FRAME,
-             test_workflow.MAKE_TABLE,
-             test_workflow.EXTRA_PAIRS,
-             test_workflow.SETTINGS,
-             test_workflow.OUTPUT,
-             test_workflow.MAKE_HISTOGRAM,
-             test_workflow.MAKE_LILYPOND,
-             test_workflow.AUX_METHODS,
-             test_workflow_experiments.INTERVALS,
+             # NB: Most of these WorkflowManager tests pass but they are commented out because the WorkflowManager is deprecated.
+             # # WorkflowManager 
+             # test_workflow.WORKFLOW_TESTS,  # FutureWarning: sort(columns) is depracated, use sort_values(by=...)
+             # test_workflow.FILTER_DATA_FRAME,
+             # test_workflow.MAKE_TABLE,
+             # test_workflow.EXTRA_PAIRS,
+             # test_workflow.SETTINGS,
+             # test_workflow.OUTPUT,
+             # test_workflow.MAKE_HISTOGRAM,
+             # test_workflow.MAKE_LILYPOND,
+             # test_workflow.AUX_METHODS,
+             # test_workflow_experiments.INTERVALS,
              # Integration Tests
              bwv2.ALL_VOICE_INTERVAL_NGRAMS,
              bwv603.ALL_VOICE_INTERVAL_NGRAMS,
-             test_workflow_integration.INTERVALS_TESTS,
+             # NB: The integration tests below are commented out because the WorkflowManager is deprecated.
+             # test_workflow_integration.INTERVALS_TESTS,
         )
 
 
