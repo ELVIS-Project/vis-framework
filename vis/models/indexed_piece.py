@@ -544,9 +544,9 @@ class IndexedPiece(object):
     def _get_beat_strength(self):
         """Used internally by get_data() to cache and retrieve results from the 
         meter.NoteBeatStrengthIndexer."""
-        if 'beatstrength' not in self._analyses:
-            self._analyses['beatstrength'] = meter.NoteBeatStrengthIndexer(self._get_m21_nrc_objs_no_tied()).run()
-        return self._analyses['beatstrength']
+        if 'beat_strength' not in self._analyses:
+            self._analyses['beat_strength'] = meter.NoteBeatStrengthIndexer(self._get_m21_nrc_objs_no_tied()).run()
+        return self._analyses['beat_strength']
 
     def _get_fermata(self):
         """Used internally by get_data() to cache and retrieve results from the 

@@ -175,9 +175,13 @@ class TestDissonanceIndexer(unittest.TestCase):
         this test should get moved to the integration tests file.
         """
         expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
-        ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn'))
+        ip = IndexedPiece('dummy_path')
+        ip._analyses['beat_strength'] = pd.read_pickle('/home/amor/Code/vis-framework/vis/tests/expecteds/test_dissonance_indf_bs.pickle')
+        ip._analyses['duration'] = pd.read_pickle('/home/amor/Code/vis-framework/vis/tests/expecteds/test_dissonance_indf_du.pickle')
+        ip._analyses['horizontal_interval'] = pd.read_pickle('/home/amor/Code/vis-framework/vis/tests/expecteds/test_dissonance_indf_hz.pickle')
+        ip._analyses['vertical_interval'] = pd.read_pickle('/home/amor/Code/vis-framework/vis/tests/expecteds/test_dissonance_indf_vt.pickle')
         actual = ip._get_dissonance()
-        assert_frame_equal(expected, actual)
+        self.assertTrue(actual.equals(expected))
 
 
 #-------------------------------------------------------------------------------------------------#
