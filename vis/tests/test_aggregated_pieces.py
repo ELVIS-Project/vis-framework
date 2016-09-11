@@ -325,7 +325,8 @@ class TestAggregatedPieces(TestCase):
     def test_run3(self):
         path = 'vis/tests/corpus/elvisdownload/'
         folder = os.listdir(path)
-        folder.remove('.DS_Store')
+        if '.DS_Store' in folder:
+            folder.remove('.DS_Store')
         folder.remove('meta')
         new_f = []
         for f in folder:
@@ -336,7 +337,8 @@ class TestAggregatedPieces(TestCase):
     def test_run4(self):
         path = 'vis/tests/corpus/elvisdownload/'
         folder = os.listdir(path)
-        folder.remove('.DS_Store')
+        if '.DS_Store' in folder:
+            folder.remove('.DS_Store')
         folder.remove('meta')
         new_f = []
         for f in folder:
@@ -353,7 +355,8 @@ class TestAggregatedPieces(TestCase):
     def test_run6(self):
         path = 'vis/tests/corpus/elvisdownload/'
         folder = os.listdir(path)
-        folder.remove('.DS_Store')
+        if '.DS_Store' in folder:
+            folder.remove('.DS_Store')
         folder.remove('meta')
         new_f = []
         for f in folder:
