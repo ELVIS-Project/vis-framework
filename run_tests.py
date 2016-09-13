@@ -49,6 +49,7 @@ from vis.tests import test_indexed_piece
 from vis.tests import test_aggregated_pieces
 from vis.tests import bwv2_integration_tests as bwv2
 from vis.tests import bwv603_integration_tests as bwv603
+# NB: The WorkflowManager is deprecated, though most of its tests still pass.
 # from vis.tests import test_workflow
 # from vis.tests import test_workflow_integration
 # from vis.tests import test_workflow_experiments
@@ -67,6 +68,7 @@ THE_TESTS = (  # Indexer and Subclasses
              # test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
              test_fermata_indexer.FERMATA_INDEXER_SUITE,
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
+             test_note_rest_indexer.MULTI_STOP_INDEXER_SUITE,
              test_duration_indexer.DURATION_INDEXER_SUITE,
              test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,  # 'module' object has no attribute 'TimeSignature'
              test_measure_indexer.MEASURE_INDEXER_SUITE,

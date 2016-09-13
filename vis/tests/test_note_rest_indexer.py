@@ -87,7 +87,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         vals = [x[1] for x in lotuples]
         return pandas.Series(vals, index=new_index)
 
-    def test_note_rest_indexer_func_1(self):
+    def test_noterest_ind_func_1(self):
         # Check the indexer_func on note, rest, and chord objects
         expected = pandas.Series(('A-4', 'Rest', 'F#5'))
         n1 = note.Note('A-4')
@@ -99,16 +99,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = temp.apply(noterest.noterest_ind_func)
         self.assertTrue(actual.equals(expected))
 
-    def test_note_rest_unpack_chords_1(self):
-        # Make sure that unpack_chords expands chords the right way.
-        expected = pandas.concat((pandas.Series(('A-4', 'Rest', 'A-4')),
-                                 pandas.Series((None, None, 'D#5')),
-                                 pandas.Series((None, None, 'F#5'))), axis=1)
-        temp = pandas.concat((pandas.Series((('A-4',), ('Rest',), ['A-4', 'D#5', 'F#5'])),), axis=1)
-        actual = noterest.unpack_chords(temp)
-        self.assertTrue(actual.equals(expected))
-
-    def test_note_rest_indexer_1(self):
+    def test_noterest_indexer_1(self):
         # When the parts are empty
         expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
         nr_indexer = noterest.NoteRestIndexer(expected)
@@ -139,7 +130,7 @@ class TestNoteRestIndexer(unittest.TestCase):
     #         self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
     #         self.assertSequenceEqual(list(expected[key]), list(actual[key]))
 
-    def test_note_rest_indexer_2(self):
+    def test_noterest_indexer_2(self):
         # When there are a bunch of notes
         expected = pandas.DataFrame({'0': pandas.Series([u'C4' for _ in range(10)])})
         test_score = pandas.DataFrame({'0': pandas.Series([note.Note('C4') for i in range(10)])})
@@ -147,7 +138,7 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
 
-    def test_note_rest_indexer_3(self):
+    def test_noterest_indexer_3(self):
         # Combine three previous tests to avoid re-importing the same piece multiple times.
         # Soprano part of bwv77.mxl
         expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)})
@@ -165,7 +156,54 @@ class TestNoteRestIndexer(unittest.TestCase):
         self.assertTrue(actual.equals(expected))
 
 
+class TestMultiStopIndexer(unittest.TestCase):
+
+    def test_unpack_chords_1(self):
+        # Make sure that unpack_chords expands chords the right way.
+        expected = pandas.concat((pandas.Series(('A-4', 'Rest', 'A-4')),
+                                 pandas.Series((None, None, 'D#5')),
+                                 pandas.Series((None, None, 'F#5'))), axis=1)
+        temp = pandas.concat((pandas.Series((('A-4',), ('Rest',), ['A-4', 'D#5', 'F#5'])),), axis=1)
+        actual = noterest.unpack_chords(temp)
+        self.assertTrue(actual.equals(expected))
+
+    def test_multistop_ind_func_1(self):
+        # Check the indexer_func on note, rest, and chord objects
+        expected = pandas.Series((('A-4',), ('Rest',), ['F#5', 'D#5', 'A-4']))
+        n1 = note.Note('A-4')
+        n2 = note.Note('D#5')
+        n3 = note.Note('F#5')
+        r1 = note.Rest()
+        c1 = chord.Chord([n3, n2, n1])
+        temp = pandas.Series((n1, r1, c1))
+        actual = temp.apply(noterest.multistop_ind_func)
+        self.assertTrue(actual.equals(expected))
+
+    def test_multistop_indexer_1(self):
+        # When the parts are empty
+        expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
+        mu_indexer = noterest.MultiStopIndexer(expected)
+        actual = mu_indexer.run()['noterest.MultiStopIndexer']
+        self.assertTrue(actual.equals(expected))
+
+    def test_multistop_indexer_2(self):
+        # Integration test of a whole piece, the string quarted in the test corpus.
+        ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'sqOp76-4-i.midi'))
+        actual = ip._get_multistop()
+        # Until we figure out why pickling isn't working:
+        self.assertTrue(10 == len(actual.columns))
+        self.assertTrue(3286 == len(actual.index))
+        self.assertSequenceEqual([val for val in actual.count().values],
+                                 [2098, 41, 4, 1818, 131, 1, 1621, 15, 1232, 2])
+        # When we get pickling working again (just save to_pickle once):
+        # actual.to_pickle(os.path.join(VIS_PATH, 'tests', 'corpus', 'expecteds', 'test_multistop.pickle'))
+        # expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'corpus', 'expecteds', 'test_multistop.pickle'))
+        # self.assertTrue(actual.equals(expected))
+
+
+
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
 NOTE_REST_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestNoteRestIndexer)
+MULTI_STOP_INDEXER_SUITE = unittest.TestLoader().loadTestsFromTestCase(TestMultiStopIndexer)
