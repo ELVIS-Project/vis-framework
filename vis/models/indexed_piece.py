@@ -42,8 +42,10 @@ import numpy
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
+from vis.analyzers.experimenters import aggregator, barchart, frequency, lilypond #, dendrogram
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest, meter, interval, dissonance, fermata
+from vis.analyzers.indexers import noterest, meter, interval, dissonance, fermata, offset, repeat, active_voices, lilypond, offset, over_bass, contour, ngram, windexer
+from multi_key_dict import multi_key_dict as mkd
 
 
 # the title given to a piece when we cannot determine its title
@@ -51,7 +53,35 @@ _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 # Types for noterest indexing
 _noterest_types = ('Note', 'Rest', 'Chord')
 _default_interval_setts = {'quality':True, 'directed':True, 'simple or compound':'compound', 'horiz_attach_later':True}
-
+# Multi-key dictionary for calls to get_data().
+_mkd = mkd({ # Indexers (in alphabetical order of their two-letter abbreviation):
+            ('an', 'annotation', 'lilypond.AnnotationIndexer', lilypond.AnnotationIndexer): lilypond.AnnotationIndexer,
+            ('ac', 'active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): active_voices.ActiveVoicesIndexer,
+            ('be', 'beat_strength', 'meter.NoteBeatStrengthIndexer', meter.NoteBeatStrengthIndexer): meter.NoteBeatStrengthIndexer,
+            ('ca', 'cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): cadence.CadenceIndexer,
+            ('co', 'contour', 'contour.ContourIndexer', contour.ContourIndexer): contour.ContourIndexer,
+            ('di', 'dissonance', 'dissonance.DissonanceIndexer', dissonance.DissonanceIndexer): dissonance.DissonanceIndexer,
+            ('du', 'duration', 'meter.DurationIndexer', meter.DurationIndexer): meter.DurationIndexer,
+            ('fe', 'fermata', 'fermata.FermataIndexer', fermata.FermataIndexer): fermata.FermataIndexer,
+            ('ho', 'horizontal_interval', 'interval.HorizontalIntervalIndexer', interval.HorizontalIntervalIndexer): interval.HorizontalIntervalIndexer,
+            ('me', 'measure', 'meter.MeasureIndexer', meter.MeasureIndexer): meter.MeasureIndexer,
+            ('mu', 'multistop', 'noterest.MultiStopIndexer', noterest.MultiStopIndexer): noterest.MultiStopIndexer,
+            ('ng', 'ngram', 'ngram.NGramIndexer', ngram.NGramIndexer): ngram.NGramIndexer,
+            ('no', 'noterest', 'noterest.NoteRestIndexer', noterest.NoteRestIndexer): noterest.NoteRestIndexer,
+            ('of', 'offset', 'offset.FilterByOffsetIndexer', offset.FilterByOffsetIndexer): offset.FilterByOffsetIndexer,
+            ('ov', 'over_bass', 'over_bass.OverBassIndexer', over_bass.OverBassIndexer): over_bass.OverBassIndexer,
+            ('re', 'repeat', 'repeat.FilterByRepeatIndexer', repeat.FilterByRepeatIndexer): repeat.FilterByRepeatIndexer,
+            ('ve', 'vertical_interval', 'interval.IntervalIndexer', interval.IntervalIndexer): interval.IntervalIndexer,
+            ('wi', 'windexer', 'windexer.Windexer', windexer.Windexer): windexer.Windexer,
+            # Experimenters (in alphabetical order of their two-letter abbreviation):
+            ('ae', 'annotate_the_note', 'lilypond.AnnotateTheNoteExperimenter', lilypond.AnnotateTheNoteExperimenter): lilypond.AnnotateTheNoteExperimenter,
+            ('ag', 'aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
+            ('ba', 'bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
+            # The dendrogram experimenter has been commented out to allow us to remove our SciPy dependency
+            # ('de', 'dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
+            ('fr', 'frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter,
+            ('li', 'lilypond', 'lilypond.LilyPondExperimenter', lilypond.LilyPondExperimenter): lilypond.LilyPondExperimenter,
+            ('pa', 'part_notes', 'lilypond.PartNotesExperimenter', lilypond.PartNotesExperimenter): lilypond.PartNotesExperimenter})
 
 def login_edb(username, password):
     """Return csrf and session tokens for a login."""
@@ -522,7 +552,7 @@ class IndexedPiece(object):
 
     def _get_noterest(self):
         """Used internally by get_data() to cache and retrieve results from the 
-        noterest.NoterestIndexer."""
+        noterest.NoteRestIndexer."""
         if 'noterest' not in self._analyses:
             self._analyses['noterest'] = noterest.NoteRestIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['noterest']
@@ -676,6 +706,8 @@ class IndexedPiece(object):
         Refer to the source code for :meth:`vis.workflow.WorkflowManager.load` for an example
         implementation.
         """
+        if isinstance(analyzer_cls[0], str):
+            analyzer_cls = [_mkd[analyzer_cls[0]]]
         IndexedPiece._type_verifier(analyzer_cls)
         if data is None:
             if analyzer_cls[0] is noterest.NoteRestIndexer:
