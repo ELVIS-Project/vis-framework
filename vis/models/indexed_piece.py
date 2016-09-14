@@ -54,35 +54,6 @@ _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 # Types for noterest indexing
 _noterest_types = ('Note', 'Rest', 'Chord')
 _default_interval_setts = {'quality':True, 'directed':True, 'simple or compound':'compound', 'horiz_attach_later':True}
-# Multi-key dictionary for calls to get_data().
-_mkd = mkd({ # Indexers (in alphabetical order of their two-letter abbreviation):
-            # ('an', 'annotation', 'lilypond.AnnotationIndexer', lilypond.AnnotationIndexer): lily_ind.AnnotationIndexer,
-            ('ac', 'active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): active_voices.ActiveVoicesIndexer,
-            ('be', 'beat_strength', 'meter.NoteBeatStrengthIndexer', meter.NoteBeatStrengthIndexer): meter.NoteBeatStrengthIndexer,
-            ('ca', 'cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): cadence.CadenceIndexer,
-            ('co', 'contour', 'contour.ContourIndexer', contour.ContourIndexer): contour.ContourIndexer,
-            ('di', 'dissonance', 'dissonance.DissonanceIndexer', dissonance.DissonanceIndexer): dissonance.DissonanceIndexer,
-            ('du', 'duration', 'meter.DurationIndexer', meter.DurationIndexer): meter.DurationIndexer,
-            ('fe', 'fermata', 'fermata.FermataIndexer', fermata.FermataIndexer): fermata.FermataIndexer,
-            ('ho', 'horizontal_interval', 'interval.HorizontalIntervalIndexer', interval.HorizontalIntervalIndexer): interval.HorizontalIntervalIndexer,
-            ('me', 'measure', 'meter.MeasureIndexer', meter.MeasureIndexer): meter.MeasureIndexer,
-            ('mu', 'multistop', 'noterest.MultiStopIndexer', noterest.MultiStopIndexer): noterest.MultiStopIndexer,
-            ('ng', 'ngram', 'ngram.NGramIndexer', ngram.NGramIndexer): ngram.NGramIndexer,
-            ('no', 'noterest', 'noterest.NoteRestIndexer', noterest.NoteRestIndexer): noterest.NoteRestIndexer,
-            ('of', 'offset', 'offset.FilterByOffsetIndexer', offset.FilterByOffsetIndexer): offset.FilterByOffsetIndexer,
-            ('ov', 'over_bass', 'over_bass.OverBassIndexer', over_bass.OverBassIndexer): over_bass.OverBassIndexer,
-            ('re', 'repeat', 'repeat.FilterByRepeatIndexer', repeat.FilterByRepeatIndexer): repeat.FilterByRepeatIndexer,
-            ('ve', 'vertical_interval', 'interval.IntervalIndexer', interval.IntervalIndexer): interval.IntervalIndexer,
-            ('wi', 'windexer', 'windexer.Windexer', windexer.Windexer): windexer.Windexer,
-            # Experimenters (in alphabetical order of their two-letter abbreviation):
-            ('ae', 'annotate_the_note', 'lilypond.AnnotateTheNoteExperimenter', lilypond.AnnotateTheNoteExperimenter): lilypond.AnnotateTheNoteExperimenter,
-            ('ag', 'aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
-            ('ba', 'bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
-            # The dendrogram experimenter has been commented out to allow us to remove our SciPy dependency
-            # ('de', 'dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
-            ('fr', 'frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter,
-            ('li', 'lilypond', 'lilypond.LilyPondExperimenter', lilypond.LilyPondExperimenter): lilypond.LilyPondExperimenter,
-            ('pa', 'part_notes', 'lilypond.PartNotesExperimenter', lilypond.PartNotesExperimenter): lilypond.PartNotesExperimenter})
 
 def login_edb(username, password):
     """Return csrf and session tokens for a login."""
@@ -389,6 +360,36 @@ class IndexedPiece(object):
         self._opus_id = opus_id  # if the file imports as an Opus, this is the index of the Score
         self._username = username
         self._password = password
+        # Multi-key dictionary for calls to get_data()
+        self._mkd = mkd({ # Indexers (in alphabetical order of their two-letter abbreviation):
+                        # ('an', 'annotation', 'lilypond.AnnotationIndexer', lilypond.AnnotationIndexer): lily_ind.AnnotationIndexer,
+                        # ('ac', 'active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): self._get_active_voices,
+                        ('be', 'beat_strength', 'meter.NoteBeatStrengthIndexer', meter.NoteBeatStrengthIndexer): self._get_beat_strength,
+                        # ('ca', 'cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): self._get_cadence,
+                        # ('co', 'contour', 'contour.ContourIndexer', contour.ContourIndexer): self._get_contour,
+                        ('di', 'dissonance', 'dissonance.DissonanceIndexer', dissonance.DissonanceIndexer): self._get_dissonance,
+                        ('du', 'duration', 'meter.DurationIndexer', meter.DurationIndexer): self._get_duration,
+                        ('fe', 'fermata', 'fermata.FermataIndexer', fermata.FermataIndexer): self._get_fermata,
+                        ('ho', 'horizontal_interval', 'interval.HorizontalIntervalIndexer', interval.HorizontalIntervalIndexer): self._get_horizontal_interval,
+                        ('me', 'measure', 'meter.MeasureIndexer', meter.MeasureIndexer): self._get_measure,
+                        ('mu', 'multistop', 'noterest.MultiStopIndexer', noterest.MultiStopIndexer): self._get_multistop,
+                        # ('ng', 'ngram', 'ngram.NGramIndexer', ngram.NGramIndexer): self._get_ngram,
+                        ('no', 'noterest', 'noterest.NoteRestIndexer', noterest.NoteRestIndexer): self._get_noterest,
+                        # ('of', 'offset', 'offset.FilterByOffsetIndexer', offset.FilterByOffsetIndexer): self._get_offset,
+                        # ('ov', 'over_bass', 'over_bass.OverBassIndexer', over_bass.OverBassIndexer): self._get_over_bass,
+                        # ('re', 'repeat', 'repeat.FilterByRepeatIndexer', repeat.FilterByRepeatIndexer): self._get_repeat,
+                        ('ve', 'vertical_interval', 'interval.IntervalIndexer', interval.IntervalIndexer): self._get_vertical_interval,
+                        # ('wi', 'windexer', 'windexer.Windexer', windexer.Windexer): self._get_windexer,
+                        # Experimenters (in alphabetical order of their two-letter abbreviation):
+                        ('ae', 'annotate_the_note', 'lilypond.AnnotateTheNoteExperimenter', lilypond.AnnotateTheNoteExperimenter): lilypond.AnnotateTheNoteExperimenter,
+                        ('ag', 'aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
+                        ('ba', 'bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
+                        # The dendrogram experimenter has been commented out to allow us to remove our SciPy dependency
+                        # ('de', 'dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
+                        ('fr', 'frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter,
+                        ('li', 'lilypond', 'lilypond.LilyPondExperimenter', lilypond.LilyPondExperimenter): lilypond.LilyPondExperimenter,
+                        ('pa', 'part_notes', 'lilypond.PartNotesExperimenter', lilypond.PartNotesExperimenter): lilypond.PartNotesExperimenter})
+
         init_metadata()
         if metafile is not None:
             self._metafile = metafile
@@ -558,11 +559,13 @@ class IndexedPiece(object):
             self._analyses['multistop'] = noterest.MultiStopIndexer(self._get_m21_nrc_objs_no_tied()).run()
         return self._analyses['multistop']
 
-    def _get_duration(self):
+    def _get_duration(self, data=None):
         """Used internally by get_data() to cache and retrieve results from the 
         meter.DurationIndexer."""
-        if 'duration' not in self._analyses:
-            self._analyses['duration'] = meter.DurationIndexer(self._get_noterest(), self._get_part_streams()).run()
+        if data is not None:
+            return meter.DurationIndexer(data, self._get_part_streams()).run()
+        elif 'duration' not in self._analyses:
+            self._analyses['duration'] = meter.DurationIndexer(self._get_m21_nrc_objs_no_tied(), self._get_part_streams()).run()
         return self._analyses['duration']
 
     def _get_beat_strength(self):
@@ -673,9 +676,6 @@ class IndexedPiece(object):
         :param data: Input data for the first analyzer to run. If the first indexer uses a
             :class:`~music21.stream.Score`, you should leave this as ``None``.
         :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
-        :param known_opus: Whether the caller knows this file will be imported as a
-            :class:`music21.stream.Opus` object. Refer to the "Note about Opus Objects" below.
-        :type known_opus: boolean
         :returns: Results of the analyzer.
         :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
         :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
@@ -700,31 +700,12 @@ class IndexedPiece(object):
         Refer to the source code for :meth:`vis.workflow.WorkflowManager.load` for an example
         implementation.
         """
-        if isinstance(analyzer_cls[0], str):
-            analyzer_cls = [_mkd[analyzer_cls[0]]]
-        IndexedPiece._type_verifier(analyzer_cls)
-        if data is None:
-            if analyzer_cls[0] is noterest.NoteRestIndexer:
-                data = self._get_noterest()
-            # NB: Experimenter subclasses don't have "required_score_type"
-            elif (hasattr(analyzer_cls[0], 'required_score_type') and
-                  analyzer_cls[0].required_score_type == 'stream.Part'):
-                data = self._import_score(known_opus=known_opus)
-                data = [x for x in data.parts]  # Indexers require a list of Parts
-            elif (hasattr(analyzer_cls[0], 'required_score_type') and
-                  analyzer_cls[0].required_score_type == 'stream.Score'):
-                data = [self._import_score(known_opus=known_opus)]
-            else:
-                raise RuntimeError(IndexedPiece._MISSING_DATA.format(analyzer_cls[0]))
-        if len(analyzer_cls) > 1:
-            if analyzer_cls[0] is noterest.NoteRestIndexer:
-                return self.get_data(analyzer_cls[1:], settings, data)
-            return self.get_data(analyzer_cls[1:], settings, analyzer_cls[0](data, settings).run())
-        else:
-            if analyzer_cls[0] is noterest.NoteRestIndexer:
-                return data
-            else:
-                return analyzer_cls[0](data, settings).run()
+        args_dict = {}
+        if settings is not None:
+            args_dict['settings'] = settings
+        if data is not None:
+            args_dict['data'] = data
+        return self._mkd[analyzer_cls](**args_dict)
 
     def _open_file(self):
 
