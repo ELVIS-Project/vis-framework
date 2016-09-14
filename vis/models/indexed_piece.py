@@ -44,7 +44,8 @@ from music21 import converter, stream, analysis
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.experimenters import aggregator, barchart, frequency, lilypond #, dendrogram
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest, meter, interval, dissonance, fermata, offset, repeat, active_voices, lilypond, offset, over_bass, contour, ngram, windexer
+from vis.analyzers.indexers import noterest, cadence, meter, interval, dissonance, fermata, offset, repeat, active_voices, offset, over_bass, contour, ngram, windexer
+# from vis.analyzers.indexers import lilypond as lily_ind
 from multi_key_dict import multi_key_dict as mkd
 
 
@@ -55,7 +56,7 @@ _noterest_types = ('Note', 'Rest', 'Chord')
 _default_interval_setts = {'quality':True, 'directed':True, 'simple or compound':'compound', 'horiz_attach_later':True}
 # Multi-key dictionary for calls to get_data().
 _mkd = mkd({ # Indexers (in alphabetical order of their two-letter abbreviation):
-            ('an', 'annotation', 'lilypond.AnnotationIndexer', lilypond.AnnotationIndexer): lilypond.AnnotationIndexer,
+            # ('an', 'annotation', 'lilypond.AnnotationIndexer', lilypond.AnnotationIndexer): lily_ind.AnnotationIndexer,
             ('ac', 'active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): active_voices.ActiveVoicesIndexer,
             ('be', 'beat_strength', 'meter.NoteBeatStrengthIndexer', meter.NoteBeatStrengthIndexer): meter.NoteBeatStrengthIndexer,
             ('ca', 'cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): cadence.CadenceIndexer,
@@ -287,6 +288,39 @@ def _find_part_ranges(the_score):
 
     return ranges
 
+def ImportScore(pathname, score=None):
+    """
+    Import the score to music21 format.
+    :param pathname: Location of the file to import on the local disk.
+    :type pathname: str
+    :returns: An :class:`IndexedPiece` or an :class:`AggregatedPieces` object if the file passed 
+        imports as a :class:`music21.stream.Score` or :class:`music21.stream.Opus` object
+        respectively.
+    :rtype: A new :class:`IndexedPiece` or :class:`AggregatedPieces` object.
+    """
+    score = converter.Converter()
+    score.parseFile(pathname, forceSource=True, storePickle=False)
+    score = score.stream
+    if isinstance(score, stream.Opus):
+        # make an AggregatedPieces object containing IndexedPiece objects of each movement of the opus.
+        score = [IndexedPiece(pathname, opus_id=i) for i in xrange(len(score))]
+    elif isinstance(score, stream.Score):
+        score = (IndexedPiece(pathname, score=score),)
+    for ip in score:
+        for field in ip._metadata:
+            if hasattr(ip.metadata, field):
+                ip._metadata[field] = getattr(ip.metadata, field)
+                if ip._metadata[field] is None:
+                    ip._metadata[field] = '???'
+        ip._metadata['parts'] = _find_part_names(ip._score)
+        ip._metadata['title'] = _find_piece_title(ip._score)
+        ip._metadata['partRanges'] = _find_part_ranges(ip._score)
+        ip._metadata['pieceRange'] = _find_piece_range(ip._score)
+        ip._imported = True
+    if len(score) == 1:
+        score = score[0]
+    return score
+
 
 class OpusWarning(RuntimeWarning):
     """
@@ -324,7 +358,7 @@ class IndexedPiece(object):
 
     _MISSING_USERNAME = ('You must enter a username to access the elvis database')
     _MISSING_PASSWORD = ('You must enter a password to access the elvis database')
-    def __init__(self, pathname, opus_id=None, metafile=None, username=None, password=None):
+    def __init__(self, pathname, opus_id=None, score=None, metafile=None, username=None, password=None):
         """
         :param str pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
@@ -347,6 +381,7 @@ class IndexedPiece(object):
         super(IndexedPiece, self).__init__()
         self._imported = False
         self._analyses = {}
+        self._score = score
         self._noterest_results = None
         self._pathname = pathname
         self._metadata = {}
@@ -372,47 +407,6 @@ class IndexedPiece(object):
 
     def __unicode__(self):
         return six.u(str(self))
-
-    def _import_score(self, known_opus=False):
-        """
-        Import the score to music21 format.
-        :param known_opus: Whether you expect the file to import as a :class:`Opus`.
-        :type known_opus: boolean
-        :returns: the score
-        :rtype: :class:`music21.stream.Score`
-        :raises: :exc:`OpusWarning` if the file imports as a :class:`music21.stream.Opus` but
-            ``known_opus`` if ``False``, or if ``known_opus`` is ``True`` but the file does not
-            import as an :class:`Opus`.
-        """
-        score = converter.Converter()
-        score.parseFile(self.metadata('pathname'), forceSource=True, storePickle=False)
-        # piece = self.metadata('pathname')
-        # score = music21.converter.parse(piece)
-        score = score.stream
-        if isinstance(score, stream.Opus):
-            if known_opus is False and self._opus_id is None:
-                # unexpected Opus---can't continue
-                raise OpusWarning(IndexedPiece._UNEXP_OPUS.format(self.metadata('pathname')))
-            elif self._opus_id is None:
-                # we'll make new IndexedPiece objects
-                score = [IndexedPiece(self.metadata('pathname'), i) for i in xrange(len(score))]
-            else:
-                # we'll return the appropriate Score
-                score = score.scores[self._opus_id]
-        elif known_opus is True:
-            raise OpusWarning(IndexedPiece._UNEXP_NONOPUS.format(self.metadata('pathname')))
-        elif not self._imported:
-            for field in self._metadata:
-                if hasattr(score.metadata, field):
-                    self._metadata[field] = getattr(score.metadata, field)
-                    if self._metadata[field] is None:
-                        self._metadata[field] = '???'
-            self._metadata['parts'] = _find_part_names(score)
-            self._metadata['title'] = _find_piece_title(score)
-            self._metadata['partRanges'] = _find_part_ranges(score)
-            self._metadata['pieceRange'] = _find_piece_range(score)
-            self._imported = True
-        return score
 
     def metadata(self, field, value=None):
         """
@@ -488,7 +482,7 @@ class IndexedPiece(object):
     def _get_part_streams(self):
         """Returns a list of the part streams in this indexed_piece."""
         if 'part_streams' not in self._analyses:
-            self._analyses['part_streams'] = self._import_score(known_opus=self._known_opus).parts
+            self._analyses['part_streams'] = self._score.parts
         return self._analyses['part_streams']
 
     def _get_m21_objs(self):
