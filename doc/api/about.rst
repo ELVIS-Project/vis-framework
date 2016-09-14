@@ -6,7 +6,7 @@ Design Principles
 Three Simple Components
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In essence, the VIS Framework is built on three simple components: *analyzers* make music analysis decisions; *models* run analyzers on a score; the *WorkflowManager* determines the order analyzers are run.
+In essence, the VIS Framework is built on three simple components: (1) *analyzers* make music analysis decisions; (2) *models* run analyzers on a score; and (3) the *WorkflowManager* determines the order analyzers are run.
 In other words, the three components are about analysis decisions, making the decisions happen, and ordering the decision-happening.
 
 Consider this example.
