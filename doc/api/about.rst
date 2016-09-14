@@ -6,7 +6,7 @@ Design Principles
 Three Simple Components
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In essence, the VIS Framework is built on three simple components: (1) *analyzers* make music analysis decisions; (2) *models* run analyzers on a score; and (3) the *WorkflowManager* determines the order analyzers are run.
+In essence, the VIS Framework is built on three simple components: *analyzers* make music analysis decisions; *models* run analyzers on a score; the *WorkflowManager* determines the order analyzers are run.
 In other words, the three components are about analysis decisions, making the decisions happen, and ordering the decision-happening.
 
 Consider this example.
@@ -24,13 +24,13 @@ Whether finding contrapuntal modules, analyzing harmonic function, or anything e
 To design a new query (say, if you want to label chordal dissonances) you only need to add one analyzer for every analysis decision, then tell the WorkflowManager the order the analyzers should run.
 Complicated analysis tasks will always be complicated, but VIS provides a solid, predictable Framework for any task, allowing you to focus on what's special about your query, rather than on making sure you remember how to load pieces properly.
 
-Levels of Interaction
+Three Levels of Interaction
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Because of its flexibility, you may choose to interact with the VIS Framework on one of three levels, depending on the flexibility required for your task.
 
 If you simply want to use VIS for one of its built-in queries, like finding vertical intervals or contrapuntal modules, you can use VIS **as a program**.
-You may do this through a graphical interface like the `Rodan Client vis-rodan.simssa.ca <https://vis-rodan.simssa.ca>`_, or through the Python shell directly, as described in :ref:`use_as_a_program`.
+You may do this through a graphical interface like the `Counterpoint Web App <https://counterpoint.elvisproject.ca>`_ or through the Python shell directly, as described in :ref:`use_as_a_program`.
 
 If the built-in :class:`WorkflowManager` does not provide the workflow you need, but you can still accomplish your query with the built-in analyzers, you can use VIS **as a library**.
 For example, you may wish to analyze melodic patterns with *n*-grams, as described in :ref:`tutorial-melodic_ngrams`.
