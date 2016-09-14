@@ -45,7 +45,7 @@ from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.experimenters import aggregator, barchart, frequency, lilypond #, dendrogram
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, cadence, meter, interval, dissonance, fermata, offset, repeat, active_voices, offset, over_bass, contour, ngram, windexer
-# from vis.analyzers.indexers import lilypond as lily_ind
+from vis.analyzers.indexers import lilypond as lily_ind
 from multi_key_dict import multi_key_dict as mkd
 
 
@@ -308,24 +308,22 @@ class IndexedPiece(object):
     Hold indexed data from a musical score.
     """
 
-    # When get_data() is missing the "data" argument.
-    _MISSING_DATA = '{} is missing required data from another analyzer.'
+    # When get_data() is missing the "settings" and/or data" argument but needed them, or was supplied .
+    _SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS = 'You made improper use of the settings and/or data \
+    arguments. Please refer to the {} documentation to see what is required by the Indexer or \
+    Experimenter requested.'
 
-    # When get_data() gets something that isn't an Indexer or Experimenter
-    _NOT_AN_ANALYZER = 'IndexedPiece requires an Indexer or Experimenter (received {})'
+    # When get_data() gets an analysis_cls argument that isn't a key in IndexedPiece._mkd.
+    _NOT_AN_ANALYZER = 'Could not recognize the requested Indexer or Experimenter (received {}). \
+    When using IndexedPiece.get_data(), please use one of the following short- or long-format \
+    strings to identify the desired Indexer or Experimenter: \
+    {}.'
 
     # When metadata() gets an invalid field name
     _INVALID_FIELD = 'metadata(): invalid field ({})'
 
     # When metadata()'s "field" is not a string
     _META_INVALID_TYPE = "metadata(): parameter 'field' must be of type 'string'"
-
-    # When _import_score() gets an unexpected Opus
-    _UNEXP_OPUS = '{} is a music21.stream.Opus (refer to the IndexedPiece.get_data() documentation)'
-
-    # When _import_score() gets an unexpected Opus
-    _UNEXP_NONOPUS = ('You expected a music21.stream.Opus but {} is not an Opus (refer to the '
-                      'IndexedPiece.get_data() documentation)')
 
     _MISSING_USERNAME = ('You must enter a username to access the elvis database')
     _MISSING_PASSWORD = ('You must enter a password to access the elvis database')
@@ -361,34 +359,34 @@ class IndexedPiece(object):
         self._username = username
         self._password = password
         # Multi-key dictionary for calls to get_data()
-        self._mkd = mkd({ # Indexers (in alphabetical order of their two-letter abbreviation):
-                        # ('an', 'annotation', 'lilypond.AnnotationIndexer', lilypond.AnnotationIndexer): lily_ind.AnnotationIndexer,
-                        # ('ac', 'active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): self._get_active_voices,
-                        ('be', 'beat_strength', 'meter.NoteBeatStrengthIndexer', meter.NoteBeatStrengthIndexer): self._get_beat_strength,
-                        # ('ca', 'cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): self._get_cadence,
-                        # ('co', 'contour', 'contour.ContourIndexer', contour.ContourIndexer): self._get_contour,
-                        ('di', 'dissonance', 'dissonance.DissonanceIndexer', dissonance.DissonanceIndexer): self._get_dissonance,
-                        ('du', 'duration', 'meter.DurationIndexer', meter.DurationIndexer): self._get_duration,
-                        ('fe', 'fermata', 'fermata.FermataIndexer', fermata.FermataIndexer): self._get_fermata,
-                        ('ho', 'horizontal_interval', 'interval.HorizontalIntervalIndexer', interval.HorizontalIntervalIndexer): self._get_horizontal_interval,
-                        ('me', 'measure', 'meter.MeasureIndexer', meter.MeasureIndexer): self._get_measure,
-                        ('mu', 'multistop', 'noterest.MultiStopIndexer', noterest.MultiStopIndexer): self._get_multistop,
-                        # ('ng', 'ngram', 'ngram.NGramIndexer', ngram.NGramIndexer): self._get_ngram,
-                        ('no', 'noterest', 'noterest.NoteRestIndexer', noterest.NoteRestIndexer): self._get_noterest,
-                        # ('of', 'offset', 'offset.FilterByOffsetIndexer', offset.FilterByOffsetIndexer): self._get_offset,
-                        # ('ov', 'over_bass', 'over_bass.OverBassIndexer', over_bass.OverBassIndexer): self._get_over_bass,
-                        # ('re', 'repeat', 'repeat.FilterByRepeatIndexer', repeat.FilterByRepeatIndexer): self._get_repeat,
-                        ('ve', 'vertical_interval', 'interval.IntervalIndexer', interval.IntervalIndexer): self._get_vertical_interval,
-                        # ('wi', 'windexer', 'windexer.Windexer', windexer.Windexer): self._get_windexer,
-                        # Experimenters (in alphabetical order of their two-letter abbreviation):
-                        ('ae', 'annotate_the_note', 'lilypond.AnnotateTheNoteExperimenter', lilypond.AnnotateTheNoteExperimenter): lilypond.AnnotateTheNoteExperimenter,
-                        ('ag', 'aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
-                        ('ba', 'bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
+        self._mkd = mkd({ # Indexers (in alphabetical order of their long-format strings):
+                        ('annotation', 'lilypond.AnnotationIndexer', lily_ind.AnnotationIndexer): lily_ind.AnnotationIndexer,
+                        ('active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): self._get_active_voices,
+                        ('cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): cadence.CadenceIndexer,
+                        ('contour', 'contour.ContourIndexer', contour.ContourIndexer): contour.ContourIndexer,
+                        ('dissonance', 'dissonance.DissonanceIndexer', dissonance.DissonanceIndexer): self._get_dissonance,
+                        ('fermata', 'fermata.FermataIndexer', fermata.FermataIndexer): self._get_fermata,
+                        ('horizontal_interval', 'interval.HorizontalIntervalIndexer', interval.HorizontalIntervalIndexer): self._get_horizontal_interval,
+                        ('vertical_interval', 'interval.IntervalIndexer', interval.IntervalIndexer): self._get_vertical_interval,
+                        ('duration', 'meter.DurationIndexer', meter.DurationIndexer): self._get_duration,
+                        ('measure', 'meter.MeasureIndexer', meter.MeasureIndexer): self._get_measure,
+                        ('beat_strength', 'meter.NoteBeatStrengthIndexer', meter.NoteBeatStrengthIndexer): self._get_beat_strength,
+                        ('ngram', 'ngram.NGramIndexer', ngram.NGramIndexer): ngram.NGramIndexer,
+                        ('multistop', 'noterest.MultiStopIndexer', noterest.MultiStopIndexer): self._get_multistop,
+                        ('noterest', 'noterest.NoteRestIndexer', noterest.NoteRestIndexer): self._get_noterest,
+                        ('offset', 'offset.FilterByOffsetIndexer', offset.FilterByOffsetIndexer): offset.FilterByOffsetIndexer,
+                        ('over_bass', 'over_bass.OverBassIndexer', over_bass.OverBassIndexer): over_bass.OverBassIndexer,
+                        ('repeat', 'repeat.FilterByRepeatIndexer', repeat.FilterByRepeatIndexer): repeat.FilterByRepeatIndexer,
+                        ('windexer', 'windexer.Windexer', windexer.Windexer): windexer.Windexer,
+                        # Experimenters (in alphabetical order of their long-format strings):
+                        ('aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
+                        ('bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
                         # The dendrogram experimenter has been commented out to allow us to remove our SciPy dependency
-                        # ('de', 'dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
-                        ('fr', 'frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter,
-                        ('li', 'lilypond', 'lilypond.LilyPondExperimenter', lilypond.LilyPondExperimenter): lilypond.LilyPondExperimenter,
-                        ('pa', 'part_notes', 'lilypond.PartNotesExperimenter', lilypond.PartNotesExperimenter): lilypond.PartNotesExperimenter})
+                        # ('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
+                        ('frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter,
+                        ('annotate_the_note', 'lilypond.AnnotateTheNoteExperimenter', lilypond.AnnotateTheNoteExperimenter): lilypond.AnnotateTheNoteExperimenter,
+                        ('lilypond', 'lilypond.LilyPondExperimenter', lilypond.LilyPondExperimenter): lilypond.LilyPondExperimenter,
+                        ('part_notes', 'lilypond.PartNotesExperimenter', lilypond.PartNotesExperimenter): lilypond.PartNotesExperimenter})
 
         init_metadata()
         if metafile is not None:
@@ -568,6 +566,15 @@ class IndexedPiece(object):
             self._analyses['duration'] = meter.DurationIndexer(self._get_m21_nrc_objs_no_tied(), self._get_part_streams()).run()
         return self._analyses['duration']
 
+    def _get_active_voices(self, data=None):
+        """Used internally by get_data() to cache and retrieve results from the 
+        active_voices.ActiveVoicesIndexer."""
+        if data is not None:
+            return active_voices.ActiveVoicesIndexer(data).run()
+        elif 'active_voices' not in self._analyses:
+            self._analyses['active_voices'] = active_voices.ActiveVoicesIndexer(self._get_noterest()).run()
+        return self._analyses['active_voices']
+
     def _get_beat_strength(self):
         """Used internally by get_data() to cache and retrieve results from the 
         meter.NoteBeatStrengthIndexer."""
@@ -666,46 +673,41 @@ class IndexedPiece(object):
             if not issubclass(each_cls, (Indexer, Experimenter)):
                 raise TypeError(IndexedPiece._NOT_AN_ANALYZER.format(cls_list))
 
-    def get_data(self, analyzer_cls, settings=None, data=None, known_opus=False):
+    def get_data(self, analyzer_cls, settings=None, data=None):
         """
         Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
-        :param analyzer_cls: The analyzers to run, in the order they should be run.
-        :type analyzer_cls: list of type
-        :param settings: Settings to be used with the analyzers.
+
+        :param analyzer_cls: The analyzer to run.
+        :type analyzer_cls: str or VIS Indexer or Experimenter class.
+        :param settings: Settings to be used with the analyzer. Only use if necessary.
         :type settings: dict
-        :param data: Input data for the first analyzer to run. If the first indexer uses a
-            :class:`~music21.stream.Score`, you should leave this as ``None``.
-        :type data: list of :class:`pandas.Series` or :class:`pandas.DataFrame`
+        :param data: Input data for the analyzer to run. If this is provided for an indexer that 
+            normally caches its results (such as the NoteRestIndexer, the DurationIndexer, etc.), 
+            the results will not be cached since it is uncertain if the input passed in the ``data`` 
+            argument was calculated on this indexed_piece.
+        :type data: Depends on the requirement of the analyzer designated by the ``analyzer_cls`` 
+            argument. Usually a :class:`pandas.DataFrame` or a list of :class:`pandas.Series`.
         :returns: Results of the analyzer.
-        :rtype: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
-        :raises: :exc:`TypeError` if the ``analyzer_cls`` is invalid or cannot be found.
+        :rtype: Usually :class:`pandas.DataFrame` or list of :class:`pandas.Series`.
+        :raises: :exc:`RuntimeWarning` if the ``analyzer_cls`` is invalid or cannot be found.
         :raises: :exc:`RuntimeError` if the first analyzer class in ``analyzer_cls`` does not use
             :class:`~music21.stream.Score` objects, and ``data`` is ``None``.
-        :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if the file imports as a
-            :class:`music21.stream.Opus` object and ``known_opus`` is ``False``.
-        :raises: :exc:`~vis.models.indexed_piece.OpusWarning` if ``known_opus`` is ``True`` but the
-            file does not import as an :class:`Opus`.
-        **Note about Opus Objects**
-        Correctly importing :class:`~music21.stream.Opus` objects is a little awkward because
-        we only know a file imports to an :class:`Opus` *after* we import it, but an
-        :class:`Opus` should be treated as multiple :class:`IndexedPiece` objects.
-        We recommend you handle :class:`Opus` objects like this:
-        #. Try to call :meth:`get_data` on the :class:`IndexedPiece`.
-        #. If :meth:`get_data` raises an :exc:`OpusWarning`, the file contains an :class:`Opus`.
-        #. Call :meth:`get_data` again with the ``known_opus`` parameter set to ``True``.
-        #. :meth:`get_data` will return multiple :class:`IndexedPiece` objects, each \
-            corresponding to a :class:`~music21.stream.Score` held in the :class:`Opus`.
-        #. Then call :meth:`get_data` on the new :class:`IndexedPiece` objects to get the results \
-            initially desired.
-        Refer to the source code for :meth:`vis.workflow.WorkflowManager.load` for an example
-        implementation.
         """
-        args_dict = {}
+        if analyzer_cls not in self._mkd: # Make sure the analyzer requested exists.
+            raise KeyError(IndexedPiece._NOT_AN_ANALYZER.format(analyzer_cls, sorted(self._mkd.keys(str))))
+
+        args_dict = {} # Only pass the settings and data arguments if they are not ``None``.
         if settings is not None:
             args_dict['settings'] = settings
         if data is not None:
             args_dict['data'] = data
-        return self._mkd[analyzer_cls](**args_dict)
+
+        try: # Fetch or calculate the actual results requested.
+            results = self._mkd[analyzer_cls](**args_dict)
+        except TypeError: # There is some issue with the 'settings' and/or 'data' arguments.
+            raise RuntimeWarning(IndexedPiece._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(self._mkd[analyzer_cls]))
+
+        return results
 
     def _open_file(self):
 
