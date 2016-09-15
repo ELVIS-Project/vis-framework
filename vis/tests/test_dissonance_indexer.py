@@ -32,7 +32,7 @@ import os
 import unittest
 import pandas as pd
 from vis.analyzers.indexers import dissonance, noterest, meter, interval
-from vis.models.indexed_piece import IndexedPiece
+from vis.models.indexed_piece import ImportScore, IndexedPiece
 from pandas.util.testing import assert_frame_equal
 
 # find the pathname of the 'vis' directory
@@ -174,11 +174,12 @@ class TestDissonanceIndexer(unittest.TestCase):
         and covers almost all of the logic, namely the "Kyrie" in the test corpus. NB: perhaps 
         this test should get moved to the integration tests file.
         """
-        expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
-        ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn'))
+        # Detection of Z's and O's was removed and so this old ground-truth was replaced with the following one.
+        # If the dissonance indexer gets re-written, it would be good to go back to this old ground truth.
+        # expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
+        expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough_14_Sept_2016.pickle'))
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn'))
         actual = ip._get_dissonance()
-        import pdb
-        pdb.set_trace()
         assert_frame_equal(actual, expected)
         self.assertTrue(actual.equals(expected))
 

@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/template.py
 # Purpose:                Template indexer
 #
-# Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan
+# Copyright (C) 2013-2016 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -30,6 +30,8 @@ import pandas
 import numpy
 from numpy import nan  # pylint: disable=no-name-in-module
 from vis.analyzers import indexer
+from multi_key_dict import multi_key_dict as mkd
+import pdb
 
 
 _d3q_label = 'Q'
@@ -45,16 +47,18 @@ _camb_label = 'C'
 _chan_idiom_label = 'H'
 _echappee = 'E'
 _no_diss_label = '-'
-_explainable = '+'
 _unexplainable = 'Z'
 _only_diss_w_diss = 'O'
+_weights = mkd({(_d3q_label, _pass_dp_label, _pass_rp_label, _neigh_ln_label, _neigh_un_label,
+                 _susp_label, _fake_susp_label, _dim_fake_susp_label, _ant_label, _camb_label,
+                 _chan_idiom_label, _echappee): 3, _no_diss_label: 2, _unexplainable: 1})
 _consonances = set(['P1', 'm3', 'M3', 'CP4', 'CA4', 'Cd5', 'P5', 'm6', 'M6', 'P8', '-m3', '-M3', 'C-P4',
                 'C-A4', 'C-d5', '-P5', '-m6', '-M6', '-P8'])
 _potential_consonances = set([u'P4', u'-P4', u'A4', u'-A4', u'd5', u'-d5'])
 _cons_makers = {'P4':set([u'm3', u'M3', u'P5']), 'd5':[u'M6'], 'A4':[u'm3'], '-P4':set([u'm3', u'M3', u'P5']), '-d5':[u'M6'], '-A4':[u'm3']}
 _Xed_makers = {'P4':set([u'-m3', u'-M3', u'-P5']), 'd5':[u'-M6'], 'A4':[u'-m3'],'-P4':set([u'-m3', u'-M3', u'-P5']), '-d5':[u'-M6'], '-A4':[u'-m3']}
 _nan_rest = set([nan, 'Rest'])
-_ignored = _consonances.union(_nan_rest)
+_ignored = _consonances.union(['Rest'])
 _go_ons = set([_no_diss_label, _unexplainable])
 _passes = set((nan, _no_diss_label, _unexplainable))
 int_ind = u'interval.IntervalIndexer'
@@ -214,27 +218,27 @@ class DissonanceIndexer(indexer.Indexer):
                (dur_b <= .5 and bs_b == .0625)) and dur_a >= dur_b and (y is nan or x == 1)):
             if b == 2:
                 if a == 2:
-                    return (True, upper, _pass_rp_label, lower, _explainable)
+                    return (True, upper, _pass_rp_label, lower, _no_diss_label)
                 elif a == -2:
-                    return (True, upper, _neigh_ln_label, lower, _explainable)
+                    return (True, upper, _neigh_ln_label, lower, _no_diss_label)
             elif b == -2:
                 if a == -2:
-                    return (True, upper, _pass_dp_label, lower, _explainable)
+                    return (True, upper, _pass_dp_label, lower, _no_diss_label)
                 elif a == 2:
-                    return  (True, upper, _neigh_un_label, lower, _explainable)
+                    return  (True, upper, _neigh_un_label, lower, _no_diss_label)
             
         elif (((dur_y == 2 and bs_y == .25) or (dur_y <= 1 and bs_y == .125) 
                or (dur_y <= .5 and bs_y == .0625)) and dur_x >= dur_y and (b is nan or a == 1)):
             if y == 2:
                 if x == 2:
-                    return (True, upper, _explainable, lower, _pass_rp_label)
+                    return (True, upper, _no_diss_label, lower, _pass_rp_label)
                 elif x == -2:
-                    return (True, upper, _explainable, lower, _neigh_ln_label)
+                    return (True, upper, _no_diss_label, lower, _neigh_ln_label)
             elif y == -2:
                 if x == -2:
-                    return (True, upper, _explainable, lower, _pass_dp_label)
+                    return (True, upper, _no_diss_label, lower, _pass_dp_label)
                 elif x == 2:
-                    return (True, upper, _explainable, lower, _neigh_un_label)
+                    return (True, upper, _no_diss_label, lower, _neigh_un_label)
             
         
         return (False,) # The dissonance is not a passing tone.
@@ -315,9 +319,9 @@ class DissonanceIndexer(indexer.Indexer):
 
         # NB this may need to be tweaked for the edge case where a consonant 4th becomes a dissonant fourth suspension without being restruck.
         if (c != 0 and ((a == -2 and b is nan) or (a == 1 and b == -2)) and (bs_y > bs_c or (dur_a == 4 and bs_y >= bs_c))):
-            return (True, upper, _susp_label, lower, _explainable) # Susp in upper voice
+            return (True, upper, _susp_label, lower, _no_diss_label) # Susp in upper voice
         elif (z != 0 and ((x == -2 and y is nan) or (x == 1 and y == -2)) and (bs_b > bs_z or (dur_x == 4 and bs_b >= bs_z))):
-            return (True, upper, _explainable, lower, _susp_label) # Susp in lower voice
+            return (True, upper, _no_diss_label, lower, _susp_label) # Susp in lower voice
         return (False,)
 
     def _is_fake_suspension(self, indx, pair, event, prev_event): 
@@ -394,14 +398,14 @@ class DissonanceIndexer(indexer.Indexer):
 
         if a == 2 or a == -2:
             if bs_b == .25 and ((b == -2 and dur_b > 2) or (b == 1 and dur_b == 2 and c == -2)):
-                return (True, upper, _fake_susp_label, lower, _explainable) # Fake susp in upper voice
+                return (True, upper, _fake_susp_label, lower, _no_diss_label) # Fake susp in upper voice
             elif bs_b == .125 and ((b == -2 and dur_b > 1) or (b == 1 and dur_b == 1 and c == -2)):
-                return (True, upper, _dim_fake_susp_label, lower, _explainable) # Diminished fake susp in upper voice
+                return (True, upper, _dim_fake_susp_label, lower, _no_diss_label) # Diminished fake susp in upper voice
         elif x == 2 or x == -2:
             if bs_y == .25 and ((y == -2 and dur_y > 2) or (y == 1 and dur_y == 2 and z == -2)):
-                return (True, upper, _explainable, lower, _fake_susp_label) # Fake susp in lower voice
+                return (True, upper, _no_diss_label, lower, _fake_susp_label) # Fake susp in lower voice
             elif bs_y == .125 and ((y == -2 and dur_y > 1) or (y == 1 and dur_y == 1 and z == -2)):
-                return (True, upper, _explainable, lower, _dim_fake_susp_label) # Diminished fake susp in lower voice
+                return (True, upper, _no_diss_label, lower, _dim_fake_susp_label) # Diminished fake susp in lower voice
         return (False,)
 
     def _is_d3q(self, indx, pair, event, prev_event):
@@ -463,9 +467,9 @@ class DissonanceIndexer(indexer.Indexer):
 
         # TODO: make the beatstrength requirements dependent on the detected meter. Right now it is hard-coded for 4/2 meter.
         if bs_b == .25 and dur_a >= 2 and dur_b == 1 and a == -2 and b == -2: # Upper voice is d3q
-            return (True, upper, _d3q_label, lower, _explainable)            
+            return (True, upper, _d3q_label, lower, _no_diss_label)            
         elif bs_y == .25 and dur_x >= 2 and dur_y == 1 and x == -2 and y == -2: # Lower voice is d3q
-            return (True, upper, _explainable, lower, _d3q_label)
+            return (True, upper, _no_diss_label, lower, _d3q_label)
         else: # The dissonance is not a d3q.
             return (False,)
 
@@ -525,9 +529,9 @@ class DissonanceIndexer(indexer.Indexer):
         bs_y = self._score.iat[indx, bs_lower_col]
 
         if (bs_b == .125 and a == -2 and b == 1 and dur_b == 1):
-            return (True, upper, _ant_label, lower, _explainable)
+            return (True, upper, _ant_label, lower, _no_diss_label)
         elif (bs_y == .125 and x == -2 and y == 1 and dur_y == 1):
-            return (True, upper, _explainable, lower, _ant_label)
+            return (True, upper, _no_diss_label, lower, _ant_label)
         return (False,)
 
     def _is_cambiata(self, indx, pair, event, prev_event):
@@ -598,9 +602,9 @@ class DissonanceIndexer(indexer.Indexer):
 
 
         if (a == -2 and ((dur_b == 2 and bs_b == .25) or (dur_b == 1 and bs_b == .125) and b == -3 and c == 2)):
-            return (True, upper, _camb_label, lower, _explainable) # Cambiata in upper voice
+            return (True, upper, _camb_label, lower, _no_diss_label) # Cambiata in upper voice
         elif (x == -2 and ((dur_y == 2 and bs_y == .25) or (dur_y == 1 and bs_y == .125) and y == -3 and z == 2)):
-            return (True, upper, _explainable, lower, _camb_label) # Cambiata in lower voice
+            return (True, upper, _no_diss_label, lower, _camb_label) # Cambiata in lower voice
         return (False,)
 
     def _is_chanson_idiom(self, indx, pair, event, prev_event): #m.136 in alto? What about diminished lengths?
@@ -694,10 +698,10 @@ class DissonanceIndexer(indexer.Indexer):
 
         if ((diss == 2 or diss == -7) and dur_b == 1 and ((y == -2 and dur_y > 2) or (y == 1 and dur_y == 2)) and
             a == -2 and b == -2 and c == 2 and dur_c == 1 and dur_d >= 2):
-            return (True, upper, _chan_idiom_label, lower, _explainable) # Chanson idiom in upper voice
+            return (True, upper, _chan_idiom_label, lower, _no_diss_label) # Chanson idiom in upper voice
         if ((diss == -2 or diss == 7) and dur_y == 1 and ((b == -2 and dur_b > 2) or (b == 1 and dur_b == 2)) and
             x == -2 and y == -2 and z == 2 and dur_z == 1 and dur_z2 >= 2):
-            return (True, upper, _explainable, lower, _chan_idiom_label) # Chanson idiom in lower voice
+            return (True, upper, _no_diss_label, lower, _chan_idiom_label) # Chanson idiom in lower voice
         return (False,)
 
     def _is_echappee(self, indx, pair, event, prev_event):
@@ -755,9 +759,9 @@ class DissonanceIndexer(indexer.Indexer):
         bs_y = self._score.iat[indx, bs_lower_col]
 
         if bs_b == .125 and ((a == 2 and b < -2) or (a == -2 and b > 2)): # Upper note échappée
-            return (True, upper, _echappee, lower, _explainable)
+            return (True, upper, _echappee, lower, _no_diss_label)
         if bs_y == .125 and ((x == 2 and y < -2) or (x == -2 and y > 2)): # Lower note échappée
-            return (True, upper, _explainable, lower, _echappee)
+            return (True, upper, _no_diss_label, lower, _echappee)
         return (False,)
         
 
@@ -918,6 +922,7 @@ class DissonanceIndexer(indexer.Indexer):
         iterables = [[diss_types], self._score[dur_ind].columns]
         d_types_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
         ret = pandas.DataFrame(index=self._score.index, columns=d_types_multi_index)
+        ret.fillna(_no_diss_label, inplace=True)
 
         for col, pair_title in enumerate(diss_ints.columns):
             voices = pair_title.split(',') # assign top and bottom voices as integers
@@ -929,8 +934,8 @@ class DissonanceIndexer(indexer.Indexer):
                     diss_ints.iat[i, col] = event
 
                 # The interval must be dissonant and neither voice should already have a dissonance label assigned.
-                if (event not in _ignored and ret.iat[i, top_voice] in _passes
-                    and ret.iat[i, bott_voice] in _passes):
+                if (event not in _ignored):# and ret.iat[i, top_voice] in _passes
+                    # and ret.iat[i, bott_voice] in _passes):
                     prev_event = diss_ints[pair_title].iloc[:i].last_valid_index()
                     if prev_event is not None:
                         prev_event = diss_ints.at[prev_event, pair_title]
@@ -939,35 +944,34 @@ class DissonanceIndexer(indexer.Indexer):
                     #     (_pass_rp_label, _pass_dp_label)):
                     #     prev_event = 'm3' # If there's a passing tone at the preceding note, call the prev_event a consonance (any consonance will do) so that there can be two passing tones in a row.
                     diss_analysis = self.classify(i, pair_title, event, prev_event)
-                    ret.iat[i, int(diss_analysis[1], 10)] = diss_analysis[2]
-                    ret.iat[i, int(diss_analysis[3], 10)] = diss_analysis[4]
+                    if _weights[ret.iat[i, int(diss_analysis[1], 10)]] < _weights[diss_analysis[2]]:
+                        ret.iat[i, int(diss_analysis[1], 10)] = diss_analysis[2]
+                    if _weights[ret.iat[i, int(diss_analysis[3], 10)]] < _weights[diss_analysis[4]]:
+                        ret.iat[i, int(diss_analysis[3], 10)] = diss_analysis[4]
 
-        ret.replace(_explainable, _no_diss_label, inplace=True)
-        ret.fillna(_no_diss_label, inplace=True)
-
-        # Remove lingering unexplainable labels from notes that are only dissonant against identifiable dissonances.
-        unknowns = numpy.where(ret.values == _unexplainable) # 2-tuple of a list of iloc indecies and a list of corresponding voice integers.
-        for x, ndx in enumerate(unknowns[0]):
-            passable = True
-            for col, pair in enumerate(diss_ints.columns):
-                v_to_check = pair.split(',')
-                if str(unknowns[1][x]) not in v_to_check: # does this pair include the voice with the unexplained dissonance?
-                    continue
-                if diss_ints.iat[ndx, col] in _ignored: # go to the next line if this pair was a dissonance, otherwise continue.
-                    continue
-                v_to_check.remove(str(unknowns[1][x])) # remove voice with unexplained dissonance to see what the other voice is doing.
-                v_temp = self._score.iloc[:ndx + 1, int(v_to_check[0], 10)].last_valid_index() # since the h_ind is the first df in the concat list, a voice's integer works to reference its horiz column.
-                v_ndx = numpy.where(self._score.index == v_temp)[0][0]
-                go_on = False
-                for event in range(v_ndx, ndx + 1):
-                    if ret.iat[event, int(v_to_check[0])] not in _go_ons:
-                        go_on = True
-                        break
-                if go_on:
-                    continue
-                passable = False
-                break
-            if passable:
-                ret.iat[ndx, unknowns[1][x]] = _only_diss_w_diss
+        # # Remove lingering unexplainable labels from notes that are only dissonant against identifiable dissonances.
+        # unknowns = numpy.where(ret.values == _unexplainable) # 2-tuple of a list of iloc indecies and a list of corresponding voice integers.
+        # for x, ndx in enumerate(unknowns[0]):
+        #     passable = True
+        #     for col, pair in enumerate(diss_ints.columns):
+        #         v_to_check = pair.split(',')
+        #         if str(unknowns[1][x]) not in v_to_check: # does this pair include the voice with the unexplained dissonance?
+        #             continue
+        #         if diss_ints.iat[ndx, col] in _ignored: # go to the next line if this pair was a dissonance, otherwise continue.
+        #             continue
+        #         v_to_check.remove(str(unknowns[1][x])) # remove voice with unexplained dissonance to see what the other voice is doing.
+        #         v_temp = self._score.iloc[:ndx + 1, int(v_to_check[0], 10)].last_valid_index() # since the h_ind is the first df in the concat list, a voice's integer works to reference its horiz column.
+        #         v_ndx = numpy.where(self._score.index == v_temp)[0][0]
+        #         go_on = False
+        #         for event in range(v_ndx, ndx + 1):
+        #             if ret.iat[event, int(v_to_check[0])] not in _go_ons:
+        #                 go_on = True
+        #                 break
+        #         if go_on:
+        #             continue
+        #         passable = False
+        #         break
+        #     if passable:
+        #         ret.iat[ndx, unknowns[1][x]] = _only_diss_w_diss
 
         return ret

@@ -371,7 +371,7 @@ class IndexedPiece(object):
                         ('duration', 'meter.DurationIndexer', meter.DurationIndexer): self._get_duration,
                         ('measure', 'meter.MeasureIndexer', meter.MeasureIndexer): self._get_measure,
                         ('beat_strength', 'meter.NoteBeatStrengthIndexer', meter.NoteBeatStrengthIndexer): self._get_beat_strength,
-                        ('ngram', 'ngram.NGramIndexer', ngram.NGramIndexer): ngram.NGramIndexer,
+                        ('ngram', 'ngram.NGramIndexer', ngram.NGramIndexer): self._get_ngram,
                         ('multistop', 'noterest.MultiStopIndexer', noterest.MultiStopIndexer): self._get_multistop,
                         ('noterest', 'noterest.NoteRestIndexer', noterest.NoteRestIndexer): self._get_noterest,
                         ('offset', 'offset.FilterByOffsetIndexer', offset.FilterByOffsetIndexer): offset.FilterByOffsetIndexer,
@@ -655,23 +655,9 @@ class IndexedPiece(object):
             self._analyses['measure'] = meter.MeasureIndexer(self._get_m21_measure_objs()).run()
         return self._analyses['measure']
 
-    @staticmethod
-    def _type_verifier(cls_list):
-        """
-        Verify that all classes in the list are a subclass of :class:`vis.analyzers.indexer.Indexer`
-        or :class:`~vis.analyzers.experimenter.Experimenter`.
-        :param cls_list: A list of the classes to check.
-        :type cls_list: list of class
-        :returns: ``None``.
-        :rtype: None
-        :raises: :exc:`TypeError` if a class is not a subclass of :class:`Indexer` or
-            :class:`Experimenter`.
-        ..note:: This is a separate function so it can be replaced with a :class:`MagicMock` in
-            testing.
-        """
-        for each_cls in cls_list:
-            if not issubclass(each_cls, (Indexer, Experimenter)):
-                raise TypeError(IndexedPiece._NOT_AN_ANALYZER.format(cls_list))
+    def _get_ngram(self, data, settings=None):
+        return ngram.NGramIndexer(data, settings).run()
+
 
     def get_data(self, analyzer_cls, settings=None, data=None):
         """
@@ -805,7 +791,3 @@ class IndexedPiece(object):
 
         if self._metafile is 'temp':
             os.remove('temp')
-
-    def run(self):
-        self._import_score()
-        return self

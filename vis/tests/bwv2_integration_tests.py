@@ -29,7 +29,7 @@ Integration tests with the "bwv2.xml" file.
 import os
 from unittest import TestCase, TestLoader
 import pandas
-from vis.models.indexed_piece import IndexedPiece
+from vis.models.indexed_piece import ImportScore, IndexedPiece
 from vis.analyzers.indexers import noterest, interval, ngram
 from vis.analyzers.experimenters import frequency
 from vis import workflow
@@ -125,12 +125,12 @@ class AllVoiceIntervalNGrams(TestCase):
         """Ngram integration test."""
         expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.two_grams)
         expected = pandas.DataFrame({('ngram.NGramIndexer', '0,3 1,3 2,3 : 3'): expected})
-        ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
+        ind_piece = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
         setts = {'quality': False, 'simple': False, 'horiz_attach_later': True}
-        horiz_ints = ind_piece._get_horizontal_interval(setts)
-        vert_ints = ind_piece._get_vertical_interval(setts)
+        horiz_ints = ind_piece.get_data('horizontal_interval', settings=setts)
+        vert_ints = ind_piece.get_data('vertical_interval', settings=setts)
         setts = {'n': 2, 'continuer': '1', 'horizontal': 'lowest', 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True,}
-        actual = ngram.NGramIndexer([vert_ints, horiz_ints], setts).run()
+        actual = ind_piece.get_data('ngram', data=(vert_ints, horiz_ints), settings=setts)
         self.assertTrue(actual.equals(expected))
 
 #-------------------------------------------------------------------------------------------------#

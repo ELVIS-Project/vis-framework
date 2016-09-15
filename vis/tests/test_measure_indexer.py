@@ -35,9 +35,9 @@ Tests for the measure indexer. NB: Based on noterest indexer tests.
 import os
 import unittest
 import pandas
-from music21 import converter, stream, note
+from music21 import stream, note
 from vis.analyzers.indexers import meter
-from vis.models.indexed_piece import IndexedPiece
+from vis.models.indexed_piece import ImportScore, IndexedPiece
 
 # find the pathname of the 'vis' directory
 import vis
@@ -92,9 +92,7 @@ class TestMeasureIndexer(unittest.TestCase):
         # bwv77.mxl, which is a piece with a pick-up measure. All 4 parts have the same data.
         measure_data = pandas.Series(range(19), index=TestMeasureIndexer.bwv77_measure_index)
         expected = pandas.DataFrame({'0': measure_data, '1': measure_data, '2': measure_data, '3': measure_data})
-        test_parts = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
-        ip._analyses['part_streams'] = test_parts # supply part_streams.
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
         actual = ip._get_measure()['meter.MeasureIndexer']
         self.assertTrue(actual.equals(expected))
 
@@ -102,9 +100,7 @@ class TestMeasureIndexer(unittest.TestCase):
         # A two-part test piece with no pick-up measure originally written to test fermata indexer.
         measure_data = pandas.Series([1, 2], index=[0.0, 4.0])
         expected = pandas.DataFrame({'0': measure_data, '1': measure_data})
-        test_parts = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/test_fermata_rest.xml')).parts
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
-        ip._analyses['part_streams'] = test_parts # supply part_streams.
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/test_fermata_rest.xml'))
         actual = ip._get_measure()['meter.MeasureIndexer']
         self.assertTrue(actual.equals(expected))
 

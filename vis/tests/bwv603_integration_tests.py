@@ -29,7 +29,7 @@ Integration tests with the "bwv603.xml" file.
 import os
 from unittest import TestCase, TestLoader
 import pandas
-from vis.models.indexed_piece import IndexedPiece
+from vis.models.indexed_piece import ImportScore, IndexedPiece
 from vis.analyzers.indexers import noterest, interval, ngram
 from vis.analyzers.experimenters import frequency
 from vis import workflow
@@ -105,10 +105,10 @@ class AllVoiceIntervalNGrams(TestCase):
         v_setts = {'quality': False, 'simple or compound': 'compound', 'directed': True}
         h_setts = {'quality': False, 'horiz_attach_later': True, 'simple or compound': False, 'directed': True}
         n_setts = {'n': 2, 'horizontal': [('3',)], 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True, 'continuer': '1'}
-        ind_piece = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
-        vt = ind_piece._get_vertical_interval(v_setts)
-        hz = ind_piece._get_horizontal_interval(h_setts)
-        actual = ngram.NGramIndexer((vt, hz), n_setts).run()
+        ind_piece = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
+        vt = ind_piece.get_data('vertical_interval', settings=v_setts)
+        hz = ind_piece.get_data('horizontal_interval', settings=h_setts)
+        actual = ind_piece.get_data('ngram', data=(vt, hz), settings=n_setts)
         self.assertTrue(actual.equals(expected))
 
 #-------------------------------------------------------------------------------------------------#

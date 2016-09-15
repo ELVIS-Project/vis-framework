@@ -33,7 +33,7 @@ import unittest
 import pandas
 from music21 import note, chord
 from vis.analyzers.indexers import noterest
-from vis.models.indexed_piece import IndexedPiece
+from vis.models.indexed_piece import ImportScore, IndexedPiece
 
 # find the pathname of the 'vis' directory
 import vis
@@ -142,8 +142,8 @@ class TestNoteRestIndexer(unittest.TestCase):
         # Combine three previous tests to avoid re-importing the same piece multiple times.
         # Soprano part of bwv77.mxl
         expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)})
-        ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
-        all_parts = ip._get_part_streams().parts
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
+        all_parts = ip._get_part_streams()
         ip._analyses['part_streams'] = all_parts[:1]
         actual = ip._get_noterest()['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
@@ -188,7 +188,7 @@ class TestMultiStopIndexer(unittest.TestCase):
 
     def test_multistop_indexer_2(self):
         # Integration test of a whole piece, the string quarted in the test corpus.
-        ip = IndexedPiece(os.path.join(VIS_PATH, 'tests', 'corpus', 'sqOp76-4-i.midi'))
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'sqOp76-4-i.midi'))
         actual = ip._get_multistop()
         # Until we figure out why pickling isn't working:
         self.assertTrue(10 == len(actual.columns))

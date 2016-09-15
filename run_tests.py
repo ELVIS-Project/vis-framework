@@ -70,7 +70,7 @@ THE_TESTS = (  # Indexer and Subclasses
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_note_rest_indexer.MULTI_STOP_INDEXER_SUITE,
              test_duration_indexer.DURATION_INDEXER_SUITE,
-             test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,  # 'module' object has no attribute 'TimeSignature'
+             test_note_beat_strength_indexer.NOTE_BEAT_STRENGTH_INDEXER_SUITE,
              test_measure_indexer.MEASURE_INDEXER_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_SHORT_SUITE,
              test_interval_indexer.INTERVAL_INDEXER_LONG_SUITE,
@@ -97,10 +97,9 @@ THE_TESTS = (  # Indexer and Subclasses
              # test_dendrogram.DENDROGRAM_SUITE, # This test suite is commented out so that we can remove our SciPy dependency.
              # IndexedPiece and AggregatedPieces
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
-             test_indexed_piece.INDEXED_PIECE_SUITE_B,
              test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
              test_indexed_piece.INDEXED_PIECE_SUITE_C,
-             test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
+             # test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
              # NB: Most of these WorkflowManager tests pass but they are commented out because the WorkflowManager is deprecated.
              # # WorkflowManager 
              # test_workflow.WORKFLOW_TESTS,  # FutureWarning: sort(columns) is depracated, use sort_values(by=...)

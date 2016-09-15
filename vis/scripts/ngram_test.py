@@ -1,5 +1,6 @@
-from vis.analyzers.indexers import noterest, interval, ngram, meter, dissonance, active_voices
-from vis.models.indexed_piece import IndexedPiece 
+from vis.analyzers.indexers import noterest, interval, ngram, meter, dissonance #, active_voices
+from vis.models import indexed_piece
+from vis.models.indexed_piece import IndexedPiece
 from vis.models.aggregated_pieces import AggregatedPieces
 import pandas
 import pdb
@@ -14,7 +15,7 @@ piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Lassus_Duets/Lassus_1_Beatus_Vir.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Josquin_Duets/Crucifixus.xml' #example of IR = half note
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Morley_Duets/7 Miraculous loves wounding.xml' # example of IR = quarter note
-# piece_path = '/home/amor/Code/vis-framework/vis/scripts/prelude28-20.mid'
+chopin_prelude = '/home/amor/Code/vis-framework/vis/scripts/prelude28-20.mid'
 
 # Senfl Pieces:
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl_Buchner/AssumptaEst_normal.xml'
@@ -36,7 +37,11 @@ n_setts_3 = {'n': 2, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': [('0
            'terminator': ['Rest'], 'open-ended': False, 'brackets': True}
 n_setts_4 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all',
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False, 'align': 'right'}
-
+n_setts_5 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all',
+           'terminator': ['Rest'], 'open-ended': False, 'brackets': False}
+test = indexed_piece.ImportScore(piece_path)
+pdb.set_trace()
+test.get_data('du')
 ip = IndexedPiece(piece_path)
 ps = ip._get_m21_objs()
 # bs = ip._get_beat_strength()
@@ -51,6 +56,7 @@ t0 = time.time()
 # av = active_voices.ActiveVoicesIndexer(nr).run()
 ng = ngram.NGramIndexer((vz, hz), n_setts_4).run()
 t1 = time.time()
+ng2 = ngram.NGramIndexer((vz, hz), n_setts_5).run()
 # t2 = time.time()
 print(t1-t0)
 # print(t2-t1)

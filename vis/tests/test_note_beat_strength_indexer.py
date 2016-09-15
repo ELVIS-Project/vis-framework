@@ -30,13 +30,12 @@
 
 import os
 import unittest
-import six
 import pandas
-from music21 import converter, stream, clef, bar, note
+from music21 import stream, clef, bar, note
 from music21 import meter as m21_meter
 from vis.analyzers.indexers import meter
-from vis.models.indexed_piece import IndexedPiece
-from numpy import nan, isnan
+from vis.models.indexed_piece import ImportScore, IndexedPiece
+from numpy import nan
 
 # find the pathname of the 'vis' directory
 import vis
@@ -145,18 +144,16 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
     def test_note_beat_strength_indexer_4(self):
         # Soprano part of bwv77.mxl which is a part with no ties
         expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv77_soprano)})
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
-        ip._analyses['part_streams'] = test_part # supply part_streams.
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
+        ip._analyses['part_streams'] = ip._get_part_streams()[:1]
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
         self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_5(self):
         # Alto part of bwv603.mxl which is a part with ties
         expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv603_alto)})
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml')).parts[1]]
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
-        ip._analyses['part_streams'] = test_part # supply part_streams.
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        ip._analyses['part_streams'] = [ip._get_part_streams()[1]]
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
         self.assertTrue(actual.equals(expected))
 
@@ -165,9 +162,7 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
         # We won't verify all the parts, but we'll submit them all for analysis.
         expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv603_soprano),
                     '3': TestNoteBeatStrengthIndexer.make_series(bwv603_bass)})
-        test_parts = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml')).parts
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
-        ip._analyses['part_streams'] = test_parts # supply part_streams.
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer'].iloc[:, [0, 3]]
         self.assertTrue(actual.equals(expected))
 
