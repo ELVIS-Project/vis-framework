@@ -78,19 +78,3 @@ A BibTeX entry for LaTeX users is
     year = {2014},
 }
 ```
-
-You may also wish to cite the software itself:
-
-Antila, Christopher and Jamie Klassen. The VIS Framework for Music Analysis. Montréal: The ELVIS Project, 2014. URL https://github.com/ELVIS-Project/vis.
-
-A BibTeX entry for LaTeX users is
-
-```
-@Manual{,
-    title = {The VIS Framework for Music Analysis},
-    author = {Antila, Christopher and Klassen, Jamie},
-    organization = {The ELVIS Project},
-    location = {Montréal, Québec},
-    year = {2014},
-    url = {https://github.com/ELVIS-Project/vis},
-}
