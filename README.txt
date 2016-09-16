@@ -67,7 +67,7 @@ If you wish to cite the VIS Framework, please use this ISMIR 2014 article:
 Antila, Christopher and Julie Cumming. "The VIS Framework: Analyzing Counterpoint in Large Datasets."
     In Proceedings of the International Society for Music Information Retrieval, 2014.
 
-A BibTeX entry for LaTeX users is
+A BibTeX entry for LaTeX users is:
 
 ```
 @inproceedings{,
