@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/metre.py
+# Filename:               analyzers/indexers/meter.py
 # Purpose:                Indexers for metric concerns.
 #
 # Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan
@@ -29,47 +29,55 @@
 Indexers for metric concerns.
 """
 
-# disable "string statement has no effect" warning---they do have an effect with Sphinx!
+# disable "string statement has no effect" warning---they do have an effect
+# with Sphinx!
 # pylint: disable=W0105
 
-from music21 import note
 from vis.analyzers import indexer
-#import pandas # This is only needed for the measure indexer which is still experimental
+# import pandas # This is only needed for the measure indexer which is still
+# experimental
+
 
 def beatstrength_ind_func(obj):
     """
-    Used internally by :class:`NoteBeatStrengthIndexer`. Convert :class:`~music21.note.Note` and
-    :class:`~music21.note.Rest` objects into a string.
+    Used internally by :class:`NoteBeatStrengthIndexer`. Convert
+    :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects
+    into a string.
 
-    :param obj: An 2-tuple with an object to convert. Only the first object in the iterable is
-        processed in this function.
+    :param obj: An 2-tuple with an object to convert. Only the first object
+        in the iterable is processed in this function.
     :type obj: a 2-tuple containing either a :class:`music21.note.Note` or a
-        :class:`music21.note.Rest` as its first element and a list of the running results of this
-        indexer_func as the second element.
+        :class:`music21.note.Rest` as its first element and a list of the
+        running results of this indexer_func as the second element.
 
-    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of obj[0] which is dependent on
-        the prevailing time signature.
+    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of obj[0]
+        which is dependent on the prevailing time signature.
     :rtype: float
     """
     return obj[0].beatStrength
 
+
 def duration_ind_func(obj):
     """
-    The function that indexes the duration of whatever it's given. If the note or rest is a
-    non-first element of a group of notes or rests that are tied together, it will add the duration
-    value of the non-first tied element to the previous one instead of returning a new reading to
-    be added to the list of results.
+    The function that indexes the duration of whatever it's given. If the note
+    or rest is a non-first element of a group of notes or rests that are tied
+    together, it will add the duration value of the non-first tied element to
+    the previous one instead of returning a new reading to be added to the
+    list of results.
 
-    Used internally by :class:`DurationIndexer`. Convert :class:`~music21.note.Note` and
-        :class:`~music21.note.Rest` objects into a floats of their durations.
+    Used internally by :class:`DurationIndexer`. Convert
+        :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects
+        into a floats of their durations.
 
-    :param obj: An 2-tuple with an object to analyze and a list of the running results.
+    :param obj: An 2-tuple with an object to analyze and a list of the running
+        results.
     :type obj: a 2-tuple containing either a :class:`music21.note.Note` or a
-        :class:`music21.note.Rest` as its first element and a list of the running results of this
-        indexer_func as the second element.
+        :class:`music21.note.Rest` as its first element and a list of the
+        running results of this indexer_func as the second element.
 
-    :returns: The :attr:`~music21.base.Music21Object.duration` of obj[0] or None if that event is
-        tied to a preceding event. In this case obj[0]'s duration is added to the last observation.
+    :returns: The :attr:`~music21.base.Music21Object.duration` of obj[0] or
+        None if that event is tied to a preceding event. In this case obj[0]'s
+        duration is added to the last observation.
     :rtype: float or None
     """
     if hasattr(obj[0], 'tie') and obj[0].tie is not None:
@@ -124,12 +132,12 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
 
         **Example:**
 
-        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-        >>> the_score.parts[5]
-        (the first clarinet Part)
-        >>> the_notes = NoteBeatStrengthIndexer(the_score).run()
-        >>> the_notes['metre.NoteBeatStrengthIndexer']['5']
-        (the first clarinet Series of beatStrength float values)
+        import music21
+        from vis.analyzers.indexers import meter
+
+        score = music21.converter.parse('example.xml')
+        notebeat = meter.NoteBeatStrengthIndexer(score).run()
+        print(notebeat)
         """
 
         combinations = [[x] for x in range(len(self._score))]
@@ -171,12 +179,12 @@ class DurationIndexer(indexer.Indexer):
 
         **Example:**
 
-        >>> the_score = music21.converter.parse('sibelius_5-i.mei')
-        >>> the_score.parts[5]
-        (the first clarinet Part)
-        >>> the_notes = DurationIndexer(the_score).run()
-        >>> the_notes['metre.DurationIndexer']['5']
-        (the first clarinet Series of duration float values)
+        import music21
+        from vis.analyzers.indexers import meter
+
+        score = music21.converter.parse('example.xml')
+        durations = meter.DurationIndexer(score).run()
+        print(durations)
         """
 
         combinations = [[x] for x in range(len(self._score))]
@@ -223,6 +231,3 @@ class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
         combinations = [[x] for x in range(len(self._score))]
         results = self._do_multiprocessing(combinations, True)
         return self.make_return([str(x)[1:-1] for x in combinations], results)
-
-
-

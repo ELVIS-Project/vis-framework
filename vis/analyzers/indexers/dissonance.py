@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/template.py
+# Filename:               analyzers/indexers/template.py
 # Purpose:                Template indexer
 #
 # Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan
@@ -29,7 +29,6 @@
 import pandas
 import numpy
 from numpy import nan  # pylint: disable=no-name-in-module
-from music21 import stream
 from vis.analyzers import indexer
 
 _d3q_label = 'Q'
@@ -57,8 +56,8 @@ _passes = set(('n', _no_diss_label, _unexplainable))
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
 h_ind = u'interval.HorizontalIntervalIndexer'
-bs_ind = u'metre.NoteBeatStrengthIndexer'
-dur_ind = u'metre.DurationIndexer'
+bs_ind = u'meter.NoteBeatStrengthIndexer'
+dur_ind = u'meter.DurationIndexer'
 diss_types = u'dissonance.DissonanceIndexer'
 
 
@@ -901,6 +900,28 @@ class DissonanceIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
         :rtype: :class:`pandas.DataFrame`
+
+        **Example:**
+
+        import music21
+        from vis.analyzers.indexers import noterest, interval, meter, dissonance
+
+
+        piece = music21.converter.parse('example.xml')
+
+        meters = meter.DurationIndexer(piece).run()
+        bs = meter.NoteBeatStrengthIndexer(piece).run()
+
+        score = noterest.NoteRestIndexer(piece).run()
+
+        v_setts = {'simple or compound': 'compound', 'quality': True}
+        vints = interval.IntervalIndexer(score, v_setts).run()
+
+        h_setts = {'simple or compound': 'compound', 'quality': False}
+        hints = interval.HorizontalIntervalIndexer(score, h_setts).run()
+
+        diss = dissonance.DissonanceIndexer([bs, meters, hints, vints]).run()
+        print(diss)
         """
 
 
