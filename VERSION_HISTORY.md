@@ -3,6 +3,9 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 2.4.2:
+    - Major documentation update.
+
 * 2.4.1:
     - Cosmetic changes to more closely comply with Python coding conventions.
 
