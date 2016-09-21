@@ -259,7 +259,7 @@ def _find_part_ranges(the_score):
 
     return ranges
 
-def ImportScore(pathname, score=None):
+def ImportScore(pathname, score=None, metafile=None):
     """
     Import the score to music21 format.
     :param pathname: Location of the file to import on the local disk.
@@ -659,7 +659,7 @@ class IndexedPiece(object):
         return ngram.NGramIndexer(data, settings).run()
 
 
-    def get_data(self, analyzer_cls, settings=None, data=None):
+    def get_data(self, analyzer_cls, data=None, settings=None):
         """
         Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
 
@@ -682,14 +682,17 @@ class IndexedPiece(object):
         if analyzer_cls not in self._mkd: # Make sure the analyzer requested exists.
             raise KeyError(IndexedPiece._NOT_AN_ANALYZER.format(analyzer_cls, sorted(self._mkd.keys(str))))
 
-        args_dict = {} # Only pass the settings and data arguments if they are not ``None``.
+        args_dict = {} # Only pass the settings argument if it is not ``None``.
         if settings is not None:
             args_dict['settings'] = settings
-        if data is not None:
-            args_dict['data'] = data
 
         try: # Fetch or calculate the actual results requested.
-            results = self._mkd[analyzer_cls](**args_dict)
+            if data is None:
+                results = self._mkd[analyzer_cls](**args_dict)
+            else:
+                results = self._mkd[analyzer_cls](data, **args_dict)
+            if hasattr(results, 'run'): # execute analyzer if there is no caching method for this one
+                results = results.run()
         except TypeError: # There is some issue with the 'settings' and/or 'data' arguments.
             raise RuntimeWarning(IndexedPiece._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(self._mkd[analyzer_cls]))
 
