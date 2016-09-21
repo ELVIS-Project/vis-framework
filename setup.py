@@ -51,11 +51,13 @@ setup(
     keywords = ['music', 'music analysis', 'music theory', 'counterpoint'],
     requires = [
         'music21 (== 2.1.2)',
-        'pandas (>= 0.14.1, < 0.17)'
+        'pandas (== 0.18.1)',
+        'multi-key-dict (== 2.0.3)'
         ],
     install_requires = [
         'music21 == 2.1.2',
-        'pandas >= 0.14.1, < 0.17'
+        'pandas == 0.18.1',
+        'multi-key-dict == 2.0.3'
         ],
     packages = [
         'vis',
@@ -69,7 +71,7 @@ setup(
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
         "Natural Language :: English",
         "Development Status :: 4 - Beta",
         "Environment :: Console",
