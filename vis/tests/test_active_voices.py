@@ -99,6 +99,13 @@ class TestActiveVoicesIndexer(TestCase):
         actual = ip.get_data('active_voices')
         self.assertTrue(actual.equals(self.EXPECTED))
 
+    def test_with_data(self):
+        """tests that it gives the right results with no settings and that the get_data()
+        method properly calls active_voices"""
+        ip = IndexedPiece('phony pathname')
+        actual = ip.get_data('active_voices', data=self.NOTES)
+        self.assertTrue(actual.equals(self.EXPECTED))
+
     def test_attacked(self):
         """tests that it gives the right results with attacked set to true"""
         settings = {'attacked': True}
