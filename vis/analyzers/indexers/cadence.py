@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/cadence.py
 # Purpose:                Cadence Indexer
 #
-# Copyright (C) 2016 Marina Borsodi-Benson
+# Copyright (C) 2016 Marina Borsodi-Benson, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -128,7 +128,7 @@ class CadenceIndexer(indexer.Indexer):
 
         beginnings.sort()
         endings.sort()
-        locations = zip(beginnings, endings)
+        locations = list(zip(beginnings, endings))
 
         cadences = []
 

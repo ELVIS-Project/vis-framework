@@ -227,7 +227,7 @@ class TestIndexerInit(unittest.TestCase):
             exp_err = "<class 'vis.tests.test_indexer.TestIndexer'>"
             exp_err = indexer.Indexer._INIT_KEY_ERR.format(exp_err, "stream.Part")
         else:
-            exp_err = "<class 'vis.tests.test_indexer.TestIndexerInit.test_indexer_init_9.<locals>.TestIndexer'>"
+            exp_err = "<class 'vis.tests.test_indexer.TestIndexerInit.test_indexer_init_8.<locals>.TestIndexer'>"
             exp_err = indexer.Indexer._INIT_KEY_ERR.format(exp_err, "stream.Part")
         try:
             TestIndexer(test_parts, settings)
