@@ -174,12 +174,14 @@ class TestDissonanceIndexer(unittest.TestCase):
         and covers almost all of the logic, namely the "Kyrie" in the test corpus. NB: perhaps 
         this test should get moved to the integration tests file.
         """
-        # Detection of Z's and O's was removed and so this old ground-truth was replaced with the following one.
-        # If the dissonance indexer gets re-written, it would be good to go back to this old ground truth.
-        # expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
-        expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough_14_Sept_2016.pickle'))
+        expected = pd.read_pickle(os.path.join(VIS_PATH, 'tests', 'expecteds', 'test_dissonance_thorough.pickle'))
+        # Detection of Z's and O's was removed and so this old ground-truth is updated in this test with the two 
+        # following lines. If the dissonance indexer gets re-written, it would be good to go back to this old 
+        # ground truth without needing these two replace() calls.
+        expected.replace('Z', '-', inplace=True)
+        expected.replace('O', '-', inplace=True)
         ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn'))
-        actual = ip._get_dissonance()
+        actual = ip.get_data('dissonance')
         assert_frame_equal(actual, expected)
         self.assertTrue(actual.equals(expected))
 
