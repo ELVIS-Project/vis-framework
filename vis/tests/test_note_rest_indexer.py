@@ -7,7 +7,7 @@
 # Filename:               analyzers_tests/test_note_rest_indexer.py
 # Purpose:                Tests for the NoteRestIndexer
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014, 2016 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -200,6 +200,11 @@ class TestMultiStopIndexer(unittest.TestCase):
         # expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'corpus', 'expecteds', 'test_multistop.pickle'))
         # self.assertTrue(actual.equals(expected))
 
+    def test_multistop_indexer_3(self):
+        # Integration test on a piece with multiple voices in each part
+        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'prelude28-20.mid'))
+        actual = ip.get_data('multistop')
+        self.assertTrue(8 == len(actual.columns))
 
 
 #--------------------------------------------------------------------------------------------------#

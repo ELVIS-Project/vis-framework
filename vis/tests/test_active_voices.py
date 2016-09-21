@@ -7,7 +7,7 @@
 # Filename:               vis/tests/test_cadence.py
 # Purpose:                Test indexing of cadence indexer.
 #
-# Copyright (C) 2016 Marina Borsodi-Benson
+# Copyright (C) 2016 Marina Borsodi-Benson, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -26,6 +26,7 @@
 from unittest import TestCase, TestLoader
 import pandas
 from vis.analyzers.indexers import active_voices
+from vis.models.indexed_piece import IndexedPiece
 
 
 class TestActiveVoicesIndexer(TestCase):
@@ -91,20 +92,27 @@ class TestActiveVoicesIndexer(TestCase):
         self.assertEqual(actual._settings, settings)
 
     def test_active(self):
-        """tests that it gives the right results with no settings"""
-        actual = active_voices.ActiveVoicesIndexer(self.NOTES).run()
+        """tests that it gives the right results with no settings and that the get_data()
+        method properly calls active_voices"""
+        ip = IndexedPiece('phony pathname')
+        ip._analyses['noterest'] = self.NOTES
+        actual = ip.get_data('active_voices')
         self.assertTrue(actual.equals(self.EXPECTED))
 
     def test_attacked(self):
         """tests that it gives the right results with attacked set to true"""
         settings = {'attacked': True}
-        actual = active_voices.ActiveVoicesIndexer(self.NOTES, settings).run()
+        ip = IndexedPiece('phony pathname')
+        ip._analyses['noterest'] = self.NOTES
+        actual = ip.get_data('active_voices', settings=settings)
         self.assertTrue(actual.equals(self.ATT_EXPECTED))
 
     def test_show(self):
-        # pdb.set_trace()
+        """tests that the ``show_all`` argument works when True"""
         settings = {'show_all': True}
-        actual = active_voices.ActiveVoicesIndexer(self.NOTES, settings).run()
+        ip = IndexedPiece('phony pathname')
+        ip._analyses['noterest'] = self.NOTES
+        actual = ip.get_data('active_voices', settings=settings)
         self.assertTrue(actual.equals(self.SHOW_EXPECTED))
 
 

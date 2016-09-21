@@ -566,14 +566,16 @@ class IndexedPiece(object):
             self._analyses['duration'] = meter.DurationIndexer(self._get_m21_nrc_objs_no_tied(), self._get_part_streams()).run()
         return self._analyses['duration']
 
-    def _get_active_voices(self, data=None):
+    def _get_active_voices(self, data=None, settings=None):
         """Used internally by get_data() to cache and retrieve results from the 
         active_voices.ActiveVoicesIndexer."""
         if data is not None:
-            return active_voices.ActiveVoicesIndexer(data).run()
-        elif 'active_voices' not in self._analyses:
+            return active_voices.ActiveVoicesIndexer(data, settings).run()
+        elif 'active_voices' not in self._analyses and (settings is None or settings == 
+                active_voices.ActiveVoicesIndexer.default_settings):
             self._analyses['active_voices'] = active_voices.ActiveVoicesIndexer(self._get_noterest()).run()
-        return self._analyses['active_voices']
+            return self._analyses['active_voices']
+        return active_voices.ActiveVoicesIndexer(self._get_noterest(), settings).run()
 
     def _get_beat_strength(self):
         """Used internally by get_data() to cache and retrieve results from the 
