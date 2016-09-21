@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
-"""
-.. codeauthor:: Alexander Morgan
+# """
+# .. codeauthor:: Alexander Morgan
 
-Experimenters related to executing hierachical clustering analysis and dendrograms to illustrate
-these clusterings. 
-"""
+# Experimenters related to executing hierachical clustering analysis and dendrograms to illustrate
+# these clusterings. 
+# """
 
 # ***NB: This entire file has been commented out to lighten our installation. SciPy in particular 
 # takes a very long time to build. Without SciPy it should be noted that we can no longer generate 
