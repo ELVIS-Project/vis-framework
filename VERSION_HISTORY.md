@@ -3,6 +3,9 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 2.4.3:
+    - replace 2.4.2 as it was broken for pip install
+
 * 2.4.2:
     - Major documentation update.
 
