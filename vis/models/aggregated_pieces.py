@@ -31,7 +31,9 @@ import six
 import os
 import pandas
 from vis.analyzers import experimenter
+from vis.analyzers.experimenters import aggregator, barchart, frequency
 from vis.models import indexed_piece
+from multi_key_dict import multi_key_dict as mkd
 
 
 class AggregatedPieces(object):
@@ -39,8 +41,19 @@ class AggregatedPieces(object):
     Hold data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
     """
 
+    # When get_data() is called but _pieces is still an empty list.
+    _NO_PIECES = 'This aggregated_pieces object has no pieces assigned to it. This probably means \
+    that this aggregated_pieces object was instantiated incorrectly. Please refer to the \
+    documentation on the Import() method in vis.models.indexed_piece.'
+
+    # When get_data() is missing the "settings" and/or data" argument but needed them, or was supplied .
+    _SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS = 'You made improper use of the settings and/or data \
+    arguments. Please refer to the {} documentation to see what it requires.'
+
     # When one of the "aggregated_experiments" classes in get_data() isn't an Experimenter subclass
-    _NOT_EXPERIMENTER = 'AggregatedPieces requires Experimenters (received {})'
+    _NOT_EXPERIMENTER = 'The "combined_experimenter" argument of the AggregatedPieces.get_data() \
+    method requires an experimenter that can combine the results of multiple pieces but instead \
+    received {}. Please choose from one of the following: {}.'
 
     # When metadata() gets a 'field' argument that isn't a string
     _FIELD_STRING = "parameter 'field' must be of type 'string'"
@@ -80,6 +93,13 @@ class AggregatedPieces(object):
         self._metafiles = metafiles if metafiles is not None else []
         self._metadata = {}
         init_metadata()
+        # Multi-key dictionary for combined_experimenter calls to get_data()
+        self._mkd = mkd({# Experimenters that can combine results from multiple pieces:
+                        ('aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
+                        ('bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
+                        # The dendrogram experimenter has been commented out to allow us to remove our SciPy dependency
+                        # ('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
+                        ('frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter})
 
 
     @staticmethod
@@ -179,64 +199,77 @@ class AggregatedPieces(object):
         else:
             return None
 
-    def get_data(self, independent_analyzers, aggregated_experiments, settings=None, data=None):
+    def get_data(self, ind_analyzer=None, combined_experimenter=None, settings=None, data=None):
         """
-        Get the results of an :class:`Experimenter` run on all the :class:`IndexedPiece` objects.
-        You must specify all indexers and experimenters to be run to get the results you want.
-        The same settings dict will be given to all experiments and indexers.
-        If you want the results from all :class:`IndexedPiece` objects separately, provide an empty
-        list as the ``aggregated_experiments`` argument.
-        Either the first analyzer in ``independent_analyzers`` should use a
-        :class:`music21.stream.Score` or you must provide an argument for ``data`` that is the
-        output from a previous call to this instance's :meth:`get_data` method.
+        Get the results of an :class:`Indexer` or an :class:`Experimenter` run on all the 
+        :class:`IndexedPiece` objects either individually, or all together. If settings are 
+        provided, the same settings dict will be used throughout.
+
+        In VIS, analyzers are broken down into two categories: Indexers which associate observations 
+        with a specific moment in a piece, and Experimenters which still work with musical 
+        observations, but do not associate them with a specific moment in a specific IndexedPiece. 
+        For example, the noterest.NoteRestIndexer associates each note and rest with a time point in 
+        a given IndexedPiece, but if we then use the frequency.FrequencyExperimenter to count the 
+        number of times each type of note or rest happens, these counts will not and cannot be 
+        associated with a specific time point.
+
+        All VIS Indexers and most Experimenters  run on each piece individually, and so if  these 
+        results are desired, the analyzer in question should be assigned to the ``ind_analyzer`` 
+        argument. The barchart.RBarChart and aggregator.ColumnAggregator experimenters often 
+        combine the data of several pieces together. The frequency.FrequencyExperimenter can also 
+        be used this way. If this is the desired behavior, supply the appropriate Experimenter as 
+        the combined_experimenter argument.
+
         **Examples**
-        Run analyzer A then B on each piece individually, then provide a list of those results to
-        Experimenter C then D:::
-            >>> pieces.get_data([A, B], [C, D])
-        Run analyzer A then B on each piece individually, then return a list of those results:::
-            >>> pieces.get_data([A, B])
-        Run experimenter A then B on the results of a previous :meth:`get_data` call:::
-            >>> piece.get_data([], [C, D], data=previous_results)
-        .. note:: The analyzers in the ``independent_analyzers`` argument are run with
+
+        .. note:: The analyzers in the ``analyzer_cls`` argument are run with
             :meth:`~vis.models.indexed_piece.IndexedPiece.get_data` from the :class:`IndexedPiece`
             objects themselves. Thus any exceptions raised there may also be raised here.
-        :param independent_analyzers: The analyzers to run on each piece before aggregation, in the
-            order you want to run them. For no independent analyzers, use ``[]`` or ``None``.
-        :type independent_analyzers: list of types
-        :param aggregated_experiments: The Experimenters to run on aggregated data of all pieces,
-            in the order you want to run them.
-        :type aggregated_experiments: list of types
-        :param dict settings: Settings to be used with the analyzers.
-        :param data: Input data for the first analyzer to run. If this argument is not ``None``,
-            you must provide the output from a previous call to :meth:`get_data` of this instance.
-        :type data: :class:`pandas.DataFrame` or list of :class:`DataFrame`
+        Get the results of an Experimenter or Indexer run on this :class:`IndexedPiece`.
+
+        :param ind_analyzer: The analyzer to run.
+        :type ind_analyzer: str or VIS Indexer or Experimenter class.
+        :param settings: Settings to be used with the analyzer. Only use if necessary.
+        :type settings: dict
+        :param data: Input data for the analyzer to run. If this is provided for an indexer that 
+            normally caches its results (such as the NoteRestIndexer, the DurationIndexer, etc.), 
+            the results will not be cached since it is uncertain if the input passed in the ``data`` 
+            argument was calculated on this indexed_piece.
+        :type data: Depends on the requirement of the analyzer designated by the ``analyzer_cls`` 
+            argument. Usually a list of :class:`pandas.DataFrame`.
+        :returns: Results of the analyzer.
+        :rtype: Depending on the ``analyzer_cls``, either a :class:`pandas.DataFrame` or more often 
+            a list of :class:`pandas.DataFrame`.
         :return: Either one :class:`pandas.DataFrame` with all experimental results or a list of
             :class:`DataFrame` objects, each with the experimental results for one piece.
         :raises: :exc:`TypeError` if an analyzer is invalid or cannot be found.
         """
-        if [] == self._pieces:
-            return [pandas.DataFrame()] if [] == aggregated_experiments else pandas.DataFrame()
-        if aggregated_experiments is not None and len(aggregated_experiments) > 0:
-            for each_cls in aggregated_experiments:
-                if not issubclass(each_cls, experimenter.Experimenter):
-                    raise TypeError(AggregatedPieces._NOT_EXPERIMENTER.format(each_cls))
-        if independent_analyzers is not None and len(independent_analyzers) > 0:
-            ind_res = None
-            if data is not None:
-                ind_res = [p.get_data(independent_analyzers, settings, data[i])
-                           for i, p in enumerate(self._pieces)]
+        if not self._pieces: # if there are no pieces in this aggregated_pieces object
+            raise RuntimeWarning(AggregatedPieces._NO_PIECES)
+
+        if (combined_experimenter is not None and (combined_experimenter not in self._mkd.keys(str) 
+            and combined_experimenter not in self._mkd.keys(type))): # make sure combined_experimenter is an appropriate experimenter
+            raise TypeError(AggregatedPieces._NOT_EXPERIMENTER.format(combined_experimenter, self._mkd.keys(str)))
+
+        args_dict = {} # Only pass the settings argument if it is not ``None``.
+        if settings is not None:
+            args_dict['settings'] = settings
+        
+        if ind_analyzer is not None: # for indexers or experimenters run individually on each indexed_piece in self._pieces
+            if data is None:
+                results = [p.get_data(ind_analyzer, **args_dict) for p in self._pieces]
             else:
-                ind_res = [p.get_data(independent_analyzers, settings) for p in self._pieces]
-            return self.get_data(None, aggregated_experiments, settings, ind_res)
-        elif aggregated_experiments is None or 0 == len(aggregated_experiments):
-            return data
-        elif 1 == len(aggregated_experiments):
-            return aggregated_experiments[0](data, settings).run()
-        else:
-            return self.get_data(independent_analyzers,
-                                 aggregated_experiments[1:],
-                                 settings,
-                                 aggregated_experiments[0](data, settings).run())
+                results = [p.get_data(ind_analyzer, data[i], **args_dict) for i, p in enumerate(self._pieces)]
+        
+        if combined_experimenter is not None: # for experimenters that combine all the results in the data argument
+            if ind_analyzer is not None:
+                data = results
+            try:
+                results = self._mkd[combined_experimenter](data, **args_dict).run()
+            except TypeError: # There is some issue with the 'settings' and/or 'data' arguments.
+                raise RuntimeWarning(AggregatedPieces._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(self._mkd[combined_experimenter]))
+
+        return results
 
     def _file_loader(self):
         """Loads the piece files given, whether they are lists or directories or websites."""
@@ -251,18 +284,17 @@ class AggregatedPieces(object):
                 temp = []
                 meta = root + '/meta'
                 files.remove('meta')
-                for file in files:
-                    file = root + '/' + file
-                    temp.append(indexed_piece.IndexedPiece(file, metafile=meta).run())
-                return temp
-
-            # indexed piece without meta files
             else:
-                temp = []
-                for file in files:
-                    file = root + '/' + file
-                    temp.append(indexed_piece.IndexedPiece(file))
-                return temp
+                meta = None
+
+            for file in files:
+                file = root + '/' + file
+                new = indexed_piece.ImportScore(file, metafile=meta)
+                if isinstance(new, list): # The file imported as an agg_pieces object
+                    temp.extend(new)
+                else: # The file imported as a single ind_piece object
+                    temp.append(indexed_piece.ImportScore(file, metafile=meta))
+            return temp
 
         # there are 3 options if the input is a list
         if type(self._pieces) is list:
@@ -275,22 +307,22 @@ class AggregatedPieces(object):
             elif os.path.isfile(self._pieces[0]):
 
                 # if only one metafile was attached
-                if self._metafiles != []:
+                if not isinstance(self._metafiles, list):
 
                     # one metafile per music file:
-                    if type(self._metafiles) is list and len(self._metafiles) == len(self._pieces):
+                    if isinstance(self._metafiles, list) and len(self._metafiles) == len(self._pieces):
                         temp = []
                         for n in range(len(self._pieces)):
-                            temp.append(indexed_piece.IndexedPiece(self._pieces[n], metafile=self._metafiles[n]).run())
+                            temp.append(indexed_piece.ImportScore(self._pieces[n], metafile=self._metafiles[n]))
                         self._pieces = temp
                         return
 
                     elif os.path.isfile(self._metafiles):
-                        self._pieces = [indexed_piece.IndexedPiece(piece, metafile=self._metafiles).run() for piece in self._pieces]
+                        self._pieces = [indexed_piece.ImportScore(piece, metafile=self._metafiles) for piece in self._pieces]
                         return
                 # if no metafiles were given
                 else:
-                    self._pieces = [indexed_piece.IndexedPiece(piece).run() for piece in self._pieces]
+                    self._pieces = [indexed_piece.ImportScore(piece) for piece in self._pieces]
                     return
 
             else:
