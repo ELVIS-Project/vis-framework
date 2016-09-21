@@ -72,36 +72,3 @@ class Experimenter(object):
                 self._settings = {}
         else:
             self._settings = {}
-
-    def run(self):
-        """
-        Run an experiment on a piece.
-
-        :returns: The result of the experiment. Data is stored uniquely depending on the Experiment.
-        :rtype: pandas.Series or pandas.DataFrame
-        """
-        pass
-
-    def _do_multiprocessing(self, func, func_args):
-        """
-        Submit each of the argument lists in func_args to the function in func. In the future, this
-        method may use multiprocessing.
-
-        :param func: The function to call. The function should return a pandas.Series or DataFrame
-        :type func: module-level function
-
-        :param func_args: A nested list of the arguments to be passed to "func". Each outer list
-            element will be a single call to "func".
-        :type func_args: iterable of iterables of objects
-
-        :returns: A list of whatever was returned by the "func" function.
-        :rtype: list of pandas.Series or of pandas.DataFrame
-
-        **Side Effects**
-
-        Blocks until all calculations have completed.
-        """
-        post = []
-        for arg_list in func_args:
-            post.append(func(*arg_list))  # pylint: disable=W0142
-        return post
