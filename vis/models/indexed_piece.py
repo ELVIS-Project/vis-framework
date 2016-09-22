@@ -41,13 +41,13 @@ import pandas
 import numpy
 from six.moves import range, xrange  # pylint: disable=import-error,redefined-builtin
 from music21 import converter, stream, analysis
+from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.experimenters import aggregator, barchart, frequency, lilypond #, dendrogram
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, cadence, meter, interval, dissonance, fermata, offset, repeat, active_voices, offset, over_bass, contour, ngram, windexer
 from vis.analyzers.indexers import lilypond as lily_ind
 from multi_key_dict import multi_key_dict as mkd
-
 
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
@@ -259,15 +259,16 @@ def _find_part_ranges(the_score):
 
     return ranges
 
-def ImportScore(pathname, score=None, metafile=None):
+def _import_file(pathname, metafile=None):
     """
     Import the score to music21 format.
     :param pathname: Location of the file to import on the local disk.
     :type pathname: str
-    :returns: An :class:`IndexedPiece` or an :class:`AggregatedPieces` object if the file passed 
-        imports as a :class:`music21.stream.Score` or :class:`music21.stream.Opus` object
+    :returns: A 1-tuple of :class:`IndexedPiece` if the file imported as a 
+        :class:`music21.stream.Score` object or a multi-element list if it imported as a 
+        :class:`music21.stream.Opus` object.
         respectively.
-    :rtype: A new :class:`IndexedPiece` or :class:`AggregatedPieces` object.
+    :rtype: 1-tuple or list of :class:`IndexedPiece`
     """
     score = converter.Converter()
     score.parseFile(pathname, forceSource=True, storePickle=False)
@@ -288,9 +289,69 @@ def ImportScore(pathname, score=None, metafile=None):
         ip._metadata['partRanges'] = _find_part_ranges(ip._score)
         ip._metadata['pieceRange'] = _find_piece_range(ip._score)
         ip._imported = True
-    if len(score) == 1:
-        score = score[0]
+
     return score
+
+def _import_directory(directory):
+
+    pieces = [] # a list of the pieces being imported
+
+    for root, dirs, files in os.walk(directory):
+        if len(files) == 0:
+            raise RuntimeError(vis.models.aggregated_piece.AggregatedPieces._NO_FILES)
+
+        # remove ds_stores
+        if '.DS_Store' in files:
+            files.remove('.DS_Store')
+
+        # attach meta files if they exist
+        if 'meta' in files:
+            meta = root + '/meta'
+            files.remove('meta')
+        else:
+            meta = None
+
+        for file in files:
+            if len(file) > 1 and file[:2] == '._': # filter out hidden files if they show up
+                continue
+            path = root + '/' + file
+            print('**************' + path)
+            pieces.extend(_import_file(pathname=path, metafile=meta))
+
+    return (pieces, meta)
+
+def Importer(location, metafile=None):
+    """
+    Import the file, website link, or directory of files designated by ``location`` to music21 
+    format.
+
+    :param location: Location of the file to import on the local disk.
+    :type location: str
+    :returns: An :class:`IndexedPiece` or an :class:`AggregatedPieces` object if the file passed 
+        imports as a :class:`music21.stream.Score` or :class:`music21.stream.Opus` object
+        respectively.
+    :rtype: A new :class:`IndexedPiece` or :class:`AggregatedPieces` object.
+    """
+    pieces = []
+    meta = None
+
+    # index piece if it is a file or a link
+    if os.path.isfile(location):
+        pieces.extend(_import_file(location))
+
+    # load directory of pieces
+    elif os.path.isdir(location):
+        directory_return = _import_directory(location)
+        pieces.extend(directory_return[0])
+        meta = directory_return[1]
+
+    else:
+        raise RuntimeError(self._UNKNOWN_INPUT)
+
+    if len(pieces) == 1: # there was a single piece that imported as a score (not an opus)
+        return(pieces[0]) # this returns an IndexedPiece object
+    else: # there were multiple pieces or a single piece that imported as an opus
+        return(AggregatedPieces(pieces=pieces, metafiles=meta))
 
 
 class OpusWarning(RuntimeWarning):
@@ -327,7 +388,7 @@ class IndexedPiece(object):
 
     _MISSING_USERNAME = ('You must enter a username to access the elvis database')
     _MISSING_PASSWORD = ('You must enter a password to access the elvis database')
-    def __init__(self, pathname, opus_id=None, score=None, metafile=None, username=None, password=None):
+    def __init__(self, pathname='', opus_id=None, score=None, metafile=None, username=None, password=None):
         """
         :param str pathname: Pathname to the file music21 will import for this :class:`IndexedPiece`.
         :param opus_id: The index of the :class:`Score` for this :class:`IndexedPiece`, if the file
@@ -504,7 +565,9 @@ class IndexedPiece(object):
             # save the results as a list of series in the indexed_piece attributes
             sers =[]
             for p in self._get_part_streams():
-                ser = pandas.Series(p.recurse())
+                # NB: since we don't use ActiveSites, not restoring them is a minor speed-up. Also, 
+                # skipSelf will soon change its default to True in music21.
+                ser = pandas.Series(p.recurse(restoreActiveSites=False, skipSelf=True))
                 ser.index = ser.apply(_get_offset, args=(p,))
                 sers.append(ser)
             self._analyses['m21_objs'] = sers

@@ -44,7 +44,10 @@ class AggregatedPieces(object):
     # When get_data() is called but _pieces is still an empty list.
     _NO_PIECES = 'This aggregated_pieces object has no pieces assigned to it. This probably means \
     that this aggregated_pieces object was instantiated incorrectly. Please refer to the \
-    documentation on the Import() method in vis.models.indexed_piece.'
+    documentation on the Importer() method in vis.models.indexed_piece.'
+
+    # When a directory has no files in it.
+    _NO_FILES = 'There are no files in the directory provided.'
 
     # When get_data() is missing the "settings" and/or data" argument but needed them, or was supplied .
     _SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS = 'You made improper use of the settings and/or data \
@@ -271,79 +274,9 @@ class AggregatedPieces(object):
 
         return results
 
-    def _file_loader(self):
-        """Loads the piece files given, whether they are lists or directories or websites."""
+    # def run(self):
+    #     if self._pieces != []:
+    #         self._file_loader()
+    #     self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
 
-        def directory(directory):
-            # remove ds_stores
-            if '.DS_Store' in files:
-                files.remove('.DS_Store')
-
-            # attach meta files if they exist
-            if 'meta' in files:
-                temp = []
-                meta = root + '/meta'
-                files.remove('meta')
-            else:
-                meta = None
-
-            for file in files:
-                file = root + '/' + file
-                new = indexed_piece.ImportScore(file, metafile=meta)
-                if isinstance(new, list): # The file imported as an agg_pieces object
-                    temp.extend(new)
-                else: # The file imported as a single ind_piece object
-                    temp.append(indexed_piece.ImportScore(file, metafile=meta))
-            return temp
-
-        # there are 3 options if the input is a list
-        if type(self._pieces) is list:
-
-            # return immediately if the input is already indexed
-            if isinstance(self._pieces[0], indexed_piece.IndexedPiece):
-                return
-
-            # index pieces if files or links
-            elif os.path.isfile(self._pieces[0]):
-
-                # if only one metafile was attached
-                if not isinstance(self._metafiles, list):
-
-                    # one metafile per music file:
-                    if isinstance(self._metafiles, list) and len(self._metafiles) == len(self._pieces):
-                        temp = []
-                        for n in range(len(self._pieces)):
-                            temp.append(indexed_piece.ImportScore(self._pieces[n], metafile=self._metafiles[n]))
-                        self._pieces = temp
-                        return
-
-                    elif os.path.isfile(self._metafiles):
-                        self._pieces = [indexed_piece.ImportScore(piece, metafile=self._metafiles) for piece in self._pieces]
-                        return
-                # if no metafiles were given
-                else:
-                    self._pieces = [indexed_piece.ImportScore(piece) for piece in self._pieces]
-                    return
-
-            else:
-                raise RuntimeError(self._UNKNOWN_INPUT)
-
-        # load directory of pieces
-        elif os.path.isdir(self._pieces):
-
-            for root, dirs, files in os.walk(self._pieces):
-                if len(files) == 0:
-                    raise RuntimeError(self._NO_FILES)
-
-                elif len(files) > 0:
-                    self._pieces = directory(files)
-
-        else:
-            raise RuntimeError(self._UNKNOWN_INPUT)
-
-    def run(self):
-        if self._pieces != []:
-            self._file_loader()
-        self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
-
-        return self
+    #     return self
