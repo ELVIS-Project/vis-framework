@@ -559,9 +559,11 @@ class IndexedPiece(object):
 
     def _get_duration(self, data=None):
         """Used internally by get_data() to cache and retrieve results from the 
-        meter.DurationIndexer."""
+        meter.DurationIndexer. The `data` argument should be a 2-tuple where the first element is 
+        a dataframe of results with one column per voice (like the noterest indexer) and the second 
+        element is a list of the part streams, one per part."""
         if data is not None:
-            return meter.DurationIndexer(data, self._get_part_streams()).run()
+            return meter.DurationIndexer(data[0], data[1]).run()
         elif 'duration' not in self._analyses:
             self._analyses['duration'] = meter.DurationIndexer(self._get_m21_nrc_objs_no_tied(), self._get_part_streams()).run()
         return self._analyses['duration']

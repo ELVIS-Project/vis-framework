@@ -148,12 +148,14 @@ class TestDurationIndexer(unittest.TestCase):
         self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_5(self):
-        # Alto part of bwv603.mxl which is a part with ties
+        # Alto part of bwv603.mxl which is a part with ties. Also test that data argument is passed 
+        # correctly. Since the data argument is passed, these results should not be cached.
         expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_alto)})
         ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
         ip._analyses['part_streams'] = [ip._get_part_streams()[1]]
-        actual = ip._get_duration()['meter.DurationIndexer']
+        actual = ip.get_data('duration', data=(ip.get_data('noterest'), ip._analyses['part_streams']))['meter.DurationIndexer']
         self.assertTrue(actual.equals(expected))
+        self.assertTrue('duration' not in ip._analyses.keys())
 
     def test_duration_indexer_6(self):
         # Soprano and bass parts of bwv603.xml
@@ -161,7 +163,7 @@ class TestDurationIndexer(unittest.TestCase):
         expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_soprano),
                     '3': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_bass)})
         ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
-        actual = ip._get_duration()['meter.DurationIndexer'].iloc[:, [0, 3]]
+        actual = ip.get_data('duration').iloc[:, [0, 3]]['meter.DurationIndexer']
         self.assertTrue(actual.equals(expected))
 
 
