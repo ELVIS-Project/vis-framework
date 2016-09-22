@@ -7,7 +7,7 @@
 # Filename:               models/aggregated_pieces.py
 # Purpose:                Hold the model representing data from multiple IndexedPieces.
 #
-# Copyright (C) 2013, 2014 Christopher Antila
+# Copyright (C) 2013, 2014, 2016 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,6 +24,7 @@
 #--------------------------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
+.. codeauthor:: Alexander Morgan
 The model representing data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
 """
 
@@ -273,10 +274,3 @@ class AggregatedPieces(object):
                 raise RuntimeWarning(AggregatedPieces._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(self._mkd[combined_experimenter]))
 
         return results
-
-    # def run(self):
-    #     if self._pieces != []:
-    #         self._file_loader()
-    #     self._metadata['pathnames'] = [p.metadata('pathname') for p in self._pieces]
-
-    #     return self
