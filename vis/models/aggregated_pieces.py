@@ -33,7 +33,6 @@ import os
 import pandas
 from vis.analyzers import experimenter
 from vis.analyzers.experimenters import aggregator, barchart, frequency
-from vis.models import indexed_piece
 from multi_key_dict import multi_key_dict as mkd
 
 
