@@ -315,7 +315,6 @@ def _import_directory(directory):
             if len(file) > 1 and file[:2] == '._': # filter out hidden files if they show up
                 continue
             path = root + '/' + file
-            print('**************' + path)
             pieces.extend(_import_file(pathname=path, metafile=meta))
 
     return (pieces, meta)
