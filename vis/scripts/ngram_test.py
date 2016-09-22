@@ -1,7 +1,7 @@
 from vis.analyzers.indexers import noterest, interval, ngram, meter, dissonance #, active_voices
 from vis.models import indexed_piece
-from vis.models.indexed_piece import IndexedPiece
-from vis.models.aggregated_pieces import AggregatedPieces
+# from vis.models.indexed_piece import IndexedPiece
+# from vis.models.aggregated_pieces import AggregatedPieces
 import pandas
 import pdb
 import time
@@ -17,7 +17,10 @@ piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Morley_Duets/7 Miraculous loves wounding.xml' # example of IR = quarter note
 chopin_prelude = '/home/amor/Code/vis-framework/vis/scripts/prelude28-20.mid'
 
+# Senfl_Buchner folder:
+folder = '/home/amor/Code/vis-framework/vis/scripts/Senfl motets'
 # Senfl Pieces:
+piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl motets/No03_LaudateDominum_ns_final.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl_Buchner/AssumptaEst_normal.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl_Buchner/DumSteteritis_normal.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl_Buchner/No01_Converte_nos Kopie.xml'
@@ -39,24 +42,23 @@ n_setts_4 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False, 'align': 'right'}
 n_setts_5 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all',
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False}
-test = indexed_piece.ImportScore(piece_path)
-pdb.set_trace()
-test.get_data('du')
-ip = IndexedPiece(piece_path)
-ps = ip._get_m21_objs()
+# ip = indexed_piece.Importer(piece_path)
+t0 = time.time()
+ag = indexed_piece.Importer(folder)
+# ps = ip._get_part_streams()
 # bs = ip._get_beat_strength()
 # dr = ip._get_duration()
 # ms = ip._get_measure()
-nr = ip._get_noterest()
-vz = ip._get_vertical_interval(h_setts2)
-hz = ip._get_horizontal_interval(v_setts)
-t0 = time.time()
+# nr = ip._get_noterest()
+# vz = ip._get_vertical_interval(h_setts2)
+# hz = ip._get_horizontal_interval(v_setts)
+# recursed = ip._get_m21_objs()
 # mnr = ip._get_multistop()
 # # vz = ip._get_vertical_interval(v_setts)
 # av = active_voices.ActiveVoicesIndexer(nr).run()
-ng = ngram.NGramIndexer((vz, hz), n_setts_4).run()
+# ng = ngram.NGramIndexer((vz, hz), n_setts_4).run()
 t1 = time.time()
-ng2 = ngram.NGramIndexer((vz, hz), n_setts_5).run()
+# ng2 = ngram.NGramIndexer((vz, hz), n_setts_5).run()
 # t2 = time.time()
 print(t1-t0)
 # print(t2-t1)

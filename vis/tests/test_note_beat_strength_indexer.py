@@ -34,7 +34,7 @@ import pandas
 from music21 import stream, clef, bar, note
 from music21 import meter as m21_meter
 from vis.analyzers.indexers import meter
-from vis.models.indexed_piece import ImportScore, IndexedPiece
+from vis.models.indexed_piece import Importer, IndexedPiece
 from numpy import nan
 
 # find the pathname of the 'vis' directory
@@ -144,7 +144,7 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
     def test_note_beat_strength_indexer_4(self):
         # Soprano part of bwv77.mxl which is a part with no ties
         expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv77_soprano)})
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
         ip._analyses['part_streams'] = ip._get_part_streams()[:1]
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
         self.assertTrue(actual.equals(expected))
@@ -152,7 +152,7 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
     def test_note_beat_strength_indexer_5(self):
         # Alto part of bwv603.mxl which is a part with ties
         expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv603_alto)})
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
         ip._analyses['part_streams'] = [ip._get_part_streams()[1]]
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
         self.assertTrue(actual.equals(expected))
@@ -162,7 +162,7 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
         # We won't verify all the parts, but we'll submit them all for analysis.
         expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv603_soprano),
                     '3': TestNoteBeatStrengthIndexer.make_series(bwv603_bass)})
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer'].iloc[:, [0, 3]]
         self.assertTrue(actual.equals(expected))
 

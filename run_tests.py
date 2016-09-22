@@ -95,11 +95,12 @@ THE_TESTS = (  # Indexer and Subclasses
              test_aggregator.COLUMN_AGGREGATOR_SUITE,
              test_barchart.R_BAR_CHART_SUITE,
              # test_dendrogram.DENDROGRAM_SUITE, # This test suite is commented out so that we can remove our SciPy dependency.
-             # IndexedPiece and AggregatedPieces
+             # Importer, IndexedPiece, and AggregatedPieces
+             test_aggregated_pieces.IMPORTER_SUITE,
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
              test_indexed_piece.INDEXED_PIECE_SUITE_C,
-             # test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
+             test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
              # NB: Most of these WorkflowManager tests pass but they are commented out because the WorkflowManager is deprecated.
              # # WorkflowManager 
              # test_workflow.WORKFLOW_TESTS,  # FutureWarning: sort(columns) is depracated, use sort_values(by=...)

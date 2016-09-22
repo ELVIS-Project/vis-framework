@@ -292,30 +292,33 @@ def _import_file(pathname, metafile=None):
 
     return score
 
-def _import_directory(directory):
+def _import_directory(directory, metafile=None):
 
     pieces = [] # a list of the pieces being imported
+    meta = metafile
 
-    for root, dirs, files in os.walk(directory):
-        if len(files) == 0:
-            raise RuntimeError(vis.models.aggregated_piece.AggregatedPieces._NO_FILES)
+    if isinstance(directory, list):
+        file_paths = directory
 
-        # remove ds_stores
-        if '.DS_Store' in files:
-            files.remove('.DS_Store')
+    else: # the `directory` argument is the pathname of a directory
+        file_paths = []
+        for root, dirs, files in os.walk(directory):
+            for f in files:
+                if f == '.DS_Store': # exclude ds_stores
+                    continue
+                if len(f) > 1 and f[:2] == '._': # filter out hidden files if they show up
+                    continue
+                if f == 'meta': # attach meta files if they exist
+                    meta = root + '/meta'
+                    continue
+                file_paths.append('/'.join((root, f)))
 
-        # attach meta files if they exist
-        if 'meta' in files:
-            meta = root + '/meta'
-            files.remove('meta')
-        else:
-            meta = None
+    if not file_paths:
+        raise RuntimeError(vis.models.aggregated_piece.AggregatedPieces._NO_FILES)
 
-        for file in files:
-            if len(file) > 1 and file[:2] == '._': # filter out hidden files if they show up
-                continue
-            path = root + '/' + file
-            pieces.extend(_import_file(pathname=path, metafile=meta))
+    for path in file_paths:
+        # use extend rather than append because it could import as a multi-movement opus
+        pieces.extend(_import_file(pathname=path, metafile=meta))
 
     return (pieces, meta)
 
@@ -332,17 +335,16 @@ def Importer(location, metafile=None):
     :rtype: A new :class:`IndexedPiece` or :class:`AggregatedPieces` object.
     """
     pieces = []
-    meta = None
-
-    # index piece if it is a file or a link
-    if os.path.isfile(location):
-        pieces.extend(_import_file(location))
 
     # load directory of pieces
-    elif os.path.isdir(location):
-        directory_return = _import_directory(location)
+    if isinstance(location, list) or os.path.isdir(location):
+        directory_return = _import_directory(location, metafile)
         pieces.extend(directory_return[0])
-        meta = directory_return[1]
+        metafile = directory_return[1]
+
+    # index piece if it is a file or a link
+    elif os.path.isfile(location):
+        pieces.extend(_import_file(location))
 
     else:
         raise RuntimeError(self._UNKNOWN_INPUT)
@@ -350,7 +352,7 @@ def Importer(location, metafile=None):
     if len(pieces) == 1: # there was a single piece that imported as a score (not an opus)
         return(pieces[0]) # this returns an IndexedPiece object
     else: # there were multiple pieces or a single piece that imported as an opus
-        return(AggregatedPieces(pieces=pieces, metafiles=meta))
+        return(AggregatedPieces(pieces=pieces, metafile=metafile))
 
 
 class OpusWarning(RuntimeWarning):

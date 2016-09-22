@@ -27,7 +27,7 @@ import os
 from unittest import TestCase, TestLoader
 import pandas
 from six.moves import range  # pylint: disable=import-error,redefined-builtin
-from vis.models.indexed_piece import ImportScore, IndexedPiece
+from vis.models.indexed_piece import Importer, IndexedPiece
 from vis.analyzers.indexers import fermata
 # get the path to the 'vis' directory
 import vis
@@ -50,7 +50,7 @@ class AllVoiceFermatas(TestCase):
         expected.drop([11, 12, 20, 32], inplace=True)
 
         # Test.
-        ind_piece = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
+        ind_piece = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
         actual = ind_piece._get_fermata()
         self.assertTrue(actual['fermata.FermataIndexer'].equals(expected))
 
@@ -60,7 +60,7 @@ class AllVoiceFermatas(TestCase):
         temp = [pandas.Series(['Fermata'], index=[6], name='0'), pandas.Series(['Fermata'], index=[6], name='1')]
         expected = pandas.concat(temp, axis=1).reindex(pandas.Index([0,1,2,3,4,6]))
         # Test.
-        ind_piece = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_fermata_rest.xml'))
+        ind_piece = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_fermata_rest.xml'))
         actual = ind_piece._get_fermata()
         self.assertTrue(actual['fermata.FermataIndexer'].equals(expected))
 

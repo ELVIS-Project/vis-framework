@@ -41,7 +41,7 @@ from music21 import converter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
 from vis.analyzers.experimenter import Experimenter
-from vis.models.indexed_piece import ImportScore, IndexedPiece, _find_piece_title, _find_part_names, OpusWarning, _find_piece_range, _find_part_ranges, login_edb, auth_get
+from vis.models.indexed_piece import Importer, IndexedPiece, _find_piece_title, _find_part_names, OpusWarning, _find_piece_range, _find_part_ranges, login_edb, auth_get
 # find pathname to the 'vis' directory
 import vis
 VIS_PATH = vis.__path__[0]
@@ -142,7 +142,7 @@ class TestPartsAndTitles(TestCase):
         path = os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl')
         expected_title = 'bwv77'
         expected_parts = ['Soprano', 'Alto', 'Tenor', 'Bass']
-        the_score = ImportScore(path)._score
+        the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
         actual_parts = _find_part_names(the_score)
         self.assertEqual(expected_title, actual_title)
@@ -152,7 +152,7 @@ class TestPartsAndTitles(TestCase):
         path = os.path.join(VIS_PATH, 'tests', 'corpus', 'Jos2308.krn')
         expected_title = 'Jos2308'
         expected_parts = ['spine_3', 'spine_2', 'spine_1', 'spine_0']
-        the_score = ImportScore(path)._score
+        the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
         actual_parts = _find_part_names(the_score)
         self.assertEqual(expected_title, actual_title)
@@ -162,7 +162,7 @@ class TestPartsAndTitles(TestCase):
         path = os.path.join(VIS_PATH, 'tests', 'corpus', 'sinfony.md')
         expected_title = 'Messiah'
         expected_parts = ['Violino I', 'Violino II', 'Viola', 'Bassi']
-        the_score = ImportScore(path)._score
+        the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
         actual_parts = _find_part_names(the_score)
         self.assertEqual(expected_title, actual_title)
@@ -172,7 +172,7 @@ class TestPartsAndTitles(TestCase):
         path = os.path.join(VIS_PATH, 'tests', 'corpus', 'sqOp76-4-i.midi')
         expected_title = 'sqOp76-4-i'
         expected_parts = ['Part 1', 'Part 2', 'Part 3', 'Part 4']
-        the_score = ImportScore(path)._score
+        the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
         actual_parts = _find_part_names(the_score)
         self.assertEqual(expected_title, actual_title)
@@ -182,7 +182,7 @@ class TestPartsAndTitles(TestCase):
         path = os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')
         expected_title = 'bwv2'
         expected_parts = ['Soprano', 'Alto', 'Tenor', 'Bass']
-        the_score = ImportScore(path)._score
+        the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
         actual_parts = _find_part_names(the_score)
         self.assertEqual(expected_title, actual_title)
@@ -190,14 +190,14 @@ class TestPartsAndTitles(TestCase):
 
     def test_piece_range(self):
         path = os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')
-        score = ImportScore(path)._score
+        score = Importer(path)._score
         expected_range = ('A2', 'E5')
         actual_range = _find_piece_range(score)
         self.assertEqual(expected_range, actual_range)
 
     def test_part_ranges(self):
         path = os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml')
-        score = ImportScore(path)._score
+        score = Importer(path)._score
         expected_range = [('E4', 'E5'), ('E3', 'B4'), ('F#3', 'A4'), ('A2', 'C4')]
         actual_range = _find_part_ranges(score)
         self.assertEqual(expected_range, actual_range)

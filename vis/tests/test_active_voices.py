@@ -94,7 +94,7 @@ class TestActiveVoicesIndexer(TestCase):
     def test_active(self):
         """tests that it gives the right results with no settings and that the get_data()
         method properly calls active_voices"""
-        ip = IndexedPiece('phony pathname')
+        ip = IndexedPiece()
         ip._analyses['noterest'] = self.NOTES
         actual = ip.get_data('active_voices')
         self.assertTrue(actual.equals(self.EXPECTED))
@@ -102,14 +102,14 @@ class TestActiveVoicesIndexer(TestCase):
     def test_with_data(self):
         """tests that it gives the right results with no settings and that the get_data()
         method properly calls active_voices"""
-        ip = IndexedPiece('phony pathname')
+        ip = IndexedPiece()
         actual = ip.get_data('active_voices', data=self.NOTES)
         self.assertTrue(actual.equals(self.EXPECTED))
 
     def test_attacked(self):
         """tests that it gives the right results with attacked set to true"""
         settings = {'attacked': True}
-        ip = IndexedPiece('phony pathname')
+        ip = IndexedPiece()
         ip._analyses['noterest'] = self.NOTES
         actual = ip.get_data('active_voices', settings=settings)
         self.assertTrue(actual.equals(self.ATT_EXPECTED))
@@ -117,7 +117,7 @@ class TestActiveVoicesIndexer(TestCase):
     def test_show(self):
         """tests that the ``show_all`` argument works when True"""
         settings = {'show_all': True}
-        ip = IndexedPiece('phony pathname')
+        ip = IndexedPiece()
         ip._analyses['noterest'] = self.NOTES
         actual = ip.get_data('active_voices', settings=settings)
         self.assertTrue(actual.equals(self.SHOW_EXPECTED))

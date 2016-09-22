@@ -32,7 +32,7 @@ import os
 import unittest
 import pandas as pd
 from vis.analyzers.indexers import dissonance, noterest, meter, interval
-from vis.models.indexed_piece import ImportScore, IndexedPiece
+from vis.models.indexed_piece import Importer, IndexedPiece
 from pandas.util.testing import assert_frame_equal
 
 # find the pathname of the 'vis' directory
@@ -180,7 +180,7 @@ class TestDissonanceIndexer(unittest.TestCase):
         # ground truth without needing these two replace() calls.
         expected.replace('Z', '-', inplace=True)
         expected.replace('O', '-', inplace=True)
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'Kyrie.krn'))
         actual = ip.get_data('dissonance')
         assert_frame_equal(actual, expected)
         self.assertTrue(actual.equals(expected))

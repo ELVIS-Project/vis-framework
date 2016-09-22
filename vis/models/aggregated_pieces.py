@@ -78,7 +78,7 @@ class AggregatedPieces(object):
         """
         __slots__ = ('composers', 'dates', 'date_range', 'titles', 'locales', 'pathnames')
 
-    def __init__(self, pieces=None, metafiles=None):
+    def __init__(self, pieces=None, metafile=None):
         """
         :param pieces: The IndexedPieces to collect.
         :type pieces: list of :class:`~vis.models.indexed_piece.IndexedPiece`
@@ -94,7 +94,7 @@ class AggregatedPieces(object):
 
         super(AggregatedPieces, self).__init__()
         self._pieces = pieces if pieces is not None else []
-        self._metafiles = metafiles if metafiles is not None else []
+        self._metafile = metafile if metafile is not None else []
         self._metadata = {}
         init_metadata()
         # Multi-key dictionary for combined_experimenter calls to get_data()
@@ -166,7 +166,8 @@ class AggregatedPieces(object):
         # locales: list of all the locales in the IndexedPieces
         elif 'locales' == field:
             post = [p.metadata('locale_of_composition') for p in self._pieces]
-
+        elif 'pathnames' == field:
+            post = [p._pathname for p in self._pieces]
         if post is not None:
             self._metadata[field] = post
         return post

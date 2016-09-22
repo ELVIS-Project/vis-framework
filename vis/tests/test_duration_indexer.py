@@ -35,7 +35,7 @@ import pandas
 from music21 import converter, stream, clef, bar, note
 from vis.analyzers.indexers import meter
 from numpy import isnan
-from vis.models.indexed_piece import ImportScore, IndexedPiece
+from vis.models.indexed_piece import Importer, IndexedPiece
 
 # find the pathname of the 'vis' directory
 import vis
@@ -142,7 +142,7 @@ class TestDurationIndexer(unittest.TestCase):
     def test_duration_indexer_4(self):
         # Soprano part of bwv77.mxl which is a part with no ties
         expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv77_soprano)})
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
         ip._analyses['part_streams'] = ip._get_part_streams()[:1]
         actual = ip.get_data('duration')['meter.DurationIndexer']
         self.assertTrue(actual.equals(expected))
@@ -151,7 +151,7 @@ class TestDurationIndexer(unittest.TestCase):
         # Alto part of bwv603.mxl which is a part with ties. Also test that data argument is passed 
         # correctly. Since the data argument is passed, these results should not be cached.
         expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_alto)})
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
         ip._analyses['part_streams'] = [ip._get_part_streams()[1]]
         actual = ip.get_data('duration', data=(ip.get_data('noterest'), ip._analyses['part_streams']))['meter.DurationIndexer']
         self.assertTrue(actual.equals(expected))
@@ -162,7 +162,7 @@ class TestDurationIndexer(unittest.TestCase):
         # We won't verify all the parts, but we'll submit them all for analysis.
         expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_soprano),
                     '3': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_bass)})
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
         actual = ip.get_data('duration').iloc[:, [0, 3]]['meter.DurationIndexer']
         self.assertTrue(actual.equals(expected))
 

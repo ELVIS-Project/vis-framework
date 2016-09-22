@@ -37,7 +37,9 @@ import pandas
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.experimenter import Experimenter
 from vis.models.aggregated_pieces import AggregatedPieces
-from vis.models.indexed_piece import IndexedPiece
+from vis.models.indexed_piece import Importer, IndexedPiece
+import vis
+VIS_PATH = vis.__path__[0]
 
 
 class TestAggregatedPieces(TestCase):
@@ -50,11 +52,12 @@ class TestAggregatedPieces(TestCase):
         self.ind_pieces = [MagicMock(spec=IndexedPiece) for _ in range(len(self.pathnames))]
         for i, ind_p in enumerate(self.ind_pieces):
             ind_p.metadata.return_value = self.pathnames[i]
-        self.agg_p = AggregatedPieces(self.ind_pieces).run()
+        self.agg_p = AggregatedPieces(pieces=self.ind_pieces)
+        self.agg_p2 = AggregatedPieces(pieces=[IndexedPiece(path) for path in self.pathnames])
 
     def test_metadata_1(self):
         """access the field automatically set"""
-        self.assertSequenceEqual(self.pathnames, self.agg_p.metadata('pathnames'))
+        self.assertSequenceEqual(self.pathnames, self.agg_p2.metadata('pathnames'))
 
     def test_metadata_2(self):
         """raises TypeError if the field is not a string"""
@@ -149,229 +152,97 @@ class TestAggregatedPieces(TestCase):
 
     def test_get_data_1(self):
         """try getting data for a non-Indexer, non-Experimenter class"""
-        non_analyzer = Mock
-        self.assertRaises(TypeError, self.agg_p.get_data, [], [non_analyzer])
+        self.assertRaises(TypeError, self.agg_p.get_data, None, '')
         try:
-            self.agg_p.get_data([], [non_analyzer])
+            self.agg_p.get_data(None, '')
         except TypeError as t_err:
             # pylint: disable=protected-access
-            self.assertEqual(AggregatedPieces._NOT_EXPERIMENTER.format(non_analyzer),
+            self.assertEqual(AggregatedPieces._NOT_EXPERIMENTER.format('', self.agg_p._mkd.keys(str)),
                              t_err.args[0])
 
     def test_get_data_2(self):
-        """try get_data() on an AggregatedPieces with no pieces (no aggregated analyzers)"""
-        mock_indexer_cls = type('MockIndexer', (Indexer,), {})
-        expected = [pandas.DataFrame()]
+        """try get_data() on an AggregatedPieces object with no pieces"""
         aps = AggregatedPieces()
-        actual = aps.get_data([mock_indexer_cls], [])
-        self.assertEqual(len(expected), len(actual))
-        self.assertSequenceEqual(list(expected[0].index), list(actual[0].index))
-        self.assertSequenceEqual(list(expected[0].columns), list(actual[0].columns))
-        self.assertSequenceEqual(list(expected[0]), list(actual[0]))
+        self.assertRaises(RuntimeWarning, aps.get_data, None, None)
+        try:
+            aps.get_data()
+        except RuntimeWarning as r_warn:
+            # pylint: disable=protected-access
+            self.assertEqual(AggregatedPieces._NO_PIECES, r_warn.args[0])
 
     def test_get_data_3(self):
-        """try get_data() on an AggregatedPieces with no pieces (with aggregated analyzers)"""
-        mock_indexer_cls = type('MockIndexer', (Indexer,), {})
-        mock_experimenter_cls = type('MockExperimenter', (Experimenter,), {})
-        expected = pandas.DataFrame()
-        aps = AggregatedPieces()
-        actual = aps.get_data([mock_indexer_cls], [mock_experimenter_cls])
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        self.assertSequenceEqual(list(expected), list(actual))
-
-    def test_get_data_4(self):
-        """chained independent indexers, no aggregated results"""
-        for piece in self.ind_pieces:
-            piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
-        an_indexer = type('AMockIndexer', (Indexer,), {})
-        other_indexer = type('OtherMockIndexer', (Indexer,), {})
-        expected = [pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0]) for _ in range(3)]
-        actual = self.agg_p.get_data([an_indexer, other_indexer], [])
-        self.assertEqual(len(expected), len(actual))
-        for i in range(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
-        for piece in self.ind_pieces:
-            piece.get_data.assert_called_once_with([an_indexer, other_indexer], None)
-
-    def test_get_data_5(self):
-        """chained independent indexers, one aggregated experimenter"""
-        for piece in self.ind_pieces:
-            piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
-        an_indexer = type('AMockIndexer', (Indexer,), {})
-        other_indexer = type('OtherMockIndexer', (Indexer,), {})
-        an_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        an_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
-        expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        actual = self.agg_p.get_data([an_indexer, other_indexer], [an_experimenter])
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        self.assertSequenceEqual(list(expected), list(actual))
-        for piece in self.ind_pieces:
-            piece.get_data.assert_called_once_with([an_indexer, other_indexer], None)
-        an_experimenter.run.assert_called_once_with()
-
-    def test_get_data_6(self):
-        """chained independent indexers, chained aggregated experimenters"""
-        for piece in self.ind_pieces:
-            piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
-        an_indexer = type('AMockIndexer', (Indexer,), {})
-        other_indexer = type('OtherMockIndexer', (Indexer,), {})
-        an_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        an_experimenter.run = MagicMock()
-        other_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        other_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
-        expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        actual = self.agg_p.get_data([an_indexer, other_indexer],
-                                     [an_experimenter, other_experimenter])
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        self.assertSequenceEqual(list(expected), list(actual))
-        for piece in self.ind_pieces:
-            piece.get_data.assert_called_once_with([an_indexer, other_indexer], None)
-        an_experimenter.run.assert_called_once_with()
-        other_experimenter.run.assert_called_once_with()
-
-    def test_get_data_7(self):
-        """one independent indexer, no aggregated results... checking settings get sent"""
-        for piece in self.ind_pieces:
-            piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
-        an_indexer = type('AMockIndexer', (Indexer,), {})
-        expected = [pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0]) for _ in range(3)]
-        actual = self.agg_p.get_data([an_indexer], [], {'awesome': True})
-        self.assertEqual(len(expected), len(actual))
-        for i in range(len(expected)):
-            self.assertSequenceEqual(list(expected[i].index), list(actual[i].index))
-            self.assertSequenceEqual(list(expected[i]), list(actual[i]))
-        for piece in self.ind_pieces:
-            piece.get_data.assert_called_once_with([an_indexer], {'awesome': True})
-
-    def test_get_data_9(self):
-        """no independent indexers (given as None), chained aggregated experimenters"""
-        # NB: based on test 6
-        for piece in self.ind_pieces:
-            piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
-        an_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        an_experimenter.__init__ = MagicMock(return_value=None)
-        an_experimenter.run = MagicMock()
-        an_experimenter.run.return_value = 41
-        other_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        other_experimenter.__init__ = MagicMock(return_value=None)
-        other_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
-        expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        actual = self.agg_p.get_data(None, [an_experimenter, other_experimenter], {}, 14)
-        self.assertSequenceEqual(list(expected.index), list(actual.index))  # pylint: disable=maybe-no-member
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))  # pylint: disable=maybe-no-member
-        self.assertSequenceEqual(list(expected), list(actual))
-        for piece in self.ind_pieces:
-            self.assertEqual(0, piece.get_data.call_count)
-        an_experimenter.__init__.assert_called_once_with(14, {})
-        an_experimenter.run.assert_called_once_with()
-        other_experimenter.__init__.assert_called_once_with(an_experimenter.run.return_value, {})
-        other_experimenter.run.assert_called_once_with()
-
-    def test_get_data_10(self):
-        """no independent indexers (given as []), chained aggregated experimenters"""
-        # NB: based on test 9
-        for piece in self.ind_pieces:
-            piece.get_data.return_value = pandas.Series(['c4', 'd4', 'e4'], index=[0.0, 0.5, 1.0])
-        an_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        an_experimenter.__init__ = MagicMock(return_value=None)
-        an_experimenter.run = MagicMock()
-        an_experimenter.run.return_value = 41
-        other_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        other_experimenter.__init__ = MagicMock(return_value=None)
-        other_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
-        expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        prev_data = ['data from', 'previous get_data()', 'call']
-        actual = self.agg_p.get_data([], [an_experimenter, other_experimenter], {}, prev_data)
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))  # pylint: disable=maybe-no-member
-        self.assertSequenceEqual(list(expected), list(actual))
-        for piece in self.ind_pieces:
-            self.assertEqual(0, piece.get_data.call_count)
-        an_experimenter.__init__.assert_called_once_with(prev_data, {})
-        an_experimenter.run.assert_called_once_with()
-        other_experimenter.__init__.assert_called_once_with(an_experimenter.run.return_value, {})
-        other_experimenter.run.assert_called_once_with()
-
-    def test_get_data_11(self):
-        """(based on test 5): one independent experimenter, one aggregated experimenter; provides"""
-        # data from a (false) previous call to get_data()
-        ind_experimenter = type('AMockExperimenter', (Experimenter,), {})
-        agg_experimenter = type('OtherMockExperimenter', (Experimenter,), {})
-        agg_experimenter.run = MagicMock(return_value=pandas.DataFrame({0: [1, 2], 2: [4, 5]}))
-        expected = pandas.DataFrame({0: [1, 2], 2: [4, 5]})
-        prev_data = ['data from', 'previous get_data()', 'call']
-        actual = self.agg_p.get_data([ind_experimenter], [agg_experimenter], {}, prev_data)
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))  # pylint: disable=maybe-no-member
-        self.assertSequenceEqual(list(expected), list(actual))
-        for i, piece in enumerate(self.ind_pieces):
-            piece.get_data.assert_called_once_with([ind_experimenter], {}, prev_data[i])
-        agg_experimenter.run.assert_called_once_with()
-
-    def test_run(self):
-        directory = 'vis/tests/corpus/elvisdownload'
-        agg = AggregatedPieces(directory).run()
-        self.assertTrue(isinstance(agg, AggregatedPieces))
-
-    def test_run2(self):
-        directory = 'vis/tests/corpus/elvisdownload2'
-        agg = AggregatedPieces(directory).run()
-        self.assertTrue(isinstance(agg, AggregatedPieces))
-
-    def test_run3(self):
-        path = 'vis/tests/corpus/elvisdownload/'
-        folder = os.listdir(path)
-        if '.DS_Store' in folder:
-            folder.remove('.DS_Store')
-        folder.remove('meta')
-        new_f = []
-        for f in folder:
-            new_f.append(path + f)
-        agg = AggregatedPieces(new_f).run()
-        self.assertTrue(isinstance(agg, AggregatedPieces))
-
-    def test_run4(self):
-        path = 'vis/tests/corpus/elvisdownload/'
-        folder = os.listdir(path)
-        if '.DS_Store' in folder:
-            folder.remove('.DS_Store')
-        folder.remove('meta')
-        new_f = []
-        for f in folder:
-            new_f.append(path + f)
-        meta = path + 'meta'
-        agg = AggregatedPieces(new_f, metafiles=meta).run()
-        self.assertTrue(isinstance(agg, AggregatedPieces))
-
-    def test_run5(self):
-        path = 'vis/tests/corpus/elvisdownload'
-        agg = AggregatedPieces(path).run()
-        self.assertTrue(isinstance(agg, AggregatedPieces))
-
-    def test_run6(self):
-        path = 'vis/tests/corpus/elvisdownload/'
-        folder = os.listdir(path)
-        if '.DS_Store' in folder:
-            folder.remove('.DS_Store')
-        folder.remove('meta')
-        new_f = []
-        for f in folder:
-            new_f.append(path + f)
-        meta = path + 'meta'
-        agg = AggregatedPieces(new_f, metafiles=[meta, meta, meta]).run()
-        self.assertTrue(isinstance(agg, AggregatedPieces))
+        """integration test with a nested called to get_data, an ind_analyzer and a 
+        combined_experimenter"""
+        expected = pandas.Series([4.0,2.0,2.0,2.0,2.0,2.0,2.0,4.0],
+                                 index=['C3','C4','D4','E4','F4','G2','G4','Rest'])
+        pieces = [Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_fermata_rest.xml'))]*2
+        aps = AggregatedPieces(pieces=pieces)
+        actual = aps.get_data(combined_experimenter='aggregator',
+                              data=aps.get_data(ind_analyzer='noterest', combined_experimenter='frequency'))
+        self.assertTrue(actual.iloc[:,0].equals(expected))
 
     def test_date(self):
         date = ['----/--/-- to ----/--/--']
         agg = AggregatedPieces()._make_date_range(date)
         self.assertEqual(agg, None)
 
+class TestImporter(TestCase):
+    """Tests for Importer"""
+
+    def test_Importer1(self):
+        directory = 'vis/tests/corpus/elvisdownload'
+        agg = Importer(directory)
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_Importer2(self):
+        directory = 'vis/tests/corpus/elvisdownload2'
+        agg = Importer(directory)
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_Importer3(self):
+        path = 'vis/tests/corpus/elvisdownload/'
+        folder = os.listdir(path)
+        if '.DS_Store' in folder:
+            folder.remove('.DS_Store')
+        folder.remove('meta')
+        new_f = []
+        for f in folder:
+            new_f.append(path + f)
+        agg = Importer(new_f)
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    def test_Importer4(self):
+        path = 'vis/tests/corpus/elvisdownload/'
+        folder = os.listdir(path)
+        if '.DS_Store' in folder:
+            folder.remove('.DS_Store')
+        folder.remove('meta')
+        new_f = []
+        for f in folder:
+            new_f.append(path + f)
+        new_f.append(path + 'meta')
+        agg = Importer(path)
+        self.assertTrue(isinstance(agg, AggregatedPieces))
+
+    # Commented out because we can't be sure which metafile corresponds to whic piece if there is 
+    # more than one metafile.
+    # def test_Importer5(self):
+    #     """When there are as many metafiles as there are pieces."""
+    #     path = 'vis/tests/corpus/elvisdownload/'
+    #     folder = os.listdir(path)
+    #     if '.DS_Store' in folder:
+    #         folder.remove('.DS_Store')
+    #     folder.remove('meta')
+    #     new_f = []
+    #     for f in folder:
+    #         new_f.append(path + f)
+    #     meta = path + 'meta'
+    #     agg = Importer(new_f, metafiles=[meta]*3)
+    #     self.assertTrue(isinstance(agg, AggregatedPieces))
+
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
 AGGREGATED_PIECES_SUITE = TestLoader().loadTestsFromTestCase(TestAggregatedPieces)
+IMPORTER_SUITE = TestLoader().loadTestsFromTestCase(TestImporter)

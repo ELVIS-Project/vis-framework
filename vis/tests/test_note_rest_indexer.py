@@ -31,9 +31,9 @@
 import os
 import unittest
 import pandas
-from music21 import note, chord
+from music21 import note, chord, stream, clef, bar
 from vis.analyzers.indexers import noterest
-from vis.models.indexed_piece import ImportScore, IndexedPiece
+from vis.models.indexed_piece import Importer, IndexedPiece
 
 # find the pathname of the 'vis' directory
 import vis
@@ -106,31 +106,25 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
 
-    # This test should be run on the indexed_piece method _get_m21_nrc_objs(), not the noterest indexer.
-    # def test_note_rest_indexer_2(self):
-    #     # When the part has no Note or Rest objects in it
-    #     pdb.set_trace()
-    #     expected = {'0': pandas.Series()}
-    #     test_part = stream.Part()
-    #     # add stuff to the test_part
-    #     for i in range(1000):
-    #         add_me = clef.BassClef()
-    #         add_me.offset = i
-    #         test_part.append(add_me)
-    #         add_me = bar.Barline()
-    #         add_me.offset = i
-    #         test_part.append(add_me)
-    #     test_part = [test_part]
-    #     # finished adding stuff to the test_part
-    #     nr_indexer = noterest.NoteRestIndexer(test_part)
-    #     actual = nr_indexer.run()['noterest.NoteRestIndexer']
-    #     self.assertEqual(len(expected), len(actual.columns))
-    #     for key in six.iterkeys(expected):
-    #         self.assertTrue(key in actual)
-    #         self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-    #         self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+    def test_note_rest_indexer_2(self):
+        # When the part has no Note or Rest objects in it. Really this is a test for the methods between
+        # _get_part_streams() and _get_noterest().
+        expected = pandas.DataFrame({'0': pandas.Series()})
+        test_part = stream.Part()
+        # add stuff to the test_part
+        for i in range(1000):
+            add_me = clef.BassClef()
+            add_me.offset = i
+            test_part.append(add_me)
+            add_me = bar.Barline()
+            add_me.offset = i
+            test_part.append(add_me)
+        ip = IndexedPiece()
+        ip._analyses['part_streams'] = [test_part]
+        actual = ip.get_data('noterest')['noterest.NoteRestIndexer']
+        self.assertTrue(actual.equals(expected))
 
-    def test_noterest_indexer_2(self):
+    def test_noterest_indexer_3(self):
         # When there are a bunch of notes
         expected = pandas.DataFrame({'0': pandas.Series([u'C4' for _ in range(10)])})
         test_score = pandas.DataFrame({'0': pandas.Series([note.Note('C4') for i in range(10)])})
@@ -138,11 +132,11 @@ class TestNoteRestIndexer(unittest.TestCase):
         actual = nr_indexer.run()['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
 
-    def test_noterest_indexer_3(self):
+    def test_noterest_indexer_4(self):
         # Combine three previous tests to avoid re-importing the same piece multiple times.
         # Soprano part of bwv77.mxl
         expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)})
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
         all_parts = ip._get_part_streams()
         ip._analyses['part_streams'] = all_parts[:1]
         actual = ip._get_noterest()['noterest.NoteRestIndexer']
@@ -188,7 +182,7 @@ class TestMultiStopIndexer(unittest.TestCase):
 
     def test_multistop_indexer_2(self):
         # Integration test of a whole piece, the string quarted in the test corpus.
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'sqOp76-4-i.midi'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'sqOp76-4-i.midi'))
         actual = ip._get_multistop()
         # Until we figure out why pickling isn't working:
         self.assertTrue(10 == len(actual.columns))
@@ -202,7 +196,7 @@ class TestMultiStopIndexer(unittest.TestCase):
 
     def test_multistop_indexer_3(self):
         # Integration test on a piece with multiple voices in each part
-        ip = ImportScore(os.path.join(VIS_PATH, 'tests', 'corpus', 'prelude28-20.mid'))
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'prelude28-20.mid'))
         actual = ip.get_data('multistop')
         self.assertTrue(8 == len(actual.columns))
 
