@@ -36,49 +36,6 @@ from music21 import stream, converter
 import multiprocessing as mp
 from functools import partial
 
-def stream_indexer(part, indexer_func, types=None, index_tied=False):
-    """
-    Perform the indexation of a :class:`Part`. This is a module-level function designed to ease
-    implementation of multiprocessing, though music21 streams cannot be multiprocessed in python so
-    execution still happens serially.
-
-    If your :class:`Indexer` subclass has settings, use the :func:`indexer_func` to adjust for them.
-
-    If an offset has multiple events of the correct type, only the "first" discovered results will
-    be included in the output. This may produce misleading results when, for example, a double-stop
-    was imported as two :class:`Note` objects in the same :class:`Part`, rather than as a
-    :class:`Chord`.
-
-    :param part: A list one :class:`Stream` object.
-    :type part: a singleton list with one :class:`music21.stream.Stream`
-    :param function indexer_func: Transforms events found in part into strings, ints, or floats.
-    :param types: Only objects of a type in this list will be passed to the
-        :func:`~vis.analyzers.indexers.template.indexer_func` for inclusion in the resulting index.
-    :type types: Tuple of relevent types.
-
-    :returns: The new index is a :class:`pandas.Series` where every element is a string, int, or
-        float depending on the indexer_func passed. The :class:`~pandas.core.index.Index` of the
-        :class:`Series` corresponds to the ``quarterLength`` offset of the events of relevent type
-        in the part.
-    :rtype: :class:`pandas.Series`
-    """
-    temp_part = part[0].recurse()
-    series_data = []
-    offsets = []
-    for event in temp_part[1:]: # the [1:] gets rid of the leading stream in this part stream
-        if not (types == None or any([typ in event.classes for typ in types])):
-            continue
-        if not index_tied and hasattr(event, 'tie') and event.tie is not None and event.tie.type != 'start':
-            continue
-        result = indexer_func((event, series_data))
-        if result == None:
-            continue
-        series_data.append(result)
-        for y in event.contextSites():
-            if y[0] is part[0]: # Check to see if we're examining the correct voice
-                offsets.append(y[1]) # The second element in y is the event's offset
-
-    return pandas.Series(series_data, index=offsets)
 
 def series_indexer(parts, indexer_func):
     """
@@ -282,7 +239,14 @@ class Indexer(object):
             from release 1.1.0, this is no longer necessary, and you should avoid it. In a future
             release, the :class:`IndexedPiece` class will depend on indexers following these rules.
         """
-        pass
+        # This if statement is necessary because of a pandas bug, see pandas issue #8222.
+        if len(self._score.index) == 0: # If parts have no note, rest, or chord events in them
+            result = self._score.copy()
+        else: # This is the regular case.
+            result = self._score.applymap(self._indexer_func)
+        labels = [six.u(str(x)) for x in range(len(result.columns))]
+        return self.make_return(labels, result)
+
 
     def _do_multiprocessing(self, combos, index_tied=False, on=True):
         """
@@ -313,13 +277,10 @@ class Indexer(object):
         for each_combo in combos:
             # voices holds the music21 Part objects indicated by each_combo
             voices = [self._score[x] for x in each_combo]
-            if isinstance(self._score[0], stream.Stream):
-                post.append(stream_indexer(voices, self._indexer_func, self._types, index_tied))
-            else:
-                jobs.append(voices)
-                if not on and len(jobs) > 0:
-                    post.append(series_indexer(voices, self._indexer_func))
-        
+            jobs.append(voices)
+            if not on and len(jobs) > 0:
+                post.append(series_indexer(voices, self._indexer_func))
+    
         if on and len(jobs) > 0:
             # Determine an appropriate number of cores to use.
             tasks = len(combos)
@@ -347,7 +308,7 @@ class Indexer(object):
             as described in the indexer subclass documentation.
         :type labels: list of six.string_types
         :param indices: The results of the indexer.
-        :type indices: list of :class:`pandas.Series`.
+        :type indices: list of :class:`pandas.Series` or a :class:`pandas.DataFrame`
 
         :returns: A :class:`DataFrame` with the appropriate :class:`~pandas.MultiIndex` required
             by the :meth:`Indexer.run` method signature.
@@ -355,16 +316,20 @@ class Indexer(object):
 
         :raises: :exc:`IndexError` if the number of labels and indices does not match.
         """
-        if len(labels) != len(indices):
-            raise IndexError(Indexer._MAKE_RETURN_INDEX_ERR)
+        if isinstance(indices, pandas.DataFrame):
+            ret = indices
+        else:
+            if len(labels) != len(indices):
+                raise IndexError(Indexer._MAKE_RETURN_INDEX_ERR)
+            # the levels argument is necessary below even though it just gets written over by the 
+            # multi_index because it ensures that even empty series will be included in the dataframe.
+            ret = pandas.concat(indices, levels=labels, axis=1)
+
         # make the indexer's name using filename and classname (but not full class name)
         my_mod = six.u(str(self.__module__))[six.u(str(self.__module__)).rfind('.') + 1:]
         my_class = six.u(str(self.__class__))[six.u(str(self.__class__)).rfind('.'):-2]
         my_name = my_mod + my_class
-        
-        # the levels argument is necessary below even though it just gets written over by the 
-        # multi_index because it ensures that even empty series will be included in the dataframe.
-        ret = pandas.concat(indices, levels=labels, axis=1)
+
         # Apply the multi_index as the column labels.
         iterables = (my_name, labels)
         multi_index = pandas.MultiIndex.from_product(iterables, names = ('Indexer', 'Parts'))

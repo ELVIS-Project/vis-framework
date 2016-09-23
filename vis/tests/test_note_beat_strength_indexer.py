@@ -20,7 +20,7 @@
 # GNU Affero General Public License for more details.
 #
 # You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# along with this programself.  If not, see <http://www.gnu.org/licenses/>.
 #--------------------------------------------------------------------------------------------------
 
 # allow "no docstring" for everything
@@ -30,15 +30,15 @@
 
 import os
 import unittest
-import six
 import pandas
-from music21 import converter, stream, clef, bar, note, meter
-from vis.analyzers.indexers import metre
-from numpy import nan, isnan
+from music21 import stream, clef, bar, note
+from music21 import meter as m21_meter
+from vis.analyzers.indexers import meter
+from vis.models.indexed_piece import Importer, IndexedPiece
+from numpy import nan
 
 # find the pathname of the 'vis' directory
 import vis
-import pdb
 VIS_PATH = vis.__path__[0]
 
 
@@ -98,19 +98,16 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
 
     def test_note_beat_strength_indexer_1(self):
         # When the parts are empty
-        expected = {'0': pandas.Series(), '1': pandas.Series()}
-        test_part = [stream.Part(), stream.Part()]
-        bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
-        actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
+        test_parts = [stream.Part(), stream.Part()]
+        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip._analyses['part_streams'] = test_parts # supply part_streams.
+        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_2(self):
         # When the part has no Note or Rest objects in it
-        expected = {'0': pandas.Series()}
+        expected = pandas.DataFrame({'0': pandas.Series()})
         test_part = stream.Part()
         # add stuff to the test_part
         for i in range(1000):
@@ -119,79 +116,55 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
             test_part.append(add_me)
             add_me = bar.Barline()
             add_me.offset = i
-            test_part.append(add_me)
-        test_part = [test_part]
-        # finished adding stuff to the test_part
-        bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
-        actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+            test_part.append(add_me) # finished adding stuff to the test_part
+        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip._analyses['part_streams'] = [test_part] # supply part_streams.
+        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_3(self):
         # When there are a few notes
-        expected = {'0': pandas.Series([1.0, 0.5, 0.5, 1.0, 0.5, 0.5])}
+        expected = pandas.DataFrame({'0': pandas.Series([1.0, 0.5, 0.5, 1.0, 0.5, 0.5])})
         test_part = stream.Part()
         # add stuff to the test_part
         measure = stream.Measure()
         # In music21 beginning time signatures are preferably inserted in the first measure and a
         # timeSignature is needed to be able to calculate beatStrength
-        measure.insert(0, meter.TimeSignature('3/4'))
+        measure.insert(0, m21_meter.TimeSignature('3/4'))
         for i in range(6):
             add_me = note.Note(u'C4', quarterLength=1.0)
             add_me.offset = i
             measure.append(add_me)
-        test_part.insert(0, measure)
-        test_part = [test_part]
-        # finished adding stuff to the test_part
-        bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
-        actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_part.insert(0, measure) # finished adding stuff to the test_part
+        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip._analyses['part_streams'] = [test_part] # supply part_streams.
+        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_4(self):
         # Soprano part of bwv77.mxl which is a part with no ties
-        expected = TestNoteBeatStrengthIndexer.make_series(bwv77_soprano)
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
-        bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
-        actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
-        self.assertEqual(len(expected), len(actual))
-        for i, value in enumerate(expected):
-            self.assertTrue(value == actual.iat[i, 0])
+        expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv77_soprano)})
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
+        ip._analyses['part_streams'] = ip._get_part_streams()[:1]
+        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_5(self):
         # Alto part of bwv603.mxl which is a part with ties
-        expected = TestNoteBeatStrengthIndexer.make_series(bwv603_alto)
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml')).parts[1]]
-        bs_indexer = metre.NoteBeatStrengthIndexer(test_part)
-        actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
-        self.assertEqual(len(expected), len(actual))
-        for i, value in enumerate(expected):
-            self.assertTrue(value == actual.iat[i, 0])
+        expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv603_alto)})
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        ip._analyses['part_streams'] = [ip._get_part_streams()[1]]
+        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_6(self):
         # Soprano and bass parts of bwv603.xml
         # We won't verify all the parts, but we'll submit them all for analysis.
-        expected = {'0': TestNoteBeatStrengthIndexer.make_series(bwv603_soprano),
-                    '3': TestNoteBeatStrengthIndexer.make_series(bwv603_bass)}
-        bwv603 = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
-        test_piece = [bwv603.parts[0], bwv603.parts[1], bwv603.parts[2], bwv603.parts[3]]
-        bs_indexer = metre.NoteBeatStrengthIndexer(test_piece)
-        actual = bs_indexer.run()['metre.NoteBeatStrengthIndexer']
-        self.assertEqual(4, len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertTrue((isnan(expected[key]) == isnan(actual[key])).all()) # Are NaNs in the same places?
-            for i, value in enumerate(expected[key]):
-                if not isnan(value): # Are non-NaN values equal?
-                    self.assertEqual(value, actual[key].iat[i])
-
+        expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv603_soprano),
+                    '3': TestNoteBeatStrengthIndexer.make_series(bwv603_bass)})
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer'].iloc[:, [0, 3]]
+        self.assertTrue(actual.equals(expected))
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #

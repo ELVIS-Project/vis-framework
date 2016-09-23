@@ -203,44 +203,6 @@ class WorkflowTests(TestCase):
             self.assertEqual('intervals', test_wc._previous_exp)
             self.assertEqual('Unisonus', test_wc.settings(None, 'continuer'))
 
-    def test_run_2a(self):
-        # properly deals with "interval n-grams" experiment
-        # checks that the continuer returns to 'dynamic quality' after runtime when
-        # interval quality was set to True
-        mock_path = 'vis.workflow.WorkflowManager._interval_ngrams'
-        with mock.patch(mock_path) as mock_meth:
-            mock_meth.return_value = 'the final countdown'
-            test_wc = WorkflowManager([])
-            test_wc._loaded = True
-            test_wc.settings(None, 'interval quality', True)
-            def the_side_effect():
-                assert 'P1' == test_wc.settings(None, 'continuer')
-                return mock.DEFAULT
-            mock_meth.side_effect = the_side_effect
-            test_wc.run('interval n-grams')
-            mock_meth.assert_called_once_with()
-            self.assertEqual(mock_meth.return_value, test_wc._result)
-            self.assertEqual('interval n-grams', test_wc._previous_exp)
-            self.assertEqual('dynamic quality', test_wc.settings(None, 'continuer'))
-
-    def test_run_2b(self):
-        # same as 2a but 'interval quality' is set to False
-        mock_path = 'vis.workflow.WorkflowManager._interval_ngrams'
-        with mock.patch(mock_path) as mock_meth:
-            mock_meth.return_value = 'the final countdown'
-            test_wc = WorkflowManager([])
-            test_wc._loaded = True
-            test_wc.settings(None, 'interval quality', False)
-            def the_side_effect():
-                assert '1' == test_wc.settings(None, 'continuer')
-                return mock.DEFAULT
-            mock_meth.side_effect = the_side_effect
-            test_wc.run('interval n-grams')
-            mock_meth.assert_called_once_with()
-            self.assertEqual(mock_meth.return_value, test_wc._result)
-            self.assertEqual('interval n-grams', test_wc._previous_exp)
-            self.assertEqual('dynamic quality', test_wc.settings(None, 'continuer'))
-
     def test_run_3(self):
         # raise RuntimeError with invalid instructions
         test_wc = WorkflowManager([])

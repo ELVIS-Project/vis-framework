@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/offset.py
+# Filename:               analyzers/indexers/offset.py
 # Purpose:                Indexer to regularize the observed offsets.
 #
 # Copyright (C) 2013, 2014 Christopher Antila
@@ -218,6 +218,20 @@ class FilterByOffsetIndexer(indexer.Indexer):
             final offset, which is either the last observation in the piece (if it is divisible by
             the ``quarterLength``) or the next-highest value that is divisible by ``quarterLength``.
         :rtype: :class:`pandas.DataFrame`
+
+        ***Example:***
+
+        import music21
+        from vis.analyzers.indexers import noterest, offset
+
+        score = music21.converter.parse('example.xml')
+        notes = noterest.NoteRestIndexer(score).run()
+
+        settings = {'quarterLength': 3}
+        offsets = offset.OffsetIndexer(notes, settings).run()
+
+        # to see all the results
+        print(offsets)
         """
         # NB: we have to convert all the "offset" values to integers so we can use the range()
         #     function to iterate through offsets.
@@ -246,5 +260,5 @@ class FilterByOffsetIndexer(indexer.Indexer):
                     step = int(self._settings[u'quarterLength'] * 1000)
                     off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  # pylint: disable=C0301
                     post.append(part.reindex(index=off_list, method=self._settings['method']))
-        post = self.make_return([six.u(str(x)) for x in range(len(post))], [x for x in post])
+        post = self.make_return([six.u(str(x)) for x in range(len(post))], post)
         return post

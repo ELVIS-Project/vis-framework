@@ -1,5 +1,5 @@
 from music21 import converter
-from vis.analyzers.indexers import metre
+from vis.analyzers.indexers import meter
 
 convert_error = 'This piece could not be converted by music21.'
 no_parts = 'This piece appears to have no parts.'
@@ -48,7 +48,7 @@ class QualityControl(object):
         if not temp[0]:
             return (False, convert_error)
         test_parts = temp[1]
-        measures = metre.MeasureIndexer(test_parts).run()
+        measures = meter.MeasureIndexer(test_parts).run()
         cols = len(measures.columns)
         if cols == 0:
             return (False, no_parts)

@@ -4,10 +4,10 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               controllers/indexers/template.py
+# Filename:               analyzers/indexers/template.py
 # Purpose:                Template indexer
 #
-# Copyright (C) 2013-2015 Christopher Antila, Alexander Morgan
+# Copyright (C) 2013-2016 Christopher Antila, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -29,8 +29,10 @@
 import pandas
 import numpy
 from numpy import nan  # pylint: disable=no-name-in-module
-from music21 import stream
 from vis.analyzers import indexer
+from multi_key_dict import multi_key_dict as mkd
+import pdb
+
 
 _d3q_label = 'Q'
 _pass_dp_label = 'D'
@@ -47,18 +49,23 @@ _echappee = 'E'
 _no_diss_label = '-'
 _unexplainable = 'Z'
 _only_diss_w_diss = 'O'
+_weights = mkd({(_d3q_label, _pass_dp_label, _pass_rp_label, _neigh_ln_label, _neigh_un_label,
+                 _susp_label, _fake_susp_label, _dim_fake_susp_label, _ant_label, _camb_label,
+                 _chan_idiom_label, _echappee): 3, _no_diss_label: 2, _unexplainable: 1})
 _consonances = set(['P1', 'm3', 'M3', 'CP4', 'CA4', 'Cd5', 'P5', 'm6', 'M6', 'P8', '-m3', '-M3', 'C-P4',
                 'C-A4', 'C-d5', '-P5', '-m6', '-M6', '-P8'])
 _potential_consonances = set([u'P4', u'-P4', u'A4', u'-A4', u'd5', u'-d5'])
+_cons_makers = {'P4':set([u'm3', u'M3', u'P5']), 'd5':[u'M6'], 'A4':[u'm3'], '-P4':set([u'm3', u'M3', u'P5']), '-d5':[u'M6'], '-A4':[u'm3']}
+_Xed_makers = {'P4':set([u'-m3', u'-M3', u'-P5']), 'd5':[u'-M6'], 'A4':[u'-m3'],'-P4':set([u'-m3', u'-M3', u'-P5']), '-d5':[u'-M6'], '-A4':[u'-m3']}
 _nan_rest = set([nan, 'Rest'])
-_ignored = _consonances.union(_nan_rest)
+_ignored = _consonances.union(['Rest'])
 _go_ons = set([_no_diss_label, _unexplainable])
-_passes = set(('n', _no_diss_label, _unexplainable))
+_passes = set((nan, _no_diss_label, _unexplainable))
 int_ind = u'interval.IntervalIndexer'
 diss_ind = u'dissonance.DissonanceLocator'
 h_ind = u'interval.HorizontalIntervalIndexer'
-bs_ind = u'metre.NoteBeatStrengthIndexer'
-dur_ind = u'metre.DurationIndexer'
+bs_ind = u'meter.NoteBeatStrengthIndexer'
+dur_ind = u'meter.DurationIndexer'
 diss_types = u'dissonance.DissonanceIndexer'
 
 
@@ -72,7 +79,17 @@ class DissonanceIndexer(indexer.Indexer):
     each offset. This last step is the DataFrame that gets returned.
 
     The score type must be a list of dataframes of the results of the following indexers (order 
-    matters): beatstrength, duration, horizontal, vertical.
+    matters): beatstrength, duration, horizontal, vertical. To simplify things, however, it is 
+    better to use the get_data() on an indexed_piece object to get results from the dissonance 
+    indexer as per the example below.
+    
+    **Example:**
+
+    from vis.models.indexed_piece import IndexedPiece
+
+    ip = IndexedPiece('symbolic_notation_file_location.xml')
+    diss = ip.get_data([dissonance.DissonanceIndexer])
+    print(diss)
     """
     required_score_type = 'pandas.DataFrame'
 
@@ -153,7 +170,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        if prev_event == None:
+        if prev_event is None:
             return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -195,8 +212,7 @@ class DissonanceIndexer(indexer.Indexer):
                     dur_x2 = self._score.iat[x2_ind, d_lower_col]
                     dur_x += dur_x2
 
-
-        if prev_event not in _consonances: # The dissonance is can't be a passing tone.
+        if prev_event not in _consonances: # The dissonance can't be a passing tone.
             return (False,)
         elif (((dur_b == 2 and bs_b == .25) or (dur_b <= 1 and bs_b == .125) or 
                (dur_b <= .5 and bs_b == .0625)) and dur_a >= dur_b and (y is nan or x == 1)):
@@ -211,7 +227,7 @@ class DissonanceIndexer(indexer.Indexer):
                 elif a == 2:
                     return  (True, upper, _neigh_un_label, lower, _no_diss_label)
             
-        elif (((dur_y == 2 and bs_y == .25) or (dur_y <= 1 and bs_y == .125)
+        elif (((dur_y == 2 and bs_y == .25) or (dur_y <= 1 and bs_y == .125) 
                or (dur_y <= .5 and bs_y == .0625)) and dur_x >= dur_y and (b is nan or a == 1)):
             if y == 2:
                 if x == 2:
@@ -261,7 +277,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        if prev_event == None:
+        if prev_event is None:
             return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -344,7 +360,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        if prev_event == None:
+        if prev_event is None:
             return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -423,7 +439,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        if prev_event == None:
+        if prev_event is None:
             return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -488,7 +504,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        if prev_event == None:
+        if prev_event is None:
             return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -548,7 +564,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """        # QUESTION: is b on a weak half even if it lasts a quarter note?
-        if prev_event == None:
+        if prev_event is None:
             return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -628,7 +644,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        if prev_event == None:
+        if prev_event is None:
             return (False,)
         diss = int(''.join(dig for dig in event if dig.isdigit()), 10) # delete all non-digit characters from event string and convert to int.
 
@@ -680,11 +696,11 @@ class DissonanceIndexer(indexer.Indexer):
                 z2_ind = numpy.where(self._score.index == z2_temp)[0][0]
                 dur_z2 = self._score.iat[z2_ind, d_lower_col]
 
-        if ((diss == 2 or diss == -7) and dur_b == 1 and ((y == -2 and dur_y > 2) or (x == -2 and y
-            is nan and int(z_ind) > float(indx + 2))) and a == -2 and b == -2 and c == 2 and dur_c == 1 and dur_d > 2):
+        if ((diss == 2 or diss == -7) and dur_b == 1 and ((y == -2 and dur_y > 2) or (y == 1 and dur_y == 2)) and
+            a == -2 and b == -2 and c == 2 and dur_c == 1 and dur_d >= 2):
             return (True, upper, _chan_idiom_label, lower, _no_diss_label) # Chanson idiom in upper voice
-        if ((diss == -2 or diss == 7) and dur_y == 1 and ((b == -2 and dur_b > 2) or (a == -2 and b
-            is nan and int(c_ind) > float(indx + 2))) and x == -2 and y == -2 and z == 2 and dur_z == 1 and dur_z2 > 2):
+        if ((diss == -2 or diss == 7) and dur_y == 1 and ((b == -2 and dur_b > 2) or (b == 1 and dur_b == 2)) and
+            x == -2 and y == -2 and z == 2 and dur_z == 1 and dur_z2 >= 2):
             return (True, upper, _no_diss_label, lower, _chan_idiom_label) # Chanson idiom in lower voice
         return (False,)
 
@@ -718,7 +734,7 @@ class DissonanceIndexer(indexer.Indexer):
             does not find a suspension the function returns a 1-tuple with False as the argument.
         :rtype: tuple
         """
-        if prev_event == None:
+        if prev_event is None:
             return (False,)
         upper = pair.split(',')[0] # Upper voice variables
         h_upper_col = self._score.columns.get_loc((h_ind, upper))
@@ -857,8 +873,6 @@ class DissonanceIndexer(indexer.Indexer):
             consonant or dissonant respectively.
         :rtype: string
         """
-        cons_makers = {'P4':set([u'm3', u'M3', u'P5']), 'd5':[u'M6'], 'A4':[u'm3'], '-P4':set([u'm3', u'M3', u'P5']), '-d5':[u'M6'], '-A4':[u'm3']}
-        Xed_makers = {'P4':set([u'-m3', u'-M3', u'-P5']), 'd5':[u'-M6'], 'A4':[u'-m3'],'-P4':set([u'-m3', u'-M3', u'-P5']), '-d5':[u'-M6'], '-A4':[u'-m3']}
         cons_made = False
         # Find the offset of the next event in the voice pair to know when the interval ends.
         end_temp = self._score.loc[:, (int_ind, pair_name)].iloc[iloc_indx +1:].first_valid_index()
@@ -874,11 +888,11 @@ class DissonanceIndexer(indexer.Indexer):
 
         for voice_combo in simuls:
             if lower_voice == voice_combo.split(',')[0] and voice_combo != pair_name: # look at other pairs that have lower_voice as their upper voice. Could be optimized.
-                if simuls[voice_combo].iloc[iloc_indx:end_iloc].any() in cons_makers[suspect_diss]: # this chained-indexing is actually faster than the alternative.
+                if simuls[voice_combo].iloc[iloc_indx:end_iloc].any() in _cons_makers[suspect_diss]: # this chained-indexing is actually faster than the alternative.
                     cons_made = True
                     break
             elif lower_voice == voice_combo.split(',')[1] and voice_combo != pair_name: # look at other pairs that have lower_voice as their lower voice. Could be optimized.
-                if simuls[voice_combo].iloc[iloc_indx:end_iloc].any() in Xed_makers[suspect_diss]:
+                if simuls[voice_combo].iloc[iloc_indx:end_iloc].any() in _Xed_makers[suspect_diss]:
                     cons_made = True
                     break
 
@@ -902,14 +916,13 @@ class DissonanceIndexer(indexer.Indexer):
         :returns: A :class:`DataFrame` of the new indices. The columns have a :class:`MultiIndex`.
         :rtype: :class:`pandas.DataFrame`
         """
-
-
         diss_ints = self._score[int_ind].copy(deep=True)
         simuls = diss_ints.ffill()
 
         iterables = [[diss_types], self._score[dur_ind].columns]
         d_types_multi_index = pandas.MultiIndex.from_product(iterables, names = ['Indexer', 'Parts'])
-        ret = pandas.DataFrame(index=self._score.index, columns=d_types_multi_index, dtype=str)
+        ret = pandas.DataFrame(index=self._score.index, columns=d_types_multi_index)
+        ret.fillna(_no_diss_label, inplace=True)
 
         for col, pair_title in enumerate(diss_ints.columns):
             voices = pair_title.split(',') # assign top and bottom voices as integers
@@ -921,43 +934,44 @@ class DissonanceIndexer(indexer.Indexer):
                     diss_ints.iat[i, col] = event
 
                 # The interval must be dissonant and neither voice should already have a dissonance label assigned.
-                if (event not in _ignored and ret.iat[i, top_voice] in _passes
-                    and ret.iat[i, bott_voice] in _passes):
+                if (event not in _ignored):# and ret.iat[i, top_voice] in _passes
+                    # and ret.iat[i, bott_voice] in _passes):
                     prev_event = diss_ints[pair_title].iloc[:i].last_valid_index()
-                    if prev_event != None:
+                    if prev_event is not None:
                         prev_event = diss_ints.at[prev_event, pair_title]
                     # if prev_event not in _consonances and i > 0 and (ret.iat[i-1, top_voice] in
                     #     (_pass_rp_label, _pass_dp_label) or ret.iat[i-1, bott_voice] in
                     #     (_pass_rp_label, _pass_dp_label)):
                     #     prev_event = 'm3' # If there's a passing tone at the preceding note, call the prev_event a consonance (any consonance will do) so that there can be two passing tones in a row.
                     diss_analysis = self.classify(i, pair_title, event, prev_event)
-                    ret.iat[i, int(diss_analysis[1], 10)] = diss_analysis[2]
-                    ret.iat[i, int(diss_analysis[3], 10)] = diss_analysis[4]
-        ret.replace('n', _no_diss_label, inplace=True)
+                    if _weights[ret.iat[i, int(diss_analysis[1], 10)]] < _weights[diss_analysis[2]]:
+                        ret.iat[i, int(diss_analysis[1], 10)] = diss_analysis[2]
+                    if _weights[ret.iat[i, int(diss_analysis[3], 10)]] < _weights[diss_analysis[4]]:
+                        ret.iat[i, int(diss_analysis[3], 10)] = diss_analysis[4]
 
-        # Remove lingering unexplainable labels from notes that are only dissonant against identifiable dissonances.
-        unknowns = numpy.where(ret.values == _unexplainable) # 2-tuple of a list of iloc indecies and a list of corresponding voice integers.
-        for x, ndx in enumerate(unknowns[0]):
-            passable = True
-            for col, pair in enumerate(diss_ints.columns):
-                v_to_check = pair.split(',')
-                if str(unknowns[1][x]) not in v_to_check: # does this pair include the voice with the unexplained dissonance?
-                    continue
-                if diss_ints.iat[ndx, col] in _ignored: # go to the next line if this pair was a dissonance, otherwise continue.
-                    continue
-                v_to_check.remove(str(unknowns[1][x])) # remove voice with unexplained dissonance to see what the other voice is doing.
-                v_temp = self._score.iloc[:ndx + 1, int(v_to_check[0], 10)].last_valid_index() # since the h_ind is the first df in the concat list, a voice's integer works to reference its horiz column.
-                v_ndx = numpy.where(self._score.index == v_temp)[0][0]
-                go_on = False
-                for event in range(v_ndx, ndx + 1):
-                    if ret.iat[event, int(v_to_check[0])] not in _go_ons:
-                        go_on = True
-                        break
-                if go_on:
-                    continue
-                passable = False
-                break
-            if passable:
-                ret.iat[ndx, unknowns[1][x]] = _only_diss_w_diss
+        # # Remove lingering unexplainable labels from notes that are only dissonant against identifiable dissonances.
+        # unknowns = numpy.where(ret.values == _unexplainable) # 2-tuple of a list of iloc indecies and a list of corresponding voice integers.
+        # for x, ndx in enumerate(unknowns[0]):
+        #     passable = True
+        #     for col, pair in enumerate(diss_ints.columns):
+        #         v_to_check = pair.split(',')
+        #         if str(unknowns[1][x]) not in v_to_check: # does this pair include the voice with the unexplained dissonance?
+        #             continue
+        #         if diss_ints.iat[ndx, col] in _ignored: # go to the next line if this pair was a dissonance, otherwise continue.
+        #             continue
+        #         v_to_check.remove(str(unknowns[1][x])) # remove voice with unexplained dissonance to see what the other voice is doing.
+        #         v_temp = self._score.iloc[:ndx + 1, int(v_to_check[0], 10)].last_valid_index() # since the h_ind is the first df in the concat list, a voice's integer works to reference its horiz column.
+        #         v_ndx = numpy.where(self._score.index == v_temp)[0][0]
+        #         go_on = False
+        #         for event in range(v_ndx, ndx + 1):
+        #             if ret.iat[event, int(v_to_check[0])] not in _go_ons:
+        #                 go_on = True
+        #                 break
+        #         if go_on:
+        #             continue
+        #         passable = False
+        #         break
+        #     if passable:
+        #         ret.iat[ndx, unknowns[1][x]] = _only_diss_w_diss
 
         return ret

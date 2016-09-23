@@ -33,8 +33,9 @@ import unittest
 import six
 import pandas
 from music21 import converter, stream, clef, bar, note
-from vis.analyzers.indexers import metre
-from numpy import nan, isnan
+from vis.analyzers.indexers import meter
+from numpy import isnan
+from vis.models.indexed_piece import Importer, IndexedPiece
 
 # find the pathname of the 'vis' directory
 import vis
@@ -97,42 +98,34 @@ class TestDurationIndexer(unittest.TestCase):
 
     def test_duration_indexer_1(self):
         # When the parts are empty
-        expected = {'0': pandas.Series(), '1': pandas.Series()}
-        test_part = [stream.Part(), stream.Part()]
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
+        test_parts = [stream.Part(), stream.Part()]
+        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip._analyses['part_streams'] = test_parts # supply part_streams.
+        actual = ip._get_duration()['meter.DurationIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_2(self):
         # When the part has no Note or Rest objects in it
-        expected = {'0': pandas.Series()}
+        expected = pandas.DataFrame({'0': pandas.Series()})
         test_part = stream.Part()
         # add stuff to the test_part
-        for i in range(1000):
+        for i in range(10):
             add_me = clef.BassClef()
             add_me.offset = i
             test_part.append(add_me)
             add_me = bar.Barline()
             add_me.offset = i
             test_part.append(add_me)
-        test_part = [test_part]
-        # finished adding stuff to the test_part
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_part = [test_part] # finished adding stuff to the test_part
+        dur_indexer = meter.DurationIndexer(expected, test_part)
+        actual = dur_indexer.run()['meter.DurationIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_3(self):
         # When there are a bunch of notes
-        expected = {'0': pandas.Series([1.0 for _ in range(10)],
-                                       index=[float(x) for x in range(10)])}
+        expected = pandas.DataFrame({'0': pandas.Series([1.0 for _ in range(10)],
+                                       index=[float(x) for x in range(10)])})
         test_part = stream.Part()
         # add stuff to the test_part
         for i in range(10):
@@ -140,67 +133,38 @@ class TestDurationIndexer(unittest.TestCase):
             add_me.offset = i
             test_part.append(add_me)
         test_part = [test_part]
+        nr = pandas.concat([pandas.Series(['C4']*10, index=expected.index, name='0')], axis=1)
         # finished adding stuff to the test_part
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        dur_indexer = meter.DurationIndexer(nr, test_part)
+        actual = dur_indexer.run()['meter.DurationIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_4(self):
         # Soprano part of bwv77.mxl which is a part with no ties
-        expected = {'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv77_soprano)}
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl')).parts[0]]
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv77_soprano)})
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
+        ip._analyses['part_streams'] = ip._get_part_streams()[:1]
+        actual = ip.get_data('duration')['meter.DurationIndexer']
+        self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_5(self):
-        # Alto part of bwv603.mxl which is a part with ties
-        expected = {'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_alto)}
-        test_part = [converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml')).parts[1]]
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertTrue((isnan(expected[key]) == isnan(actual[key])).all()) # Are NaNs in the same places?
-            # the following loop is necessary because the assertSequenceEqual method doesn't work
-            # for NaN values
-            for i, val in enumerate(expected[key]):
-                if not isnan(val): # Expected and actual are non NaN values
-                    self.assertEqual(val, actual[key].iat[i])
+        # Alto part of bwv603.mxl which is a part with ties. Also test that data argument is passed 
+        # correctly. Since the data argument is passed, these results should not be cached.
+        expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_alto)})
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        ip._analyses['part_streams'] = [ip._get_part_streams()[1]]
+        actual = ip.get_data('duration', data=(ip.get_data('noterest'), ip._analyses['part_streams']))['meter.DurationIndexer']
+        self.assertTrue(actual.equals(expected))
+        self.assertTrue('duration' not in ip._analyses.keys())
 
     def test_duration_indexer_6(self):
         # Soprano and bass parts of bwv603.xml
         # We won't verify all the parts, but we'll submit them all for analysis.
-        expected = {'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_soprano),
-                    '3': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_bass)}
-        bwv603 = converter.parse(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
-        test_part = [bwv603.parts[0], bwv603.parts[1], bwv603.parts[2], bwv603.parts[3]]
-        dur_indexer = metre.DurationIndexer(test_part)
-        actual = dur_indexer.run()['metre.DurationIndexer']
-        self.assertEqual(4, len(actual.columns))
-        for key in six.iterkeys(expected):
-            # Calling .dropna() on actual[key] would remove the NaN values; these appear for offsets
-            # that have an event in one part, but not necessarily all the others. This is done in
-            # other tests but is omitted here because these NaNs are an important part of the
-            # analysis.
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertTrue((isnan(expected[key]) == isnan(actual[key])).all()) # Are NaNs in the same places?
-            # the following loop is necessary because the assertSequenceEqual method doesn't work
-            # for NaN values
-            for i, val in enumerate(expected[key]):
-                if not isnan(val): # Are non-NaN values equal?
-                    self.assertEqual(val, actual[key].iat[i])
+        expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_soprano),
+                    '3': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_bass)})
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
+        actual = ip.get_data('duration').iloc[:, [0, 3]]['meter.DurationIndexer']
+        self.assertTrue(actual.equals(expected))
 
 
 #--------------------------------------------------------------------------------------------------#

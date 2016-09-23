@@ -1,10 +1,12 @@
 # These packages are required for vis to run 'run_tests.py'.
 # Don't use this for a requirements file. Rather, use 'requirements.txt' and then 'optional_requirements.txt' (if desired).
 music21==2.1.2
-pandas>=0.14.1,<0.17
+pandas==0.18.1
+multi_key_dict==2.0.3
 
 # For plotting.
-scipy==0.16.0
+# scipy==0.16.0
+# NB: commeting out scipy to lighten installation. Without it, dendrogram graphing capability is lost.
 
 # For testing, coverage, stuff like that.
 mock==1.0.1

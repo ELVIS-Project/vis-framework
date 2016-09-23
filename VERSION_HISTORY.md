@@ -3,6 +3,21 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 3.0.0:
+    -Iterative caching of most indexer results run on any given indexed_piece object
+    -Optimized application of indexer_functions resulting in large indexing speed boost
+    -Faster stream parsing
+    -Consolidate all importation into Importer method
+    -Simplify get_data_methods in indexed_piece and aggregated pieces including the addition of string 
+    shortcuts for convenience
+    -New indexers: Cadence, Contour, Multistop, Over_Bass
+    -New_ngram fully replaces ngram, and is called ngram
+    -Deprecates WorkflowManager
+    -Removes SciPy and matplotlib dependencies
+    -Refactor Duration and Repeat indexers
+    -Refactor metadata collection including possibility to get metadata from meta files
+    -Adds CR_indexer, melodies, Permutations, transformations, 4vv_parser to scripts
+
 * 2.4.1:
     - Cosmetic changes to more closely comply with Python coding conventions.
 

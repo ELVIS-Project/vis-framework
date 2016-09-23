@@ -60,7 +60,7 @@ def pandas_maker(lolists):
 
     Output: list of pandas.Series
     """
-    return [make_series(x) for x in lolists]
+    return pandas.concat([make_series(x) for x in lolists], axis=1)
 
 
 class TestIntervalIndexerShort(unittest.TestCase):
@@ -421,7 +421,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
 
     def test_interval_indexer_1(self):
         # BWV7.7: full soprano and bass parts
-        test_parts = [self.bwv77_soprano, self.bwv77_bass]
+        test_parts = pandas.concat([self.bwv77_soprano, self.bwv77_bass], axis=1)
         expected = {'0,1': make_series(TestIntervalIndexerLong.bwv77_S_B_basis)}
         setts = {'simple or compound': 'compound', 'quality': True}
         int_indexer = IntervalIndexer(test_parts, setts)
@@ -434,7 +434,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
 
     def test_interval_indexer_2(self):
         # BWV7.7: small soprano and bass parts; "simple" in settings
-        test_parts = [self.bwv77_s_small, self.bwv77_b_small]
+        test_parts = pandas.concat([self.bwv77_s_small, self.bwv77_b_small], axis=1)
         expected = {'0,1': make_series(TestIntervalIndexerLong.bwv77_S_B_small_simple_qual)}
         setts = {'simple or compound': 'simple', 'quality': True}
         int_indexer = IntervalIndexer(test_parts, setts)
@@ -448,7 +448,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
     def test_interval_indexer_3(self):
         # BWV7.7: small soprano and bass parts; "simple" and "quality" not in settings, and the
         # settings are in fact not specified
-        test_parts = [self.bwv77_s_small, self.bwv77_b_small]
+        test_parts = pandas.concat([self.bwv77_s_small, self.bwv77_b_small], axis=1)
         expected = {'0,1': make_series(TestIntervalIndexerLong.bwv77_S_B_small_compound_noqual)}
         # setts = {}
         int_indexer = IntervalIndexer(test_parts)
@@ -461,7 +461,7 @@ class TestIntervalIndexerLong(unittest.TestCase):
 
     def test_interval_indexer_4(self):
         # BWV7.7: small soprano and bass parts; "simple" in settings, "quality" not
-        test_parts = [self.bwv77_s_small, self.bwv77_b_small]
+        test_parts = pandas.concat([self.bwv77_s_small, self.bwv77_b_small], axis=1)
         expected = {'0,1': make_series(TestIntervalIndexerLong.bwv77_S_B_small_simple_noqual)}
         setts = {'simple or compound': 'simple'}
         int_indexer = IntervalIndexer(test_parts, setts)
@@ -617,7 +617,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
 
     def test_interval_indexer_1a(self):
         # BWV7.7: first 26 things in soprano part
-        test_parts = [self.bwv77_soprano]
+        test_parts = pandas.concat([self.bwv77_soprano], axis=1)
         expected = TestHorizIntervalIndexerLong.bwv77_S_B_short['a']
         setts = {'simple or compound': 'compound', 'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
@@ -627,7 +627,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
 
     def test_interval_indexer_1b(self):
         # BWV7.7: first 26 things in soprano part (no settings specified)
-        test_parts = [self.bwv77_soprano]
+        test_parts = pandas.concat([self.bwv77_soprano], axis=1)
         expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual['a']
         #setts = {'simple or compound': 'compound', 'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts)
@@ -637,7 +637,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
 
     def test_interval_indexer_1c(self):
         # BWV7.7: first 26 things in soprano part (simple; quality)
-        test_parts = [self.bwv77_soprano]
+        test_parts = pandas.concat([self.bwv77_soprano], axis=1)
         expected = TestHorizIntervalIndexerLong.bwv77_S_B_short['a']
         setts = {'simple or compound': 'simple', 'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
@@ -647,7 +647,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
 
     def test_interval_indexer_1d(self):
         # BWV7.7: first 26 things in soprano part (simple; no quality)
-        test_parts = [self.bwv77_soprano]
+        test_parts = pandas.concat([self.bwv77_soprano], axis=1)
         expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual['a']
         setts = {'simple or compound': 'simple', 'quality': False}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
@@ -658,7 +658,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
     def test_interval_indexer_2(self):
         # BWV7.7: whole soprano part
         # NB: this test is more rigourous than the others, since it actually uses the DataFrame
-        test_parts = [self.bwv77_soprano]
+        test_parts = pandas.concat([self.bwv77_soprano], axis=1)
         expected = {'0': TestHorizIntervalIndexerLong.bwv77_S_B_basis['a']}
         setts = {'simple or compound': 'compound', 'quality': True}
         int_indexer = HorizontalIntervalIndexer(test_parts, setts)
@@ -671,7 +671,7 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
 
     def test_interval_indexer_3(self):
         """BWV7.7: whole bass part; 'horiz_attach_later' is True"""
-        test_parts = [self.bwv77_bass]
+        test_parts = pandas.concat([self.bwv77_bass], axis=1)
         setts = {'simple or compound': 'compound', 'quality': True, 'horiz_attach_later': True}
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'corpus', 'data_horiz_int_ind_3.pickle'))
         actual = HorizontalIntervalIndexer(test_parts, setts).run()
