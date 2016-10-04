@@ -201,7 +201,7 @@ class TestPartsAndTitles(TestCase):
         expected_range = [('E4', 'E5'), ('E3', 'B4'), ('F#3', 'A4'), ('A2', 'C4')]
         actual_range = _find_part_ranges(score)
         self.assertEqual(expected_range, actual_range)
-
+'''
 class TestIndexedPieceC(TestCase):
 
     def test_meta(self):
@@ -241,11 +241,11 @@ class TestIndexedPieceC(TestCase):
             IndexedPiece(piece, metafile=meta, username='mborsodi')
         except RuntimeError as run_err:
             self.assertEqual(IndexedPiece._MISSING_PASSWORD, run_err.args[0])
-
+'''
 
 #-------------------------------------------------------------------------------------------------#
 # Definitions                                                                                     #
 #-------------------------------------------------------------------------------------------------#
 INDEXED_PIECE_SUITE_A = TestLoader().loadTestsFromTestCase(TestIndexedPieceA)
 INDEXED_PIECE_PARTS_TITLES = TestLoader().loadTestsFromTestCase(TestPartsAndTitles)
-INDEXED_PIECE_SUITE_C = TestLoader().loadTestsFromTestCase(TestIndexedPieceC)
+#INDEXED_PIECE_SUITE_C = TestLoader().loadTestsFromTestCase(TestIndexedPieceC)
