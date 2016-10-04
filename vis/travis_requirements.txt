@@ -2,6 +2,7 @@
 # Don't use this for a requirements file. Rather, use 'requirements.txt' and then 'optional_requirements.txt' (if desired).
 music21==2.1.2
 pandas>=0.14.1,<0.17
+requests==2.11.1
 
 # For plotting.
 scipy==0.16.0
