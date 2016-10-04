@@ -3,6 +3,9 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 2.4.5:
+    - added 'requests' python package req.
+
 * 2.4.4:
     - replace 2.4.4 - was missing Outputlilypond (very sorry)
 
