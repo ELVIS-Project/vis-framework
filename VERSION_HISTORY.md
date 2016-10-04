@@ -3,6 +3,10 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 3.0.1:
+    -Fixed 'requests' library requirement.
+    -Disabled test cases that depend on external DB.
+
 * 3.0.0:
     -Iterative caching of most indexer results run on any given indexed_piece object
     -Optimized application of indexer_functions resulting in large indexing speed boost
