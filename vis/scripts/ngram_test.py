@@ -43,6 +43,7 @@ n_setts_4 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all
 n_setts_5 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all',
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False}
 ip = indexed_piece.Importer(piece_path)
+ip.get_data('over_bass')
 t0 = time.time()
 input_dfs = [ip.get_data('noterest'), ip.get_data('vertical_interval')]
 ob_setts = {'type': 'notes'}

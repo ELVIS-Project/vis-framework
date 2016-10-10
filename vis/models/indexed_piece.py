@@ -49,6 +49,9 @@ from vis.analyzers.indexers import noterest, cadence, meter, interval, dissonanc
 from vis.analyzers.indexers import lilypond as lily_ind
 from multi_key_dict import multi_key_dict as mkd
 
+import pdb
+
+
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 # Types for noterest indexing
@@ -372,14 +375,14 @@ class IndexedPiece(object):
 
     # When get_data() is missing the "settings" and/or data" argument but needed them, or was supplied .
     _SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS = 'You made improper use of the settings and/or data \
-    arguments. Please refer to the {} documentation to see what is required by the Indexer or \
-    Experimenter requested.'
+arguments. Please refer to the {} documentation to see what is required by the Indexer or \
+Experimenter requested.'
 
     # When get_data() gets an analysis_cls argument that isn't a key in IndexedPiece._mkd.
     _NOT_AN_ANALYZER = 'Could not recognize the requested Indexer or Experimenter (received {}). \
-    When using IndexedPiece.get_data(), please use one of the following short- or long-format \
-    strings to identify the desired Indexer or Experimenter: \
-    {}.'
+When using IndexedPiece.get_data(), please use one of the following short- or long-format \
+strings to identify the desired Indexer or Experimenter: \
+{}.'
 
     # When metadata() gets an invalid field name
     _INVALID_FIELD = 'metadata(): invalid field ({})'
@@ -773,7 +776,11 @@ class IndexedPiece(object):
             if hasattr(results, 'run'): # execute analyzer if there is no caching method for this one
                 results = results.run()
         except TypeError: # There is some issue with the 'settings' and/or 'data' arguments.
-            raise RuntimeWarning(IndexedPiece._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(self._mkd[analyzer_cls]))
+            for key in self._mkd.keys():
+                if analyzer_cls in key:
+                    analyzer_name = key[1]
+                    break
+            raise RuntimeWarning(IndexedPiece._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(analyzer_name))
 
         return results
 
