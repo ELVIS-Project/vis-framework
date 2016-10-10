@@ -99,7 +99,7 @@ THE_TESTS = (  # Indexer and Subclasses
              test_aggregated_pieces.IMPORTER_SUITE,
              test_indexed_piece.INDEXED_PIECE_SUITE_A,
              test_indexed_piece.INDEXED_PIECE_PARTS_TITLES,
-#             test_indexed_piece.INDEXED_PIECE_SUITE_C,
+             test_indexed_piece.INDEXED_PIECE_SUITE_C,
              test_aggregated_pieces.AGGREGATED_PIECES_SUITE,
              # NB: Most of these WorkflowManager tests pass but they are commented out because the WorkflowManager is deprecated.
              # # WorkflowManager 
