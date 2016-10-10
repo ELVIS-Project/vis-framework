@@ -70,11 +70,10 @@ def real_indexer_func(simultaneity, analysis_type):
     return _memos[memo]
 
 
-# We give the functions below to the multiprocessor; they're pickle-able and they basically help us 
-# apply the appropriate analysis settings. The settings requested by the user are set in the init
-# method and are all applied with the use of the xxxx_analysis functions. They appear below in the 
-# same order as their position in the indexer_funcs list. Each indexer_xxxx method is immediately 
-# followed by the xxxx_analysis method that it passes to real_indexer_func.
+# The functions help us apply the appropriate analysis settings. The settings requested by the user 
+# are set in the init method and are all applied with the use of the xxxx_analysis functions. They 
+# appear below in the  same order as their position in the indexer_funcs list. Each indexer_xxxx 
+# method is immediately followed by the xxxx_analysis method that it passes to real_indexer_func.
 
 
 def indexer_dnq_dir_sim(ecks):
@@ -274,12 +273,13 @@ class IntervalIndexer(indexer.Indexer):
         than the second.
     :keyword boolean 'mp': Multiprocesses when True (default) or processes serially when False.
  
-     **Example:**
+    **Example:**
 
+    from vis.models.indexed_piece import Importer
     settings = {'quality': 'chromatic', 'simple or compound': 'simple', 'directed': True}
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([interval.IntervalIndexer], settings)
-   """
+    ip = Importer('pathnameToScore.xml')
+    ip.get_data('vertical_interval', settings)
+    """
     required_score_type = 'pandas.DataFrame'
     default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 'mp': True}
     "A dict of default settings for the :class:`IntervalIndexer`."
@@ -368,9 +368,10 @@ class HorizontalIntervalIndexer(IntervalIndexer):
 
      **Example:**
      
+    from vis.models.indexed_piece import Importer
     settings = {'quality': 'interval class', 'simple or compound': 'simple', 'directed': False}
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([interval.HorizontalIntervalIndexer], settings)
+    ip = Importer('pathnameToScore.xml')
+    ip.get_data('horizontal_interval', settings)
     """
 
     default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 

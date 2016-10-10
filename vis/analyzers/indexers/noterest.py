@@ -130,8 +130,10 @@ class NoteRestIndexer(indexer.Indexer):
     manner of the following example.
 
     **Example:**
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([noterest.NoteRestIndexer])
+
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_piece.xml')
+    ip.get_data('noterest')
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -161,8 +163,10 @@ class MultiStopIndexer(indexer.Indexer):
     manner of the following example.
 
     **Example:**
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([noterest.MultiStopIndexer])
+
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_piece.xml')
+    ip.get_data('multistop')
     """
 
     required_score_type = 'pandas.DataFrame'

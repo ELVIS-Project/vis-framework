@@ -85,11 +85,10 @@ class DissonanceIndexer(indexer.Indexer):
     
     **Example:**
 
-    from vis.models.indexed_piece import IndexedPiece
+    from vis.models.indexed_piece import Importer
 
-    ip = IndexedPiece('symbolic_notation_file_location.xml')
-    diss = ip.get_data([dissonance.DissonanceIndexer])
-    print(diss)
+    ip = Importer('symbolic_notation_file_location.xml')
+    ip.get_data('dissonance')
     """
     required_score_type = 'pandas.DataFrame'
 

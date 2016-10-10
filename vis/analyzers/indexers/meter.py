@@ -80,8 +80,9 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
     objects rather than ``unicode`` objects.
     
     **Example:**
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([meter.NoteBeatStrengthIndexer])
+    from vis.models.indexed_piece import Importer
+    ip = Importer('pathnameToScore.xml')
+    ip.get_data('beat_strength')
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -111,8 +112,9 @@ class DurationIndexer(indexer.Indexer):
     have an indexer func.
 
     **Example:**
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([meter.DurationIndexer])
+    from vis.models.indexed_piece import Importer
+    ip = Importer('pathnameToScore.xml')
+    ip.get_data('duration')
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -158,8 +160,9 @@ class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
     stream indexers in VIS. 
 
     **Example:**
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([meter.MeasureIndexer])
+    from vis.models.indexed_piece import Importer
+    ip = Importer('pathnameToScore.xml')
+    ip.get_data('measure')
     """
 
     required_score_type = 'pandas.DataFrame'

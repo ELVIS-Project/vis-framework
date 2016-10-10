@@ -167,6 +167,17 @@ class FilterByOffsetIndexer(indexer.Indexer):
     :type 'method': str or None
     :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
     :type 'mp': boolean
+
+
+    ***Example:***
+
+    # Prepare an indexed piece
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_piece.xml')
+
+    notes = ip.get_data('noterest')
+    setts = {'quarterLength': 2}
+    ip.get_data('offset', data=notes, settings=setts)
     """
     
     default_settings = {'method': 'ffill', 'mp': True}
@@ -218,20 +229,6 @@ class FilterByOffsetIndexer(indexer.Indexer):
             final offset, which is either the last observation in the piece (if it is divisible by
             the ``quarterLength``) or the next-highest value that is divisible by ``quarterLength``.
         :rtype: :class:`pandas.DataFrame`
-
-        ***Example:***
-
-        import music21
-        from vis.analyzers.indexers import noterest, offset
-
-        score = music21.converter.parse('example.xml')
-        notes = noterest.NoteRestIndexer(score).run()
-
-        settings = {'quarterLength': 3}
-        offsets = offset.OffsetIndexer(notes, settings).run()
-
-        # to see all the results
-        print(offsets)
         """
         # NB: we have to convert all the "offset" values to integers so we can use the range()
         #     function to iterate through offsets.

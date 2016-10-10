@@ -424,7 +424,7 @@ class IndexedPiece(object):
         self._mkd = mkd({ # Indexers (in alphabetical order of their long-format strings):
                         ('annotation', 'lilypond.AnnotationIndexer', lily_ind.AnnotationIndexer): lily_ind.AnnotationIndexer,
                         ('active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): self._get_active_voices,
-                        ('cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): cadence.CadenceIndexer,
+                        ('cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): self._get_cadence,
                         ('contour', 'contour.ContourIndexer', contour.ContourIndexer): contour.ContourIndexer,
                         ('dissonance', 'dissonance.DissonanceIndexer', dissonance.DissonanceIndexer): self._get_dissonance,
                         ('fermata', 'fermata.FermataIndexer', fermata.FermataIndexer): self._get_fermata,
@@ -708,6 +708,17 @@ class IndexedPiece(object):
                       self._get_horizontal_interval(h_setts), self._get_vertical_interval(v_setts)]
             self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
         return self._analyses['dissonance']
+
+    def _get_cadence(self, data=[], settings=None):
+        """Used internally by get_data() as a convenience method to simplify getting results from 
+        the CadenceIndexer. Since the results of the FermataIndexer are required for this and do not 
+        take any settings, they are automatically provided for the user, so only the results of the 
+        OverBassIndexer must necessarily be provided in the 'data' argument."""
+        if len(data) == 1: # If data has more than two dfs, or the wrong dfs, this will be caught later
+            temp = [self._get_fermata()]
+            temp.extend(data)
+            data = temp
+        return cadence.CadenceIndexer(data, settings).run()
 
     def _get_m21_measure_objs(self):
         """Makes a dataframe of the music21 measure objects in the indexed_piece. Note that midi 

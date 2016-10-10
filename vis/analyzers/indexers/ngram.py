@@ -122,16 +122,16 @@ class NGramIndexer(indexer.Indexer):
 
      **Example:**
 
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
+    from vis.models.indexed_piece import Importer
+    ip = Importer('pathnameToScore.xml')
     ngram_settings = {'n': 2, 'vertical': 'all', 'horizontal': 'lowest'}
     vert_settings = {'quality': 'chromatic', 'simple or compound': 'simple', 'directed': True}
     horiz_settings = {'quality': 'diatonic with quality', 'simple or compound': 'simple', 
                       'directed': True, 'horiz_attach_later': True}
 
-    vert_ints = ip.get_data([interval.IntervalIndexer], settings=vert_settings)
-    horiz_ints = ip.get_data([interval.HorizontalIntervalIndexer], settings=horiz_settings)
-    ngrams = ip.get_data([ngram.NGramIndexer], settings=ngram_settings,
-                         data=[vert_ints, horiz_ints])
+    vert_ints = ip.get_data('vertical_interval', settings=vert_settings)
+    horiz_ints = ip.get_data('horizontal_interval', settings=horiz_settings)
+    ip.get_data('ngram', data=[vert_ints, horiz_ints], settings=ngram_settings)
     """
 
     required_score_type = 'pandas.DataFrame'
