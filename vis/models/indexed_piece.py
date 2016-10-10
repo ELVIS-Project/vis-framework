@@ -49,9 +49,6 @@ from vis.analyzers.indexers import noterest, cadence, meter, interval, dissonanc
 from vis.analyzers.indexers import lilypond as lily_ind
 from multi_key_dict import multi_key_dict as mkd
 
-import pdb
-
-
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 # Types for noterest indexing
