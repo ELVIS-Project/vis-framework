@@ -101,7 +101,7 @@ class CadenceIndexer(indexer.Indexer):
         elif 'voice' not in settings:
             self._settings = settings
             self._settings['voice'] = 'all'
-        elif type(settings['voice']) is int and settings['voice'] > len(self.ferm.columns):
+        elif type(settings['voice']) is int and settings['voice'] >= len(self.ferm.columns):
             raise RuntimeError(self._BAD_VOICE)
         else:
             self._settings = settings
