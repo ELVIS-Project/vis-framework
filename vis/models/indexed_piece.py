@@ -759,7 +759,7 @@ strings to identify the desired Indexer or Experimenter: \
             :class:`~music21.stream.Score` objects, and ``data`` is ``None``.
         """
         if analyzer_cls not in self._mkd: # Make sure the analyzer requested exists.
-            raise KeyError(IndexedPiece._NOT_AN_ANALYZER.format(analyzer_cls, sorted(self._mkd.keys(str))))
+            raise KeyError(IndexedPiece._NOT_AN_ANALYZER.format(analyzer_cls, sorted([k[0] for k in self._mkd.keys()])))
 
         args_dict = {} # Only pass the settings argument if it is not ``None``.
         if settings is not None:

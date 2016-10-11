@@ -253,7 +253,8 @@ received {}. Please choose from one of the following: {}.'
 
         if (combined_experimenter is not None and (combined_experimenter not in self._mkd.keys(str) 
             and combined_experimenter not in self._mkd.keys(type))): # make sure combined_experimenter is an appropriate experimenter
-            raise TypeError(AggregatedPieces._NOT_EXPERIMENTER.format(combined_experimenter, self._mkd.keys(str)))
+            raise TypeError(AggregatedPieces._NOT_EXPERIMENTER.format(combined_experimenter,
+                                                                      sorted([k[0] for k in self._mkd.keys()])))
 
         args_dict = {} # Only pass the settings argument if it is not ``None``.
         if settings is not None:
