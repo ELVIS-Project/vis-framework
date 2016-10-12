@@ -82,6 +82,25 @@ class DissonanceIndexer(indexer.Indexer):
     matters): beatstrength, duration, horizontal, vertical. To simplify things, however, it is 
     better to use the get_data() on an indexed_piece object to get results from the dissonance 
     indexer as per the example below.
+
+    The results of the disonance indexer are in the form of one cell in the resultant dataframe in 
+    each part at every offset where there is a new note, rest, or chord onset in any part. These 
+    cells contain one-character strings which are an abbreviation of what the dissonance type for 
+    that part at that moment is. The abbreviations correspoond to the following dissonance types:
+    'Q' : Dissonant third quarter (special type of accented passing tone)
+	'D' : Descending passing tone
+	'R' : Ascending ("rising") passing tone
+	'L' : Lower neighbour
+	'U' : Upper neighbour
+	'S' : Suspension
+	'F' : Fake suspension
+	'f' : Diminished fake suspension
+	'A' : Anticipation
+	'C' : Nota cambiata
+	'H' : Chanson idiom
+	'E' : Echappée (escape tone)
+	'-' : Either no dissonance, or the part in question is not considered to be the dissonant note 
+			of the dissonance it's in
     
     **Example:**
 
