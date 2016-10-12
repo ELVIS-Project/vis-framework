@@ -367,7 +367,27 @@ class OpusWarning(RuntimeWarning):
 
 class IndexedPiece(object):
     """
-    Hold indexed data from a musical score.
+    Hold indexed data from a musical score, and the score itself. IndexedPiece objects are VIS's 
+    basic representations of a piece of music and also a container for metadata and analyses about 
+    that piece. An IndexedPiece object should be created by passing the pathname of a symbolic 
+    notation file to the Importer() method in this file. The Importer() will return an IndexedPiece 
+    object as long as the piece did not import as an opus. In this case Importer() will return an 
+    AggregatedPieces object. Information about an IndexedPiece object from an indexer or an 
+    experimenter should be requested via the get_data() method. If you want to access the full 
+    music21 score object of a VIS IndexedPiece object, access the _score attribute of the 
+    IndexedPiece object. See the examples below:
+
+    **Examples**
+    # Creat an IndexedPiece object
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_file.xml')
+
+    # Get the results of an indexer or experimenter (noterest and dissonance indexers shown)
+    noterest_results = ip.get_data('noterest')
+    dissonance_results = ip.get_data('dissonance')
+
+    # Access the full music21 score object of the file
+    ip._score
     """
 
     # When get_data() is missing the "settings" and/or data" argument but needed them, or was supplied .
@@ -413,7 +433,6 @@ strings to identify the desired Indexer or Experimenter: \
         self._imported = False
         self._analyses = {}
         self._score = score
-        self._noterest_results = None
         self._pathname = pathname
         self._metadata = {}
         self._known_opus = False
