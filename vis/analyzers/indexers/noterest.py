@@ -246,4 +246,5 @@ class MultiStopIndexer(indexer.Indexer):
             # Do indexing.
             result = unpack_chords(temp) 
             # Unpack chords into individual pitches.
-        return self.make_return([str(x) for x in range(len(result.columns))], result)
+        return self.make_return([str(x) 
+            for x in range(len(result.columns))], result)
