@@ -124,21 +124,19 @@ class DissonanceIndexer(indexer.Indexer):
     dissonance type for that part at that moment is. The abbreviations 
     correspoond to the following dissonance types:
     
-    'Q' : Dissonant third quarter (special type of accented passing 
-          tone)
-	'D' : Descending passing tone
-	'R' : Ascending ("rising") passing tone
-	'L' : Lower neighbour
-	'U' : Upper neighbour
-	'S' : Suspension
-	'F' : Fake suspension
-	'f' : Diminished fake suspension
-	'A' : Anticipation
-	'C' : Nota cambiata
-	'H' : Chanson idiom
-	'E' : Echappée (escape tone)
-	'-' : Either no dissonance, or the part in question is not 
-          considered to be the dissonant note of the dissonance it's in
+    * 'Q': Dissonant third quarter (special type of accented passing tone)
+	* 'D': Descending passing tone
+    * 'R': Ascending ("rising") passing tone
+    * 'L': Lower neighbour
+	* 'U': Upper neighbour
+	* 'S': Suspension
+	* 'F': Fake suspension
+	* 'f': Diminished fake suspension
+	* 'A': Anticipation
+	* 'C': Nota cambiata
+	* 'H': Chanson idiom
+	* 'E': Echappée (escape tone)
+	* '-': Either no dissonance, or the part in question is not considered to be the dissonant note of the dissonance it's in
     
     **Example:**
 
@@ -1347,7 +1345,7 @@ class DissonanceIndexer(indexer.Indexer):
                         ret.iat[i, int(diss_analysis[3], 10)] = diss_analysis[4]
 
         '''
-        
+
         # Remove lingering unexplainable labels from notes that are only 
         # dissonant against identifiable dissonances.
         unknowns = numpy.where(ret.values == _unexplainable) 
