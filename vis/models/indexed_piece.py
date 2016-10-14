@@ -367,19 +367,39 @@ class OpusWarning(RuntimeWarning):
 
 class IndexedPiece(object):
     """
-    Hold indexed data from a musical score.
+    Hold indexed data from a musical score, and the score itself. IndexedPiece objects are VIS's 
+    basic representations of a piece of music and also a container for metadata and analyses about 
+    that piece. An IndexedPiece object should be created by passing the pathname of a symbolic 
+    notation file to the Importer() method in this file. The Importer() will return an IndexedPiece 
+    object as long as the piece did not import as an opus. In this case Importer() will return an 
+    AggregatedPieces object. Information about an IndexedPiece object from an indexer or an 
+    experimenter should be requested via the get_data() method. If you want to access the full 
+    music21 score object of a VIS IndexedPiece object, access the _score attribute of the 
+    IndexedPiece object. See the examples below:
+
+    **Examples**
+    # Creat an IndexedPiece object
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_file.xml')
+
+    # Get the results of an indexer or experimenter (noterest and dissonance indexers shown)
+    noterest_results = ip.get_data('noterest')
+    dissonance_results = ip.get_data('dissonance')
+
+    # Access the full music21 score object of the file
+    ip._score
     """
 
     # When get_data() is missing the "settings" and/or data" argument but needed them, or was supplied .
     _SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS = 'You made improper use of the settings and/or data \
-    arguments. Please refer to the {} documentation to see what is required by the Indexer or \
-    Experimenter requested.'
+arguments. Please refer to the {} documentation to see what is required by the Indexer or \
+Experimenter requested.'
 
     # When get_data() gets an analysis_cls argument that isn't a key in IndexedPiece._mkd.
     _NOT_AN_ANALYZER = 'Could not recognize the requested Indexer or Experimenter (received {}). \
-    When using IndexedPiece.get_data(), please use one of the following short- or long-format \
-    strings to identify the desired Indexer or Experimenter: \
-    {}.'
+When using IndexedPiece.get_data(), please use one of the following short- or long-format \
+strings to identify the desired Indexer or Experimenter: \
+{}.'
 
     # When metadata() gets an invalid field name
     _INVALID_FIELD = 'metadata(): invalid field ({})'
@@ -413,7 +433,6 @@ class IndexedPiece(object):
         self._imported = False
         self._analyses = {}
         self._score = score
-        self._noterest_results = None
         self._pathname = pathname
         self._metadata = {}
         self._known_opus = False
@@ -424,7 +443,7 @@ class IndexedPiece(object):
         self._mkd = mkd({ # Indexers (in alphabetical order of their long-format strings):
                         ('annotation', 'lilypond.AnnotationIndexer', lily_ind.AnnotationIndexer): lily_ind.AnnotationIndexer,
                         ('active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): self._get_active_voices,
-                        ('cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): cadence.CadenceIndexer,
+                        ('cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): self._get_cadence,
                         ('contour', 'contour.ContourIndexer', contour.ContourIndexer): contour.ContourIndexer,
                         ('dissonance', 'dissonance.DissonanceIndexer', dissonance.DissonanceIndexer): self._get_dissonance,
                         ('fermata', 'fermata.FermataIndexer', fermata.FermataIndexer): self._get_fermata,
@@ -709,6 +728,17 @@ class IndexedPiece(object):
             self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
         return self._analyses['dissonance']
 
+    def _get_cadence(self, data=[], settings=None):
+        """Used internally by get_data() as a convenience method to simplify getting results from 
+        the CadenceIndexer. Since the results of the FermataIndexer are required for this and do not 
+        take any settings, they are automatically provided for the user, so only the results of the 
+        OverBassIndexer must necessarily be provided in the 'data' argument."""
+        if len(data) == 1: # If data has more than two dfs, or the wrong dfs, this will be caught later
+            temp = [self._get_fermata()]
+            temp.extend(data)
+            data = temp
+        return cadence.CadenceIndexer(data, settings).run()
+
     def _get_m21_measure_objs(self):
         """Makes a dataframe of the music21 measure objects in the indexed_piece. Note that midi 
         files do not have measures."""
@@ -748,7 +778,7 @@ class IndexedPiece(object):
             :class:`~music21.stream.Score` objects, and ``data`` is ``None``.
         """
         if analyzer_cls not in self._mkd: # Make sure the analyzer requested exists.
-            raise KeyError(IndexedPiece._NOT_AN_ANALYZER.format(analyzer_cls, sorted(self._mkd.keys(str))))
+            raise KeyError(IndexedPiece._NOT_AN_ANALYZER.format(analyzer_cls, sorted([k[0] for k in self._mkd.keys()])))
 
         args_dict = {} # Only pass the settings argument if it is not ``None``.
         if settings is not None:
@@ -762,7 +792,11 @@ class IndexedPiece(object):
             if hasattr(results, 'run'): # execute analyzer if there is no caching method for this one
                 results = results.run()
         except TypeError: # There is some issue with the 'settings' and/or 'data' arguments.
-            raise RuntimeWarning(IndexedPiece._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(self._mkd[analyzer_cls]))
+            for key in self._mkd.keys():
+                if analyzer_cls in key:
+                    analyzer_name = key[1]
+                    break
+            raise RuntimeWarning(IndexedPiece._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(analyzer_name))
 
         return results
 

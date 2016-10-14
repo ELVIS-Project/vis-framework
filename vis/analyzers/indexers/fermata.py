@@ -60,8 +60,10 @@ class FermataIndexer(indexer.Indexer):
     Finds :class:`~music21.expressions.Fermata`s.
 
     **Example:**
-    ip = indexed_piece.IndexedPiece('pathnameToScore.xml')
-    ip.get_data([fermata.FermataIndexer])
+
+    from vis.models.indexed_piece import Importer
+    ip = Importer('pathnameToScore.xml')
+    ip.get_data('fermata')
     """
 
     required_score_type = 'stream.Part'

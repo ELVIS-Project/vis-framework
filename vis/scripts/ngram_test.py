@@ -42,9 +42,16 @@ n_setts_4 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False, 'align': 'right'}
 n_setts_5 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all',
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False}
-# ip = indexed_piece.Importer(piece_path)
+ip = indexed_piece.Importer(piece_path)
+ip.get_data('over_bass')
 t0 = time.time()
-ag = indexed_piece.Importer(folder)
+input_dfs = [ip.get_data('noterest'), ip.get_data('vertical_interval')]
+ob_setts = {'type': 'notes'}
+overbass = ip.get_data('over_bass', data=input_dfs, settings=ob_setts)
+ca_setts = {'length': 3}
+ca = ip.get_data('cadence', data=[overbass], settings=ca_setts)
+# ag = indexed_piece.Importer(folder)
+# di = ag.get_data(ind_analyzer='dissonance')
 # ps = ip._get_part_streams()
 # bs = ip._get_beat_strength()
 # dr = ip._get_duration()

@@ -105,7 +105,7 @@ class TestOverBassIndexer(TestCase):
     def test_init1(self):
         """that __init__() works properly without settings given"""
 
-        actual = over_bass.OverBassIndexer(pandas.concat([NOTES, VERT], axis=1))
+        actual = over_bass.OverBassIndexer([NOTES, VERT])
         self.assertEqual(actual._settings, {'type': 'notes', 'horizontal': 3})
         self.assertEqual(actual.horizontal_voice, 3)
 
@@ -113,17 +113,16 @@ class TestOverBassIndexer(TestCase):
         """that __init__() works properly with interval setting"""
 
         setts = {'type': 'intervals'}
-        actual = over_bass.OverBassIndexer(pandas.concat([HORIZ, VERT], axis=1), setts).run()
+        actual = over_bass.OverBassIndexer([HORIZ, VERT], setts).run()
         self.assertEqual(list(actual.columns), list(EXPECTED.columns))
 
     def test_init4(self):
         """that __init__() fails when the horizontal setting is not an available option"""
 
         setts = {'horizontal': 5}
-        df = pandas.concat([NOTES, VERT], axis=1)
-        self.assertRaises(RuntimeError, over_bass.OverBassIndexer, df, setts)
+        self.assertRaises(RuntimeError, over_bass.OverBassIndexer, [NOTES, VERT], setts)
         try:
-            over_bass.OverBassIndexer(df, setts)
+            over_bass.OverBassIndexer([NOTES, VERT], setts)
         except RuntimeError as run_err:
             self.assertEqual(over_bass.OverBassIndexer._WRONG_HORIZ, run_err.args[0])
 
@@ -131,10 +130,9 @@ class TestOverBassIndexer(TestCase):
         """that __init__() fails when the given type doesn't match the given dataframe"""
 
         setts = {'type': 'notes'}
-        df = pandas.concat([HORIZ, VERT], axis=1)
-        self.assertRaises(RuntimeError, over_bass.OverBassIndexer, df, setts)
+        self.assertRaises(RuntimeError, over_bass.OverBassIndexer, [HORIZ, VERT], setts)
         try:
-            over_bass.OverBassIndexer(df, setts)
+            over_bass.OverBassIndexer([HORIZ, VERT], setts)
         except RuntimeError as run_err:
             self.assertEqual(over_bass.OverBassIndexer._WRONG_TYPE, run_err.args[0])
 

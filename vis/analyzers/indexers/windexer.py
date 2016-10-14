@@ -37,6 +37,17 @@ class Windexer(indexer.Indexer):
     :keyword 'window_size': The size of the window of the DataFrame that you
         would like to look at. The default setting is 4.
     :type 'window_size': integer
+
+    ***Example:***
+
+    # Prepare an indexed piece
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_piece.xml')
+
+    # This example prepares "windows" of the notes and rests, but any dataframe could be used
+    notes = ip.get_data('noterest')
+    setts = {'window_size': 4}
+    ip.get_data('windexer', data=notes, settings=setts)
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -72,18 +83,6 @@ class Windexer(indexer.Indexer):
         Make a new windowed index of the indexer results.
         :returns: The new windowed DataFrame.
         :rtype: :class:`pandas.DataFrame`
-
-        ***Example:***
-
-        import music21
-        from vis.analyzers.indexers import noterest
-
-        score = music21.converter.parse('example.xml')
-        notes = noterest.NoteRestIndexer(score).run()
-
-        settings = {'window_size': 4}
-        windowed = windexer.Windexer(notes, settings).run()
-        print(windowed)
         """
 
         x = 0

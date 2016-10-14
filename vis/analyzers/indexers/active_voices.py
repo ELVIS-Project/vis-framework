@@ -45,8 +45,14 @@ def indexer1(x):
 
 class ActiveVoicesIndexer(indexer.Indexer):
     """
-    Indexer that counts the number of voices active at each offset. It can
-    either find all voices sounding, or only the voices that are attacking.
+    Indexer that counts the number of voices active at each offset. It can either find all voices 
+    sounding, or only the voices that are attacking, depending on the settings passed. 
+
+    Call this indexer via the get_data() method of either an indexed_piece object or an 
+    aggregated_pieces object (see example below). If nothing is passed in the 'data' argument of the 
+    call to get_data(), then the default is to process the NoteRestIndexer results of the 
+    indexed_piece in question. You can pass some other DataFrame in the 'data' argument, but this is 
+    not recommended.
 
     :keyword 'attacked': When true, only counts the voices that are attacking
         at each offset. Defaults to false.
@@ -54,6 +60,20 @@ class ActiveVoicesIndexer(indexer.Indexer):
     :keyword 'show_all': When true, shows the results at all offsets, even if
         there is not change. Defaults to false.
     :type 'show_all': boolean
+
+
+    **Examples**
+
+    # Prepare an indexed piece
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_piece.xml')
+
+    # Get the ActiveVoicesIndexer results with the default settings
+    ip.get_data('active_voices')
+
+    # Get the ActiveVoicesIndexer results with specified settings
+    av_setts = {'attacked': True, 'show_all': True}
+    ip.get_data('active_voices', settings=av_setts)
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -83,17 +103,6 @@ class ActiveVoicesIndexer(indexer.Indexer):
         """
         :returns: Make a new index of the active voices in the piece.
         :rtype: :class:`pandas.DataFrame`
-
-        **Example:**
-
-        import music21
-        from vis.analyzers.indexers import noterest, active_voices
-
-        score = music21.converter.parse('example.xml')
-        notes = noterest.NoteRestIndexer(score).run()
-
-        av = active_voices.ActiveVoicesIndexer(notes).run()
-        print(av)
         """
 
         post = self._score.applymap(indexer1)

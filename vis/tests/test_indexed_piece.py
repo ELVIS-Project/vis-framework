@@ -210,21 +210,22 @@ class TestIndexedPieceC(TestCase):
         ind = IndexedPiece(piece, metafile=meta)
         self.assertEqual('Sacred', ind.metadata('religiosity'))
 
-    def test_json(self):
-        meta = 'http://database.elvisproject.ca/piece/1971/?format=json'
-        username = 'mborsodi'
-        password = 'lalalalala'
-        piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
-        ind = IndexedPiece(piece, metafile=meta, username=username, password=password)
-        self.assertEqual('Missa Fortuna desperata', ind.metadata('title'))
+    # These two tests are turned off until we can test without having to link to the ELVIS Database.
+    # def test_json(self):
+    #     meta = 'http://database.elvisproject.ca/piece/1971/?format=json'
+    #     username = 'mborsodi'
+    #     password = 'lalalalala'
+    #     piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
+    #     ind = IndexedPiece(piece, metafile=meta, username=username, password=password)
+    #     self.assertEqual('Missa Fortuna desperata', ind.metadata('title'))
 
-    def test_json2(self):
-        meta = 'http://database.elvisproject.ca/piece/1971/'
-        username = 'mborsodi'
-        password = 'lalalalala'
-        piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
-        ind = IndexedPiece(piece, metafile=meta, username=username, password=password)
-        self.assertEqual('Missa Fortuna desperata', ind.metadata('title'))
+    # def test_json2(self):
+    #     meta = 'http://database.elvisproject.ca/piece/1971/'
+    #     username = 'mborsodi'
+    #     password = 'lalalalala'
+    #     piece = os.path.join(VIS_PATH, 'tests', 'corpus', 'Missa-Fortuna-desperata_Kyrie_Josquin-Des-Prez_file6.xml')
+    #     ind = IndexedPiece(piece, metafile=meta, username=username, password=password)
+    #     self.assertEqual('Missa Fortuna desperata', ind.metadata('title'))
 
     def test_missing_usrn(self):
         meta = 'http://database.elvisproject.ca/piece/1971/'

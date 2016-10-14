@@ -32,8 +32,11 @@ import pandas
 
 class CadenceIndexer(indexer.Indexer):
     """
-    Using OverBassIndexer and FermataIndexer results, finds cadences as lists
-    of occurences before a fermata.
+    Using OverBassIndexer and FermataIndexer results, finds cadences as lists of events in the 
+    approach to a fermata.
+
+    Call this indexer via the get_data() method of either an indexed_piece object or an 
+    aggregated_pieces object (see example below).
 
     :keyword 'length': The length of the cadence, or how many events happen
         before a fermata.
@@ -42,6 +45,28 @@ class CadenceIndexer(indexer.Indexer):
     :keyword 'voice': The voice in which you want to look for fermatas.
         The default value for this is 'all'.
     :type 'voice': str or int
+
+
+    ***Example***
+
+    # Prepare an indexed piece and import pandas
+    from vis.models.indexed_piece import Importer
+    import pandas
+    ip = Importer('path_to_piece.xml')
+
+    # Prepare OverBassIndexer and FermataIndexer results. For more specific advice on how to do 
+    # this, please see the documentation of those two indexers. These two DataFrames should be 
+    # passed as a list. For simplicity, including the FermataIndexer results is optional, and this 
+    # example shows how to use the CadenceIndexer without explicitly providing the FermataIndexer 
+    # results, so the 'data' argument is a singleton list.
+
+    overbass_input_dfs = [ip.get_data('noterest'), ip.get_data('vertical_interval')]
+    ob_setts = {'type': 'notes'}
+    overbass = ip.get_data('over_bass', data=overbass_input_dfs, settings=ob_setts)
+    
+    # Get the CadenceIndexer results with specified settings
+    ca_setts = {'length': 3}
+    ip.get_data('cadence', data=[overbass], settings=ca_setts)
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -65,9 +90,9 @@ class CadenceIndexer(indexer.Indexer):
         :raises: :exc:`RuntimeError` if the given voice is not a voice found
             in the piece.
         """
-
-        self.fig = score['over_bass.OverBassIndexer']
-        self.ferm = score['fermata.FermataIndexer']
+        self._score = pandas.concat(score, axis=1)
+        self.fig = self._score['over_bass.OverBassIndexer']
+        self.ferm = self._score['fermata.FermataIndexer']
 
         if settings is None or 'length' not in settings:
             raise RuntimeError(self._MISSING_LENGTH)
@@ -76,7 +101,7 @@ class CadenceIndexer(indexer.Indexer):
         elif 'voice' not in settings:
             self._settings = settings
             self._settings['voice'] = 'all'
-        elif type(settings['voice']) is int and settings['voice'] > len(self.ferm.columns):
+        elif type(settings['voice']) is int and settings['voice'] >= len(self.ferm.columns):
             raise RuntimeError(self._BAD_VOICE)
         else:
             self._settings = settings
@@ -89,27 +114,6 @@ class CadenceIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the cadences.
         :rtype: :class:`pandas.DataFrame`
-
-        ***Examples***
-
-        import music21
-        import pandas
-        import vis.analyzers.indexers import noterest, interval, over_bass, fermata, cadence
-
-        score = music21.converter.parse('example.xml')
-        notes = noterest.NoteRestIndexer(score).run()
-        intervals = interval.IntervalIndexer(notes).run()
-
-        fermatas = fermata.FermataIndexer(score).run()
-
-        df = pandas.concat([notes, intervals])
-        overbass = over_bass.OverBassIndexer(df).run()
-
-        settings = {'length': 3}
-        df = pandas.concat([overbass, fermatas])
-
-        cadences = cadence.CadenceIndexer(df, settings).run()
-        print(cadences)
         """
 
         endings = []

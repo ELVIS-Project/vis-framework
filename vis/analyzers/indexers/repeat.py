@@ -41,6 +41,17 @@ class FilterByRepeatIndexer(indexer.Indexer):
     Because of how a :class:`DataFrame`'s index works, many of the events that would have been
     filtered will instead be replaced with :const:`numpy.NaN`. Please be careful that the behaviour
     of this indexer matches your expectations.
+
+
+    ***Example:***
+
+    # Prepare an indexed piece
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_piece.xml')
+
+    # This example filters the repeats out of the NoteRestIndexer results, but any can be passed.
+    notes = ip.get_data('noterest')
+    ip.get_data('repeat', data=notes)
     """
 
     required_score_type = 'pandas.Series'
@@ -67,17 +78,6 @@ class FilterByRepeatIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the new indices.
         :rtype: :class:`pandas.DataFrame`
-
-        ***Example:***
-
-        import music21
-        from vis.analyzers.indexers import noterest
-
-        score = music21.converter.parse('example.xml')
-        notes = noterest.NoteRestIndexer(score).run()
-
-        repeats = repeat.FilterByRepeatIndexer(notes).run()
-        print(repeats)
         """
         post = [part[part != part.shift(1)] for part in self._score]
 

@@ -59,7 +59,7 @@ over_name = 'over_bass.OverBassIndexer'
 result = pandas.DataFrame({label: pandas.Series([str(intvl) for intvl in list(zip(*overs))], index=index)})
 EXPECTED = make_dataframe(result.columns.values, [result[name] for name in result.columns], over_name)
 
-df = pandas.concat([EXPECTED, FERMS], axis=1)
+lyst = [EXPECTED, FERMS]
 
 index = [2.0, 4.5, 9.0]
 cads = [["('M2', 'M3', 'P5', 'M7')", "('P1', 'P8', 'M3', 'P5')"], 
@@ -76,51 +76,51 @@ class TestCadenceIndexer(TestCase):
 
     def test_init1(self):
         """tests that __init__() works with only the basic settings given"""
-        actual = cadence.CadenceIndexer(df, {'length': 4})
+        actual = cadence.CadenceIndexer(lyst, {'length': 4})
         self.assertEqual(actual._settings, {'length': 4, 'voice': 'all'})
 
     def test_init2(self):
         """tests that __init__() works with all possible settings given"""
-        settings = {'length': 3, 'voice': 1}
-        actual = cadence.CadenceIndexer(df, settings)
+        settings = {'length': 3, 'voice': 0}
+        actual = cadence.CadenceIndexer(lyst, settings)
         self.assertEqual(actual._settings, settings)
 
     def test_init3(self):
         """tests that __init__() fails when length is not given"""
         settings = {}
-        self.assertRaises(RuntimeError, cadence.CadenceIndexer, df, settings)
+        self.assertRaises(RuntimeError, cadence.CadenceIndexer, lyst, settings)
         try:
-            cadence.CadenceIndexer(df, settings)
+            cadence.CadenceIndexer(lyst, settings)
         except RuntimeError as run_err:
             self.assertEqual(cadence.CadenceIndexer._MISSING_LENGTH, run_err.args[0])
 
     def test_init4(self):
         """tests that __init__() fails when the given length is too low"""
         settings = {'length': 0.3}
-        self.assertRaises(RuntimeError, cadence.CadenceIndexer, df, settings)
+        self.assertRaises(RuntimeError, cadence.CadenceIndexer, lyst, settings)
         try:
-            cadence.CadenceIndexer(df, settings)
+            cadence.CadenceIndexer(lyst, settings)
         except RuntimeError as run_err:
             self.assertEqual(cadence.CadenceIndexer._LOW_LENGTH, run_err.args[0])
 
     def test_init5(self):
         """tests that __init__() fails when the given voice doesn't exist"""
         settings = {'length': 2, 'voice': 15}
-        self.assertRaises(RuntimeError, cadence.CadenceIndexer, df, settings)
+        self.assertRaises(RuntimeError, cadence.CadenceIndexer, lyst, settings)
         try: 
-            cadence.CadenceIndexer(df, settings)
+            cadence.CadenceIndexer(lyst, settings)
         except RuntimeError as run_err:
             self.assertEqual(cadence.CadenceIndexer._BAD_VOICE, run_err.args[0])
 
     def test_cadence(self):
         """tests that running the cadence indexer returns the expected results"""
         settings = {'length': 2}
-        actual = cadence.CadenceIndexer(df, settings).run()
+        actual = cadence.CadenceIndexer(lyst, settings).run()
         self.assertTrue(actual.equals(CADENCE))
 
     def test_cadence2(self):
         settings = {'length': 2, 'voice': 0}
-        actual = cadence.CadenceIndexer(df, settings).run()
+        actual = cadence.CadenceIndexer(lyst, settings).run()
         self.assertTrue(actual.equals(CADENCE))
 
 #--------------------------------------------------------------------------------------------------#
