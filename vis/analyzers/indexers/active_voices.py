@@ -73,16 +73,16 @@ class ActiveVoicesIndexer(indexer.Indexer):
 
     **Examples**
 
-    # Prepare an indexed piece
+    Prepare an indexed piece:
     
     >>> from vis.models.indexed_piece import Importer
     >>> ip = Importer('path_to_piece.xml')
 
-    # Get the ActiveVoicesIndexer results with the default settings
+    Get the ActiveVoicesIndexer results with the default settings:
     
     >>> ip.get_data('active_voices')
 
-    # Get the ActiveVoicesIndexer results with specified settings
+    Get the ActiveVoicesIndexer results with specified settings:
     
     >>> av_setts = {'attacked': True, 'show_all': True}
     >>> ip.get_data('active_voices', settings=av_setts)
