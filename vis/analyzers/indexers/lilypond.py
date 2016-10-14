@@ -58,13 +58,26 @@ class AnnotationIndexer(indexer.Indexer):
     """
     :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
     :type 'mp': boolean
+
+    **Example**
+
+    # Prepare an indexed piece
+    from vis.models.indexed_piece import Importer
+    ip = Importer('path_to_piece.xml')
+
+    # Get a list of series of annotations; this example uses the dissonance indexer results:
+    diss_ind = ip.get_data('dissonance')
+    list_of_series = [diss_ind.iloc[:, x] for x in range(len(diss_ind.columns))]
+
+    # Actually run the AnnotationIndexer
+    annotations = ip.get_data('annotation', data=list_of_series)
     """
 
     def __init__(self, score, settings=None):
         """
         :param score: The input from which to produce a new index.
         :type score: list of :class:`pandas.Series`
-        :param settings: Nothing.
+        :param settings: Nothing
         :type settings: dict or NoneType
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.

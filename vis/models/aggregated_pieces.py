@@ -43,20 +43,20 @@ class AggregatedPieces(object):
 
     # When get_data() is called but _pieces is still an empty list.
     _NO_PIECES = 'This aggregated_pieces object has no pieces assigned to it. This probably means \
-    that this aggregated_pieces object was instantiated incorrectly. Please refer to the \
-    documentation on the Importer() method in vis.models.indexed_piece.'
+that this aggregated_pieces object was instantiated incorrectly. Please refer to the documentation \
+on the Importer() method in vis.models.indexed_piece.'
 
     # When a directory has no files in it.
     _NO_FILES = 'There are no files in the directory provided.'
 
     # When get_data() is missing the "settings" and/or data" argument but needed them, or was supplied .
     _SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS = 'You made improper use of the settings and/or data \
-    arguments. Please refer to the {} documentation to see what it requires.'
+arguments. Please refer to the {} documentation to see what it requires.'
 
     # When one of the "aggregated_experiments" classes in get_data() isn't an Experimenter subclass
     _NOT_EXPERIMENTER = 'The "combined_experimenter" argument of the AggregatedPieces.get_data() \
-    method requires an experimenter that can combine the results of multiple pieces but instead \
-    received {}. Please choose from one of the following: {}.'
+method requires an experimenter that can combine the results of multiple pieces but instead \
+received {}. Please choose from one of the following: {}.'
 
     # When metadata() gets a 'field' argument that isn't a string
     _FIELD_STRING = "parameter 'field' must be of type 'string'"
@@ -253,7 +253,8 @@ class AggregatedPieces(object):
 
         if (combined_experimenter is not None and (combined_experimenter not in self._mkd.keys(str) 
             and combined_experimenter not in self._mkd.keys(type))): # make sure combined_experimenter is an appropriate experimenter
-            raise TypeError(AggregatedPieces._NOT_EXPERIMENTER.format(combined_experimenter, self._mkd.keys(str)))
+            raise TypeError(AggregatedPieces._NOT_EXPERIMENTER.format(combined_experimenter,
+                                                                      sorted([k[0] for k in self._mkd.keys()])))
 
         args_dict = {} # Only pass the settings argument if it is not ``None``.
         if settings is not None:

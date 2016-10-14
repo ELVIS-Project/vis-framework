@@ -28,22 +28,23 @@ The VIS Framework uses many software libraries to help with analysis. These are 
 
 These are recommended dependencies:
 
-- numexpr (improved performance for pandas)
-- Bottleneck (improved performance for pandas)
-- tables (HDF5 output for pandas)
-- openpyxl (Excel output for pandas)
-- mock (for testing)
-- coverage (for testing)
-- python-coveralls (to for automated coverage with coveralls.io)
-- matplotlib (plotting)
-- scipy (plotting)
+- [numexpr](https://pypi.python.org/pypi/numexpr) (improved performance for pandas)
+- [Bottleneck](https://pypi.python.org/pypi/Bottleneck) (improved performance for pandas)
+- [tables](https://pypi.python.org/pypi/tables) (HDF5 output for pandas)
+- [openpyxl](https://pypi.python.org/pypi/openpyxl) (Excel output for pandas)
+- [mock](https://pypi.python.org/pypi/mock) (for testing)
+- [coverage](https://pypi.python.org/pypi/coverage) (for testing)
+- [python-coveralls](https://pypi.python.org/pypi/python-coveralls) (to for automated coverage with coveralls.io)
+- [matplotlib](https://pypi.python.org/pypi/matplotlib) (plotting)
+- [scipy](https://pypi.python.org/pypi/scipy) (plotting)
 
 Documentation
 =============
 
-You can find current documentation here:
+You can find documentation here:
+- [Major Release Documentation](http://vis-framework.readthedocs.org/en/vis-framework-2.0.0/)
 - [Stable Release Documentation](http://vis-framework.readthedocs.org/en/stable/)
-- [Latest Release Documentation](http://vis-framework.readthedocs.org/en/latest/)
+- [Latest Release Documentation](http://vis-framework.readthedocs.org/en/latest/), a.k.a. "bleeding edge" 
 
 Citation
 ========

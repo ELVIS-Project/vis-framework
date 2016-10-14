@@ -157,7 +157,7 @@ class TestAggregatedPieces(TestCase):
             self.agg_p.get_data(None, '')
         except TypeError as t_err:
             # pylint: disable=protected-access
-            self.assertEqual(AggregatedPieces._NOT_EXPERIMENTER.format('', self.agg_p._mkd.keys(str)),
+            self.assertEqual(AggregatedPieces._NOT_EXPERIMENTER.format('', sorted([k[0] for k in self.agg_p._mkd.keys()])),
                              t_err.args[0])
 
     def test_get_data_2(self):
