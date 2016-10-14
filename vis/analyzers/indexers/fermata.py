@@ -30,6 +30,7 @@
 .. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Index fermatas.
+
 """
 
 import six
@@ -94,7 +95,7 @@ class FermataIndexer(indexer.Indexer):
 
         :raises: :exc:`RuntimeError` if ``score`` is not a pandas 
             Dataframe.
-            
+
         """
         super(FermataIndexer, self).__init__(score, None)
         self._types = ('Note', 'Rest', 'Chord')
