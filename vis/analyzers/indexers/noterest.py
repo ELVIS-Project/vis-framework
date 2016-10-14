@@ -201,7 +201,7 @@ class MultiStopIndexer(indexer.Indexer):
 
     >>> from vis.models.indexed_piece import Importer
     >>> ip = Importer('path_to_piece.xml')
-    >>>ip.get_data('multistop')
+    >>> ip.get_data('multistop')
     
     """
 
