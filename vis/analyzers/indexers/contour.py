@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#--------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------- #
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
@@ -19,18 +19,22 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
+# You should have received a copy of the GNU Affero General Public 
+# License along with this program. If not, see 
+# <http://www.gnu.org/licenses/>.
+# -------------------------------------------------------------------- #
 """
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
+.. codeauthor:: Reiner Kramer <reiner@music.org>
+
+.. todo:: Properly document the ``COM_matrix`` and ``compare`` 
+    functions.
 
 """
 
 from vis.analyzers import indexer
 import music21
 import pandas
-
 
 def COM_matrix(contour):
     """
@@ -56,10 +60,10 @@ def COM_matrix(contour):
 
     return com
 
-
 def getContour(notes):
     """
-    Method used by the ContourIndexer to convert pitches into contour numbers.
+    Method used internally by the ``ContourIndexer`` class to convert 
+    pitches into contour numbers.
     """
 
     contour = list(map(music21.note.Note, notes))
@@ -78,10 +82,9 @@ def getContour(notes):
 
     return str(cseg)
 
-
 def compare(contour1, contour2):
     """
-    Additional method to compare COM_matrices.
+    Additional method to compare ``COM_matrices``.
     """
 
     count = 0
@@ -93,34 +96,43 @@ def compare(contour1, contour2):
 
     count = float((count - l) / 2)
     total = float((l * (l - 1)) / 2)
+    
     return count / total
 
 
 class ContourIndexer(indexer.Indexer):
     """
-    Indexes the contours of a given length in a piece, where contour is a
-    way of numbering the relative heights of pitches, beginning at 0 for the
-    lowest pitch.
+    Indexes the contours of a given length in a piece, where contour is 
+    a way of numbering the relative heights of pitches, beginning at 0 
+    for the lowest pitch.
 
-    Call this indexer via the get_data() method of either an indexed_piece object or an 
-    aggregated_pieces object (see example below). If nothing is passed in the 'data' argument of the 
-    call to get_data(), then the default is to process the NoteRestIndexer results of the 
-    indexed_piece in question. You can pass some other DataFrame in the 'data' argument, but this is 
-    not recommended.
+    Call this indexer via the ``get_data()`` method of either an 
+    ``indexed_piece`` object or an ``aggregated_pieces`` object (see 
+    example below). If nothing is passed in the 'data' argument of the 
+    call to ``get_data()``, then the default is to process the 
+    ``NoteRestIndexer`` results of the ``indexed_piece`` in question. 
+    You can pass some other DataFrame to the 'data' argument, but it is
+    discouraged.
 
-    :keyword 'length': This is the length of the contour you want to look at.
+    :keyword 'length': This is the length of the contour you want to 
+        look at.
+    
     :type 'length': int
 
     **Example:**
 
-    # Prepare an indexed piece
-    from vis.models.indexed_piece import Importer
-    ip = Importer('path_to_piece.xml')
+    Prepare an indexed piece:
 
-    # Get the ContourIndexer results with specified settings and processing the notes and rests.
-    notes = ip.get_data('noterest')
-    contour_setts = {'length': 3}
-    ip.get_data('contour', data=notes, settings=contour_setts)
+    >>> from vis.models.indexed_piece import Importer
+    >>> ip = Importer('path_to_piece.xml')
+
+    Get the ``ContourIndexer`` results with specified settings and 
+    processing the notes and rests:
+    
+    >>> notes = ip.get_data('noterest')
+    >>> contour_setts = {'length': 3}
+    >>> ip.get_data('contour', data=notes, settings=contour_setts)
+    
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -132,14 +144,23 @@ class ContourIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        :param score: The input from which to produce the contour indexer results.
+        :param score: The input from which to produce the contour 
+            indexer results.
+        
         :type score: :class:`pandas.DataFrame`
+        
         :param settings: All the settings required by this indexer.
+        
         :type settings: dict or None
 
-        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
-        :raises: :exc:`RuntimeError` if the required settings are not present in the ``settings`` argument.
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong 
+            type.
+
+        :raises: :exc:`RuntimeError` if the required settings are not 
+            present in the ``settings`` argument.
+        
         :raises: :exc:`RuntimeError` if the value of 'length' is below 1
+        
         """
 
         if settings is None or 'length' not in settings:
@@ -160,6 +181,7 @@ class ContourIndexer(indexer.Indexer):
 
         :returns: A :class:`DataFrame` of the contours.
         :rtype: :class:`pandas.DataFrame`
+        
         """
 
         contours = []
