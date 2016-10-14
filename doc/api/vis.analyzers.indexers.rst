@@ -9,6 +9,30 @@ indexers Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`active_voices` Module
+----------------------
+
+.. automodule:: vis.analyzers.indexers.active_voices
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`cadence` Module
+----------------------
+
+.. automodule:: vis.analyzers.indexers.cadence
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`contour` Module
+----------------------
+
+.. automodule:: vis.analyzers.indexers.contour
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`dissonance` Module
 ----------------------
 
@@ -41,18 +65,10 @@ indexers Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`metre` Module
+:mod:`meter` Module
 -------------------
 
-.. automodule:: vis.analyzers.indexers.metre
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`new_ngram` Module
--------------------
-
-.. automodule:: vis.analyzers.indexers.new_ngram
+.. automodule:: vis.analyzers.indexers.meter
     :members:
     :undoc-members:
     :show-inheritance:
@@ -81,6 +97,14 @@ indexers Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`over_bass` Module
+--------------------
+
+.. automodule:: vis.analyzers.indexers.over_bass
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`repeat` Module
 --------------------
 
@@ -93,6 +117,14 @@ indexers Package
 ----------------------
 
 .. automodule:: vis.analyzers.indexers.template
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`windexer` Module
+----------------------
+
+.. automodule:: vis.analyzers.indexers.windexer
     :members:
     :undoc-members:
     :show-inheritance:
