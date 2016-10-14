@@ -53,11 +53,12 @@ class ActiveVoicesIndexer(indexer.Indexer):
     attacking, depending on the settings passed. 
 
     Call this indexer via the ``get_data()`` method of either an 
-    indexed_piece object or an aggregated_pieces object (see example 
-    below). If nothing is passed in the 'data' argument of the call to 
-    ``get_data()``, then the default is to process the NoteRestIndexer 
-    results of the indexed_piece in question. You can pass some other 
-    DataFrame in the 'data' argument, but this is not recommended.
+    ``indexed_piece`` object or an ``aggregated_pieces`` object (see 
+    example below). If nothing is passed in the 'data' argument of the 
+    call to ``get_data()``, then the default is to process the 
+    ``NoteRestIndexer`` results of the ``indexed_piece`` in question. 
+    You can pass some other DataFrame in the 'data' argument, but it is 
+    discouraged.
 
     :keyword 'attacked':    When true, only counts the voices that are 
                             attacking at each offset. Defaults to false.
@@ -69,7 +70,6 @@ class ActiveVoicesIndexer(indexer.Indexer):
                             false.
     
     :type 'show_all':       boolean
-
 
     **Examples**
 
