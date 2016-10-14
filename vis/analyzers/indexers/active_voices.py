@@ -71,7 +71,7 @@ class ActiveVoicesIndexer(indexer.Indexer):
     
     :type 'show_all':       boolean
 
-    **Examples**
+    **Examples:**
 
     Prepare an indexed piece:
     
