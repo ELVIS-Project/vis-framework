@@ -358,7 +358,8 @@ class NGramIndexer(indexer.Indexer):
                 raise RuntimeWarning(NGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
             elif (self._settings['horizontal'] not in ('lowest', 'highest') 
                 and not all([col_name in self._score[1].columns.levels[1] 
-                    for tup in settings['horizontal'] for col_name in tup])):
+                    for tup in settings['horizontal'] 
+                    for col_name in tup])):
                 raise RuntimeError(NGramIndexer._HORIZONTAL_OUT_OF_RANGE)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
         elif len(self._score) != 1: 
