@@ -91,7 +91,7 @@ class FilterByRepeatIndexer(indexer.Indexer):
     def run(self):
         """
         Make a new index of the piece, removing any event that is 
-            identical to the preceding.
+        identical to the preceding.
 
         :returns: A :class:`DataFrame` of the new indices.
         
