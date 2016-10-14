@@ -334,16 +334,37 @@ def chr_und_com_analysis(interv):
 
 #-----------------------------------------*
 
-#                    NO_QUALITY      -    WITH_QUALITY    -     CHROMATIC      -  INTERVAL CLASS
-indexer_funcs = (indexer_dnq_dir_sim, indexer_dwq_dir_sim, indexer_chr_dir_sim, indexer_icl_dir_sim,        # DIRECTED   & SIMPLE
-                 indexer_dnq_und_sim, indexer_dwq_und_sim, indexer_chr_und_sim, indexer_icl_und_sim,        # UNDIRECTED & SIMPLE
-                 indexer_dnq_dir_com, indexer_dwq_dir_com, indexer_chr_dir_com, None,                       # DIRECTED   & COMPOUND
-                 indexer_dnq_und_com, indexer_dwq_und_com, indexer_chr_und_com, None)                       # UNDIRECTED & COMPOUND
+'''
+The following function names are made up of the following combination of 
+postfixes:
 
-analysis_types = (dnq_dir_sim_analysis, dwq_dir_sim_analysis, chr_dir_sim_analysis, icl_dir_sim_analysis,
-                  dnq_und_sim_analysis, dwq_und_sim_analysis, chr_und_sim_analysis, icl_und_sim_analysis,
-                  dnq_dir_com_analysis, dwq_dir_com_analysis, chr_dir_com_analysis, None,
-                  dnq_und_com_analysis, dwq_und_com_analysis, chr_und_com_analysis, None)
+dnq => no quality
+dwq => with quality
+chr => chromatic
+icl => interval class
+dir => directed
+und => undirected
+sim => simple
+com => compound
+'''
+
+indexer_funcs = (indexer_dnq_dir_sim, indexer_dwq_dir_sim, 
+                 indexer_chr_dir_sim, indexer_icl_dir_sim,        
+                 indexer_dnq_und_sim, indexer_dwq_und_sim, 
+                 indexer_chr_und_sim, indexer_icl_und_sim,        
+                 indexer_dnq_dir_com, indexer_dwq_dir_com, 
+                 indexer_chr_dir_com, None,                       
+                 indexer_dnq_und_com, indexer_dwq_und_com, 
+                 indexer_chr_und_com, None)                      
+
+analysis_types = (dnq_dir_sim_analysis, dwq_dir_sim_analysis, 
+                  chr_dir_sim_analysis, icl_dir_sim_analysis,
+                  dnq_und_sim_analysis, dwq_und_sim_analysis, 
+                  chr_und_sim_analysis, icl_und_sim_analysis,
+                  dnq_dir_com_analysis, dwq_dir_com_analysis, 
+                  chr_dir_com_analysis, None,
+                  dnq_und_com_analysis, dwq_und_com_analysis, 
+                  chr_und_com_analysis, None)
 
 class IntervalIndexer(indexer.Indexer):
     """
@@ -378,14 +399,25 @@ class IntervalIndexer(indexer.Indexer):
     **Example:**
 
     >>> from vis.models.indexed_piece import Importer
-    >>> settings = {'quality': 'chromatic', 'simple or compound': 'simple', 'directed': True}
+    >>> settings = {
+            'quality': 'chromatic', 
+            'simple or compound': 'simple', 
+            'directed': True
+        }
     >>> ip = Importer('pathnameToScore.xml')
     >>> ip.get_data('vertical_interval', settings)
     
     """
     required_score_type = 'pandas.DataFrame'
-    default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 'mp': True}
-    "A dict of default settings for the :class:`IntervalIndexer`."
+
+    default_settings = {
+        'simple or compound': 'compound', 
+        'quality': False, 
+        'directed':True, 
+        'mp': True
+    }
+
+    #"A dict of default settings for the :class:`IntervalIndexer`."
 
     def __init__(self, score, settings=None):
         """
@@ -501,7 +533,11 @@ class HorizontalIntervalIndexer(IntervalIndexer):
      **Example:**
      
     >>> from vis.models.indexed_piece import Importer
-    >>> settings = {'quality': 'interval class', 'simple or compound': 'simple', 'directed': False}
+    >>> settings = {
+            'quality': 'interval class', 
+            'simple or compound': 'simple', 
+            'directed': False
+        }
     >>> ip = Importer('pathnameToScore.xml')
     >>> ip.get_data('horizontal_interval', settings)
     
