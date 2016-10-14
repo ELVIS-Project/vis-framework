@@ -89,8 +89,8 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
     :class:`Note`, :class:`Rest`, and :class:`Chord` objects.
 
     .. note:: Unlike nearly all other indexers, this indexer returns a 
-    :class:`Series` of ``float`` objects rather than ``unicode`` 
-    objects.
+        :class:`Series` of ``float`` objects rather than ``unicode`` 
+        objects.
     
     **Example:**
 
@@ -125,9 +125,9 @@ class DurationIndexer(indexer.Indexer):
     difference in index positions of consecutive events.
 
     .. note:: Unlike nearly all other indexers, this indexer returns a 
-    :class:`Series` of ``float`` objects rather than ``unicode`` 
-    objects. Also unlike most other indexers, this indexer does not have 
-    an indexer func.
+        :class:`Series` of ``float`` objects rather than ``unicode`` 
+        objects. Also unlike most other indexers, this indexer does not have 
+        an indexer func.
 
     **Example:**
     
