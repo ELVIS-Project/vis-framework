@@ -105,12 +105,13 @@ class Windexer(indexer.Indexer):
 
         x = 0
         l = self._settings['window_size'] - 1
-        indices = self._score.index.tolist()
 
+        indices = self._score.index.tolist()
         windowed = pandas.DataFrame(self._score[indices[x]:indices[l]])
 
         x += 1
         l += 1
+        
         while l < len(indices):
 
             temp = pandas.DataFrame(self._score[indices[x]:indices[l]])
