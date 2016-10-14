@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#--------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------- #
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
@@ -19,12 +19,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
+# You should have received a copy of the GNU Affero General Public 
+# License along with this program. If not, see 
+# <http://www.gnu.org/licenses/>.
+# -------------------------------------------------------------------- #
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 .. codeauthor:: Alexander Morgan
+.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Indexers that consider repetition in any way.
 """
@@ -35,37 +37,51 @@ from vis.analyzers import indexer
 
 class FilterByRepeatIndexer(indexer.Indexer):
     """
-    If the same event occurs many times in a row, remove all occurrences but the one with the \
-    lowest ``offset`` value (i.e., the "first" event).
+    If the same event occurs many times in a row, remove all occurrences 
+    but the one with the lowest ``offset`` value (i.e., the "first" 
+    event).
 
-    Because of how a :class:`DataFrame`'s index works, many of the events that would have been
-    filtered will instead be replaced with :const:`numpy.NaN`. Please be careful that the behaviour
-    of this indexer matches your expectations.
+    Because of how a :class:`DataFrame`'s index works, many of the 
+    events that would have been filtered will instead be replaced with 
+    :const:`numpy.NaN`. Please be careful that the behaviour of this 
+    indexer matches your expectations.
 
+    **Example:**
 
-    ***Example:***
+    Prepare an indexed piece:
+    
+    >>> from vis.models.indexed_piece import Importer
+    >>> ip = Importer('path_to_piece.xml')
 
-    # Prepare an indexed piece
-    from vis.models.indexed_piece import Importer
-    ip = Importer('path_to_piece.xml')
-
-    # This example filters the repeats out of the NoteRestIndexer results, but any can be passed.
-    notes = ip.get_data('noterest')
-    ip.get_data('repeat', data=notes)
+    This example filters the repeats out of the ``NoteRestIndexer`` 
+    results, but any can be passed:
+    
+    >>> notes = ip.get_data('noterest')
+    >>> ip.get_data('repeat', data=notes)
+    
     """
 
     required_score_type = 'pandas.Series'
 
     def __init__(self, score, settings=None):
         """
-        :param score: The indices from which to remove consecutive identical events. There must be
-            at least one part in the score.
-        :type score: :class:`pandas.DataFrame` or list of :class:`pandas.Series`
-        :param settings: This indexer uses no settings, so this is ignored.
+        :param score: The indices from which to remove consecutive 
+            identical events. There must be at least one part in the 
+            score.
+        
+        :type score: :class:`pandas.DataFrame` or list of 
+            :class:`pandas.Series`
+        
+        :param settings: This indexer uses no settings, so this is 
+            ignored.
+        
         :type settings: dict or NoneType
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the 
+            same types.
+        
         """
         super(FilterByRepeatIndexer, self).__init__(score, None)
 
@@ -74,13 +90,17 @@ class FilterByRepeatIndexer(indexer.Indexer):
 
     def run(self):
         """
-        Make a new index of the piece, removing any event that is identical to the preceding.
+        Make a new index of the piece, removing any event that is 
+            identical to the preceding.
 
         :returns: A :class:`DataFrame` of the new indices.
+        
         :rtype: :class:`pandas.DataFrame`
+        
         """
         post = [part[part != part.shift(1)] for part in self._score]
 
         # prepare the proper return type
         combinations = [[x] for x in range(len(self._score))]
-        return self.make_return([six.u(str(x))[1:-1] for x in combinations], post)
+        return self.make_return([six.u(str(x))[1:-1] 
+            for x in combinations], post)
