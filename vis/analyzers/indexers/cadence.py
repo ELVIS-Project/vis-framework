@@ -52,7 +52,7 @@ class CadenceIndexer(indexer.Indexer):
     
     :type 'voice': str or int
 
-    ***Example***
+    **Example**
 
     Prepare an indexed piece and import pandas:
 
