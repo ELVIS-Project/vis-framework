@@ -27,7 +27,6 @@
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 .. codeauthor:: Alexander Morgan
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Index note and rest objects into pandas DataFrame(s).
 
