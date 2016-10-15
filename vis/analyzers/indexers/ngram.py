@@ -26,7 +26,6 @@
 """
 .. codeauthor:: Alexander Morgan
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Indexer to find k-part any-object n-grams. This file is a 
 re-implimentation of the previous ngram_indexer.py file.
