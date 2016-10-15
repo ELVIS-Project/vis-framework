@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#--------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------- #
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
@@ -19,11 +19,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
+# You should have received a copy of the GNU Affero General Public 
+# License along with this program.  If not, see 
+# <http://www.gnu.org/licenses/>.
+# -------------------------------------------------------------------- #
 """
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
+.. codeauthor:: Reiner Kramer <reiner@music.org>
+
 """
 
 from vis.analyzers import indexer
@@ -32,41 +35,49 @@ import pandas
 
 class CadenceIndexer(indexer.Indexer):
     """
-    Using OverBassIndexer and FermataIndexer results, finds cadences as lists of events in the 
-    approach to a fermata.
+    Using ``OverBassIndexer`` and ``FermataIndexer`` results, finds 
+    cadences as lists of events in the approach to a fermata.
 
-    Call this indexer via the get_data() method of either an indexed_piece object or an 
-    aggregated_pieces object (see example below).
+    Call this indexer via the ``get_data()`` method of either an 
+    ``indexed_piece`` object or an ``aggregated_pieces`` object (see 
+    example below).
 
-    :keyword 'length': The length of the cadence, or how many events happen
-        before a fermata.
-    :type 'length': int
+    :keyword 'length':  The length of the cadence, or how many events 
+                        happen before a fermata.
+    
+    :type 'length':     int
 
-    :keyword 'voice': The voice in which you want to look for fermatas.
-        The default value for this is 'all'.
+    :keyword 'voice':   The voice in which you want to look for 
+                        fermatas. The default value for this is 'all'.
+    
     :type 'voice': str or int
 
+    **Example:**
 
-    ***Example***
+    Prepare an indexed piece and import pandas:
 
-    # Prepare an indexed piece and import pandas
-    from vis.models.indexed_piece import Importer
-    import pandas
-    ip = Importer('path_to_piece.xml')
+    >>> from vis.models.indexed_piece import Importer
+    >>> import pandas
+    >>> ip = Importer('path_to_piece.xml')
 
-    # Prepare OverBassIndexer and FermataIndexer results. For more specific advice on how to do 
-    # this, please see the documentation of those two indexers. These two DataFrames should be 
-    # passed as a list. For simplicity, including the FermataIndexer results is optional, and this 
-    # example shows how to use the CadenceIndexer without explicitly providing the FermataIndexer 
-    # results, so the 'data' argument is a singleton list.
+    Prepare ``OverBassIndexer`` and ``FermataIndexer`` results. For more 
+    specific advice on how to do this, please see the documentation of 
+    those two indexers. These two DataFrames should be passed as a list. 
+    For simplicity, including the ``FermataIndexer`` results is 
+    optional, and this example shows how to use the ``CadenceIndexer`` 
+    without explicitly providing the ``FermataIndexer`` results, so the 
+    'data' argument is a singleton list.
 
-    overbass_input_dfs = [ip.get_data('noterest'), ip.get_data('vertical_interval')]
-    ob_setts = {'type': 'notes'}
-    overbass = ip.get_data('over_bass', data=overbass_input_dfs, settings=ob_setts)
+    >>> overbass_input_dfs = [ip.get_data('noterest'), 
+            ip.get_data('vertical_interval')]
+    >>> ob_setts = {'type': 'notes'}
+    >>> overbass = ip.get_data('over_bass', data=overbass_input_dfs, 
+            settings=ob_setts)
     
-    # Get the CadenceIndexer results with specified settings
-    ca_setts = {'length': 3}
-    ip.get_data('cadence', data=[overbass], settings=ca_setts)
+    Get the ``CadenceIndexer`` results with specified settings:
+    >>> ca_setts = {'length': 3}
+    >>> ip.get_data('cadence', data=[overbass], settings=ca_setts)
+    
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -78,17 +89,23 @@ class CadenceIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        :param score: The OverBassIndexer results and FermataIndexer results
-            to be used to find cadences.
+        :param score:   The OverBassIndexer results and FermataIndexer 
+            results to be used to find cadences.
+        
         :type score: :class:`pandas.DataFrame`
+        
         :param settings: The setting 'length' is required.
+        
         :type settings: dict
 
-        :raises: :exc:`RuntimeError` if the required setting 'length' is not
-            given.
+        :raises: :exc:`RuntimeError` if the required setting 'length' is 
+            notgiven.
+        
         :raises: :exc:`RuntimeError` if the value of 'length' is below 1
+        
         :raises: :exc:`RuntimeError` if the given voice is not a voice found
             in the piece.
+
         """
         self._score = pandas.concat(score, axis=1)
         self.fig = self._score['over_bass.OverBassIndexer']
