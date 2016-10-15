@@ -390,7 +390,8 @@ class IndexedPiece(object):
     ip._score
     """
 
-    # When get_data() is missing the "settings" and/or data" argument but needed them, or was supplied .
+    # When get_data() is missing the "settings" and/or data" argument but needed them, or was 
+    # supplied this information, but couldn't use it.
     _SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS = 'You made improper use of the settings and/or data \
 arguments. Please refer to the {} documentation to see what is required by the Indexer or \
 Experimenter requested.'
@@ -398,8 +399,17 @@ Experimenter requested.'
     # When get_data() gets an analysis_cls argument that isn't a key in IndexedPiece._mkd.
     _NOT_AN_ANALYZER = 'Could not recognize the requested Indexer or Experimenter (received {}). \
 When using IndexedPiece.get_data(), please use one of the following short- or long-format \
-strings to identify the desired Indexer or Experimenter: \
-{}.'
+strings to identify the desired Indexer or Experimenter: {}.'
+
+    # When measure_index() is run on a piece with no measure information.
+    _NO_MEASURES = 'VIS is unable to detect measures in this IndexedPiece. Please note that measures \
+are not encoded in midi files so VIS currently cannot detect measures in midi files.'
+
+    # When measure_index() is passed a dataframe with no events in it (not even NaN's).
+    _NO_EVENTS = 'The passed DataFrame does not have any events in it.'
+
+    # When measure_index() is passed something other than a dataframe.
+    _NOT_DATAFRAME = 'The passed argument must be a pandas.DataFrame and cannot be empty.'
 
     # When metadata() gets an invalid field name
     _INVALID_FIELD = 'metadata(): invalid field ({})'
@@ -799,6 +809,46 @@ strings to identify the desired Indexer or Experimenter: \
             raise RuntimeWarning(IndexedPiece._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(analyzer_name))
 
         return results
+
+    def measure_index(self, dataframe):
+        """Multi-indexes the index of the passed dataframe by adding the measures to the offsets. 
+        The passed dataframe should be of an indexer's results, not an experimenters. Also adds 
+        index labels. Note that this method currently does not work with midi files, because VIS 
+        cannot detect measures in midi files since they are not encoded in midi. Also note that this 
+        method should ideally only be used at the end of a set of analysis steps, because there is 
+        no guarantee that the resultant multi-indexed dataframe will not cause problems if passed to 
+        a subsequent indexer.
+
+        **Example**
+        from vis.models.indexed_piece import Importer()
+        # Make an IndexedPiece object out of a symbolic notation file:
+        ip = Importer('path_to_file.xml')
+        # Get some results from an indexer (not an experimenter):
+        df = ip.get_data('horizontal_interval')
+        # Multi-index the dataframe index by adding the measure informaiton:
+        ip.measure_index(df)
+        """
+        if not isinstance(dataframe, pandas.DataFrame):
+            raise RuntimeWarning(IndexedPiece._NOT_DATAFRAME)
+        if len(dataframe.index) == 0:
+            raise RuntimeWarning(IndexedPiece._NO_EVENTS)
+        # Make a copy of the dataframe to avoid altering it inplace
+        df = dataframe.copy()
+        # Get a series of the measures from the first part of this IndexedPiece
+        measures = self.get_data('measure').iloc[:, 0]
+        # Make sure it actually has measure events in it. NB: measure detection doesn't work with midi files
+        if measures.empty:
+            raise RuntimeWarning(IndexedPiece._NO_MEASURES)
+        # Provide label for existing index
+        df.index.name = 'Offset'
+        # Add measures as a column of the dataframe which merges the indecies
+        df['Measure'] = measures
+        # Forward-fill measure observations so that there's one label per event
+        df['Measure'] = df['Measure'].ffill().apply(int)
+        # Reassign new column as an extra index
+        df.set_index('Measure', append=True, inplace=True)
+        # Rearrange indecies and return result. NB: rearranging cannot be done in place
+        return df.reorder_levels(('Measure', 'Offset'))
 
     def _open_file(self):
 
