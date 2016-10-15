@@ -26,7 +26,6 @@
 """
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
 .. codeauthor:: Alexander Morgan
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 """
 
@@ -84,7 +83,10 @@ class ActiveVoicesIndexer(indexer.Indexer):
 
     Get the ``ActiveVoicesIndexer`` results with specified settings:
     
-    >>> av_setts = {'attacked': True, 'show_all': True}
+    >>> av_setts = {
+            'attacked': True, 
+            'show_all': True
+        }
     >>> ip.get_data('active_voices', settings=av_setts)
     
     """
