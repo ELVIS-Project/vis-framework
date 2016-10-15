@@ -26,7 +26,6 @@
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 .. codeauthor:: Alexander Morgan
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Indexers that modify the "offset" values (floats stored as the "index" 
 of a :class:`pandas.Series`), potentially adding repetitions of or 

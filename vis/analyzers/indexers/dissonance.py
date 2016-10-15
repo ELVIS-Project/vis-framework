@@ -26,7 +26,6 @@
 """
 .. codeauthor:: Alexander Morgan
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 """
 import pandas

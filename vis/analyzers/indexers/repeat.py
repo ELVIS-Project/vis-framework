@@ -26,7 +26,6 @@
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 .. codeauthor:: Alexander Morgan
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Indexers that consider repetition in any way.
 """

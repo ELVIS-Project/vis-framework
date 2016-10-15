@@ -26,7 +26,6 @@
 """
 .. codeauthor:: Christopher Antila <crantila@fedoraproject.org>
 .. codeauthor:: Alexander Morgan
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Index intervals. Use the :class:`IntervalIndexer` to find vertical 
 (harmonic) intervals between two parts. Use the 

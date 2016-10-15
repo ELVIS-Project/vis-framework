@@ -25,7 +25,6 @@
 # -------------------------------------------------------------------- #
 """
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 """
 
@@ -70,7 +69,9 @@ class CadenceIndexer(indexer.Indexer):
 
     >>> overbass_input_dfs = [ip.get_data('noterest'), 
             ip.get_data('vertical_interval')]
-    >>> ob_setts = {'type': 'notes'}
+    >>> ob_setts = {
+            'type': 'notes'
+        }
     >>> overbass = ip.get_data('over_bass', data=overbass_input_dfs, 
             settings=ob_setts)
     

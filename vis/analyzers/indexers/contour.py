@@ -25,8 +25,6 @@
 # -------------------------------------------------------------------- #
 """
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
-.. codeauthor:: Reiner Kramer <reiner@music.org>
-
 .. todo:: Properly document the ``COM_matrix`` and ``compare`` 
     functions.
 
