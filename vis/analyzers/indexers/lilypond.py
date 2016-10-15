@@ -25,7 +25,6 @@
 # -------------------------------------------------------------------- #
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Indexers related to producing LilyPond-format output from the VIS 
 Framework. Also refer to the :mod:`vis.analyzers.experimenters.lilypond` 
