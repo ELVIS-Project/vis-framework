@@ -27,7 +27,6 @@
 """
 .. codeauthor:: Ryan Bannon <ryan.bannon@gmail.com>
 .. codeauthor:: Alexander Morgan
-.. codeauthor:: Reiner Kramer <reiner@music.org>
 
 Index fermatas.
 
