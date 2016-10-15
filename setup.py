@@ -7,7 +7,7 @@
 # Filename:               setup.py
 # Purpose:                Distutils Information for the VIS Framework
 #
-# Copyright (C) 2014 Christopher Antila
+# Copyright (C) 2014, 2016 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -53,13 +53,15 @@ setup(
         'music21 (== 2.1.2)',
         'pandas (== 0.18.1)',
         'multi_key_dict (== 2.0.3)',
-	'requests (== 2.11.1)'
+        'requests (== 2.11.1)',
+        'outputlilypond',
         ],
     install_requires = [
         'music21 == 2.1.2',
         'pandas == 0.18.1',
         'multi_key_dict == 2.0.3',
-	'requests == 2.11.1'
+        'requests == 2.11.1',
+        'outputlilypond',
         ],
     packages = [
         'vis',
@@ -67,15 +69,15 @@ setup(
         'vis.analyzers',
         'vis.analyzers.indexers',
         'vis.analyzers.experimenters',
-        'outputlilypond',
         ],
     package_data = {'vis': ['scripts/*']},
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Natural Language :: English",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Environment :: Web Environment",
         "Intended Audience :: End Users/Desktop",
