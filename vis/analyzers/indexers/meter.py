@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#--------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------- #
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
@@ -19,18 +19,21 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
+# You should have received a copy of the GNU Affero General Public 
+# License along with this program.  If not, see 
+# <http://www.gnu.org/licenses/>.
+# -------------------------------------------------------------------- #
 """
+
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 .. codeauthor:: Alexander Morgan
 
 Indexers for metric concerns.
+
 """
 
-# disable "string statement has no effect" warning---they do have an effect
-# with Sphinx!
+# disable "string statement has no effect" warning---they do have an 
+# effect with Sphinx!
 # pylint: disable=W0105
 
 import pandas
@@ -43,11 +46,13 @@ def beatstrength_ind_func(event):
     :class:`~music21.note.Note` and :class:`~music21.note.Rest` objects
     into a string.
 
-    :param event: A music21 note, rest, or chord object which get queried for its beat strength.
-    :type event: A music21 note, rest, or chord object or NaN.
+    :param event: A music21 note, rest, or chord object which get 
+        queried for its beat strength. :type event: A music21 note, 
+        rest, or chord object or NaN.
 
-    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of the event which is dependent 
-        on the prevailing time signature.
+    :returns: The :attr:`~music21.base.Music21Object.beatStrength` of 
+        the event which is dependent on the prevailing time signature.
+    
     :rtype: float
     """
     if isinstance(event, float):
@@ -56,14 +61,19 @@ def beatstrength_ind_func(event):
 
 def measure_ind_func(event):
     """
-    The function that indexes the measure numbers of each part in a piece. Unlike most other 
-    indexers, this one returns int values. Measure numbering starts from 1 unless there is a pick-up 
-    measure which gets the number 0. This can handle changes in time signature without problems.
+    The function that indexes the measure numbers of each part in a 
+    piece. Unlike most other indexers, this one returns int values. 
+    Measure numbering starts from 1 unless there is a pick-up measure 
+    which gets the number 0. This can handle changes in time signature 
+    without problems.
 
-    :param event: A music21 measure object which get queried for its "number" attribute.
+    :param event: A music21 measure object which get queried for its 
+        "number" attribute.
+    
     :type event: A music21 measure object or NaN.
 
     :returns: The number attribute of the passed music21 measure.
+    
     :rtype: int
     """
     if isinstance(event, float):
@@ -73,23 +83,29 @@ def measure_ind_func(event):
 
 class NoteBeatStrengthIndexer(indexer.Indexer):
     """
-    Make an index of the :attr:`~music21.base.Music21Object.beatStrength` for all :class:`Note`, 
-    :class:`Rest`, and :class:`Chord` objects.
+    Make an index of the 
+    :attr:`~music21.base.Music21Object.beatStrength` for all 
+    :class:`Note`, :class:`Rest`, and :class:`Chord` objects.
 
-    .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
-    objects rather than ``unicode`` objects.
+    .. note:: Unlike nearly all other indexers, this indexer returns a 
+        :class:`Series` of ``float`` objects rather than ``unicode`` 
+        objects.
     
     **Example:**
-    from vis.models.indexed_piece import Importer
-    ip = Importer('pathnameToScore.xml')
-    ip.get_data('beat_strength')
+
+    >>> from vis.models.indexed_piece import Importer
+    >>> ip = Importer('pathnameToScore.xml')
+    >>> ip.get_data('beat_strength')
+    
     """
 
     required_score_type = 'pandas.DataFrame'
 
     def __init__(self, score):
         """
-        :param score: A dataframe of the note, rest, and chord objects in a piece.
+        :param score: A dataframe of the note, rest, and chord objects 
+            in a piece.
+        
         :type score: pandas Dataframe
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
@@ -104,27 +120,34 @@ class NoteBeatStrengthIndexer(indexer.Indexer):
 
 class DurationIndexer(indexer.Indexer):
     """
-    Make an index of the durations of all :class:`Note`, :class:`Rest`, and :class:`Chord` objects. 
-    These are calculated based on the difference in index positions of consecutive events.
+    Make an index of the durations of all :class:`Note`, :class:`Rest`, 
+    and :class:`Chord` objects. These are calculated based on the 
+    difference in index positions of consecutive events.
 
-    .. note:: Unlike nearly all other indexers, this indexer returns a :class:`Series` of ``float``
-    objects rather than ``unicode`` objects. Also unlike most other indexers, this indexer does not 
-    have an indexer func.
+    .. note:: Unlike nearly all other indexers, this indexer returns a 
+        :class:`Series` of ``float`` objects rather than ``unicode`` 
+        objects. Also unlike most other indexers, this indexer does not have 
+        an indexer func.
 
     **Example:**
-    from vis.models.indexed_piece import Importer
-    ip = Importer('pathnameToScore.xml')
-    ip.get_data('duration')
+    
+    >>> from vis.models.indexed_piece import Importer
+    >>> ip = Importer('pathnameToScore.xml')
+    >>> ip.get_data('duration')
+    
     """
 
     required_score_type = 'pandas.DataFrame'
 
     def __init__(self, score, part_streams):
         """
-        :param score: A :class:`pandas.DataFrame` of the note, rest, and chord objects in a piece.
+        :param score: A :class:`pandas.DataFrame` of the note, rest, and 
+            chord objects in a piece.
+    
         :type score: :class:`pandas.DataFrame`
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
+        
         """
 
         super(DurationIndexer, self).__init__(score, None)
@@ -135,9 +158,12 @@ class DurationIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        :returns: The new indices of the durations of each note or rest event in a score. Note that
-            each item is a float, rather than the usual basestring.
+        :returns: The new indices of the durations of each note or rest 
+            event in a score. Note that each item is a float, rather 
+            than the usual basestring.
+        
         :rtype: :class:`pandas.DataFrame`
+        
         """
         if len(self._score) == 0: # if there are no notes or rests
             result = self._score.copy()
@@ -150,26 +176,31 @@ class DurationIndexer(indexer.Indexer):
             result = pandas.concat(durations, axis=1)
         return self.make_return([str(x) for x in range(len(result.columns))], result)
 
-
-class MeasureIndexer(indexer.Indexer): # MeasureIndexer is still experimental
+# The MeasureIndexer is still experimental
+class MeasureIndexer(indexer.Indexer): 
     """
-    Make an index of the measures in a piece. Time signatures changes do not cause a problem. Note 
-    that unlike most other indexers this one returns integer values >= 0. Using music21's 
-    part.measureTemplate() function is an alternative but it turned out to be much less efficient 
-    to looping over the piece and doing it this way makes this indexer just like all the other 
-    stream indexers in VIS. 
+    Make an index of the measures in a piece. Time signatures changes do 
+    not cause a problem. Note that unlike most other indexers this one 
+    returns integer values >= 0. Using music21's part.measureTemplate() 
+    function is an alternative but it turned out to be much less 
+    efficient to looping over the piece and doing it this way makes this 
+    indexer just like all the other stream indexers in VIS. 
 
     **Example:**
-    from vis.models.indexed_piece import Importer
-    ip = Importer('pathnameToScore.xml')
-    ip.get_data('measure')
+
+    >>> from vis.models.indexed_piece import Importer
+    >>> ip = Importer('pathnameToScore.xml')
+    >>> ip.get_data('measure')
+    
     """
 
     required_score_type = 'pandas.DataFrame'
 
     def __init__(self, score):
         """
-        :param score: :class:`pandas.DataFrame` of music21 measure objects.
+        :param score: :class:`pandas.DataFrame` of music21 measure 
+            objects.
+        
         :type score: :class:`pandas.DataFrame`
         
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.

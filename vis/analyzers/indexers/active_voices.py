@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#--------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------- #
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
@@ -19,9 +19,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
+# You should have received a copy of the GNU Affero General Public 
+# License along with this program.  If not, see 
+# <http://www.gnu.org/licenses/>.
+# -------------------------------------------------------------------- #
 """
 .. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
 .. codeauthor:: Alexander Morgan
@@ -33,9 +34,10 @@ import pandas
 
 
 def indexer1(x):
+
     """
-    Used internally by the :class:`ActiveVoicesIndexer` to count individual
-    events.
+    Used internally by the :class:`ActiveVoicesIndexer` to count 
+    individualevents.
     """
     if x == 'Rest' or isinstance(x, float):
         return 0
@@ -45,35 +47,48 @@ def indexer1(x):
 
 class ActiveVoicesIndexer(indexer.Indexer):
     """
-    Indexer that counts the number of voices active at each offset. It can either find all voices 
-    sounding, or only the voices that are attacking, depending on the settings passed. 
+    Indexer that counts the number of voices active at each offset. It 
+    can either find all voices sounding, or only the voices that are 
+    attacking, depending on the settings passed. 
 
-    Call this indexer via the get_data() method of either an indexed_piece object or an 
-    aggregated_pieces object (see example below). If nothing is passed in the 'data' argument of the 
-    call to get_data(), then the default is to process the NoteRestIndexer results of the 
-    indexed_piece in question. You can pass some other DataFrame in the 'data' argument, but this is 
-    not recommended.
+    Call this indexer via the ``get_data()`` method of either an 
+    ``indexed_piece`` object or an ``aggregated_pieces`` object (see 
+    example below). If nothing is passed in the 'data' argument of the 
+    call to ``get_data()``, then the default is to process the 
+    ``NoteRestIndexer`` results of the ``indexed_piece`` in question. 
+    You can pass some other DataFrame in the 'data' argument, but it is 
+    discouraged.
 
-    :keyword 'attacked': When true, only counts the voices that are attacking
-        at each offset. Defaults to false.
-    :type 'attacked': boolean
-    :keyword 'show_all': When true, shows the results at all offsets, even if
-        there is not change. Defaults to false.
-    :type 'show_all': boolean
+    :keyword 'attacked':    When true, only counts the voices that are 
+                            attacking at each offset. Defaults to false.
+    
+    :type 'attacked':       boolean
+    
+    :keyword 'show_all':    When true, shows the results at all offsets, 
+                            even if there is not change. Defaults to 
+                            false.
+    
+    :type 'show_all':       boolean
 
+    **Examples:**
 
-    **Examples**
+    Prepare an indexed piece:
+    
+    >>> from vis.models.indexed_piece import Importer
+    >>> ip = Importer('path_to_piece.xml')
 
-    # Prepare an indexed piece
-    from vis.models.indexed_piece import Importer
-    ip = Importer('path_to_piece.xml')
+    Get the ``ActiveVoicesIndexer`` results with the default settings:
+    
+    >>> ip.get_data('active_voices')
 
-    # Get the ActiveVoicesIndexer results with the default settings
-    ip.get_data('active_voices')
-
-    # Get the ActiveVoicesIndexer results with specified settings
-    av_setts = {'attacked': True, 'show_all': True}
-    ip.get_data('active_voices', settings=av_setts)
+    Get the ``ActiveVoicesIndexer`` results with specified settings:
+    
+    >>> av_setts = {
+            'attacked': True, 
+            'show_all': True
+        }
+    >>> ip.get_data('active_voices', settings=av_setts)
+    
     """
 
     required_score_type = 'pandas.DataFrame'
@@ -87,8 +102,8 @@ class ActiveVoicesIndexer(indexer.Indexer):
         :type score: :class:`pandas.DataFrame`
         :param settings: All the settings required by this indexer.
         :type settings: dict or None
-
-        :raises: :exc:`TypeError` if the ``score`` argument is the wrong type.
+        :raises: :exc:`TypeError` if the ``score`` argument is the wrong 
+        type.
         """
         self._settings = self.default_settings.copy()
         if settings is not None:
@@ -101,7 +116,7 @@ class ActiveVoicesIndexer(indexer.Indexer):
 
     def run(self):
         """
-        :returns: Make a new index of the active voices in the piece.
+        :returns: new index of the active voices in the piece.
         :rtype: :class:`pandas.DataFrame`
         """
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#--------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------- #
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
@@ -19,14 +19,17 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
+# You should have received a copy of the GNU Affero General Public 
+# License along with this program.  If not, see 
+# <http://www.gnu.org/licenses/>.
+# -------------------------------------------------------------------- #
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 
-Indexers related to producing LilyPond-format output from the VIS Framework. Also refer to the
-:mod:`vis.analyzers.experimenters.lilypond` module.
+Indexers related to producing LilyPond-format output from the VIS 
+Framework. Also refer to the :mod:`vis.analyzers.experimenters.lilypond` 
+module.
+
 """
 
 import six
@@ -35,13 +38,18 @@ from vis.analyzers import indexer
 
 def annotation_func(obj):
     """
-    Used by :class:`AnnotationIndexer` to make a "markup" command for LilyPond scores.
+    Used by :class:`AnnotationIndexer` to make a "markup" command for 
+    LilyPond scores.
 
-    :param obj: A single-element :class:`Series` with the string to wrap in a "markup" command.
+    :param obj: A single-element :class:`Series` with the string to wrap 
+        in a "markup" command.
+    
     :type obj: :class:`pandas.Series` of ``str``
 
     :returns: The thing in a markup.
+    
     :rtype: str
+    
     """
     return six.u(''.join(['_\\markup{ "', str(obj[0]), '" }']))
 
@@ -56,32 +64,46 @@ class AnnotationIndexer(indexer.Indexer):
     default_settings = {'mp': True}
 
     """
-    :keyword 'mp': Multiprocesses when True (default) or processes serially when False.
+    :keyword 'mp': Multiprocesses when True (default) or processes 
+        serially when False.
+    
     :type 'mp': boolean
 
-    **Example**
+    **Example:**
 
-    # Prepare an indexed piece
-    from vis.models.indexed_piece import Importer
-    ip = Importer('path_to_piece.xml')
+    Prepare an indexed piece:
 
-    # Get a list of series of annotations; this example uses the dissonance indexer results:
-    diss_ind = ip.get_data('dissonance')
-    list_of_series = [diss_ind.iloc[:, x] for x in range(len(diss_ind.columns))]
+    >>> from vis.models.indexed_piece import Importer
+    >>> ip = Importer('path_to_piece.xml')
 
-    # Actually run the AnnotationIndexer
-    annotations = ip.get_data('annotation', data=list_of_series)
+    Get a list of series of annotations; this example uses the 
+    dissonance indexer results:
+    
+    >>> diss_ind = ip.get_data('dissonance')
+    >>> list_of_series = [diss_ind.iloc[:, x] 
+            for x in range(len(diss_ind.columns))]
+
+    Actually run the AnnotationIndexer:
+
+    >>> annotations = ip.get_data('annotation', data=list_of_series)
+    
     """
 
     def __init__(self, score, settings=None):
         """
         :param score: The input from which to produce a new index.
+        
         :type score: list of :class:`pandas.Series`
+        
         :param settings: Nothing
+        
         :type settings: dict or NoneType
 
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
-        :raises: :exc:`RuntimeError` if ``score`` is not a list of the same types.
+        
+        :raises: :exc:`RuntimeError` if ``score`` is not a list of the 
+            same types.
+        
         """
         super(AnnotationIndexer, self).__init__(score, None)
         self._indexer_func = annotation_func
@@ -95,10 +117,14 @@ class AnnotationIndexer(indexer.Indexer):
         """
         Make a new index of the piece.
 
-        :returns: A list of the new indices. The index of each :class:`Series` corresponds to the
-            index of the :class:`Part` used to generate it, in the order specified to the
-            constructor. Each element in the :class:`Series` is a ``str``.
+        :returns: A list of the new indices. The index of each 
+            :class:`Series` corresponds to the index of the 
+            :class:`Part` used to generate it, in the order specified 
+            to the constructor. Each element in the :class:`Series` is a 
+            ``str``.
+        
         :rtype: :class:`pandas.DataFrame`
+        
         """
         # Calculate each part separately:
         combinations = [[x] for x in range(len(self._score))]
