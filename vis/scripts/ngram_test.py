@@ -11,7 +11,7 @@ VIS_PATH = vis.__path__[0]
 
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos2308.mei'
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/bwv2.xml'
-piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn'
+# piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Lassus_Duets/Lassus_1_Beatus_Vir.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Josquin_Duets/Crucifixus.xml' #example of IR = half note
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Morley_Duets/7 Miraculous loves wounding.xml' # example of IR = quarter note
@@ -20,10 +20,13 @@ chopin_prelude = '/home/amor/Code/vis-framework/vis/scripts/prelude28-20.mid'
 # Senfl_Buchner folder:
 folder = '/home/amor/Code/vis-framework/vis/scripts/Senfl motets'
 # Senfl Pieces:
-piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl motets/No03_LaudateDominum_ns_final.xml'
+# piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl motets/No03_LaudateDominum_ns_final.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl_Buchner/AssumptaEst_normal.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl_Buchner/DumSteteritis_normal.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl_Buchner/No01_Converte_nos Kopie.xml'
+
+# Extremely short piece:
+piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/test_fermata_rest.xml'
 
 
 v_setts = {'quality': True, 'simple or compound': 'simple', 'directed': True}
@@ -43,13 +46,19 @@ n_setts_4 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all
 n_setts_5 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all',
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False}
 ip = indexed_piece.Importer(piece_path)
-ip.get_data('over_bass')
+hz = ip.get_data('horizontal_interval')
+setts = {'use_title': True, 'run_lilypond':True}#, 'annotation_part': hz}
+ip.get_data('lilypond', data=ip._score, settings=setts)
+# out_path = '/home/amor/new/vis-framework/vis/scripts/Success'
+# setts = {'run_lilypond': True, 'output_pathname': out_path}
+# ip.get_data('lilypond', data=[ip._score], settings=setts)
+pdb.set_trace()
 t0 = time.time()
-input_dfs = [ip.get_data('noterest'), ip.get_data('vertical_interval')]
-ob_setts = {'type': 'notes'}
-overbass = ip.get_data('over_bass', data=input_dfs, settings=ob_setts)
-ca_setts = {'length': 3}
-ca = ip.get_data('cadence', data=[overbass], settings=ca_setts)
+# input_dfs = [ip.get_data('noterest'), ip.get_data('vertical_interval')]
+# ob_setts = {'type': 'notes'}
+# overbass = ip.get_data('over_bass', data=input_dfs, settings=ob_setts)
+# ca_setts = {'length': 3}
+# ca = ip.get_data('cadence', data=[overbass], settings=ca_setts)
 # ag = indexed_piece.Importer(folder)
 # di = ag.get_data(ind_analyzer='dissonance')
 # ps = ip._get_part_streams()

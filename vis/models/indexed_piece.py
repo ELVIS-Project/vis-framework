@@ -405,9 +405,6 @@ strings to identify the desired Indexer or Experimenter: {}.'
     _NO_MEASURES = 'VIS is unable to detect measures in this IndexedPiece. Please note that measures \
 are not encoded in midi files so VIS currently cannot detect measures in midi files.'
 
-    # When measure_index() is passed a dataframe with no events in it (not even NaN's).
-    _NO_EVENTS = 'The passed DataFrame does not have any events in it.'
-
     # When measure_index() is passed something other than a dataframe.
     _NOT_DATAFRAME = 'The passed argument must be a pandas.DataFrame and cannot be empty.'
 
@@ -476,7 +473,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
                         # ('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
                         ('frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter,
                         ('annotate_the_note', 'lilypond.AnnotateTheNoteExperimenter', lilypond.AnnotateTheNoteExperimenter): lilypond.AnnotateTheNoteExperimenter,
-                        ('lilypond', 'lilypond.LilyPondExperimenter', lilypond.LilyPondExperimenter): lilypond.LilyPondExperimenter,
+                        ('lilypond', 'lilypond.LilyPondExperimenter', lilypond.LilyPondExperimenter): self._get_lilypond,
                         ('part_notes', 'lilypond.PartNotesExperimenter', lilypond.PartNotesExperimenter): lilypond.PartNotesExperimenter})
 
         init_metadata()
@@ -766,6 +763,44 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
     def _get_ngram(self, data, settings=None):
         return ngram.NGramIndexer(data, settings).run()
 
+    def _get_lilypond(self, data=None, settings=None):
+        if data is None:
+            data = self._analyses['part_streams']
+        # ap = settings['annotation_part']
+        # if isinstance(ap, pandas.DataFrame):
+        #     ap = [ap.iloc[:, x].dropna() for x in range(len(ap.columns))]
+        # elif isinstance(ap, pandas.Series):
+        #     ap = [ap]
+
+        # # Prepare input via three steps of intermediary analyzers.
+        # ann_parts = []
+        # for i, ser in enumerate(ap):
+        #     setts = {'part_names': ['{}: {}'.format(ser.name[0], ser.name[1])],
+        #              'column': 'lilypond.AnnotationIndexer'}
+        #     step1 = self.get_data('annotation', data=[ser])
+        #     step2 = self.get_data('annotate_the_note', data=step1, settings=setts)
+        #     step3 = self.get_data('part_notes', data=step2)
+        #     ann_parts.append(step3)
+
+        # Run LilyPondExperimenter and OutputLilyPond
+        setts2 = {}
+        if settings['use_title']:
+            title = [self._metadata['title']]
+            for field in ('movementNumber', 'movementName'):
+                if self._metadata[field] not in ('', '???'):
+                    title.append(str(self._metadata[field]))
+            setts2['output_pathname'] = '_'.join(title)
+        import pdb
+        pdb.set_trace()
+
+        setts2['output_pathname'] += '.ly'
+        setts2['run_lilypond'] = True
+        print('here***************')
+        lilypond.LilyPondExperimenter(index=data, settings=setts2).run()
+
+        return(setts2['output_pathname'])
+
+
 
     def get_data(self, analyzer_cls, data=None, settings=None):
         """
@@ -830,8 +865,6 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         """
         if not isinstance(dataframe, pandas.DataFrame):
             raise RuntimeWarning(IndexedPiece._NOT_DATAFRAME)
-        if len(dataframe.index) == 0:
-            raise RuntimeWarning(IndexedPiece._NO_EVENTS)
         # Make a copy of the dataframe to avoid altering it inplace
         df = dataframe.copy()
         # Get a series of the measures from the first part of this IndexedPiece
@@ -839,12 +872,12 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         # Make sure it actually has measure events in it. NB: measure detection doesn't work with midi files
         if measures.empty:
             raise RuntimeWarning(IndexedPiece._NO_MEASURES)
-        # Provide label for existing index
-        df.index.name = 'Offset'
         # Add measures as a column of the dataframe which merges the indecies
         df['Measure'] = measures
         # Forward-fill measure observations so that there's one label per event
         df['Measure'] = df['Measure'].ffill().apply(int)
+        # Provide label for existing index
+        df.index.name = 'Offset'
         # Reassign new column as an extra index
         df.set_index('Measure', append=True, inplace=True)
         # Rearrange indecies and return result. NB: rearranging cannot be done in place
