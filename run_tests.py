@@ -64,7 +64,6 @@ THE_TESTS = (  # Indexer and Subclasses
              test_indexer.INDEXER_INIT_SUITE,
              test_indexer.INDEXER_1_PART_SUITE,
              test_indexer.INDEXER_MULTI_EVENT_SUITE,  # no tests run
-             # test_indexer.UNIQUE_OFFSETS_SUITE, # No longer called.
              test_fermata_indexer.FERMATA_INDEXER_SUITE,
              test_note_rest_indexer.NOTE_REST_INDEXER_SUITE,
              test_note_rest_indexer.MULTI_STOP_INDEXER_SUITE,
@@ -77,7 +76,7 @@ THE_TESTS = (  # Indexer and Subclasses
              test_interval_indexer.HORIZ_INT_IND_LONG_SUITE,
              test_repeat.REPEAT_INDEXER_SUITE,
              test_ngram.NGRAM_INDEXER_SUITE,
-             test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,  # AssertionError: Attributes are different (3x)
+             test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,
              test_offset.OFFSET_INDEXER_SINGLE_SUITE,
              test_offset.OFFSET_INDEXER_MULTI_SUITE,
              test_over_bass.OVER_BASS_INDEXER_SUITE,

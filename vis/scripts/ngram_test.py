@@ -47,8 +47,8 @@ n_setts_5 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False}
 ip = indexed_piece.Importer(piece_path)
 hz = ip.get_data('horizontal_interval')
-setts = {'use_title': True, 'run_lilypond':True}#, 'annotation_part': hz}
-ip.get_data('lilypond', data=ip._score, settings=setts)
+# setts = {'use_title': True, 'run_lilypond':True, 'output_pathname': 'trialpath'}#, 'annotation_part': hz}
+# ip.get_data('lilypond', data=ip._score, settings=setts)
 # out_path = '/home/amor/new/vis-framework/vis/scripts/Success'
 # setts = {'run_lilypond': True, 'output_pathname': out_path}
 # ip.get_data('lilypond', data=[ip._score], settings=setts)

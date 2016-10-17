@@ -43,7 +43,7 @@ from six.moves import range, xrange  # pylint: disable=import-error,redefined-bu
 from music21 import converter, stream, analysis
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.experimenter import Experimenter
-from vis.analyzers.experimenters import aggregator, barchart, frequency #, dendrogram
+from vis.analyzers.experimenters import aggregator, barchart, frequency
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, cadence, meter, interval, dissonance, fermata, offset, repeat, active_voices, offset, over_bass, contour, ngram, windexer
 from multi_key_dict import multi_key_dict as mkd
@@ -467,8 +467,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
                         # Experimenters (in alphabetical order of their long-format strings):
                         ('aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
                         ('bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
-                        # The dendrogram experimenter has been commented out to allow us to remove our SciPy dependency
-                        # ('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
+                        # The dendrogram experimenter should only be used by an AggregatedPieces object
                         ('frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter
 						})
 

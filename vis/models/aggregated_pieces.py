@@ -100,8 +100,8 @@ received {}. Please choose from one of the following: {}.'
         self._mkd = mkd({# Experimenters that can combine results from multiple pieces:
                         ('aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
                         ('bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
-                        # The dendrogram experimenter has been commented out to allow us to remove our SciPy dependency
-                        # ('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
+                        # The dendrogram experimenter can only be used if the optional_requirements are installed
+                        ('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
                         ('frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter})
 
 
