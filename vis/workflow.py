@@ -46,8 +46,6 @@ from vis.models import indexed_piece
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.indexers import noterest, interval, offset, repeat
 from vis.analyzers.experimenters import frequency, aggregator, barchart
-from vis.analyzers.indexers import lilypond as lilypond_ind
-from vis.analyzers.experimenters import lilypond as lilypond_exp
 
 def split_part_combo(key):
     """
