@@ -44,7 +44,6 @@ from vis.tests import test_aggregator
 from vis.tests import test_barchart
 # from vis.tests import test_dendrogram
 from vis.tests import test_offset
-from vis.tests import test_lilypond
 from vis.tests import test_indexed_piece
 from vis.tests import test_aggregated_pieces
 from vis.tests import bwv2_integration_tests as bwv2
@@ -81,10 +80,6 @@ THE_TESTS = (  # Indexer and Subclasses
              test_dissonance_indexer.DISSONANCE_INDEXER_SUITE,  # AssertionError: Attributes are different (3x)
              test_offset.OFFSET_INDEXER_SINGLE_SUITE,
              test_offset.OFFSET_INDEXER_MULTI_SUITE,
-             test_lilypond.ANNOTATION_SUITE,
-             test_lilypond.ANNOTATE_NOTE_SUITE,
-             test_lilypond.PART_NOTES_SUITE,
-             test_lilypond.LILYPOND_SUITE,
              test_over_bass.OVER_BASS_INDEXER_SUITE,
              test_cadence.CADENCE_INDEXER_SUITE,
              test_contour.CONTOUR_INDEXER_SUITE,

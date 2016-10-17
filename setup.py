@@ -67,7 +67,6 @@ setup(
         'vis.analyzers',
         'vis.analyzers.indexers',
         'vis.analyzers.experimenters',
-        'outputlilypond',
         ],
     package_data = {'vis': ['scripts/*']},
     classifiers = [

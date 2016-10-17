@@ -43,10 +43,9 @@ from six.moves import range, xrange  # pylint: disable=import-error,redefined-bu
 from music21 import converter, stream, analysis
 from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.experimenter import Experimenter
-from vis.analyzers.experimenters import aggregator, barchart, frequency, lilypond #, dendrogram
+from vis.analyzers.experimenters import aggregator, barchart, frequency #, dendrogram
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, cadence, meter, interval, dissonance, fermata, offset, repeat, active_voices, offset, over_bass, contour, ngram, windexer
-from vis.analyzers.indexers import lilypond as lily_ind
 from multi_key_dict import multi_key_dict as mkd
 
 # the title given to a piece when we cannot determine its title
@@ -448,7 +447,6 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         self._password = password
         # Multi-key dictionary for calls to get_data()
         self._mkd = mkd({ # Indexers (in alphabetical order of their long-format strings):
-                        ('annotation', 'lilypond.AnnotationIndexer', lily_ind.AnnotationIndexer): lily_ind.AnnotationIndexer,
                         ('active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): self._get_active_voices,
                         ('cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): self._get_cadence,
                         ('contour', 'contour.ContourIndexer', contour.ContourIndexer): contour.ContourIndexer,
@@ -471,10 +469,8 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
                         ('bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
                         # The dendrogram experimenter has been commented out to allow us to remove our SciPy dependency
                         # ('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
-                        ('frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter,
-                        ('annotate_the_note', 'lilypond.AnnotateTheNoteExperimenter', lilypond.AnnotateTheNoteExperimenter): lilypond.AnnotateTheNoteExperimenter,
-                        ('lilypond', 'lilypond.LilyPondExperimenter', lilypond.LilyPondExperimenter): self._get_lilypond,
-                        ('part_notes', 'lilypond.PartNotesExperimenter', lilypond.PartNotesExperimenter): lilypond.PartNotesExperimenter})
+                        ('frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter
+						})
 
         init_metadata()
         if metafile is not None:
@@ -762,44 +758,6 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
 
     def _get_ngram(self, data, settings=None):
         return ngram.NGramIndexer(data, settings).run()
-
-    def _get_lilypond(self, data=None, settings=None):
-        if data is None:
-            data = self._analyses['part_streams']
-        # ap = settings['annotation_part']
-        # if isinstance(ap, pandas.DataFrame):
-        #     ap = [ap.iloc[:, x].dropna() for x in range(len(ap.columns))]
-        # elif isinstance(ap, pandas.Series):
-        #     ap = [ap]
-
-        # # Prepare input via three steps of intermediary analyzers.
-        # ann_parts = []
-        # for i, ser in enumerate(ap):
-        #     setts = {'part_names': ['{}: {}'.format(ser.name[0], ser.name[1])],
-        #              'column': 'lilypond.AnnotationIndexer'}
-        #     step1 = self.get_data('annotation', data=[ser])
-        #     step2 = self.get_data('annotate_the_note', data=step1, settings=setts)
-        #     step3 = self.get_data('part_notes', data=step2)
-        #     ann_parts.append(step3)
-
-        # Run LilyPondExperimenter and OutputLilyPond
-        setts2 = {}
-        if settings['use_title']:
-            title = [self._metadata['title']]
-            for field in ('movementNumber', 'movementName'):
-                if self._metadata[field] not in ('', '???'):
-                    title.append(str(self._metadata[field]))
-            setts2['output_pathname'] = '_'.join(title)
-        import pdb
-        pdb.set_trace()
-
-        setts2['output_pathname'] += '.ly'
-        setts2['run_lilypond'] = True
-        print('here***************')
-        lilypond.LilyPondExperimenter(index=data, settings=setts2).run()
-
-        return(setts2['output_pathname'])
-
 
 
     def get_data(self, analyzer_cls, data=None, settings=None):
