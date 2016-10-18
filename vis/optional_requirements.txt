@@ -22,6 +22,3 @@ pylint
 mock==1.0.1
 coverage
 python-coveralls
-
-# To produce LilyPond documents with VIS events annotated.
-outputlilypond

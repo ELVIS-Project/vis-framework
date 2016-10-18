@@ -38,13 +38,9 @@ from math import fsum
 from numpy import isnan, NaN  # pylint: disable=no-name-in-module
 import pandas
 from music21 import stream, note, duration
+import outputlilypond
+from outputlilypond import settings as oly_settings
 from vis.analyzers import experimenter
-
-try:
-    import outputlilypond
-    from outputlilypond import settings as oly_settings
-except ImportError:
-    pass
 
 
 def annotate_the_note(obj):
