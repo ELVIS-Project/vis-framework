@@ -93,7 +93,7 @@ def real_indexer_func(simultaneity, analysis_type):
 # applied with the use of the xxxx_analysis functions. They appear below 
 # in the  same order as their position in the indexer_funcs list. Each 
 # indexer_xxxx method is immediately followed by the xxxx_analysis 
-# method that it passes to real_indexer_func.
+# method that it passed to the real_indexer_func.
 
 
 def indexer_dnq_dir_sim(ecks):
