@@ -31,6 +31,7 @@ import pandas as pd
 from vis.analyzers import experimenter
 import subprocess
 from scipy.cluster.hierarchy import dendrogram, linkage
+import matplotlib.pyplot as plt
 
 
 class HierarchicalClusterer(experimenter.Experimenter):
@@ -147,7 +148,7 @@ class HierarchicalClusterer(experimenter.Experimenter):
     _INVALID_DENDRO_SETTING = ' is not a valid dendrogram setting. Please see the scipy documentation for a list of valid settings: \
                                 http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html'
 
-    def __init__(self, sers, weights=(1.0,), graph_settings=None, dendrogram_settings=None):
+    def __init__(self, sers, settings={}):
         """
         :param sers: List of at least 1 list of analyses. Each internal list contains one analysis
             profile per piece in the set being compared. This analysis profile should be a series
@@ -179,6 +180,19 @@ class HierarchicalClusterer(experimenter.Experimenter):
             http://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
         :type dendrogram_settings: Dictionary
         """
+        if 'weights' in settings:
+            weights = settings['weights']
+        else:
+            weights = (1.0,)
+        if 'graph_settings' in settings:
+            graph_settings = settings['graph_settings']
+        else:
+            graph_settings = None
+        if 'dendrogram_settings' in settings:
+            dendrogram_settings = settings['dendrogram_settings']
+        else:
+            dendrogram_settings = None
+        
         if len(sers) != len(weights):
             raise RuntimeWarning(HierarchicalClusterer._UNEQUAL_SERS_WEIGHTS)
         if len(sers) > 1:
@@ -275,7 +289,6 @@ class HierarchicalClusterer(experimenter.Experimenter):
             d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
             return d_data
         if not self._dendrogram_settings['no_plot']:
-            import matplotlib.pyplot as plt
             plt.figure('Dendrogram') 
             d_data = dendrogram(linkage_matrix, **self._dendrogram_settings)
             # Add connection annotations if the user asked for them

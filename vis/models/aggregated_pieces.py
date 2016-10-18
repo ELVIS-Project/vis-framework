@@ -28,11 +28,17 @@
 The model representing data from multiple :class:`~vis.models.indexed_piece.IndexedPiece` instances.
 """
 
+import sys
 import six
 import os
 import pandas
 from vis.analyzers import experimenter
 from vis.analyzers.experimenters import aggregator, barchart, frequency
+# Only import dendrogram experiment if scipy and matplotlib have been installed.
+try:
+    from vis.analyzers.experimenters import dendrogram
+except ImportError:
+    pass
 from multi_key_dict import multi_key_dict as mkd
 
 
@@ -100,9 +106,13 @@ received {}. Please choose from one of the following: {}.'
         self._mkd = mkd({# Experimenters that can combine results from multiple pieces:
                         ('aggregator', 'aggregator.ColumnAggregator', aggregator.ColumnAggregator): aggregator.ColumnAggregator,
                         ('bar_chart', 'barchart.RBarChart', barchart.RBarChart): barchart.RBarChart,
-                        # The dendrogram experimenter can only be used if the optional_requirements are installed
-                        # ('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer): dendrogram.HierarchicalClusterer,
                         ('frequency', 'frequency.FrequencyExperimenter', frequency.FrequencyExperimenter): frequency.FrequencyExperimenter})
+        # Only include dendrogram experimenter if scipy and matplotlib were installed
+        try:
+            self._mkd[('dendrogram', 'dendrogram.HierarchicalClusterer', dendrogram.HierarchicalClusterer)] = self._get_dendrogram
+        except NameError:
+            pass
+
 
 
     @staticmethod
@@ -203,6 +213,27 @@ received {}. Please choose from one of the following: {}.'
         else:
             return None
 
+    def _get_dendrogram(self, data, settings=None):
+        """Convenience method for plotting dendrograms. You can pass it a list of lists of pandas 
+        dataframes. If there is more than one internal list, make sure to supply the ``weights`` 
+        setting. See the dendrogram experimenter documentation for more details."""
+        temp = []
+        if isinstance(data[0][0], pandas.DataFrame):
+            for i in data:
+                freq = self.get_data('frequency', data=i)
+                agg = self.get_data('aggregator', data=freq)
+                sers = [df.iloc[:, 0] for df in agg]
+                temp.append(sers)
+        
+        if temp:
+            data = temp
+        # import pdb
+        # pdb.set_trace()
+
+        return dendrogram.HierarchicalClusterer(data, settings).run()
+
+
+
     def get_data(self, ind_analyzer=None, combined_experimenter=None, settings=None, data=None):
         """
         Get the results of an :class:`Indexer` or an :class:`Experimenter` run on all the 
@@ -270,7 +301,9 @@ received {}. Please choose from one of the following: {}.'
             if ind_analyzer is not None:
                 data = results
             try:
-                results = self._mkd[combined_experimenter](data, **args_dict).run()
+                results = self._mkd[combined_experimenter](data, **args_dict)
+                if hasattr(results, 'run'): # execute analyzer if there is no caching method for this one
+                    results = results.run()
             except TypeError: # There is some issue with the 'settings' and/or 'data' arguments.
                 raise RuntimeWarning(AggregatedPieces._SUPERFLUOUS_OR_INSUFFICIENT_ARGUMENTS.format(self._mkd[combined_experimenter]))
 
