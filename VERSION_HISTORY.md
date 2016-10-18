@@ -3,6 +3,13 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 3.0.3:
+    -Removes LilyPond Indexer and Experimenters and outputlilypond module.
+    -Re-enables Dendrogram Experimenter if optional requirements are installed.
+    -Adds convenience method for executing dendrogram experimenter.
+    -Adds measure_index() method to multi-index with measure positions.
+    -Documentation updates.
+
 * 3.0.2:
     -Update indexer documentation examples for VIS 3 syntax.
     -Re-enable tests that check connectivity requirements but don't actually access ELVIS Database.
