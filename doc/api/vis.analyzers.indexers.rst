@@ -54,8 +54,8 @@ indexers Package
 
 .. automodule:: vis.analyzers.indexers.interval
     :members:
-    :exclude-members: 
-    :undoc-members: vis.analyzers.indexers.interval.chr_dir_com_analysis
+    :exclude-members: chr_dir_com_analysis 
+    :undoc-members: 
     :show-inheritance:
 
 :mod:`meter` Module
