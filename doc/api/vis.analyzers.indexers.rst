@@ -54,22 +54,8 @@ indexers Package
 
 .. automodule:: vis.analyzers.indexers.interval
     :members:
-    :exclude-members: 
+    :exclude-members: vis.analyzers.indexers.interval.chr_dir_com_analysis
     :undoc-members:
-    	vis.analyzers.indexers.interval.chr_dir_com_analysis
-    	vis.analyzers.indexers.interval.chr_dir_sim_analysis
-    	vis.analyzers.indexers.interval.chr_und_com_analysis
-    	vis.analyzers.indexers.interval.chr_und_sim_analysis
-    	vis.analyzers.indexers.interval.dnq_dir_com_analysis
-    	vis.analyzers.indexers.interval.dnq_dir_sim_analysis
-    	vis.analyzers.indexers.interval.dnq_und_com_analysis
-    	vis.analyzers.indexers.interval.dnq_und_sim_analysis
-    	vis.analyzers.indexers.interval.dwq_dir_com_analysis
-    	vis.analyzers.indexers.interval.dwq_dir_sim_analysis
-    	vis.analyzers.indexers.interval.dwq_und_com_analysis
-    	vis.analyzers.indexers.interval.dwq_und_sim_analysis
-    	vis.analyzers.indexers.interval.icl_dir_sim_analysis
-    	vis.analyzers.indexers.interval.icl_und_sim_analysis
     :show-inheritance:
 
 :mod:`meter` Module
