@@ -76,6 +76,7 @@ class CadenceIndexer(indexer.Indexer):
             settings=ob_setts)
     
     Get the ``CadenceIndexer`` results with specified settings:
+    
     >>> ca_setts = {'length': 3}
     >>> ip.get_data('cadence', data=[overbass], settings=ca_setts)
     
