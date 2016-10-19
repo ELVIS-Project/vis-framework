@@ -105,8 +105,8 @@ class CadenceIndexer(indexer.Indexer):
         
         :raises: :exc:`RuntimeError` if the value of 'length' is below 1
         
-        :raises: :exc:`RuntimeError` if the given voice is not a voice found
-            in the piece.
+        :raises: :exc:`RuntimeError` if the given voice is not a voice 
+            found in the piece.
 
         """
         self._score = pandas.concat(score, axis=1)
@@ -120,7 +120,8 @@ class CadenceIndexer(indexer.Indexer):
         elif 'voice' not in settings:
             self._settings = settings
             self._settings['voice'] = 'all'
-        elif type(settings['voice']) is int and settings['voice'] >= len(self.ferm.columns):
+        elif(type(settings['voice']) is int 
+            and settings['voice'] >= len(self.ferm.columns)):
             raise RuntimeError(self._BAD_VOICE)
         else:
             self._settings = settings
@@ -138,16 +139,19 @@ class CadenceIndexer(indexer.Indexer):
         endings = []
         if self._settings['voice'] is 'all':
             for part in self.ferm.columns:
-                endings.extend(self.ferm[self.ferm[part].notnull()].index.tolist())
+                endings.extend(self.ferm[
+                    self.ferm[part].notnull()].index.tolist())
         else:
-            endings.extend(self.ferm[self.ferm[str(self._settings['voice'])].notnull()].index.tolist())
+            endings.extend(self.ferm[self.ferm[
+                str(self._settings['voice'])].notnull()].index.tolist())
 
         endings = list(set(endings))
         beginnings = []
         indices = self.ferm.index.tolist()
 
         for ind in endings:
-            beginnings.append(indices[indices.index(ind)-self._settings['length']+1])
+            beginnings.append(indices[
+                indices.index(ind)-self._settings['length']+1])
 
         beginnings.sort()
         endings.sort()
@@ -161,6 +165,8 @@ class CadenceIndexer(indexer.Indexer):
                 my_cadence.extend(self.fig.loc[place].tolist())
             cadences.append(my_cadence)
 
-        result = pandas.DataFrame({'Cadences': pandas.Series(cadences, index=beginnings)})
+        result = pandas.DataFrame(
+            {'Cadences': pandas.Series(cadences, index=beginnings)})
 
-        return self.make_return(result.columns.values, [result[name] for name in result.columns])
+        return self.make_return(result.columns.values, 
+            [result[name] for name in result.columns])
