@@ -46,6 +46,7 @@ indexers Package
 
 .. automodule:: vis.analyzers.indexers.fermata
     :members:
+    :exclude-members: indexer_dnq_dir_sim dnq_dir_sim_analysis indexer_dwq_dir_sim dwq_dir_sim_analysis
     :undoc-members:
     :show-inheritance:
 
@@ -53,14 +54,6 @@ indexers Package
 ----------------------
 
 .. automodule:: vis.analyzers.indexers.interval
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`lilypond` Module
-----------------------
-
-.. automodule:: vis.analyzers.indexers.lilypond
     :members:
     :undoc-members:
     :show-inheritance:
