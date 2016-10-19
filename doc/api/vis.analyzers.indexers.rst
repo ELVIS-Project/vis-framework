@@ -54,7 +54,8 @@ indexers Package
 
 .. automodule:: vis.analyzers.indexers.interval
     :members:
-    :exclude-members: chr_dir_com_analysis, chr_dir_sim_analysis
+    :exclude-members: chr_dir_com_analysis, chr_dir_sim_analysis,
+    	chr_und_com_analysis, chr_und_sim_analysis, dnq_dir_com_analysis
     :undoc-members: 
     :show-inheritance:
 
