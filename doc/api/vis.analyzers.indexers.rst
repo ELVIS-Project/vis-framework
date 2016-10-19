@@ -55,7 +55,10 @@ indexers Package
 .. automodule:: vis.analyzers.indexers.interval
     :members:
     :exclude-members: chr_dir_com_analysis, chr_dir_sim_analysis,
-    	chr_und_com_analysis, chr_und_sim_analysis, dnq_dir_com_analysis
+    	chr_und_com_analysis, chr_und_sim_analysis, dnq_dir_com_analysis,
+    	dnq_dir_sim_analysis, dnq_und_com_analysis, dnq_und_sim_analysis,
+    	dwq_dir_com_analysis, dwq_dir_sim_analysis, dwq_und_com_analysis,
+    	dwq_und_sim_analysis, icl_dir_sim_analysis, icl_und_sim_analysis
     :undoc-members: 
     :show-inheritance:
 
