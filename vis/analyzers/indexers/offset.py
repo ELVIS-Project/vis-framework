@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/offset.py
 # Purpose:                Indexer to regularize the observed offsets.
 #
-# Copyright (C) 2013, 2014, 2016 Christopher Antila, Alexander Morgan
+# Copyright (C) 2013, 2014 Christopher Antila
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -197,25 +197,21 @@ class FilterByOffsetIndexer(indexer.Indexer):
     
     :type 'mp': boolean
 
-    **Examples:**
+    **Example:**
 
     >>> from vis.models.indexed_piece import Importer
     >>> ip = Importer('path_to_piece.xml')
     >>> notes = ip.get_data('noterest')
-    >>> setts = {'quarterLength': 2}
-    >>> ip.get_data('offset', data=notes, settings=setts)
 
-    # Note that other analysis results can be passed to the offset indexer too, 
-    # such as the IntervalIndexer results as in the following example. Note 
-    # also that the original column names (or names of the series if a list of 
-    # series was passed) are retained, though the highest level of the 
-    # columnar multi-index gets overwritten
+    The ``notes`` variable contains a :class:`pandas.DataFrame`, 
+    but the offset indexer requires a :class:`pandas.Series` as an 
+    argument, thus we have to convert the ``notes`` variable to a 
+    series first:    
 
-    >>> from vis.models.indexed_piece import Importer
-    >>> ip = Importer('path_to_piece.xml')
-    >>> intervals = ip.get_data('vertical_interval')
+    >>> notes_series = [df.iloc[:, x] 
+            for x in range(len(notes.columns))]
     >>> setts = {'quarterLength': 2}
-    >>> ip.get_data('offset', data=intervals, settings=setts)
+    >>> ip.get_data('offset', data=notes_series, settings=setts)
         
     """
     
@@ -230,11 +226,10 @@ class FilterByOffsetIndexer(indexer.Indexer):
 
     def __init__(self, score, settings=None):
         """
-        :param score: A DataFrame or list of Series you wish to 
-            filter by offset values, stored in the Index.
+        :param score: A list of Series you wish to filter by offset 
+            values, stored in the Index.
         
-        :type score: :class:`pandas.DataFrame` or 
-            ``list`` of :class:`pandas.Series`
+        :type score: ``list`` of :class:`pandas.Series`
         
         :param dict settings: There is one required setting. 
             See :const:`possible_settings`.
@@ -318,5 +313,5 @@ class FilterByOffsetIndexer(indexer.Indexer):
                     off_list = list(pandas.Series(range(start_offset, end_offset + step, step)).div(1000.0))  
                     # pylint: disable=C0301
                     post.append(part.reindex(index=off_list, method=self._settings['method']))
-        post = self.make_return([ser.name[1] for ser in self._score], post)
+        post = self.make_return([six.u(str(x)) for x in range(len(post))], post)
         return post
