@@ -199,20 +199,17 @@ class FilterByOffsetIndexer(indexer.Indexer):
 
     **Example:**
 
-    Prepare an indexed piece:
-
     >>> from vis.models.indexed_piece import Importer
     >>> ip = Importer('path_to_piece.xml')
     >>> notes = ip.get_data('noterest')
-
-	The ``notes`` variable contains a :class:`pandas.DataFrame`, but 
-	the offset indexer requires a :class:`pandas.Series` as an argument, 
-	thus we have to convert the ``notes`` variable to a series first:
-	
 	>>> notes_series =[df.iloc[:, x] for x in range(len(notes.columns))]
-
     >>> setts = {'quarterLength': 2}
     >>> ip.get_data('offset', data=notes_series, settings=setts)
+
+    .. note: The ``notes`` variable contains a :class:`pandas.DataFrame`, 
+        but the offset indexer requires a :class:`pandas.Series` as an 
+        argument, thus we have to convert the ``notes`` variable to a 
+        series first.
     
     """
     
