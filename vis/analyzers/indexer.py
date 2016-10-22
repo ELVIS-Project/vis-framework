@@ -173,8 +173,7 @@ class Indexer(object):
                 raise IndexError(Indexer._INIT_INDEX_ERR)
             else:
                 ind_name = score.columns.levels[0][0]
-                num_parts = len(score[ind_name].columns)
-                score = [score[ind_name][str(i)].dropna() for i in range(num_parts)]
+                score = [score.iloc[:, x].dropna() for x in range(len(score.columns))]
         elif isinstance(score, stream.Score) and req_s_type is stream.Part:
             score = [score.parts[i] for i in range(len(score.parts))]
 
