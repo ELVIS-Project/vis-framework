@@ -10,7 +10,7 @@ import vis
 VIS_PATH = vis.__path__[0]
 
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos2308.mei'
-# piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/bwv2.xml'
+piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/bwv2.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Lassus_Duets/Lassus_1_Beatus_Vir.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Josquin_Duets/Crucifixus.xml' #example of IR = half note
@@ -26,7 +26,7 @@ folder = '/home/amor/Code/vis-framework/vis/scripts/Senfl motets'
 # piece_path = '/home/amor/Code/vis-framework/vis/scripts/Senfl_Buchner/No01_Converte_nos Kopie.xml'
 
 # Extremely short piece:
-piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/test_fermata_rest.xml'
+# piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/test_fermata_rest.xml'
 
 
 v_setts = {'quality': True, 'simple or compound': 'simple', 'directed': True}
@@ -47,6 +47,9 @@ n_setts_5 = {'n': 3, 'continuer': 'P1', 'horizontal': 'lowest', 'vertical': 'all
            'terminator': ['Rest'], 'open-ended': False, 'brackets': False}
 ip = indexed_piece.Importer(piece_path)
 hz = ip.get_data('horizontal_interval')
+vt = ip.get_data('vertical_interval')
+test = [vt.iloc[:, x] for x in range(len(vt.columns))]
+off = ip.get_data('offset', data=test, settings={'quarterLength':2})
 # setts = {'use_title': True, 'run_lilypond':True, 'output_pathname': 'trialpath'}#, 'annotation_part': hz}
 # ip.get_data('lilypond', data=ip._score, settings=setts)
 # out_path = '/home/amor/new/vis-framework/vis/scripts/Success'
