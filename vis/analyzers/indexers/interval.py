@@ -95,6 +95,12 @@ def real_indexer_func(simultaneity, analysis_type):
 # indexer_xxxx method is immediately followed by the xxxx_analysis 
 # method that it passed to the real_indexer_func.
 
+# -------------------------------------------------------------------- #
+
+"""
+.. todo:: The following functions should be refactored as private 
+    methods
+"""
 
 def indexer_dnq_dir_sim(ecks):
     """
@@ -331,7 +337,7 @@ def chr_und_com_analysis(interv):
     """
     return str(interv.chromatic.undirected)
 
-#-----------------------------------------*
+# -------------------------------------------------------------------- #
 
 '''
 The following function names are made up of the following combination of 

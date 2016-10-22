@@ -54,15 +54,17 @@ indexers Package
 
 .. automodule:: vis.analyzers.indexers.interval
     :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`lilypond` Module
-----------------------
-
-.. automodule:: vis.analyzers.indexers.lilypond
-    :members:
-    :undoc-members:
+    :exclude-members: chr_dir_com_analysis, chr_dir_sim_analysis,
+    	chr_und_com_analysis, chr_und_sim_analysis, dnq_dir_com_analysis,
+    	dnq_dir_sim_analysis, dnq_und_com_analysis, dnq_und_sim_analysis,
+    	dwq_dir_com_analysis, dwq_dir_sim_analysis, dwq_und_com_analysis,
+    	dwq_und_sim_analysis, icl_dir_sim_analysis, icl_und_sim_analysis,
+    	indexer_chr_dir_com, indexer_chr_dir_sim, indexer_chr_und_com,
+    	indexer_chr_und_sim, indexer_dnq_dir_com, indexer_dnq_dir_sim,
+    	indexer_dnq_und_com, indexer_dnq_und_sim, indexer_dwq_dir_com,
+    	indexer_dwq_dir_sim, indexer_dwq_und_com, indexer_dwq_und_sim,
+    	indexer_icl_dir_sim, indexer_icl_und_sim, real_indexer_func
+    :undoc-members: 
     :show-inheritance:
 
 :mod:`meter` Module
