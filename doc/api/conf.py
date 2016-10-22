@@ -260,5 +260,5 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('http://docs.python.org/2.7/', None),
-                       'pandas': ('http://pandas.pydata.org/pandas-docs/version/0.13.1/', None),
+                       'pandas': ('http://pandas.pydata.org/pandas-docs/version/0.18.1/', None),
                        'music21': ('http://web.mit.edu/music21/doc/', None)}
