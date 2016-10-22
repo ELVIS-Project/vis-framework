@@ -60,7 +60,7 @@ names = ('Indexer', 'Parts')
 # sample note beat strength values (assumes 4/2 time signature)
 q_b_ser = pd.Series([1, .125, .25, .125, .5, .125]) # a six-window series of beat strengths of quarter notes in 4/2
 h_b_ser = pd.Series([1, .25, .5], index=q_b_ser.index[:3]*2) # a 3-window series of beat strengths of half notes in 4/2
-b_mI = pd.MultiIndex.from_product(((b_ind,), ('0', '1')), names=names)
+b_mI = pd.MultiIndex.from_product((b_ind, ('0', '1')), names=names)
 qh_b_df = make_df((q_b_ser, h_b_ser), b_mI)
 qq_b_df = make_df((q_b_ser, q_b_ser), b_mI)
 hh_b_df = make_df((h_b_ser, h_b_ser), b_mI)
@@ -69,7 +69,7 @@ hq_b_df = make_df((h_b_ser, q_b_ser), b_mI)
 # sample duration values
 q_dur_ser = pd.Series([1]*6) # a six-window series of quarter note durations
 h_dur_ser = pd.Series([2]*3, index=q_dur_ser.index[:3]*2) # a three-window series of half note durations
-dur_mI = pd.MultiIndex.from_product(((dur_ind,), ('0', '1')), names=names)
+dur_mI = pd.MultiIndex.from_product((dur_ind, ('0', '1')), names=names)
 qh_dur_df = make_df((q_dur_ser, h_dur_ser), dur_mI)
 qq_dur_df = make_df((q_dur_ser, q_dur_ser), dur_mI)
 hh_dur_df = make_df((h_dur_ser, h_dur_ser), dur_mI)
@@ -80,7 +80,7 @@ q_h_ser = pd.Series(['2']*6) # a six-window series of stepwise horizontal ascent
 desc_q_h_ser = pd.Series(['-2']*6)
 h_h_ser = pd.Series(['1']*3, index=q_h_ser.index[:3]*2) # a 3-window series of horizontal ints in half notes (reiterated unisons)
 h2_h_ser = pd.Series(['1']*3, index=q_h_ser.index[:3]*2)
-h_mI = pd.MultiIndex.from_product(((h_ind,), ('0', '1')), names=names)
+h_mI = pd.MultiIndex.from_product((h_ind, ('0', '1')), names=names)
 qh_h_df = make_df((q_h_ser, h_h_ser), h_mI) # ascending quarter notes over stationary half notes
 qq_h_df = make_df((q_h_ser, q_h_ser), h_mI) # two lines of quarter notes ascending together by step
 hh_h_df = make_df((h_h_ser, h_h_ser), h_mI) # two lines of stationary half notes
@@ -91,13 +91,13 @@ asc_maj_ints = ['P1', 'M2', 'M3', 'P4', 'P5', 'M6']
 desc_maj_ints = [ntrvl for ntrvl in reversed(asc_maj_ints)]
 asc_q_v_ser = pd.Series(asc_maj_ints) # a six-window series vertical intervals ascending stepwise up a major scale in quarter notes
 desc_q_v_ser = pd.Series(desc_maj_ints) # a six-window series vertical intervals ascending stepwise up a major scale in quarter notes
-v_mI = pd.MultiIndex.from_product(((v_ind,), ('0,1',)), names=names)
+v_mI = pd.MultiIndex.from_product((v_ind, ('0,1',)), names=names)
 asc_q_v_df = make_df((asc_q_v_ser,), v_mI)
 desc_q_v_df = make_df((desc_q_v_ser,), v_mI)
 
 # dissonance results df constructor materials
 empty = pd.Series(['-']*6)
-diss_mI = pd.MultiIndex.from_product(((diss_ind,), ('0', '1')), names=names)
+diss_mI = pd.MultiIndex.from_product((diss_ind, ('0', '1')), names=names)
 empty_df = make_df([empty, empty], diss_mI)
 
 

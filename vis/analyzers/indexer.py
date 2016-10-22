@@ -328,7 +328,7 @@ class Indexer(object):
         # make the indexer's name using filename and classname (but not full class name)
         my_mod = six.u(str(self.__module__))[six.u(str(self.__module__)).rfind('.') + 1:]
         my_class = six.u(str(self.__class__))[six.u(str(self.__class__)).rfind('.'):-2]
-        my_name = (my_mod + my_class,)
+        my_name = my_mod + my_class
 
         # Apply the multi_index as the column labels.
         iterables = (my_name, labels)
