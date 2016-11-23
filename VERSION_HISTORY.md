@@ -8,36 +8,36 @@ the top of the file.
     - Added documentation to offset indexers. 
 
 * 3.0.3:
-    -Removes LilyPond Indexer and Experimenters and outputlilypond module.
-    -Re-enables Dendrogram Experimenter if optional requirements are installed.
-    -Adds convenience method for executing dendrogram experimenter.
-    -Adds measure_index() method to multi-index with measure positions.
-    -Documentation updates.
+    - Removes LilyPond Indexer and Experimenters and outputlilypond module.
+    - Re-enables Dendrogram Experimenter if optional requirements are installed.
+    - Adds convenience method for executing dendrogram experimenter.
+    - Adds measure_index() method to multi-index with measure positions.
+    - Documentation updates.
 
 * 3.0.2:
-    -Update indexer documentation examples for VIS 3 syntax.
-    -Re-enable tests that check connectivity requirements but don't actually access ELVIS Database.
-    -Clean up the way some error messages in indexed_piece print.
-    -Small bug fix in CadenceIndexer.
+    - Update indexer documentation examples for VIS 3 syntax.
+    - Re-enable tests that check connectivity requirements but don't actually access ELVIS Database.
+    - Clean up the way some error messages in indexed_piece print.
+    - Small bug fix in CadenceIndexer.
 
 * 3.0.1:
-    -Fixed 'requests' library requirement.
-    -Disabled test cases that depend on external DB.
+    - Fixed 'requests' library requirement.
+    - Disabled test cases that depend on external DB.
 
 * 3.0.0:
-    -Iterative caching of most indexer results run on any given indexed_piece object
-    -Optimized application of indexer_functions resulting in large indexing speed boost
-    -Faster stream parsing
-    -Consolidate all importation into Importer method
-    -Simplify get_data_methods in indexed_piece and aggregated pieces including the addition of string 
-    shortcuts for convenience
-    -New indexers: Cadence, Contour, Multistop, Over_Bass
-    -New_ngram fully replaces ngram, and is called ngram
-    -Deprecates WorkflowManager
-    -Removes SciPy and matplotlib dependencies
-    -Refactor Duration and Repeat indexers
-    -Refactor metadata collection including possibility to get metadata from meta files
-    -Adds CR_indexer, melodies, Permutations, transformations, 4vv_parser to scripts
+    - Iterative caching of most indexer results run on any given indexed_piece object
+    - Optimized application of indexer_functions resulting in large indexing speed boost
+    - Faster stream parsing
+    - Consolidate all importation into Importer method
+    - Simplify get_data_methods in indexed_piece and aggregated pieces including the addition of string 
+      shortcuts for convenience
+    - New indexers: Cadence, Contour, Multistop, Over_Bass
+    - New_ngram fully replaces ngram, and is called ngram
+    - Deprecates WorkflowManager
+    - Removes SciPy and matplotlib dependencies
+    - Refactor Duration and Repeat indexers
+    - Refactor metadata collection including possibility to get metadata from meta files
+    - Adds CR_indexer, melodies, Permutations, transformations, 4vv_parser to scripts
 
 * 2.4.1:
     - Cosmetic changes to more closely comply with Python coding conventions.
