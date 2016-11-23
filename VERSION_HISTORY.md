@@ -4,8 +4,8 @@ This file records version-to-version changes in the VIS Framework. The most rece
 the top of the file.
 
 * 3.0.4:
-    -Revert "Revert "Refactor: handling of ```self._score``` in Indexer superclass. 
-    -Added documentation to offset indexers. 
+    - Revert "Revert "Refactor: handling of ```self._score``` in Indexer superclass. 
+    - Added documentation to offset indexers. 
 
 * 3.0.3:
     -Removes LilyPond Indexer and Experimenters and outputlilypond module.
