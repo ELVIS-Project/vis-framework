@@ -94,6 +94,6 @@ setup(
 The VIS Framework for Music Analysis
 ------------------------------------
 
-VIS is a Python package that uses the music21 and pandas libraries to build a ridiculously flexible and preposterously easy system for writing computer music analysis programs.
+VIS is a Python package that uses the music21 and pandas libraries to build a system for writing computer music analysis scripts.
 """
 )
