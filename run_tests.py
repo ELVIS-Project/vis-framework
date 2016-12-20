@@ -54,7 +54,7 @@ from vis.tests import bwv603_integration_tests as bwv603
 # from vis.tests import test_workflow_experiments
 from vis.tests import test_fermata_indexer
 from vis.tests import test_over_bass
-from vis.tests import test_cadence
+from vis.tests import test_approach
 from vis.tests import test_contour
 from vis.tests import test_active_voices
 from vis.tests import test_windexer
@@ -80,7 +80,7 @@ THE_TESTS = (  # Indexer and Subclasses
              test_offset.OFFSET_INDEXER_SINGLE_SUITE,
              test_offset.OFFSET_INDEXER_MULTI_SUITE,
              test_over_bass.OVER_BASS_INDEXER_SUITE,
-             test_cadence.CADENCE_INDEXER_SUITE,
+             test_approach.APPROACH_INDEXER_SUITE,
              test_contour.CONTOUR_INDEXER_SUITE,
              test_active_voices.ACTIVE_VOICES_INDEXER_SUITE,
              test_windexer.WINDEXER_SUITE,
