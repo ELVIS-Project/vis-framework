@@ -45,7 +45,7 @@ from vis.models.aggregated_pieces import AggregatedPieces
 from vis.analyzers.experimenter import Experimenter
 from vis.analyzers.experimenters import aggregator, barchart, frequency
 from vis.analyzers.indexer import Indexer
-from vis.analyzers.indexers import noterest, cadence, meter, interval, dissonance, fermata, offset, repeat, active_voices, offset, over_bass, contour, ngram, windexer
+from vis.analyzers.indexers import noterest, approach, meter, interval, dissonance, fermata, offset, repeat, active_voices, offset, over_bass, contour, ngram, windexer
 from multi_key_dict import multi_key_dict as mkd
 
 # the title given to a piece when we cannot determine its title
@@ -448,7 +448,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         # Multi-key dictionary for calls to get_data()
         self._mkd = mkd({ # Indexers (in alphabetical order of their long-format strings):
                         ('active_voices', 'active_voices.ActiveVoicesIndexer', active_voices.ActiveVoicesIndexer): self._get_active_voices,
-                        ('cadence', 'cadence.CadenceIndexer', cadence.CadenceIndexer): self._get_cadence,
+                        ('approach', 'approach.ApproachIndexer', approach.ApproachIndexer): self._get_approach,
                         ('contour', 'contour.ContourIndexer', contour.ContourIndexer): contour.ContourIndexer,
                         ('dissonance', 'dissonance.DissonanceIndexer', dissonance.DissonanceIndexer): self._get_dissonance,
                         ('fermata', 'fermata.FermataIndexer', fermata.FermataIndexer): self._get_fermata,
@@ -730,16 +730,16 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
             self._analyses['dissonance'] = dissonance.DissonanceIndexer(in_dfs).run()
         return self._analyses['dissonance']
 
-    def _get_cadence(self, data=[], settings=None):
+    def _get_approach(self, data=[], settings=None):
         """Used internally by get_data() as a convenience method to simplify getting results from 
-        the CadenceIndexer. Since the results of the FermataIndexer are required for this and do not 
+        the ApproachIndexer. Since the results of the FermataIndexer are required for this and do not 
         take any settings, they are automatically provided for the user, so only the results of the 
         OverBassIndexer must necessarily be provided in the 'data' argument."""
         if len(data) == 1: # If data has more than two dfs, or the wrong dfs, this will be caught later
             temp = [self._get_fermata()]
             temp.extend(data)
             data = temp
-        return cadence.CadenceIndexer(data, settings).run()
+        return approach.ApproachIndexer(data, settings).run()
 
     def _get_m21_measure_objs(self):
         """Makes a dataframe of the music21 measure objects in the indexed_piece. Note that midi 
