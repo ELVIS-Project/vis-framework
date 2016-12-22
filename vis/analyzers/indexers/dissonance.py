@@ -26,7 +26,6 @@
 """
 .. codeauthor:: Alexander Morgan
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
-
 """
 import pandas
 import numpy
@@ -109,13 +108,11 @@ class DissonanceIndexer(indexer.Indexer):
     This dissonance analysis allows for the assignment of a dissonance 
     type name or a consonance label for each voice at each offset. This 
     last step is the DataFrame that gets returned.
-
     The score type must be a list of dataframes of the results of the 
     following indexers (order matters): beatstrength, duration, 
     horizontal, vertical. To simplify things, however, it is better to 
     use the ``get_data()`` on an ``indexed_piece`` object to get results 
     from the dissonance indexer as per the example below.
-
     The results of the disonance indexer are in the form of one cell in 
     the resultant dataframe in each part at every offset where there is 
     a new note, rest, or chord onset in any part. These cells contain 
@@ -140,11 +137,9 @@ class DissonanceIndexer(indexer.Indexer):
            considered to be the dissonant note of the dissonance it's in
     
     **Example:**
-
     >>> from vis.models.indexed_piece import Importer
     >>> ip = Importer('symbolic_notation_file_location.xml')
     >>> ip.get_data('dissonance')
-
     """
     required_score_type = 'pandas.DataFrame'
 
@@ -160,7 +155,6 @@ class DissonanceIndexer(indexer.Indexer):
             ignored.
         
         :type settings: NoneType
-
         :raises: :exc:`RuntimeError` if ``score`` is the wrong type.
         
         :raises: :exc:`RuntimeError` if ``score`` is not a list of the 
@@ -189,7 +183,6 @@ class DissonanceIndexer(indexer.Indexer):
         stands still while this one moves) creating a dissonant 
         interval, continues stepwise in the same direction without 
         resting, AND satisfies one of the following:
-
         * it is on a weak half, preceded by a half or longer, and its 
           duration is one half note, OR
         
@@ -202,7 +195,6 @@ class DissonanceIndexer(indexer.Indexer):
         interval, without resting, by changing direction and returning 
         by step to the same note that preceded it AND meets one of the 
         above metric requirements.
-
         Passing and neighbour tone detection have been grouped to 
         improve analysis speed because their requirements are almost 
         identical. This function takes four parameters to situate the
@@ -212,10 +204,8 @@ class DissonanceIndexer(indexer.Indexer):
         top of this file. The variables assigned at the beginning of 
         this and all the other dissonance type definition functions are 
         as follows (note that not all appear in each function):
-
         a2 == horizontal motion of the upper voice into the note or rest 
               at a_ind
-
         a == horizontal motion of upper voice into dissonance
         
         b == horizontal motion of upper voice out of dissonance
@@ -239,7 +229,6 @@ class DissonanceIndexer(indexer.Indexer):
         
         bs_'letter' == beatStrength of note or rest at the passed 
                        position
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
         
@@ -250,10 +239,8 @@ class DissonanceIndexer(indexer.Indexer):
         
         :type pair: string with the lower numbered voice first and a 
             comma separating the two voices.
-
         :param event: the interval that has been analyzed as a 
             dissonance to be classified.
-
         :type event: string of dissonant interval with quality. All 
             fourths and fifths should be dissonant fourths and fifths 
             based on the analysis of method check_4s_5s.
@@ -264,7 +251,6 @@ class DissonanceIndexer(indexer.Indexer):
         
         :type prev_event: string of previous event in the same voice 
             pair or None if there was no previous event.
-
         :returns: If it finds a suspension a five-tuple with True as the 
             first argument, the upper-voice number stored as a string as 
             the second argument, the label to assign the upper voice as 
@@ -362,11 +348,9 @@ class DissonanceIndexer(indexer.Indexer):
         * its next move (the "resolution") is downwards by step without 
           resting (it may restrike the same note before resolving, 
           though), AND
-
         * the resolution is on a weaker beat than the dissonance, or, if 
           the dissonant note is a whole note in duration, the resolution 
           is on a weaker-or-equally-strong beat.
-
         This function takes four parameters to situate the analysis in a 
         specific pair of voices at a given moment in the piece and 
         returns the results of that analysis. For the meaning of the
@@ -374,32 +358,25 @@ class DissonanceIndexer(indexer.Indexer):
         please refer to the doc string of ``_is_passing_or_neigh``. The 
         labels assigned can be modified by changing the file-wide labels 
         at the top of this file.
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
-
         :type indx: int
         
         :param pair: name of the voice pair in which the dissonance 
             happens.
-
         :type pair: string with the lower numbered voice first and a 
             comma separating the two voices.
-
         :param event: the interval that has been analyzed as a 
             dissonance to be classified.
-
         :type event: string of dissonant interval with quality. All 
             fourths and fifths should be dissonant fourths and fifths 
             based on the analysis of method ``check_4s_5s``.
-
         :param prev_event: previous event in the same voice pair which 
             may be a consonance, a dissonance, a rest, or non-existent 
             if there was no previous event in the pair.
         
         :type prev_event: string of previous event in the same voice 
             pair or None if there was no previous event.
-
         :returns: If it finds a suspension a five-tuple with True as the 
             first argument, the upper-voice number stored as a string as 
             the second argument, the label to assign the upper voice as 
@@ -479,11 +456,9 @@ class DissonanceIndexer(indexer.Indexer):
         
         * a weak half, with the ensuing suspended note (or part of note) 
           falling on the following downbeat, OR
-
         * (diminished fake suspension) a weak quarter, with the ensuing 
           suspended note (or part of note) falling on the following 
           strong quarter.
-
         This function takes four parameters to situate the analysis in a 
         specific pair of voices at a given moment in the piece and 
         returns the results of that analysis. For the meaning of the
@@ -491,25 +466,19 @@ class DissonanceIndexer(indexer.Indexer):
         please refer to the doc string of ``_is_passing_or_neigh``. The 
         labels assigned can be modified by changing the file-wide labels 
         at the top of this file.
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
-
         :type indx: int
         
         :param pair: name of the voice pair in which the dissonance 
             happens.
-
         :type pair: string with the lower numbered voice first and a 
             comma separating the two voices.
-
         :param event: the interval that has been analyzed as a 
             dissonance to be classified.
-
         :type event: string of dissonant interval with quality. All 
             fourths and fifths should be dissonant fourths and fifths 
             based on the analysis of method ``check_4s_5s``.
-
         :param prev_event: previous event in the same voice pair which 
             may be a consonance, a dissonance, a rest, or non-existent 
             if there was no previous event in the pair.
@@ -595,7 +564,6 @@ class DissonanceIndexer(indexer.Indexer):
         half, approached by step from above and preceded by a 2 or 
         longer, and continuing by step in the same direction. The 
         suspect dissonance occurs at the indx passed.
-
         This function takes four parameters to situate the analysis in a 
         specific pair of voices at a given moment in the piece and 
         returns the results of that analysis. For the meaning of the 
@@ -603,7 +571,6 @@ class DissonanceIndexer(indexer.Indexer):
         please refer to the doc string of ``_is_passing_or_neigh``. The 
         labels assigned can be modified by changing the file-wide labels 
         at the top of this file.
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
         
@@ -689,7 +656,6 @@ class DissonanceIndexer(indexer.Indexer):
         obliquely by step from above, and is followed immediately (i.e. 
         on the strong quarter, which might be a downbeat or a weak half) 
         by the same pitch.
-
         This function takes four parameters to situate the analysis in a 
         specific pair of voices at a given moment in the piece and 
         returns the results of that analysis. For the meaning of the
@@ -697,7 +663,6 @@ class DissonanceIndexer(indexer.Indexer):
         please refer to the doc string of ``_is_passing_or_neigh``. The 
         labels assigned can be modified by changing the file-wide labels 
         at the top of this file.
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
         
@@ -770,7 +735,6 @@ class DissonanceIndexer(indexer.Indexer):
         A *nota cambiata* figure moves obliquely by descending step to a 
         dissonant weak half or quarter then skips down a third before 
         ascending by step to the note skipped over.
-
         This function takes four parameters to situate the analysis in a 
         specific pair of voices at a given moment in the piece and 
         returns the results of that analysis. For the meaning of the
@@ -778,7 +742,6 @@ class DissonanceIndexer(indexer.Indexer):
         please refer to the doc string of ``_is_passing_or_neigh``. The 
         labels assigned can be modified by changing the file-wide labels 
         at the top of this file.
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
         
@@ -885,7 +848,6 @@ class DissonanceIndexer(indexer.Indexer):
         
         * the inactive voice is extended past the downbeat, becoming a 
           dissonant suspension that resolves down by step.
-
         This function takes four parameters to situate the analysis in a 
         specific pair of voices at a given moment in the piece and 
         returns the results of that analysis. For the meaning of the
@@ -893,7 +855,6 @@ class DissonanceIndexer(indexer.Indexer):
         please refer to the doc string of ``_is_passing_or_neigh``. The 
         labels assigned can be modified by changing the file-wide labels 
         at the top of this file.
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
         
@@ -1006,7 +967,6 @@ class DissonanceIndexer(indexer.Indexer):
         A note is considered an *échappée* if it consists of a 
         quarter-note dissonance on a weak quarter note that is 
         approached by step and left by leap in the opposite direction.
-
         This function takes four parameters to situate the analysis in a 
         specific pair of voices at a given moment in the piece and 
         returns the results of that analysis. For the meaning of the 
@@ -1014,7 +974,6 @@ class DissonanceIndexer(indexer.Indexer):
         please refer to the doc string of ``_is_passing_or_neigh``. The 
         labels assigned can be modified by changing the file-wide labels 
         at the top of this file.
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
         
@@ -1094,7 +1053,6 @@ class DissonanceIndexer(indexer.Indexer):
         dissonance first will be labeled as the dissonant one. If they 
         move to and from the dissonance together they will both be 
         labeled dissonant.
-
         This function takes four parameters to situate the analysis in a 
         specific pair of voices at a given moment in the piece and 
         returns the results of that analysis. By this point, none of the 
@@ -1105,7 +1063,6 @@ class DissonanceIndexer(indexer.Indexer):
         refer to the doc string of ``_is_passing_or_neigh``. The labels 
         assigned can be modified by changing the file-wide labels at the 
         top of this file.
-
         :param indx: The position-based (iloc) index of the dissonance 
             being analyzed.
         
@@ -1174,7 +1131,6 @@ class DissonanceIndexer(indexer.Indexer):
         label still in vigour at the given offset. It only takes its 
         four arguments to pass them on to the dissonance-type functions 
         it calls.
-
         :returns: A 5-tuple that can be unpacked to assign separate 
             labels for each voice in the pair. If none of the known 
             dissonance types were detected the 5-tuple will have the
@@ -1208,7 +1164,6 @@ class DissonanceIndexer(indexer.Indexer):
         or fifth consonant, as determined by the cons_makers list below. 
         The function should be called once for each potentially 
         consonant fourth or fifth.
-
         :param pair_name: Name of pair that has the potentially 
             consonant fourth or fifth.
         
@@ -1294,7 +1249,6 @@ class DissonanceIndexer(indexer.Indexer):
         purposes of dissonance classification. diss_ints is not 
         calculated separately because it essentially consists of the 
         same loop needed for dissonance classification.
-
         :returns: A :class:`DataFrame` of the new indices. The columns 
             have a :class:`MultiIndex`.
         
@@ -1312,8 +1266,8 @@ class DissonanceIndexer(indexer.Indexer):
         for col, pair_title in enumerate(diss_ints.columns):
             voices = pair_title.split(',') 
             # assign top and bottom voices as integers
-            top_voice = int(min(voices))
-            bott_voice = int(max(voices))
+            top_voice = self._score[dur_ind].columns.get_loc(voices[0])
+            bott_voice = self._score[dur_ind].columns.get_loc(voices[1])
             for i, event in enumerate(diss_ints[pair_title]):
                 if event in _potential_consonances: 
                     # NB: all other events are definite consonances or 
@@ -1340,13 +1294,12 @@ class DissonanceIndexer(indexer.Indexer):
                     # will do) so that there can be two passing tones in 
                     # a row.
                     diss_analysis = self.classify(i, pair_title, event, prev_event)
-                    if (_weights[ret.iat[i, int(diss_analysis[1], 10)]] < _weights[diss_analysis[2]]):
-                        ret.iat[i, int(diss_analysis[1], 10)] = diss_analysis[2]
-                    if (_weights[ret.iat[i, int(diss_analysis[3], 10)]] < _weights[diss_analysis[4]]):
-                        ret.iat[i, int(diss_analysis[3], 10)] = diss_analysis[4]
+                    if (_weights[ret.iat[i, top_voice]] < _weights[diss_analysis[2]]):
+                        ret.iat[i, top_voice] = diss_analysis[2]
+                    if (_weights[ret.iat[i, bott_voice]] < _weights[diss_analysis[4]]):
+                        ret.iat[i, bott_voice] = diss_analysis[4]
 
         '''
-
         # Remove lingering unexplainable labels from notes that are only 
         # dissonant against identifiable dissonances.
         unknowns = numpy.where(ret.values == _unexplainable) 

@@ -47,7 +47,11 @@ from vis.analyzers.experimenters import aggregator, barchart, frequency
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest, approach, meter, interval, dissonance, fermata, offset, repeat, active_voices, offset, over_bass, contour, ngram, windexer
 from multi_key_dict import multi_key_dict as mkd
+from collections import Counter
 
+# Error message when importing doesn't work because of unknown file type
+_UNKNOWN_INPUT = 'This file type was not recognized. The file is probably not \
+a score in symbolic notation.'
 # the title given to a piece when we cannot determine its title
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 # Types for noterest indexing
@@ -110,38 +114,40 @@ def _find_piece_title(the_score):
     return post
 
 
-def _find_part_names(the_score):
+def _find_part_names(list_of_parts):
     """
-    Return a list of part names in a score. If the score does not have proper part names, return a
-    list of enumerated parts.
-    :param the_score: The score in which to find the part names.
-    :type the_score: :class:`music21.stream.Score`
-    :returns: The title of the score.
+    Return a list of part names in a score. If the score does not have proper 
+    part names, return a list of enumerated parts.
+    :param list_of_parts: The parts of the score.
+    :type list_of_parts: List of :class:`music21.stream.Part`
+    :returns: List of part names.
     :rtype: :obj:`list` of str
     """
     # hold the list of part names
     post = []
 
     # First try to find Instrument objects. If that doesn't work, use the "id"
-    for each_part in the_score.parts:
+    for i, each_part in enumerate(list_of_parts):
+        name = 'None'
         instr = each_part.getInstrument()
         if instr is not None and instr.partName != '' and instr.partName is not None:
-            post.append(instr.partName)
+            name = instr.partName
         elif each_part.id is not None:
             if isinstance(each_part.id, six.string_types):
                 # part ID is a string, so that's what we were hoping for
-                post.append(each_part.id)
-            else:
-                # the part name is probably an integer, so we'll try to rename it
-                post.append('rename')
-        else:
-            post.append('rename')
+                name = each_part.id
+        # Make sure none of the part names are just 'None'.
+        if name == 'None' or name == '':
+            name = 'Part {}'.format(i + 1)
+        post.append(name)
 
-    # Make sure none of the part names are just numbers; if they are, use
-    # a part name like "Part 1" instead.
-    for i, part_name in enumerate(post):
-        if 'rename' == part_name:
-            post[i] = 'Part {}'.format(i + 1)
+    # If there are duplicates, add enumerated suffixes.
+    counts = {k:v for k,v in Counter(post).items() if v > 1}      
+    for i in reversed(range(len(post))):
+        item = post[i]
+        if item in counts and counts[item]:
+            post[i] = ''.join((post[i], '_', str(counts[item])))
+            counts[item] -= 1
 
     return post
 
@@ -283,7 +289,7 @@ def _import_file(pathname, metafile=None):
                 ip._metadata[field] = getattr(ip.metadata, field)
                 if ip._metadata[field] is None:
                     ip._metadata[field] = '???'
-        ip._metadata['parts'] = _find_part_names(ip._score)
+        ip._metadata['parts'] = _find_part_names(ip._get_part_streams())
         ip._metadata['title'] = _find_piece_title(ip._score)
         ip._metadata['partRanges'] = _find_part_ranges(ip._score)
         ip._metadata['pieceRange'] = _find_piece_range(ip._score)
@@ -346,22 +352,12 @@ def Importer(location, metafile=None):
         pieces.extend(_import_file(location))
 
     else:
-        raise RuntimeError(self._UNKNOWN_INPUT)
+        raise RuntimeError(_UNKNOWN_INPUT)
 
     if len(pieces) == 1: # there was a single piece that imported as a score (not an opus)
         return(pieces[0]) # this returns an IndexedPiece object
     else: # there were multiple pieces or a single piece that imported as an opus
         return(AggregatedPieces(pieces=pieces, metafile=metafile))
-
-
-class OpusWarning(RuntimeWarning):
-    """
-    The :class:`OpusWarning` is raised by :meth:`IndexedPiece.get_data` when ``known_opus`` is
-    ``False`` but the file imports as a :class:`music21.stream.Opus` object, and when ``known_opus``
-    is ``True`` but the file does not import as a :class:`music21.stream.Opus` object.
-    Internally, the warning is actually raised by :meth:`IndexedPiece._import_score`.
-    """
-    pass
 
 
 class IndexedPiece(object):
@@ -586,10 +582,11 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         if 'm21_objs' not in self._analyses:
             # save the results as a list of series in the indexed_piece attributes
             sers =[]
-            for p in self._get_part_streams():
+            for i, p in enumerate(self._get_part_streams()):
                 # NB: since we don't use ActiveSites, not restoring them is a minor speed-up. Also, 
                 # skipSelf will soon change its default to True in music21.
-                ser = pandas.Series(p.recurse(restoreActiveSites=False, skipSelf=True))
+                ser = pandas.Series(p.recurse(restoreActiveSites=False, skipSelf=True),
+                                    name=self.metadata('parts')[i])
                 ser.index = ser.apply(_get_offset, args=(p,))
                 sers.append(ser)
             self._analyses['m21_objs'] = sers
@@ -650,7 +647,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         if data is not None:
             return meter.DurationIndexer(data[0], data[1]).run()
         elif 'duration' not in self._analyses:
-            self._analyses['duration'] = meter.DurationIndexer(self._get_m21_nrc_objs_no_tied(), self._get_part_streams()).run()
+            self._analyses['duration'] = meter.DurationIndexer(self._get_noterest(), self._get_part_streams()).run()
         return self._analyses['duration']
 
     def _get_active_voices(self, data=None, settings=None):

@@ -4,7 +4,7 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers_tests/test_note_rest_indexer.py
+# Filename:               analyzers_tests/test_measure_indexer.py
 # Purpose:                Tests for the NoteRestIndexer
 #
 # Copyright (C) 2015 Alexander Morgan
@@ -52,11 +52,12 @@ class TestMeasureIndexer(unittest.TestCase):
         expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
         test_parts = [stream.Part(), stream.Part()]
         ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip.metadata('parts', expected.columns)
         ip._analyses['part_streams'] = test_parts # supply part_streams.
         actual = ip._get_measure()['meter.MeasureIndexer']
         self.assertTrue(actual.equals(expected))
 
-    def test_note_rest_indexer_2(self):
+    def test_measure_indexer_2(self):
         # When the part has no Measure objects in it but a bunch of notes.
         expected = pandas.DataFrame({'0': pandas.Series()})
         test_part = stream.Part()
@@ -67,11 +68,12 @@ class TestMeasureIndexer(unittest.TestCase):
             test_part.append(add_me)
         test_part = [test_part] # finished adding stuff to the test_part
         ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip.metadata('parts', expected.columns)
         ip._analyses['part_streams'] = test_part # supply part_streams.
         actual = ip._get_measure()['meter.MeasureIndexer']
         self.assertTrue(actual.equals(expected))
 
-    def test_note_rest_indexer_3(self):
+    def test_measure_indexer_3(self):
         # When there are a bunch of measures with a note in each one.
         expected = pandas.DataFrame({'0': pandas.Series(range(1, 11), index=[float(x) for x in range(10)])})
         test_part = stream.Part()
@@ -84,24 +86,27 @@ class TestMeasureIndexer(unittest.TestCase):
             test_part.append(add_me)
         test_part = [test_part] # finished adding stuff to the test_part
         ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip.metadata('parts', expected.columns)
         ip._analyses['part_streams'] = test_part # supply part_streams.
         actual = ip._get_measure()['meter.MeasureIndexer']
         self.assertTrue(actual.equals(expected))
 
-    def test_note_rest_indexer_4(self):
+    def test_measure_indexer_4(self):
         # bwv77.mxl, which is a piece with a pick-up measure. All 4 parts have the same data.
         measure_data = pandas.Series(range(19), index=TestMeasureIndexer.bwv77_measure_index)
-        expected = pandas.DataFrame({'0': measure_data, '1': measure_data, '2': measure_data, '3': measure_data})
+        expected = pandas.concat([measure_data]*4, axis=1)
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
-        actual = ip._get_measure()['meter.MeasureIndexer']
+        actual = ip._get_measure()
+        expected.columns = actual.columns
         self.assertTrue(actual.equals(expected))
 
-    def test_note_rest_indexer_5(self):
+    def test_measure_indexer_5(self):
         # A two-part test piece with no pick-up measure originally written to test fermata indexer.
         measure_data = pandas.Series([1, 2], index=[0.0, 4.0])
-        expected = pandas.DataFrame({'0': measure_data, '1': measure_data})
+        expected = pandas.concat([measure_data]*2, axis=1)
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/test_fermata_rest.xml'))
-        actual = ip._get_measure()['meter.MeasureIndexer']
+        actual = ip.get_data('measure')
+        expected.columns = actual.columns
         self.assertTrue(actual.equals(expected))
 
 

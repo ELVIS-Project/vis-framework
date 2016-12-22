@@ -243,7 +243,10 @@ class Indexer(object):
             result = self._score.copy()
         else: # This is the regular case.
             result = self._score.applymap(self._indexer_func)
-        labels = [six.u(str(x)) for x in range(len(result.columns))]
+        if type(self._score.columns) == pandas.Index:
+            labels = self._score.columns
+        else:
+            labels = self._score.columns.get_level_values(-1)
         return self.make_return(labels, result)
 
 

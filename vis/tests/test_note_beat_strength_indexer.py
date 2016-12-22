@@ -100,7 +100,8 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
         # When the parts are empty
         expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
         test_parts = [stream.Part(), stream.Part()]
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip = IndexedPiece()
+        ip.metadata('parts', expected.columns)
         ip._analyses['part_streams'] = test_parts # supply part_streams.
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
         self.assertTrue(actual.equals(expected))
@@ -117,7 +118,8 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
             add_me = bar.Barline()
             add_me.offset = i
             test_part.append(add_me) # finished adding stuff to the test_part
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip = IndexedPiece()
+        ip.metadata('parts', expected.columns)
         ip._analyses['part_streams'] = [test_part] # supply part_streams.
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
         self.assertTrue(actual.equals(expected))
@@ -136,34 +138,34 @@ class TestNoteBeatStrengthIndexer(unittest.TestCase):
             add_me.offset = i
             measure.append(add_me)
         test_part.insert(0, measure) # finished adding stuff to the test_part
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
+        ip = IndexedPiece()
+        ip.metadata('parts', expected.columns)
         ip._analyses['part_streams'] = [test_part] # supply part_streams.
         actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
         self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_4(self):
         # Soprano part of bwv77.mxl which is a part with no ties
-        expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv77_soprano)})
+        expected = TestNoteBeatStrengthIndexer.make_series(bwv77_soprano)
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
-        ip._analyses['part_streams'] = ip._get_part_streams()[:1]
-        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
+        actual = ip._get_beat_strength().iloc[:, 0].dropna()
         self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_5(self):
         # Alto part of bwv603.mxl which is a part with ties
-        expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv603_alto)})
+        expected = TestNoteBeatStrengthIndexer.make_series(bwv603_alto)
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
-        ip._analyses['part_streams'] = [ip._get_part_streams()[1]]
-        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer']
+        actual = ip._get_beat_strength().iloc[:, 1].dropna()
         self.assertTrue(actual.equals(expected))
 
     def test_note_beat_strength_indexer_6(self):
         # Soprano and bass parts of bwv603.xml
         # We won't verify all the parts, but we'll submit them all for analysis.
-        expected = pandas.DataFrame({'0': TestNoteBeatStrengthIndexer.make_series(bwv603_soprano),
-                    '3': TestNoteBeatStrengthIndexer.make_series(bwv603_bass)})
+        expected = pandas.concat([TestNoteBeatStrengthIndexer.make_series(bwv603_soprano),
+                                 TestNoteBeatStrengthIndexer.make_series(bwv603_bass)], axis=1)
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
-        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer'].iloc[:, [0, 3]]
+        actual = ip._get_beat_strength()['meter.NoteBeatStrengthIndexer'].iloc[:, [0, 3]].dropna(how='all')
+        expected.columns = actual.columns
         self.assertTrue(actual.equals(expected))
 
 #--------------------------------------------------------------------------------------------------#

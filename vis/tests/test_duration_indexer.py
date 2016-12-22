@@ -99,15 +99,16 @@ class TestDurationIndexer(unittest.TestCase):
     def test_duration_indexer_1(self):
         # When the parts are empty
         expected = pandas.DataFrame({'0': pandas.Series(), '1': pandas.Series()})
+        expected.columns = pandas.MultiIndex.from_product([('meter.DurationIndexer',), ['0','1']])
         test_parts = [stream.Part(), stream.Part()]
-        ip = IndexedPiece('phony_file_location') # it doesn't matter what the string is becuase we supply part_streams 
-        ip._analyses['part_streams'] = test_parts # supply part_streams.
-        actual = ip._get_duration()['meter.DurationIndexer']
+        dur_indexer = meter.DurationIndexer(expected, test_parts)
+        actual = dur_indexer.run()
         self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_2(self):
         # When the part has no Note or Rest objects in it
         expected = pandas.DataFrame({'0': pandas.Series()})
+        expected.columns = pandas.MultiIndex.from_product([('meter.DurationIndexer',), ('0',)])
         test_part = stream.Part()
         # add stuff to the test_part
         for i in range(10):
@@ -119,7 +120,7 @@ class TestDurationIndexer(unittest.TestCase):
             test_part.append(add_me)
         test_part = [test_part] # finished adding stuff to the test_part
         dur_indexer = meter.DurationIndexer(expected, test_part)
-        actual = dur_indexer.run()['meter.DurationIndexer']
+        actual = dur_indexer.run()
         self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_3(self):
@@ -132,38 +133,37 @@ class TestDurationIndexer(unittest.TestCase):
             add_me = note.Note(u'C4', quarterLength=1.0)
             add_me.offset = i
             test_part.append(add_me)
-        test_part = [test_part]
-        nr = pandas.concat([pandas.Series(['C4']*10, index=expected.index, name='0')], axis=1)
-        # finished adding stuff to the test_part
-        dur_indexer = meter.DurationIndexer(nr, test_part)
-        actual = dur_indexer.run()['meter.DurationIndexer']
+        ip = IndexedPiece()
+        ip._analyses['part_streams'] = [test_part]
+        ip.metadata('parts', expected.columns)
+        actual = ip.get_data('duration')['meter.DurationIndexer']
         self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_4(self):
         # Soprano part of bwv77.mxl which is a part with no ties
-        expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv77_soprano)})
+        expected = TestDurationIndexer.make_series(TestDurationIndexer.bwv77_soprano)
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
-        ip._analyses['part_streams'] = ip._get_part_streams()[:1]
-        actual = ip.get_data('duration')['meter.DurationIndexer']
+        ip._analyses['part_streams'] = ip._get_part_streams()
+        actual = ip.get_data('duration').iloc[:, 0].dropna()
         self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_5(self):
         # Alto part of bwv603.mxl which is a part with ties. Also test that data argument is passed 
         # correctly. Since the data argument is passed, these results should not be cached.
-        expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_alto)})
+        expected = TestDurationIndexer.make_series(TestDurationIndexer.bwv603_alto)
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
-        ip._analyses['part_streams'] = [ip._get_part_streams()[1]]
-        actual = ip.get_data('duration', data=(ip.get_data('noterest'), ip._analyses['part_streams']))['meter.DurationIndexer']
+        actual = ip.get_data('duration', data=(ip.get_data('noterest'), ip._analyses['part_streams'])).iloc[:, 1].dropna()
         self.assertTrue(actual.equals(expected))
         self.assertTrue('duration' not in ip._analyses.keys())
 
     def test_duration_indexer_6(self):
         # Soprano and bass parts of bwv603.xml
         # We won't verify all the parts, but we'll submit them all for analysis.
-        expected = pandas.DataFrame({'0': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_soprano),
-                    '3': TestDurationIndexer.make_series(TestDurationIndexer.bwv603_bass)})
+        expected = pandas.concat([TestDurationIndexer.make_series(TestDurationIndexer.bwv603_soprano),
+                                  TestDurationIndexer.make_series(TestDurationIndexer.bwv603_bass)], axis=1)
+        expected.columns = pandas.MultiIndex.from_product([('meter.DurationIndexer',), ('Soprano', 'Bass')])
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv603.xml'))
-        actual = ip.get_data('duration').iloc[:, [0, 3]]['meter.DurationIndexer']
+        actual = ip.get_data('duration').iloc[:, [0, 3]].dropna(how='all')
         self.assertTrue(actual.equals(expected))
 
 

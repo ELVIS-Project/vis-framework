@@ -41,7 +41,7 @@ from music21 import converter
 from vis.analyzers.indexer import Indexer
 from vis.analyzers.indexers import noterest
 from vis.analyzers.experimenter import Experimenter
-from vis.models.indexed_piece import Importer, IndexedPiece, _find_piece_title, _find_part_names, OpusWarning, _find_piece_range, _find_part_ranges, login_edb, auth_get
+from vis.models.indexed_piece import Importer, IndexedPiece, _find_piece_title, _find_part_names, _find_piece_range, _find_part_ranges, login_edb, auth_get
 # find pathname to the 'vis' directory
 import vis
 VIS_PATH = vis.__path__[0]
@@ -144,7 +144,7 @@ class TestPartsAndTitles(TestCase):
         expected_parts = ['Soprano', 'Alto', 'Tenor', 'Bass']
         the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
-        actual_parts = _find_part_names(the_score)
+        actual_parts = _find_part_names(the_score.parts)
         self.assertEqual(expected_title, actual_title)
         self.assertSequenceEqual(expected_parts, actual_parts)
 
@@ -164,7 +164,7 @@ class TestPartsAndTitles(TestCase):
         expected_parts = ['Violino I', 'Violino II', 'Viola', 'Bassi']
         the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
-        actual_parts = _find_part_names(the_score)
+        actual_parts = _find_part_names(the_score.parts)
         self.assertEqual(expected_title, actual_title)
         self.assertSequenceEqual(expected_parts, actual_parts)
 
@@ -174,7 +174,7 @@ class TestPartsAndTitles(TestCase):
         expected_parts = ['Part 1', 'Part 2', 'Part 3', 'Part 4']
         the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
-        actual_parts = _find_part_names(the_score)
+        actual_parts = _find_part_names(the_score.parts)
         self.assertEqual(expected_title, actual_title)
         self.assertSequenceEqual(expected_parts, actual_parts)
 
@@ -184,7 +184,7 @@ class TestPartsAndTitles(TestCase):
         expected_parts = ['Soprano', 'Alto', 'Tenor', 'Bass']
         the_score = Importer(path)._score
         actual_title = _find_piece_title(the_score)
-        actual_parts = _find_part_names(the_score)
+        actual_parts = _find_part_names(the_score.parts)
         self.assertEqual(expected_title, actual_title)
         self.assertSequenceEqual(expected_parts, actual_parts)
 

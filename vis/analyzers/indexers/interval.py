@@ -494,7 +494,7 @@ class IntervalIndexer(indexer.Indexer):
                   for x in combinations(range(len(self._score.columns)), 2)]
         post = pandas.concat([pandas.Series(list(zip(df.iloc[:,0].values, df.iloc[:,1].values)), index=df.index) 
                               for df in combos], axis=1).applymap(self._indexer_func)
-        labels = ['{},{}'.format(x, y) for x, y in combinations(range(len(self._score.columns)), 2)]
+        labels = ['{},{}'.format(x, y) for x, y in combinations(self._score.columns.get_level_values(1), 2)]
         post.columns = pandas.MultiIndex.from_product((('interval.IntervalIndexer',), labels), names=_names)
 
         return post
@@ -592,8 +592,9 @@ class HorizontalIntervalIndexer(IntervalIndexer):
             post = [pandas.Series(list(zip(x.values[1:], x.values[:-1])), index=x.index[:-1]) 
                 for x in post]
         post = pandas.concat(post, axis=1).applymap(self._indexer_func)
-        part_labels = [str(i) for i in range(len(post.columns))]
-        post.columns = pandas.MultiIndex.from_product((('interval.HorizontalIntervalIndexer',), part_labels), names=_names)
+        part_labels = self._score.columns.get_level_values(1)
+        post.columns = pandas.MultiIndex.from_product((('interval.HorizontalIntervalIndexer',),
+                                                       part_labels), names=_names)
 
         return post
 

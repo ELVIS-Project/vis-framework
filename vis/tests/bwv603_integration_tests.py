@@ -98,13 +98,14 @@ class AllVoiceIntervalNGrams(TestCase):
             post_vals.append(each[1])
         return pandas.Series(post_vals, index=post_ind)
         
-    def test_ngrams_3(self):
+    def test_ngrams_1(self):
         """Integration test for ngrams."""
         expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.two_grams)
-        expected = pandas.DataFrame({('ngram.NGramIndexer', '0,3 1,3 2,3 : 3'): expected})
+        expected = pandas.DataFrame({('ngram.NGramIndexer', 'Soprano,Bass Alto,Bass Tenor,Bass : Bass'): expected})
         v_setts = {'quality': False, 'simple or compound': 'compound', 'directed': True}
         h_setts = {'quality': False, 'horiz_attach_later': True, 'simple or compound': False, 'directed': True}
-        n_setts = {'n': 2, 'horizontal': [('3',)], 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True, 'continuer': '1'}
+        n_setts = {'n': 2, 'horizontal': [('Bass',)], 'brackets': True, 'continuer': '1',
+                   'vertical': [('Soprano,Bass', 'Alto,Bass', 'Tenor,Bass')]}
         ind_piece = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
         vt = ind_piece.get_data('vertical_interval', settings=v_setts)
         hz = ind_piece.get_data('horizontal_interval', settings=h_setts)
