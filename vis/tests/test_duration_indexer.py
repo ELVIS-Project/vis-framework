@@ -125,8 +125,8 @@ class TestDurationIndexer(unittest.TestCase):
 
     def test_duration_indexer_3(self):
         # When there are a bunch of notes
-        expected = pandas.DataFrame({'0': pandas.Series([1.0 for _ in range(10)],
-                                       index=[float(x) for x in range(10)])})
+        expected = TestDurationIndexer.make_series([(float(x), 1.0) for x in range(10)])
+        expected.name = 'Part_1'
         test_part = stream.Part()
         # add stuff to the test_part
         for i in range(10):
@@ -135,8 +135,8 @@ class TestDurationIndexer(unittest.TestCase):
             test_part.append(add_me)
         ip = IndexedPiece()
         ip._analyses['part_streams'] = [test_part]
-        ip.metadata('parts', expected.columns)
-        actual = ip.get_data('duration')['meter.DurationIndexer']
+        ip.metadata('parts', [expected.name])
+        actual = ip.get_data('duration').iloc[:, 0]
         self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_4(self):
