@@ -136,6 +136,14 @@ class TestDurationIndexer(unittest.TestCase):
         ip = IndexedPiece()
         ip._analyses['part_streams'] = [test_part]
         ip.metadata('parts', [expected.name])
+        print('*********Metadata: ')
+        print(ip._metadata)
+        print('*********Expected')
+        print(expected)
+        print('*********Analyses')
+        print(ip._analyses)
+        print('*********Test Part')
+        print(test_part)
         actual = ip.get_data('duration').iloc[:, 0]
         self.assertTrue(actual.equals(expected))
 
