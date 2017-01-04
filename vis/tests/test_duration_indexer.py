@@ -143,8 +143,9 @@ class TestDurationIndexer(unittest.TestCase):
         print('*********Analyses')
         print(ip._analyses)
         print('*********Test Part')
-        print(test_part)
-        actual = ip.get_data('duration').iloc[:, 0]
+        print(test_part.show('t'))
+
+        actual = ip.get_data('duration', data=(ip.get_data('noterest'), [test_part])).iloc[:, 0]
         self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_4(self):
