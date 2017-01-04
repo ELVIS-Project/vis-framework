@@ -10,13 +10,13 @@ import vis
 VIS_PATH = vis.__path__[0]
 
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Jos2308.mei'
-piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/bwv2.xml'
+# piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/bwv2.xml'
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/sqOp76-4-i.midi'
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/Kyrie.krn'
-# piece_path = '/home/amor/Code/vis-framework/vis/scripts/Lassus_1_Beatus_Virus_Duets/Lassus_1_Beatus_Vir.xml'
-# piece_path = '/home/amor/Code/vis-framework/vis/scripts/Josquin_Duets/Crucifixus.xml' #example of IR = half note
-# piece_path = '/home/amor/Code/vis-framework/vis/scripts/Morley_Duets/7 Miraculous loves wounding.xml' # example of IR = quarter note
-chopin_prelude = '/home/amor/Code/vis-framework/vis/scripts/prelude28-20.mid'
+piece_path = '/home/amor/Code/vis-framework/vis/scripts/Lassus_Duets/Lassus_1_Beatus_Vir.xml'
+# piece_path = '/home/amor/Code/vis-framework/vis/scripts/Josquin_Duets/Crucifixus.xml' #example of CR = half note
+# piece_path = '/home/amor/Code/vis-framework/vis/scripts/Morley_Duets/7 Miraculous loves wounding.xml' # example of CR = quarter note
+# chopin_prelude = '/home/amor/Code/vis-framework/vis/scripts/prelude28-20.mid'
 
 # Senfl_Buchner folder:
 folder = '/home/amor/Code/vis-framework/vis/scripts/Senfl motets'
@@ -28,6 +28,7 @@ folder = '/home/amor/Code/vis-framework/vis/scripts/Senfl motets'
 
 # Extremely short piece:
 # piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/test_fermata_rest.xml'
+# piece_path = '/home/amor/Code/vis-framework/vis/tests/corpus/bwv77.mxl'
 
 
 v_setts = {'quality': True, 'simple or compound': 'simple', 'directed': True}
@@ -53,7 +54,9 @@ nr = ip.get_data('noterest')
 hz = ip.get_data('horizontal_interval')
 vt = ip.get_data('vertical_interval')
 ng = ip.get_data('ngram', data=(vt, hz), settings=n_setts_4)
-du = ip.get_data('duration').head()
+du = ip.get_data('duration')
+ts = ip._get_time_signature()
+off = ip.get_data('offset', data=nr, settings={'quarterLength': 'dynamic'})
 # setts = {'use_title': True, 'run_lilypond':True, 'output_pathname': 'trialpath'}#, 'annotation_part': hz}
 # ip.get_data('lilypond', data=ip._score, settings=setts)
 # out_path = '/home/amor/new/vis-framework/vis/scripts/Success'

@@ -28,6 +28,7 @@
 # allow "too many public methods" for TestCase
 # pylint: disable=R0904
 
+import os
 import unittest
 import six
 if six.PY3:
@@ -36,6 +37,10 @@ else:
     import mock
 import pandas
 from vis.analyzers.indexers.offset import FilterByOffsetIndexer
+from vis.models.indexed_piece import Importer
+# find pathname to the 'vis' directory
+import vis
+VIS_PATH = vis.__path__[0]
 
 
 class TestOffsetIndexerSinglePart(unittest.TestCase):
@@ -382,6 +387,16 @@ class TestOffsetIndexerManyParts(unittest.TestCase):
         for partname in expected.columns:
             self.assertSequenceEqual(list(expected[partname].values), list(actual[partname].values))
             self.assertSequenceEqual(list(expected[partname].index), list(actual[partname].index))
+
+    def test_dynamic_offset_method(self):
+        # integration test for dynamic offset method call and execution
+        expected = os.path.join(VIS_PATH, 'tests', 'expecteds', 'bwv77', 'dynamic_offset_method_test')
+        expected = pandas.read_pickle(expected)
+        ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv77.mxl'))
+        nr = ip.get_data('noterest')
+        actual = ip.get_data('offset', data=nr, settings={'quarterLength': 'dynamic'})
+        self.assertTrue(actual.equals(expected))
+
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #

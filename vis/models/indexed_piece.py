@@ -151,7 +151,7 @@ def _find_part_names(list_of_parts):
 
     return post
 
-def _get_offset(event, part):
+def _get_offsets(event, part):
     """This method finds the offset of a music21 event. There are other ways to get the offset of a 
     music21 object, but this is the fastest and most reliable.
 
@@ -187,6 +187,12 @@ def _type_func_voice(event):
     """Used internally by _combine_voices() to filter for just the 'Voice' objects in a part."""
     if 'Voice' in event.classes:
         return event
+    return float('nan')
+
+def _type_func_time_signature(event):
+    """Used internally by _get_time_signature() to filter for just the time signatures in a piece."""
+    if 'TimeSignature' in event.classes:
+        return event.ratioString
     return float('nan')
 
 def _get_pitches(event):
@@ -456,7 +462,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
                         ('ngram', 'ngram.NGramIndexer', ngram.NGramIndexer): self._get_ngram,
                         ('multistop', 'noterest.MultiStopIndexer', noterest.MultiStopIndexer): self._get_multistop,
                         ('noterest', 'noterest.NoteRestIndexer', noterest.NoteRestIndexer): self._get_noterest,
-                        ('offset', 'offset.FilterByOffsetIndexer', offset.FilterByOffsetIndexer): offset.FilterByOffsetIndexer,
+                        ('offset', 'offset.FilterByOffsetIndexer', offset.FilterByOffsetIndexer): self._get_offset,
                         ('over_bass', 'over_bass.OverBassIndexer', over_bass.OverBassIndexer): over_bass.OverBassIndexer,
                         ('repeat', 'repeat.FilterByRepeatIndexer', repeat.FilterByRepeatIndexer): repeat.FilterByRepeatIndexer,
                         ('windexer', 'windexer.Windexer', windexer.Windexer): windexer.Windexer,
@@ -587,7 +593,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
                 # skipSelf will soon change its default to True in music21.
                 ser = pandas.Series(p.recurse(restoreActiveSites=False, skipSelf=True),
                                     name=self.metadata('parts')[i])
-                ser.index = ser.apply(_get_offset, args=(p,))
+                ser.index = ser.apply(_get_offsets, args=(p,))
                 sers.append(ser)
             self._analyses['m21_objs'] = sers
         return self._analyses['m21_objs']
@@ -748,12 +754,32 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         return self._analyses['m21_measure_objs']
 
     def _get_measure(self):
+        """Fetches and caches a dataframe of the measure numbers in a piece."""
         if 'measure' not in self._analyses:
             self._analyses['measure'] = meter.MeasureIndexer(self._get_m21_measure_objs()).run()
         return self._analyses['measure']
 
     def _get_ngram(self, data, settings=None):
+        """Convenience method for fethcing ngram indexer results. These results never get cached 
+        though, because there are too many unpredictable variables in ngram queries."""
         return ngram.NGramIndexer(data, settings).run()
+
+    def _get_offset(self, data, settings=None):
+        if (settings is not None and settings['quarterLength'] == 'dynamic' and 
+            ('dom_data' not in settings or type(settings['dom_data']) != list)):
+            settings['dom_data'] = [self._get_dissonance(), self._get_duration(),
+                                     self._get_beat_strength(), self._get_noterest(),
+                                     self._get_time_signature(), 
+                                     self._get_part_streams()[0].highestTime]
+        return offset.FilterByOffsetIndexer(data, settings).run()
+
+    def _get_time_signature(self):
+        """Experimental method used only by the offset indexer when its 'dynamic' setting is 
+        active. This returns a dataframe of the time signature strings in a piece."""
+        if 'time_signature' not in self._analyses:
+            lyst = [ser.apply(_type_func_time_signature).dropna() for ser in self._get_m21_objs()]
+            self._analyses['time_signature'] = pandas.concat(lyst, axis=1)
+        return self._analyses['time_signature']
 
 
     def get_data(self, analyzer_cls, data=None, settings=None):
