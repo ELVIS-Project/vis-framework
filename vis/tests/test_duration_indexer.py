@@ -130,22 +130,14 @@ class TestDurationIndexer(unittest.TestCase):
         test_part = stream.Part()
         # add stuff to the test_part
         for i in range(10):
-            add_me = note.Note(u'C4', quarterLength=1.0)
+            add_me = note.Note('C4', quarterLength=1.0)
             add_me.offset = i
             test_part.append(add_me)
         ip = IndexedPiece()
-        ip._analyses['part_streams'] = [test_part]
+        test_part = [test_part]
+        ip._analyses['part_streams'] = test_part
         ip.metadata('parts', [expected.name])
-        print('*********Metadata: ')
-        print(ip._metadata)
-        print('*********Expected')
-        print(expected)
-        print('*********Analyses')
-        print(ip._analyses)
-        print('*********Test Part')
-        print(test_part.show('t'))
-
-        actual = ip.get_data('duration', data=(ip.get_data('noterest'), [test_part])).iloc[:, 0]
+        actual = ip.get_data('duration').iloc[:, 0]
         self.assertTrue(actual.equals(expected))
 
     def test_duration_indexer_4(self):
