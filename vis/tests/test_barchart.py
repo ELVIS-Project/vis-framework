@@ -40,7 +40,6 @@ import pandas
 import vis
 from vis.analyzers.experimenters import barchart
 
-
 class TestRBarChart(unittest.TestCase):
     """Tests for the barchart.RBarChart experimenter."""
 
@@ -102,15 +101,15 @@ class TestRBarChart(unittest.TestCase):
         actual_vis_path = vis.__path__  # save the actual __path__
         vis.__path__ = ['directory']  # replace with our __path__
         expected = '{}.{}'.format(setts['pathname'], setts['type'])
-        expected_call = [barchart.RBarChart.RSCRIPT_PATH, '--vanilla',
+        expected_call = ['/path/to/Rscript', '--vanilla',
                          os.path.join(vis.__path__[0], 'scripts', 'R_bar_chart.r'),
                          '{}.{}'.format(setts['pathname'], 'dta'), expected, '4', '12']
 
-        actual = barchart.RBarChart(some_df, setts).run()
+        actual = barchart.RBarChart(some_df, setts).run(path_to_Rscript='/path/to/Rscript')
 
         vis.__path__ = actual_vis_path  # restore vis.__path__
         self.assertEqual(expected, actual)
-        mock_subpro.assert_called_once_with(expected_call)
+        mock_subpro.assert_called_once_with(expected_call, stderr=-2)
         new_df.to_stata.assert_called_once_with('{}.{}'.format(setts['pathname'], 'dta'))
 
     @mock.patch('vis.analyzers.experimenters.barchart.subprocess.check_output')
@@ -128,7 +127,7 @@ class TestRBarChart(unittest.TestCase):
         actual_vis_path = vis.__path__  # save the actual __path__
         vis.__path__ = ['directory']  # replace with our __path__
         expected = '{}.{}'.format(setts['pathname'], setts['type'])  # NB: we don't expect it though
-        expected_call = [barchart.RBarChart.RSCRIPT_PATH, '--vanilla',
+        expected_call = ['/path/to/Rscript', '--vanilla',
                          os.path.join(vis.__path__[0], 'scripts', 'R_bar_chart.r'),
                          '{}.{}'.format(setts['pathname'], 'dta'), expected, 'int']
         # parameters set the_cpe.returncode, .cmd, and .output
@@ -137,11 +136,11 @@ class TestRBarChart(unittest.TestCase):
         exp_err_msg = barchart.RBarChart._RSCRIPT_FAILED.format(the_cpe.output, the_cpe.returncode)
 
         # ensure the error is raised
-        self.assertRaises(RuntimeError, barchart.RBarChart(some_df, setts).run)
+        self.assertRaises(RuntimeError, barchart.RBarChart(some_df, setts).run, path_to_Rscript='/path/to/Rscript')
 
         vis.__path__ = actual_vis_path  # restore vis.__path__
         #mock_subpro.check_output.assert_called_once_with(expected_call)
-        mock_subpro.assert_called_once_with(expected_call)
+        mock_subpro.assert_called_once_with(expected_call, stderr=-2)
 
         # ensure the right message is given
         try:
@@ -163,15 +162,15 @@ class TestRBarChart(unittest.TestCase):
         actual_vis_path = vis.__path__  # save the actual __path__
         vis.__path__ = ['directory']  # replace with our __path__
         expected = '{}.{}'.format(setts['pathname'], setts['type'])
-        expected_call = [barchart.RBarChart.RSCRIPT_PATH, '--vanilla',
+        expected_call = ['/path/to/Rscript', '--vanilla',
                          os.path.join(vis.__path__[0], 'scripts', 'R_bar_chart.r'),
                          '{}.{}'.format(setts['pathname'], 'dta'), expected, 'things', '4000']
 
-        actual = barchart.RBarChart(some_df, setts).run()
+        actual = barchart.RBarChart(some_df, setts).run(path_to_Rscript='/path/to/Rscript')
 
         vis.__path__ = actual_vis_path  # restore vis.__path__
         self.assertEqual(expected, actual)
-        mock_subpro.assert_called_once_with(expected_call)
+        mock_subpro.assert_called_once_with(expected_call, stderr=-2)
 
 
 #--------------------------------------------------------------------------------------------------#

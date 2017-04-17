@@ -31,6 +31,7 @@ The experimenters in this module all generate bar charts. Currently the only cla
 
 # pylint: disable=pointless-string-statement
 
+from distutils.spawn import find_executable
 from os import path
 import subprocess
 import pandas
@@ -38,15 +39,17 @@ import vis
 from vis.analyzers import experimenter
 
 
+def find_Rscript():
+    rscript_path = find_executable('Rscript')
+    if rscript_path is None:
+        raise RuntimeError("Could not find 'Rscript' executable.")
+    else:
+        return rscript_path
+
+
 class RBarChart(experimenter.Experimenter):
     """
     Use ``Rscript`` to run a bar-chart-generating script in the R programming language.
-    """
-
-    RSCRIPT_PATH = '/usr/bin/Rscript'
-    """
-    Full pathname to the ``Rscript`` program. If this doesn't work on your system, you'll have a
-    hard time getting :class:`RbarChart` to work.
     """
 
     OUTPUT_TYPES = ('eps', 'ps', 'tex', 'pdf', 'jpeg', 'tiff', 'png', 'bmp', 'svg')
@@ -125,9 +128,13 @@ class RBarChart(experimenter.Experimenter):
 
         super(RBarChart, self).__init__(index, None)
 
-    def run(self):
+    def run(self, path_to_Rscript=None):
         """
         Produce the bar chart.
+
+        :param path_to_Rscript: Path to the `Rscript` executable. If not given, it will be
+            determined automatically if possible.
+        :type path_to_Rscript: str or None
 
         :returns: The pathname of the outputted PNG file containing a bar chart.
         :rtype: string
@@ -155,16 +162,14 @@ class RBarChart(experimenter.Experimenter):
         self._index.to_stata(stata_path)
 
         # prepare the call for subprocess
-        if self._settings['nr_pieces'] is None:
-            call_to_r = [RBarChart.RSCRIPT_PATH, '--vanilla', self._r_bar_chart_path, stata_path,
-                        out_path, token]
-        else:
-            call_to_r = [RBarChart.RSCRIPT_PATH, '--vanilla', self._r_bar_chart_path, stata_path,
-                        out_path, token, self._settings['nr_pieces']]
+        rscript_path = path_to_Rscript or find_Rscript()
+        call_to_r = [rscript_path, '--vanilla', self._r_bar_chart_path, stata_path, out_path, token]
+        if self._settings['nr_pieces'] is not None:
+            call_to_r += [self._settings['nr_pieces']]
 
         # do the actual call to Rscript
         try:
-            subprocess.check_output(call_to_r)
+            subprocess.check_output(call_to_r, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as cpe:
             raise RuntimeError(RBarChart._RSCRIPT_FAILED.format(cpe.output, cpe.returncode))
 
