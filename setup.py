@@ -42,7 +42,7 @@ setup(
     name = "vis-framework",
     version = VERSION,
     description = "The VIS Framework for Music Analysis",
-    author = "Christopher Antila, Jamie Klassen, Alexander Morgan, Ryan Bannon",
+    author = "Christopher Antila, Ryan Bannon, Marina Cottrell, Jamie Klassen, Reiner Kramer, Alexander Morgan"
     author_email = "christopher@antila.ca",
     license = "AGPLv3+",
     url = "http://elvisproject.ca/api/",
