@@ -6,6 +6,7 @@ vis
 
    vis.analyzers
    vis.models
+   vis.scripts
 
 :mod:`workflow` Module
 -------------------------------
