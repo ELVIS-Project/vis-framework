@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/approach.py
 # Purpose:                Approach Indexer
 #
-# Copyright (C) 2016 Marina Borsodi-Benson, M. Ryan Bannon, Alexander 
+# Copyright (C) 2016 M. Ryan Bannon, Marina Cottrell, Alexander 
 # Morgan
 #
 # This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 # <http://www.gnu.org/licenses/>.
 # -------------------------------------------------------------------- #
 """
-.. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
+.. codeauthor:: Marina Cottrell <marinaborsodibenson@gmail.com>
 
 """
 
