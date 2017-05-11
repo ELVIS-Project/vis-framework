@@ -8,7 +8,7 @@
 # Filename:               vis/tests/test_over_bass.py
 # Purpose:                Test indexing of over the bass indexer.
 #
-# Copyright (C) 2016 Marina Borsodi-Benson
+# Copyright (C) 2016 Marina Cottrell
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
