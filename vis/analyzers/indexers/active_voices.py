@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/active_voices.py
 # Purpose:                Active voices indexer
 #
-# Copyright (C) 2016 Marina Borsodi-Benson, and Alexander Morgan
+# Copyright (C) 2016 Marina Cottrell, and Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,7 +24,7 @@
 # <http://www.gnu.org/licenses/>.
 # -------------------------------------------------------------------- #
 """
-.. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
+.. codeauthor:: Marina Cottrell <marinaborsodibenson@gmail.com>
 .. codeauthor:: Alexander Morgan
 
 """
