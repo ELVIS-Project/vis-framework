@@ -7,7 +7,7 @@
 # Filename:               analyzers/indexers/contour.py
 # Purpose:                Contour Indexer
 #
-# Copyright (C) 2016 Marina Borsodi-Benson
+# Copyright (C) 2016 Marina Cottrell
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -24,7 +24,7 @@
 # <http://www.gnu.org/licenses/>.
 # -------------------------------------------------------------------- #
 """
-.. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
+.. codeauthor:: Marina Cottrell <marinaborsodibenson@gmail.com>
 .. todo:: Properly document the ``COM_matrix`` and ``compare`` 
     functions.
 
