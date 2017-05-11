@@ -5,10 +5,10 @@ the top of the file.
 
 * 3.1.0:
 
-    - Renamed the ```cadence`` indexer to ```approach``` indexer, in order to avoid misunderstanding of its functionality
+    - Renamed the ```cadence``` indexer to ```approach``` indexer, in order to avoid misunderstanding of its functionality
     - Rewrite of the ```dissonance``` indexer.
-    - Refactored ```interval``` indexer, getting the labels directly from the ```\_score``` private class, rather than from a list comprehension.
-    - Refactored ```meter``` indexer, returning results directly from the ```\_score``` private class, rather than a list comprehension 
+    - Refactored ```interval``` indexer, getting the labels directly from the ```_score``` private class, rather than from a list comprehension.
+    - Refactored ```meter``` indexer, returning results directly from the ```_score``` private class, rather than a list comprehension 
     - Reformatted code in ```ngram``` indexer
     - Refactored ```offset``` indexer:
         - Added numpy and multi_key_dict dependencies.
@@ -21,9 +21,9 @@ the top of the file.
         - Added the ```Counter``` class from the ```collections``` package.
         - Created better error messages for unknown file types.
         - Updated private method to get part names from music21.stream.Part
-        - Getting part names with new private ```\_get_part_streams``` method.
-        - Added documentation to ```\_get_measure```, ```\_get_ngram``` private methods.
-        - Added ```\_get_offset``` and ```\_get_time_signature``` private methods.
+        - Getting part names with new private ```_get_part_streams``` method.
+        - Added documentation to ```_get_measure```, ```_get_ngram``` private methods.
+        - Added ```_get_offset``` and ```_get_time_signature``` private methods.
     - Changed pieces in ```ngram_test.py.``` (test pieces paths must be changed to neutral paths)
     - Updated BWV2 and BWV603 integration tests to reflect the new labels for the parts in a Bach chorale.
     - Renamed ```test_cadence``` to ```test_approach```, and all references from ```cadence``` to ```approach``` therein.
