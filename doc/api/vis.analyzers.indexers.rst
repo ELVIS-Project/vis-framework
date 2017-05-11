@@ -17,10 +17,10 @@ indexers Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`cadence` Module
+:mod:`approach` Module
 ----------------------
 
-.. automodule:: vis.analyzers.indexers.cadence
+.. automodule:: vis.analyzers.indexers.approach
     :members:
     :undoc-members:
     :show-inheritance:
