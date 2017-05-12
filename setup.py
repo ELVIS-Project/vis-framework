@@ -69,7 +69,7 @@ setup(
         'vis.analyzers.experimenters',
         ],
     package_data = {'vis': ['scripts/*']},
-    data_files = [('corpus',[*])],
+    data_files = [('corpus',['*'])],
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
