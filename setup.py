@@ -48,7 +48,7 @@ setup(
     url = "http://elvisproject.ca/api/",
     download_url = 'https://pypi.python.org/packages/source/v/vis-framework/vis-framework-%s.tar.bz2' % VERSION,
     platforms = 'any',
-    keywords = ['music', 'music analysis', 'music theory', 'counterpoint'],
+    keywords = ['music', 'music analysis', 'music theory', 'musicology', 'counterpoint'],
     requires = [
         'music21 (== 2.1.2)',
         'pandas (== 0.18.1)',
