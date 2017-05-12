@@ -67,6 +67,7 @@ setup(
         'vis.analyzers',
         'vis.analyzers.indexers',
         'vis.analyzers.experimenters',
+        'vis.corpus',
         ],
     package_data = {'vis': ['scripts/*']},
     classifiers = [
