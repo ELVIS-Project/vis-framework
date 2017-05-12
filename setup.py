@@ -30,7 +30,7 @@ Distutils information for the VIS Framework.
 
 from setuptools import setup
 import vis  # to get the version numbers
-
+import os # to create file paths
 
 # NOTE: update this from 'vis/__init__.py'
 MAJOR = vis._MAJOR
@@ -68,8 +68,7 @@ setup(
         'vis.analyzers.indexers',
         'vis.analyzers.experimenters',
         ],
-    package_data = {'vis': ['scripts/*']},
-    data_files = [('corpus',['corpus/*'])],
+    package_data = {'vis': ['scripts/*','corpus/*']},
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
