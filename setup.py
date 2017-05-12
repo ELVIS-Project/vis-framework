@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#--------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 
@@ -69,7 +69,7 @@ setup(
         'vis.analyzers.experimenters',
         ],
     package_data = {'vis': ['scripts/*']},
-    data_files = [('corpus',['kyrie_short.krn'])],
+    data_files = [('corpus',['corpus/*'])],
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
