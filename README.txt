@@ -42,7 +42,7 @@ Documentation
 =============
 
 You can find documentation here:
-- [Major Release Documentation](http://vis-framework.readthedocs.org/en/)
+- [Major Release Documentation](http://vis-framework.readthedocs.org/)
 - [Stable Release Documentation](http://vis-framework.readthedocs.org/en/stable/)
 - [Latest Release Documentation](http://vis-framework.readthedocs.org/en/latest/), a.k.a. "bleeding edge" 
 
