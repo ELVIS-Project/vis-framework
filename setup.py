@@ -69,7 +69,7 @@ setup(
         'vis.analyzers.experimenters',
         ],
     include_package_data=True,
-    package_data = {'vis': ['scripts/*','corpora/*']},
+    #package_data = {'vis': ['scripts/*','corpora/*']},
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
