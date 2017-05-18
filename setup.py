@@ -68,7 +68,7 @@ setup(
         'vis.analyzers.indexers',
         'vis.analyzers.experimenters',
         ],
-    package_data = {'vis': ['scripts/*']},
+    package_data = {'vis': ['scripts/*','corpora/*']},
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
@@ -90,6 +90,7 @@ setup(
         "Topic :: Multimedia :: Sound/Audio :: Analysis",
         "Topic :: Scientific/Engineering :: Information Analysis",
         ],
+    include_package_data=True,
     long_description = """\
 The VIS Framework for Music Analysis
 ------------------------------------
