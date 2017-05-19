@@ -304,7 +304,10 @@ def _import_file(pathname, metafile=None):
     return score
 
 def _import_directory(directory, metafile=None):
-
+    """
+    Helper method to import files from a directory. Also handles what 
+    file types to skip over.
+    """
     pieces = [] # a list of the pieces being imported
     meta = metafile
 
@@ -315,15 +318,20 @@ def _import_directory(directory, metafile=None):
         file_paths = []
         for root, dirs, files in os.walk(directory):
             for f in files:
-                if f == '.DS_Store': # exclude ds_stores
+                # exclude ds_stores
+                if f == '.DS_Store': 
                     continue
-                if f.endswith('.py'): # skip python files
+                # skip python files
+                if f.endswith('.py'):  
                     continue
-                if f.endswith('.pyc'): # skip compiled python files
+                # skip compiled python files
+                if f.endswith('.pyc'): 
                     continue
-                if len(f) > 1 and f[:2] == '._': # filter out hidden files if they show up
+                # filter out hidden files if they show up
+                if len(f) > 1 and f[:2] == '._': 
                     continue
-                if f == 'meta': # attach meta files if they exist
+                # attach meta files if they exist
+                if f == 'meta': 
                     meta = root + '/meta'
                     continue
                 file_paths.append('/'.join((root, f)))
