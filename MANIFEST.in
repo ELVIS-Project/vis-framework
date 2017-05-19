@@ -23,7 +23,7 @@
 #--------------------------------------------------------------------------------------------------
 
 include vis/*requirements.txt
-include vis/corpora/*
+recursive-include vis/corpora/*
 include vis/tests/*
 include run_tests.py
 include doc/CC-BY-SA.txt
