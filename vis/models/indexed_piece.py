@@ -317,6 +317,10 @@ def _import_directory(directory, metafile=None):
             for f in files:
                 if f == '.DS_Store': # exclude ds_stores
                     continue
+                if f.endswith('.py'): # skip python files
+                    continue
+                if f.endswith('.pyc'): # skip compiled python files
+                    continue
                 if len(f) > 1 and f[:2] == '._': # filter out hidden files if they show up
                     continue
                 if f == 'meta': # attach meta files if they exist
