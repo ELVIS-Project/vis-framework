@@ -54,7 +54,7 @@ def make_series(lotuples):
 
 def pandas_maker(lolists):
     """
-    Use make_series() to convert a list of appropriate tuples into a list of appropriate Series.
+    Use make_series() to convert a list of appropriate tuples into a DataFrame.
 
     Input: list of the input desired by make_series()
 
@@ -68,228 +68,133 @@ class TestIntervalIndexerShort(unittest.TestCase):
     These 'short' tests were brought over from the vis9 tests for _event_finder().
     """
     def test_int_indexer_short_1(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
-        not_processed = [[(0.0, 'G4')], [(0.0, 'G3')]]
-        test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        expected = pandas.Series('P8', name='0,1')
+        test_in = pandas.concat([pandas.Series('G4'), pandas.Series('G3')], axis=1)
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_2(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.25, 'Rest')]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'Rest'], index=[0.0, 0.25], name='0,1')
         not_processed = [[(0.0, 'G4'), (0.25, 'Rest')],
                          [(0.0, 'G3'), (0.25, 'Rest')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_3(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.25, 'Rest')]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'Rest'], index=[0.0, 0.25], name='0,1')
         not_processed = [[(0.0, 'G4')], [(0.0, 'G3'), (0.25, 'Rest')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_4(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.25, 'Rest')]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'Rest'], index=[0.0, 0.25], name='0,1')
         not_processed = [[(0.0, 'G4'), (0.25, 'Rest')], [(0.0, 'G3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_5(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.5, interval.Interval(note.Note('A3'), note.Note('F4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'm6'], index=[0.0, 0.5], name='0,1')
         not_processed = [[(0.0, 'G4'), (0.5, 'F4')],
                          [(0.0, 'G3'), (0.5, 'A3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_6(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.5, interval.Interval(note.Note('A3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'm7'], index=[0.0, 0.5], name='0,1')
         not_processed = [[(0.0, 'G4', 1.0)], [(0.0, 'G3'), (0.5, 'A3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_7(self):
-        expected = [[(0.0, interval.Interval(note.Note('B3'), note.Note('A4')).name),
-                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (1.0, interval.Interval(note.Note('A3'), note.Note('G4')).name),
-                     (1.5, interval.Interval(note.Note('B3'), note.Note('F4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['m7', 'P8', 'm7', 'd5'], index=[0.0, 0.5, 1.0, 1.5], name='0,1')
         not_processed = [[(0.0, 'A4'), (0.5, 'G4', 1.0), (1.5, 'F4')],
                          [(0.0, 'B3'), (0.5, 'G3'),
                           (1.0, 'A3'), (1.5, 'B3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_8(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.25, 'Rest'),
-                     (0.5, interval.Interval(note.Note('A3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'Rest', 'm7'], index=[0.0, 0.25, 0.5], name='0,1')
         not_processed = [[(0.0, 'G4', 1.0)],
                          [(0.0, 'G3'), (0.25, 'Rest'), (0.5, 'A3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_9(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.25, 'Rest'),
-                     (0.5, interval.Interval(note.Note('A3'), note.Note('G4')).name),
-                     (1.0, interval.Interval(note.Note('B3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'Rest', 'm7', 'm6'], index=[0.0, 0.25, 0.5, 1.0], name='0,1')
         not_processed = [[(0.0, 'G4', 1.0), (1.0, 'G4')],
                          [(0.0, 'G3'), (0.25, 'Rest'), (0.5, 'A3'), (1.0, 'B3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_10(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.25, interval.Interval(note.Note('A3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'm7'], index=[0.0, 0.25], name='0,1')
         not_processed = [[(0.0, 'G4', 1.0)], [(0.0, 'G3'), (0.25, 'A3', 0.75)]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_11(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'P8'], index=[0.0, 0.5], name='0,1')
         not_processed = [[(0.0, 'G4', 1.0)], [(0.0, 'G3'), (0.5, 'G3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_12(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.25, 'Rest'),
-                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
-        not_processed = [[(0.0, 'G4', 1.0)],
-                         [(0.0, 'G3'), (0.25, 'Rest'), (0.5, 'G3')]]
+        expected = pandas.Series(['P8', 'Rest', 'P8'], index=[.0, .25, .5], name='0,1')
+        not_processed = [[(0.0, 'G4', 1.0)], [(0.0, 'G3'), (0.25, 'Rest'), (0.5, 'G3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_13(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.125, 'Rest'),
-                     (0.25, interval.Interval(note.Note('A3'), note.Note('G4')).name),
-                     (0.375, 'Rest'),
-                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'Rest', 'm7', 'Rest', 'P8'],
+                                 index=[.0, .125, .25, .375, .5], name='0,1')
         not_processed = [[(0.0, 'G4', 1.0)],
                          [(0.0, 'G3', 0.125), (0.125, 'Rest', 0.125),
                           (0.25, 'A3', 0.125), (0.375, 'Rest', 0.125), (0.5, 'G3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_14(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.0625, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.125, 'Rest'),
-                     (0.1875, 'Rest'),
-                     (0.25, interval.Interval(note.Note('A3'), note.Note('G4')).name),
-                     (0.3125, interval.Interval(note.Note('A3'), note.Note('G4')).name),
-                     (0.375, 'Rest'),
-                     (0.4375, 'Rest'),
-                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'P8', 'Rest', 'Rest', 'm7', 'm7', 'Rest', 'Rest', 'P8'],
+                                 index=[.0, .0625, .125, .1875, .25, .3125, .375, .4375, .5], name='0,1')
         not_processed = [[(0.0, 'G4', 0.0625), (0.0625, 'G4', 0.0625),
                           (0.125, 'G4', 0.0625), (0.1875, 'G4', 0.0625),
                           (0.25, 'G4', 0.0625), (0.3125, 'G4', 0.0625),
@@ -298,80 +203,49 @@ class TestIntervalIndexerShort(unittest.TestCase):
                          [(0.0, 'G3', 0.125), (0.125, 'Rest', 0.125), (0.25, 'A3', 0.125),
                           (0.375, 'Rest', 0.0625), (0.4375, 'Rest', 0.0625), (0.5, 'G3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_15(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.5, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.75, 'Rest'),
-                     (1.0, 'Rest'),
-                     (1.5, interval.Interval(note.Note('G3'), note.Note('G4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'P8', 'Rest', 'Rest', 'P8'],
+                                 index=[.0, .5, .75, 1.0, 1.5], name='0,1')
         not_processed = [[(0.0, 'G4'), (0.5, 'G4'), (0.75, 'Rest'),
                           (1.0, 'G4'), (1.5, 'G4')],
                          [(0.0, 'G3'), (0.5, 'G3'), (0.75, 'Rest'),
                           (1.0, 'Rest'), (1.5, 'G3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_16(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.5, 'Rest'),
-                     (0.75, interval.Interval(note.Note('F3'), note.Note('A4')).name),
-                     (1.25, interval.Interval(note.Note('F3'), note.Note('G4')).name),
-                     (1.5, interval.Interval(note.Note('E3'), note.Note('B4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'Rest', 'M10', 'M9', 'P12'],
+                                 index=[.0, .5, .75, 1.25, 1.5], name='0,1')
         not_processed = [[(0.0, 'G4'), (0.5, 'A4', 0.75),
                           (1.25, 'G4'), (1.5, 'B4')],
                          [(0.0, 'G3'), (0.5, 'Rest'),
                           (0.75, 'F3', 0.75), (1.5, 'E3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_int_indexer_short_17(self):
-        expected = [[(0.0, interval.Interval(note.Note('G3'), note.Note('G4')).name),
-                     (0.5, interval.Interval(note.Note('A3'), note.Note('A4')).name),
-                     (0.75, interval.Interval(note.Note('F3'), note.Note('A4')).name),
-                     (1.125, 'Rest'),
-                     (1.25, 'Rest'),
-                     (1.375, interval.Interval(note.Note('G3'), note.Note('F4')).name),
-                     (2.0, interval.Interval(note.Note('G3'), note.Note('E4')).name)]]
-        expected = {'0,1': pandas_maker(expected)[0]}
+        expected = pandas.Series(['P8', 'P8', 'M10', 'Rest', 'Rest', 'm7', 'M6'],
+                                 index=[.0, .5, .75, 1.125, 1.25, 1.375, 2.0], name='0,1')
         not_processed = [[(0.0, 'G4'), (0.5, 'A4', 0.75), (1.25, 'F4', 0.75),
                           (2.0, 'E4')],
                          [(0.0, 'G3'), (0.5, 'A3'), (0.75, 'F3', 0.375),
                           (1.125, 'Rest'), (1.375, 'G3', 0.625), (2.0, 'G3')]]
         test_in = pandas_maker(not_processed)
-        int_indexer = IntervalIndexer(test_in,
-                                      {'quality': True, 'simple or compound': 'compound', 'directed': True})
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
-
+        test_in.columns = pandas.MultiIndex.from_product([('notes',), ('0', '1')])
+        setts = {'quality': True, 'simple or compound': 'compound', 'directed': True}
+        actual = IntervalIndexer(test_in, settings=setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
 class TestIntervalIndexerLong(unittest.TestCase):
     bwv77_S_B_basis = [(0.0, "P8"), (0.5, "M9"), (1.0, "m10"), (2.0, "P12"), (3.0, "M10"),
@@ -422,55 +296,39 @@ class TestIntervalIndexerLong(unittest.TestCase):
     def test_interval_indexer_1(self):
         # BWV7.7: full soprano and bass parts
         test_parts = pandas.concat([self.bwv77_soprano, self.bwv77_bass], axis=1)
-        expected = {'0,1': make_series(TestIntervalIndexerLong.bwv77_S_B_basis)}
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('a', 'b')])
+        expected = make_series(TestIntervalIndexerLong.bwv77_S_B_basis)
         setts = {'simple or compound': 'compound', 'quality': True}
-        int_indexer = IntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        actual = IntervalIndexer(test_parts, setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_interval_indexer_2(self):
         # BWV7.7: small soprano and bass parts; "simple" in settings
         test_parts = pandas.concat([self.bwv77_s_small, self.bwv77_b_small], axis=1)
-        expected = {'0,1': make_series(TestIntervalIndexerLong.bwv77_S_B_small_simple_qual)}
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('a', 'b')])
+        expected = make_series(TestIntervalIndexerLong.bwv77_S_B_small_simple_qual)
         setts = {'simple or compound': 'simple', 'quality': True}
-        int_indexer = IntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        actual = IntervalIndexer(test_parts, setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_interval_indexer_3(self):
         # BWV7.7: small soprano and bass parts; "simple" and "quality" not in settings, and the
         # settings are in fact not specified
         test_parts = pandas.concat([self.bwv77_s_small, self.bwv77_b_small], axis=1)
-        expected = {'0,1': make_series(TestIntervalIndexerLong.bwv77_S_B_small_compound_noqual)}
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('a', 'b')])
+        expected = make_series(TestIntervalIndexerLong.bwv77_S_B_small_compound_noqual)
         # setts = {}
-        int_indexer = IntervalIndexer(test_parts)
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        actual = IntervalIndexer(test_parts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_interval_indexer_4(self):
         # BWV7.7: small soprano and bass parts; "simple" in settings, "quality" not
         test_parts = pandas.concat([self.bwv77_s_small, self.bwv77_b_small], axis=1)
-        expected = {'0,1': make_series(TestIntervalIndexerLong.bwv77_S_B_small_simple_noqual)}
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('a', 'b')])
+        expected = make_series(TestIntervalIndexerLong.bwv77_S_B_small_simple_noqual)
         setts = {'simple or compound': 'simple'}
-        int_indexer = IntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()['interval.IntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        actual = IntervalIndexer(test_parts, setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
 
 class TestIntervalIndexerIndexer(unittest.TestCase):
@@ -618,67 +476,47 @@ class TestHorizIntervalIndexerLong(unittest.TestCase):
     def test_interval_indexer_1a(self):
         # BWV7.7: first 26 things in soprano part
         test_parts = pandas.concat([self.bwv77_soprano], axis=1)
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('0',)])
         expected = TestHorizIntervalIndexerLong.bwv77_S_B_short['a']
         setts = {'simple or compound': 'compound', 'quality': True}
-        int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()['interval.HorizontalIntervalIndexer']['0'].iloc[:26]
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected), list(actual))
+        actual = HorizontalIntervalIndexer(test_parts, setts).run().iloc[:26, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_interval_indexer_1b(self):
         # BWV7.7: first 26 things in soprano part (no settings specified)
         test_parts = pandas.concat([self.bwv77_soprano], axis=1)
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('0',)])
         expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual['a']
-        #setts = {'simple or compound': 'compound', 'quality': True}
-        int_indexer = HorizontalIntervalIndexer(test_parts)
-        actual = int_indexer.run()['interval.HorizontalIntervalIndexer']['0'].iloc[:26]
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected), list(actual))
+        actual = HorizontalIntervalIndexer(test_parts).run().iloc[:26, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_interval_indexer_1c(self):
-        # BWV7.7: first 26 things in soprano part (simple; quality)
-        test_parts = pandas.concat([self.bwv77_soprano], axis=1)
-        expected = TestHorizIntervalIndexerLong.bwv77_S_B_short['a']
-        setts = {'simple or compound': 'simple', 'quality': True}
-        int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()['interval.HorizontalIntervalIndexer']['0'].iloc[:26]
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected), list(actual))
-
-    def test_interval_indexer_1d(self):
         # BWV7.7: first 26 things in soprano part (simple; no quality)
         test_parts = pandas.concat([self.bwv77_soprano], axis=1)
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('0',)])
         expected = TestHorizIntervalIndexerLong.bwv77_S_B_short_noqual['a']
         setts = {'simple or compound': 'simple', 'quality': False}
-        int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()['interval.HorizontalIntervalIndexer']['0'].iloc[:26]
-        self.assertSequenceEqual(list(expected.index), list(actual.index))
-        self.assertSequenceEqual(list(expected), list(actual))
+        actual = HorizontalIntervalIndexer(test_parts, setts).run().iloc[:26, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_interval_indexer_2(self):
         # BWV7.7: whole soprano part
         # NB: this test is more rigourous than the others, since it actually uses the DataFrame
         test_parts = pandas.concat([self.bwv77_soprano], axis=1)
-        expected = {'0': TestHorizIntervalIndexerLong.bwv77_S_B_basis['a']}
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('0',)])
+        expected = TestHorizIntervalIndexerLong.bwv77_S_B_basis['a']
         setts = {'simple or compound': 'compound', 'quality': True}
-        int_indexer = HorizontalIntervalIndexer(test_parts, setts)
-        actual = int_indexer.run()['interval.HorizontalIntervalIndexer']
-        self.assertEqual(len(expected), len(actual.columns))
-        for key in six.iterkeys(expected):
-            self.assertTrue(key in actual)
-            self.assertSequenceEqual(list(expected[key].index), list(actual[key].index))
-            self.assertSequenceEqual(list(expected[key]), list(actual[key]))
+        actual = HorizontalIntervalIndexer(test_parts, setts).run().iloc[:, 0]
+        self.assertTrue(actual.equals(expected))
 
     def test_interval_indexer_3(self):
         """BWV7.7: whole bass part; 'horiz_attach_later' is True"""
         test_parts = pandas.concat([self.bwv77_bass], axis=1)
+        test_parts.columns = pandas.MultiIndex.from_product([('A',), ('0',)])
         setts = {'simple or compound': 'compound', 'quality': True, 'horiz_attach_later': True}
         expected = pandas.read_pickle(os.path.join(VIS_PATH, 'tests', 'corpus', 'data_horiz_int_ind_3.pickle'))
         actual = HorizontalIntervalIndexer(test_parts, setts).run()
-        self.assertSequenceEqual(list(expected.columns), list(actual.columns))
-        for col_name in expected.columns:
-            self.assertEqual(list(expected[col_name].index), list(actual[col_name].index))
-            self.assertEqual(list(expected[col_name].values), list(actual[col_name].values))
+        self.assertTrue(actual.equals(expected))
 
 
 #-------------------------------------------------------------------------------------------------#

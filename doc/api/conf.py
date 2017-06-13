@@ -51,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'VIS Framework'
-copyright = '2013 to 2015 Christopher Antila, CC-BY-SA 4.0'
+copyright = '2013-2017 McGill University, Christopher Antila et al., CC-BY-SA 4.0'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -179,7 +179,6 @@ html_last_updated_fmt = '%d %b %Y'
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'visdoc'
 
-
 # -- Options for LaTeX output --------------------------------------------------
 
 latex_elements = {
@@ -220,7 +219,6 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
 # -- Options for manual page output --------------------------------------------
 
 # One entry per manual page. List of tuples
@@ -232,7 +230,6 @@ man_pages = [
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
-
 
 # -- Options for Texinfo output ------------------------------------------------
 
@@ -256,7 +253,6 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('http://docs.python.org/2.7/', None),

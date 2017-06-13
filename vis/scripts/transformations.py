@@ -4,7 +4,7 @@
 # Name:         scripts/transformations.py
 # Purpose:      Finds transformations of melodies.
 #
-# Copyright (C) 2016 Marina Borsodi-Benson
+# Copyright (C) 2016 Marina Cottrell
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

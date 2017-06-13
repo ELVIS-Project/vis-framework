@@ -100,6 +100,5 @@ class FilterByRepeatIndexer(indexer.Indexer):
         post = [part[part != part.shift(1)] for part in self._score]
 
         # prepare the proper return type
-        combinations = [[x] for x in range(len(self._score))]
-        return self.make_return([six.u(str(x))[1:-1] 
-            for x in combinations], post)
+        labels = [ser.name[1] for ser in post]
+        return self.make_return(labels, post)

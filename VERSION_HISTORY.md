@@ -3,6 +3,41 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 3.1.0:
+
+    - Renamed the ```cadence``` indexer to ```approach``` indexer, in order to avoid misunderstanding of its functionality
+    - Rewrite of the ```dissonance``` indexer.
+    - Refactored ```interval``` indexer, getting the labels directly from the ```_score``` private class, rather than from a list comprehension.
+    - Refactored ```meter``` indexer, returning results directly from the ```_score``` private class, rather than a list comprehension 
+    - Reformatted code in ```ngram``` indexer
+    - Refactored ```offset``` indexer:
+        - Added numpy and multi_key_dict dependencies.
+        - Added “dynamic-offset” method, as described in Alexander Morgan’s 2017 dissertation "Renaissance Interval-Succession Theory: Treatise and Analysis” (McGill University).
+        - Added helper functions to define ‘dynamic’ offset settings.
+        - Offset can be used with pandas.DataFrame, or pandas.Series.
+    - Refactored ```repeat``` indexer to incorporate proper labeling of parts in DataFrame.
+    - Refactored ```indexed_piece``` model (highlights):
+        - Reflect renaming of the ```cadence``` to ```approach``` indexer.
+        - Added the ```Counter``` class from the ```collections``` package.
+        - Created better error messages for unknown file types.
+        - Updated private method to get part names from music21.stream.Part
+        - Getting part names with new private ```_get_part_streams``` method.
+        - Added documentation to ```_get_measure```, ```_get_ngram``` private methods.
+        - Added ```_get_offset``` and ```_get_time_signature``` private methods.
+    - Changed pieces in ```ngram_test.py.``` (test pieces paths must be changed to neutral paths)
+    - Updated BWV2 and BWV603 integration tests to reflect the new labels for the parts in a Bach chorale.
+    - Renamed ```test_cadence``` to ```test_approach```, and all references from ```cadence``` to ```approach``` therein.
+    - Adjusted the ```test_dissonance_indexer``` to reflect new column label scheme.
+    - Refactored ```test_duration_indexer``` in regards to the ```DurationIndexer```.
+    - Refactored ```test_fermata_indexer```  in regards to new parts labels.
+    - Refactored ```test_indexed_piece``` to reflect new parts labels.
+    - Rewrite of ```test_interval_indexer``` converting tuples into a ```DataFrame```, rather than appropriate ```Series```, improved efficiency and readability.
+    - Created ```test_measure_indexer```, reflecting new column part labeling.
+    - Rewrote ```test_note_beat_strength_indexer.py```, reflecting new column part labeling.
+    - Rewrote ```test_note_rest_indexer.py```, reflecting new column part labeling.
+    - Refactored ```test_offset.py```, optimized finding the vis pathname, and added new ```test_dynamic_offset_method```.
+    - Refactored ```test_repeat.py```.
+
 * 3.0.4/5:
     - Revert "Revert "Refactor: handling of ```self._score``` in Indexer superclass. 
     - Added documentation to offset indexers. 

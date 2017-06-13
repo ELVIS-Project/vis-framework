@@ -41,9 +41,9 @@ class AllVoiceFermatas(TestCase):
     def test_fermata_indexer_1(self):
         """all-voice fermatas; no WorkflowManager"""
         # Create expected.
-        parts = [pandas.Series(['Fermata']*4, index=[10,19,31,46], name='0'),
-                 pandas.Series(name='1'), pandas.Series(name='2'),
-                 pandas.Series(['Fermata']*4, index=[10,19,31,46], name='3')]        
+        parts = [pandas.Series(['Fermata']*4, index=[10,19,31,46]),
+                 pandas.Series(), pandas.Series(),
+                 pandas.Series(['Fermata']*4, index=[10,19,31,46])]        
         expected = pandas.concat(parts, axis=1)
         indx = pandas.Index(range(47))
         expected = expected.reindex(index=indx)
@@ -51,16 +51,18 @@ class AllVoiceFermatas(TestCase):
 
         # Test.
         ind_piece = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv603.xml'))
+        expected.columns = ind_piece.metadata('parts')
         actual = ind_piece._get_fermata()
         self.assertTrue(actual['fermata.FermataIndexer'].equals(expected))
 
     def test_fermata_indexer_2(self):
         """rest fermatas; no WorkflowManager"""
         # Create expected.
-        temp = [pandas.Series(['Fermata'], index=[6], name='0'), pandas.Series(['Fermata'], index=[6], name='1')]
+        temp = [pandas.Series(['Fermata'], index=[6]), pandas.Series(['Fermata'], index=[6])]
         expected = pandas.concat(temp, axis=1).reindex(pandas.Index([0,1,2,3,4,6]))
         # Test.
         ind_piece = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'test_fermata_rest.xml'))
+        expected.columns = ind_piece.metadata('parts')
         actual = ind_piece._get_fermata()
         self.assertTrue(actual['fermata.FermataIndexer'].equals(expected))
 

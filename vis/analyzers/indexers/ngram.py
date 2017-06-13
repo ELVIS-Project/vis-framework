@@ -357,8 +357,8 @@ class NGramIndexer(indexer.Indexer):
                 raise RuntimeWarning(NGramIndexer._SUPERFLUOUS_HORIZONTAL_DATA)
             elif (self._settings['horizontal'] not in ('lowest', 'highest') 
                 and not all([col_name in self._score[1].columns.levels[1] 
-                    for tup in settings['horizontal'] 
-                    for col_name in tup])):
+                             for tup in settings['horizontal'] 
+                             for col_name in tup])):
                 raise RuntimeError(NGramIndexer._HORIZONTAL_OUT_OF_RANGE)
             self._horizontal_indexer_name = self._score[1].columns[0][0]
         elif len(self._score) != 1: 
@@ -367,21 +367,19 @@ class NGramIndexer(indexer.Indexer):
             raise RuntimeError(NGramIndexer._MISSING_HORIZONTAL_SETTING)
 
         if self._settings['vertical'] != 'all':
-            if not all([col_name in self._score[0].columns.levels[1] 
-                for tup in settings['vertical'] for col_name in tup]):
+            if not all([col_name in self._score[0].columns.levels[1] for
+                        tup in settings['vertical'] for col_name in tup]):
                 raise RuntimeError(NGramIndexer._VERTICAL_OUT_OF_RANGE)
         else: # i.e. self._settings['vertical'] == 'all'
-            self._settings['vertical'] = [(x,) 
-                for x in self._score[0].columns.levels[1]]
+            self._settings['vertical'] = [(x,) for x in
+                                          self._score[0].columns.levels[1]]
 
         if self._settings['horizontal'] == 'lowest':
-            temp = [list(map(int, x[0].split(','))) 
-                for x in self._settings['vertical']]
-            self._settings['horizontal'] = [(str(max(y)),) for y in temp]
+            temp = [x[0].split(',') for x in self._settings['vertical']]
+            self._settings['horizontal'] = [(y[1],) for y in temp]
         elif self._settings['horizontal'] == 'highest':
-            temp = [list(map(int, x[0].split(','))) 
-                for x in self._settings['vertical']]
-            self._settings['horizontal'] = [(str(min(y)),) for y in temp]
+            temp = [x[0].split(',') for x in self._settings['vertical']]
+            self._settings['horizontal'] = [(y[0],) for y in temp]
 
         if self._settings['align'] not in ('left', 'right', 'L', 'R', 'l', 'r', 'Left',
                                            'Right', 'LEFT', 'RIGHT'):

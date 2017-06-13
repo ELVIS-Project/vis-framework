@@ -4,10 +4,10 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               analyzers/indexers/cadence.py
-# Purpose:                Cadence Indexer
+# Filename:               analyzers/indexers/approach.py
+# Purpose:                Approach Indexer
 #
-# Copyright (C) 2016 Marina Borsodi-Benson, M. Ryan Bannon, Alexander 
+# Copyright (C) 2016 M. Ryan Bannon, Marina Cottrell, Alexander 
 # Morgan
 #
 # This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 # <http://www.gnu.org/licenses/>.
 # -------------------------------------------------------------------- #
 """
-.. codeauthor:: Marina Borsodi-Benson <marinaborsodibenson@gmail.com>
+.. codeauthor:: Marina Cottrell <marinaborsodibenson@gmail.com>
 
 """
 
@@ -33,7 +33,7 @@ from vis.analyzers import indexer
 import pandas
 
 
-class CadenceIndexer(indexer.Indexer):
+class ApproachIndexer(indexer.Indexer):
     """
     Using ``OverBassIndexer`` and ``FermataIndexer`` results, finds 
     cadences as lists of events in the approach to a fermata.
@@ -64,7 +64,7 @@ class CadenceIndexer(indexer.Indexer):
     specific advice on how to do this, please see the documentation of 
     those two indexers. These two DataFrames should be passed as a list. 
     For simplicity, including the ``FermataIndexer`` results is 
-    optional, and this example shows how to use the ``CadenceIndexer`` 
+    optional, and this example shows how to use the ``ApproachIndexer`` 
     without explicitly providing the ``FermataIndexer`` results, so the 
     'data' argument is a singleton list.
 
@@ -76,17 +76,17 @@ class CadenceIndexer(indexer.Indexer):
     >>> overbass = ip.get_data('over_bass', data=overbass_input_dfs, 
             settings=ob_setts)
     
-    Get the ``CadenceIndexer`` results with specified settings:
+    Get the ``ApproachIndexer`` results with specified settings:
     
-    >>> ca_setts = {'length': 3}
-    >>> ip.get_data('cadence', data=[overbass], settings=ca_setts)
+    >>> approach_setts = {'length': 3}
+    >>> ip.get_data('approach', data=[overbass], settings=approach_setts)
     
     """
 
     required_score_type = 'pandas.DataFrame'
     possible_settings = ['length', 'voice']
 
-    _MISSING_LENGTH = 'CadenceIndexer requires "length" setting.'
+    _MISSING_LENGTH = 'ApproachIndexer requires "length" setting.'
     _LOW_LENGTH = 'Setting "length" must have a value of at least 1.'
     _BAD_VOICE = 'voice setting must be a voice present in the piece'
 
@@ -127,13 +127,13 @@ class CadenceIndexer(indexer.Indexer):
         else:
             self._settings = settings
 
-        super(CadenceIndexer, self).__init__(score, None)
+        super(ApproachIndexer, self).__init__(score, None)
 
     def run(self):
         """
-        Makes a new index of the cadences in the piece.
+        Makes a new index of the approaches to fermatas in the piece.
 
-        :returns: A :class:`DataFrame` of the cadences.
+        :returns: A :class:`DataFrame` of the approaches.
         :rtype: :class:`pandas.DataFrame`
         """
 
@@ -158,16 +158,16 @@ class CadenceIndexer(indexer.Indexer):
         endings.sort()
         locations = list(zip(beginnings, endings))
 
-        cadences = []
+        approaches = []
 
         for x in range(len(beginnings)):
-            my_cadence = []
+            my_approach = []
             for place in self.fig.loc[locations[x][0]:locations[x][1]].index.tolist():
-                my_cadence.extend(self.fig.loc[place].tolist())
-            cadences.append(my_cadence)
+                my_approach.extend(self.fig.loc[place].tolist())
+            approaches.append(my_approach)
 
         result = pandas.DataFrame(
-            {'Cadences': pandas.Series(cadences, index=beginnings)})
+            {'Approaches': pandas.Series(approaches, index=beginnings)})
 
         return self.make_return(result.columns.values, 
             [result[name] for name in result.columns])

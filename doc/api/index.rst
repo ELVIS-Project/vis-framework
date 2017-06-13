@@ -1,17 +1,22 @@
 .. vis documentation master file, created by
    sphinx-quickstart on Wed Sep 18 00:06:56 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+   You can adapt this file completely to your liking, but it should at 
+   least contain the root `toctree` directive.
 
 .. image:: ELVIS_logo-framework.png
     :alt: Logo for the VIS Music Analysis Framework
     :width: 100 %
 
 This is the API documentation for the VIS Framework for Music Analysis.
-The VIS Framework is a Python package that uses music21 and pandas to build a flexible and easy system for writing symbolic music analysis computer programs.
-By providing a free-and-open solution (AGPLv3+) we hope to lower the barrier to empirical music analysis.
-The VIS Framework was developed at McGill University as part of the ELVIS Project (http://elvisproject.ca).
-VIS has been presented at conferences, including the International Society for Music Information Retrieval and the Society for Music Theory.
+The VIS Framework is a Python package that uses music21 and pandas to 
+build a flexible and easy system for writing symbolic music analysis 
+computer programs.
+
+By providing a free-and-open solution (AGPLv3+) we hope to lower the 
+barrier to empirical music analysis. The VIS Framework was developed at 
+McGill University as part of the ELVIS Project (http://elvisproject.ca).
+VIS has been presented at conferences, including the International 
+Society for Music Information Retrieval and the Society for Music Theory.
 
 About This Documentation
 ------------------------

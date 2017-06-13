@@ -124,12 +124,13 @@ class AllVoiceIntervalNGrams(TestCase):
     def test_ngrams_1(self):
         """Ngram integration test."""
         expected = AllVoiceIntervalNGrams.series_maker(AllVoiceIntervalNGrams.two_grams)
-        expected = pandas.DataFrame({('ngram.NGramIndexer', '0,3 1,3 2,3 : 3'): expected})
+        expected = pandas.DataFrame({('ngram.NGramIndexer', 'Soprano,Bass Alto,Bass Tenor,Bass : Bass'): expected})
         ind_piece = Importer(os.path.join(VIS_PATH, 'tests', 'corpus', 'bwv2.xml'))
         setts = {'quality': False, 'simple': False, 'horiz_attach_later': True}
         horiz_ints = ind_piece.get_data('horizontal_interval', settings=setts)
         vert_ints = ind_piece.get_data('vertical_interval', settings=setts)
-        setts = {'n': 2, 'continuer': '1', 'horizontal': 'lowest', 'vertical': [('0,3', '1,3', '2,3')], 'brackets': True,}
+        setts = {'n': 2, 'continuer': '1', 'horizontal': 'lowest',
+                 'vertical': [('Soprano,Bass', 'Alto,Bass', 'Tenor,Bass')], 'brackets': True,}
         actual = ind_piece.get_data('ngram', data=(vert_ints, horiz_ints), settings=setts)
         self.assertTrue(actual.equals(expected))
 

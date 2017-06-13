@@ -7,7 +7,7 @@
 # Filename:               vis/tests/test_cadence.py
 # Purpose:                Test indexing of cadence indexer.
 #
-# Copyright (C) 2016 Marina Borsodi-Benson, Alexander Morgan
+# Copyright (C) 2016 Marina Cottrell, Alexander Morgan
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as

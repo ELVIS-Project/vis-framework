@@ -33,7 +33,7 @@ import unittest
 import pandas
 from music21 import note, chord, stream, clef, bar
 from vis.analyzers.indexers import noterest
-from vis.models.indexed_piece import Importer, IndexedPiece
+from vis.models.indexed_piece import Importer, IndexedPiece, _find_part_names
 
 # find the pathname of the 'vis' directory
 import vis
@@ -109,7 +109,7 @@ class TestNoteRestIndexer(unittest.TestCase):
     def test_note_rest_indexer_2(self):
         # When the part has no Note or Rest objects in it. Really this is a test for the methods between
         # _get_part_streams() and _get_noterest().
-        expected = pandas.DataFrame({'0': pandas.Series()})
+        expected = pandas.DataFrame({'Part 1': pandas.Series()})
         test_part = stream.Part()
         # add stuff to the test_part
         for i in range(1000):
@@ -121,6 +121,7 @@ class TestNoteRestIndexer(unittest.TestCase):
             test_part.append(add_me)
         ip = IndexedPiece()
         ip._analyses['part_streams'] = [test_part]
+        ip.metadata('parts', _find_part_names(ip._analyses['part_streams']))
         actual = ip.get_data('noterest')['noterest.NoteRestIndexer']
         self.assertTrue(actual.equals(expected))
 
@@ -135,18 +136,16 @@ class TestNoteRestIndexer(unittest.TestCase):
     def test_noterest_indexer_4(self):
         # Combine three previous tests to avoid re-importing the same piece multiple times.
         # Soprano part of bwv77.mxl
-        expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)})
+        expected = TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_soprano)
+        expected.name = 'Soprano'
         ip = Importer(os.path.join(VIS_PATH, 'tests', 'corpus/bwv77.mxl'))
-        all_parts = ip._get_part_streams()
-        ip._analyses['part_streams'] = all_parts[:1]
-        actual = ip._get_noterest()['noterest.NoteRestIndexer']
+        actual = ip._get_noterest()['noterest.NoteRestIndexer'].iloc[:, 0].dropna()
         self.assertTrue(actual.equals(expected))
-
+        
         # Reset analysis dictionary and make the score just the bass part and do the same test.
-        expected = pandas.DataFrame({'0': TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)})
-        ip._analyses = {}
-        ip._analyses['part_streams'] = all_parts[3:]
-        actual = ip._get_noterest()['noterest.NoteRestIndexer']
+        expected = TestNoteRestIndexer.make_series(TestNoteRestIndexer.bwv77_bass)
+        expected.name = 'Bass'
+        actual = ip._get_noterest()['noterest.NoteRestIndexer'].iloc[:, 3].dropna()
         self.assertTrue(actual.equals(expected))
 
 

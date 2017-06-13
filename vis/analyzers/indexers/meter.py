@@ -174,7 +174,7 @@ class DurationIndexer(indexer.Indexer):
                 new = indx.insert(len(indx), self._part_streams[part].highestTime)
                 durations.append(pandas.Series((new[1:] - indx), index=indx))
             result = pandas.concat(durations, axis=1)
-        return self.make_return([str(x) for x in range(len(result.columns))], result)
+        return self.make_return(self._score.columns.get_level_values(1), result)
 
 # The MeasureIndexer is still experimental
 class MeasureIndexer(indexer.Indexer): 

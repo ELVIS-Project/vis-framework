@@ -4,10 +4,10 @@
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
-# Filename:               vis/tests/test_cadence.py
-# Purpose:                Test indexing of cadence indexer.
+# Filename:               vis/tests/test_approach.py
+# Purpose:                Test indexing of approach indexer.
 #
-# Copyright (C) 2016 Marina Borsodi-Benson
+# Copyright (C) 2016 Marina Cottrell
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -25,7 +25,7 @@
 
 from unittest import TestCase, TestLoader
 import pandas
-from vis.analyzers.indexers import cadence
+from vis.analyzers.indexers import approach
 
 
 def make_dataframe(labels, indices, name):
@@ -62,68 +62,68 @@ EXPECTED = make_dataframe(result.columns.values, [result[name] for name in resul
 lyst = [EXPECTED, FERMS]
 
 index = [2.0, 4.5, 9.0]
-cads = [["('M2', 'M3', 'P5', 'M7')", "('P1', 'P8', 'M3', 'P5')"], 
+apprs = [["('M2', 'M3', 'P5', 'M7')", "('P1', 'P8', 'M3', 'P5')"], 
         ["('m2', 'm6', 'P8', 'm3')", "('M2', 'P5', 'M7', 'M3')"], 
         ["('m2', 'm3', 'm3', 'm6')", "('-m2', 'M3', 'P8', 'P5')"]]
 
-label = 'Cadences'
-cad_name = 'cadence.CadenceIndexer'
+label = 'Approaches'
+appr_name = 'approach.ApproachIndexer'
 
-result = pandas.DataFrame({label: pandas.Series(cads, index=index)})
-CADENCE = make_dataframe(result.columns.values, [result[name] for name in result.columns], cad_name)
+result = pandas.DataFrame({label: pandas.Series(apprs, index=index)})
+APPROACH = make_dataframe(result.columns.values, [result[name] for name in result.columns], appr_name)
 
-class TestCadenceIndexer(TestCase):
+class TestApproachIndexer(TestCase):
 
     def test_init1(self):
         """tests that __init__() works with only the basic settings given"""
-        actual = cadence.CadenceIndexer(lyst, {'length': 4})
+        actual = approach.ApproachIndexer(lyst, {'length': 4})
         self.assertEqual(actual._settings, {'length': 4, 'voice': 'all'})
 
     def test_init2(self):
         """tests that __init__() works with all possible settings given"""
         settings = {'length': 3, 'voice': 0}
-        actual = cadence.CadenceIndexer(lyst, settings)
+        actual = approach.ApproachIndexer(lyst, settings)
         self.assertEqual(actual._settings, settings)
 
     def test_init3(self):
         """tests that __init__() fails when length is not given"""
         settings = {}
-        self.assertRaises(RuntimeError, cadence.CadenceIndexer, lyst, settings)
+        self.assertRaises(RuntimeError, approach.ApproachIndexer, lyst, settings)
         try:
-            cadence.CadenceIndexer(lyst, settings)
+            approach.ApproachIndexer(lyst, settings)
         except RuntimeError as run_err:
-            self.assertEqual(cadence.CadenceIndexer._MISSING_LENGTH, run_err.args[0])
+            self.assertEqual(approach.ApproachIndexer._MISSING_LENGTH, run_err.args[0])
 
     def test_init4(self):
         """tests that __init__() fails when the given length is too low"""
         settings = {'length': 0.3}
-        self.assertRaises(RuntimeError, cadence.CadenceIndexer, lyst, settings)
+        self.assertRaises(RuntimeError, approach.ApproachIndexer, lyst, settings)
         try:
-            cadence.CadenceIndexer(lyst, settings)
+            approach.ApproachIndexer(lyst, settings)
         except RuntimeError as run_err:
-            self.assertEqual(cadence.CadenceIndexer._LOW_LENGTH, run_err.args[0])
+            self.assertEqual(approach.ApproachIndexer._LOW_LENGTH, run_err.args[0])
 
     def test_init5(self):
         """tests that __init__() fails when the given voice doesn't exist"""
         settings = {'length': 2, 'voice': 15}
-        self.assertRaises(RuntimeError, cadence.CadenceIndexer, lyst, settings)
+        self.assertRaises(RuntimeError, approach.ApproachIndexer, lyst, settings)
         try: 
-            cadence.CadenceIndexer(lyst, settings)
+            approach.ApproachIndexer(lyst, settings)
         except RuntimeError as run_err:
-            self.assertEqual(cadence.CadenceIndexer._BAD_VOICE, run_err.args[0])
+            self.assertEqual(approach.ApproachIndexer._BAD_VOICE, run_err.args[0])
 
-    def test_cadence(self):
-        """tests that running the cadence indexer returns the expected results"""
+    def test_approach(self):
+        """tests that running the approach indexer returns the expected results"""
         settings = {'length': 2}
-        actual = cadence.CadenceIndexer(lyst, settings).run()
-        self.assertTrue(actual.equals(CADENCE))
+        actual = approach.ApproachIndexer(lyst, settings).run()
+        self.assertTrue(actual.equals(APPROACH))
 
-    def test_cadence2(self):
+    def test_approach2(self):
         settings = {'length': 2, 'voice': 0}
-        actual = cadence.CadenceIndexer(lyst, settings).run()
-        self.assertTrue(actual.equals(CADENCE))
+        actual = approach.ApproachIndexer(lyst, settings).run()
+        self.assertTrue(actual.equals(APPROACH))
 
 #--------------------------------------------------------------------------------------------------#
 # Definitions                                                                                      #
 #--------------------------------------------------------------------------------------------------#
-CADENCE_INDEXER_SUITE = TestLoader().loadTestsFromTestCase(TestCadenceIndexer)
+APPROACH_INDEXER_SUITE = TestLoader().loadTestsFromTestCase(TestApproachIndexer)

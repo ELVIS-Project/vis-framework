@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#--------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Program Name:           vis
 # Program Description:    Helps analyze music with computers.
 #
@@ -21,7 +21,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#--------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 """
 .. codeauthor:: Christopher Antila <christopher@antila.ca>
 
@@ -30,7 +30,7 @@ Distutils information for the VIS Framework.
 
 from setuptools import setup
 import vis  # to get the version numbers
-
+import os # to create file paths
 
 # NOTE: update this from 'vis/__init__.py'
 MAJOR = vis._MAJOR
@@ -42,24 +42,24 @@ setup(
     name = "vis-framework",
     version = VERSION,
     description = "The VIS Framework for Music Analysis",
-    author = "Christopher Antila, Jamie Klassen, Alexander Morgan, Ryan Bannon",
+    author = "Christopher Antila, Ryan Bannon, Marina Cottrell, Jamie Klassen, Reiner Kramer, Alexander Morgan",
     author_email = "christopher@antila.ca",
     license = "AGPLv3+",
     url = "http://elvisproject.ca/api/",
     download_url = 'https://pypi.python.org/packages/source/v/vis-framework/vis-framework-%s.tar.bz2' % VERSION,
     platforms = 'any',
-    keywords = ['music', 'music analysis', 'music theory', 'counterpoint'],
+    keywords = ['music', 'music analysis', 'music theory', 'musicology', 'counterpoint'],
     requires = [
         'music21 (== 2.1.2)',
         'pandas (== 0.18.1)',
         'multi_key_dict (== 2.0.3)',
-	'requests (== 2.11.1)'
+		'requests (== 2.11.1)'
         ],
     install_requires = [
         'music21 == 2.1.2',
         'pandas == 0.18.1',
         'multi_key_dict == 2.0.3',
-	'requests == 2.11.1'
+		'requests == 2.11.1'
         ],
     packages = [
         'vis',
@@ -68,7 +68,8 @@ setup(
         'vis.analyzers.indexers',
         'vis.analyzers.experimenters',
         ],
-    package_data = {'vis': ['scripts/*']},
+    include_package_data=True,
+    #package_data = {'vis': ['scripts/*','corpora/*']},
     classifiers = [
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
