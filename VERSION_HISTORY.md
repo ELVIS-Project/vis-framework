@@ -3,6 +3,19 @@ VERSION HISTORY
 This file records version-to-version changes in the VIS Framework. The most recent versions are at
 the top of the file.
 
+* 3.1.1:
+    - Fixing related bugs of incorrect ngram computations with horizontal intervals' ```quality``` != ```diatonic with quality``` 
+        - The ngrams are mistaken in every other case because 'diatonic with quality' defaults to ```horiz_attach_later``` = True and all other qualities do not
+        - The ngram indexer is assuming a horizontal interval dataframe where the intervals correspond to the interval arriving at the offset and not starting from the offset
+        - The default configuration for ```horiz_attach_later``` is contradictory with the documentation of vis
+            - The documentation says ```horiz_attach_later``` = False, by default
+            - In reality (the code), it is the other way around, ```horiz_attach_later``` = True
+        - Since the ngram works with ```horiz_attach_later```, this should be the default option and there should be an option for ```horiz_attach_before```, in case the user wants to compute that
+            - That implementation is friendly to the way vis is implemented and required only a few lines of code to invert the logic of control structures
+        - Therefore, renaming setting ```horiz_attach_later``` to its inverse, ```horiz_attach_before```
+            - Making this setting False by default
+            - This way, if the user is intending to produce ngrams, it can neglect this setting from the horizontal intervals and all the horizontal ```quality``` settings will work by default
+
 * 3.1.0:
 
     - Renamed the ```cadence``` indexer to ```approach``` indexer, in order to avoid misunderstanding of its functionality

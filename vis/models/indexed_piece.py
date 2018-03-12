@@ -56,7 +56,7 @@ a score in symbolic notation.'
 _UNKNOWN_PIECE_TITLE = 'Unknown Piece'
 # Types for noterest indexing
 _noterest_types = ('Note', 'Rest', 'Chord')
-_default_interval_setts = {'quality':True, 'directed':True, 'simple or compound':'compound', 'horiz_attach_later':True}
+_default_interval_setts = {'quality':True, 'directed':True, 'simple or compound':'compound', 'horiz_attach_before': False}
 
 def login_edb(username, password):
     """Return csrf and session tokens for a login."""
@@ -716,7 +716,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         settings, they are recalculated from these 'complete' cached results. This reindexing is 
         done with the interval.IntervalReindexer. Those details are the same as for the 
         _get_vertical_interval() method, but this method has an added check to see if the user asked 
-        for horiz_attach_later == False. In this case the index of each part's horizontal intervals 
+        for horiz_attach_before == False. In this case the index of each part's horizontal intervals 
         is shifted forward one element and 0.0 is assigned as the first element."""
         # No matter what settings the user specifies, calculate the intervals in the most complete way.
         if 'horizontal_interval' not in self._analyses:
@@ -727,7 +727,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
                 'simple or compound' in settings and settings['simple or compound'] == 'compound'):
             post = interval.IntervalReindexer(self._analyses['horizontal_interval'], settings).run()
             # Switch to 'attach before' if necessary.
-            if 'horiz_attach_later' not in settings or not settings['horiz_attach_later']:
+            if 'horiz_attach_before' in settings and settings['horiz_attach_before'] == True:
                 post = _attach_before(post)
             return post
         return self._analyses['horizontal_interval']
@@ -738,7 +738,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         the indexed_piece that is the self argument. If you want to call this with indexer results 
         other than those associated with self, you can call the indexer directly."""
         if 'dissonance' not in self._analyses:
-            h_setts = {'quality': False, 'simple or compound': 'compound', 'horiz_attach_later': False}
+            h_setts = {'quality': False, 'simple or compound': 'compound', 'horiz_attach_before': False}
             v_setts = setts = {'quality': True, 'simple or compound': 'simple', 'directed': True}
             in_dfs = [self._get_beat_strength(), self._get_duration(),
                       self._get_horizontal_interval(h_setts), self._get_vertical_interval(v_setts)]

@@ -527,7 +527,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         before everything else if the first note passed is higher than 
         the second.
     
-    :keyword boolean 'horiz_attach_later': If ``True``, the offset for a 
+    :keyword boolean 'horiz_attach_before': If ``True``, the offset for a 
         horizontal interval is the offset of the later note in the 
         interval. The default is ``False``, which gives horizontal 
         intervals the offset of the first note in the interval.
@@ -549,7 +549,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
     """
 
     default_settings = {'simple or compound': 'compound', 'quality': False, 'directed':True, 
-                        'horiz_attach_later': False, 'mp': True}
+                        'horiz_attach_before': False, 'mp': True}
 
     def __init__(self, score, settings=None):
         """
@@ -585,7 +585,7 @@ class HorizontalIntervalIndexer(IntervalIndexer):
         # note involved.
         post = [self._score.iloc[:, x].dropna() 
             for x in range(len(self._score.columns))]
-        if (self._settings['horiz_attach_later']):
+        if not (self._settings['horiz_attach_before']):
             post = [pandas.Series(list(zip(x.values[1:], x.values[:-1])), index=x.index[1:]) 
                 for x in post]
         else:
