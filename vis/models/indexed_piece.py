@@ -176,6 +176,13 @@ def _type_func_noterest(event):
         return event
     return float('nan')
 
+
+def _type_func_gracenote(event):
+    """Find gracenotes and filter them from the Noterest dataframe"""
+    if hasattr(event, 'duration') and not event.duration.linked:
+        return float('nan')
+    return event
+
 def _type_func_measure(event):
     """Used internally by _get_m21_measure_objs() to filter for just the 'Measure' objects in a 
     piece."""
@@ -599,7 +606,7 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         """
         if 'm21_objs' not in self._analyses:
             # save the results as a list of series in the indexed_piece attributes
-            sers =[]
+            sers = []
             for i, p in enumerate(self._get_part_streams()):
                 # NB: since we don't use ActiveSites, not restoring them is a minor speed-up. Also, 
                 # skipSelf will soon change its default to True in music21.
@@ -624,6 +631,8 @@ are not encoded in midi files so VIS currently cannot detect measures in midi fi
         if 'm21_nrc_objs' not in self._analyses:
             # get rid of all m21 objects that aren't notes, rests, or chords in each part series
             sers = [s.apply(_type_func_noterest).dropna() for s in self._get_m21_objs()]
+            # get rid of gracenotes because their duration offsets conflict with pandas indexes
+            sers = [s.apply(_type_func_gracenote).dropna() for s in sers]
             for i, ser in enumerate(sers): # and index  the offsets
                 if not ser.index.is_unique: # the index is often not unique if there is an embedded voice
                     sers[i] = _combine_voices(ser, self._get_m21_objs()[i])
