@@ -1,7 +1,7 @@
 The VIS Framework
 =================
 
-> Currently, vis is only supported in `Python3.5` and with an old version of `pandas==0.18.1`. Eventually, we would like to catch up with current releases, in the meantime, you can run vis-framework using a python virtual environment
+> Currently, vis is only supported in `Python3.5` and with an old version of `pandas==0.18.1`. Eventually, we would like to catch up with current releases, in the meantime, you can run vis-framework using a python virtual environment. See an example in the *Running in Virtual Environment* section
 
 
 The VIS Framework for Music Analysis
@@ -48,6 +48,28 @@ You can find documentation here:
 - [Major Release Documentation](http://vis-framework.readthedocs.org/)
 - [Stable Release Documentation](http://vis-framework.readthedocs.org/en/stable/)
 - [Latest Release Documentation](http://vis-framework.readthedocs.org/en/latest/), a.k.a. "bleeding edge" 
+
+
+Running in Virtual Environment
+==============================
+
+Using `anaconda`, create and activate a new `Python3.5` environment:
+```
+conda create -n vis python=3.5
+conda activate vis
+```
+
+Install the required packages:
+```
+pip install -r vis/requirements.txt
+```
+
+Install vis:
+```
+python setup.py install
+```
+
+You should be ready to go
 
 Citation
 ========
