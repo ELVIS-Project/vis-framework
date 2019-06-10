@@ -1,6 +1,9 @@
 The VIS Framework
 =================
 
+> Currently, vis is only supported in `Python3.5` and with an old version of `pandas==0.18.1`. Eventually, we would like to catch up with current releases, in the meantime, you can run vis-framework using a python virtual environment
+
+
 The VIS Framework for Music Analysis
 
 [![Build Status](https://travis-ci.org/ELVIS-Project/vis-framework.svg?branch=master)](https://travis-ci.org/ELVIS-Project/vis-framework)
