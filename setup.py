@@ -51,13 +51,15 @@ setup(
     keywords = ['music', 'music analysis', 'music theory', 'musicology', 'counterpoint'],
     requires = [
         'music21 (== 2.1.2)',
-        'pandas (== 0.18.1)',
+        'numpy (== 1.11.0)',
+        'pandas (== 0.17.1)',
         'multi_key_dict (== 2.0.3)',
 		'requests (== 2.11.1)'
         ],
     install_requires = [
         'music21 == 2.1.2',
-        'pandas == 0.18.1',
+        'numpy (== 1.11.0)',
+        'pandas == 0.17.1',
         'multi_key_dict == 2.0.3',
 		'requests == 2.11.1'
         ],
