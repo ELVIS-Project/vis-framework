@@ -61,7 +61,7 @@ setup(
         'numpy (== 1.11.0)',
         'pandas == 0.17.1',
         'multi_key_dict == 2.0.3',
-		'requests == 2.11.1'
+		'requests == 2.31.0'
         ],
     packages = [
         'vis',
